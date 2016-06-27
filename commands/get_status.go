@@ -16,6 +16,6 @@ type GetStatusResult struct {
 }
 
 // GetStatus returns current build status.
-func GetStatus(c *db.Cocoon, inputJSON []byte) interface{} {
-	return &GetStatusResult{"ok"}
+func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
+	return &GetStatusResult{"ok"}, nil
 }

@@ -51,6 +51,13 @@ func (c *Cocoon) PutChecklist(key *datastore.Key, checklist *Checklist) error {
 	return err
 }
 
+// PutTask saves a Task to database under the given key.
+func (c *Cocoon) PutTask(task *Task) error {
+	key := datastore.NewIncompleteKey(c.Ctx, "Task", task.ChecklistKey)
+	_, err := datastore.Put(c.Ctx, key, task)
+	return err
+}
+
 // CommitInfo contain information about a GitHub commit.
 type CommitInfo struct {
 	Sha    string
@@ -74,10 +81,12 @@ type Checklist struct {
 // independently. Different tasks belonging to the same Checklist can run in
 // parallel.
 type Task struct {
-	ChecklistKey   *datastore.Key
-	StageName      string
-	Name           string
+	ChecklistKey *datastore.Key
+	StageName    string
+	Name         string
+
+	// One of "Scheduled", "In Progress", "Succeeded", "Failed", "Skipped".
 	Status         string
-	startTimestamp time.Time
-	endTimestamp   time.Time
+	StartTimestamp time.Time
+	EndTimestamp   time.Time
 }

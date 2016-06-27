@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"time"
 
+	"appengine"
+	"appengine/datastore"
 	"appengine/urlfetch"
 )
 
@@ -27,7 +29,7 @@ type CommitSyncResult struct {
 }
 
 // RefreshGithubCommits returns the information about the latest GitHub commits.
-func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) interface{} {
+func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	httpClient := urlfetch.Client(c.Ctx)
 
 	// Fetch data from GitHub
@@ -40,27 +42,78 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) interface{} {
 	// Sync to datastore
 	var commitResults []CommitSyncResult
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))
-	for i := 0; i < len(commits); i++ {
-		commit := commits[i]
-		commitResults[i].Commit = commit.Sha
-		checklistKey := c.ChecklistKey("flutter/flutter", commit.Sha)
-		if !c.EntityExists(checklistKey) {
-			err := c.PutChecklist(checklistKey, &db.Checklist{
-				"flutter/flutter",
-				*commit,
-				time.Now(),
-			})
-			if err == nil {
+	var err error
+	err = datastore.RunInTransaction(c.Ctx, func(tc appengine.Context) error {
+		c = db.NewCocoon(tc)
+		for i := 0; i < len(commits); i++ {
+			commit := commits[i]
+			commitResults[i].Commit = commit.Sha
+			checklistKey := c.ChecklistKey("flutter/flutter", commit.Sha)
+			if !c.EntityExists(checklistKey) {
+				err = c.PutChecklist(checklistKey, &db.Checklist{
+					"flutter/flutter",
+					*commit,
+					time.Now(),
+				})
+
+				if err != nil {
+					return err
+				}
+
+				tasks := createTaskList(checklistKey)
+				for _, task := range tasks {
+					err = c.PutTask(task)
+					if err != nil {
+						return err
+					}
+				}
 				commitResults[i].Outcome = "Synced"
 			} else {
-				c.Ctx.Warningf("Faled to sync commit: %v", err)
-				commitResults[i].Outcome = "Sync Failed"
+				commitResults[i].Outcome = "Skipped"
 			}
-		} else {
-			commitResults[i].Outcome = "Skipped"
 		}
+		return nil
+	}, &datastore.TransactionOptions{
+		// Syncing multiple checklists in one transaction, each defining its own
+		// entity group, hence XG has to be true.
+		true,
+		// Number of times to retry a transaction.
+		3,
+	})
+
+	if err != nil {
+		return nil, err
 	}
-	return RefreshGithubCommitsResult{
-		commitResults,
+
+	return RefreshGithubCommitsResult{commitResults}, nil
+}
+
+// TODO(yjbanov): the task list should be stored in the flutter/flutter repo.
+func createTaskList(checklistKey *datastore.Key) []*db.Task {
+	return []*db.Task{
+		&db.Task{
+			checklistKey,
+			"travis",
+			"travis",
+			"Scheduled",
+			time.Time{},
+			time.Time{},
+		},
+		&db.Task{
+			checklistKey,
+			"chromebot",
+			"mac_bot",
+			"Scheduled",
+			time.Time{},
+			time.Time{},
+		},
+		&db.Task{
+			checklistKey,
+			"chromebot",
+			"linux_bot",
+			"Scheduled",
+			time.Time{},
+			time.Time{},
+		},
 	}
 }

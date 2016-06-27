@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"cocoon/commands"
@@ -21,10 +22,31 @@ func init() {
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 }
 
-func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) interface{}) {
+func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		bytes, _ := ioutil.ReadAll(r.Body)
-		outputData, _ := json.Marshal(handler(db.NewCocoon(appengine.NewContext(r)), bytes))
+		bytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			serveError(w, err)
+			return
+		}
+
+		response, err := handler(db.NewCocoon(appengine.NewContext(r)), bytes)
+		if err != nil {
+			serveError(w, err)
+			return
+		}
+
+		outputData, err := json.Marshal(response)
+		if err != nil {
+			serveError(w, err)
+			return
+		}
+
 		w.Write(outputData)
 	})
+}
+
+func serveError(w http.ResponseWriter, err error) {
+	w.WriteHeader(500)
+	w.Write([]byte(fmt.Sprintf("%v", err)))
 }
