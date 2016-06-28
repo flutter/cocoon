@@ -51,11 +51,57 @@ func (c *Cocoon) PutChecklist(key *datastore.Key, checklist *Checklist) error {
 	return err
 }
 
+// QueryLatestChecklists queries the datastore for the latest checklists sorted
+// by CreateTimestamp in descending order. Returns up to 20 entities.
+func (c *Cocoon) QueryLatestChecklists() ([]*ChecklistEntity, error) {
+	query := datastore.NewQuery("Checklist").Order("-CreateTimestamp").Limit(20)
+	var buffer []*ChecklistEntity
+	for iter := query.Run(c.Ctx); ; {
+		var checklist Checklist
+		key, err := iter.Next(&checklist)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		buffer = append(buffer, &ChecklistEntity{
+			key,
+			&checklist,
+		})
+	}
+	return buffer, nil
+}
+
 // PutTask saves a Task to database under the given key.
 func (c *Cocoon) PutTask(task *Task) error {
 	key := datastore.NewIncompleteKey(c.Ctx, "Task", task.ChecklistKey)
 	_, err := datastore.Put(c.Ctx, key, task)
 	return err
+}
+
+// QueryTasks queries the database for all tasks belonging to a given checklist
+// sorted by StageName.
+func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
+	query := datastore.NewQuery("Task").Filter("ChecklistKey =", checklistKey).Order("-StageName").Limit(20)
+	var buffer []*TaskEntity
+	i := 0
+	for iter := query.Run(c.Ctx); ; {
+		var task Task
+		key, err := iter.Next(&task)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		buffer = append(buffer, &TaskEntity{
+			key,
+			&task,
+		})
+		i++
+	}
+	return buffer, nil
 }
 
 // CommitInfo contain information about a GitHub commit.
@@ -70,11 +116,24 @@ type AuthorInfo struct {
 	AvatarURL string `json:"avatar_url"`
 }
 
-// Checklist represents a list of tasks for our bots to run.
+// ChecklistEntity contains storage data on a Checklist.
+type ChecklistEntity struct {
+	Key       *datastore.Key
+	Checklist *Checklist
+}
+
+// Checklist represents a list of tasks for our bots to run for a particular
+// commit from a particular fork of the Flutter repository.
 type Checklist struct {
 	FlutterRepositoryURL string
 	Commit               CommitInfo
 	CreateTimestamp      time.Time
+}
+
+// TaskEntity contains storage data on a Task.
+type TaskEntity struct {
+	Key  *datastore.Key
+	Task *Task
 }
 
 // Task is a unit of work that our bots perform that can fail or succeed
