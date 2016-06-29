@@ -3,41 +3,49 @@
 // found in the LICENSE file.
 
 import 'dart:html';
+import 'dart:convert' show JSON;
 
 import 'package:angular2/angular2.dart';
+import 'package:cocoon/model.dart';
 
 @Component(
   selector: 'status-table',
   template: '''
-<table>
+<div *ngIf="isLoading">Loading...</div>
+<table *ngIf="!isLoading">
   <tr>
-    <th>&nbsp;</th>
-    <th>b4k5n66h5v4j (abarth)</th>
-    <th>n38595u55i95 (sethladd)</th>
-    <th>4958dhe74282 (hixie)</th>
-    <th>hh3g4749u47i (tvolkert)</th>
+    <td class="table-header-cell">
+      Commit
+    </td>
+    <td *ngFor="let task of statuses.first.tasks" class="table-header-cell">
+      {{task.task.name}}
+    </td>
   </tr>
-  <tr>
-    <td>travis linux</td>
-    <td class="task-successful">&nbsp;</td>
-    <td class="task-failed">&nbsp;</td>
-    <td class="task-underperformed">&nbsp;</td>
-    <td class="task-skipped">&nbsp;</td>
-  </tr>
-  <tr>
-    <td>travis linux</td>
-    <td class="task-underperformed">&nbsp;</td>
-    <td class="task-successful">&nbsp;</td>
-    <td class="task-in-progress">&nbsp;</td>
-    <td class="task-skipped">&nbsp;</td>
+  <tr *ngFor="let status of statuses">
+    <td class="table-header-cell">
+      {{shortSha(status.checklist.checklist.commit.sha)}}
+      ({{shortSha(status.checklist.checklist.commit.author.login)}})
+    </td>
+    <td *ngFor="let task of status.tasks">
+      {{task.task.status}}
+    </td>
   </tr>
 </table>
-'''
+''',
+  directives: const [NgIf, NgFor]
 )
 class StatusTable implements OnInit {
+  bool isLoading = true;
+  List<BuildStatus> statuses;
+
   @override
   ngOnInit() async {
-    String json = await HttpRequest.getString('/api/get-status');
-    print(json);
+    GetStatusResult statusResult = GetStatusResult.fromJson(JSON.decode(await HttpRequest.getString('/api/get-status')));
+    isLoading = false;
+    statuses = statusResult.statuses;
+  }
+
+  String shortSha(String fullSha) {
+    return fullSha.length > 7 ? fullSha.substring(0, 7) : fullSha;
   }
 }

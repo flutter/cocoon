@@ -125,7 +125,7 @@ type ChecklistEntity struct {
 // Checklist represents a list of tasks for our bots to run for a particular
 // commit from a particular fork of the Flutter repository.
 type Checklist struct {
-	FlutterRepositoryURL string
+	FlutterRepositoryPath string
 	Commit               CommitInfo
 	CreateTimestamp      time.Time
 }

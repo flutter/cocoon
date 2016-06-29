@@ -259,3 +259,7 @@ td.stats-value {
 .task-in-progress {
   background-color: blue;
 }
+
+.table-header-cell {
+  font-weight: bold;
+}
