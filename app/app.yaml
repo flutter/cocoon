@@ -6,8 +6,11 @@ runtime: go
 api_version: go1
 
 handlers:
+- url: /
+  static_files: build/web/index.html
+  upload: build/web/index.html
 - url: /(.*\.(html|css|js|ico|svg|png|jpg))$
-  static_files: \1
-  upload: .*\.(html|css|js|ico|svg|png|jpg)$
+  static_files: build/web/\1
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg)$
 - url: /api/.*
   script: _go_app
