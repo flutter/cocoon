@@ -14,3 +14,8 @@ handlers:
   upload: build/web/.*\.(html|css|js|ico|svg|png|jpg)$
 - url: /api/.*
   script: _go_app
+skip_files:
+- (.+/)?packages/.*
+- .pub/.*
+- .atom/.*
+- .packages

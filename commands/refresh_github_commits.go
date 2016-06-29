@@ -76,9 +76,7 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	}, &datastore.TransactionOptions{
 		// Syncing multiple checklists in one transaction, each defining its own
 		// entity group, hence XG has to be true.
-		true,
-		// Number of times to retry a transaction.
-		3,
+		XG: true,
 	})
 
 	if err != nil {
