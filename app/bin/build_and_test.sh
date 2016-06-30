@@ -9,6 +9,8 @@ fi
 
 pub run test
 pub build
+cp web/*.dart build/web/
+cp -RL packages build/web/
 
 echo
 echo "Build succeeded! To deploy to App Engine run the following command after replacing {VERSION}:"

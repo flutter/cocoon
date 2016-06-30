@@ -12,7 +12,7 @@ import 'package:cocoon/model.dart';
   selector: 'status-table',
   template: '''
 <div *ngIf="isLoading">Loading...</div>
-<table *ngIf="!isLoading">
+<table *ngIf="!isLoading && statuses.length > 0">
   <tr>
     <td class="table-header-cell">
       Commit
@@ -42,7 +42,7 @@ class StatusTable implements OnInit {
   ngOnInit() async {
     GetStatusResult statusResult = GetStatusResult.fromJson(JSON.decode(await HttpRequest.getString('/api/get-status')));
     isLoading = false;
-    statuses = statusResult.statuses;
+    statuses = statusResult.statuses ?? <BuildStatus>[];
   }
 
   String shortSha(String fullSha) {

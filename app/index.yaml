@@ -8,3 +8,8 @@ indexes:
   properties:
   - name: CreateTimestamp
     direction: desc
+- kind: Task
+  properties:
+  - name: ChecklistKey
+  - name: StageName
+    direction: desc

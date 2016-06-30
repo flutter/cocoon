@@ -17,8 +17,3 @@ transformers:
 - $dart2js:
     minify: true
     sourceMaps: true
-    commandLineOptions:
-        - --show-package-warnings
-        - --trust-type-annotations
-        - --trust-primitives
-        - --enable-experimental-mirrors
