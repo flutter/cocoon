@@ -40,8 +40,14 @@ main() {
 
 _start() async {
   _streamSubscriptions.addAll(<StreamSubscription>[
-    ProcessSignal.SIGINT.watch().listen(_stop),
-    ProcessSignal.SIGTERM.watch().listen(_stop),
+    ProcessSignal.SIGINT.watch().listen((_) {
+      print('\nReceived SIGINT. Shutting down.');
+      _stop(ProcessSignal.SIGINT);
+    }),
+    ProcessSignal.SIGTERM.watch().listen((_) {
+      print('\nReceived SIGTERM. Shutting down.');
+      _stop(ProcessSignal.SIGTERM);
+    }),
   ]);
 
   await _validateCwd();
@@ -65,6 +71,7 @@ _start() async {
     await _whenLocalPortIsListening(_goappServePort);
     await _whenLocalPortIsListening(_pubServePort);
   } catch(_) {
+    print('\n[ERROR] Timed out waiting for goapp and pub ports to become available\n');
     _stop();
   }
 
@@ -118,7 +125,7 @@ Future<Null> _whenLocalPortIsListening(int port) async {
   dynamic lastError;
   dynamic lastStackTrace;
 
-  while(sw.elapsed < const Duration(seconds: 5) && socket == null) {
+  while(sw.elapsed < const Duration(seconds: 20) && socket == null) {
     try {
       socket = await Socket.connect('localhost', port);
     } catch(error, stackTrace) {
@@ -178,7 +185,6 @@ Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
     return;
   }
   _stopping = true;
-  print('\nReceived $signal. Shutting down.');
   _streamSubscriptions.forEach((s) => s.cancel());
   await devServer.close(force: true);
 
