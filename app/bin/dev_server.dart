@@ -137,6 +137,7 @@ Future<Null> _whenLocalPortIsListening(int port) async {
 class ManagedProcess {
   ManagedProcess(this.name, this.process) {
     process.exitCode.then((int exitCode) {
+      print('$name exited.');
       if (!_stopping) {
         _childProcesses.remove(process);
         _stop(ProcessSignal.SIGINT);
@@ -185,7 +186,7 @@ Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
     .wait(_childProcesses.map((p) => p.process.exitCode))
     .timeout(const Duration(seconds: 5))
     .whenComplete(() {
-      // TODO(yjbanov): something is preventing the Dart VM to exit and I can't
+      // TODO(yjbanov): something is preventing the Dart VM from exiting and I can't
       // figure out what.
       exit(0);
     });

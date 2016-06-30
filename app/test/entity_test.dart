@@ -51,32 +51,20 @@ main() {
   });
 
   group('dateTime', () {
+    var testDate = new DateTime(2016, 6, 28);
+    var testMillis = testDate.millisecondsSinceEpoch;
+
     test('serialize DateTime', () {
-      expect(dateTime().serialize(new DateTime(2016, 6, 28)), '2016-06-28T00:00:00Z');
-      expect(
-        dateTime().serialize(new DateTime(2016, 6, 27, 21, 20, 53, 0, 123)),
-        '2016-06-27T21:20:53.123000Z'
-      );
-      expect(
-        dateTime().serialize(new DateTime(2016, 6, 27, 21, 20, 53, 123, 456)),
-        '2016-06-27T21:20:53.123456000Z'
-      );
-      expect(dateTime().serialize(null), '0001-01-01T00:00:00Z');
+      expect(dateTime().serialize(testDate), testMillis);
+      expect(dateTime().serialize(null), 0);
     });
+
     test('deserialize DateTime', () {
       expect(
-        dateTime().deserialize('2016-06-27T21:20:53.698152Z'),
-        new DateTime(2016, 6, 27, 21, 20, 53, 0, 698)
+        dateTime().deserialize(testMillis),
+        testDate
       );
-      expect(
-        dateTime().deserialize('2016-06-27T21:20:53.123456789Z'),
-        new DateTime(2016, 6, 27, 21, 20, 53, 123, 456)
-      );
-      expect(
-        dateTime().deserialize('2016-06-27T21:20:53Z'),
-        new DateTime(2016, 6, 27, 21, 20, 53)
-      );
-      expect(dateTime().deserialize('0001-01-01T00:00:00Z'), null);
+      expect(dateTime().deserialize(0), null);
     });
   });
 }

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:intl/intl.dart' as intl;
 import 'package:cocoon/logging.dart';
 
 /// Stores a data entity's data in a [Map] and serializes it to/from JSON.
@@ -93,59 +92,26 @@ class NumSerializer implements JsonSerializer<num> {
   dynamic serialize(num value) => value;
 }
 
-/// Serializes date-times in Go JSON-compatible way.
+/// Serializes between [DateTime] and milliseconds with the epoch.
 class DateTimeSerializer implements JsonSerializer<DateTime> {
-  // See https://golang.org/pkg/time/#Time.IsZero.
-  static const zeroDateTime = '0001-01-01T00:00:00Z';
-
-  static final intl.DateFormat _rfc3339Format =
-      new intl.DateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
-  static final RegExp _rfc3339RegExp =
-      new RegExp(r'^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(\.(\d+))?Z$');
 
   const DateTimeSerializer();
 
+  @override
   DateTime deserialize(dynamic jsonValue) {
-    if (jsonValue == null || jsonValue == zeroDateTime)
+    if (jsonValue == null || jsonValue == 0)
       return null;
 
-    if (jsonValue is! String)
-      throw 'Expected DateTime to be JSON-encoded as String but was ${jsonValue.runtimeType}: $jsonValue';
+    if (jsonValue is! int)
+      throw 'Expected DateTime to be JSON-encoded as int in milliseconds since the epoch but was ${jsonValue.runtimeType}: $jsonValue';
 
-    Match m = _rfc3339RegExp.firstMatch(jsonValue as String);
-
-    if (m == null)
-      throw 'DateTime does not conform to RFC3339 format: $jsonValue';
-
-    int millis = 0;
-    int micros = 0;
-
-    if (m[8] != null) {
-      int nanos = int.parse(m[8]);
-      millis = nanos ~/ 1000000;
-      micros = nanos ~/ 1000 - millis * 1000;
-    }
-
-    return new DateTime(
-      int.parse(m[1]),
-      int.parse(m[2]),
-      int.parse(m[3]),
-      int.parse(m[4]),
-      int.parse(m[5]),
-      int.parse(m[6]),
-      millis,
-      micros
-    );
+    return new DateTime.fromMillisecondsSinceEpoch(jsonValue);
   }
+
+  @override
   dynamic serialize(DateTime value) => value != null
-    ? '${_rfc3339Format.format(value)}${value.millisecond > 0 || value.microsecond > 0 ? _formatNanos(value) : ""}Z'
-    : '0001-01-01T00:00:00Z';
-
-  static String _formatNanos(DateTime value) {
-    int nanos = value.millisecond * 1000000 + value.microsecond * 1000;
-    return '.${nanos}';
-  }
+    ? value.millisecondsSinceEpoch
+    : 0;
 }
 
 typedef T EntityFactory<T>(Map<String, dynamic> props);

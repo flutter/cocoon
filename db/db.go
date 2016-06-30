@@ -4,7 +4,6 @@
 
 package db
 
-import "time"
 import "appengine"
 import "appengine/datastore"
 
@@ -126,8 +125,8 @@ type ChecklistEntity struct {
 // commit from a particular fork of the Flutter repository.
 type Checklist struct {
 	FlutterRepositoryPath string
-	Commit               CommitInfo
-	CreateTimestamp      time.Time
+	Commit                CommitInfo
+	CreateTimestamp       int64
 }
 
 // TaskEntity contains storage data on a Task.
@@ -146,6 +145,6 @@ type Task struct {
 
 	// One of "Scheduled", "In Progress", "Succeeded", "Failed", "Skipped".
 	Status         string
-	StartTimestamp time.Time
-	EndTimestamp   time.Time
+	StartTimestamp int64
+	EndTimestamp   int64
 }

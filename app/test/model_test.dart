@@ -23,7 +23,7 @@ main() {
                     'AvatarURL': 'http://photo'
                   }
                 },
-                'CreateTimestamp': '2016-06-27T21:20:53.698152Z',
+                'CreateTimestamp': 1467097200000,
               }
             },
             'Tasks': [
@@ -34,8 +34,8 @@ main() {
                   'StageName': 'travis',
                   'Name': 'linux travis',
                   'Status': 'Scheduled',
-                  'StartTimestamp': '2016-06-27T08:20:53Z',
-                  'EndTimestamp': '2016-06-27T09:00:05.123456789Z',
+                  'StartTimestamp': 1467097200000,
+                  'EndTimestamp': 0,
                 }
               }
             ]
@@ -54,7 +54,7 @@ main() {
       expect(status, new isInstanceOf<BuildStatus>());
       expect(checklistEntity.key, new Key('1234567'));
       expect(checklist.flutterRepositoryPath, 'flutter/flutter');
-      expect(checklist.createTimestamp, new DateTime(2016, 6, 27, 21, 20, 53, 0, 698));
+      expect(checklist.createTimestamp, new DateTime.fromMillisecondsSinceEpoch(1467097200000));
       expect(commit.sha, 'asdfasdf');
       expect(author.login, 'supercoder');
       expect(author.avatarUrl, 'http://photo');
@@ -63,8 +63,8 @@ main() {
       expect(task.stageName, 'travis');
       expect(task.name, 'linux travis');
       expect(task.status, 'Scheduled');
-      expect(task.startTimestamp, new DateTime(2016, 6, 27, 8, 20, 53));
-      expect(task.endTimestamp, new DateTime(2016, 6, 27, 9, 0, 5, 123, 456));
+      expect(task.startTimestamp, new DateTime.fromMillisecondsSinceEpoch(1467097200000));
+      expect(task.endTimestamp, null);
     });
   });
 }

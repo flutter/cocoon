@@ -42,6 +42,7 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	// Sync to datastore
 	var commitResults []CommitSyncResult
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))
+	nowMillisSinceEpoch := time.Now().UnixNano() / 1000000
 	var err error
 	err = datastore.RunInTransaction(c.Ctx, func(tc appengine.Context) error {
 		c = db.NewCocoon(tc)
@@ -51,10 +52,15 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 			checklistKey := c.ChecklistKey("flutter/flutter", commit.Sha)
 			if !c.EntityExists(checklistKey) {
 				err = c.PutChecklist(checklistKey, &db.Checklist{
-					"flutter/flutter",
-					*commit,
-					time.Now(),
+					FlutterRepositoryPath: "flutter/flutter",
+					Commit:                *commit,
+					CreateTimestamp:       nowMillisSinceEpoch,
 				})
+
+				// This way CreateTimestamp can be used for almost perfect sorting of
+				// commits by parent-child relationship, just the way GitHub API returns
+				// them.
+				nowMillisSinceEpoch = nowMillisSinceEpoch - 1
 
 				if err != nil {
 					return err
@@ -94,24 +100,24 @@ func createTaskList(checklistKey *datastore.Key) []*db.Task {
 			"travis",
 			"travis",
 			"Scheduled",
-			time.Time{},
-			time.Time{},
+			0,
+			0,
 		},
 		&db.Task{
 			checklistKey,
 			"chromebot",
 			"mac_bot",
 			"Scheduled",
-			time.Time{},
-			time.Time{},
+			0,
+			0,
 		},
 		&db.Task{
 			checklistKey,
 			"chromebot",
 			"linux_bot",
 			"Scheduled",
-			time.Time{},
-			time.Time{},
+			0,
+			0,
 		},
 	}
 }
