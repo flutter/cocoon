@@ -9,13 +9,13 @@ handlers:
 - url: /
   static_files: build/web/index.html
   upload: build/web/index.html
-- url: /(.*\.(html|css|js|ico|svg|png|jpg))$
+- url: /(.*\.(html|css|js|ico|svg|png|jpg|map))$
   static_files: build/web/\1
-  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg)$
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$
 - url: /api/.*
   script: _go_app
 skip_files:
-- (.+/)?packages/.*
+- (.+/)?packages(?!/browser)/.*
 - .pub/.*
 - .atom/.*
 - .packages
