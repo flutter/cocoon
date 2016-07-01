@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
@@ -23,7 +24,7 @@ main() async {
   ]);
 }
 
-Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() {
+Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() async {
   const _oauthClientId = '308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com';
 
   Uri location = Uri.parse(window.location.href);
@@ -35,6 +36,16 @@ Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() {
       tokenStart + 'access_token='.length,
       tokenEnd != -1 ? tokenEnd : null
     ));
+
+    Map<String, dynamic> verification = JSON.decode(
+      await HttpRequest.getString('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=$accessToken')
+    );
+
+    if (verification.containsKey('error')) {
+      throw 'OAuth2 token verification failed: $verification';
+    }
+
+    window.open(location.replace(fragment: '').toString(), '_self');
   }
 
   Completer<http.Client> completer = new Completer<http.Client>();
