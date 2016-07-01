@@ -7,6 +7,7 @@ dependencies:
   angular2: 2.0.0-beta.17
   browser: ^0.10.0
   meta: ^0.12.1
+  http: ^0.11.3
 dev_dependencies:
   test: ^0.12.14
 transformers:
@@ -14,6 +15,8 @@ transformers:
     platform_directives:
     - 'package:angular2/common.dart#COMMON_DIRECTIVES'
     entry_points: web/main.dart
+    resolved_identifiers:
+      Client: 'package:http/http.dart'
 - $dart2js:
     minify: true
     sourceMaps: true

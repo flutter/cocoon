@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:convert' show JSON;
 
 import 'package:angular2/angular2.dart';
 import 'package:cocoon/model.dart';
+import 'package:http/http.dart' as http;
 
 @Component(
   selector: 'status-table',
@@ -35,12 +35,16 @@ import 'package:cocoon/model.dart';
   directives: const [NgIf, NgFor]
 )
 class StatusTable implements OnInit {
+  StatusTable(this._httpClient);
+
+  final http.Client _httpClient;
   bool isLoading = true;
   List<BuildStatus> statuses;
 
   @override
   ngOnInit() async {
-    GetStatusResult statusResult = GetStatusResult.fromJson(JSON.decode(await HttpRequest.getString('/api/get-status')));
+    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-status')).body);
+    GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
     statuses = statusResult.statuses ?? <BuildStatus>[];
   }

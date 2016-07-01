@@ -98,7 +98,7 @@ Future<Null> _redirectRequest(HttpRequest request, HttpClient http) async {
   Uri uri = request.uri.replace(
     scheme: 'http',
     host: 'localhost',
-    port: request.uri.path.contains('/api/')
+    port: request.uri.path.contains('/api/') || request.uri.path.contains('/_ah/')
       ? _goappServePort
       : _pubServePort
   );

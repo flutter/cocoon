@@ -14,7 +14,10 @@ import (
 
 	"io/ioutil"
 
+	"strings"
+
 	"appengine"
+	"appengine/user"
 )
 
 func init() {
@@ -26,13 +29,28 @@ func init() {
 
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		ctx := appengine.NewContext(r)
+		if !appengine.IsDevAppServer() {
+			user, err := user.CurrentOAuth(ctx, "https://www.googleapis.com/auth/userinfo.email")
+
+			if err != nil {
+				serveRequiresSignIn(w, err)
+				return
+			}
+
+			if !strings.HasSuffix(user.Email, "@google.com") {
+				serveGoogleComOnly(w)
+				return
+			}
+		}
+
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			serveError(w, err)
 			return
 		}
 
-		response, err := handler(db.NewCocoon(appengine.NewContext(r)), bytes)
+		response, err := handler(db.NewCocoon(ctx), bytes)
 		if err != nil {
 			serveError(w, err)
 			return
@@ -49,6 +67,13 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 }
 
 func serveError(w http.ResponseWriter, err error) {
-	w.WriteHeader(500)
-	w.Write([]byte(fmt.Sprintf("%v", err)))
+	http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+}
+
+func serveRequiresSignIn(w http.ResponseWriter, err error) {
+	http.Error(w, fmt.Sprintf("OAuth error: %v", err), http.StatusUnauthorized)
+}
+
+func serveGoogleComOnly(w http.ResponseWriter) {
+	http.Error(w, "Only @google.com users are authorized", http.StatusUnauthorized)
 }
