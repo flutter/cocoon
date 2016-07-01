@@ -7,6 +7,7 @@ package commands
 import (
 	"cocoon/db"
 	"encoding/json"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -86,6 +87,7 @@ func CheckOutTask(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 				task := taskEntity.Task
 				if task.Status == "New" && command.capableOfPerforming(task) {
 					task.Status = "In Progress"
+					task.StartTimestamp = time.Now().UnixNano() / 1000000
 					txc.PutTask(taskEntity.Key, task)
 					reservedTask = taskEntity
 					return nil
