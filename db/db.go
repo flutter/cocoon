@@ -33,14 +33,14 @@ func (c *Cocoon) EntityExists(entityKey *datastore.Key) bool {
 	return datastore.Get(c.Ctx, entityKey, dummy{}) != datastore.ErrNoSuchEntity
 }
 
-// ChecklistKey creates a database key for a Checklist.
+// NewChecklistKey creates a database key for a Checklist.
 //
 // `repository` is the path to a repository relative to GitHub in the
 // "owner/name" GitHub format. For example, `repository` for
 // https://github.com/flutter/flutter is "flutter/flutter".
 //
 // `commit` is the git commit SHA.
-func (c *Cocoon) ChecklistKey(repository string, commit string) *datastore.Key {
+func (c *Cocoon) NewChecklistKey(repository string, commit string) *datastore.Key {
 	return datastore.NewKey(c.Ctx, "Checklist", repository+"/"+commit, 0, nil)
 }
 
@@ -72,11 +72,22 @@ func (c *Cocoon) QueryLatestChecklists() ([]*ChecklistEntity, error) {
 	return buffer, nil
 }
 
-// PutTask saves a Task to database under the given key.
-func (c *Cocoon) PutTask(task *Task) error {
-	key := datastore.NewIncompleteKey(c.Ctx, "Task", task.ChecklistKey)
-	_, err := datastore.Put(c.Ctx, key, task)
-	return err
+// PutTask saves a Task to database under the given key. If key is nil generates
+// a new key and save the task as a new database record.
+func (c *Cocoon) PutTask(key *datastore.Key, task *Task) (*TaskEntity, error) {
+	if key == nil {
+		key = datastore.NewIncompleteKey(c.Ctx, "Task", task.ChecklistKey)
+	}
+	key, err := datastore.Put(c.Ctx, key, task)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TaskEntity{
+		Key:  key,
+		Task: task,
+	}, nil
 }
 
 // QueryTasks queries the database for all tasks belonging to a given checklist
@@ -143,7 +154,10 @@ type Task struct {
 	StageName    string
 	Name         string
 
-	// One of "Scheduled", "In Progress", "Succeeded", "Failed", "Skipped".
+	// Capabilities an agent must have to be able to perform this task.
+	RequiredCapabilities []string
+
+	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped".
 	Status         string
 	StartTimestamp int64
 	EndTimestamp   int64

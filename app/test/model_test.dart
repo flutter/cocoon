@@ -33,7 +33,7 @@ main() {
                   'ChecklistKey': '1234567',
                   'StageName': 'travis',
                   'Name': 'linux travis',
-                  'Status': 'Scheduled',
+                  'Status': 'New',
                   'StartTimestamp': 1467097200000,
                   'EndTimestamp': 0,
                 }
@@ -62,7 +62,7 @@ main() {
       expect(task.checklistKey, new Key('1234567'));
       expect(task.stageName, 'travis');
       expect(task.name, 'linux travis');
-      expect(task.status, 'Scheduled');
+      expect(task.status, 'New');
       expect(task.startTimestamp, new DateTime.fromMillisecondsSinceEpoch(1467097200000));
       expect(task.endTimestamp, null);
     });

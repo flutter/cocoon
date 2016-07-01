@@ -49,7 +49,7 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		for i := 0; i < len(commits); i++ {
 			commit := commits[i]
 			commitResults[i].Commit = commit.Sha
-			checklistKey := c.ChecklistKey("flutter/flutter", commit.Sha)
+			checklistKey := c.NewChecklistKey("flutter/flutter", commit.Sha)
 			if !c.EntityExists(checklistKey) {
 				err = c.PutChecklist(checklistKey, &db.Checklist{
 					FlutterRepositoryPath: "flutter/flutter",
@@ -68,7 +68,7 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 				tasks := createTaskList(checklistKey)
 				for _, task := range tasks {
-					err = c.PutTask(task)
+					_, err = c.PutTask(nil, task)
 					if err != nil {
 						return err
 					}
@@ -96,28 +96,31 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 func createTaskList(checklistKey *datastore.Key) []*db.Task {
 	return []*db.Task{
 		&db.Task{
-			checklistKey,
-			"travis",
-			"travis",
-			"Scheduled",
-			0,
-			0,
+			ChecklistKey:         checklistKey,
+			StageName:            "travis",
+			Name:                 "travis",
+			RequiredCapabilities: []string{"can-update-travis"},
+			Status:               "New",
+			StartTimestamp:       0,
+			EndTimestamp:         0,
 		},
 		&db.Task{
-			checklistKey,
-			"chromebot",
-			"mac_bot",
-			"Scheduled",
-			0,
-			0,
+			ChecklistKey:         checklistKey,
+			StageName:            "chromebot",
+			Name:                 "mac_bot",
+			RequiredCapabilities: []string{"can-update-chromebots"},
+			Status:               "New",
+			StartTimestamp:       0,
+			EndTimestamp:         0,
 		},
 		&db.Task{
-			checklistKey,
-			"chromebot",
-			"linux_bot",
-			"Scheduled",
-			0,
-			0,
+			ChecklistKey:         checklistKey,
+			StageName:            "chromebot",
+			Name:                 "linux_bot",
+			RequiredCapabilities: []string{"can-update-chromebots"},
+			Status:               "New",
+			StartTimestamp:       0,
+			EndTimestamp:         0,
 		},
 	}
 }

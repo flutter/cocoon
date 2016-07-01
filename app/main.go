@@ -20,6 +20,7 @@ import (
 func init() {
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
+	registerRPC("/api/check-out-task", commands.CheckOutTask)
 }
 
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
