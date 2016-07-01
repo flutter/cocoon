@@ -90,6 +90,21 @@ func (c *Cocoon) PutTask(key *datastore.Key, task *Task) (*TaskEntity, error) {
 	}, nil
 }
 
+// GetTask retrieves a task from the database.
+func (c *Cocoon) GetTask(key *datastore.Key) (*TaskEntity, error) {
+	task := new(Task)
+	err := datastore.Get(c.Ctx, key, task)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TaskEntity{
+		Key:  key,
+		Task: task,
+	}, nil
+}
+
 // QueryTasks queries the database for all tasks belonging to a given checklist
 // sorted by StageName.
 func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {

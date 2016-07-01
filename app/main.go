@@ -21,6 +21,7 @@ func init() {
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/check-out-task", commands.CheckOutTask)
+	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
 }
 
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
