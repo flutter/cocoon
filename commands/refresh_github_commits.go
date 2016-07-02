@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	"appengine"
 	"appengine/datastore"
 	"appengine/urlfetch"
 )
@@ -29,8 +28,8 @@ type CommitSyncResult struct {
 }
 
 // RefreshGithubCommits returns the information about the latest GitHub commits.
-func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
-	httpClient := urlfetch.Client(c.Ctx)
+func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
+	httpClient := urlfetch.Client(cocoon.Ctx)
 
 	// Fetch data from GitHub
 	githubResp, _ := httpClient.Get("https://api.github.com/repos/flutter/flutter/commits")
@@ -44,14 +43,13 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))
 	nowMillisSinceEpoch := time.Now().UnixNano() / 1000000
 	var err error
-	err = datastore.RunInTransaction(c.Ctx, func(tc appengine.Context) error {
-		c = db.NewCocoon(tc)
+	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
 		for i := 0; i < len(commits); i++ {
 			commit := commits[i]
 			commitResults[i].Commit = commit.Sha
-			checklistKey := c.NewChecklistKey("flutter/flutter", commit.Sha)
-			if !c.EntityExists(checklistKey) {
-				err = c.PutChecklist(checklistKey, &db.Checklist{
+			checklistKey := txc.NewChecklistKey("flutter/flutter", commit.Sha)
+			if !txc.EntityExists(checklistKey) {
+				err = txc.PutChecklist(checklistKey, &db.Checklist{
 					FlutterRepositoryPath: "flutter/flutter",
 					Commit:                *commit,
 					CreateTimestamp:       nowMillisSinceEpoch,
@@ -68,7 +66,7 @@ func RefreshGithubCommits(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 				tasks := createTaskList(checklistKey)
 				for _, task := range tasks {
-					_, err = c.PutTask(nil, task)
+					_, err = txc.PutTask(nil, task)
 					if err != nil {
 						return err
 					}

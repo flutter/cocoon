@@ -4,21 +4,41 @@
 
 package db
 
-import "appengine"
-import "appengine/datastore"
+import (
+	"crypto/md5"
+	"fmt"
+	"io"
+
+	"golang.org/x/crypto/bcrypt"
+
+	"appengine"
+	"appengine/datastore"
+)
 
 // NewCocoon creates a new Cocoon.
 func NewCocoon(ctx appengine.Context) *Cocoon {
-	return &Cocoon{ctx}
+	return &Cocoon{Ctx: ctx}
 }
 
 // Cocoon provides access to the database.
 type Cocoon struct {
-	Ctx appengine.Context
+	Ctx          appengine.Context
+	CurrentAgent *Agent
+}
+
+// RunInTransaction runs callback in a datastore transaction. The instance of
+// Cocoon provided to the callback exists within the transactional
+// appengine.Context.
+func (c *Cocoon) RunInTransaction(callback func(*Cocoon) error, transactionOptions *datastore.TransactionOptions) error {
+	return datastore.RunInTransaction(c.Ctx, func(txContext appengine.Context) error {
+		txCocoon := NewCocoon(txContext)
+		txCocoon.CurrentAgent = c.CurrentAgent
+		return callback(txCocoon)
+	}, transactionOptions)
 }
 
 // dummy implements PropertyLoadSaver just so we can use datastore.Get to check
-// existence of an entity using a key.
+// existence of arbitrary entity using a key.
 type dummy struct{}
 
 func (dummy) Load(<-chan datastore.Property) error {
@@ -129,6 +149,77 @@ func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) 
 	return buffer, nil
 }
 
+// newAgentKey produces the datastore key for the agent from agentID.
+func (c *Cocoon) newAgentKey(agentID string) *datastore.Key {
+	return datastore.NewKey(c.Ctx, "Agent", agentID, 0, nil)
+}
+
+// GetAgent retrieves an agent record from the database.
+func (c *Cocoon) GetAgent(agentID string) (*Agent, error) {
+	agent := new(Agent)
+	key := c.newAgentKey(agentID)
+	err := datastore.Get(c.Ctx, key, agent)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return agent, nil
+}
+
+// GetAgentByPassword retrieves an agent record from the database that matches
+// agentID and password.
+func (c *Cocoon) GetAgentByPassword(agentID string, password string) (*Agent, error) {
+	agent := new(Agent)
+	err := datastore.Get(c.Ctx, c.newAgentKey(agentID), agent)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword(agent.PasswordHash, md5Sum(password))
+
+	return agent, nil
+}
+
+func md5Sum(s string) []byte {
+	h := md5.New()
+	io.WriteString(h, s)
+	return h.Sum(nil)
+}
+
+// NewAgent adds a new build agent to the system.
+func (c *Cocoon) NewAgent(agentID string, password string) (*Agent, error) {
+	key := datastore.NewKey(c.Ctx, "Agent", agentID, 0, nil)
+
+	if c.EntityExists(key) {
+		return nil, fmt.Errorf("Agent %v already exists", agentID)
+	}
+
+	if len(password) < 8 {
+		return nil, fmt.Errorf("Password too short, must be at least 8 characters.")
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword(md5Sum(password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return nil, err
+	}
+
+	agent := &Agent{
+		AgentID:      agentID,
+		PasswordHash: passwordHash,
+	}
+
+	_, err = datastore.Put(c.Ctx, key, agent)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return agent, nil
+}
+
 // CommitInfo contain information about a GitHub commit.
 type CommitInfo struct {
 	Sha    string
@@ -176,4 +267,40 @@ type Task struct {
 	Status         string
 	StartTimestamp int64
 	EndTimestamp   int64
+}
+
+// Agent is a record of registration for a particular build agent. Only
+// registered agents are allowed to perform build tasks, ensured by having
+// agents sign in with AgentID and password hashed to PasswordSalt and
+// PasswordHash.
+type Agent struct {
+	AgentID              string
+	IsHealthy            bool
+	HealthCheckTimestamp int64
+	PasswordHash         []byte
+	AuthToken            string
+	Capabilities         []string
+}
+
+// CapableOfPerforming returns whether the agent is capable of performing the
+// task by checking that every capability required by the task is offered by the
+// agent that issued the command.
+func (agent *Agent) CapableOfPerforming(task *Task) bool {
+	if len(task.RequiredCapabilities) == 0 {
+		return false
+	}
+
+	for _, requiredCapability := range task.RequiredCapabilities {
+		capabilityOffered := false
+		for _, offeredCapability := range agent.Capabilities {
+			if offeredCapability == requiredCapability {
+				capabilityOffered = true
+			}
+		}
+		if !capabilityOffered {
+			return false
+		}
+	}
+
+	return true
 }

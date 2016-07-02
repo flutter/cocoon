@@ -21,6 +21,7 @@ import (
 )
 
 func init() {
+	registerRPC("/api/sign-in-agent", commands.SignInAgent)
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/check-out-task", commands.CheckOutTask)
@@ -30,17 +31,34 @@ func init() {
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
+		cocoon := db.NewCocoon(ctx)
 		if !appengine.IsDevAppServer() {
-			user, err := user.CurrentOAuth(ctx, "https://www.googleapis.com/auth/userinfo.email")
+			agentID := r.Header.Get("Agent-ID")
+			agentAuthToken := r.Header.Get("Agent-Auth-Token")
 
-			if err != nil {
-				serveRequiresSignIn(w, err)
-				return
-			}
+			if agentID == "" {
+				// Authenticate as user
+				user, err := user.CurrentOAuth(ctx, "https://www.googleapis.com/auth/userinfo.email")
 
-			if !strings.HasSuffix(user.Email, "@google.com") {
-				serveGoogleComOnly(w)
-				return
+				if err != nil {
+					serveRequiresSignIn(w, err)
+					return
+				}
+
+				if !strings.HasSuffix(user.Email, "@google.com") {
+					serveGoogleComOnly(w)
+					return
+				}
+			} else {
+				// Authenticate as an agent
+				agent, err := authenticateAgent(ctx, agentID, agentAuthToken)
+
+				if err != nil {
+					serveRequiresSignIn(w, err)
+					return
+				}
+
+				cocoon.CurrentAgent = agent
 			}
 		}
 
@@ -50,7 +68,7 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 			return
 		}
 
-		response, err := handler(db.NewCocoon(ctx), bytes)
+		response, err := handler(cocoon, bytes)
 		if err != nil {
 			serveError(w, err)
 			return
@@ -64,6 +82,21 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 
 		w.Write(outputData)
 	})
+}
+
+func authenticateAgent(ctx appengine.Context, agentID string, agentAuthToken string) (*db.Agent, error) {
+	cocoon := db.NewCocoon(ctx)
+	agent, err := cocoon.GetAgent(agentID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if agent.AuthToken != agentAuthToken {
+		return nil, fmt.Errorf("Invalid agent auth token")
+	}
+
+	return agent, nil
 }
 
 func serveError(w http.ResponseWriter, err error) {
