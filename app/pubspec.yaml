@@ -5,9 +5,11 @@ environment:
   sdk: '>=1.13.0 <2.0.0'
 dependencies:
   angular2: 2.0.0-beta.17
+  args: ^0.13.4
   browser: ^0.10.0
-  meta: ^0.12.1
+  js: ^0.6.0
   http: ^0.11.3
+  meta: ^0.12.1
 dev_dependencies:
   test: ^0.12.14
 transformers:

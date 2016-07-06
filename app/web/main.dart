@@ -5,13 +5,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:js';
+
 import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
-import 'package:cocoon/components/status_table.dart';
-import 'package:cocoon/logging.dart';
 import 'package:http/browser_client.dart' as browser_http;
 import 'package:http/http.dart' as http;
 import 'package:http/src/base_client.dart' as base_http;
+
+import 'package:cocoon/components/status_table.dart';
+import 'package:cocoon/logging.dart';
+import 'package:cocoon/cli.dart';
 
 @AngularEntrypoint()
 main() async {
@@ -19,9 +23,21 @@ main() async {
   http.Client httpClient = await _getAuthenticatedClientOrRedirectToSignIn();
 
   // Start the angular app
-  bootstrap(StatusTable, [
-    provide(http.Client, useValue: httpClient)
-  ]);
+  ComponentRef ref = await bootstrap(StatusTable, [
+    provide(http.Client, useValue: httpClient),
+  ]..addAll(Cli.commandTypes.map((Type type) => provide(type, useClass: type))));
+
+  // Start CLI
+  Cli _cli = new Cli(ref.injector);
+
+  // Installs global JS function callable from Chrome's dev tools. Usage:
+  //
+  // cocoon([COMMAND_NAME, ...COMMAND_ARGS]);
+  //
+  // See `cliCommands` for list of available commands.
+  context['cocoon'] = new JsFunction.withThis((_, List<String> rawArgs) {
+    _cli.run(rawArgs);
+  });
 }
 
 Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() async {
@@ -85,8 +101,13 @@ class AuthenticatedClient extends base_http.BaseClient {
   final String _accessToken;
   final browser_http.BrowserClient _delegate = new browser_http.BrowserClient();
 
-  Future<http.StreamedResponse> send(http.Request request) {
+  Future<http.StreamedResponse> send(http.Request request) async {
     request.headers['Authorization'] = 'Bearer $_accessToken';
-    return _delegate.send(request);
+    http.StreamedResponse resp = await _delegate.send(request);
+
+    if (resp.statusCode != 200)
+      throw 'HTTP error ${resp.statusCode}';
+
+    return resp;
   }
 }

@@ -5,7 +5,7 @@
 package db
 
 import (
-	"crypto/md5"
+	"crypto/rand"
 	"fmt"
 	"io"
 
@@ -156,6 +156,10 @@ func (c *Cocoon) newAgentKey(agentID string) *datastore.Key {
 
 // GetAgent retrieves an agent record from the database.
 func (c *Cocoon) GetAgent(agentID string) (*Agent, error) {
+	if agentID == "" {
+		return nil, fmt.Errorf("AgentID cannot be blank")
+	}
+
 	agent := new(Agent)
 	key := c.newAgentKey(agentID)
 	err := datastore.Get(c.Ctx, key, agent)
@@ -167,9 +171,9 @@ func (c *Cocoon) GetAgent(agentID string) (*Agent, error) {
 	return agent, nil
 }
 
-// GetAgentByPassword retrieves an agent record from the database that matches
-// agentID and password.
-func (c *Cocoon) GetAgentByPassword(agentID string, password string) (*Agent, error) {
+// GetAgentByAuthToken retrieves an agent record from the database that matches
+// agentID and authToken.
+func (c *Cocoon) GetAgentByAuthToken(agentID string, authToken string) (*Agent, error) {
 	agent := new(Agent)
 	err := datastore.Get(c.Ctx, c.newAgentKey(agentID), agent)
 
@@ -177,47 +181,87 @@ func (c *Cocoon) GetAgentByPassword(agentID string, password string) (*Agent, er
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword(agent.PasswordHash, md5Sum(password))
+	err = bcrypt.CompareHashAndPassword(agent.AuthTokenHash, []byte(authToken))
+
+	if err != nil {
+		return nil, err
+	}
 
 	return agent, nil
 }
 
-func md5Sum(s string) []byte {
-	h := md5.New()
-	io.WriteString(h, s)
-	return h.Sum(nil)
+var urlSafeChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
+
+// Generates a token along with its hash for storing in the database. The
+// token must be returned to the user, but it must not be stored in the
+// database. Only the hash should be stored.
+func generateAuthToken() (string, []byte) {
+	length := 16
+	authToken := make([]byte, length)
+	randomBytes := make([]byte, length)
+
+	if _, err := io.ReadFull(rand.Reader, randomBytes); err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < length; i++ {
+		authToken[i] = urlSafeChars[int(randomBytes[i])%len(urlSafeChars)]
+	}
+
+	authTokenHash, err := bcrypt.GenerateFromPassword(authToken, bcrypt.DefaultCost)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return string(authToken), authTokenHash
 }
 
-// NewAgent adds a new build agent to the system.
-func (c *Cocoon) NewAgent(agentID string, password string) (*Agent, error) {
-	key := datastore.NewKey(c.Ctx, "Agent", agentID, 0, nil)
+// NewAgent adds a new build agent to the system. Returns newly created Agent
+// record and an auth token.
+func (c *Cocoon) NewAgent(agentID string, capabilities []string) (*Agent, string, error) {
+	key := c.newAgentKey(agentID)
 
 	if c.EntityExists(key) {
-		return nil, fmt.Errorf("Agent %v already exists", agentID)
+		return nil, "", fmt.Errorf("Agent %v already exists", agentID)
 	}
 
-	if len(password) < 8 {
-		return nil, fmt.Errorf("Password too short, must be at least 8 characters.")
-	}
-
-	passwordHash, err := bcrypt.GenerateFromPassword(md5Sum(password), bcrypt.DefaultCost)
-
-	if err != nil {
-		return nil, err
-	}
+	authToken, authTokenHash := generateAuthToken()
 
 	agent := &Agent{
-		AgentID:      agentID,
-		PasswordHash: passwordHash,
+		AgentID:       agentID,
+		AuthTokenHash: authTokenHash,
+		Capabilities:  capabilities,
 	}
 
-	_, err = datastore.Put(c.Ctx, key, agent)
+	_, err := datastore.Put(c.Ctx, key, agent)
 
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return agent, nil
+	return agent, authToken, nil
+}
+
+// RefreshAgentAuthToken creates a new auth token for an agent.
+func (c *Cocoon) RefreshAgentAuthToken(agentID string) (*Agent, string, error) {
+	agent, err := c.GetAgent(agentID)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	authToken, authTokenHash := generateAuthToken()
+
+	agent.AuthTokenHash = authTokenHash
+
+	_, err = datastore.Put(c.Ctx, c.newAgentKey(agentID), agent)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return agent, authToken, nil
 }
 
 // CommitInfo contain information about a GitHub commit.
@@ -271,14 +315,12 @@ type Task struct {
 
 // Agent is a record of registration for a particular build agent. Only
 // registered agents are allowed to perform build tasks, ensured by having
-// agents sign in with AgentID and password hashed to PasswordSalt and
-// PasswordHash.
+// agents sign in with AgentID and authToken hashed to AuthTokenHash.
 type Agent struct {
 	AgentID              string
 	IsHealthy            bool
 	HealthCheckTimestamp int64
-	PasswordHash         []byte
-	AuthToken            string
+	AuthTokenHash        []byte
 	Capabilities         []string
 }
 

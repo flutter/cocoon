@@ -52,3 +52,40 @@ a task might require that a physical Android device is attached to an agent. It
 then lists "has-physical-android-phone" capability as required. Multiple agents
 may share the same capability. Cocoon will distribute tasks amongst agents,
 thus scaling the build process.
+
+# In-browser CLI
+
+Cocoon browser interface includes a small CLI. To access it open Chrome Dev
+Tools > Console. Commands are entered directly into the console like this:
+
+```javascript
+cocoon([COMMAND, COMMAND_ARGS...])
+```
+
+The list of available commands is printed to the console when the page is
+loaded.
+
+## Creating an agent
+
+The following command creates an agent with ID "bot-with-devices", and which has
+two capabilities: "has-android-phone" and "has-iphone".
+
+```javascript
+cocoon(['create-agent', '-a', 'bot-with-devices', '-c', 'has-android-phone', '-c', 'has-iphone'])
+```
+
+Agent ID is passed as option `-a`, and agent's capabilities are passed as one or
+more `-c`.
+
+*IMPORTANT*: This command returns an authentication token. Cocoon does not store
+the token, so copy it immediately and add it to the agent's configuration file.
+If the token is lost or compromised, use the "auth-agent" command below to
+generate a new token.
+
+## Authorizing an agent
+
+The following commands generates an authentication token for an agent.
+
+```javascript
+cocoon(['auth-agent', '-a', 'bot-with-devices'])
+```

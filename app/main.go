@@ -21,7 +21,8 @@ import (
 )
 
 func init() {
-	registerRPC("/api/sign-in-agent", commands.SignInAgent)
+	registerRPC("/api/create-agent", commands.CreateAgent)
+	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/check-out-task", commands.CheckOutTask)
@@ -86,14 +87,10 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 
 func authenticateAgent(ctx appengine.Context, agentID string, agentAuthToken string) (*db.Agent, error) {
 	cocoon := db.NewCocoon(ctx)
-	agent, err := cocoon.GetAgent(agentID)
+	agent, err := cocoon.GetAgentByAuthToken(agentID, agentAuthToken)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if agent.AuthToken != agentAuthToken {
-		return nil, fmt.Errorf("Invalid agent auth token")
 	}
 
 	return agent, nil
