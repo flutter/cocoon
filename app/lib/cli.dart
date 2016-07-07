@@ -15,6 +15,7 @@ class Cli {
     CreateAgentCommand,
     AuthorizeAgentCommand,
     RefreshGithubCommitsCommand,
+    ReserveTaskCommand,
   ];
 
   factory Cli(Injector injector) {
@@ -138,6 +139,32 @@ class RefreshGithubCommitsCommand extends CliCommand {
   @override
   Future<Null> run(ArgResults args) async {
     http.Response resp = await httpClient.post('/api/refresh-github-commits');
+    print(resp.body);
+  }
+}
+
+@Injectable()
+class ReserveTaskCommand extends CliCommand {
+  ReserveTaskCommand(this.httpClient) : super('reserve-task');
+
+  final http.Client httpClient;
+
+  @override
+  ArgParser get argParser {
+    return new ArgParser()
+      ..addOption(
+        'agent-id',
+        abbr: 'a',
+        help: 'Identifies the agent to reserve a task for.'
+      );
+  }
+
+  @override
+  Future<Null> run(ArgResults args) async {
+    String agentId = args['agent-id'];
+    http.Response resp = await httpClient.post('/api/reserve-task', body: JSON.encode({
+      'AgentID': agentId
+    }));
     print(resp.body);
   }
 }

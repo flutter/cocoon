@@ -308,9 +308,10 @@ type Task struct {
 	RequiredCapabilities []string
 
 	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped".
-	Status         string
-	StartTimestamp int64
-	EndTimestamp   int64
+	Status             string
+	ReservedForAgentID string
+	StartTimestamp     int64
+	EndTimestamp       int64
 }
 
 // Agent is a record of registration for a particular build agent. Only

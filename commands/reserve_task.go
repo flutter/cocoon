@@ -6,9 +6,18 @@ package commands
 
 import (
 	"cocoon/db"
+	"encoding/json"
 	"fmt"
 	"time"
+
+	"appengine/datastore"
 )
+
+// ReserveTaskCommand reserves a task for an agent.
+type ReserveTaskCommand struct {
+	// The agent for which to reserve the task.
+	AgentID string
+}
 
 // ReserveTaskResult contains one task reserved for the agent to perform.
 type ReserveTaskResult struct {
@@ -22,51 +31,118 @@ type ReserveTaskResult struct {
 
 // ReserveTask reserves a task for an agent to perform.
 func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
-	agent := cocoon.CurrentAgent
+	var command *ReserveTaskCommand
+	err := json.Unmarshal(inputJSON, &command)
 
-	if agent == nil {
-		return nil, fmt.Errorf("This task requires that an agent is signed in")
-	}
+	var agent *db.Agent
 
-	var err error
-	checklists, err := cocoon.QueryLatestChecklists()
+	if cocoon.CurrentAgent != nil {
+		// Signed in as agent
+		agent = cocoon.CurrentAgent
 
-	if err != nil {
-		return nil, err
+		if agent.AgentID != command.AgentID {
+			messageFormat := "Currently signed in agent's ID (%v) does not match agent ID supplied in the request (%v)"
+			return nil, fmt.Errorf(messageFormat, agent.AgentID, command.AgentID)
+		}
+	} else {
+		// Signed in using a Google account
+		agent, err = cocoon.GetAgent(command.AgentID)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var reservedTask *db.TaskEntity
 	var reservedChecklist *db.ChecklistEntity
-	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
-		for ci := len(checklists) - 1; ci >= 0; ci-- {
-			checklist := checklists[ci]
-			tasks, err := txc.QueryTasks(checklist.Key)
+	keepLooking := true
 
-			if err != nil {
-				return err
-			}
-
-			for _, taskEntity := range tasks {
-				task := taskEntity.Task
-				if task.Status == "New" && agent.CapableOfPerforming(task) {
-					task.Status = "In Progress"
-					task.StartTimestamp = time.Now().UnixNano() / 1000000
-					txc.PutTask(taskEntity.Key, task)
-					reservedTask = taskEntity
-					reservedChecklist = checklist
-					return nil
-				}
+	for keepLooking {
+		task, checklist, err := findNextTaskToRun(cocoon, agent)
+		if err != nil {
+			return nil, err
+		}
+		if task == nil {
+			// No new tasks available
+			keepLooking = false
+		} else {
+			task, err = atomicallyReserveTask(cocoon, task.Key, agent)
+			if err == errLostRace {
+				// Keep looking
+			} else if err != nil {
+				return nil, err
+			} else {
+				// Found a task
+				reservedTask = task
+				reservedChecklist = checklist
+				keepLooking = false
 			}
 		}
-		return nil
-	}, nil)
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &ReserveTaskResult{
 		TaskEntity:      reservedTask,
 		ChecklistEntity: reservedChecklist,
 	}, nil
+}
+
+func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.ChecklistEntity, error) {
+	checklists, err := cocoon.QueryLatestChecklists()
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for ci := len(checklists) - 1; ci >= 0; ci-- {
+		checklist := checklists[ci]
+		tasks, err := cocoon.QueryTasks(checklist.Key)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		for _, taskEntity := range tasks {
+			task := taskEntity.Task
+			if task.Status == "New" && agent.CapableOfPerforming(task) {
+				return taskEntity, checklist, nil
+			}
+		}
+	}
+
+	// No new tasks to run
+	return nil, nil, nil
+}
+
+var errLostRace = fmt.Errorf("Lost race trying to reserve a task")
+
+// Reserves a task for agent and returns the updated entity. If loses a
+// race returns errLostRace.
+func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.Agent) (*db.TaskEntity, error) {
+	var taskEntity *db.TaskEntity
+	var err error
+	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
+		taskEntity, err = txc.GetTask(taskKey)
+		task := taskEntity.Task
+
+		if err != nil {
+			return err
+		}
+
+		if task.Status != "New" {
+			// Lost race
+			return errLostRace
+		}
+
+		task.Status = "In Progress"
+		task.StartTimestamp = time.Now().UnixNano() / 1000000
+		task.ReservedForAgentID = agent.AgentID
+		taskEntity, err = txc.PutTask(taskEntity.Key, task)
+		return err
+	}, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return taskEntity, nil
 }
