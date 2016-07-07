@@ -12,8 +12,9 @@ import 'package:http/http.dart' as http;
 /// Command-line interface for Cocoon.
 class Cli {
   static const commandTypes = const <Type>[
-    AuthorizeAgentCommand,
     CreateAgentCommand,
+    AuthorizeAgentCommand,
+    RefreshGithubCommitsCommand,
   ];
 
   factory Cli(Injector injector) {
@@ -40,14 +41,16 @@ class Cli {
   final ArgParser _argParser;
   final Map<String, CliCommand> _commands;
 
-  void run(List<String> rawArgs) {
+  Future<Null> run(List<String> rawArgs) async {
     ArgResults args = _argParser.parse(rawArgs);
     CliCommand command = _commands[args.command.name];
 
     if (command == null)
       throw 'Command ${args.name} not found';
 
-    command.run(args.command);
+    print('Running...');
+    await command.run(args.command);
+    print('Done.');
   }
 }
 
@@ -59,7 +62,7 @@ abstract class CliCommand {
 
   ArgParser get argParser;
 
-  void run(ArgResults args);
+  Future<Null> run(ArgResults args);
 }
 
 @Injectable()
@@ -119,6 +122,22 @@ class CreateAgentCommand extends CliCommand {
       'AgentID': agentId,
       'Capabilities': capabilities,
     }));
+    print(resp.body);
+  }
+}
+
+@Injectable()
+class RefreshGithubCommitsCommand extends CliCommand {
+  RefreshGithubCommitsCommand(this.httpClient) : super('refresh-github-commits');
+
+  final http.Client httpClient;
+
+  @override
+  ArgParser get argParser => new ArgParser();
+
+  @override
+  Future<Null> run(ArgResults args) async {
+    http.Response resp = await httpClient.post('/api/refresh-github-commits');
     print(resp.body);
   }
 }

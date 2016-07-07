@@ -25,7 +25,7 @@ func init() {
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
-	registerRPC("/api/check-out-task", commands.CheckOutTask)
+	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
 }
 

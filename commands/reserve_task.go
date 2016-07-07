@@ -10,17 +10,18 @@ import (
 	"time"
 )
 
-// CheckOutTaskResult contains one task reserved for the agent to perform.
-type CheckOutTaskResult struct {
+// ReserveTaskResult contains one task reserved for the agent to perform.
+type ReserveTaskResult struct {
 	// Task reserved for the agent to perform. nil if there are no tasks
 	// available or if agent's capabilities are not sufficient.
 	TaskEntity *db.TaskEntity
 
+	// The checklist the task belongs to.
 	ChecklistEntity *db.ChecklistEntity
 }
 
-// CheckOutTask reserves a task for an agent to perform.
-func CheckOutTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
+// ReserveTask reserves a task for an agent to perform.
+func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	agent := cocoon.CurrentAgent
 
 	if agent == nil {
@@ -64,7 +65,7 @@ func CheckOutTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	return &CheckOutTaskResult{
+	return &ReserveTaskResult{
 		TaskEntity:      reservedTask,
 		ChecklistEntity: reservedChecklist,
 	}, nil

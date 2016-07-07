@@ -42,16 +42,15 @@ bin/build_and_test.sh
 
 # Design
 
-Cocoon creates a _checklist_ for a Flutter commit. A checklist is made of
+Cocoon creates a _checklist_ for each Flutter commit. A checklist is made of
 multiple _tasks_. Tasks are _performed_ by _agents_. An agent is a computer
-_capable_ of running some tasks. To perform a task an agent _checks out_ a task
-(reserves it) from Cocoon. Cocoon issues tasks according to agents'
-_capabilities_. An agent advertises its capabilities by listing them in the
-check out request. Each task has a list of _required capabilities_. For example,
+_capable_ of running a subset of tasks in the checklist. To perform a task an
+agent _reserves_ it in Cocoon. Cocoon issues tasks according to agents'
+_capabilities_. Each task has a list of _required capabilities_. For example,
 a task might require that a physical Android device is attached to an agent. It
 then lists "has-physical-android-phone" capability as required. Multiple agents
-may share the same capability. Cocoon will distribute tasks amongst agents,
-thus scaling the build process.
+may share the same capability. Cocoon will distribute tasks amongst agents.
+That's how Cocoon scales.
 
 # In-browser CLI
 
@@ -88,4 +87,20 @@ The following commands generates an authentication token for an agent.
 
 ```javascript
 cocoon(['auth-agent', '-a', 'bot-with-devices'])
+```
+
+*IMPORTANT*: See the *IMPORTANT* note in "Creating an agent". Also note that
+this command invalidates any previously issued authentication tokens for the
+given agent. Only one authentication token is valid at any given moment in time.
+Therefore, if the agent is currently using a previously issued token its API
+requests will be rejected until it switches to using the newly created token.
+
+## Forcing a refresh from GitHub
+
+Cocoon is driven by commits made to https://github.com/flutter/flutter repo. It
+periodically syncs new commits. If you need to manually force a refresh, issue
+the following CLI command:
+
+```javascript
+cocoon(['refresh-github-commits'])
 ```
