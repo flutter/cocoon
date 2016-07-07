@@ -11,7 +11,6 @@ import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
 import 'package:http/browser_client.dart' as browser_http;
 import 'package:http/http.dart' as http;
-import 'package:http/src/base_client.dart' as base_http;
 
 import 'package:cocoon/components/status_table.dart';
 import 'package:cocoon/logging.dart';
@@ -95,7 +94,7 @@ class HtmlLogger implements Logger {
   void error(String message) => window.console.error(message);
 }
 
-class AuthenticatedClient extends base_http.BaseClient {
+class AuthenticatedClient extends http.BaseClient {
   AuthenticatedClient(this._accessToken);
 
   final String _accessToken;
