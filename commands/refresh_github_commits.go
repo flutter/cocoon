@@ -38,6 +38,8 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	var commits []*db.CommitInfo
 	json.Unmarshal(commitData, &commits)
 
+	cocoon.Ctx.Debugf("Downloaded %v commits from GitHub", len(commits))
+
 	// Sync to datastore
 	var commitResults []CommitSyncResult
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))

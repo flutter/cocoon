@@ -33,34 +33,11 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
 		cocoon := db.NewCocoon(ctx)
-		if !appengine.IsDevAppServer() {
-			agentID := r.Header.Get("Agent-ID")
-			agentAuthToken := r.Header.Get("Agent-Auth-Token")
+		err := checkAuthentication(cocoon, r)
 
-			if agentID == "" {
-				// Authenticate as user
-				user, err := user.CurrentOAuth(ctx, "https://www.googleapis.com/auth/userinfo.email")
-
-				if err != nil {
-					serveRequiresSignIn(w, err)
-					return
-				}
-
-				if !strings.HasSuffix(user.Email, "@google.com") {
-					serveGoogleComOnly(w)
-					return
-				}
-			} else {
-				// Authenticate as an agent
-				agent, err := authenticateAgent(ctx, agentID, agentAuthToken)
-
-				if err != nil {
-					serveRequiresSignIn(w, err)
-					return
-				}
-
-				cocoon.CurrentAgent = agent
-			}
+		if err != nil {
+			serveUnauthorizedAccess(w, err)
+			return
 		}
 
 		bytes, err := ioutil.ReadAll(r.Body)
@@ -100,10 +77,43 @@ func serveError(w http.ResponseWriter, err error) {
 	http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 }
 
-func serveRequiresSignIn(w http.ResponseWriter, err error) {
-	http.Error(w, fmt.Sprintf("OAuth error: %v", err), http.StatusUnauthorized)
+func serveUnauthorizedAccess(w http.ResponseWriter, err error) {
+	http.Error(w, fmt.Sprintf("Authentication/authorization error: %v", err), http.StatusUnauthorized)
 }
 
-func serveGoogleComOnly(w http.ResponseWriter) {
-	http.Error(w, "Only @google.com users are authorized", http.StatusUnauthorized)
+func checkAuthentication(cocoon *db.Cocoon, r *http.Request) error {
+	agentAuthToken := r.Header.Get("Agent-Auth-Token")
+	isCron := r.Header.Get("X-Appengine-Cron") == "true"
+	if agentAuthToken != "" {
+		// Authenticate as an agent
+		agentID := r.Header.Get("Agent-ID")
+		agent, err := authenticateAgent(cocoon.Ctx, agentID, agentAuthToken)
+
+		if err != nil {
+			return fmt.Errorf("Invalid agent: %v", agentID)
+		}
+
+		cocoon.CurrentAgent = agent
+		return nil
+	} else if appengine.IsDevAppServer() || isCron {
+		// Authenticate on dev server and cron requests
+		return nil
+	} else {
+		// Authenticate as user
+		user, err := user.CurrentOAuth(cocoon.Ctx, "https://www.googleapis.com/auth/userinfo.email")
+
+		if err != nil {
+			return fmt.Errorf("User not signed in: %v", err)
+		}
+
+		if user == nil {
+			return fmt.Errorf("User not signed in for unknown reason")
+		}
+
+		if !strings.HasSuffix(user.Email, "@google.com") {
+			return fmt.Errorf("Only @google.com users are authorized")
+		}
+
+		return nil
+	}
 }
