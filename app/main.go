@@ -21,6 +21,7 @@ import (
 )
 
 func init() {
+	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 	registerRPC("/api/create-agent", commands.CreateAgent)
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
 	registerRPC("/api/get-status", commands.GetStatus)
@@ -95,19 +96,15 @@ func checkAuthentication(cocoon *db.Cocoon, r *http.Request) error {
 
 		cocoon.CurrentAgent = agent
 		return nil
-	} else if appengine.IsDevAppServer() || isCron {
-		// Authenticate on dev server and cron requests
+	} else if isCron {
+		// Authenticate cron requests
 		return nil
 	} else {
-		// Authenticate as user
-		user, err := user.CurrentOAuth(cocoon.Ctx, "https://www.googleapis.com/auth/userinfo.email")
-
-		if err != nil {
-			return fmt.Errorf("User not signed in: %v", err)
-		}
+		// Authenticate as Google account
+		user := user.Current(cocoon.Ctx)
 
 		if user == nil {
-			return fmt.Errorf("User not signed in for unknown reason")
+			return fmt.Errorf("User not signed in")
 		}
 
 		if !strings.HasSuffix(user.Email, "@google.com") {
@@ -116,4 +113,26 @@ func checkAuthentication(cocoon *db.Cocoon, r *http.Request) error {
 
 		return nil
 	}
+}
+
+func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	cocoon := db.NewCocoon(ctx)
+	err := checkAuthentication(cocoon, r)
+
+	var response map[string]interface{}
+
+	if err == nil {
+		response = map[string]interface{}{
+			"Status": "OK",
+		}
+	} else {
+		loginURL, _ := user.LoginURL(ctx, "/")
+		response = map[string]interface{}{
+			"LoginURL": loginURL,
+		}
+	}
+
+	outputData, _ := json.Marshal(response)
+	w.Write(outputData)
 }

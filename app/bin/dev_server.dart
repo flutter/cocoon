@@ -104,6 +104,7 @@ Future<Null> _redirectRequest(HttpRequest request, HttpClient http) async {
   );
 
   HttpClientRequest proxyRequest = await http.openUrl(request.method, uri);
+  proxyRequest.followRedirects = false;
   request.headers.forEach((String name, List<String> values) {
     for (String value in values) {
       proxyRequest.headers.add(name, value);
@@ -112,7 +113,15 @@ Future<Null> _redirectRequest(HttpRequest request, HttpClient http) async {
   await proxyRequest.addStream(request);
 
   HttpClientResponse proxyResponse = await proxyRequest.close();
-  for (String headerName in const ['content-type', 'content-encoding']) {
+  request.response.statusCode = proxyResponse.statusCode;
+  List<String> copyHeaders = <String>[
+    'content-type',
+    'content-encoding',
+    'location',
+    'cookie',
+    'set-cookie',
+  ]..addAll(HttpHeaders.RESPONSE_HEADERS);
+  for (String headerName in copyHeaders) {
     request.response.headers.set(headerName, proxyResponse.headers.value(headerName));
   }
   await request.response.addStream(proxyResponse);
