@@ -20,7 +20,7 @@ main() {
                   'Sha': 'asdfasdf',
                   'Author': {
                     'Login': 'supercoder',
-                    'AvatarURL': 'http://photo'
+                    'avatar_url': 'http://photo'
                   },
                 },
                 'CreateTimestamp': 1467097200000,
