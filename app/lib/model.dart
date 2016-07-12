@@ -78,13 +78,13 @@ class AuthorInfo extends Entity {
     (Map<String, dynamic> props) => new AuthorInfo(props),
     <String, JsonSerializer>{
       'Login': string(),
-      'AvatarURL': string(),
+      'avatar_url': string(),
     });
 
   AuthorInfo([Map<String, dynamic> props]) : super(_serializer, props);
 
 	String get login => this['Login'];
-	String get avatarUrl => this['AvatarURL'];
+	String get avatarUrl => this['avatar_url'];
 }
 
 class ChecklistEntity extends Entity {

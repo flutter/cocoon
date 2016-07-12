@@ -1,0 +1,4 @@
+cron:
+- description: refresh commits from GitHub
+  url: /api/refresh-github-commits
+  schedule: every 2 minutes

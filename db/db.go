@@ -329,8 +329,9 @@ type CommitInfo struct {
 
 // AuthorInfo contains information about the author of a commit.
 type AuthorInfo struct {
-	Login     string
-	AvatarURL string
+	Login string
+	// "avatar_url" is how it's encoded in GitHub JSON API
+	AvatarURL string `json:"avatar_url"`
 }
 
 // ChecklistEntity contains storage data on a Checklist.
