@@ -50,13 +50,13 @@ class BuildStatus extends Entity {
     (Map<String, dynamic> props) => new BuildStatus(props),
     <String, JsonSerializer>{
       'Checklist': ChecklistEntity._serializer,
-      'Tasks': listOf(TaskEntity._serializer),
+      'Stages': listOf(Stage._serializer),
     });
 
   BuildStatus([Map<String, dynamic> props]) : super(_serializer, props);
 
 	ChecklistEntity get checklist => this['Checklist'];
-	List<TaskEntity> get tasks => this['Tasks'];
+	List<Stage> get stages => this['Stages'];
 }
 
 class CommitInfo extends Entity {
@@ -115,6 +115,20 @@ class Checklist extends Entity {
 	String get flutterRepositoryPath => this['FlutterRepositoryPath'];
 	CommitInfo get commit => this['Commit'];
 	DateTime get createTimestamp => this['CreateTimestamp'];
+}
+
+class Stage extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new Stage(props),
+    <String, JsonSerializer>{
+      'Name': string(),
+      'Tasks': listOf(TaskEntity._serializer),
+    });
+
+  Stage([Map<String, dynamic> props]) : super(_serializer, props);
+
+  String get name => this['Name'];
+  List<TaskEntity> get tasks => this['Tasks'];
 }
 
 class TaskEntity extends Entity {

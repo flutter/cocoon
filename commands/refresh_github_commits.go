@@ -94,33 +94,35 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 
 // TODO(yjbanov): the task list should be stored in the flutter/flutter repo.
 func createTaskList(checklistKey *datastore.Key) []*db.Task {
+	var makeTask = func(stageName string, name string, requiredCapabilities []string) *db.Task {
+		return &db.Task{
+			ChecklistKey:         checklistKey,
+			StageName:            stageName,
+			Name:                 name,
+			RequiredCapabilities: requiredCapabilities,
+			Status:               "New",
+			StartTimestamp:       0,
+			EndTimestamp:         0,
+		}
+	}
+
 	return []*db.Task{
-		&db.Task{
-			ChecklistKey:         checklistKey,
-			StageName:            "travis",
-			Name:                 "travis",
-			RequiredCapabilities: []string{"can-update-travis"},
-			Status:               "New",
-			StartTimestamp:       0,
-			EndTimestamp:         0,
-		},
-		&db.Task{
-			ChecklistKey:         checklistKey,
-			StageName:            "chromebot",
-			Name:                 "mac_bot",
-			RequiredCapabilities: []string{"can-update-chromebots"},
-			Status:               "New",
-			StartTimestamp:       0,
-			EndTimestamp:         0,
-		},
-		&db.Task{
-			ChecklistKey:         checklistKey,
-			StageName:            "chromebot",
-			Name:                 "linux_bot",
-			RequiredCapabilities: []string{"can-update-chromebots"},
-			Status:               "New",
-			StartTimestamp:       0,
-			EndTimestamp:         0,
-		},
+		makeTask("travis", "travis", []string{"can-update-travis"}),
+
+		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}),
+		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}),
+
+		makeTask("devicelab", "complex_layout_scroll_perf__timeline_summary", []string{"has-android-device"}),
+		makeTask("devicelab", "flutter_gallery__start_up", []string{"has-android-device"}),
+		makeTask("devicelab", "complex_layout__start_up", []string{"has-android-device"}),
+		makeTask("devicelab", "flutter_gallery__transition_perf", []string{"has-android-device"}),
+		makeTask("devicelab", "mega_gallery__refresh_time", []string{"has-android-device"}),
+
+		makeTask("devicelab", "flutter_gallery__build", []string{"has-android-device"}),
+		makeTask("devicelab", "complex_layout__build", []string{"has-android-device"}),
+		makeTask("devicelab", "basic_material_app__size", []string{"has-android-device"}),
+
+		makeTask("devicelab", "analyzer_cli__analysis_time", []string{"has-android-device"}),
+		makeTask("devicelab", "analyzer_server__analysis_time", []string{"has-android-device"}),
 	}
 }

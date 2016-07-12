@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon/ioutil.dart';
+import 'package:args/args.dart';
 import 'package:stack_trace/stack_trace.dart';
+
+import 'package:cocoon/ioutil.dart';
 
 /// Whether dev server is about to exit.
 bool _stopping = false;
@@ -26,11 +28,13 @@ const _pubServePort = 9091;
 
 /// Runs `pub serve` and `goapp serve` such that the app can be debugged in
 /// Dartium.
-main() {
+main(List<String> rawArgs) {
+  ArgResults args = _parseArgs(rawArgs);
+
   Zone.current.fork(specification: new ZoneSpecification(handleUncaughtError: _handleCatastrophy))
     .run(() {
       Chain.capture(() async {
-        await _start();
+        await _start(args);
       }, onError: (error, Chain chain) {
         print(error);
         print(chain.terse);
@@ -38,7 +42,16 @@ main() {
     });
 }
 
-_start() async {
+ArgResults _parseArgs(List<String> rawArgs) {
+  ArgParser argp = new ArgParser()
+    ..addFlag('clear-datastore');
+
+  return argp.parse(rawArgs);
+}
+
+_start(ArgResults args) async {
+  bool clearDatastore = args['clear-datastore'];
+
   _streamSubscriptions.addAll(<StreamSubscription>[
     ProcessSignal.SIGINT.watch().listen((_) {
       print('\nReceived SIGINT. Shutting down.');
@@ -53,9 +66,13 @@ _start() async {
   await _validateCwd();
 
   print('Running `goapp serve` on port $_goappServePort');
+  List<String> goappArgs = <String>['serve', '-port', '$_goappServePort'];
+  if (clearDatastore) {
+    goappArgs.add('-clear_datastore');
+  }
   _childProcesses.add(new ManagedProcess(
     'goapp serve',
-    await startProcess('goapp', ['serve', '-port', '$_goappServePort'])
+    await startProcess('goapp', goappArgs)
   ));
 
   print('Running `pub serve` on port $_pubServePort');

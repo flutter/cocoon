@@ -21,26 +21,31 @@ main() {
                   'Author': {
                     'Login': 'supercoder',
                     'AvatarURL': 'http://photo'
-                  }
+                  },
                 },
                 'CreateTimestamp': 1467097200000,
-              }
+              },
             },
-            'Tasks': [
+            'Stages': [
               {
-                'Key': '7654321',
-                'Task': {
-                  'ChecklistKey': '1234567',
-                  'StageName': 'travis',
-                  'Name': 'linux travis',
-                  'Status': 'New',
-                  'StartTimestamp': 1467097200000,
-                  'EndTimestamp': 0,
-                }
-              }
-            ]
+                'Name': 'travis',
+                'Tasks': [
+                  {
+                    'Key': '7654321',
+                    'Task': {
+                      'ChecklistKey': '1234567',
+                      'StageName': 'travis',
+                      'Name': 'linux travis',
+                      'Status': 'New',
+                      'StartTimestamp': 1467097200000,
+                      'EndTimestamp': 0,
+                    },
+                  },
+                ],
+              },
+            ],
           },
-        ]
+        ],
       });
 
       BuildStatus status = result.statuses.single;
@@ -48,7 +53,8 @@ main() {
       Checklist checklist = checklistEntity.checklist;
       CommitInfo commit = checklist.commit;
       AuthorInfo author = commit.author;
-      TaskEntity taskEntity = status.tasks.single;
+      Stage stage = status.stages.single;
+      TaskEntity taskEntity = stage.tasks.single;
       Task task = taskEntity.task;
 
       expect(status, new isInstanceOf<BuildStatus>());
@@ -58,6 +64,7 @@ main() {
       expect(commit.sha, 'asdfasdf');
       expect(author.login, 'supercoder');
       expect(author.avatarUrl, 'http://photo');
+      expect(stage.name, 'travis');
       expect(taskEntity.key, new Key('7654321'));
       expect(task.checklistKey, new Key('1234567'));
       expect(task.stageName, 'travis');

@@ -149,6 +149,36 @@ func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) 
 	return buffer, nil
 }
 
+// QueryTasksGroupedByStage retrieves all tasks of a checklist grouped by stage.
+func (c *Cocoon) QueryTasksGroupedByStage(checklistKey *datastore.Key) ([]*Stage, error) {
+	tasks, err := c.QueryTasks(checklistKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	stageMap := make(map[string]*Stage)
+	for _, taskEntity := range tasks {
+		task := taskEntity.Task
+		if stageMap[task.StageName] == nil {
+			stageMap[task.StageName] = &Stage{
+				Name:  task.StageName,
+				Tasks: make([]*TaskEntity, 0),
+			}
+		}
+
+		stageMap[task.StageName].Tasks = append(stageMap[task.StageName].Tasks, taskEntity)
+	}
+
+	stages := make([]*Stage, len(stageMap))
+	i := 0
+	for _, stage := range stageMap {
+		stages[i] = stage
+		i++
+	}
+	return stages, nil
+}
+
 // newAgentKey produces the datastore key for the agent from agentID.
 func (c *Cocoon) newAgentKey(agentID string) *datastore.Key {
 	return datastore.NewKey(c.Ctx, "Agent", agentID, 0, nil)
@@ -273,7 +303,7 @@ type CommitInfo struct {
 // AuthorInfo contains information about the author of a commit.
 type AuthorInfo struct {
 	Login     string
-	AvatarURL string `json:"avatar_url"`
+	AvatarURL string
 }
 
 // ChecklistEntity contains storage data on a Checklist.
@@ -288,6 +318,16 @@ type Checklist struct {
 	FlutterRepositoryPath string
 	Commit                CommitInfo
 	CreateTimestamp       int64
+}
+
+// Stage is a group of tasks with the same StageName. A Stage doesn't get its
+// own database record. The grouping is purely virtual. A stage is considered
+// successful when all tasks in it are successful. Stages are used to organize
+// tasks into a pipeline, where tasks in some stages only run _after_ a previous
+// stage is successful.
+type Stage struct {
+	Name  string
+	Tasks []*TaskEntity
 }
 
 // TaskEntity contains storage data on a Task.
@@ -307,7 +347,7 @@ type Task struct {
 	// Capabilities an agent must have to be able to perform this task.
 	RequiredCapabilities []string
 
-	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped".
+	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped", "Underperformed".
 	Status             string
 	ReservedForAgentID string
 	StartTimestamp     int64
