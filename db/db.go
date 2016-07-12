@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"sort"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -176,7 +177,33 @@ func (c *Cocoon) QueryTasksGroupedByStage(checklistKey *datastore.Key) ([]*Stage
 		stages[i] = stage
 		i++
 	}
+	sort.Sort(byPrecedence(stages))
 	return stages, nil
+}
+
+type byPrecedence []*Stage
+
+func (stages byPrecedence) Len() int      { return len(stages) }
+func (stages byPrecedence) Swap(i, j int) { stages[i], stages[j] = stages[j], stages[i] }
+func (stages byPrecedence) Less(i, j int) bool {
+	return stageIndexOf(stages[i]) < stageIndexOf(stages[j])
+}
+
+var stagesInOrder = []string{
+	"travis",
+	"chromebot",
+	"devicelab",
+}
+
+func stageIndexOf(stage *Stage) int {
+	targetStageName := stage.Name
+	for i, stageName := range stagesInOrder {
+		if stageName == targetStageName {
+			return i
+		}
+	}
+	// Put unknown stages last
+	return 1000000
 }
 
 // newAgentKey produces the datastore key for the agent from agentID.

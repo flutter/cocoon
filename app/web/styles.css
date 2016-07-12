@@ -259,10 +259,17 @@ td.stats-value {
   position: absolute;
   transform: rotate(90deg);
   transform-origin: 0% 100%;
+  font-size: 14px;
+  color: #727272;
+  margin: -8px 0 0 2px;
+}
+
+.first-row {
+  text-align: center;
 }
 
 .first-column {
-  max-width: 150px;
+  max-width: 180px;
   overflow-x: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -274,9 +281,9 @@ td.stats-value {
 }
 
 .task-status-circle {
-  border-radius: 5px;
-  height: 10px;
-  width: 10px;
+  border-radius: 10px;
+  height: 20px;
+  width: 20px;
 }
 
 .task-new {

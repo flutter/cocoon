@@ -20,29 +20,20 @@ import 'package:http/http.dart' as http;
     <td class="table-header-cell first-column">
       &nbsp;
     </td>
-    <td class="table-header-cell"
-        *ngFor="let stage of headerRow.stageHeaders"
-        [colSpan]="stage.taskNames.length">
-      {{stage.stageName}}
-    </td>
-  </tr>
-  <tr>
-    <td class="table-header-cell first-column">
-      &nbsp;
-    </td>
-    <td class="table-header-cell"
-        *ngFor="let taskName of headerRow.allTaskNames">
-      <div class="task-name">{{taskName}}</div>
+    <td class="table-header-cell first-row"
+        *ngFor="let metaTask of headerRow.allMetaTasks">
+      <img width="20px" [src]="metaTask.iconUrl">
+      <div class="task-name">{{metaTask.name}}</div>
     </td>
   </tr>
   <tr *ngFor="let status of headerCol">
     <td class="table-header-cell first-column">
-      <img width="10px" [src]="status.checklist.checklist.commit.author.avatarUrl">
+      <img width="20px" [src]="status.checklist.checklist.commit.author.avatarUrl">
       {{shortSha(status.checklist.checklist.commit.sha)}}
       ({{shortSha(status.checklist.checklist.commit.author.login)}})
     </td>
-    <td class="task-status-cell" *ngFor="let taskName of headerRow.allTaskNames">
-      <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, taskName)"></div>
+    <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
+      <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"></div>
     </td>
   </tr>
 </table>
@@ -125,12 +116,12 @@ class HeaderRow {
       }
     );
     for (TaskEntity taskEntity in stage.tasks) {
-      header.addTaskName(taskEntity.task.name);
+      header.addMetaTask(taskEntity.task);
     }
   }
 
-  List<String> get allTaskNames => stageHeaders.fold(<String>[], (List<String> prev, StageHeader h) {
-    return prev..addAll(h.taskNames);
+  List<MetaTask> get allMetaTasks => stageHeaders.fold(<MetaTask>[], (List<MetaTask> prev, StageHeader h) {
+    return prev..addAll(h.metaTasks);
   });
 }
 
@@ -138,11 +129,31 @@ class StageHeader {
   StageHeader(this.stageName);
 
   final String stageName;
-  final List<String> taskNames = <String>[];
+  final List<MetaTask> metaTasks = <MetaTask>[];
 
-  void addTaskName(String name) {
-    if (taskNames.contains(name))
+  void addMetaTask(Task task) {
+    if (metaTasks.any((MetaTask m) => m.name == task.name))
       return;
-    taskNames.add(name);
+    metaTasks.add(new MetaTask(task.name, task.stageName));
   }
+}
+
+/// Information about a task without a result.
+class MetaTask {
+  MetaTask(this.name, String stageName)
+    : this.stageName = stageName,
+      iconUrl = _iconForStageName(stageName);
+
+  final String name;
+  final String stageName;
+  final String iconUrl;
+}
+
+String _iconForStageName(String stageName) {
+  const Map<String, String> iconMap = const <String, String>{
+    'travis': '/travis.svg',
+    'chromebot': '/chromium.svg',
+    'devicelab': '/android.svg',
+  };
+  return iconMap[stageName];
 }
