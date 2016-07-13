@@ -31,14 +31,14 @@ type AuthorizeAgentResult struct {
 // AuthorizeAgent generates an auth token for an agent.
 func AuthorizeAgent(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	// Must be done by a Google account, not by another agent
-	user, err := user.CurrentOAuth(cocoon.Ctx, "https://www.googleapis.com/auth/userinfo.email")
+	user := user.Current(cocoon.Ctx)
 
-	if user == nil || err != nil {
+	if user == nil {
 		return nil, fmt.Errorf("Agent can only be authorized by an authorized Google account")
 	}
 
 	var command *AuthorizeAgentCommand
-	err = json.Unmarshal(inputJSON, &command)
+	err := json.Unmarshal(inputJSON, &command)
 
 	if err != nil {
 		return nil, err

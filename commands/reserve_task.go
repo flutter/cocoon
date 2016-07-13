@@ -103,7 +103,13 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 
 		for _, taskEntity := range tasks {
 			task := taskEntity.Task
-			if task.Status == "New" && agent.CapableOfPerforming(task) {
+			isCapable := false
+			if len(task.RequiredCapabilities) == 0 {
+				cocoon.Ctx.Errorf("Task %v has no required capabilities", task.Name)
+			} else {
+				isCapable = agent.CapableOfPerforming(task)
+			}
+			if task.Status == "New" && isCapable {
 				return taskEntity, checklist, nil
 			}
 		}
