@@ -71,6 +71,21 @@ func (c *Cocoon) PutChecklist(key *datastore.Key, checklist *Checklist) error {
 	return err
 }
 
+// GetChecklist retrieves a checklist from the database.
+func (c *Cocoon) GetChecklist(key *datastore.Key) (*ChecklistEntity, error) {
+	checklist := new(Checklist)
+	err := datastore.Get(c.Ctx, key, checklist)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChecklistEntity{
+		Key:       key,
+		Checklist: checklist,
+	}, nil
+}
+
 // QueryLatestChecklists queries the datastore for the latest checklists sorted
 // by CreateTimestamp in descending order. Returns up to 20 entities.
 func (c *Cocoon) QueryLatestChecklists() ([]*ChecklistEntity, error) {
@@ -126,10 +141,7 @@ func (c *Cocoon) GetTask(key *datastore.Key) (*TaskEntity, error) {
 	}, nil
 }
 
-// QueryTasks queries the database for all tasks belonging to a given checklist
-// sorted by StageName.
-func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
-	query := datastore.NewQuery("Task").Filter("ChecklistKey =", checklistKey).Order("-StageName").Limit(20)
+func (c *Cocoon) runTaskQuery(query *datastore.Query) ([]*TaskEntity, error) {
 	var buffer []*TaskEntity
 	i := 0
 	for iter := query.Run(c.Ctx); ; {
@@ -148,6 +160,27 @@ func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) 
 		i++
 	}
 	return buffer, nil
+}
+
+// QueryTasks queries the database for all tasks belonging to a given checklist
+// sorted by StageName.
+func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
+	query := datastore.NewQuery("Task").
+		Filter("ChecklistKey =", checklistKey).
+		Order("-StageName").
+		Limit(20)
+	return c.runTaskQuery(query)
+}
+
+// QueryLatestsTasksByNameAndStatus lists the latest up to 20 tasks with the
+// given name and status.
+func (c *Cocoon) QueryLatestsTasksByNameAndStatus(name string, status string) ([]*TaskEntity, error) {
+	query := datastore.NewQuery("Task").
+		Filter("Name =", name).
+		Filter("Status =", status).
+		Order("-CreateTimestamp").
+		Limit(20)
+	return c.runTaskQuery(query)
 }
 
 // QueryTasksGroupedByStage retrieves all tasks of a checklist grouped by stage.
@@ -378,6 +411,7 @@ type Task struct {
 	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped", "Underperformed".
 	Status             string
 	ReservedForAgentID string
+	CreateTimestamp    int64
 	StartTimestamp     int64
 	EndTimestamp       int64
 }

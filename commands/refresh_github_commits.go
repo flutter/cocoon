@@ -38,7 +38,11 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	var commits []*db.CommitInfo
 	json.Unmarshal(commitData, &commits)
 
-	cocoon.Ctx.Debugf("Downloaded %v commits from GitHub", len(commits))
+	if len(commits) > 0 {
+		cocoon.Ctx.Debugf("Downloaded %v commits from GitHub", len(commits))
+	} else {
+		return RefreshGithubCommitsResult{}, nil
+	}
 
 	// Sync to datastore
 	var commitResults []CommitSyncResult
@@ -57,22 +61,23 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 					CreateTimestamp:       nowMillisSinceEpoch,
 				})
 
-				// This way CreateTimestamp can be used for almost perfect sorting of
-				// commits by parent-child relationship, just the way GitHub API returns
-				// them.
-				nowMillisSinceEpoch = nowMillisSinceEpoch - 1
-
 				if err != nil {
 					return err
 				}
 
-				tasks := createTaskList(checklistKey)
+				tasks := createTaskList(nowMillisSinceEpoch, checklistKey)
 				for _, task := range tasks {
 					_, err = txc.PutTask(nil, task)
 					if err != nil {
 						return err
 					}
 				}
+
+				// This way CreateTimestamp can be used for almost perfect sorting of
+				// commits by parent-child relationship, just the way GitHub API returns
+				// them.
+				nowMillisSinceEpoch = nowMillisSinceEpoch - 1
+
 				commitResults[i].Outcome = "Synced"
 			} else {
 				commitResults[i].Outcome = "Skipped"
@@ -93,7 +98,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 }
 
 // TODO(yjbanov): the task list should be stored in the flutter/flutter repo.
-func createTaskList(checklistKey *datastore.Key) []*db.Task {
+func createTaskList(createTimestamp int64, checklistKey *datastore.Key) []*db.Task {
 	var makeTask = func(stageName string, name string, requiredCapabilities []string) *db.Task {
 		return &db.Task{
 			ChecklistKey:         checklistKey,
@@ -101,6 +106,7 @@ func createTaskList(checklistKey *datastore.Key) []*db.Task {
 			Name:                 name,
 			RequiredCapabilities: requiredCapabilities,
 			Status:               "New",
+			CreateTimestamp:      createTimestamp,
 			StartTimestamp:       0,
 			EndTimestamp:         0,
 		}

@@ -13,3 +13,9 @@ indexes:
   - name: ChecklistKey
   - name: StageName
     direction: desc
+- kind: Task
+  properties:
+  - name: Name
+  - name: Status
+  - name: CreateTimestamp
+    direction: desc
