@@ -36,16 +36,6 @@ func (c *Cocoon) CurrentAgent() *Agent {
 	return agent.(*Agent)
 }
 
-// RunInTransaction runs callback in a datastore transaction. The instance of
-// Cocoon provided to the callback exists within the transactional
-// context.Context.
-func (c *Cocoon) RunInTransaction(callback func(*Cocoon) error, transactionOptions *datastore.TransactionOptions) error {
-	return datastore.RunInTransaction(c.Ctx, func(txContext context.Context) error {
-		txCocoon := NewCocoon(txContext)
-		return callback(txCocoon)
-	}, transactionOptions)
-}
-
 // dummy implements PropertyLoadSaver just so we can use datastore.Get to check
 // existence of arbitrary entity using a key.
 type dummy struct{}
@@ -180,15 +170,38 @@ func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) 
 	return c.runTaskQuery(query)
 }
 
-// QueryLatestsTasksByNameAndStatus lists the latest up to 20 tasks with the
-// given name and status.
-func (c *Cocoon) QueryLatestsTasksByNameAndStatus(name string, status string) ([]*TaskEntity, error) {
-	query := datastore.NewQuery("Task").
-		Filter("Name =", name).
-		Filter("Status =", status).
-		Order("-CreateTimestamp").
-		Limit(20)
-	return c.runTaskQuery(query)
+// QueryPendingTasks lists the latest tasks with the given name that are not yet
+// in a final status.
+//
+// See also IsFinal.
+func (c *Cocoon) QueryPendingTasks(name string) ([]*TaskEntity, error) {
+	checklists, err := c.QueryLatestChecklists()
+
+	if err != nil {
+		return nil, err
+	}
+
+	tasks := make([]*TaskEntity, 20)
+	for i := len(checklists) - 1; i >= 0; i-- {
+		query := datastore.NewQuery("Task").
+			Filter("ChecklistKey =", checklists[i].Key).
+			Filter("Name =", name).
+			Order("-CreateTimestamp").
+			Limit(20)
+		candidates, err := c.runTaskQuery(query)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, candidate := range candidates {
+			if !candidate.Task.Status.IsFinal() {
+				tasks = append(tasks, candidate)
+			}
+		}
+	}
+
+	return tasks, nil
 }
 
 // QueryTasksGroupedByStage retrieves all tasks of a checklist grouped by stage.
@@ -415,13 +428,53 @@ type Task struct {
 
 	// Capabilities an agent must have to be able to perform this task.
 	RequiredCapabilities []string
+	Status               TaskStatus
+	ReservedForAgentID   string
+	CreateTimestamp      int64
+	StartTimestamp       int64
+	EndTimestamp         int64
+}
 
-	// One of "New", "In Progress", "Succeeded", "Failed", "Skipped", "Underperformed".
-	Status             string
-	ReservedForAgentID string
-	CreateTimestamp    int64
-	StartTimestamp     int64
-	EndTimestamp       int64
+// TaskStatus indicates the status of a task.
+type TaskStatus string
+
+// TaskNew indicates that the task was created but not acted upon.
+const TaskNew = TaskStatus("New")
+
+// TaskInProgress indicates that the task is being performed.
+const TaskInProgress = TaskStatus("In Progress")
+
+// TaskSucceeded indicates that the task succeeded.
+const TaskSucceeded = TaskStatus("Succeeded")
+
+// TaskFailed indicates that the task failed.
+const TaskFailed = TaskStatus("Failed")
+
+// TaskSkipped indicates that the task was skipped.
+const TaskSkipped = TaskStatus("Skipped")
+
+// allTaskStatuses contains all possible task statuses.
+var allTaskStatuses = [...]TaskStatus{
+	TaskNew,
+	TaskInProgress,
+	TaskSucceeded,
+	TaskFailed,
+	TaskSkipped,
+}
+
+// IsFinal indicates whether the task status is no longer expected to change.
+func (s TaskStatus) IsFinal() bool {
+	return s == TaskSucceeded || s == TaskFailed || s == TaskSkipped
+}
+
+// TaskStatusByName looks up a TaskStatus by its name.
+func TaskStatusByName(statusName string) TaskStatus {
+	for _, taskStatus := range allTaskStatuses {
+		if TaskStatus(statusName) == taskStatus {
+			return taskStatus
+		}
+	}
+	panic(fmt.Errorf("Invalid task status name %v", statusName))
 }
 
 // Agent is a record of registration for a particular build agent. Only

@@ -44,7 +44,7 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	task.Task.Status = command.NewStatus
+	task.Task.Status = db.TaskStatusByName(command.NewStatus)
 
 	c.PutTask(task.Key, task.Task)
 

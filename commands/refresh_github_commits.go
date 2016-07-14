@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
@@ -71,7 +73,8 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	// - Commits are not guaranteed to be linear.
 	// - We only sync up to 30 commits, so the transaction size is capped.
 	// - We sync rarely: a cron job running once every 2 minutes
-	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
+	err = datastore.RunInTransaction(cocoon.Ctx, func(txContext context.Context) error {
+		txc := db.NewCocoon(txContext)
 		for i := 0; i < len(commits); i++ {
 			commit := commits[i]
 			commitResults[i].Commit = commit.Sha

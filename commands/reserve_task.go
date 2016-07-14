@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 )
@@ -124,7 +126,8 @@ var errLostRace = fmt.Errorf("Lost race trying to reserve a task")
 func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.Agent) (*db.TaskEntity, error) {
 	var taskEntity *db.TaskEntity
 	var err error
-	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
+	err = datastore.RunInTransaction(cocoon.Ctx, func(txContext context.Context) error {
+		txc := db.NewCocoon(txContext)
 		taskEntity, err = txc.GetTask(taskKey)
 		task := taskEntity.Task
 

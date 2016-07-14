@@ -15,7 +15,7 @@ indexes:
     direction: desc
 - kind: Task
   properties:
+  - name: ChecklistKey
   - name: Name
-  - name: Status
   - name: CreateTimestamp
     direction: desc

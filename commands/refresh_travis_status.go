@@ -27,7 +27,7 @@ type TravisResult struct {
 // RefreshTravisStatus pulls down the latest Travis builds and updates the
 // corresponding task statuses.
 func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
-	travisTasks, err := cocoon.QueryLatestsTasksByNameAndStatus("travis", "New")
+	travisTasks, err := cocoon.QueryPendingTasks("travis")
 
 	if err != nil {
 		return nil, err
@@ -79,9 +79,11 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 		for _, travisResult := range travisResults {
 			if travisResult.Commit == checklistEntity.Checklist.Commit.Sha {
 				if travisResult.State == "finished" {
-					task.Status = "Succeeded"
+					task.Status = db.TaskSucceeded
+				} else if travisResult.State == "started" || travisResult.State == "created" {
+					task.Status = db.TaskInProgress
 				} else {
-					task.Status = "Failed"
+					task.Status = db.TaskFailed
 				}
 				cocoon.PutTask(taskEntity.Key, task)
 			}
