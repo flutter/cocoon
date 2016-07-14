@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"appengine/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 )
 
 // RefreshTravisStatusResult pulls down the latest Travis builds and updates

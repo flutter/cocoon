@@ -12,26 +12,27 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"appengine"
-	"appengine/datastore"
+	"golang.org/x/net/context"
+
+	"google.golang.org/appengine/datastore"
 )
 
 // NewCocoon creates a new Cocoon.
-func NewCocoon(ctx appengine.Context) *Cocoon {
+func NewCocoon(ctx context.Context) *Cocoon {
 	return &Cocoon{Ctx: ctx}
 }
 
 // Cocoon provides access to the database.
 type Cocoon struct {
-	Ctx          appengine.Context
+	Ctx          context.Context
 	CurrentAgent *Agent
 }
 
 // RunInTransaction runs callback in a datastore transaction. The instance of
 // Cocoon provided to the callback exists within the transactional
-// appengine.Context.
+// context.Context.
 func (c *Cocoon) RunInTransaction(callback func(*Cocoon) error, transactionOptions *datastore.TransactionOptions) error {
-	return datastore.RunInTransaction(c.Ctx, func(txContext appengine.Context) error {
+	return datastore.RunInTransaction(c.Ctx, func(txContext context.Context) error {
 		txCocoon := NewCocoon(txContext)
 		txCocoon.CurrentAgent = c.CurrentAgent
 		return callback(txCocoon)
@@ -222,7 +223,7 @@ func (stages byPrecedence) Less(i, j int) bool {
 	return stageIndexOf(stages[i]) < stageIndexOf(stages[j])
 }
 
-var stagesInOrder = []string{
+var stagePrecedence = []string{
 	"travis",
 	"chromebot",
 	"devicelab",
@@ -230,7 +231,7 @@ var stagesInOrder = []string{
 
 func stageIndexOf(stage *Stage) int {
 	targetStageName := stage.Name
-	for i, stageName := range stagesInOrder {
+	for i, stageName := range stagePrecedence {
 		if stageName == targetStageName {
 			return i
 		}

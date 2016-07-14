@@ -58,7 +58,7 @@ Cocoon browser interface includes a small CLI. To access it open Chrome Dev
 Tools > Console. Commands are entered directly into the console like this:
 
 ```javascript
-cocoon([COMMAND, COMMAND_ARGS...])
+cocoon.COMMAND([COMMAND_ARGS...])
 ```
 
 The list of available commands is printed to the console when the page is
@@ -70,7 +70,7 @@ The following command creates an agent with ID "bot-with-devices", and which has
 two capabilities: "has-android-phone" and "has-iphone".
 
 ```javascript
-cocoon(['create-agent', '-a', 'bot-with-devices', '-c', 'has-android-phone', '-c', 'has-iphone'])
+cocoon.createAgent(['-a', 'bot-with-devices', '-c', 'has-android-phone', '-c', 'has-iphone'])
 ```
 
 Agent ID is passed as option `-a`, and agent's capabilities are passed as one or
@@ -86,7 +86,7 @@ generate a new token.
 The following commands generates an authentication token for an agent.
 
 ```javascript
-cocoon(['auth-agent', '-a', 'bot-with-devices'])
+cocoon.authAgent(['-a', 'bot-with-devices'])
 ```
 
 *IMPORTANT*: See the *IMPORTANT* note in "Creating an agent". Also note that
@@ -102,5 +102,5 @@ periodically syncs new commits. If you need to manually force a refresh, issue
 the following CLI command:
 
 ```javascript
-cocoon(['refresh-github-commits'])
+cocoon.refreshGithubCommits([])
 ```

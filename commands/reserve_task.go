@@ -10,7 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 // ReserveTaskCommand reserves a task for an agent.
@@ -102,7 +103,7 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 			task := taskEntity.Task
 
 			if len(task.RequiredCapabilities) == 0 {
-				cocoon.Ctx.Errorf("Task %v has no required capabilities", task.Name)
+				log.Errorf(cocoon.Ctx, "Task %v has no required capabilities", task.Name)
 				continue
 			}
 

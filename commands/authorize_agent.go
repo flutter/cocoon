@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"appengine/user"
+	"google.golang.org/appengine/user"
 )
 
 // AuthorizeAgentCommand generates an auth token for the given agent.

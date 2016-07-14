@@ -17,6 +17,7 @@ class Cli {
     AuthorizeAgentCommand,
     RefreshGithubCommitsCommand,
     ReserveTaskCommand,
+    RawHttpCommand,
   ];
 
   /// Installs global JS object `cocoon` callable from Chrome's dev tools.
@@ -157,6 +158,33 @@ class ReserveTaskCommand extends CliCommand {
     http.Response resp = await httpClient.post('/api/reserve-task', body: JSON.encode({
       'AgentID': agentId
     }));
+    print(resp.body);
+  }
+}
+
+@Injectable()
+class RawHttpCommand extends CliCommand {
+  RawHttpCommand(this.httpClient) : super('http');
+
+  final http.Client httpClient;
+
+  @override
+  ArgParser get argParser {
+    return new ArgParser();
+  }
+
+  @override
+  Future<Null> run(ArgResults args) async {
+    String method = args.rest[0];
+    String path = args.rest[1];
+    String body = args.rest.length > 2 ? args.rest[2] : null;
+
+    http.Response resp;
+    if (method.toLowerCase() == 'get') {
+      resp = await httpClient.get(path);
+    } else if (method.toLowerCase() == 'post') {
+      resp = await httpClient.post(path, body: body);
+    }
     print(resp.body);
   }
 }

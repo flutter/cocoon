@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 // UpdateTaskStatusCommand updates the status of a task.

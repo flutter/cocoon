@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"appengine/user"
+	"google.golang.org/appengine/user"
 )
 
 // CreateAgentCommand creates a new agent in the system.

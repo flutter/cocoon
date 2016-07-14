@@ -10,8 +10,9 @@ import (
 	"io/ioutil"
 	"time"
 
-	"appengine/datastore"
-	"appengine/urlfetch"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -53,7 +54,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	}
 
 	if len(commits) > 0 {
-		cocoon.Ctx.Debugf("Downloaded %v commits from GitHub", len(commits))
+		log.Debugf(cocoon.Ctx, "Downloaded %v commits from GitHub", len(commits))
 	} else {
 		return RefreshGithubCommitsResult{}, nil
 	}

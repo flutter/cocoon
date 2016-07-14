@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"golang.org/x/net/context"
+
 	"cocoon/commands"
 	"cocoon/db"
 
@@ -16,8 +18,9 @@ import (
 
 	"strings"
 
-	"appengine"
-	"appengine/user"
+	"google.golang.org/appengine"
+
+	"google.golang.org/appengine/user"
 )
 
 func init() {
@@ -64,7 +67,7 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 	})
 }
 
-func authenticateAgent(ctx appengine.Context, agentID string, agentAuthToken string) (*db.Agent, error) {
+func authenticateAgent(ctx context.Context, agentID string, agentAuthToken string) (*db.Agent, error) {
 	cocoon := db.NewCocoon(ctx)
 	agent, err := cocoon.GetAgentByAuthToken(agentID, agentAuthToken)
 

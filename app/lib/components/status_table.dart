@@ -118,6 +118,19 @@ class HeaderRow {
     for (TaskEntity taskEntity in stage.tasks) {
       header.addMetaTask(taskEntity.task);
     }
+    stageHeaders.sort((StageHeader a, StageHeader b) {
+      const stagePrecedence = const <String>[
+      	"travis",
+      	"chromebot",
+      	"devicelab",
+      ];
+
+      int aIdx = stagePrecedence.indexOf(a.stageName);
+      aIdx = aIdx == -1 ? 1000000 : aIdx;
+      int bIdx = stagePrecedence.indexOf(b.stageName);
+      bIdx = bIdx == -1 ? 1000000 : bIdx;
+      return aIdx.compareTo(bIdx);
+    });
   }
 
   List<MetaTask> get allMetaTasks => stageHeaders.fold(<MetaTask>[], (List<MetaTask> prev, StageHeader h) {
