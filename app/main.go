@@ -38,7 +38,7 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
 		cocoon := db.NewCocoon(ctx)
-		err := checkAuthentication(cocoon, r)
+		ctx, err := getAuthenticatedContext(ctx, r)
 
 		if err != nil {
 			serveUnauthorizedAccess(w, err)
@@ -86,43 +86,41 @@ func serveUnauthorizedAccess(w http.ResponseWriter, err error) {
 	http.Error(w, fmt.Sprintf("Authentication/authorization error: %v", err), http.StatusUnauthorized)
 }
 
-func checkAuthentication(cocoon *db.Cocoon, r *http.Request) error {
+func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Context, error) {
 	agentAuthToken := r.Header.Get("Agent-Auth-Token")
 	isCron := r.Header.Get("X-Appengine-Cron") == "true"
 	if agentAuthToken != "" {
 		// Authenticate as an agent
 		agentID := r.Header.Get("Agent-ID")
-		agent, err := authenticateAgent(cocoon.Ctx, agentID, agentAuthToken)
+		agent, err := authenticateAgent(ctx, agentID, agentAuthToken)
 
 		if err != nil {
-			return fmt.Errorf("Invalid agent: %v", agentID)
+			return nil, fmt.Errorf("Invalid agent: %v", agentID)
 		}
 
-		cocoon.CurrentAgent = agent
-		return nil
+		return context.WithValue(ctx, "agent", agent), nil
 	} else if isCron {
 		// Authenticate cron requests
-		return nil
+		return ctx, nil
 	} else {
 		// Authenticate as Google account
-		user := user.Current(cocoon.Ctx)
+		user := user.Current(ctx)
 
 		if user == nil {
-			return fmt.Errorf("User not signed in")
+			return nil, fmt.Errorf("User not signed in")
 		}
 
 		if !strings.HasSuffix(user.Email, "@google.com") {
-			return fmt.Errorf("Only @google.com users are authorized")
+			return nil, fmt.Errorf("Only @google.com users are authorized")
 		}
 
-		return nil
+		return ctx, nil
 	}
 }
 
 func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
-	cocoon := db.NewCocoon(ctx)
-	err := checkAuthentication(cocoon, r)
+	ctx, err := getAuthenticatedContext(ctx, r)
 
 	var response map[string]interface{}
 

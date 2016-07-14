@@ -24,8 +24,16 @@ func NewCocoon(ctx context.Context) *Cocoon {
 
 // Cocoon provides access to the database.
 type Cocoon struct {
-	Ctx          context.Context
-	CurrentAgent *Agent
+	Ctx context.Context
+}
+
+// CurrentAgent returns the agent making the request.
+func (c *Cocoon) CurrentAgent() *Agent {
+	agent := c.Ctx.Value("agent")
+	if agent == nil {
+		return nil
+	}
+	return agent.(*Agent)
 }
 
 // RunInTransaction runs callback in a datastore transaction. The instance of
@@ -34,7 +42,6 @@ type Cocoon struct {
 func (c *Cocoon) RunInTransaction(callback func(*Cocoon) error, transactionOptions *datastore.TransactionOptions) error {
 	return datastore.RunInTransaction(c.Ctx, func(txContext context.Context) error {
 		txCocoon := NewCocoon(txContext)
-		txCocoon.CurrentAgent = c.CurrentAgent
 		return callback(txCocoon)
 	}, transactionOptions)
 }

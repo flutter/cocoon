@@ -37,9 +37,9 @@ func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 	var agent *db.Agent
 
-	if cocoon.CurrentAgent != nil {
+	if cocoon.CurrentAgent() != nil {
 		// Signed in as agent
-		agent = cocoon.CurrentAgent
+		agent = cocoon.CurrentAgent()
 
 		if agent.AgentID != command.AgentID {
 			messageFormat := "Currently signed in agent's ID (%v) does not match agent ID supplied in the request (%v)"
