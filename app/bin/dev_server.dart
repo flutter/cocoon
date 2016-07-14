@@ -67,9 +67,9 @@ _start(ArgResults args) async {
 
   print('Running `goapp serve` on port $_goappServePort');
   List<String> goappArgs = <String>['serve', '-port', '$_goappServePort'];
-  if (clearDatastore) {
+  if (clearDatastore)
     goappArgs.add('-clear_datastore');
-  }
+
   _childProcesses.add(new ManagedProcess(
     'goapp serve',
     await startProcess('goapp', goappArgs)
@@ -197,19 +197,17 @@ Future<Null> _validateCwd() async {
   File pubspecYaml = file('${Directory.current.path}/pubspec.yaml');
   File appYaml = file('${Directory.current.path}/app.yaml');
 
-  if (!(await pubspecYaml.exists())) {
+  if (!(await pubspecYaml.exists()))
     throw '${pubspecYaml.path} not found in current working directory';
-  }
 
-  if (!(await appYaml.exists())) {
+  if (!(await appYaml.exists()))
     throw '${appYaml.path} not found in current working directory';
-  }
 }
 
 Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
-  if (_stopping) {
+  if (_stopping)
     return;
-  }
+
   _stopping = true;
   _streamSubscriptions.forEach((s) => s.cancel());
   await devServer.close(force: true);

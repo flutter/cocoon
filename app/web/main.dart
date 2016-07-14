@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
 
 import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
@@ -27,16 +26,7 @@ main() async {
   ]..addAll(Cli.commandTypes.map((Type type) => provide(type, useClass: type))));
 
   // Start CLI
-  Cli _cli = new Cli(ref.injector);
-
-  // Installs global JS function callable from Chrome's dev tools. Usage:
-  //
-  // cocoon([COMMAND_NAME, ...COMMAND_ARGS]);
-  //
-  // See `cliCommands` for list of available commands.
-  context['cocoon'] = new JsFunction.withThis((_, List<String> rawArgs) {
-    _cli.run(rawArgs);
-  });
+  Cli.install(ref.injector);
 }
 
 Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() async {

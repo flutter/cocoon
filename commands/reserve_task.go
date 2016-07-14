@@ -53,37 +53,34 @@ func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		}
 	}
 
-	var reservedTask *db.TaskEntity
-	var reservedChecklist *db.ChecklistEntity
-	keepLooking := true
-
-	for keepLooking {
+	for {
 		task, checklist, err := findNextTaskToRun(cocoon, agent)
+
 		if err != nil {
 			return nil, err
 		}
+
 		if task == nil {
 			// No new tasks available
-			keepLooking = false
+			return &ReserveTaskResult{
+				TaskEntity:      nil,
+				ChecklistEntity: nil,
+			}, nil
+		}
+
+		task, err = atomicallyReserveTask(cocoon, task.Key, agent)
+		if err == errLostRace {
+			// Keep looking
+		} else if err != nil {
+			return nil, err
 		} else {
-			task, err = atomicallyReserveTask(cocoon, task.Key, agent)
-			if err == errLostRace {
-				// Keep looking
-			} else if err != nil {
-				return nil, err
-			} else {
-				// Found a task
-				reservedTask = task
-				reservedChecklist = checklist
-				keepLooking = false
-			}
+			// Found a task
+			return &ReserveTaskResult{
+				TaskEntity:      task,
+				ChecklistEntity: checklist,
+			}, nil
 		}
 	}
-
-	return &ReserveTaskResult{
-		TaskEntity:      reservedTask,
-		ChecklistEntity: reservedChecklist,
-	}, nil
 }
 
 func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.ChecklistEntity, error) {
@@ -103,13 +100,13 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 
 		for _, taskEntity := range tasks {
 			task := taskEntity.Task
-			isCapable := false
+
 			if len(task.RequiredCapabilities) == 0 {
 				cocoon.Ctx.Errorf("Task %v has no required capabilities", task.Name)
-			} else {
-				isCapable = agent.CapableOfPerforming(task)
+				continue
 			}
-			if task.Status == "New" && isCapable {
+
+			if task.Status == "New" && agent.CapableOfPerforming(task) {
 				return taskEntity, checklist, nil
 			}
 		}

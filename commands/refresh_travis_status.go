@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"appengine/datastore"
 	"appengine/urlfetch"
 )
 
@@ -41,12 +40,12 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 	}
 
 	// Maps from checklist key to checklist
-	checklistIndex := make(map[string]*db.ChecklistEntity)
+	checklists := make(map[string]*db.ChecklistEntity)
 	for _, taskEntity := range travisTasks {
-		checklistKey := taskEntity.Task.ChecklistKey
-		checklistKeyString := taskEntity.Task.ChecklistKey.Encode()
-		if checklistIndex[checklistKeyString] == nil {
-			checklistIndex[checklistKeyString], err = cocoon.GetChecklist(checklistKey)
+		key := taskEntity.Task.ChecklistKey
+		keyString := taskEntity.Task.ChecklistKey.Encode()
+		if checklists[keyString] == nil {
+			checklists[keyString], err = cocoon.GetChecklist(key)
 			if err != nil {
 				return nil, err
 			}
@@ -55,35 +54,38 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 
 	// Fetch data from Travis
 	httpClient := urlfetch.Client(cocoon.Ctx)
-	travisResp, _ := httpClient.Get("https://api.travis-ci.org/repos/flutter/flutter/builds")
-	defer travisResp.Body.Close()
-	buildData, _ := ioutil.ReadAll(travisResp.Body)
-	var travisResults []*TravisResult
-	json.Unmarshal(buildData, &travisResults)
 
-	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
-		for _, taskEntity := range travisTasks {
-			task := taskEntity.Task
-			checklistEntity := checklistIndex[task.ChecklistKey.Encode()]
-			for _, travisResult := range travisResults {
-				if travisResult.Commit == checklistEntity.Checklist.Commit.Sha {
-					if travisResult.State == "finished" {
-						task.Status = "Succeeded"
-					} else {
-						task.Status = "Failed"
-					}
-					cocoon.PutTask(taskEntity.Key, task)
-				}
-			}
-		}
-		return nil
-	}, &datastore.TransactionOptions{
-		// Updating potentially multiple tasks in one transaction.
-		XG: true,
-	})
-
+	travisResp, err := httpClient.Get("https://api.travis-ci.org/repos/flutter/flutter/builds")
 	if err != nil {
 		return nil, err
+	}
+
+	defer travisResp.Body.Close()
+
+	buildData, err := ioutil.ReadAll(travisResp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var travisResults []*TravisResult
+
+	if json.Unmarshal(buildData, &travisResults) != nil {
+		return nil, err
+	}
+
+	for _, taskEntity := range travisTasks {
+		task := taskEntity.Task
+		checklistEntity := checklists[task.ChecklistKey.Encode()]
+		for _, travisResult := range travisResults {
+			if travisResult.Commit == checklistEntity.Checklist.Commit.Sha {
+				if travisResult.State == "finished" {
+					task.Status = "Succeeded"
+				} else {
+					task.Status = "Failed"
+				}
+				cocoon.PutTask(taskEntity.Key, task)
+			}
+		}
 	}
 
 	return RefreshTravisStatusResult{travisResults}, nil

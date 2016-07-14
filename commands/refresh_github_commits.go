@@ -32,11 +32,25 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	httpClient := urlfetch.Client(cocoon.Ctx)
 
 	// Fetch data from GitHub
-	githubResp, _ := httpClient.Get("https://api.github.com/repos/flutter/flutter/commits")
+	githubResp, err := httpClient.Get("https://api.github.com/repos/flutter/flutter/commits")
+
+	if err != nil {
+		return nil, err
+	}
+
 	defer githubResp.Body.Close()
-	commitData, _ := ioutil.ReadAll(githubResp.Body)
+	commitData, err := ioutil.ReadAll(githubResp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
 	var commits []*db.CommitInfo
-	json.Unmarshal(commitData, &commits)
+	err = json.Unmarshal(commitData, &commits)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if len(commits) > 0 {
 		cocoon.Ctx.Debugf("Downloaded %v commits from GitHub", len(commits))
@@ -48,40 +62,48 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	var commitResults []CommitSyncResult
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))
 	nowMillisSinceEpoch := time.Now().UnixNano() / 1000000
-	var err error
+
+	// To be able to use `CreateTimestamp` field for sorting topologically we have
+	// to save ranges of commits with no gaps. Therefore we save all of them in
+	// one transaction. Other constraints to consider:
+	//
+	// - Commits are not guaranteed to be linear.
+	// - We only sync up to 30 commits, so the transaction size is capped.
+	// - We sync rarely: a cron job running once every 2 minutes
 	err = cocoon.RunInTransaction(func(txc *db.Cocoon) error {
 		for i := 0; i < len(commits); i++ {
 			commit := commits[i]
 			commitResults[i].Commit = commit.Sha
 			checklistKey := txc.NewChecklistKey("flutter/flutter", commit.Sha)
-			if !txc.EntityExists(checklistKey) {
-				err = txc.PutChecklist(checklistKey, &db.Checklist{
-					FlutterRepositoryPath: "flutter/flutter",
-					Commit:                *commit,
-					CreateTimestamp:       nowMillisSinceEpoch,
-				})
+			if txc.EntityExists(checklistKey) {
+				commitResults[i].Outcome = "Skipped"
+				continue
+			}
 
+			err = txc.PutChecklist(checklistKey, &db.Checklist{
+				FlutterRepositoryPath: "flutter/flutter",
+				Commit:                *commit,
+				CreateTimestamp:       nowMillisSinceEpoch,
+			})
+
+			if err != nil {
+				return err
+			}
+
+			tasks := createTaskList(nowMillisSinceEpoch, checklistKey)
+			for _, task := range tasks {
+				_, err = txc.PutTask(nil, task)
 				if err != nil {
 					return err
 				}
-
-				tasks := createTaskList(nowMillisSinceEpoch, checklistKey)
-				for _, task := range tasks {
-					_, err = txc.PutTask(nil, task)
-					if err != nil {
-						return err
-					}
-				}
-
-				// This way CreateTimestamp can be used for almost perfect sorting of
-				// commits by parent-child relationship, just the way GitHub API returns
-				// them.
-				nowMillisSinceEpoch = nowMillisSinceEpoch - 1
-
-				commitResults[i].Outcome = "Synced"
-			} else {
-				commitResults[i].Outcome = "Skipped"
 			}
+
+			// This way CreateTimestamp can be used for almost perfect sorting of
+			// commits by parent-child relationship, just the way GitHub API returns
+			// them.
+			nowMillisSinceEpoch = nowMillisSinceEpoch - 1
+
+			commitResults[i].Outcome = "Synced"
 		}
 		return nil
 	}, &datastore.TransactionOptions{

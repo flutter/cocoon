@@ -429,13 +429,14 @@ type Agent struct {
 
 // CapableOfPerforming returns whether the agent is capable of performing the
 // task by checking that every capability required by the task is offered by the
-// agent that issued the command.
+// agent.
 func (agent *Agent) CapableOfPerforming(task *Task) bool {
 	for _, requiredCapability := range task.RequiredCapabilities {
 		capabilityOffered := false
 		for _, offeredCapability := range agent.Capabilities {
 			if offeredCapability == requiredCapability {
 				capabilityOffered = true
+				break
 			}
 		}
 		if !capabilityOffered {

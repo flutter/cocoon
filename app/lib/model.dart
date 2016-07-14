@@ -16,7 +16,7 @@ class Key {
   int get hashCode => value.hashCode;
 
   @override
-  operator==(Key other) => other != null && other.value == value;
+  operator ==(Key other) => other != null && other.value == value;
 }
 
 class _KeySerializer implements JsonSerializer<Key> {
@@ -36,9 +36,11 @@ class GetStatusResult extends Entity {
     (Map<String, dynamic> props) => new GetStatusResult(props),
     <String, JsonSerializer>{
       'Statuses': listOf(BuildStatus._serializer),
-    });
+    }
+  );
 
-  static GetStatusResult fromJson(dynamic json) => _serializer.deserialize(json);
+  static GetStatusResult fromJson(dynamic json) =>
+      _serializer.deserialize(json);
 
   GetStatusResult([Map<String, dynamic> props]) : super(_serializer, props);
 
@@ -51,12 +53,13 @@ class BuildStatus extends Entity {
     <String, JsonSerializer>{
       'Checklist': ChecklistEntity._serializer,
       'Stages': listOf(Stage._serializer),
-    });
+    }
+  );
 
   BuildStatus([Map<String, dynamic> props]) : super(_serializer, props);
 
-	ChecklistEntity get checklist => this['Checklist'];
-	List<Stage> get stages => this['Stages'];
+  ChecklistEntity get checklist => this['Checklist'];
+  List<Stage> get stages => this['Stages'];
 }
 
 class CommitInfo extends Entity {
@@ -65,12 +68,13 @@ class CommitInfo extends Entity {
     <String, JsonSerializer>{
       'Sha': string(),
       'Author': AuthorInfo._serializer,
-    });
+    }
+  );
 
   CommitInfo([Map<String, dynamic> props]) : super(_serializer, props);
 
-	String get sha => this['Sha'];
-	AuthorInfo get author => this['Author'];
+  String get sha => this['Sha'];
+  AuthorInfo get author => this['Author'];
 }
 
 class AuthorInfo extends Entity {
@@ -79,12 +83,13 @@ class AuthorInfo extends Entity {
     <String, JsonSerializer>{
       'Login': string(),
       'avatar_url': string(),
-    });
+    }
+  );
 
   AuthorInfo([Map<String, dynamic> props]) : super(_serializer, props);
 
-	String get login => this['Login'];
-	String get avatarUrl => this['avatar_url'];
+  String get login => this['Login'];
+  String get avatarUrl => this['avatar_url'];
 }
 
 class ChecklistEntity extends Entity {
@@ -93,12 +98,13 @@ class ChecklistEntity extends Entity {
     <String, JsonSerializer>{
       'Key': Key._serializer,
       'Checklist': Checklist._serializer,
-    });
+    }
+  );
 
   ChecklistEntity([Map<String, dynamic> props]) : super(_serializer, props);
 
-	Key get key => this['Key'];
-	Checklist get checklist => this['Checklist'];
+  Key get key => this['Key'];
+  Checklist get checklist => this['Checklist'];
 }
 
 class Checklist extends Entity {
@@ -108,13 +114,14 @@ class Checklist extends Entity {
       'FlutterRepositoryPath': string(),
       'Commit': CommitInfo._serializer,
       'CreateTimestamp': dateTime(),
-    });
+    }
+  );
 
   Checklist([Map<String, dynamic> props]) : super(_serializer, props);
 
-	String get flutterRepositoryPath => this['FlutterRepositoryPath'];
-	CommitInfo get commit => this['Commit'];
-	DateTime get createTimestamp => this['CreateTimestamp'];
+  String get flutterRepositoryPath => this['FlutterRepositoryPath'];
+  CommitInfo get commit => this['Commit'];
+  DateTime get createTimestamp => this['CreateTimestamp'];
 }
 
 class Stage extends Entity {
@@ -123,7 +130,8 @@ class Stage extends Entity {
     <String, JsonSerializer>{
       'Name': string(),
       'Tasks': listOf(TaskEntity._serializer),
-    });
+    }
+  );
 
   Stage([Map<String, dynamic> props]) : super(_serializer, props);
 
@@ -137,12 +145,13 @@ class TaskEntity extends Entity {
     <String, JsonSerializer>{
       'Key': Key._serializer,
       'Task': Task._serializer,
-    });
+    }
+  );
 
   TaskEntity([Map<String, dynamic> props]) : super(_serializer, props);
 
-	Key get key => this['Key'];
-	Task get task => this['Task'];
+  Key get key => this['Key'];
+  Task get task => this['Task'];
 }
 
 class Task extends Entity {
@@ -155,14 +164,15 @@ class Task extends Entity {
       'Status': string(),
       'StartTimestamp': dateTime(),
       'EndTimestamp': dateTime(),
-    });
+    }
+  );
 
   Task([Map<String, dynamic> props]) : super(_serializer, props);
 
-	Key get checklistKey => this['ChecklistKey'];
-	String get stageName => this['StageName'];
-	String get name => this['Name'];
-	String get status => this['Status'];
-	DateTime get startTimestamp => this['StartTimestamp'];
-	DateTime get endTimestamp => this['EndTimestamp'];
+  Key get checklistKey => this['ChecklistKey'];
+  String get stageName => this['StageName'];
+  String get name => this['Name'];
+  String get status => this['Status'];
+  DateTime get startTimestamp => this['StartTimestamp'];
+  DateTime get endTimestamp => this['EndTimestamp'];
 }

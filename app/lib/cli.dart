@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js';
 
 import 'package:angular2/core.dart';
 import 'package:args/args.dart';
@@ -18,9 +19,15 @@ class Cli {
     ReserveTaskCommand,
   ];
 
-  factory Cli(Injector injector) {
-    ArgParser argParser = new ArgParser();
-    Map<String, CliCommand> commandMap = <String, CliCommand>{};
+  /// Installs global JS object `cocoon` callable from Chrome's dev tools.
+  ///
+  /// Usage:
+  ///
+  /// cocoon.method([...COMMAND_ARGS]);
+  ///
+  /// See `cliCommands` for list of available commands.
+  static void install(Injector injector) {
+    Map<String, Function> commandMap = <String, Function>{};
 
     print('Available CLI commands:');
     for (Type commandType in commandTypes) {
@@ -29,29 +36,14 @@ class Cli {
       if (command == null)
         throw 'Failed to register ${commandType}';
 
-      commandMap[command.name] = command;
       print('  ${command.name}');
-      argParser.addCommand(command.name, command.argParser);
+      commandMap[command.name] = (List<String> args) {
+        command.run(command.argParser.parse(args));
+        return 'Running...';
+      };
     }
 
-    return new Cli._(argParser, commandMap);
-  }
-
-  Cli._(this._argParser, this._commands);
-
-  final ArgParser _argParser;
-  final Map<String, CliCommand> _commands;
-
-  Future<Null> run(List<String> rawArgs) async {
-    ArgResults args = _argParser.parse(rawArgs);
-    CliCommand command = _commands[args.command.name];
-
-    if (command == null)
-      throw 'Command ${args.name} not found';
-
-    print('Running...');
-    await command.run(args.command);
-    print('Done.');
+    context['cocoon'] = new JsObject.jsify(commandMap);
   }
 }
 
@@ -68,7 +60,7 @@ abstract class CliCommand {
 
 @Injectable()
 class AuthorizeAgentCommand extends CliCommand {
-  AuthorizeAgentCommand(this.httpClient) : super('auth-agent');
+  AuthorizeAgentCommand(this.httpClient) : super('authAgent');
 
   final http.Client httpClient;
 
@@ -94,7 +86,7 @@ class AuthorizeAgentCommand extends CliCommand {
 
 @Injectable()
 class CreateAgentCommand extends CliCommand {
-  CreateAgentCommand(this.httpClient) : super('create-agent');
+  CreateAgentCommand(this.httpClient) : super('createAgent');
 
   final http.Client httpClient;
 
@@ -129,7 +121,7 @@ class CreateAgentCommand extends CliCommand {
 
 @Injectable()
 class RefreshGithubCommitsCommand extends CliCommand {
-  RefreshGithubCommitsCommand(this.httpClient) : super('refresh-github-commits');
+  RefreshGithubCommitsCommand(this.httpClient) : super('refreshGithubCommits');
 
   final http.Client httpClient;
 
@@ -145,7 +137,7 @@ class RefreshGithubCommitsCommand extends CliCommand {
 
 @Injectable()
 class ReserveTaskCommand extends CliCommand {
-  ReserveTaskCommand(this.httpClient) : super('reserve-task');
+  ReserveTaskCommand(this.httpClient) : super('reserveTask');
 
   final http.Client httpClient;
 
