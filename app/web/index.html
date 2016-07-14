@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<!--
+  Copyright (c) 2016 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
+<html>
+<head>
+  <meta http-equiv="refresh" content="300">
+
+  <title>Flutter Dashboard</title>
+  <link href="styles.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+
+  <script>
+  (function(w,d,s,g,js,fjs){
+    g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
+    js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
+    js.src='https://apis.google.com/js/platform.js';
+    fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
+  }(window,document,'script'));
+  </script>
+</head>
+<body>
+  <div id="container">
+    <status-table></status-table>
+  </div>
+
+  <script defer src="main.dart" type="application/dart"></script>
+  <script defer src="packages/browser/dart.js"></script>
+</body>
+</html>

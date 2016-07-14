@@ -1,0 +1,21 @@
+# Copyright (c) 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  static_files: build/web/index.html
+  upload: build/web/index.html
+- url: /(.*\.(html|css|js|ico|svg|png|jpg|map|dart))$
+  static_files: build/web/\1
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart)$
+- url: /api/.*
+  script: _go_app
+skip_files:
+- (.+/)?(?<!build/web/)packages(?!/browser)/.*
+- .pub/.*
+- .atom/.*
+- .packages
