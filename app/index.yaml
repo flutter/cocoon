@@ -10,12 +10,10 @@ indexes:
     direction: desc
 - kind: Task
   properties:
-  - name: ChecklistKey
   - name: StageName
     direction: desc
 - kind: Task
   properties:
-  - name: ChecklistKey
   - name: Name
   - name: CreateTimestamp
     direction: desc

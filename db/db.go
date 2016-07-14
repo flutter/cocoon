@@ -164,7 +164,7 @@ func (c *Cocoon) runTaskQuery(query *datastore.Query) ([]*TaskEntity, error) {
 // sorted by StageName.
 func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
 	query := datastore.NewQuery("Task").
-		Filter("ChecklistKey =", checklistKey).
+		Ancestor(checklistKey).
 		Order("-StageName").
 		Limit(20)
 	return c.runTaskQuery(query)
@@ -181,10 +181,10 @@ func (c *Cocoon) QueryPendingTasks(name string) ([]*TaskEntity, error) {
 		return nil, err
 	}
 
-	tasks := make([]*TaskEntity, 20)
+	tasks := make([]*TaskEntity, 0, 20)
 	for i := len(checklists) - 1; i >= 0; i-- {
 		query := datastore.NewQuery("Task").
-			Filter("ChecklistKey =", checklists[i].Key).
+			Ancestor(checklists[i].Key).
 			Filter("Name =", name).
 			Order("-CreateTimestamp").
 			Limit(20)
