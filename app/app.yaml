@@ -9,11 +9,14 @@ handlers:
 - url: /
   static_files: build/web/index.html
   upload: build/web/index.html
+  secure: always
 - url: /(.*\.(html|css|js|ico|svg|png|jpg|map|dart))$
   static_files: build/web/\1
   upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart)$
+  secure: always
 - url: /api/.*
   script: _go_app
+  secure: always
 skip_files:
 - (.+/)?(?<!build/web/)packages(?!/browser)/.*
 - .pub/.*
