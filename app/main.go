@@ -20,11 +20,11 @@ import (
 
 	"google.golang.org/appengine"
 
+	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/user"
 )
 
 func init() {
-	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 	registerRPC("/api/create-agent", commands.CreateAgent)
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
 	registerRPC("/api/get-status", commands.GetStatus)
@@ -32,6 +32,10 @@ func init() {
 	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
+
+	// IMPORTANT: This is the ONLY path that does NOT require authentication. Do
+	//            not copy this pattern. Use registerRPC instead.
+	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 }
 
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
@@ -47,19 +51,19 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) 
 
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			serveError(w, err)
+			serveError(ctx, w, r, err)
 			return
 		}
 
 		response, err := handler(cocoon, bytes)
 		if err != nil {
-			serveError(w, err)
+			serveError(ctx, w, r, err)
 			return
 		}
 
 		outputData, err := json.Marshal(response)
 		if err != nil {
-			serveError(w, err)
+			serveError(ctx, w, r, err)
 			return
 		}
 
@@ -78,8 +82,10 @@ func authenticateAgent(ctx context.Context, agentID string, agentAuthToken strin
 	return agent, nil
 }
 
-func serveError(w http.ResponseWriter, err error) {
-	http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+func serveError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	errorMessage := fmt.Sprintf("[%v] %v", r.URL, err)
+	log.Errorf(ctx, "%v", errorMessage)
+	http.Error(w, errorMessage, http.StatusInternalServerError)
 }
 
 func serveUnauthorizedAccess(w http.ResponseWriter, err error) {
@@ -90,7 +96,8 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 	agentAuthToken := r.Header.Get("Agent-Auth-Token")
 	isCron := r.Header.Get("X-Appengine-Cron") == "true"
 	if agentAuthToken != "" {
-		// Authenticate as an agent
+		// Authenticate as an agent. Note that it could simulaneously be cron and
+		// agent, or Google account and agent.
 		agentID := r.Header.Get("Agent-ID")
 		agent, err := authenticateAgent(ctx, agentID, agentAuthToken)
 
@@ -100,10 +107,11 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 
 		return context.WithValue(ctx, "agent", agent), nil
 	} else if isCron {
-		// Authenticate cron requests
+		// Authenticate cron requests that are not agents.
 		return ctx, nil
 	} else {
-		// Authenticate as Google account
+		// Authenticate as Google account. Note that it could be both a Google
+		// account and agent.
 		user := user.Current(ctx)
 
 		if user == nil {
