@@ -9,10 +9,12 @@ indexes:
   - name: CreateTimestamp
     direction: desc
 - kind: Task
+  ancestor: yes
   properties:
   - name: StageName
     direction: desc
 - kind: Task
+  ancestor: yes
   properties:
   - name: Name
   - name: CreateTimestamp
