@@ -39,22 +39,8 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 		return RefreshTravisStatusResult{}, nil
 	}
 
-	// Maps from checklist key to checklist
-	checklists := make(map[string]*db.ChecklistEntity)
-	for _, taskEntity := range travisTasks {
-		key := taskEntity.Task.ChecklistKey
-		keyString := taskEntity.Task.ChecklistKey.Encode()
-		if checklists[keyString] == nil {
-			checklists[keyString], err = cocoon.GetChecklist(key)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
 	// Fetch data from Travis
 	httpClient := urlfetch.Client(cocoon.Ctx)
-
 	travisResp, err := httpClient.Get("https://api.travis-ci.org/repos/flutter/flutter/builds")
 	if err != nil {
 		return nil, err
@@ -73,9 +59,9 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 		return nil, err
 	}
 
-	for _, taskEntity := range travisTasks {
-		task := taskEntity.Task
-		checklistEntity := checklists[task.ChecklistKey.Encode()]
+	for _, fullTask := range travisTasks {
+		task := fullTask.TaskEntity.Task
+		checklistEntity := fullTask.ChecklistEntity
 		for _, travisResult := range travisResults {
 			if travisResult.Commit == checklistEntity.Checklist.Commit.Sha {
 				if travisResult.State == "finished" {
@@ -85,7 +71,7 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 				} else {
 					task.Status = db.TaskFailed
 				}
-				cocoon.PutTask(taskEntity.Key, task)
+				cocoon.PutTask(fullTask.TaskEntity.Key, task)
 			}
 		}
 	}

@@ -170,22 +170,30 @@ func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) 
 	return c.runTaskQuery(query)
 }
 
+// FullTask contains information about a Task as well as surrounding metadata.
+// It is generally more expensive to query this data than to query just the task
+// records.
+type FullTask struct {
+	TaskEntity      *TaskEntity
+	ChecklistEntity *ChecklistEntity
+}
+
 // QueryPendingTasks lists the latest tasks with the given name that are not yet
 // in a final status.
 //
 // See also IsFinal.
-func (c *Cocoon) QueryPendingTasks(name string) ([]*TaskEntity, error) {
+func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
 	checklists, err := c.QueryLatestChecklists()
 
 	if err != nil {
 		return nil, err
 	}
 
-	tasks := make([]*TaskEntity, 0, 20)
+	tasks := make([]*FullTask, 0, 20)
 	for i := len(checklists) - 1; i >= 0; i-- {
 		query := datastore.NewQuery("Task").
 			Ancestor(checklists[i].Key).
-			Filter("Name =", name).
+			Filter("Name =", taskName).
 			Order("-CreateTimestamp").
 			Limit(20)
 		candidates, err := c.runTaskQuery(query)
@@ -196,7 +204,10 @@ func (c *Cocoon) QueryPendingTasks(name string) ([]*TaskEntity, error) {
 
 		for _, candidate := range candidates {
 			if !candidate.Task.Status.IsFinal() {
-				tasks = append(tasks, candidate)
+				tasks = append(tasks, &FullTask{
+					TaskEntity:      candidate,
+					ChecklistEntity: checklists[i],
+				})
 			}
 		}
 	}
