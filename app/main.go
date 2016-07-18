@@ -128,7 +128,10 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 
 func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
-	ctx, err := getAuthenticatedContext(ctx, r)
+
+	// Ignore returned context. This request must succeed in the presence of
+	// errors.
+	_, err := getAuthenticatedContext(ctx, r)
 
 	var response map[string]interface{}
 
