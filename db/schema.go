@@ -39,8 +39,16 @@ type Checklist struct {
 // tasks into a pipeline, where tasks in some stages only run _after_ a previous
 // stage is successful.
 type Stage struct {
-	Name  string
-	Tasks []*TaskEntity
+	Name string
+	// Aggregated status of the stage, computed as follows:
+	//
+	// - TaskSucceeded if all tasks in this stage succeeded
+	// - TaskFailed if at least one task in this stage failed
+	// - TaskInProgress if at least one task is in progress and others are New
+	// - Same as Task.Status if all tasks have the same status
+	// - TaskFailed otherwise
+	Status TaskStatus
+	Tasks  []*TaskEntity
 }
 
 // TaskEntity contains storage data on a Task.
@@ -68,6 +76,11 @@ type Task struct {
 
 // TaskStatus indicates the status of a task.
 type TaskStatus string
+
+// TaskNoStatus is the zero value, meaning no status value. It is not a valid
+// status value and should only be used as a temporary variable value in
+// algorithms that need it.
+const TaskNoStatus = TaskStatus("")
 
 // TaskNew indicates that the task was created but not acted upon.
 const TaskNew = TaskStatus("New")

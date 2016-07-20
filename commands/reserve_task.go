@@ -95,22 +95,33 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 
 	for ci := len(checklists) - 1; ci >= 0; ci-- {
 		checklist := checklists[ci]
-		tasks, err := cocoon.QueryTasks(checklist.Key)
+		stages, err := cocoon.QueryTasksGroupedByStage(checklist.Key)
+
+		if !allPrimaryStagesSuccessful(stages) {
+			continue
+		}
 
 		if err != nil {
 			return nil, nil, err
 		}
 
-		for _, taskEntity := range tasks {
-			task := taskEntity.Task
-
-			if len(task.RequiredCapabilities) == 0 {
-				log.Errorf(cocoon.Ctx, "Task %v has no required capabilities", task.Name)
+		for _, stage := range stages {
+			if stage.IsPrimary() {
+				// Primary stages are run by Travis and Chromebots. We do not reserve
+				// these tasks for agents.
 				continue
 			}
+			for _, taskEntity := range stage.Tasks {
+				task := taskEntity.Task
 
-			if task.Status == "New" && agent.CapableOfPerforming(task) {
-				return taskEntity, checklist, nil
+				if len(task.RequiredCapabilities) == 0 {
+					log.Errorf(cocoon.Ctx, "Task %v has no required capabilities", task.Name)
+					continue
+				}
+
+				if task.Status == "New" && agent.CapableOfPerforming(task) {
+					return taskEntity, checklist, nil
+				}
 			}
 		}
 	}
@@ -152,4 +163,15 @@ func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.
 	}
 
 	return taskEntity, nil
+}
+
+func allPrimaryStagesSuccessful(stages []*db.Stage) bool {
+	isSuccessfulPrimaryOrAnySecondary := func(istage interface{}) bool {
+		stage := istage.(*db.Stage)
+		if stage.IsPrimary() {
+			return stage.Status == db.TaskSucceeded
+		}
+		return true
+	}
+	return db.Every(len(stages), func(i int) interface{} { return stages[i] }, isSuccessfulPrimaryOrAnySecondary)
 }
