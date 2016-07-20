@@ -239,11 +239,58 @@ func (c *Cocoon) QueryTasksGroupedByStage(checklistKey *datastore.Key) ([]*Stage
 	stages := make([]*Stage, len(stageMap))
 	i := 0
 	for _, stage := range stageMap {
+		stage.Status = computeStageStatus(stage)
 		stages[i] = stage
 		i++
 	}
 	sort.Sort(byPrecedence(stages))
 	return stages, nil
+}
+
+// See docs on the Stage.Status property.
+func computeStageStatus(stage *Stage) TaskStatus {
+	len := len(stage.Tasks)
+
+	getter := func(i int) interface{} {
+		return stage.Tasks[i]
+	}
+
+	isSucceeded := func(task interface{}) bool {
+		return task.(*TaskEntity).Task.Status == TaskSucceeded
+	}
+	if Every(len, getter, isSucceeded) {
+		return TaskSucceeded
+	}
+
+	isFailed := func(task interface{}) bool {
+		return task.(*TaskEntity).Task.Status == TaskFailed
+	}
+	if Any(len, getter, isFailed) {
+		return TaskFailed
+	}
+
+	isInProgress := func(task interface{}) bool {
+		return task.(*TaskEntity).Task.Status == TaskInProgress
+	}
+	isInProgressOrNew := func(task interface{}) bool {
+		return task.(*TaskEntity).Task.Status == TaskInProgress || task.(*TaskEntity).Task.Status == TaskNew
+	}
+	if Any(len, getter, isInProgress) && Every(len, getter, isInProgressOrNew) {
+		return TaskInProgress
+	}
+
+	prevStatus := TaskNoStatus
+	isSameAsPrevious := func(task interface{}) bool {
+		status := task.(*TaskEntity).Task.Status
+		result := prevStatus == TaskNoStatus || prevStatus == status
+		prevStatus = status
+		return result
+	}
+	if Every(len, getter, isSameAsPrevious) && prevStatus != TaskNoStatus {
+		return prevStatus
+	}
+
+	return TaskFailed
 }
 
 type byPrecedence []*Stage
@@ -428,4 +475,14 @@ func (agent *Agent) CapableOfPerforming(task *Task) bool {
 	}
 
 	return true
+}
+
+// IsPrimary returns whether stage is primary or not.
+//
+// There are two categories of stages: primary and secondary. Tasks in the
+// secondary stages are only performed if all tasks in the primary stages are
+// successful.
+func (stage *Stage) IsPrimary() bool {
+	name := stage.Name
+	return name == "travis" || name == "chromebot"
 }
