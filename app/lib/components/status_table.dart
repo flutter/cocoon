@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show JSON;
 
 import 'package:angular2/angular2.dart';
@@ -11,11 +12,13 @@ import 'package:http/http.dart' as http;
 @Component(
   selector: 'status-table',
   template: '''
-<div *ngIf="isLoading">Loading...</div>
+<div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; background-color: #AAFFAA;">
+  Loading...
+</div>
 <table class="status-table"
        cellspacing="0"
        cellpadding="0"
-       *ngIf="!isLoading && headerCol.length > 0">
+       *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
   <tr>
     <td class="table-header-cell first-column">
       &nbsp;
@@ -53,10 +56,16 @@ class StatusTable implements OnInit {
   List<BuildStatus> headerCol;
 
   /// A sparse Commit X Task matrix of test results.
-  final resultMatrix = <String, Map<String, TaskEntity>>{};
+  Map<String, Map<String, TaskEntity>> resultMatrix = <String, Map<String, TaskEntity>>{};
 
   @override
   ngOnInit() async {
+    reloadData();
+    new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
+  }
+
+  Future<Null> reloadData() async {
+    isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-status')).body);
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
@@ -65,6 +74,7 @@ class StatusTable implements OnInit {
     headerCol = <BuildStatus>[];
     headerRow = new HeaderRow();
 
+    resultMatrix = <String, Map<String, TaskEntity>>{};
     for (BuildStatus status in statuses) {
       String sha = status.checklist.checklist.commit.sha;
       resultMatrix[sha] ??= <String, TaskEntity>{};
