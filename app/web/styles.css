@@ -290,7 +290,8 @@ td.stats-value {
   background-color: #CCCCFF;
 }
 .task-in-progress {
-  background-color: blue;
+  background: linear-gradient(0deg, blue 0%, blue 40%, white 41%, white 59%, blue 60%, blue 100%);;
+  animation: inProgressAnimation 2s infinite linear;
 }
 .task-succeeded {
   background-color: green;
@@ -306,4 +307,13 @@ td.stats-value {
 }
 .task-unknown {
   background-color: #6600cc;
+}
+
+@keyframes inProgressAnimation {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(180deg);
+  }
 }
