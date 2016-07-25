@@ -7,36 +7,39 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:collection/collection.dart';
 
-import 'package:dashboard_box/src/adb.dart';
+import 'package:cocoon_agent/src/adb.dart';
 
 main() {
   group('adb', () {
+    Adb device;
+
     setUp(() {
       FakeAdb.resetLog();
-      adb = ({String deviceId}) => new FakeAdb();
+      adb = null;
+      device = new FakeAdb();
     });
 
     tearDown(() {
-      adb = createRealAdb;
+      adb = realAdbGetter;
     });
 
     group('isAwake/isAsleep', () {
       test('reads Awake', () async {
         FakeAdb.pretendAwake();
-        expect(await adb().isAwake(), isTrue);
-        expect(await adb().isAsleep(), isFalse);
+        expect(await device.isAwake(), isTrue);
+        expect(await device.isAsleep(), isFalse);
       });
 
       test('reads Asleep', () async {
         FakeAdb.pretendAsleep();
-        expect(await adb().isAwake(), isFalse);
-        expect(await adb().isAsleep(), isTrue);
+        expect(await device.isAwake(), isFalse);
+        expect(await device.isAsleep(), isTrue);
       });
     });
 
     group('togglePower', () {
       test('sends power event', () async {
-        await adb().togglePower();
+        await device.togglePower();
         expectLog([
           cmd(command: 'input', arguments: ['keyevent', '26']),
         ]);
@@ -46,7 +49,7 @@ main() {
     group('wakeUp', () {
       test('when awake', () async {
         FakeAdb.pretendAwake();
-        await adb().wakeUp();
+        await device.wakeUp();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
         ]);
@@ -54,7 +57,7 @@ main() {
 
       test('when asleep', () async {
         FakeAdb.pretendAsleep();
-        await adb().wakeUp();
+        await device.wakeUp();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
           cmd(command: 'input', arguments: ['keyevent', '26']),
@@ -65,7 +68,7 @@ main() {
     group('sendToSleep', () {
       test('when asleep', () async {
         FakeAdb.pretendAsleep();
-        await adb().sendToSleep();
+        await device.sendToSleep();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
         ]);
@@ -73,7 +76,7 @@ main() {
 
       test('when awake', () async {
         FakeAdb.pretendAwake();
-        await adb().sendToSleep();
+        await device.sendToSleep();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
           cmd(command: 'input', arguments: ['keyevent', '26']),
@@ -84,7 +87,7 @@ main() {
     group('unlock', () {
       test('sends unlock event', () async {
         FakeAdb.pretendAwake();
-        await adb().unlock();
+        await device.unlock();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
           cmd(command: 'input', arguments: ['keyevent', '82']),

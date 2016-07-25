@@ -6,13 +6,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 /// Virtual current working directory, which affect functions, such as [exec].
 String cwd = Directory.current.path;
 
-Config config;
+Config _config;
+Config get config => _config;
 
 class BuildFailedError extends Error {
   BuildFailedError(this.message);
@@ -216,47 +219,51 @@ void cd(dynamic directory) {
 }
 
 class Config {
-  Config.fromProperties({
-    this.rootDirectory,
-    this.dataDirectory,
-    this.flutterDirectory,
-    this.scriptsDirectory,
-    this.configFile,
-    this.dashboardBotStatusFile,
-    this.androidDeviceId,
-    this.firebaseFlutterDashboardToken
+  Config({
+    this.baseCocoonUrl,
+    this.agentId,
+    this.firebaseFlutterDashboardToken,
+    this.authToken,
+    this.flutterDirectory
   });
 
-  Config(String rootPath) : rootDirectory = dir(rootPath) {
-    this.dataDirectory = dir('${rootDirectory.path}/data');
-    this.flutterDirectory = dir('${rootDirectory.path}/flutter');
-    this.scriptsDirectory = dir('${rootDirectory.path}/dashboard_box');
+  static final ArgParser _argParser = new ArgParser()
+    ..addOption(
+      'config-file',
+      abbr: 'c',
+      defaultsTo: 'config.yaml'
+    );
 
-    this.dashboardBotStatusFile = file('${dataDirectory.path}/dashboard_bot_status.json');
+  static void initialize(List<String> rawArgs) {
+    ArgResults args = _argParser.parse(rawArgs);
+    File agentConfigFile = file(args['config-file']);
 
-    configFile = file(path.join(scriptsDirectory.path, 'config.json'));
-
-    if (!configFile.existsSync()) {
-      fail('''
-Configuration file not found: ${configFile.path}
-
-See: https://github.com/flutter/dashboard_box/blob/master/README.md
-'''.trim());
+    if (!agentConfigFile.existsSync()) {
+      throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    Map<String, dynamic> configJson = JSON.decode(configFile.readAsStringSync());
-    androidDeviceId = requireConfigProperty(configJson, 'android_device_id');
-    firebaseFlutterDashboardToken = requireConfigProperty(configJson, 'firebase_flutter_dashboard_token');
+    Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
+    String baseCocoonUrl = agentConfig['base_cocoon_url'] ?? 'https://flutter-dashboard.appspot.com';
+    String agentId = requireConfigProperty(agentConfig, 'agent_id');
+    String firebaseFlutterDashboardToken = requireConfigProperty(agentConfig, 'firebase_flutter_dashboard_token');
+    String authToken = requireConfigProperty(agentConfig, 'auth_token');
+    Directory flutterDirectory = dir('${Platform.environment['HOME']}/.cocoon/flutter');
+    mkdirs(flutterDirectory);
+
+    _config = new Config(
+      baseCocoonUrl: baseCocoonUrl,
+      agentId: agentId,
+      firebaseFlutterDashboardToken: firebaseFlutterDashboardToken,
+      authToken: authToken,
+      flutterDirectory: flutterDirectory
+    );
   }
 
-  final Directory rootDirectory;
-  Directory dataDirectory;
-  Directory flutterDirectory;
-  Directory scriptsDirectory;
-  File configFile;
-  File dashboardBotStatusFile;
-  String androidDeviceId;
-  String firebaseFlutterDashboardToken;
+  final String baseCocoonUrl;
+  final String agentId;
+  final String firebaseFlutterDashboardToken;
+  final String authToken;
+  final Directory flutterDirectory;
 
   String get adbPath {
     String androidHome = Platform.environment['ANDROID_HOME'];
@@ -276,13 +283,9 @@ See: https://github.com/flutter/dashboard_box/blob/master/README.md
   @override
   String toString() =>
 '''
-rootDirectory: $rootDirectory
-dataDirectory: $dataDirectory
+baseCocoonUrl: $baseCocoonUrl
+agentId: $agentId
 flutterDirectory: $flutterDirectory
-scriptsDirectory: $scriptsDirectory
-configFile: $configFile
-dashboardBotStatusFile: $dashboardBotStatusFile
-androidDeviceId: $androidDeviceId
 adbPath: $adbPath
 '''.trim();
 }
@@ -310,8 +313,7 @@ String jsonEncode(dynamic data) {
 Future<bool> getFlutter(String revision) async {
   section('Get Flutter!');
 
-  cd(config.rootDirectory);
-  if (exists(config.flutterDirectory)) {
+  if (exists(dir('${config.flutterDirectory.path}/.git'))) {
     bool hasLocalChanges = await inDirectory(config.flutterDirectory, () async {
       String unstagedChanges = await eval('git', ['diff', '--numstat']);
       String stagedChanges = await eval('git', ['diff', '--numstat', '--cached']);
@@ -331,7 +333,10 @@ Future<bool> getFlutter(String revision) async {
 
   Future<Null> timeout = new Future<Null>.delayed(const Duration(minutes: 10));
 
-  await exec('git', ['clone', 'https://github.com/flutter/flutter.git'], onKill: timeout);
+  await inDirectory(config.flutterDirectory.parent, () async {
+    await exec('git', ['clone', 'https://github.com/flutter/flutter.git'], onKill: timeout);
+  });
+
   await inDirectory(config.flutterDirectory, () async {
     await exec('git', ['checkout', revision], onKill: timeout);
   });

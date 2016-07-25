@@ -43,13 +43,14 @@ class StartupTest extends Task {
 
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
-      adb().unlock();
+      Adb device = await adb();
+      device.unlock();
       await pub('get', onCancel);
       await flutter('run', onCancel, options: [
         '--profile',
         '--trace-startup',
         '-d',
-        config.androidDeviceId
+        device.deviceId
       ]);
       Map<String, dynamic> data = JSON.decode(file('$testDirectory/build/start_up_info.json').readAsStringSync());
       return new TaskResultData(data, benchmarkScoreKeys: <String>[
@@ -74,7 +75,8 @@ class PerfTest extends Task {
   @override
   Future<TaskResultData> run() {
     return inDirectory(testDirectory, () async {
-      adb().unlock();
+      Adb device = await adb();
+      device.unlock();
       await pub('get', onCancel);
       await flutter('drive', onCancel, options: [
         '--profile',
@@ -82,7 +84,7 @@ class PerfTest extends Task {
         '-t',
         testTarget,
         '-d',
-        config.androidDeviceId
+        device.deviceId
       ]);
       Map<String, dynamic> data = JSON.decode(file('$testDirectory/build/${timelineFileName}.timeline_summary.json').readAsStringSync());
       return new TaskResultData(data, benchmarkScoreKeys: <String>[
@@ -103,7 +105,8 @@ class BuildTest extends Task {
 
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
-      adb().unlock();
+      Adb device = await adb();
+      device.unlock();
       await pub('get', onCancel);
 
       var watch = new Stopwatch()..start();

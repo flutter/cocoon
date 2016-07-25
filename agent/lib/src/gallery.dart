@@ -17,7 +17,8 @@ class GalleryTransitionTest extends Task {
 
   @override
   Future<TaskResultData> run() async {
-    adb().unlock();
+    Adb device = await adb();
+    device.unlock();
     Directory galleryDirectory = dir('${config.flutterDirectory.path}/examples/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
       await pub('get', onCancel);
@@ -27,7 +28,7 @@ class GalleryTransitionTest extends Task {
         '-t',
         'test_driver/transitions_perf.dart',
         '-d',
-        config.androidDeviceId,
+        device.deviceId,
       ]);
     });
 

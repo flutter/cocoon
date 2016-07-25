@@ -1,0 +1,34 @@
+# Sample agent configuration, with explanations for every parameter.
+
+# The URL of the Cocoon server.
+#
+# To make test an agent with your dev server, set this to http://localhost:8080.
+#
+# For production server _always_ use HTTPS.
+base_cocoon_url: https://flutter-dashboard.appspot.com
+
+# The ID of this agent.
+agent_id: agent-with-ios-devices-#5
+
+# Agent attached this token to its HTTP requests to authenticate itself.
+#
+# To acquire a token, open `base_cocoon_url` in Chrome, open Chrome Dev Tools,
+# select Console tab, then:
+#
+# If `agent_id` is not yet registered with Cocoon, enter:
+#
+# cocoon.createAgent(['-a', 'AGENT_ID', '-c', 'CAPABILITY#1', ...])
+#
+# Replace AGENT_ID with the value of `agent_id`, and enter the capabilities
+# offered by the agent. The `auth_token` value will be printed to the console.
+#
+# If `agent_id` is already registered with Cocoon, enter:
+#
+# cocoon.authAgent(['-a', 'AGENT_ID'])
+#
+# Replace AGENT_ID with the value of `agent_id`.
+auth_token: blahblahblah
+
+# Contact sethladd@google.com, yjbanov@google.com or devoncarew@google.com to
+# get a Firebase token.
+firebase_flutter_dashboard_token: blahblahblah

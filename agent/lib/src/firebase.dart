@@ -3,11 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
-import 'dart:io';
 
 import 'package:firebase_rest/firebase_rest.dart';
-import 'package:path/path.dart' as path;
 
 import 'utils.dart';
 
@@ -19,32 +16,8 @@ Firebase _measurements() {
       auth: firebaseToken);
 }
 
-Future<Null> uploadToFirebase(File measurementJson) async {
-  if (!measurementJson.path.endsWith('.json'))
-    fail("Error: path must be to a JSON file ending in .json");
-
-  if (!exists(measurementJson))
-    fail("Error: $measurementJson not found");
-
-  String measurementKey = path.basenameWithoutExtension(measurementJson.path);
-  print('Uploading $measurementJson to key $measurementKey');
-
-  Firebase ref = _measurements();
-
-  await ref
-      .child(measurementKey)
-      .child('current')
-      .set(JSON.decode(measurementJson.readAsStringSync()));
-
-  await ref
-      .child(measurementKey)
-      .child('history')
-      .push(JSON.decode(measurementJson.readAsStringSync()));
-}
-
-Future<Null> uploadMeasurementToFirebase(String measurementKey, dynamic jsonData) async {
+Future<Null> uploadToFirebase(String measurementKey, dynamic jsonData) async {
   Firebase ref = _measurements().child(measurementKey);
-  print('Uploading ${ref.key}:\n${jsonData}');
   await ref.child('current').set(jsonData);
   await ref.child('history').push(jsonData);
 }

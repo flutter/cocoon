@@ -3,24 +3,73 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'utils.dart';
 
-typedef Adb AdbGetter();
+typedef Future<Adb> AdbGetter();
 
 /// Get an instance of [Adb].
 ///
-/// See [createRealAdb] for signature. This can be overwritten for testing.
-AdbGetter adb = createRealAdb;
+/// See [realAdbGetter] for signature. This can be overwritten for testing.
+AdbGetter adb = realAdbGetter;
 
-Adb createRealAdb() {
-  return new Adb(deviceId: config.androidDeviceId);
+Adb _currentDevice;
+
+/// Picks a random Android device out of connected devices and sets it as
+/// [_currentDevice].
+Future<Null> pickNextDevice() async {
+  List<Adb> allDevices = (await Adb.deviceIds)
+    .map((String id) => new Adb(deviceId: id))
+    .toList();
+  // TODO(yjbanov): filter out and warn about those with low battery level
+  _currentDevice = allDevices[new math.Random().nextInt(allDevices.length)];
+}
+
+Future<Adb> realAdbGetter() async {
+  if (_currentDevice == null)
+    await pickNextDevice();
+  return _currentDevice;
 }
 
 class Adb {
   Adb({String this.deviceId});
 
   final String deviceId;
+
+  // Parses information about a device. Example:
+  //
+  // 015d172c98400a03       device usb:340787200X product:nakasi model:Nexus_7 device:grouper
+  static final RegExp _kDeviceRegex = new RegExp(r'^(\S+)\s+(\S+)(.*)');
+
+  static Future<List<String>> get deviceIds async {
+    List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false, onKill: _adbTimeout()))
+        .trim().split('\n');
+    List<String> results = <String>[];
+    for (String line in output) {
+      // Skip lines like: * daemon started successfully *
+      if (line.startsWith('* daemon '))
+        continue;
+
+      if (line.startsWith('List of devices'))
+        continue;
+
+      if (_kDeviceRegex.hasMatch(line)) {
+        Match match = _kDeviceRegex.firstMatch(line);
+
+        String deviceID = match[1];
+        String deviceState = match[2];
+
+        if (!const ['unauthorized', 'offline'].contains(deviceState)) {
+          results.add(deviceID);
+        }
+      } else {
+        throw 'Failed to parse device from adb output: $line';
+      }
+    }
+
+    return results;
+  }
 
   /// Whether the device is awake.
   Future<bool> isAwake() async {
@@ -77,5 +126,5 @@ class Adb {
     return eval(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false, onKill: _adbTimeout());
   }
 
-  Future<Null> _adbTimeout() => new Future<Null>.delayed(const Duration(seconds: 5));
+  static Future<Null> _adbTimeout() => new Future<Null>.delayed(const Duration(seconds: 5));
 }

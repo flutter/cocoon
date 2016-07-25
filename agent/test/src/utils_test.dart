@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'package:dashboard_box/src/utils.dart';
+import 'package:cocoon_agent/src/utils.dart';
 
 main() {
   group('grep', () {

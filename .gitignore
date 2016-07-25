@@ -6,3 +6,4 @@ packages
 .pub
 app/build
 pubspec.lock
+config.yaml
