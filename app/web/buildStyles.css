@@ -86,9 +86,9 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2px 19px 10px 19px;
+  padding: 2px 19px;
   z-index: 2;
-  background: inherit;
+  background-color: #917FFF;
   display: flex;
 }
 

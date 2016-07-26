@@ -433,6 +433,21 @@ func (c *Cocoon) RefreshAgentAuthToken(agentID string) (*Agent, string, error) {
 	return agent, authToken, nil
 }
 
+// IsWhitelisted verifies that the given email address is whitelisted for access.
+func (c *Cocoon) IsWhitelisted(email string) error {
+	query := datastore.NewQuery("WhitelistedAccount").
+		Filter("Email =", email).
+		Limit(20)
+	iter := query.Run(c.Ctx)
+	_, err := iter.Next(&WhitelistedAccount{})
+
+	if err == datastore.Done {
+		return fmt.Errorf("%v is not authorized to access the dashboard", email)
+	}
+
+	return nil
+}
+
 // allTaskStatuses contains all possible task statuses.
 var allTaskStatuses = [...]TaskStatus{
 	TaskNew,

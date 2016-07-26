@@ -1,3 +1,5 @@
+"use strict";
+
 var ref = new Firebase("https://purple-butterfly-3000.firebaseio.com/");
 
 var whenFirebaseReady = new Promise(function(resolve, reject) {
