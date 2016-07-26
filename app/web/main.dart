@@ -20,6 +20,9 @@ main() async {
   logger = new HtmlLogger();
   http.Client httpClient = await _getAuthenticatedClientOrRedirectToSignIn();
 
+  if (httpClient == null)
+    return;
+
   // Start the angular app
   ComponentRef ref = await bootstrap(StatusTable, [
     provide(http.Client, useValue: httpClient),
@@ -33,12 +36,22 @@ Future<http.Client> _getAuthenticatedClientOrRedirectToSignIn() async {
   http.Client client = new browser_http.BrowserClient();
   Map<String, dynamic> status = JSON.decode((await client.get('/api/get-authentication-status')).body);
 
+  document.querySelector('#logout-button').on['click'].listen((_) {
+    window.open(status['LogoutURL'], '_self');
+  });
+
+  document.querySelector('#login-button').on['click'].listen((_) {
+    window.open(status['LoginURL'], '_self');
+  });
+
   if (status['Status'] == 'OK') {
     return client;
-  } else {
-    window.open(status['LoginURL'], '_self');
-    return null;
   }
+
+  document.body.append(new DivElement()
+    ..text = 'You are not signed in, or signed in under an unauthorized account. '
+             'Use the buttons at the bottom of this page to sign in.');
+  return null;
 }
 
 class HtmlLogger implements Logger {

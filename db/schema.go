@@ -107,3 +107,17 @@ type Agent struct {
 	AuthTokenHash        []byte
 	Capabilities         []string
 }
+
+// WhitelistedAccount gives permission to access the dashboard to a specific
+// Google account.
+//
+// In production an account can be added by an administrator using the
+// Datastore web UI.
+//
+// The Datastore UI on the dev server is limited. To add an account make a
+// HTTP GET call to:
+//
+// http://localhost:8080/api/whitelist-account?email=ACCOUNT_EMAIL
+type WhitelistedAccount struct {
+	Email string
+}

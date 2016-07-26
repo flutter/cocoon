@@ -20,6 +20,7 @@ import (
 
 	"google.golang.org/appengine"
 
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/user"
 )
@@ -37,6 +38,11 @@ func init() {
 	// IMPORTANT: This is the ONLY path that does NOT require authentication. Do
 	//            not copy this pattern. Use registerRPC instead.
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
+
+	// IMPORTANT: Do not expose the handlers below in production.
+	if appengine.IsDevAppServer() {
+		http.HandleFunc("/api/whitelist-account", whitelistAccount)
+	}
 }
 
 func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
@@ -120,7 +126,12 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 		}
 
 		if !strings.HasSuffix(user.Email, "@google.com") {
-			return nil, fmt.Errorf("Only @google.com users are authorized")
+			cocoon := db.NewCocoon(ctx)
+			err := cocoon.IsWhitelisted(user.Email)
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return ctx, nil
@@ -134,19 +145,52 @@ func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
 	// errors.
 	_, err := getAuthenticatedContext(ctx, r)
 
-	var response map[string]interface{}
-
+	var status string
 	if err == nil {
-		response = map[string]interface{}{
-			"Status": "OK",
-		}
+		status = "OK"
 	} else {
-		loginURL, _ := user.LoginURL(ctx, "/")
-		response = map[string]interface{}{
-			"LoginURL": loginURL,
-		}
+		status = "Unauthorized"
+	}
+
+	loginURL, _ := user.LoginURL(ctx, "/build.html")
+	logoutURL, _ := user.LogoutURL(ctx, "/build.html")
+
+	response := map[string]interface{}{
+		"Status":    status,
+		"LoginURL":  loginURL,
+		"LogoutURL": logoutURL,
 	}
 
 	outputData, _ := json.Marshal(response)
 	w.Write(outputData)
+}
+
+// Adds the provided email address to the authorized Google account whitelist.
+//
+// Available only on the local dev server.
+func whitelistAccount(w http.ResponseWriter, r *http.Request) {
+	if !appengine.IsDevAppServer() {
+		panic("whitelistAccount is only available on the local dev server")
+	}
+
+	ctx := appengine.NewContext(r)
+	email := strings.TrimSpace(r.URL.Query().Get("email"))
+
+	if len(email) == 0 {
+		serveError(ctx, w, r, fmt.Errorf("Bad email address: %v", email))
+		return
+	}
+
+	account := &db.WhitelistedAccount{
+		Email: email,
+	}
+
+	key := datastore.NewIncompleteKey(ctx, "WhitelistedAccount", nil)
+	_, err := datastore.Put(ctx, key, account)
+	if err != nil {
+		serveError(ctx, w, r, err)
+		return
+	}
+
+	w.Write([]byte("OK"))
 }

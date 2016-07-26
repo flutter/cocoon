@@ -1,3 +1,5 @@
+"use strict";
+
 (function() {
 
   var ACCESS_TOKEN = '6a93c73f10808b9a92d4ec8a91b9e823c192d204';

@@ -1,3 +1,5 @@
+"use strict";
+
 // Globally visible list of current build statuses encoded as:
 //
 // {
