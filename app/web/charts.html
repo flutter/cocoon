@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<!--
+  Copyright (c) 2016 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="scaffolded-by" content="https://github.com/google/stagehand">
+  <meta http-equiv="refresh" content="3600">
+
+  <title>Flutter Dashboard</title>
+  <link href="styles.css" rel="stylesheet">
+  <link href="quantum_theme.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+  <script src="charts.dart" type="application/dart" defer></script>
+  <script src="packages/browser/dart.js" defer></script>
+  <style>
+    div.card {
+      width: inherit;
+    }
+
+    .card .metric-type {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    .chart-host {
+      width: 82%;
+      height: 300px;
+    }
+
+    .chart-legend-host {
+      width: 18%;
+    }
+
+    .chart-legend-row {
+      font-size: inherit;
+    }
+
+    .card.chart-wrapper {
+      text-align: start;
+    }
+
+    .chart-title-wrapper {
+      text-align: center;
+    }
+
+    .hovercard-title {
+      font-size: 18px;
+    }
+
+    .hovercard-value {
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display: flex">
+    <div class="chart-wrapper card" id="analysis-perf-chart" style="flex: 2">
+      <div class="chart-title-wrapper">
+        <div class="metric-type">Analysis Times</div>
+      </div>
+      <div class="chart-host-wrapper">
+        <div class="chart-host" dir="ltr"></div>
+        <div class="chart-legend-host"></div>
+      </div>
+    </div>
+    <div class="chart-wrapper card" id="documentation-chart" style="flex: 2">
+      <div class="chart-title-wrapper">
+        <div class="metric-type">Dartdoc Burndown</div>
+      </div>
+      <div class="chart-host-wrapper">
+        <div class="chart-host" dir="ltr"></div>
+        <div class="chart-legend-host"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex">
+    <div class="chart-wrapper card" id="app-size-chart" style="flex: 2">
+      <div class="chart-title-wrapper">
+        <div class="metric-type">App Size</div>
+      </div>
+      <div class="chart-host-wrapper">
+        <div class="chart-host" dir="ltr"></div>
+        <div class="chart-legend-host"></div>
+      </div>
+    </div>
+    <div class="chart-wrapper card" id="refresh-perf-chart" style="flex: 2">
+      <div class="chart-title-wrapper">
+        <div class="metric-type">Edit/Refresh Times</div>
+      </div>
+      <div class="chart-host-wrapper">
+        <div class="chart-host" dir="ltr"></div>
+        <div class="chart-legend-host"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div style="flex: 2; text-align: center">
+      &nbsp;
+    </div>
+
+    <div>
+      <a href="index.html"><i class="material-icons md-24">view_compact</i></a>
+      <a href="charts.html"><i class="material-icons md-24">panorama</i></a>
+    </div>
+  </footer>
+</body>

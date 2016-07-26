@@ -6,30 +6,71 @@
   found in the LICENSE file.
 -->
 
-<html>
+<html style="width: 100%; height: 100%">
 <head>
   <meta http-equiv="refresh" content="1200">
 
   <title>Flutter Dashboard</title>
-  <link href="styles.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+
+  <style>
+    .visible-frame {
+      animation: appear 1s;
+      opacity: 1;
+    }
+    @keyframes appear {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .invisible-frame {
+      animation: disappear 1s;
+      opacity: 0;
+    }
+    @keyframes disappear {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
 
   <script>
-  (function(w,d,s,g,js,fjs){
-    g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
-    js=d.createElement(s);fjs=d.getElementsByTagName(s)[0];
-    js.src='https://apis.google.com/js/platform.js';
-    fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
-  }(window,document,'script'));
+    var showBuild = true;
+    setInterval(function() {
+      var buildFrame = document.querySelector('#buildFrame');
+      var statusFrame = document.querySelector('#statusFrame');
+      if (showBuild) {
+        buildFrame.classList.add('visible-frame');
+        buildFrame.classList.remove('invisible-frame');
+        statusFrame.classList.add('invisible-frame');
+        statusFrame.classList.remove('visible-frame');
+      } else {
+        buildFrame.classList.add('invisible-frame');
+        buildFrame.classList.remove('visible-frame');
+        statusFrame.classList.add('visible-frame');
+        statusFrame.classList.remove('invisible-frame');
+      }
+      showBuild = !showBuild;
+    }, 20000);
   </script>
 </head>
-<body>
-  <div id="container">
-    <status-table></status-table>
+<body style="padding: 0; margin: 0; width: 100%; height: 100%; position: relative">
+  <div id="buildFrame" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0">
+    <iframe src="/build.html"
+            style="width: 100%; height: 100%; border: none">
+    </iframe>
   </div>
 
-  <script defer src="main.dart" type="application/dart"></script>
-  <script defer src="packages/browser/dart.js"></script>
+  <div id="statusFrame" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0">
+    <iframe src="/status.html"
+            style="width: 100%; height: 100%; border: none">
+    </iframe>
+  </div>
 </body>
 </html>
