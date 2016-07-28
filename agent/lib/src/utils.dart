@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 import 'package:yaml/yaml.dart';
 
 /// Virtual current working directory, which affect functions, such as [exec].
@@ -111,6 +112,7 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
 
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, Future<Null> onKill}) async {
+  print('Executing: $executable ${arguments?.join(' ') ?? ""}');
   Process proc = await Process.start(executable, arguments, environment: env, workingDirectory: cwd);
 
   if (onKill != null) {
@@ -135,7 +137,6 @@ Future<Process> startProcess(String executable, List<String> arguments,
 /// Executes a command and returns its exit code.
 Future<int> exec(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, Future<Null> onKill}) async {
-  print('Executing: $executable ${arguments.join(' ')}');
   Process proc = await startProcess(executable, arguments, env: env, onKill: onKill);
 
   proc.stdout
@@ -156,11 +157,14 @@ Future<int> exec(String executable, List<String> arguments,
 }
 
 /// Executes a command and returns its standard output as a String.
+///
+/// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, Future<Null> onKill}) async {
-  print('Executing: $executable ${arguments.join(' ')}');
   Process proc = await startProcess(executable, arguments, env: env, onKill: onKill);
-  stderr.addStream(proc.stderr);
+  proc.stderr.listen((List<int> data) {
+    stderr.write(data);
+  });
   String output = await UTF8.decodeStream(proc.stdout);
   int exitCode = await proc.exitCode;
 
@@ -224,22 +228,21 @@ class Config {
     this.agentId,
     this.firebaseFlutterDashboardToken,
     this.authToken,
-    this.flutterDirectory
+    this.flutterDirectory,
+    this.runTaskFile
   });
 
-  static final ArgParser _argParser = new ArgParser()
-    ..addOption(
-      'config-file',
-      abbr: 'c',
-      defaultsTo: 'config.yaml'
-    );
-
-  static void initialize(List<String> rawArgs) {
-    ArgResults args = _argParser.parse(rawArgs);
+  static void initialize(ArgResults args) {
     File agentConfigFile = file(args['config-file']);
 
     if (!agentConfigFile.existsSync()) {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
+    }
+
+    File runTaskFile = file('${args['agent-checkout']}/bin/agent.dart');
+
+    if (!runTaskFile.existsSync()) {
+      throw ('run_task.dart file not found: ${runTaskFile.path}.');
     }
 
     Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
@@ -255,7 +258,8 @@ class Config {
       agentId: agentId,
       firebaseFlutterDashboardToken: firebaseFlutterDashboardToken,
       authToken: authToken,
-      flutterDirectory: flutterDirectory
+      flutterDirectory: flutterDirectory,
+      runTaskFile: runTaskFile
     );
   }
 
@@ -264,6 +268,7 @@ class Config {
   final String firebaseFlutterDashboardToken;
   final String authToken;
   final Directory flutterDirectory;
+  final File runTaskFile;
 
   String get adbPath {
     String androidHome = Platform.environment['ANDROID_HOME'];
@@ -286,6 +291,7 @@ class Config {
 baseCocoonUrl: $baseCocoonUrl
 agentId: $agentId
 flutterDirectory: $flutterDirectory
+runTaskFile: $runTaskFile
 adbPath: $adbPath
 '''.trim();
 }
@@ -422,4 +428,27 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   return from.split('\n').where((String line) {
     return line.contains(pattern);
   });
+}
+
+/// Captures asynchronous stack traces thrown by [callback].
+///
+/// This is a convenience wrapper around [Chain] optimized for use with
+/// `async`/`await`.
+///
+/// Example:
+///
+///     try {
+///       await captureAsyncStacks(() { /* async things */ });
+///     } catch (error, chain) {
+///
+///     }
+Future<Null> runAndCaptureAsyncStacks(Future<Null> callback()) {
+  Completer<Null> completer = new Completer<Null>();
+  Chain.capture(() async {
+    await callback();
+    completer.complete();
+  }, onError: (error, Chain chain) async {
+    completer.completeError(error, chain);
+  });
+  return completer.future;
 }

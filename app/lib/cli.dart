@@ -52,7 +52,7 @@ abstract class CliCommand {
   CliCommand(this.name);
 
   /// Command name as it appears in the CLI.
-  final name;
+  final String name;
 
   ArgParser get argParser;
 
