@@ -56,18 +56,8 @@ class ContinuousIntegrationCommand extends Command {
               onKill: new Future.delayed(_taskTimeout)
             );
 
-            StringBuffer logBuffer = new StringBuffer();
-            proc.stdout.transform(UTF8.decoder).listen((String s) {
-              logBuffer.write(s);
-            });
-            proc.stderr.transform(UTF8.decoder).listen((String s) {
-              logBuffer.write(s);
-            });
-
+            _logStandardStreams(task, proc);
             await proc.exitCode;
-
-            // TODO(yjbanov): do indeed upload the log
-            // await agent.uploadLog(task.key, log);
           }
         } catch(error, stackTrace) {
           print('ERROR: $error\n$stackTrace');
@@ -80,6 +70,31 @@ class ContinuousIntegrationCommand extends Command {
       // TODO(yjbanov): report health status after running the task
       await new Future.delayed(_sleepBetweenBuilds);
     }
+  }
+
+  /// Listens to standard output and upload logs to Cocoon in semi-realtime.
+  Future<Null> _logStandardStreams(CocoonTask task, Process proc) async {
+    StringBuffer buffer = new StringBuffer();
+
+    Future<Null> sendLog(String message, {bool flush: false}) async {
+      buffer.write(message);
+      print('[task runner] $message');
+      // Send in chunks 100KB each, or upon request.
+      if (flush || buffer.length > 100000) {
+        String chunk = buffer.toString();
+        buffer = new StringBuffer();
+        await agent.uploadLogChunk(task, chunk);
+      }
+    }
+
+    proc.stdout.transform(UTF8.decoder).listen((String s) {
+      sendLog(s);
+    });
+    proc.stderr.transform(UTF8.decoder).listen((String s) {
+      sendLog(s);
+    });
+    await proc.exitCode;
+    sendLog('Task execution finished', flush: true);
   }
 
   void _listenToShutdownSignals() {

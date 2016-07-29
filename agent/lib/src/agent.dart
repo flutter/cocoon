@@ -62,6 +62,15 @@ class Agent {
     }
   }
 
+  Future<Null> uploadLogChunk(CocoonTask task, String chunk) async {
+    String url = '$baseCocoonUrl/api/append-log?ownerKey=${task.key}';
+    Response resp = await httpClient.post(url, body: chunk);
+    if (resp.statusCode != 200) {
+      throw 'Failed uploading log chunk. Server responded with HTTP status ${resp.statusCode}\n'
+            '${resp.body}';
+    }
+  }
+
   Future<Task> getTask(CocoonTask task) async {
     DateTime revisionTimestamp = await getFlutterRepoCommitTimestamp(task.revision);
     String dartSdkVersion = await getDartVersion();

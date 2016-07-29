@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -500,4 +501,16 @@ func (agent *Agent) CapableOfPerforming(task *Task) bool {
 func (stage *Stage) IsPrimary() bool {
 	name := stage.Name
 	return name == "travis" || name == "chromebot"
+}
+
+// PutLogChunk creates a new log chunk record in the datastore.
+func (c *Cocoon) PutLogChunk(ownerKey *datastore.Key, data []byte) error {
+	chunk := &LogChunk{
+		OwnerKey:        ownerKey,
+		CreateTimestamp: time.Now().UnixNano() / 1000000,
+		Data:            data,
+	}
+	key := datastore.NewIncompleteKey(c.Ctx, "LogChunk", nil)
+	_, err := datastore.Put(c.Ctx, key, chunk)
+	return err
 }

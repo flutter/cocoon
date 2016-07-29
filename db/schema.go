@@ -121,3 +121,17 @@ type Agent struct {
 type WhitelistedAccount struct {
 	Email string
 }
+
+// LogChunk stores a raw chunk of log file indexed by file owner entity and
+// timestamp.
+type LogChunk struct {
+	// Points to the entity that owns this log chunk.
+	OwnerKey *datastore.Key
+
+	// The time the chunk was logged. To get a complete log chunks are sorted
+	// by this field in descending order.
+	CreateTimestamp int64
+
+	// Log data. Must not exceed 1MB (enforced by Datastore).
+	Data []byte
+}
