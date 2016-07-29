@@ -292,21 +292,26 @@ td.stats-value {
 .task-in-progress {
   background: linear-gradient(0deg, blue 0%, blue 40%, white 41%, white 59%, blue 60%, blue 100%);;
   animation: inProgressAnimation 2s infinite linear;
+  cursor: pointer;
 }
 .task-succeeded {
   background-color: green;
+  cursor: pointer;
 }
 .task-failed {
   background-color: red;
+  cursor: pointer;
 }
 .task-underperformed {
   background-color: yellow;
+  cursor: pointer;
 }
 .task-skipped {
   background-color: gray;
 }
 .task-unknown {
   background-color: #6600cc;
+  cursor: pointer;
 }
 
 @keyframes inProgressAnimation {

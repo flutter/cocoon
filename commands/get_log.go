@@ -1,0 +1,57 @@
+// Copyright (c) 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+package commands
+
+import (
+	"cocoon/db"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"google.golang.org/appengine/datastore"
+)
+
+// GetLog returns the log file as a text file.
+func GetLog(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request) {
+	ownerKey, err := datastore.DecodeKey(r.URL.Query().Get("ownerKey"))
+
+	if err != nil {
+		serveError(cocoon, w, r, err)
+		return
+	}
+
+	if !cocoon.EntityExists(ownerKey) {
+		serveError(cocoon, w, r, fmt.Errorf("Invalid owner key. Owner entity does not exist."))
+		return
+	}
+
+	w.Header().Set("content-type", "text/plain")
+
+	te, _ := cocoon.GetTask(ownerKey)
+	js, _ := json.MarshalIndent(te, "", "  ")
+	w.Write([]byte("\n\n------------ TASK ------------\n"))
+	w.Write(js)
+	w.Write([]byte("\n\n------------ LOG ------------\n"))
+
+	query := datastore.NewQuery("LogChunk").
+		Filter("OwnerKey =", ownerKey).
+		Order("-CreateTimestamp").
+		Limit(100)
+
+	for iter := query.Run(cocoon.Ctx); ; {
+		var chunk db.LogChunk
+		_, err := iter.Next(&chunk)
+
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			serveError(cocoon, w, r, err)
+			return
+		}
+
+		w.Write(chunk.Data)
+	}
+	w.Write([]byte("<EOF>"))
+}

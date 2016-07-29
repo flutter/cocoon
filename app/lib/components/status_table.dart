@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show JSON;
+import 'dart:html';
 
 import 'package:angular2/angular2.dart';
 import 'package:cocoon/model.dart';
@@ -36,7 +37,9 @@ import 'package:http/http.dart' as http;
       ({{shortSha(status.checklist.checklist.commit.author.login)}})
     </td>
     <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
-      <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"></div>
+      <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
+           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name)">
+      </div>
     </td>
   </tr>
 </table>
@@ -104,12 +107,29 @@ class StatusTable implements OnInit {
     return ['task-status-circle', statusMap[taskStatus] ?? 'task-unknown'];
   }
 
-  List<String> getStatusStyle(String sha, String taskName) {
+  TaskEntity _findTask(String sha, String taskName) {
     Map<String, TaskEntity> row = resultMatrix[sha];
+
     if (row == null || !row.containsKey(taskName))
+      return null;
+
+    return row[taskName];
+  }
+
+  List<String> getStatusStyle(String sha, String taskName) {
+    TaskEntity taskEntity = _findTask(sha, taskName);
+
+    if (taskEntity == null)
       return taskStatusToCssStyle('Skipped');
-    TaskEntity task = row[taskName];
-    return taskStatusToCssStyle(task.task.status);
+
+    return taskStatusToCssStyle(taskEntity.task.status);
+  }
+
+  void openLog(String sha, String taskName) {
+    TaskEntity taskEntity = _findTask(sha, taskName);
+
+    if (taskEntity != null)
+      window.open('/api/get-log?ownerKey=${taskEntity.key.value}', '_blank');
   }
 }
 
@@ -126,7 +146,7 @@ class HeaderRow {
       }
     );
     for (TaskEntity taskEntity in stage.tasks) {
-      header.addMetaTask(taskEntity.task);
+      header.addMetaTask(taskEntity);
     }
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
@@ -154,19 +174,21 @@ class StageHeader {
   final String stageName;
   final List<MetaTask> metaTasks = <MetaTask>[];
 
-  void addMetaTask(Task task) {
+  void addMetaTask(TaskEntity taskEntity) {
+    Task task = taskEntity.task;
     if (metaTasks.any((MetaTask m) => m.name == task.name))
       return;
-    metaTasks.add(new MetaTask(task.name, task.stageName));
+    metaTasks.add(new MetaTask(taskEntity.key, task.name, task.stageName));
   }
 }
 
 /// Information about a task without a result.
 class MetaTask {
-  MetaTask(this.name, String stageName)
+  MetaTask(this.key, this.name, String stageName)
     : this.stageName = stageName,
       iconUrl = _iconForStageName(stageName);
 
+  final Key key;
   final String name;
   final String stageName;
   final String iconUrl;

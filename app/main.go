@@ -35,6 +35,9 @@ func init() {
 	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
 
+	registerRawHandler("/api/append-log", commands.AppendLog)
+	registerRawHandler("/api/get-log", commands.GetLog)
+
 	// IMPORTANT: This is the ONLY path that does NOT require authentication. Do
 	//            not copy this pattern. Use registerRPC instead.
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
@@ -45,17 +48,31 @@ func init() {
 	}
 }
 
-func registerRPC(path string, handler func(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error)) {
+// Registers a request handler that takes arbitrary HTTP requests and outputs arbitrary data back.
+func registerRawHandler(path string, handler func(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request)) {
 	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		ctx := appengine.NewContext(r)
-		cocoon := db.NewCocoon(ctx)
-		ctx, err := getAuthenticatedContext(ctx, r)
+		cocoon, err := getAuthenticatedContext(r)
 
 		if err != nil {
 			serveUnauthorizedAccess(w, err)
 			return
 		}
 
+		handler(cocoon, w, r)
+	})
+}
+
+// Registers RPC handler that takes JSON and outputs JSON data back.
+func registerRPC(path string, handler func(cocoon *db.Cocoon, requestData []byte) (interface{}, error)) {
+	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		cocoon, err := getAuthenticatedContext(r)
+
+		if err != nil {
+			serveUnauthorizedAccess(w, err)
+			return
+		}
+
+		ctx := cocoon.Ctx
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			serveError(ctx, w, r, err)
@@ -99,7 +116,8 @@ func serveUnauthorizedAccess(w http.ResponseWriter, err error) {
 	http.Error(w, fmt.Sprintf("Authentication/authorization error: %v", err), http.StatusUnauthorized)
 }
 
-func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Context, error) {
+func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
+	ctx := appengine.NewContext(r)
 	agentAuthToken := r.Header.Get("Agent-Auth-Token")
 	isCron := r.Header.Get("X-Appengine-Cron") == "true"
 	if agentAuthToken != "" {
@@ -112,10 +130,10 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 			return nil, fmt.Errorf("Invalid agent: %v", agentID)
 		}
 
-		return context.WithValue(ctx, "agent", agent), nil
+		return db.NewCocoon(context.WithValue(ctx, "agent", agent)), nil
 	} else if isCron {
 		// Authenticate cron requests that are not agents.
-		return ctx, nil
+		return db.NewCocoon(ctx), nil
 	} else {
 		// Authenticate as Google account. Note that it could be both a Google
 		// account and agent.
@@ -134,16 +152,14 @@ func getAuthenticatedContext(ctx context.Context, r *http.Request) (context.Cont
 			}
 		}
 
-		return ctx, nil
+		return db.NewCocoon(ctx), nil
 	}
 }
 
 func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-
 	// Ignore returned context. This request must succeed in the presence of
 	// errors.
-	_, err := getAuthenticatedContext(ctx, r)
+	_, err := getAuthenticatedContext(r)
 
 	var status string
 	if err == nil {
@@ -152,6 +168,7 @@ func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
 		status = "Unauthorized"
 	}
 
+	ctx := appengine.NewContext(r)
 	loginURL, _ := user.LoginURL(ctx, "/build.html")
 	logoutURL, _ := user.LogoutURL(ctx, "/build.html")
 

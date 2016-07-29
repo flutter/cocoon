@@ -19,3 +19,9 @@ indexes:
   - name: Name
   - name: CreateTimestamp
     direction: desc
+- kind: LogChunk
+  ancestor: no
+  properties:
+  - name: OwnerKey
+  - name: CreateTimestamp
+    direction: desc
