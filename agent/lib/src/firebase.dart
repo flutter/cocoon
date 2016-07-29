@@ -16,6 +16,12 @@ Firebase _measurements() {
       auth: firebaseToken);
 }
 
+Future<Null> checkFirebaseConnection() async {
+  if (await _measurements().child('dashboard_bot_status').child('current').get() == null) {
+    throw 'Connection to Firebase is unhealthy. Failed to read the current dashboard_bot_status entity.';
+  }
+}
+
 Future<Null> uploadToFirebase(String measurementKey, dynamic jsonData) async {
   Firebase ref = _measurements().child(measurementKey);
   await ref.child('current').set(jsonData);

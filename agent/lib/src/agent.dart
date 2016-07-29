@@ -37,9 +37,14 @@ class Agent {
   final Client httpClient;
 
   /// Makes a REST API request to Cocoon.
-  Future<dynamic> _cocoon(String apiPath, dynamic json) async {
+  Future<dynamic> _cocoon(String apiPath, [dynamic json]) async {
     String url = '$baseCocoonUrl/api/$apiPath';
-    Response resp = await httpClient.post(url, body: JSON.encode(json));
+    Response resp;
+    if (json != null) {
+      resp = await httpClient.post(url, body: JSON.encode(json));
+    } else {
+      resp = await httpClient.get(url);
+    }
     return JSON.decode(resp.body);
   }
 
@@ -120,6 +125,10 @@ class Agent {
       'TaskKey': taskKey,
       'NewStatus': newStatus,
     });
+  }
+
+  Future<Map<String, dynamic>> getAuthenticationStatus() async {
+    return await _cocoon('get-authentication-status');
   }
 }
 

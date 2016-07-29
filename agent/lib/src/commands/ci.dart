@@ -8,7 +8,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
+import '../adb.dart';
 import '../agent.dart';
+import '../firebase.dart';
 import '../utils.dart';
 
 /// Agents periodically poll the server for more tasks. This sleep period is
@@ -33,6 +35,7 @@ class ContinuousIntegrationCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
+    await _performPreflightChecks();
     _listenToShutdownSignals();
     while(!_exiting) {
       try {
@@ -70,6 +73,19 @@ class ContinuousIntegrationCommand extends Command {
       // TODO(yjbanov): report health status after running the task
       await new Future.delayed(_sleepBetweenBuilds);
     }
+  }
+
+  Future<Null> _performPreflightChecks() async {
+    print('Pre-flight checks:');
+    await pickNextDevice();
+    print('  - device connected');
+    await checkFirebaseConnection();
+    print('  - firebase connected');
+    if (!(await agent.getAuthenticationStatus())['Status'] == 'OK') {
+      throw 'Failed to authenticate to Cocoon. Check config.yaml.';
+    }
+    print('  - Cocoon auth OK');
+    print('Pre-flight OK');
   }
 
   /// Listens to standard output and upload logs to Cocoon in semi-realtime.
