@@ -22,6 +22,10 @@ Future<Null> pickNextDevice() async {
   List<Adb> allDevices = (await Adb.deviceIds)
     .map((String id) => new Adb(deviceId: id))
     .toList();
+
+  if (allDevices.length == 0)
+    throw 'No Android devices detected';
+
   // TODO(yjbanov): filter out and warn about those with low battery level
   _currentDevice = allDevices[new math.Random().nextInt(allDevices.length)];
 }
