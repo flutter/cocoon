@@ -163,7 +163,7 @@ Future<String> eval(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, Future<Null> onKill}) async {
   Process proc = await startProcess(executable, arguments, env: env, onKill: onKill);
   proc.stderr.listen((List<int> data) {
-    stderr.write(data);
+    stderr.add(data);
   });
   String output = await UTF8.decodeStream(proc.stdout);
   int exitCode = await proc.exitCode;
