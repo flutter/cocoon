@@ -11,16 +11,12 @@ import 'package:args/args.dart';
 import '../adb.dart';
 import '../agent.dart';
 import '../firebase.dart';
+import '../framework.dart';
 import '../utils.dart';
 
 /// Agents periodically poll the server for more tasks. This sleep period is
 /// used to prevent us from DDoS-ing the server.
 const Duration _sleepBetweenBuilds = const Duration(seconds: 10);
-
-/// Maximum amount of time a single task is allowed to take.
-///
-/// After that the task is killed and reported as failed.
-const Duration _taskTimeout = const Duration(minutes: 10);
 
 /// Runs the agent in continuous integration mode.
 ///
@@ -44,7 +40,7 @@ class ContinuousIntegrationCommand extends Command {
           if (task != null) {
             // Sync flutter outside of the task so it does not contribute to
             // the task timeout.
-            await getFlutterAt(task.revision);
+            await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
 
             // No need to pass revision as repo syncing is done here.
             List<String> runnerArgs = <String>[
@@ -55,12 +51,11 @@ class ContinuousIntegrationCommand extends Command {
 
             Process proc = await startProcess(
               dartBin,
-              [config.runTaskFile.path]..addAll(runnerArgs),
-              onKill: new Future.delayed(_taskTimeout)
-            );
+              [config.runTaskFile.path]..addAll(runnerArgs)
+            ).timeout(const Duration(minutes: 1));
 
             _logStandardStreams(task, proc);
-            await proc.exitCode;
+            await proc.exitCode.timeout(taskTimeoutWithGracePeriod);
           }
         } catch(error, stackTrace) {
           print('ERROR: $error\n$stackTrace');
@@ -68,6 +63,8 @@ class ContinuousIntegrationCommand extends Command {
         }
       } catch(error, stackTrace) {
         print('ERROR: $error\n$stackTrace');
+      } finally {
+        await forceQuitRunningProcesses();
       }
 
       // TODO(yjbanov): report health status after running the task

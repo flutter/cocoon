@@ -47,7 +47,7 @@ class Adb {
   static final RegExp _kDeviceRegex = new RegExp(r'^(\S+)\s+(\S+)(.*)');
 
   static Future<List<String>> get deviceIds async {
-    List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false, onKill: _adbTimeout()))
+    List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false))
         .trim().split('\n');
     List<String> results = <String>[];
     for (String line in output) {
@@ -122,13 +122,11 @@ class Adb {
 
   /// Executes [command] on `adb shell` and returns its exit code.
   Future<Null> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
-    await exec(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false, onKill: _adbTimeout());
+    await exec(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
   Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
-    return eval(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false, onKill: _adbTimeout());
+    return eval(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
-
-  static Future<Null> _adbTimeout() => new Future<Null>.delayed(const Duration(seconds: 5));
 }

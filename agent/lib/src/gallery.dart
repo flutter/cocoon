@@ -21,8 +21,8 @@ class GalleryTransitionTest extends Task {
     device.unlock();
     Directory galleryDirectory = dir('${config.flutterDirectory.path}/examples/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
-      await pub('get', onCancel);
-      await flutter('drive', onCancel, options: [
+      await pub('get');
+      await flutter('drive', options: [
         '--profile',
         '--trace-startup',
         '-t',

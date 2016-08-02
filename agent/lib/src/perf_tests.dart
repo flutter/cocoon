@@ -45,8 +45,8 @@ class StartupTest extends Task {
     return await inDirectory(testDirectory, () async {
       Adb device = await adb();
       device.unlock();
-      await pub('get', onCancel);
-      await flutter('run', onCancel, options: [
+      await pub('get');
+      await flutter('run', options: [
         '--profile',
         '--trace-startup',
         '-d',
@@ -77,8 +77,8 @@ class PerfTest extends Task {
     return inDirectory(testDirectory, () async {
       Adb device = await adb();
       device.unlock();
-      await pub('get', onCancel);
-      await flutter('drive', onCancel, options: [
+      await pub('get');
+      await flutter('drive', options: [
         '--profile',
         '--trace-startup', // Enables "endless" timeline event buffering.
         '-t',
@@ -107,10 +107,10 @@ class BuildTest extends Task {
     return await inDirectory(testDirectory, () async {
       Adb device = await adb();
       device.unlock();
-      await pub('get', onCancel);
+      await pub('get');
 
       var watch = new Stopwatch()..start();
-      await flutter('build', onCancel, options: [
+      await flutter('build', options: [
         'aot',
         '--profile',
         '--no-pub',
