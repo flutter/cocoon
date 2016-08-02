@@ -43,19 +43,19 @@ abstract class AnalyzerTask extends Task {
 
 class AnalyzerCliTask extends AnalyzerTask {
   AnalyzerCliTask(String sdk, String commit, DateTime timestamp) : super('analyzer_cli__analysis_time') {
-    this.benchmark = new FlutterAnalyzeBenchmark(onCancel, sdk, commit, timestamp);
+    this.benchmark = new FlutterAnalyzeBenchmark(sdk, commit, timestamp);
   }
 }
 
 class AnalyzerServerTask extends AnalyzerTask {
   AnalyzerServerTask(String sdk, String commit, DateTime timestamp) : super('analyzer_server__analysis_time') {
-    this.benchmark = new FlutterAnalyzeAppBenchmark(onCancel, sdk, commit, timestamp);
+    this.benchmark = new FlutterAnalyzeAppBenchmark(sdk, commit, timestamp);
   }
 }
 
 class FlutterAnalyzeBenchmark extends Benchmark {
-  FlutterAnalyzeBenchmark(Future<Null> onCancel, this.sdk, this.commit, this.timestamp)
-    : super('flutter analyze --flutter-repo', onCancel);
+  FlutterAnalyzeBenchmark(this.sdk, this.commit, this.timestamp)
+    : super('flutter analyze --flutter-repo');
 
   final String sdk;
   final String commit;
@@ -70,15 +70,15 @@ class FlutterAnalyzeBenchmark extends Benchmark {
   Future<num> run() async {
     rm(benchmarkFile);
     await inDirectory(config.flutterDirectory, () async {
-      await flutter('analyze', onCancel, options: ['--flutter-repo', '--benchmark']);
+      await flutter('analyze', options: ['--flutter-repo', '--benchmark']);
     });
     return addBuildInfo(benchmarkFile, timestamp: timestamp, expected: 25.0, sdk: sdk, commit: commit);
   }
 }
 
 class FlutterAnalyzeAppBenchmark extends Benchmark {
-  FlutterAnalyzeAppBenchmark(Future<Null> onCancel, this.sdk, this.commit, this.timestamp)
-    : super('analysis server mega_gallery', onCancel);
+  FlutterAnalyzeAppBenchmark(this.sdk, this.commit, this.timestamp)
+    : super('analysis server mega_gallery');
 
   final String sdk;
   final String commit;
@@ -92,7 +92,7 @@ class FlutterAnalyzeAppBenchmark extends Benchmark {
 
   Future<Null> init() {
     return inDirectory(config.flutterDirectory, () async {
-      await dart(['dev/tools/mega_gallery.dart'], onCancel);
+      await dart(['dev/tools/mega_gallery.dart']);
     });
   }
 
@@ -100,7 +100,7 @@ class FlutterAnalyzeAppBenchmark extends Benchmark {
   Future<num> run() async {
     rm(benchmarkFile);
     await inDirectory(megaDir, () async {
-      await flutter('analyze', onCancel, options: ['--watch', '--benchmark']);
+      await flutter('analyze', options: ['--watch', '--benchmark']);
     });
     return addBuildInfo(benchmarkFile, timestamp: timestamp, expected: 10.0, sdk: sdk, commit: commit);
   }

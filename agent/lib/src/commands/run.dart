@@ -68,13 +68,15 @@ class RunCommand extends Command {
             await agent.updateTaskStatus(task.key, 'Failed');
           }
         }
-      });
+      }).timeout(taskTimeout);
     } catch(error, chain) {
       // TODO(yjbanov): upload logs
       print('Caught: $error\n${(chain as Chain).terse}');
       if (task.key != null)
         await agent.updateTaskStatus(task.key, 'Failed');
-      exit(1);
+      exitCode = 1;
+    } finally {
+      await forceQuitRunningProcesses();
     }
   }
 }

@@ -31,7 +31,7 @@ class EditRefreshTask extends Task {
   Future<TaskResultData> run() async {
     Adb device = await adb();
     device.unlock();
-    Benchmark benchmark = new EditRefreshBenchmark(commit, timestamp, onCancel);
+    Benchmark benchmark = new EditRefreshBenchmark(commit, timestamp);
     section(benchmark.name);
     await runBenchmark(benchmark, iterations: 3, warmUpBenchmark: true);
     return benchmark.bestResult;
@@ -39,8 +39,8 @@ class EditRefreshTask extends Task {
 }
 
 class EditRefreshBenchmark extends Benchmark {
-  EditRefreshBenchmark(this.commit, this.timestamp, Future<Null> onCancel)
-      : super('edit refresh', onCancel);
+  EditRefreshBenchmark(this.commit, this.timestamp)
+      : super('edit refresh');
 
   final String commit;
   final DateTime timestamp;
@@ -53,7 +53,7 @@ class EditRefreshBenchmark extends Benchmark {
 
   Future<Null> init() {
     return inDirectory(config.flutterDirectory, () async {
-      await dart(['dev/tools/mega_gallery.dart'], onCancel);
+      await dart(['dev/tools/mega_gallery.dart']);
     });
   }
 
@@ -63,7 +63,7 @@ class EditRefreshBenchmark extends Benchmark {
     rm(benchmarkFile);
     int exitCode = await inDirectory(megaDir, () async {
       return await flutter(
-        'run', onCancel, options: ['-d', device.deviceId, '--resident', '--benchmark'], canFail: true
+        'run', options: ['-d', device.deviceId, '--resident', '--benchmark'], canFail: true
       );
     });
     if (exitCode != 0)

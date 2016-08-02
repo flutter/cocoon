@@ -18,6 +18,26 @@ String cwd = Directory.current.path;
 Config _config;
 Config get config => _config;
 
+List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
+
+class ProcessInfo {
+  ProcessInfo(this.command, this.process);
+
+  final DateTime startTime = new DateTime.now();
+  final String command;
+  final Process process;
+
+  @override
+  String toString() {
+    return
+'''
+  command : $command
+  started : $startTime
+  pid     : ${process.pid}
+'''.trim();
+  }
+}
+
 class BuildFailedError extends Error {
   BuildFailedError(this.message);
 
@@ -111,33 +131,38 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
 }
 
 Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String> env, Future<Null> onKill}) async {
-  print('Executing: $executable ${arguments?.join(' ') ?? ""}');
+    {Map<String, String> env}) async {
+  String command = '$executable ${arguments?.join(" ") ?? ""}';
+  print('Executing: $command');
   Process proc = await Process.start(executable, arguments, environment: env, workingDirectory: cwd);
+  ProcessInfo procInfo = new ProcessInfo(command, proc);
+  _runningProcesses.add(procInfo);
 
-  if (onKill != null) {
-    bool processExited = false;
-
-    proc.exitCode.then((_) {
-      processExited = true;
-    });
-
-    onKill.then((_) {
-      if (!processExited) {
-        print('Caught signal to kill process (PID: ${proc.pid}): $executable ${arguments.join(' ')}');
-        bool killed = proc.kill(ProcessSignal.SIGKILL);
-        print('Process ${killed ? "was killed successfully" : "could not be killed"}.');
-      }
-    });
-  }
+  proc.exitCode.then((_) {
+    _runningProcesses.remove(procInfo);
+  });
 
   return proc;
 }
 
+Future<Null> forceQuitRunningProcesses() async {
+  // Give normally quitting processes a chance to report their exit code.
+  await new Future.delayed(const Duration(seconds: 1));
+
+  // Whatever's left, kill it.
+  for (ProcessInfo p in _runningProcesses) {
+    print('Force quitting process:\n$p');
+    if (!p.process.kill()) {
+      print('Failed to force quit process');
+    }
+  }
+  _runningProcesses.clear();
+}
+
 /// Executes a command and returns its exit code.
 Future<int> exec(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, Future<Null> onKill}) async {
-  Process proc = await startProcess(executable, arguments, env: env, onKill: onKill);
+    {Map<String, String> env, bool canFail: false}) async {
+  Process proc = await startProcess(executable, arguments, env: env);
 
   proc.stdout
     .transform(UTF8.decoder)
@@ -160,8 +185,8 @@ Future<int> exec(String executable, List<String> arguments,
 ///
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, Future<Null> onKill}) async {
-  Process proc = await startProcess(executable, arguments, env: env, onKill: onKill);
+    {Map<String, String> env, bool canFail: false}) async {
+  Process proc = await startProcess(executable, arguments, env: env);
   proc.stderr.listen((List<int> data) {
     stderr.write(data);
   });
@@ -174,25 +199,20 @@ Future<String> eval(String executable, List<String> arguments,
   return output.trimRight();
 }
 
-Future<int> flutter(String command, Future<Null> onKill, {List<String> options: const<String>[], bool canFail: false}) {
-  if (onKill == null) {
-    throw 'flutter command must obey onKill signal';
-  }
-
+Future<int> flutter(String command, {List<String> options: const<String>[], bool canFail: false}) {
   List<String> args = [command]
     ..addAll(options);
-  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail, onKill: onKill);
+  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail);
 }
 
 String get dartBin => path.join(config.flutterDirectory.path, 'bin/cache/dart-sdk/bin/dart');
 
-Future<int> dart(List<String> args, Future<Null> onKill) => exec(dartBin, args, onKill: onKill);
+Future<int> dart(List<String> args) => exec(dartBin, args);
 
-Future<int> pub(String command, Future<Null> onKill) {
+Future<int> pub(String command) {
   return exec(
     path.join(config.flutterDirectory.path, 'bin/cache/dart-sdk/bin/pub'),
-    [command],
-    onKill: onKill
+    [command]
   );
 }
 
@@ -337,23 +357,21 @@ Future<bool> getFlutter(String revision) async {
     rrm(config.flutterDirectory);
   }
 
-  Future<Null> timeout = new Future<Null>.delayed(const Duration(minutes: 10));
-
   await inDirectory(config.flutterDirectory.parent, () async {
-    await exec('git', ['clone', 'https://github.com/flutter/flutter.git'], onKill: timeout);
+    await exec('git', ['clone', 'https://github.com/flutter/flutter.git']);
   });
 
   await inDirectory(config.flutterDirectory, () async {
-    await exec('git', ['checkout', revision], onKill: timeout);
+    await exec('git', ['checkout', revision]);
   });
 
-  await flutter('config', timeout, options: ['--no-analytics']);
+  await flutter('config', options: ['--no-analytics']);
 
   section('flutter doctor');
-  await flutter('doctor', timeout);
+  await flutter('doctor');
 
   section('flutter update-packages');
-  await flutter('update-packages', timeout);
+  await flutter('update-packages');
   return true;
 }
 

@@ -11,10 +11,11 @@ import 'utils.dart';
 /// Maximum amount of time a single task is allowed to take to run.
 ///
 /// If exceeded the task is considered to have failed.
-const Duration taskTimeout = const Duration(minutes: 7);
+const Duration taskTimeout = const Duration(minutes: 10);
 
-/// Maximum amount of time cancelling a task is allowed to take.
-const Duration cancelTimeout = const Duration(minutes: 1);
+/// Slightly longer than [taskTimeout] that gives the task runner a chance to
+/// clean-up before forcefully quitting it.
+const Duration taskTimeoutWithGracePeriod = const Duration(minutes: 11);
 
 /// Represents a unit of work performed on the dashboard build box that can
 /// succeed, fail and be retried independently of others.
@@ -26,23 +27,8 @@ abstract class Task {
   /// This should be as unique as possible to avoid confusion.
   final String name;
 
-  final Completer<Null> _cancelCompleter = new Completer<Null>();
-
-  /// Signals that the task must be cancelled immediately.
-  ///
-  /// Task implementations must obey this signal by killing pending processes
-  /// and reclaiming subscriptions to streams, such as network requests.
-  ///
-  /// The signal may be sent any time whether the task is running or
-  /// not and must be robust enough to handle it without throwing.
-  Future<Null> get onCancel => _cancelCompleter.future;
-
   /// Performs actual work.
   Future<TaskResultData> run();
-
-  void cancel() {
-    _cancelCompleter.complete();
-  }
 }
 
 /// Runs a queue of tasks; collects results.
@@ -65,7 +51,7 @@ class TaskRunner {
       section('Running task ${task.name}');
       TaskResult result;
       try {
-        TaskResultData data = await task.run().timeout(taskTimeout);
+        TaskResultData data = await task.run();
         if (data != null)
           result = new TaskResult.success(task, revision, data);
         else
@@ -74,14 +60,6 @@ class TaskRunner {
         String message = '${task.name} failed: $taskError';
         if (taskErrorStack != null) {
           message += '\n\n$taskErrorStack';
-        }
-        try {
-          task.cancel();
-        } catch (cancelError, cancelErrorStack) {
-          message += '\n\nAttempted to cancel tasks, but failed due to: $cancelError';
-          if (cancelErrorStack != null) {
-            message += '\n\n$cancelErrorStack';
-          }
         }
         print('');
         print(message);
