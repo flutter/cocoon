@@ -8,3 +8,6 @@ cron:
 - description: refresh chromebot build status
   url: /api/refresh-chromebot-status
   schedule: every 3 minutes
+- description: clean up stale datastore records
+  url: /api/vacuum-clean
+  schedule: every 10 minutes

@@ -34,6 +34,7 @@ func init() {
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
+	registerRPC("/api/vacuum-clean", commands.VacuumClean)
 
 	registerRawHandler("/api/append-log", commands.AppendLog)
 	registerRawHandler("/api/get-log", commands.GetLog)

@@ -68,11 +68,22 @@ type Task struct {
 	// Capabilities an agent must have to be able to perform this task.
 	RequiredCapabilities []string
 	Status               TaskStatus
-	ReservedForAgentID   string
-	CreateTimestamp      int64
-	StartTimestamp       int64
-	EndTimestamp         int64
+
+	// Explains the value of the current task Status. For example, if Status is
+	// "Failed", then Reason might be "Timed out".
+	Reason string
+
+	// The number of times Cocoon attempted to run the Task.
+	Attempts           int64
+	ReservedForAgentID string
+	CreateTimestamp    int64
+	StartTimestamp     int64
+	EndTimestamp       int64
 }
+
+// MaxAttempts is the maximum number of times a single task will be attempted
+// before giving up on it.
+const MaxAttempts = 3
 
 // TaskStatus indicates the status of a task.
 type TaskStatus string
