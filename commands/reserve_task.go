@@ -8,7 +8,6 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -152,7 +151,8 @@ func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.
 		}
 
 		task.Status = "In Progress"
-		task.StartTimestamp = time.Now().UnixNano() / 1000000
+		task.Attempts++
+		task.StartTimestamp = db.NowMillis()
 		task.ReservedForAgentID = agent.AgentID
 		taskEntity, err = txc.PutTask(taskEntity.Key, task)
 		return err

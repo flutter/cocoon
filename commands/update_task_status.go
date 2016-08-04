@@ -44,7 +44,21 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	task.Task.Status = db.TaskStatusByName(command.NewStatus)
+	newStatus := db.TaskStatusByName(command.NewStatus)
+
+	if newStatus != db.TaskFailed {
+		task.Task.Status = newStatus
+	} else {
+		// Attempt to deflake the test by giving another chance.
+		if task.Task.Attempts >= db.MaxAttempts {
+			task.Task.Status = db.TaskFailed
+			task.Task.Reason = "Task failed on agent"
+		} else {
+			// This will cause this task to be picked up by an agent again.
+			task.Task.Status = db.TaskNew
+			task.Task.StartTimestamp = 0
+		}
+	}
 
 	c.PutTask(task.Key, task.Task)
 

@@ -179,6 +179,15 @@ type FullTask struct {
 	ChecklistEntity *ChecklistEntity
 }
 
+// QueryAllPendingTasks queries all tasks that are not in a final state.
+//
+// The query goes back up to 20 checklists.
+//
+// See also IsFinal.
+func (c *Cocoon) QueryAllPendingTasks() ([]*FullTask, error) {
+	return c.QueryPendingTasks("")
+}
+
 // QueryPendingTasks lists the latest tasks with the given name that are not yet
 // in a final status.
 //
@@ -194,9 +203,13 @@ func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
 	for i := len(checklists) - 1; i >= 0; i-- {
 		query := datastore.NewQuery("Task").
 			Ancestor(checklists[i].Key).
-			Filter("Name =", taskName).
 			Order("-CreateTimestamp").
 			Limit(20)
+
+		if taskName != "" {
+			query = query.Filter("Name =", taskName)
+		}
+
 		candidates, err := c.runTaskQuery(query)
 
 		if err != nil {
@@ -513,4 +526,14 @@ func (c *Cocoon) PutLogChunk(ownerKey *datastore.Key, data []byte) error {
 	key := datastore.NewIncompleteKey(c.Ctx, "LogChunk", nil)
 	_, err := datastore.Put(c.Ctx, key, chunk)
 	return err
+}
+
+// NowMillis returns the number of milliseconds since the UNIX epoch.
+func NowMillis() int64 {
+	return time.Now().UnixNano() / 1000000
+}
+
+// AgeInMillis returns the current age of the task in milliseconds.
+func (t *Task) AgeInMillis() int64 {
+	return NowMillis() - t.CreateTimestamp
 }

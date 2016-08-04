@@ -8,7 +8,6 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"io/ioutil"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -64,7 +63,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	// Sync to datastore
 	var commitResults []CommitSyncResult
 	commitResults = make([]CommitSyncResult, len(commits), len(commits))
-	nowMillisSinceEpoch := time.Now().UnixNano() / 1000000
+	nowMillisSinceEpoch := db.NowMillis()
 
 	// To be able to use `CreateTimestamp` field for sorting topologically we have
 	// to save ranges of commits with no gaps. Therefore we save all of them in
