@@ -36,6 +36,7 @@ class GetStatusResult extends Entity {
     (Map<String, dynamic> props) => new GetStatusResult(props),
     <String, JsonSerializer>{
       'Statuses': listOf(BuildStatus._serializer),
+      'AgentStatuses': listOf(AgentStatus._serializer),
     }
   );
 
@@ -45,6 +46,7 @@ class GetStatusResult extends Entity {
   GetStatusResult([Map<String, dynamic> props]) : super(_serializer, props);
 
   List<BuildStatus> get statuses => this['Statuses'];
+  List<AgentStatus> get agentStatuses => this['AgentStatuses'];
 }
 
 class BuildStatus extends Entity {
@@ -60,6 +62,25 @@ class BuildStatus extends Entity {
 
   ChecklistEntity get checklist => this['Checklist'];
   List<Stage> get stages => this['Stages'];
+}
+
+class AgentStatus extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new AgentStatus(props),
+    <String, JsonSerializer>{
+    	'AgentID': string(),
+    	'IsHealthy': boolean(),
+    	'HealthCheckTimestamp': dateTime(),
+    	'HealthDetails': string(),
+    }
+  );
+
+  AgentStatus([Map<String, dynamic> props]) : super(_serializer, props);
+
+  String get agentId => this['AgentID'];
+  bool get isHealthy => this['IsHealthy'];
+  DateTime get healthCheckTimestamp => this['HealthCheckTimestamp'];
+  String get healthDetails => this['HealthDetails'];
 }
 
 class CommitInfo extends Entity {
@@ -164,6 +185,7 @@ class Task extends Entity {
       'Status': string(),
       'StartTimestamp': dateTime(),
       'EndTimestamp': dateTime(),
+      'Attempts': number(),
     }
   );
 
@@ -175,4 +197,5 @@ class Task extends Entity {
   String get status => this['Status'];
   DateTime get startTimestamp => this['StartTimestamp'];
   DateTime get endTimestamp => this['EndTimestamp'];
+  int get attempts => this['Attempts'];
 }

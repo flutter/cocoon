@@ -33,6 +33,7 @@ func init() {
 	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
+	registerRPC("/api/update-agent-health", commands.UpdateAgentHealth)
 	registerRPC("/api/update-task-status", commands.UpdateTaskStatus)
 	registerRPC("/api/vacuum-clean", commands.VacuumClean)
 

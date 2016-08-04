@@ -46,6 +46,22 @@ class Adb {
   // 015d172c98400a03       device usb:340787200X product:nakasi model:Nexus_7 device:grouper
   static final RegExp _kDeviceRegex = new RegExp(r'^(\S+)\s+(\S+)(.*)');
 
+  static Future<Map<String, HealthCheckResult>> checkDevices() async {
+    Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
+    for (String deviceId in await deviceIds) {
+      try {
+        Adb device = new Adb(deviceId: deviceId);
+        // Just a smoke test that we can read wakefulness state
+        // TODO(yjbanov): check battery level
+        await device._getWakefulness();
+        results['android-device-$deviceId'] = new HealthCheckResult.success();
+      } catch(e, s) {
+        results['android-device-$deviceId'] = new HealthCheckResult.error(e, s);
+      }
+    }
+    return results;
+  }
+
   static Future<List<String>> get deviceIds async {
     List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false))
         .trim().split('\n');

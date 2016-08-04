@@ -16,6 +16,34 @@ import 'package:http/http.dart' as http;
 <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; background-color: #AAFFAA;">
   Loading...
 </div>
+
+<div class="agent-bar">
+  <div>Agents</div>
+  <div *ngFor="let agentStatus of agentStatuses"
+       [ngClass]="getAgentStyle(agentStatus)"
+       (click)="showAgentHealthDetails(agentStatus)">
+    {{agentStatus.agentId}}
+  </div>
+</div>
+
+<div *ngIf="displayedAgentStatus != null"
+     class="agent-health-details-card">
+  <div style="position: absolute; top: 5px; right: 5px; cursor: pointer"
+       (click)="hideAgentHealthDetails()">
+    [X]
+  </div>
+  <div>
+    {{displayedAgentStatus.agentId}}
+    {{isAgentHealthy(displayedAgentStatus) ? "☺" : "☹"}}
+  </div>
+  <div>
+    Last health check: {{displayedAgentStatus.healthCheckTimestamp}}
+    {{agentHealthCheckAge(displayedAgentStatus.healthCheckTimestamp)}}
+  </div>
+  <div>Details:</div>
+  <div>{{displayedAgentStatus.healthDetails}}</div>
+</div>
+
 <table class="status-table"
        cellspacing="0"
        cellpadding="0"
@@ -47,6 +75,8 @@ import 'package:http/http.dart' as http;
   directives: const [NgIf, NgFor, NgClass]
 )
 class StatusTable implements OnInit {
+  static const Duration maxHealthCheckAge = const Duration(minutes: 10);
+
   StatusTable(this._httpClient);
 
   final http.Client _httpClient;
@@ -61,6 +91,8 @@ class StatusTable implements OnInit {
   /// A sparse Commit X Task matrix of test results.
   Map<String, Map<String, TaskEntity>> resultMatrix = <String, Map<String, TaskEntity>>{};
 
+  List<AgentStatus> agentStatuses;
+
   @override
   ngOnInit() async {
     reloadData();
@@ -73,6 +105,7 @@ class StatusTable implements OnInit {
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
 
+    agentStatuses = statusResult.agentStatuses ?? <AgentStatus>[];
     List<BuildStatus> statuses = statusResult.statuses ?? <BuildStatus>[];
     headerCol = <BuildStatus>[];
     headerRow = new HeaderRow();
@@ -95,7 +128,7 @@ class StatusTable implements OnInit {
     return fullSha.length > 7 ? fullSha.substring(0, 7) : fullSha;
   }
 
-  List<String> taskStatusToCssStyle(String taskStatus) {
+  List<String> taskStatusToCssStyle(String taskStatus, int attempts) {
     const statusMap = const <String, String> {
       'New': 'task-new',
       'In Progress': 'task-in-progress',
@@ -104,7 +137,15 @@ class StatusTable implements OnInit {
       'Underperformed': 'task-underperformed',
       'Skipped': 'task-skipped',
     };
-    return ['task-status-circle', statusMap[taskStatus] ?? 'task-unknown'];
+
+    String cssClass;
+    if (taskStatus == 'Succeeded' && attempts > 1) {
+      cssClass = 'task-succeeded-but-flaky';
+    } else {
+      cssClass = statusMap[taskStatus] ?? 'task-unknown';
+    }
+
+    return ['task-status-circle', cssClass];
   }
 
   TaskEntity _findTask(String sha, String taskName) {
@@ -120,9 +161,43 @@ class StatusTable implements OnInit {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
     if (taskEntity == null)
-      return taskStatusToCssStyle('Skipped');
+      return taskStatusToCssStyle('Skipped', 0);
 
-    return taskStatusToCssStyle(taskEntity.task.status);
+    return taskStatusToCssStyle(taskEntity.task.status, taskEntity.task.attempts);
+  }
+
+  List<String> getAgentStyle(AgentStatus status) {
+    return [
+      'agent-chip',
+      isAgentHealthy(status) ? 'agent-healthy' : 'agent-unhealthy',
+    ];
+  }
+
+  /// An agent is considered healthy if the latest health report was OK and is
+  /// up-to-date.
+  bool isAgentHealthy(AgentStatus status) {
+    return status.isHealthy && status.healthCheckTimestamp != null &&
+      new DateTime.now().difference(status.healthCheckTimestamp) < maxHealthCheckAge;
+  }
+
+  AgentStatus displayedAgentStatus;
+
+  void showAgentHealthDetails(AgentStatus agentStatus) {
+    displayedAgentStatus = agentStatus;
+  }
+
+  void hideAgentHealthDetails() {
+    displayedAgentStatus = null;
+  }
+
+  String agentHealthCheckAge(DateTime dt) {
+    if (dt == null)
+      return '';
+    Duration age = new DateTime.now().difference(dt);
+    String ageQualifier = age > maxHealthCheckAge
+      ? 'out-of-date!!!'
+      : 'old';
+    return '(${age.inMinutes} minutes $ageQualifier)';
   }
 
   void openLog(String sha, String taskName) {

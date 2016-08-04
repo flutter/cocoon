@@ -31,10 +31,36 @@ class ContinuousIntegrationCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
-    await _performPreflightChecks();
+    // Perform one pre-flight round of checks and quit immediately if something
+    // is wrong.
+    AgentHealth health = await _performHealthChecks();
+    section('Pre-flight checks:');
+    print(health);
+
+    if (!health.ok) {
+      print('Some pre-flight checks failed. Quitting.');
+      exit(1);
+    }
+
+    // Start CI mode
+    section('Started continuous integration:');
     _listenToShutdownSignals();
     while(!_exiting) {
       try {
+        // Check health before requesting a new task.
+        health = await _performHealthChecks();
+
+        // Always upload health status whether succeeded or failed.
+        await agent.updateHealthStatus(health);
+
+        if (!health.ok) {
+          print('Some health checks failed:');
+          print(health);
+          await new Future.delayed(_sleepBetweenBuilds);
+          // Don't bother requesting new tasks if health is bad.
+          continue;
+        }
+
         CocoonTask task = await agent.reserveTask();
         try {
           if (task != null) {
@@ -67,22 +93,45 @@ class ContinuousIntegrationCommand extends Command {
         await forceQuitRunningProcesses();
       }
 
-      // TODO(yjbanov): report health status after running the task
       await new Future.delayed(_sleepBetweenBuilds);
     }
   }
 
-  Future<Null> _performPreflightChecks() async {
-    print('Pre-flight checks:');
-    await pickNextDevice();
-    print('  - device connected');
-    await checkFirebaseConnection();
-    print('  - firebase connected');
-    if (!(await agent.getAuthenticationStatus())['Status'] == 'OK') {
-      throw 'Failed to authenticate to Cocoon. Check config.yaml.';
+  Future<AgentHealth> _performHealthChecks() async {
+    AgentHealth results = new AgentHealth();
+    try {
+      results['firebase-connection'] = await checkFirebaseConnection();
+
+      Map<String, HealthCheckResult> deviceChecks = await Adb.checkDevices();
+      results.addAll(deviceChecks);
+
+      int healthyDeviceCount = deviceChecks.values
+        .where((HealthCheckResult r) => r.succeeded)
+        .length;
+
+      results['has-healthy-devices'] = healthyDeviceCount > 0
+        ? new HealthCheckResult.success('Found ${deviceChecks.length} healthy devices')
+        : new HealthCheckResult.failure('No healthy devices found');
+
+      try {
+        String authStatus = await agent.getAuthenticationStatus();
+        results['cocoon-connection'] = new HealthCheckResult.success();
+
+        if (authStatus != 'OK') {
+          results['cocoon-authentication'] = new HealthCheckResult.failure('Failed to authenticate to Cocoon. Check config.yaml.');
+        } else {
+          results['cocoon-authentication'] = new HealthCheckResult.success();
+        }
+      } catch(e, s) {
+        results['cocoon-connection'] = new HealthCheckResult.error(e, s);
+      }
+
+      results['able-to-perform-health-check'] = new HealthCheckResult.success();
+    } catch(e, s) {
+      results['able-to-perform-health-check'] = new HealthCheckResult.error(e, s);
     }
-    print('  - Cocoon auth OK');
-    print('Pre-flight OK');
+
+    return results;
   }
 
   /// Listens to standard output and upload logs to Cocoon in semi-realtime.

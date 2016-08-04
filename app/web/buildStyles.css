@@ -298,12 +298,16 @@ td.stats-value {
   background-color: green;
   cursor: pointer;
 }
+.task-succeeded-but-flaky {
+  background-color: #cccc00;
+  cursor: pointer;
+}
 .task-failed {
   background-color: red;
   cursor: pointer;
 }
 .task-underperformed {
-  background-color: yellow;
+  background-color: orange;
   cursor: pointer;
 }
 .task-skipped {
@@ -321,4 +325,37 @@ td.stats-value {
   100% {
     transform: rotateZ(180deg);
   }
+}
+
+.agent-bar {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.agent-bar > * {
+  align-self: center;
+  padding: 7px;
+}
+
+.agent-chip {
+  border-radius: 2px;
+  margin-left: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+.agent-healthy {
+  background-color: #33CC33;
+}
+
+.agent-unhealthy {
+  background-color: #CC3333;
+}
+
+.agent-health-details-card {
+  position: relative;
+  background-color: #DDD;
+  border-radius: 2px;
+  padding: 15px;
+  margin-bottom: 10px;
 }

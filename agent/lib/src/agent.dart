@@ -127,8 +127,16 @@ class Agent {
     });
   }
 
-  Future<Map<String, dynamic>> getAuthenticationStatus() async {
-    return await _cocoon('get-authentication-status');
+  Future<String> getAuthenticationStatus() async {
+    return (await _cocoon('get-authentication-status'))['Status'];
+  }
+
+  Future<Null> updateHealthStatus(AgentHealth health) async {
+    await _cocoon('update-agent-health', {
+    	'AgentID': agentId,
+    	'IsHealthy': health.ok,
+    	'HealthDetails': '$health',
+    });
   }
 }
 
@@ -161,4 +169,37 @@ abstract class Command {
   final Agent agent;
 
   Future<Null> run(ArgResults args);
+}
+
+/// Overall health of the agent.
+class AgentHealth {
+  /// Check results keyed by parameter.
+  final Map<String, HealthCheckResult> checks = <String, HealthCheckResult>{};
+
+  /// Whether all [checks] succeeded.
+  bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
+
+  /// Sets a health check [result] for a given [parameter].
+  operator []=(String parameter, HealthCheckResult result) {
+    if (checks.containsKey(parameter)) {
+      print('WARNING: duplicate health check ${parameter} submitted');
+    }
+    checks[parameter] = result;
+  }
+
+  void addAll(Map<String, HealthCheckResult> checks) {
+    checks.forEach((String p, HealthCheckResult r) {
+      this[p] = r;
+    });
+  }
+
+  /// Human-readable printout of the agent's health status.
+  @override
+  String toString() {
+    StringBuffer buf = new StringBuffer();
+    checks.forEach((String parameter, HealthCheckResult result) {
+      buf.writeln('$parameter: $result');
+    });
+    return buf.toString();
+  }
 }

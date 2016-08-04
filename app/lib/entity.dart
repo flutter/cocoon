@@ -30,6 +30,9 @@ abstract class JsonSerializer<T> {
 /// Serializes strings.
 StringSerializer string() => const StringSerializer();
 
+/// Serializes booleans.
+BoolSerializer boolean() => const BoolSerializer();
+
 /// Serializes ints and doubles.
 NumSerializer number() => const NumSerializer();
 
@@ -81,6 +84,15 @@ class StringSerializer implements JsonSerializer<String> {
     return jsonValue as String;
   }
   dynamic serialize(String value) => value;
+}
+
+class BoolSerializer implements JsonSerializer<bool> {
+  const BoolSerializer();
+
+  bool deserialize(dynamic jsonValue) {
+    return jsonValue as bool;
+  }
+  dynamic serialize(bool value) => value;
 }
 
 class NumSerializer implements JsonSerializer<num> {
