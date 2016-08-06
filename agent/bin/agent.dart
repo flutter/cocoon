@@ -59,7 +59,7 @@ Future<Null> main(List<String> rawArgs) async {
     exit(1);
   }
 
-  print('Agent configuration:');
+  section('Agent configuration:');
   print(config);
 
   await command.run(args.command);

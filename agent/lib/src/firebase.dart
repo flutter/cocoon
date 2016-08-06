@@ -16,9 +16,17 @@ Firebase _measurements() {
       auth: firebaseToken);
 }
 
-Future<Null> checkFirebaseConnection() async {
-  if (await _measurements().child('dashboard_bot_status').child('current').get() == null) {
-    throw 'Connection to Firebase is unhealthy. Failed to read the current dashboard_bot_status entity.';
+Future<HealthCheckResult> checkFirebaseConnection() async {
+  try {
+    if ((await _measurements().child('dashboard_bot_status').child('current').get()).val == null) {
+      return new HealthCheckResult.failure(
+        'Connection to Firebase is unhealthy. Failed to read the current dashboard_bot_status entity.'
+      );
+    } else {
+      return new HealthCheckResult.success();
+    }
+  } catch (e, s) {
+    return new HealthCheckResult.error(e, s);
   }
 }
 

@@ -12,7 +12,8 @@ type GetStatusCommand struct {
 
 // GetStatusResult contains dashboard status.
 type GetStatusResult struct {
-	Statuses []*BuildStatus
+	Statuses      []*BuildStatus
+	AgentStatuses []*db.AgentStatus
 }
 
 // BuildStatus contains build status information about a particular checklist.
@@ -32,10 +33,11 @@ func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 	var statuses []*BuildStatus
 	for _, checklist := range checklists {
-		stages, err := c.QueryTasksGroupedByStage(checklist.Key)
+		// Need to define another error variable to not "shadow" the other one, Go figure!
+		stages, errr := c.QueryTasksGroupedByStage(checklist.Key)
 
-		if err != nil {
-			return nil, err
+		if errr != nil {
+			return nil, errr
 		}
 
 		statuses = append(statuses, &BuildStatus{
@@ -44,5 +46,14 @@ func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		})
 	}
 
-	return &GetStatusResult{statuses}, nil
+	agentStatuses, err := c.QueryAgentStatuses()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetStatusResult{
+		Statuses:      statuses,
+		AgentStatuses: agentStatuses,
+	}, nil
 }

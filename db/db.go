@@ -373,6 +373,47 @@ func (c *Cocoon) GetAgentByAuthToken(agentID string, authToken string) (*Agent, 
 	return agent, nil
 }
 
+// QueryAgentStatuses fetches statuses for all agents.
+func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
+	query := datastore.NewQuery("Agent").Order("AgentID")
+	var buffer []*AgentStatus
+	for iter := query.Run(c.Ctx); ; {
+		var agent Agent
+		_, err := iter.Next(&agent)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		buffer = append(buffer, &AgentStatus{
+			AgentID:              agent.AgentID,
+			IsHealthy:            agent.IsHealthy,
+			HealthDetails:        agent.HealthDetails,
+			HealthCheckTimestamp: agent.HealthCheckTimestamp,
+			Capabilities:         agent.Capabilities,
+		})
+	}
+	return buffer, nil
+}
+
+// UpdateAgent updates an agent record.
+func (c *Cocoon) UpdateAgent(agent *Agent) error {
+	agentKey := c.newAgentKey(agent.AgentID)
+	originalAgent, err := c.GetAgent(agent.AgentID)
+
+	if err != nil {
+		return err
+	}
+
+	// Do not allow updating the auth token
+	// TODO(yjbanov): auth token can be moved to a child entity, avoiding this problem.
+	agent.AuthTokenHash = originalAgent.AuthTokenHash
+
+	_, err = datastore.Put(c.Ctx, agentKey, agent)
+	return err
+}
+
 var urlSafeChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 
 // Generates a token along with its hash for storing in the database. The
