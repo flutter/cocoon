@@ -36,6 +36,28 @@ Future<Adb> realAdbGetter() async {
   return _currentDevice;
 }
 
+/// Gets the ID of an unlocked device, unlocking it if necessary.
+// TODO(yjbanov): abstract away iOS from Android.
+Future<String> getUnlockedDeviceId({ bool ios: false }) async {
+  if (ios) {
+    // We currently do not have a way to lock/unlock iOS devices, or even to
+    // pick one out of many. So we pick the first random iPhone and assume it's
+    // already unlocked. For now we'll just keep them at minimum screen
+    // brightness so they don't drain battery too fast.
+    List<String> iosDeviceIds = grep('UniqueDeviceID', from: await eval('ideviceinfo', []))
+      .map((String line) => line.split(' ').last).toList();
+
+    if (iosDeviceIds.isEmpty)
+      throw 'No connected iOS devices found.';
+
+    return iosDeviceIds.first;
+  }
+
+  Adb device = await adb();
+  device.unlock();
+  return device.deviceId;
+}
+
 class Adb {
   Adb({String this.deviceId});
 

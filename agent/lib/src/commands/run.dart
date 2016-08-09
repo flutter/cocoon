@@ -57,7 +57,7 @@ class RunCommand extends Command {
     try {
       await runAndCaptureAsyncStacks(() async {
         // Load-balance tests across attached devices
-        pickNextDevice();
+        await pickNextDevice();
 
         BuildResult result = await agent.performTask(task);
         if (task.key != null) {
