@@ -82,11 +82,15 @@ class Agent {
 
     List<Task> allTasks = <Task>[
       createComplexLayoutScrollPerfTest(),
+      createComplexLayoutScrollPerfTest(ios: true),
       createFlutterGalleryStartupTest(),
+      createFlutterGalleryStartupTest(ios: true),
       createComplexLayoutStartupTest(),
+      createComplexLayoutStartupTest(ios: true),
       createFlutterGalleryBuildTest(),
       createComplexLayoutBuildTest(),
       createGalleryTransitionTest(),
+      createGalleryTransitionTest(ios: true),
       createBasicMaterialAppSizeTest(),
       createAnalyzerCliTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),
       createAnalyzerServerTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),

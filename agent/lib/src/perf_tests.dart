@@ -9,21 +9,30 @@ import 'adb.dart';
 import 'framework.dart';
 import 'utils.dart';
 
-Task createComplexLayoutScrollPerfTest() {
+Task createComplexLayoutScrollPerfTest({ bool ios: false }) {
   return new PerfTest(
-    'complex_layout_scroll_perf__timeline_summary',
+    'complex_layout_scroll_perf${ios ? "_ios" : ""}__timeline_summary',
     '${config.flutterDirectory.path}/dev/benchmarks/complex_layout',
     'test_driver/scroll_perf.dart',
-    'complex_layout_scroll_perf'
+    'complex_layout_scroll_perf',
+    ios: ios
   );
 }
 
-Task createFlutterGalleryStartupTest() {
-  return new StartupTest('flutter_gallery__start_up', '${config.flutterDirectory.path}/examples/flutter_gallery');
+Task createFlutterGalleryStartupTest({ bool ios: false }) {
+  return new StartupTest(
+    'flutter_gallery${ios ? "_ios" : ""}__start_up',
+    '${config.flutterDirectory.path}/examples/flutter_gallery',
+    ios: ios
+  );
 }
 
-Task createComplexLayoutStartupTest() {
-  return new StartupTest('complex_layout__start_up', '${config.flutterDirectory.path}/dev/benchmarks/complex_layout');
+Task createComplexLayoutStartupTest({ bool ios: false }) {
+  return new StartupTest(
+    'complex_layout${ios ? "_ios" : ""}__start_up',
+    '${config.flutterDirectory.path}/dev/benchmarks/complex_layout',
+    ios: ios
+  );
 }
 
 Task createFlutterGalleryBuildTest() {
@@ -37,20 +46,26 @@ Task createComplexLayoutBuildTest() {
 /// Measure application startup performance.
 class StartupTest extends Task {
 
-  StartupTest(String name, this.testDirectory) : super(name);
+  StartupTest(String name, this.testDirectory, { this.ios }) : super(name);
 
   final String testDirectory;
+  final bool ios;
 
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
-      Adb device = await adb();
-      device.unlock();
+      String deviceId = await getUnlockedDeviceId(ios: ios);
       await pub('get');
+
+      if (ios) {
+        // This causes an Xcode project to be created.
+        await flutter('build', options: ['ios', '--profile']);
+      }
+
       await flutter('run', options: [
         '--profile',
         '--trace-startup',
         '-d',
-        device.deviceId
+        deviceId
       ]);
       Map<String, dynamic> data = JSON.decode(file('$testDirectory/build/start_up_info.json').readAsStringSync());
       return new TaskResultData(data, benchmarkScoreKeys: <String>[
@@ -65,26 +80,33 @@ class StartupTest extends Task {
 /// performance.
 class PerfTest extends Task {
 
-  PerfTest(String name, this.testDirectory, this.testTarget, this.timelineFileName)
+  PerfTest(String name, this.testDirectory, this.testTarget, this.timelineFileName, { this.ios })
       : super(name);
 
   final String testDirectory;
   final String testTarget;
   final String timelineFileName;
+  final bool ios;
 
   @override
   Future<TaskResultData> run() {
     return inDirectory(testDirectory, () async {
-      Adb device = await adb();
-      device.unlock();
+      String deviceId = await getUnlockedDeviceId(ios: ios);
       await pub('get');
+
+      if (ios) {
+        // This causes an Xcode project to be created.
+        await flutter('build', options: ['ios', '--profile']);
+      }
+
       await flutter('drive', options: [
+        '-v',
         '--profile',
         '--trace-startup', // Enables "endless" timeline event buffering.
         '-t',
         testTarget,
         '-d',
-        device.deviceId
+        deviceId,
       ]);
       Map<String, dynamic> data = JSON.decode(file('$testDirectory/build/${timelineFileName}.timeline_summary.json').readAsStringSync());
       return new TaskResultData(data, benchmarkScoreKeys: <String>[
@@ -95,7 +117,6 @@ class PerfTest extends Task {
     });
   }
 }
-
 
 class BuildTest extends Task {
 

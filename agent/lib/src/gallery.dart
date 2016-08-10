@@ -10,25 +10,32 @@ import 'adb.dart';
 import 'framework.dart';
 import 'utils.dart';
 
-Task createGalleryTransitionTest() => new GalleryTransitionTest();
+Task createGalleryTransitionTest({ bool ios: false }) => new GalleryTransitionTest(ios: ios);
 
 class GalleryTransitionTest extends Task {
-  GalleryTransitionTest() : super('flutter_gallery__transition_perf');
+  GalleryTransitionTest({ this.ios }) : super('flutter_gallery__transition_perf');
+
+  final bool ios;
 
   @override
   Future<TaskResultData> run() async {
-    Adb device = await adb();
-    device.unlock();
+    String deviceId = await getUnlockedDeviceId(ios: ios);
     Directory galleryDirectory = dir('${config.flutterDirectory.path}/examples/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
       await pub('get');
+
+      if (ios) {
+        // This causes an Xcode project to be created.
+        await flutter('build', options: ['ios', '--profile']);
+      }
+
       await flutter('drive', options: [
         '--profile',
         '--trace-startup',
         '-t',
         'test_driver/transitions_perf.dart',
         '-d',
-        device.deviceId,
+        deviceId,
       ]);
     });
 
