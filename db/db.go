@@ -319,6 +319,7 @@ var stagePrecedence = []string{
 	"travis",
 	"chromebot",
 	"devicelab",
+	"devicelab_ios",
 }
 
 func stageIndexOf(stage *Stage) int {

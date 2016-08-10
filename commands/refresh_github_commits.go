@@ -155,5 +155,11 @@ func createTaskList(createTimestamp int64, checklistKey *datastore.Key) []*db.Ta
 
 		makeTask("devicelab", "analyzer_cli__analysis_time", []string{"has-android-device"}),
 		makeTask("devicelab", "analyzer_server__analysis_time", []string{"has-android-device"}),
+
+		// iOS
+		makeTask("devicelab_ios", "complex_layout_scroll_perf_ios__timeline_summary", []string{"has-ios-device"}),
+		makeTask("devicelab_ios", "flutter_gallery_ios__start_up", []string{"has-ios-device"}),
+		makeTask("devicelab_ios", "complex_layout_ios__start_up", []string{"has-ios-device"}),
+		makeTask("devicelab_ios", "flutter_gallery_ios__transition_perf", []string{"has-ios-device"}),
 	}
 }
