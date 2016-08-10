@@ -274,6 +274,7 @@ String _iconForStageName(String stageName) {
     'travis': '/travis.svg',
     'chromebot': '/chromium.svg',
     'devicelab': '/android.svg',
+    'devicelab_ios': '/apple.svg',
   };
   return iconMap[stageName];
 }

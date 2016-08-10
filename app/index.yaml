@@ -24,4 +24,4 @@ indexes:
   properties:
   - name: OwnerKey
   - name: CreateTimestamp
-    direction: desc
+    direction: asc
