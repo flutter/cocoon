@@ -13,7 +13,9 @@ import 'utils.dart';
 Task createGalleryTransitionTest({ bool ios: false }) => new GalleryTransitionTest(ios: ios);
 
 class GalleryTransitionTest extends Task {
-  GalleryTransitionTest({ this.ios }) : super('flutter_gallery__transition_perf');
+  GalleryTransitionTest({ bool ios }) :
+    this.ios = ios,
+    super('flutter_gallery${ios ? "_ios" : ""}__transition_perf');
 
   final bool ios;
 
