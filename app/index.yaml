@@ -19,6 +19,11 @@ indexes:
   - name: Name
   - name: CreateTimestamp
     direction: desc
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: CreateTimestamp
+    direction: desc
 - kind: LogChunk
   ancestor: no
   properties:
