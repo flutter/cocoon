@@ -45,6 +45,7 @@ Task createComplexLayoutBuildTest() {
 
 /// Measure application startup performance.
 class StartupTest extends Task {
+  static const Duration _startupTimeout = const Duration(minutes: 10);
 
   StartupTest(String name, this.testDirectory, { this.ios }) : super(name);
 
@@ -66,7 +67,7 @@ class StartupTest extends Task {
         '--trace-startup',
         '-d',
         deviceId
-      ]);
+      ]).timeout(_startupTimeout);
       Map<String, dynamic> data = JSON.decode(file('$testDirectory/build/start_up_info.json').readAsStringSync());
       return new TaskResultData(data, benchmarkScoreKeys: <String>[
         'engineEnterTimestampMicros',
