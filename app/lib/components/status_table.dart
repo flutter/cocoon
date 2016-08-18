@@ -41,7 +41,7 @@ import 'package:http/http.dart' as http;
     {{agentHealthCheckAge(displayedAgentStatus.healthCheckTimestamp)}}
   </div>
   <div>Details:</div>
-  <div>{{displayedAgentStatus.healthDetails}}</div>
+  <pre>{{displayedAgentStatus.healthDetails}}</pre>
 </div>
 
 <table class="status-table"
