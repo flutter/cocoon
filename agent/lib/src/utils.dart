@@ -361,24 +361,10 @@ String jsonEncode(dynamic data) {
   return new JsonEncoder.withIndent('  ').convert(data) + '\n';
 }
 
-Future<bool> getFlutter(String revision) async {
+Future<Null> getFlutter(String revision) async {
   section('Get Flutter!');
 
-  if (exists(dir('${config.flutterDirectory.path}/.git'))) {
-    bool hasLocalChanges = await inDirectory(config.flutterDirectory, () async {
-      String unstagedChanges = await eval('git', ['diff', '--numstat']);
-      String stagedChanges = await eval('git', ['diff', '--numstat', '--cached']);
-      return unstagedChanges.trim().isNotEmpty || stagedChanges.trim().isNotEmpty;
-    });
-
-    if (hasLocalChanges) {
-      section('WARNING');
-      print(
-        'Pending changes detected in the local Flutter repo. Will skip syncing '
-        'Flutter repo. The build will continue but it will marked as failed.'
-      );
-      return false;
-    }
+  if (exists(config.flutterDirectory)) {
     rrm(config.flutterDirectory);
   }
 
@@ -397,7 +383,6 @@ Future<bool> getFlutter(String revision) async {
 
   section('flutter update-packages');
   await flutter('update-packages');
-  return true;
 }
 
 void checkNotNull(Object o1, [Object o2 = 1, Object o3 = 1, Object o4 = 1,
