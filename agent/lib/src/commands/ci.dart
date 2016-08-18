@@ -131,6 +131,8 @@ class ContinuousIntegrationCommand extends Command {
       results['able-to-perform-health-check'] = new HealthCheckResult.error(e, s);
     }
 
+    results['ssh-connectivity'] = await _scrapeRemoteAccessInfo();
+
     return results;
   }
 
@@ -196,4 +198,23 @@ Future<Null> getFlutterAt(String revision) async {
   }
 
   await getFlutter(revision);
+}
+
+/// Returns the IP address for remote (SSH) access to this agent.
+///
+/// Uses `ipconfig getifaddr en0`.
+///
+/// Always returns [new HealthCheckResult.success] regardless of whether an IP
+/// is available or not. Having remote access to an agent is not a prerequisite
+/// for being able to perform Cocoon tasks. It's only there to make maintenance
+/// convenient. The goal is only to report available IPs as part of the health
+/// check.
+Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
+  String ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
+
+  return new HealthCheckResult.success(ip.isEmpty
+    ? 'No IP found for remote (SSH) access to this client. '
+      'Did you forget to plug the Ethernet cable?'
+    : 'Possible remote access IP: $ip'
+  );
 }
