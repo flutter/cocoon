@@ -45,7 +45,7 @@ Task createComplexLayoutBuildTest() {
 
 /// Measure application startup performance.
 class StartupTest extends Task {
-  static const Duration _startupTimeout = const Duration(minutes: 10);
+  static const Duration _startupTimeout = const Duration(minutes: 2);
 
   StartupTest(String name, this.testDirectory, { this.ios }) : super(name);
 
