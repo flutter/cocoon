@@ -61,8 +61,11 @@ import 'package:http/http.dart' as http;
   <tr *ngFor="let status of headerCol">
     <td class="table-header-cell first-column">
       <img width="20px" [src]="status.checklist.checklist.commit.author.avatarUrl">
-      {{shortSha(status.checklist.checklist.commit.sha)}}
-      ({{shortSha(status.checklist.checklist.commit.author.login)}})
+      <a href="https://github.com/flutter/flutter/commit/{{status.checklist.checklist.commit.sha}}"
+         target="_blank">
+        {{shortSha(status.checklist.checklist.commit.sha)}}
+        ({{shortSha(status.checklist.checklist.commit.author.login)}})
+      </a>
     </td>
     <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
       <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
