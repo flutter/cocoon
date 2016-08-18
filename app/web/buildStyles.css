@@ -284,14 +284,16 @@ td.stats-value {
   border-radius: 10px;
   height: 20px;
   width: 20px;
+  text-align: center;
+  color: white;
 }
 
 .task-new {
   background-color: #CCCCFF;
 }
 .task-in-progress {
-  background: linear-gradient(0deg, blue 0%, blue 40%, white 41%, white 59%, blue 60%, blue 100%);;
-  animation: inProgressAnimation 2s infinite linear;
+  background-color: blue;
+  animation: inProgressAnimation 3s infinite linear;
   cursor: pointer;
 }
 .task-succeeded {
@@ -323,7 +325,7 @@ td.stats-value {
     transform: rotateZ(0deg);
   }
   100% {
-    transform: rotateZ(180deg);
+    transform: rotateZ(360deg);
   }
 }
 

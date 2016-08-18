@@ -87,8 +87,8 @@ func (c *Cocoon) GetChecklist(key *datastore.Key) (*ChecklistEntity, error) {
 
 // QueryLatestChecklists queries the datastore for the latest checklists sorted
 // by CreateTimestamp in descending order. Returns up to 20 entities.
-func (c *Cocoon) QueryLatestChecklists() ([]*ChecklistEntity, error) {
-	query := datastore.NewQuery("Checklist").Order("-CreateTimestamp").Limit(20)
+func (c *Cocoon) QueryLatestChecklists(limit int) ([]*ChecklistEntity, error) {
+	query := datastore.NewQuery("Checklist").Order("-CreateTimestamp").Limit(limit)
 	var buffer []*ChecklistEntity
 	for iter := query.Run(c.Ctx); ; {
 		var checklist Checklist
@@ -193,7 +193,8 @@ func (c *Cocoon) QueryAllPendingTasks() ([]*FullTask, error) {
 //
 // See also IsFinal.
 func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
-	checklists, err := c.QueryLatestChecklists()
+	const maxChecklistsToScan = 20
+	checklists, err := c.QueryLatestChecklists(maxChecklistsToScan)
 
 	if err != nil {
 		return nil, err

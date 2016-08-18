@@ -8,6 +8,7 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"golang.org/x/net/context"
 
@@ -86,7 +87,8 @@ func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 }
 
 func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.ChecklistEntity, error) {
-	checklists, err := cocoon.QueryLatestChecklists()
+	const maxChecklistsToScan = 20
+	checklists, err := cocoon.QueryLatestChecklists(maxChecklistsToScan)
 
 	if err != nil {
 		return nil, nil, err
@@ -110,7 +112,7 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 				// these tasks for agents.
 				continue
 			}
-			for _, taskEntity := range stage.Tasks {
+			for _, taskEntity := range sortByAttemptCount(stage.Tasks) {
 				task := taskEntity.Task
 
 				if len(task.RequiredCapabilities) == 0 {
@@ -174,4 +176,20 @@ func allPrimaryStagesSuccessful(stages []*db.Stage) bool {
 		return true
 	}
 	return db.Every(len(stages), func(i int) interface{} { return stages[i] }, isSuccessfulPrimaryOrAnySecondary)
+}
+
+// Run tasks with fewest prior attempts first.
+func sortByAttemptCount(tasks []*db.TaskEntity) []*db.TaskEntity {
+	sorted := make([]*db.TaskEntity, len(tasks))
+	copy(sorted, tasks)
+	sort.Sort(byAttemptCount(sorted))
+	return sorted
+}
+
+type byAttemptCount []*db.TaskEntity
+
+func (tasks byAttemptCount) Len() int      { return len(tasks) }
+func (tasks byAttemptCount) Swap(i, j int) { tasks[i], tasks[j] = tasks[j], tasks[i] }
+func (tasks byAttemptCount) Less(i, j int) bool {
+	return tasks[i].Task.Attempts < tasks[j].Task.Attempts
 }

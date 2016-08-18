@@ -25,7 +25,9 @@ type BuildStatus struct {
 // GetStatus returns current build status.
 func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	var err error
-	checklists, err := c.QueryLatestChecklists()
+
+	const maxStatusesToReturn = 50
+	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
 
 	if err != nil {
 		return nil, err
