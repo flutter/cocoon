@@ -77,6 +77,14 @@ class RunCommand extends Command {
     } finally {
       await forceQuitRunningProcesses();
     }
+
+    if (exitCode != 0) {
+      // Force-quitting child processes sometimes causes the Dart VM to fail to
+      // exit. So we give a 2-second grace period for any pending cleanups, then
+      // self-destruct.
+      await new Future<Null>.delayed(const Duration(seconds: 2));
+      exit(exitCode);
+    }
   }
 }
 
