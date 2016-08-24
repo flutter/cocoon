@@ -47,6 +47,10 @@ class ContinuousIntegrationCommand extends Command {
     _listenToShutdownSignals();
     while(!_exiting) {
       try {
+        // This increases the likelihood of obtaining a healthy connection to
+        // the device.
+        Adb.restart();
+
         // Check health before requesting a new task.
         health = await _performHealthChecks();
 

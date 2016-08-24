@@ -84,6 +84,22 @@ class Adb {
     return results;
   }
 
+  /// Kills and restarts the `adb` server.
+  ///
+  /// Restarting `adb` helps with keeping device connections alive. When `adb`
+  /// runs non-stop for too long it loses connections to devices.
+  static Future restart() async {
+    int exitCode = await exec(config.adbPath, ['kill-server'], canFail: false);
+
+    if (exitCode != 0)
+      throw 'Failed to kill ADB server';
+
+    exitCode = await exec(config.adbPath, ['start-server'], canFail: false);
+
+    if (exitCode != 0)
+      throw 'Failed to start ADB server';
+  }
+
   static Future<List<String>> get deviceIds async {
     List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false))
         .trim().split('\n');
