@@ -23,5 +23,5 @@ transformers:
     resolved_identifiers:
       Client: 'package:http/http.dart'
 - $dart2js:
-    minify: true
+    minify: false
     sourceMaps: true
