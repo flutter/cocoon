@@ -83,7 +83,7 @@ type Task struct {
 
 // MaxAttempts is the maximum number of times a single task will be attempted
 // before giving up on it.
-const MaxAttempts = 3
+const MaxAttempts = 2
 
 // TaskStatus indicates the status of a task.
 type TaskStatus string
