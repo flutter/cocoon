@@ -16,6 +16,7 @@ import 'package:cocoon_agent/src/gallery.dart';
 import 'package:cocoon_agent/src/golem.dart';
 import 'package:cocoon_agent/src/perf_tests.dart';
 import 'package:cocoon_agent/src/refresh.dart';
+import 'package:cocoon_agent/src/hot_dev_cycle.dart';
 import 'package:cocoon_agent/src/size_tests.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
@@ -95,6 +96,7 @@ class Agent {
       createAnalyzerCliTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),
       createAnalyzerServerTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),
       createRefreshTest(commit: task.revision, timestamp: revisionTimestamp),
+      createHotDevCycleTest(commit: task.revision, timestamp: revisionTimestamp),
     ];
 
     return allTasks.firstWhere(

@@ -33,6 +33,9 @@ const registeredBenchmarkNames = const <String>[
   'flutter_gallery__build.aot_snapshot_size_instructions',
   'flutter_gallery__build.aot_snapshot_size_rodata',
   'flutter_gallery__build.aot_snapshot_size_total',
+
+  'hot_mode_dev_cycle__benchmark.hotReloadMillisecondsToFrame',
+  'hot_mode_dev_cycle__benchmark.hotRestartMillisecondsToFrame',
 ];
 
 /// Computes a golem-compliant revision number.
