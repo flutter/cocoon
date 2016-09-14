@@ -7,6 +7,7 @@ package commands
 import (
 	"cocoon/db"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	"golang.org/x/net/context"
@@ -38,6 +39,10 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 
 	if err != nil {
 		return nil, err
+	}
+
+	if githubResp.StatusCode != 200 {
+		return nil, fmt.Errorf("GitHub API responded with a non-200 HTTP status: %v", githubResp.StatusCode)
 	}
 
 	defer githubResp.Body.Close()
