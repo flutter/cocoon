@@ -8,9 +8,6 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-
-	"google.golang.org/appengine/urlfetch"
 )
 
 // RefreshChromebotStatusResult contains chromebot status results.
@@ -113,15 +110,8 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 }
 
 func fetchJSON(cocoon *db.Cocoon, url string) (interface{}, error) {
-	httpClient := urlfetch.Client(cocoon.Ctx)
-	response, err := httpClient.Get(url)
-	if err != nil {
-		return nil, err
-	}
+	body, err := cocoon.FetchURL(url)
 
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

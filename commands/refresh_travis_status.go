@@ -7,9 +7,6 @@ package commands
 import (
 	"cocoon/db"
 	"encoding/json"
-	"io/ioutil"
-
-	"google.golang.org/appengine/urlfetch"
 )
 
 // RefreshTravisStatusResult pulls down the latest Travis builds and updates
@@ -40,15 +37,7 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 	}
 
 	// Fetch data from Travis
-	httpClient := urlfetch.Client(cocoon.Ctx)
-	travisResp, err := httpClient.Get("https://api.travis-ci.org/repos/flutter/flutter/builds")
-	if err != nil {
-		return nil, err
-	}
-
-	defer travisResp.Body.Close()
-
-	buildData, err := ioutil.ReadAll(travisResp.Body)
+	buildData, err := cocoon.FetchURL("https://api.travis-ci.org/repos/flutter/flutter/builds")
 	if err != nil {
 		return nil, err
 	}

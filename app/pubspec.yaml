@@ -4,7 +4,7 @@ homepage: https://github.com/flutter/cocoon
 environment:
   sdk: '>=1.13.0 <2.0.0'
 dependencies:
-  angular2: 2.0.0-beta.17
+  angular2: 2.0.0-beta.21
   args: ^0.13.4
   browser: ^0.10.0
   charted: ^0.4.0

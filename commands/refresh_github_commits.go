@@ -8,13 +8,12 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -32,21 +31,7 @@ type CommitSyncResult struct {
 
 // RefreshGithubCommits returns the information about the latest GitHub commits.
 func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
-	httpClient := urlfetch.Client(cocoon.Ctx)
-
-	// Fetch data from GitHub
-	githubResp, err := httpClient.Get("https://api.github.com/repos/flutter/flutter/commits")
-
-	if err != nil {
-		return nil, err
-	}
-
-	if githubResp.StatusCode != 200 {
-		return nil, fmt.Errorf("GitHub API responded with a non-200 HTTP status: %v", githubResp.StatusCode)
-	}
-
-	defer githubResp.Body.Close()
-	commitData, err := ioutil.ReadAll(githubResp.Body)
+	commitData, err := cocoon.FetchURL("https://api.github.com/repos/flutter/flutter/commits")
 
 	if err != nil {
 		return nil, err
@@ -56,7 +41,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	err = json.Unmarshal(commitData, &commits)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v: %v", err, string(commitData))
 	}
 
 	if len(commits) > 0 {
@@ -98,7 +83,13 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 				return err
 			}
 
-			tasks := createTaskList(nowMillisSinceEpoch, checklistKey)
+			var tasks []*db.Task
+			tasks, err = createTaskList(cocoon, nowMillisSinceEpoch, checklistKey, commit.Sha)
+
+			if err != nil {
+				return err
+			}
+
 			for _, task := range tasks {
 				_, err = txc.PutTask(nil, task)
 				if err != nil {
@@ -127,8 +118,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, err
 	return RefreshGithubCommitsResult{commitResults}, nil
 }
 
-// TODO(yjbanov): the task list should be stored in the flutter/flutter repo.
-func createTaskList(createTimestamp int64, checklistKey *datastore.Key) []*db.Task {
+func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *datastore.Key, commit string) ([]*db.Task, error) {
 	var makeTask = func(stageName string, name string, requiredCapabilities []string) *db.Task {
 		return &db.Task{
 			ChecklistKey:         checklistKey,
@@ -142,31 +132,42 @@ func createTaskList(createTimestamp int64, checklistKey *datastore.Key) []*db.Ta
 		}
 	}
 
-	return []*db.Task{
+	// These built-in tasks are not listed in the manifest.
+	tasks := []*db.Task{
 		makeTask("travis", "travis", []string{"can-update-travis"}),
 
 		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}),
 		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}),
-
-		makeTask("devicelab", "complex_layout_scroll_perf__timeline_summary", []string{"has-android-device"}),
-		makeTask("devicelab", "flutter_gallery__start_up", []string{"has-android-device"}),
-		makeTask("devicelab", "complex_layout__start_up", []string{"has-android-device"}),
-		makeTask("devicelab", "flutter_gallery__transition_perf", []string{"has-android-device"}),
-		makeTask("devicelab", "mega_gallery__refresh_time", []string{"has-android-device"}),
-
-		makeTask("devicelab", "flutter_gallery__build", []string{"has-android-device"}),
-		makeTask("devicelab", "complex_layout__build", []string{"has-android-device"}),
-		makeTask("devicelab", "basic_material_app__size", []string{"has-android-device"}),
-
-		makeTask("devicelab", "analyzer_cli__analysis_time", []string{"has-android-device"}),
-		makeTask("devicelab", "analyzer_server__analysis_time", []string{"has-android-device"}),
-
-		makeTask("devicelab", "hot_mode_dev_cycle__benchmark", []string{"has-android-device"}),
-
-		// iOS
-		makeTask("devicelab_ios", "complex_layout_scroll_perf_ios__timeline_summary", []string{"has-ios-device"}),
-		makeTask("devicelab_ios", "flutter_gallery_ios__start_up", []string{"has-ios-device"}),
-		makeTask("devicelab_ios", "complex_layout_ios__start_up", []string{"has-ios-device"}),
-		makeTask("devicelab_ios", "flutter_gallery_ios__transition_perf", []string{"has-ios-device"}),
 	}
+
+	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
+	manifestYaml, err := cocoon.FetchURL(url)
+
+	if err != nil {
+		// There is no guarantee that every commit will have a manifest file
+		log.Warningf(cocoon.Ctx, "Error fetching CI manifest at %v. Error: %v", url, err)
+		return tasks, nil
+	}
+
+	var manifest Manifest
+	yaml.Unmarshal(manifestYaml, &manifest)
+
+	for name, info := range manifest.Tasks {
+		tasks = append(tasks, makeTask(info.Stage, name, info.RequiredAgentCapabilities))
+	}
+
+	return tasks, nil
+}
+
+// Manifest contains CI tasks.
+type Manifest struct {
+	Tasks map[string]ManifestTask
+}
+
+// ManifestTask contains information about a CI task.
+type ManifestTask struct {
+	Name                      string
+	Description               string
+	Stage                     string
+	RequiredAgentCapabilities []string
 }

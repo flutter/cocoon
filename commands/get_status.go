@@ -35,11 +35,11 @@ func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 	var statuses []*BuildStatus
 	for _, checklist := range checklists {
-		// Need to define another error variable to not "shadow" the other one, Go figure!
-		stages, errr := c.QueryTasksGroupedByStage(checklist.Key)
+		var stages []*db.Stage
+		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
 
-		if errr != nil {
-			return nil, errr
+		if err != nil {
+			return nil, err
 		}
 
 		statuses = append(statuses, &BuildStatus{
