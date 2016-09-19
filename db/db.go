@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"sort"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/urlfetch"
 )
 
 // NewCocoon creates a new Cocoon.
@@ -579,4 +581,28 @@ func NowMillis() int64 {
 // AgeInMillis returns the current age of the task in milliseconds.
 func (t *Task) AgeInMillis() int64 {
 	return NowMillis() - t.CreateTimestamp
+}
+
+// FetchURL performs an HTTP GET request on the given URL and returns data if
+// response is HTTP 200.
+func (c *Cocoon) FetchURL(url string) ([]byte, error) {
+	httpClient := urlfetch.Client(c.Ctx)
+	response, err := httpClient.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
+	}
+
+	defer response.Body.Close()
+	commitData, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return commitData, err
 }
