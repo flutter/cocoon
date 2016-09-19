@@ -269,12 +269,14 @@ void cd(dynamic directory) {
 
 class Config {
   Config({
-    this.baseCocoonUrl,
-    this.agentId,
-    this.firebaseFlutterDashboardToken,
-    this.authToken,
-    this.flutterDirectory,
-    this.runTaskFile
+    @required this.baseCocoonUrl,
+    @required this.agentId,
+    @required this.firebaseFlutterDashboardToken,
+    @required this.authToken,
+    @required this.flutterDirectory,
+    @required this.runTaskFile,
+    @required this.testsAndroid,
+    @required this.testsIos,
   });
 
   static void initialize(ArgResults args) {
@@ -304,7 +306,9 @@ class Config {
       firebaseFlutterDashboardToken: firebaseFlutterDashboardToken,
       authToken: authToken,
       flutterDirectory: flutterDirectory,
-      runTaskFile: runTaskFile
+      runTaskFile: runTaskFile,
+      testsAndroid: agentConfig['tests_android'] ?? true,
+      testsIos: agentConfig['tests_ios'] ?? false,
     );
   }
 
@@ -314,6 +318,8 @@ class Config {
   final String authToken;
   final Directory flutterDirectory;
   final File runTaskFile;
+  final bool testsAndroid;
+  final bool testsIos;
 
   String get adbPath {
     String androidHome = Platform.environment['ANDROID_HOME'];
@@ -338,6 +344,8 @@ agentId: $agentId
 flutterDirectory: $flutterDirectory
 runTaskFile: $runTaskFile
 adbPath: $adbPath
+testsAndroid: $testsAndroid
+testsIos: $testsIos
 '''.trim();
 }
 
