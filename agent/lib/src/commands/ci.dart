@@ -106,16 +106,31 @@ class ContinuousIntegrationCommand extends Command {
     try {
       results['firebase-connection'] = await checkFirebaseConnection();
 
-      Map<String, HealthCheckResult> deviceChecks = await Adb.checkDevices();
-      results.addAll(deviceChecks);
+      if (config.testsIos) {
+        String deviceIds = await eval('ideviceinfo', <String>['-k', 'DeviceClass'], canFail: true);
+        results['has-healthy-ios-devices'] = deviceIds.contains('iPhone')
+          ? new HealthCheckResult.success('Found an iPhone')
+          : new HealthCheckResult.failure(
+            'This agent is configured to test on iOS devices. However, no '
+            'attached iOS devices were found.',
+          );
+      }
 
-      int healthyDeviceCount = deviceChecks.values
-        .where((HealthCheckResult r) => r.succeeded)
-        .length;
+      if (config.testsAndroid) {
+        Map<String, HealthCheckResult> deviceChecks = await Adb.checkDevices();
+        results.addAll(deviceChecks);
 
-      results['has-healthy-devices'] = healthyDeviceCount > 0
-        ? new HealthCheckResult.success('Found ${deviceChecks.length} healthy devices')
-        : new HealthCheckResult.failure('No healthy devices found');
+        int healthyDeviceCount = deviceChecks.values
+          .where((HealthCheckResult r) => r.succeeded)
+          .length;
+
+        results['has-healthy-android-devices'] = healthyDeviceCount > 0
+          ? new HealthCheckResult.success('Found ${deviceChecks.length} healthy devices')
+          : new HealthCheckResult.failure(
+            'This agent is configured to test on Android devices. However, no '
+            'attached Android devices were found.',
+          );
+      }
 
       try {
         String authStatus = await agent.getAuthenticationStatus();
