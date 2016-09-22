@@ -62,7 +62,7 @@ class Agent {
 
   Future<Null> _screenOff() async {
     try {
-      await (await adb()).sendToSleep();
+      await devices.workingDevice.sendToSleep();
     } catch(error, stackTrace) {
       print('Failed to turn off screen: $error\n$stackTrace');
     }

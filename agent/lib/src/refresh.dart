@@ -29,7 +29,7 @@ class EditRefreshTask extends Task {
 
   @override
   Future<TaskResultData> run() async {
-    Adb device = await adb();
+    Device device = devices.workingDevice;
     device.unlock();
     Benchmark benchmark = new EditRefreshBenchmark(commit, timestamp);
     section(benchmark.name);
@@ -59,7 +59,7 @@ class EditRefreshBenchmark extends Benchmark {
 
   @override
   Future<num> run() async {
-    Adb device = await adb();
+    Device device = devices.workingDevice;
     rm(benchmarkFile);
     int exitCode = await inDirectory(megaDir, () async {
       return await flutter(

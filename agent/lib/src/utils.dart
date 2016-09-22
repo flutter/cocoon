@@ -12,6 +12,8 @@ import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:yaml/yaml.dart';
 
+import 'adb.dart';
+
 /// Virtual current working directory, which affect functions, such as [exec].
 String cwd = Directory.current.path;
 
@@ -268,8 +270,7 @@ class Config {
     @required this.authToken,
     @required this.flutterDirectory,
     @required this.runTaskFile,
-    @required this.testsAndroid,
-    @required this.testsIos,
+    @required this.deviceOperatingSystem,
   });
 
   static void initialize(ArgResults args) {
@@ -293,6 +294,18 @@ class Config {
     Directory flutterDirectory = dir('${Platform.environment['HOME']}/.cocoon/flutter');
     mkdirs(flutterDirectory);
 
+    DeviceOperatingSystem deviceOperatingSystem;
+    switch(agentConfig['device_os']) {
+      case 'android':
+        deviceOperatingSystem = DeviceOperatingSystem.android;
+        break;
+      case 'ios':
+        deviceOperatingSystem = DeviceOperatingSystem.ios;
+        break;
+      default:
+        throw new BuildFailedError('Unrecognized device_os value: ${agentConfig['device_os']}');
+    }
+
     _config = new Config(
       baseCocoonUrl: baseCocoonUrl,
       agentId: agentId,
@@ -300,8 +313,7 @@ class Config {
       authToken: authToken,
       flutterDirectory: flutterDirectory,
       runTaskFile: runTaskFile,
-      testsAndroid: agentConfig['tests_android'] ?? true,
-      testsIos: agentConfig['tests_ios'] ?? false,
+      deviceOperatingSystem: deviceOperatingSystem,
     );
   }
 
@@ -311,8 +323,7 @@ class Config {
   final String authToken;
   final Directory flutterDirectory;
   final File runTaskFile;
-  final bool testsAndroid;
-  final bool testsIos;
+  final DeviceOperatingSystem deviceOperatingSystem;
 
   String get adbPath {
     String androidHome = Platform.environment['ANDROID_HOME'];
@@ -336,9 +347,8 @@ baseCocoonUrl: $baseCocoonUrl
 agentId: $agentId
 flutterDirectory: $flutterDirectory
 runTaskFile: $runTaskFile
-adbPath: $adbPath
-testsAndroid: $testsAndroid
-testsIos: $testsIos
+adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
+deviceOperatingSystem: $deviceOperatingSystem
 '''.trim();
 }
 

@@ -21,7 +21,7 @@ class GalleryTransitionTest extends Task {
 
   @override
   Future<TaskResultData> run() async {
-    String deviceId = await getUnlockedDeviceId(ios: ios);
+    String deviceId = devices.workingDevice.deviceId;
     Directory galleryDirectory = dir('${config.flutterDirectory.path}/examples/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
       await flutter('packages', options: ['get']);

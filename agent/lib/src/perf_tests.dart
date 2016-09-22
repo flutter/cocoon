@@ -54,7 +54,7 @@ class StartupTest extends Task {
 
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
-      String deviceId = await getUnlockedDeviceId(ios: ios);
+      String deviceId = devices.workingDevice.deviceId;
       await flutter('packages', options: ['get']);
 
       if (ios) {
@@ -92,7 +92,7 @@ class PerfTest extends Task {
   @override
   Future<TaskResultData> run() {
     return inDirectory(testDirectory, () async {
-      String deviceId = await getUnlockedDeviceId(ios: ios);
+      String deviceId = devices.workingDevice.deviceId;
       await flutter('packages', options: ['get']);
 
       if (ios) {
@@ -127,7 +127,7 @@ class BuildTest extends Task {
 
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
-      Adb device = await adb();
+      Device device = devices.workingDevice;
       device.unlock();
       await flutter('packages', options: ['get']);
 
