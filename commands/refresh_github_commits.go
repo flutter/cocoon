@@ -169,5 +169,5 @@ type ManifestTask struct {
 	Name                      string
 	Description               string
 	Stage                     string
-	RequiredAgentCapabilities []string
+	RequiredAgentCapabilities []string `yaml:"required_agent_capabilities"`
 }

@@ -33,8 +33,5 @@ auth_token: blahblahblah
 # get a Firebase token.
 firebase_flutter_dashboard_token: blahblahblah
 
-# Whether the device tests on Android (true by default)
-tests_android: true
-
-# Whether the device tests on iOS (false by default)
-tests_ios: false
+# The device operating system. Possible values: android, ios.
+device_os: android

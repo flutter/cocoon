@@ -9,29 +9,28 @@ import 'package:collection/collection.dart';
 
 import 'package:cocoon_agent/src/adb.dart';
 
-main() {
-  group('adb', () {
-    Adb device;
+void main() {
+  group('device', () {
+    Device device;
 
     setUp(() {
-      FakeAdb.resetLog();
-      adb = null;
-      device = new FakeAdb();
+      FakeDevice.resetLog();
+      device = null;
+      device = new FakeDevice();
     });
 
     tearDown(() {
-      adb = realAdbGetter;
     });
 
     group('isAwake/isAsleep', () {
       test('reads Awake', () async {
-        FakeAdb.pretendAwake();
+        FakeDevice.pretendAwake();
         expect(await device.isAwake(), isTrue);
         expect(await device.isAsleep(), isFalse);
       });
 
       test('reads Asleep', () async {
-        FakeAdb.pretendAsleep();
+        FakeDevice.pretendAsleep();
         expect(await device.isAwake(), isFalse);
         expect(await device.isAsleep(), isTrue);
       });
@@ -48,7 +47,7 @@ main() {
 
     group('wakeUp', () {
       test('when awake', () async {
-        FakeAdb.pretendAwake();
+        FakeDevice.pretendAwake();
         await device.wakeUp();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
@@ -56,7 +55,7 @@ main() {
       });
 
       test('when asleep', () async {
-        FakeAdb.pretendAsleep();
+        FakeDevice.pretendAsleep();
         await device.wakeUp();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
@@ -67,7 +66,7 @@ main() {
 
     group('sendToSleep', () {
       test('when asleep', () async {
-        FakeAdb.pretendAsleep();
+        FakeDevice.pretendAsleep();
         await device.sendToSleep();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
@@ -75,7 +74,7 @@ main() {
       });
 
       test('when awake', () async {
-        FakeAdb.pretendAwake();
+        FakeDevice.pretendAwake();
         await device.sendToSleep();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
@@ -86,7 +85,7 @@ main() {
 
     group('unlock', () {
       test('sends unlock event', () async {
-        FakeAdb.pretendAwake();
+        FakeDevice.pretendAwake();
         await device.unlock();
         expectLog([
           cmd(command: 'dumpsys', arguments: ['power']),
@@ -98,7 +97,7 @@ main() {
 }
 
 void expectLog(List<CommandArgs> log) {
-  expect(FakeAdb.commandLog, log);
+  expect(FakeDevice.commandLog, log);
 }
 
 CommandArgs cmd({String command, List<String> arguments, Map<String, String> env}) => new CommandArgs(
@@ -142,8 +141,8 @@ class CommandArgs {
     : null.hashCode;
 }
 
-class FakeAdb extends Adb {
-  FakeAdb({String deviceId: null}) : super(deviceId: deviceId);
+class FakeDevice extends AndroidDevice {
+  FakeDevice({String deviceId: null}) : super(deviceId: deviceId);
 
   static String output = '';
   static ExitErrorFactory exitErrorFactory = () => null;
