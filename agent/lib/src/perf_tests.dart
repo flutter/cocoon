@@ -55,7 +55,7 @@ class StartupTest extends Task {
   Future<TaskResultData> run() async {
     return await inDirectory(testDirectory, () async {
       String deviceId = await getUnlockedDeviceId(ios: ios);
-      await pub('get');
+      await flutter('packages', options: ['get']);
 
       if (ios) {
         // This causes an Xcode project to be created.
@@ -93,7 +93,7 @@ class PerfTest extends Task {
   Future<TaskResultData> run() {
     return inDirectory(testDirectory, () async {
       String deviceId = await getUnlockedDeviceId(ios: ios);
-      await pub('get');
+      await flutter('packages', options: ['get']);
 
       if (ios) {
         // This causes an Xcode project to be created.
@@ -129,7 +129,7 @@ class BuildTest extends Task {
     return await inDirectory(testDirectory, () async {
       Adb device = await adb();
       device.unlock();
-      await pub('get');
+      await flutter('packages', options: ['get']);
 
       var watch = new Stopwatch()..start();
       await flutter('build', options: [

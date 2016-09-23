@@ -30,7 +30,7 @@ class BasicMaterialAppSizeTest extends Task {
         throw 'Failed to create sample Flutter app in ${sampleDir.path}';
 
       await inDirectory(sampleDir, () async {
-        await pub('get');
+        await flutter('packages', options: ['get']);
         await flutter('build', options: ['clean']);
         await flutter('build', options: ['apk', '--release']);
         apkSizeInBytes = await file('${sampleDir.path}/build/app.apk').length();

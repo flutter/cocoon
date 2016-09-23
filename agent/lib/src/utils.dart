@@ -234,13 +234,6 @@ String get dartBin => path.join(config.flutterDirectory.path, 'bin/cache/dart-sd
 
 Future<int> dart(List<String> args) => exec(dartBin, args);
 
-Future<int> pub(String command) {
-  return exec(
-    path.join(config.flutterDirectory.path, 'bin/cache/dart-sdk/bin/pub'),
-    [command]
-  );
-}
-
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
   String previousCwd = cwd;
   try {
