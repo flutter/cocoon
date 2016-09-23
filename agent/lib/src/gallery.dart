@@ -24,7 +24,7 @@ class GalleryTransitionTest extends Task {
     String deviceId = await getUnlockedDeviceId(ios: ios);
     Directory galleryDirectory = dir('${config.flutterDirectory.path}/examples/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
-      await pub('get');
+      await flutter('packages', options: ['get']);
 
       if (ios) {
         // This causes an Xcode project to be created.
