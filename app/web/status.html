@@ -147,7 +147,7 @@
     <div class="card timeline_summary from-firebase">
       <div class="card-inside">
         <div class="perf-test-summary-card">
-        <div class="metric-type">Scroll perf <span class="metric-name-wrapper">(<span class="metric-name"></span>)</span></div>
+          <div class="metric-type">Scroll perf <span class="metric-name-wrapper">(<span class="metric-name"></span>)</span></div>
           <div class="metric-data"><span class="metric-number"></span><span class="metric-unit"> missed</span></div>
           <!-- This box that contains aggregate numbers and declares success/failure -->
           <div style="min-width: 150px">
@@ -197,6 +197,26 @@
             <td class="stats-label">Q2 goal</td>
           </tr>
         </table>
+      </div>
+    </div>
+  </template>
+
+  <template id="__benchmark_tmpl">
+    <div class="card start_up from-firebase">
+      <div class="card-inside">
+        <div class="metric-type" style="margin-bottom: 10px">
+          Benchmark <span class="metric-name-wrapper">(<span class="metric-name"></span>)</span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="hot_reload_special_case_tmpl">
+    <div class="card start_up from-firebase">
+      <div class="card-inside">
+        <div class="metric-type" style="margin-bottom: 10px">Hot reload <img src="fire.svg" width="25"/></div>
+        <div class="metric-data"><span id="reload" class="metric-number"></span><span class="metric-unit">ms</span></div>
+        <div><span id="restart"></span>ms (restart)</div>
       </div>
     </div>
   </template>
