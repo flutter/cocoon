@@ -100,7 +100,7 @@ class FlutterAnalyzeAppBenchmark extends Benchmark {
   Future<num> run() async {
     rm(benchmarkFile);
     await inDirectory(megaDir, () async {
-      await flutter('analyze', options: ['--watch', '--benchmark']);
+      await flutter('watch', options: ['--benchmark']);
     });
     return addBuildInfo(benchmarkFile, timestamp: timestamp, expected: 10.0, sdk: sdk, commit: commit);
   }
