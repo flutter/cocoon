@@ -115,9 +115,10 @@ type Agent struct {
 	AgentID              string
 	IsHealthy            bool
 	HealthCheckTimestamp int64
-	HealthDetails        string // a human-readable printout of health details
-	AuthTokenHash        []byte
-	Capabilities         []string
+	// a human-readable printout of health details
+	HealthDetails string `datastore:"HealthDetails,noindex"`
+	AuthTokenHash []byte
+	Capabilities  []string
 }
 
 // AgentStatus contains agent health status.

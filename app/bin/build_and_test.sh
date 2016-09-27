@@ -10,7 +10,7 @@ if [ ! -f "pubspec.yaml" -a ! -f "app.yaml" ]; then
 fi
 
 rm -rf build
-pub get --no-packages-dir
+pub get
 pub run test
 pub build
 cp web/*.dart build/web/

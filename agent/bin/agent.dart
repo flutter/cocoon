@@ -10,7 +10,6 @@ import 'package:http/http.dart';
 
 import 'package:cocoon_agent/src/agent.dart';
 import 'package:cocoon_agent/src/commands/ci.dart';
-import 'package:cocoon_agent/src/commands/run.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
 Future<Null> main(List<String> rawArgs) async {
@@ -26,7 +25,6 @@ Future<Null> main(List<String> rawArgs) async {
       defaultsTo: '.'
     );
   argParser.addCommand('ci');
-  argParser.addCommand('run', RunCommand.argParser);
 
   ArgResults args = argParser.parse(rawArgs);
 
@@ -45,7 +43,6 @@ Future<Null> main(List<String> rawArgs) async {
   }
 
   registerCommand(new ContinuousIntegrationCommand(agent));
-  registerCommand(new RunCommand(agent));
 
   if (args.command == null) {
     print('No command specified, expected one of: ${allCommands.keys.join(', ')}');

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -11,7 +10,8 @@ import 'package:args/args.dart';
 import '../adb.dart';
 import '../agent.dart';
 import '../firebase.dart';
-import '../framework.dart';
+import '../golem.dart';
+import '../runner.dart';
 import '../utils.dart';
 
 /// Agents periodically poll the server for more tasks. This sleep period is
@@ -31,6 +31,10 @@ class ContinuousIntegrationCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
+    return runAndCaptureAsyncStacks(() => _runContinuously(args));
+  }
+
+  Future<Null> _runContinuously(ArgResults args) async {
     // Perform one pre-flight round of checks and quit immediately if something
     // is wrong.
     AgentHealth health = await _performHealthChecks();
@@ -66,24 +70,15 @@ class ContinuousIntegrationCommand extends Command {
         CocoonTask task = await agent.reserveTask();
         try {
           if (task != null) {
+            section('Task info:');
+            print('  name     : ${task.name}');
+            print('  key      : ${task.key ?? ""}');
+            print('  revision : ${task.revision}');
+
             // Sync flutter outside of the task so it does not contribute to
             // the task timeout.
             await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
-
-            // No need to pass revision as repo syncing is done here.
-            List<String> runnerArgs = <String>[
-              'run',
-              '--task-name=${task.name}',
-              '--task-key=${task.key}',
-            ];
-
-            Process proc = await startProcess(
-              dartBin,
-              [config.runTaskFile.path]..addAll(runnerArgs)
-            ).timeout(const Duration(minutes: 1));
-
-            _logStandardStreams(task, proc);
-            await proc.exitCode.timeout(taskTimeoutWithGracePeriod);
+            await _runTask(task);
           }
         } catch(error, stackTrace) {
           print('ERROR: $error\n$stackTrace');
@@ -92,10 +87,34 @@ class ContinuousIntegrationCommand extends Command {
       } catch(error, stackTrace) {
         print('ERROR: $error\n$stackTrace');
       } finally {
+        await _screensOff();
         await forceQuitRunningProcesses();
       }
 
       await new Future.delayed(_sleepBetweenBuilds);
+    }
+  }
+
+  Future<Null> _runTask(CocoonTask task) async {
+    await runAndCaptureAsyncStacks(() async {
+      TaskResult result = await runTask(agent, task);
+      if (result.succeeded) {
+        await agent.updateTaskStatus(task.key, 'Succeeded');
+        await _uploadDataToFirebase(task, result);
+      } else {
+        await agent.updateTaskStatus(task.key, 'Failed');
+      }
+    });
+  }
+
+  Future<Null> _screensOff() async {
+    try {
+      for (Device device in await devices.discoverDevices()) {
+        device.sendToSleep();
+      }
+    } catch(error, stackTrace) {
+      // Best effort only.
+      print('Failed to turn off screen: $error\n$stackTrace');
     }
   }
 
@@ -136,31 +155,6 @@ class ContinuousIntegrationCommand extends Command {
     results['ssh-connectivity'] = await _scrapeRemoteAccessInfo();
 
     return results;
-  }
-
-  /// Listens to standard output and upload logs to Cocoon in semi-realtime.
-  Future<Null> _logStandardStreams(CocoonTask task, Process proc) async {
-    StringBuffer buffer = new StringBuffer();
-
-    Future<Null> sendLog(String message, {bool flush: false}) async {
-      buffer.write(message);
-      print('[task runner] $message');
-      // Send in chunks 100KB each, or upon request.
-      if (flush || buffer.length > 100000) {
-        String chunk = buffer.toString();
-        buffer = new StringBuffer();
-        await agent.uploadLogChunk(task, chunk);
-      }
-    }
-
-    proc.stdout.transform(UTF8.decoder).listen((String s) {
-      sendLog(s);
-    });
-    proc.stderr.transform(UTF8.decoder).listen((String s) {
-      sendLog(s);
-    });
-    await proc.exitCode;
-    sendLog('Task execution finished', flush: true);
   }
 
   void _listenToShutdownSignals() {
@@ -219,4 +213,34 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
       'Did you forget to plug the Ethernet cable?'
     : 'Possible remote access IP: $ip'
   );
+}
+
+Future<Null> _uploadDataToFirebase(CocoonTask task, TaskResult result) async {
+  List<Map<String, dynamic>> golemData = <Map<String, dynamic>>[];
+  int golemRevision = await computeGolemRevision();
+
+  Map<String, dynamic> data = new Map<String, dynamic>.from(result.data);
+
+  if (result.benchmarkScoreKeys != null) {
+    for (String scoreKey in result.benchmarkScoreKeys) {
+      String benchmarkName = '${task.name}.$scoreKey';
+      if (registeredBenchmarkNames.contains(benchmarkName)) {
+        golemData.add(<String, dynamic>{
+          'benchmark_name': benchmarkName,
+          'golem_revision': golemRevision,
+          'score': result.data[scoreKey],
+        });
+      }
+    }
+  }
+
+  data['__metadata__'] = <String, dynamic>{
+    'success': result.succeeded,
+    'revision': task.revision,
+    'message': result.reason ?? 'N/A',
+  };
+
+  data['__golem__'] = golemData;
+
+  await uploadToFirebase(task.name, data);
 }
