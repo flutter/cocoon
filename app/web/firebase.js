@@ -8,18 +8,7 @@ var whenFirebaseReady = new Promise(function(resolve, reject) {
       console.log("User " + authData.uid + " is logged in with " +
         authData.provider + " and has displayName '" +
         authData.google.displayName + "' and email " + authData.google.email);
-      // Save the user's profile into the database so we can
-      // use them in Security and Firebase Rules.
-      // We don't trust this data, so don't rely on the email.
-      ref.child("users").child(authData.uid).set({
-        provider: authData.provider,
-        name: authData.google.displayName,
-        email: authData.google.email || 'undefined'
-      }).then(function(snapshot) {
-        resolve(ref);
-      }, function(error) {
-        console.error(error);
-      });
+      resolve(ref);
     } else {
       console.log("User is logged out");
     }
@@ -196,6 +185,36 @@ var whenFirebaseReady = new Promise(function(resolve, reject) {
       // Formats with thousands separator
       clone.querySelector('.metric-number').textContent =
           Math.round(data.release_size_in_bytes / 1024).toLocaleString('en', { useGrouping: true });
+      document.querySelector('#container').appendChild(clone);
+    },
+
+    '__benchmark': function(measurementType, measurementName, data) {
+      var title = _getTitleForTemplate(measurementType, measurementName);
+      var clone;
+      if (title == 'hot_mode_dev_cycle') {
+        clone = _cloneTemplate('hot_reload_special_case');
+        var reloadSpan = clone.querySelector('#reload');
+        var restartSpan = clone.querySelector('#restart');
+        reloadSpan.textContent = _comma(data['hotReloadMillisecondsToFrame'].toString());
+        restartSpan.textContent = _comma(data['hotRestartMillisecondsToFrame'].toString());
+      } else {
+        clone = _cloneTemplate(measurementType);
+        clone.querySelector('.metric-name').textContent = title;
+        var cardInside = clone.querySelector('.card-inside');
+        for (var result of data['__golem__']) {
+          var name = result['benchmark_name'];
+
+          var resultContainer = document.createElement('div');
+          var resultName = document.createElement('span');
+          resultName.textContent = name.substring(name.indexOf('.') + 1);
+          resultContainer.appendChild(resultName);
+          var score = document.createElement('span');
+          score.textContent = `: ${ result['score'] }`;
+          resultContainer.appendChild(score);
+
+          cardInside.appendChild(resultContainer);
+        }
+      }
       document.querySelector('#container').appendChild(clone);
     }
   };
