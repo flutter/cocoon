@@ -269,7 +269,6 @@ class Config {
     @required this.firebaseFlutterDashboardToken,
     @required this.authToken,
     @required this.flutterDirectory,
-    @required this.runTaskFile,
     @required this.deviceOperatingSystem,
   });
 
@@ -278,12 +277,6 @@ class Config {
 
     if (!agentConfigFile.existsSync()) {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
-    }
-
-    File runTaskFile = file('${args['agent-checkout']}/bin/agent.dart');
-
-    if (!runTaskFile.existsSync()) {
-      throw ('run_task.dart file not found: ${runTaskFile.path}.');
     }
 
     Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
@@ -312,7 +305,6 @@ class Config {
       firebaseFlutterDashboardToken: firebaseFlutterDashboardToken,
       authToken: authToken,
       flutterDirectory: flutterDirectory,
-      runTaskFile: runTaskFile,
       deviceOperatingSystem: deviceOperatingSystem,
     );
   }
@@ -322,7 +314,6 @@ class Config {
   final String firebaseFlutterDashboardToken;
   final String authToken;
   final Directory flutterDirectory;
-  final File runTaskFile;
   final DeviceOperatingSystem deviceOperatingSystem;
 
   String get adbPath {
@@ -346,7 +337,6 @@ class Config {
 baseCocoonUrl: $baseCocoonUrl
 agentId: $agentId
 flutterDirectory: $flutterDirectory
-runTaskFile: $runTaskFile
 adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
 deviceOperatingSystem: $deviceOperatingSystem
 '''.trim();

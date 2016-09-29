@@ -18,11 +18,6 @@ Future<Null> main(List<String> rawArgs) async {
       'config-file',
       abbr: 'c',
       defaultsTo: 'config.yaml'
-    )
-    ..addOption(
-      'agent-checkout',
-      abbr: 'a',
-      defaultsTo: '.'
     );
   argParser.addCommand('ci');
 
