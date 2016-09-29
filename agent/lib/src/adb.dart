@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 
@@ -28,24 +27,8 @@ abstract class DeviceDiscovery {
     }
   }
 
-  /// Selects a device to work with, load-balancing between devices if more than
-  /// one are available.
-  ///
-  /// A task performing multiple actions on a device would call this method
-  /// first then follow up by calling [workingDevice]. Calling [workingDevice]
-  /// repeatedly must guarantee to return the same device.
-  Future<Null> chooseWorkingDevice();
-
-  /// Returns current working device.
-  ///
-  /// Must be called _after_ a successful call to [chooseWorkingDevice]. May be
-  /// called repeatedly to perform multiple operations on one specific device;
-  /// guarantees to return the same device until the next time
-  /// [chooseWorkingDevice] is called.
-  Device get workingDevice;
-
   /// Lists all available devices' IDs.
-  Future<List<String>> discoverDevices();
+  Future<List<Device>> discoverDevices();
 
   /// Checks the health of the available devices.
   Future<Map<String, HealthCheckResult>> checkDevices();
@@ -94,37 +77,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   AndroidDeviceDiscovery._();
 
-  AndroidDevice _workingDevice;
-
   @override
-  AndroidDevice get workingDevice {
-    if (_workingDevice == null) {
-      throw new StateError(
-        'No working device chosen. Call `chooseWorkingDevice` prior to calling '
-        'the `workingDevice` getter.',
-      );
-    }
-
-    return _workingDevice;
-  }
-
-  /// Picks a random Android device out of connected devices and sets it as
-  /// [workingDevice].
-  @override
-  Future<Null> chooseWorkingDevice() async {
-    List<Device> allDevices = (await discoverDevices())
-      .map((String id) => new AndroidDevice(deviceId: id))
-      .toList();
-
-    if (allDevices.isEmpty)
-      throw 'No Android devices detected';
-
-    // TODO(yjbanov): filter out and warn about those with low battery level
-    _workingDevice = allDevices[new math.Random().nextInt(allDevices.length)];
-  }
-
-  @override
-  Future<List<String>> discoverDevices() async {
+  Future<List<Device>> discoverDevices() async {
     List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false))
         .trim().split('\n');
     List<String> results = <String>[];
@@ -150,21 +104,22 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     }
 
-    return results;
+    return results
+      .map((String id) => new AndroidDevice(deviceId: id))
+      .toList();
   }
 
   @override
   Future<Map<String, HealthCheckResult>> checkDevices() async {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    for (String deviceId in await discoverDevices()) {
+    for (AndroidDevice device in await discoverDevices()) {
       try {
-        AndroidDevice device = new AndroidDevice(deviceId: deviceId);
         // Just a smoke test that we can read wakefulness state
         // TODO(yjbanov): check battery level
         await device._getWakefulness();
-        results['android-device-$deviceId'] = new HealthCheckResult.success();
+        results['android-device-${device.deviceId}'] = new HealthCheckResult.success();
       } catch(e, s) {
-        results['android-device-$deviceId'] = new HealthCheckResult.error(e, s);
+        results['android-device-${device.deviceId}'] = new HealthCheckResult.error(e, s);
       }
     }
     return results;
@@ -260,37 +215,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   IosDeviceDiscovery._();
 
-  IosDevice _workingDevice;
-
   @override
-  IosDevice get workingDevice {
-    if (_workingDevice == null) {
-      throw new StateError(
-        'No working device chosen. Call `chooseWorkingDevice` prior to calling '
-        'the `workingDevice` getter.',
-      );
-    }
-
-    return _workingDevice;
-  }
-
-  /// Picks a random iOS device out of connected devices and sets it as
-  /// [workingDevice].
-  @override
-  Future<Null> chooseWorkingDevice() async {
-    List<IosDevice> allDevices = (await discoverDevices())
-      .map((String id) => new IosDevice(deviceId: id))
-      .toList();
-
-    if (allDevices.length == 0)
-      throw 'No iOS devices detected';
-
-    // TODO(yjbanov): filter out and warn about those with low battery level
-    _workingDevice = allDevices[new math.Random().nextInt(allDevices.length)];
-  }
-
-  @override
-  Future<List<String>> discoverDevices() async {
+  Future<List<Device>> discoverDevices() async {
     // TODO: use the -k UniqueDeviceID option, which requires much less parsing.
     List<String> iosDeviceIds = grep('UniqueDeviceID', from: await eval('ideviceinfo', []))
       .map((String line) => line.split(' ').last).toList();
@@ -298,15 +224,17 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     if (iosDeviceIds.isEmpty)
       throw 'No connected iOS devices found.';
 
-    return iosDeviceIds;
+    return iosDeviceIds
+      .map((String id) => new IosDevice(deviceId: id))
+      .toList();
   }
 
   @override
   Future<Map<String, HealthCheckResult>> checkDevices() async {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    for (String deviceId in await discoverDevices()) {
+    for (Device device in await discoverDevices()) {
       // TODO: do a more meaningful connectivity check than just recording the ID
-      results['ios-device-$deviceId'] = new HealthCheckResult.success();
+      results['ios-device-${device.deviceId}'] = new HealthCheckResult.success();
     }
     return results;
   }

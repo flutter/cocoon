@@ -9,15 +9,6 @@ import 'package:args/args.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
-import 'package:cocoon_agent/src/adb.dart';
-import 'package:cocoon_agent/src/analysis.dart';
-import 'package:cocoon_agent/src/framework.dart';
-import 'package:cocoon_agent/src/gallery.dart';
-import 'package:cocoon_agent/src/golem.dart';
-import 'package:cocoon_agent/src/perf_tests.dart';
-import 'package:cocoon_agent/src/refresh.dart';
-import 'package:cocoon_agent/src/hot_dev_cycle.dart';
-import 'package:cocoon_agent/src/size_tests.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
 /// Contains information about a Cocoon task.
@@ -49,25 +40,6 @@ class Agent {
     return JSON.decode(resp.body);
   }
 
-  Future<BuildResult> performTask(CocoonTask reservation) async {
-    int golemRevision = await computeGolemRevision();
-    Task task = await getTask(reservation);
-    TaskRunner runner = new TaskRunner(reservation.revision, golemRevision, <Task>[task]);
-    try {
-      return await runner.run();
-    } finally {
-      await _screenOff();
-    }
-  }
-
-  Future<Null> _screenOff() async {
-    try {
-      await devices.workingDevice.sendToSleep();
-    } catch(error, stackTrace) {
-      print('Failed to turn off screen: $error\n$stackTrace');
-    }
-  }
-
   Future<Null> uploadLogChunk(CocoonTask task, String chunk) async {
     String url = '$baseCocoonUrl/api/append-log?ownerKey=${task.key}';
     Response resp = await httpClient.post(url, body: chunk);
@@ -75,36 +47,6 @@ class Agent {
       throw 'Failed uploading log chunk. Server responded with HTTP status ${resp.statusCode}\n'
             '${resp.body}';
     }
-  }
-
-  Future<Task> getTask(CocoonTask task) async {
-    DateTime revisionTimestamp = await getFlutterRepoCommitTimestamp(task.revision);
-    String dartSdkVersion = await getDartVersion();
-
-    List<Task> allTasks = <Task>[
-      createComplexLayoutScrollPerfTest(),
-      createComplexLayoutScrollPerfTest(ios: true),
-      createFlutterGalleryStartupTest(),
-      createFlutterGalleryStartupTest(ios: true),
-      createComplexLayoutStartupTest(),
-      createComplexLayoutStartupTest(ios: true),
-      createFlutterGalleryBuildTest(),
-      createComplexLayoutBuildTest(),
-      createGalleryTransitionTest(),
-      createGalleryTransitionTest(ios: true),
-      createBasicMaterialAppSizeTest(),
-      createAnalyzerCliTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),
-      createAnalyzerServerTest(sdk: dartSdkVersion, commit: task.revision, timestamp: revisionTimestamp),
-      createRefreshTest(commit: task.revision, timestamp: revisionTimestamp),
-      createHotDevCycleTest(commit: task.revision, timestamp: revisionTimestamp),
-    ];
-
-    return allTasks.firstWhere(
-      (Task t) => t.name == task.name,
-      orElse: () {
-        throw 'Task $task.name not found';
-      }
-    );
   }
 
   /// Reserves a task in Cocoon backend to be performed by this agent.
