@@ -30,3 +30,8 @@ indexes:
   - name: OwnerKey
   - name: CreateTimestamp
     direction: asc
+- kind: TimeseriesValue
+  ancestor: yes
+  properties:
+  - name: CreateTimestamp
+    direction: desc

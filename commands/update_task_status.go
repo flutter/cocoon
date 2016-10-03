@@ -17,6 +17,10 @@ type UpdateTaskStatusCommand struct {
 	TaskKey *datastore.Key
 	// One of "Succeeded", "Failed".
 	NewStatus string
+	// If succeeded the result task data as JSON. nil otherwise.
+	ResultData map[string]interface{}
+	// Keys into the ResultData that represent a benchmark result
+	BenchmarkScoreKeys []string
 }
 
 // UpdateTaskStatusResult contains the updated task data.
@@ -44,6 +48,12 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		return nil, err
 	}
 
+	checklist, err := c.GetChecklist(task.Task.ChecklistKey)
+
+	if err != nil {
+		return nil, err
+	}
+
 	newStatus := db.TaskStatusByName(command.NewStatus)
 
 	if newStatus != db.TaskFailed {
@@ -61,6 +71,23 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	}
 
 	c.PutTask(task.Key, task.Task)
+
+	if newStatus == db.TaskSucceeded && len(command.BenchmarkScoreKeys) > 0 {
+		for _, scoreKey := range command.BenchmarkScoreKeys {
+			series, err := c.GetOrCreateTimeseries(scoreKey)
+
+			if err != nil {
+				return nil, err
+			}
+
+			value := command.ResultData[scoreKey].(float64)
+			_, err = c.SubmitTimeseriesValue(series, checklist.Checklist.Commit.Sha, task.Key, value)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	return &UpdateTaskStatusResult{task}, nil
 }
