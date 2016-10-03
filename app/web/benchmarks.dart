@@ -8,13 +8,12 @@ import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:cocoon/cli.dart';
-import 'package:cocoon/components/status_table.dart';
+import 'package:cocoon/components/benchmark_grid.dart';
 import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
 @AngularEntrypoint()
-Future<Null> main() async {
+main() async {
   logger = new HtmlLogger();
   http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn();
 
@@ -22,12 +21,9 @@ Future<Null> main() async {
     return;
 
   // Start the angular app
-  ComponentRef ref = await bootstrap(StatusTable, [
+  await bootstrap(BenchmarkGrid, [
     provide(http.Client, useValue: httpClient),
-  ]..addAll(Cli.commandTypes.map((Type type) => provide(type, useClass: type))));
-
-  // Start CLI
-  Cli.install(ref.injector);
+  ]);
 }
 
 class HtmlLogger implements Logger {
