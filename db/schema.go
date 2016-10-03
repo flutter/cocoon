@@ -81,6 +81,39 @@ type Task struct {
 	EndTimestamp       int64
 }
 
+// Timeseries contains a history of values of a certain performance metric.
+type Timeseries struct {
+	// Unique ID for computer consumption.
+	ID string
+	// A name used to display the series to humans.
+	Label string
+	// The unit used for the values, e.g. "ms", "kg", "pumpkins".
+	Unit string
+}
+
+// TimeseriesEntity contains storage data on a Timeseries.
+type TimeseriesEntity struct {
+	Key        *datastore.Key
+	Timeseries *Timeseries
+}
+
+// TimeseriesValue is a single value collected at a certain point in time at
+// a certain revision of Flutter.
+//
+// Entities of this type are stored as children of Timeseries and indexed by
+// CreateTimestamp in descencing order for faster access.
+type TimeseriesValue struct {
+	// The point in time this value was measured in milliseconds since the Unix
+	// epoch.
+	CreateTimestamp int64
+	// Flutter revision (git commit SHA)
+	Revision string
+	// The task that submitted the value.
+	TaskKey *datastore.Key
+	// The value.
+	Value float64
+}
+
 // MaxAttempts is the maximum number of times a single task will be attempted
 // before giving up on it.
 const MaxAttempts = 2

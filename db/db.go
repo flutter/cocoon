@@ -583,6 +583,67 @@ func (t *Task) AgeInMillis() int64 {
 	return NowMillis() - t.CreateTimestamp
 }
 
+// GetOrCreateTimeseries fetches an existing timeseries, or creates and returns
+// a new one if one with the given scoreKey does not yet exist.
+func (c *Cocoon) GetOrCreateTimeseries(scoreKey string) (*TimeseriesEntity, error) {
+	key := datastore.NewKey(c.Ctx, "Timeseries", scoreKey, 0, nil)
+
+	var series *Timeseries
+	err := datastore.Get(c.Ctx, key, series)
+
+	if err == nil {
+		return &TimeseriesEntity{
+			Key:        key,
+			Timeseries: series,
+		}, nil
+	}
+
+	if err != datastore.ErrNoSuchEntity {
+		// Unexpected error, bail out.
+		return nil, err
+	}
+
+	// By default use scoreKey as label and "ms" as unit. It can be tweaked
+	// manually later using the datastore UI.
+	series = &Timeseries{
+		ID:    scoreKey,
+		Label: scoreKey,
+		Unit:  "ms",
+	}
+
+	_, err = datastore.Put(c.Ctx, key, series)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TimeseriesEntity{
+		Key:        key,
+		Timeseries: series,
+	}, nil
+}
+
+// SubmitTimeseriesValue stores a TimeseriesValue in the datastore.
+func (c *Cocoon) SubmitTimeseriesValue(series *TimeseriesEntity, revision string,
+	taskKey *datastore.Key, value float64) (*TimeseriesValue, error) {
+	key := datastore.NewIncompleteKey(c.Ctx, "TimeseriesValue", series.Key)
+
+	timeseriesValue := &TimeseriesValue{
+		CreateTimestamp: NowMillis(),
+		Revision:        revision,
+		TaskKey:         taskKey,
+		Value:           value,
+	}
+
+	_, err := datastore.Put(c.Ctx, key, timeseriesValue)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return timeseriesValue, nil
+}
+
 // FetchURL performs an HTTP GET request on the given URL and returns data if
 // response is HTTP 200.
 func (c *Cocoon) FetchURL(url string) ([]byte, error) {

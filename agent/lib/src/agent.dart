@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart';
@@ -68,10 +69,43 @@ class Agent {
     return null;
   }
 
-  Future<Null> updateTaskStatus(String taskKey, String newStatus) async {
+  Future<Null> reportSuccess(String taskKey, Map<String, dynamic> resultData, List<String> benchmarkScoreKeys) async {
+    var status = <String, dynamic>{
+      'TaskKey': taskKey,
+      'NewStatus': 'Succeeded',
+    };
+
+    // Make a copy of resultData because we may alter it during score key
+    // validation below.
+    resultData = resultData != null
+      ? new Map<String, dynamic>.from(resultData)
+      : <String, dynamic>{};
+    status['ResultData'] = resultData;
+
+    var validScoreKeys = <String>[];
+    if (benchmarkScoreKeys != null) {
+      for (String scoreKey in benchmarkScoreKeys) {
+        var score = resultData[scoreKey];
+        if (score is num) {
+          // Convert all metrics to double, which provide plenty of precision
+          // without having to add support for multiple numeric types on the
+          // backend.
+          resultData[scoreKey] = score.toDouble();
+          validScoreKeys.add(scoreKey);
+        } else {
+          stderr.writeln('WARNING: non-numeric score value $score submitted for $scoreKey');
+        }
+      }
+    }
+    status['BenchmarkScoreKeys'] = validScoreKeys;
+
+    await _cocoon('update-task-status', status);
+  }
+
+  Future<Null> reportFailure(String taskKey) async {
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
-      'NewStatus': newStatus,
+      'NewStatus': 'Failed',
     });
   }
 
