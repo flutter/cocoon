@@ -588,7 +588,7 @@ func (t *Task) AgeInMillis() int64 {
 func (c *Cocoon) GetOrCreateTimeseries(scoreKey string) (*TimeseriesEntity, error) {
 	key := datastore.NewKey(c.Ctx, "Timeseries", scoreKey, 0, nil)
 
-	var series *Timeseries
+	series := new(Timeseries)
 	err := datastore.Get(c.Ctx, key, series)
 
 	if err == nil {
