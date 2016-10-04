@@ -22,9 +22,8 @@ Future<http.Client> getAuthenticatedClientOrRedirectToSignIn() async {
     window.open(status['LoginURL'], '_self');
   });
 
-  if (status['Status'] == 'OK') {
+  if (status['Status'] == 'OK')
     return client;
-  }
 
   document.body.append(new DivElement()
     ..text = 'You are not signed in, or signed in under an unauthorized account. '

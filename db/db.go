@@ -644,6 +644,47 @@ func (c *Cocoon) SubmitTimeseriesValue(series *TimeseriesEntity, revision string
 	return timeseriesValue, nil
 }
 
+// QueryTimeseries returns all timeseries we have.
+func (c *Cocoon) QueryTimeseries() ([]*TimeseriesEntity, error) {
+	query := datastore.NewQuery("Timeseries")
+
+	var buffer []*TimeseriesEntity
+	for iter := query.Run(c.Ctx); ; {
+		var series Timeseries
+		key, err := iter.Next(&series)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		buffer = append(buffer, &TimeseriesEntity{
+			key,
+			&series,
+		})
+	}
+	return buffer, nil
+}
+
+// QueryLatestTimeseriesValues fetches the latest benchmark results.
+func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*TimeseriesValue, error) {
+	query := datastore.NewQuery("TimeseriesValue").Limit(50)
+
+	var buffer []*TimeseriesValue
+	for iter := query.Run(c.Ctx); ; {
+		var value TimeseriesValue
+		_, err := iter.Next(&value)
+		if err == datastore.Done {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		buffer = append(buffer, &value)
+	}
+	return buffer, nil
+}
+
 // FetchURL performs an HTTP GET request on the given URL and returns data if
 // response is HTTP 200.
 func (c *Cocoon) FetchURL(url string) ([]byte, error) {

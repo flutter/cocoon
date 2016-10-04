@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:angular2/core.dart';
@@ -13,12 +14,12 @@ import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
 @AngularEntrypoint()
-main() async {
+Future<Null> main() async {
   logger = new HtmlLogger();
   http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn();
 
   if (httpClient == null)
-    return;
+    return null;
 
   // Start the angular app
   await bootstrap(BenchmarkGrid, [
