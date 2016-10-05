@@ -126,16 +126,17 @@ class Measurement {
       '${d.day.toString().padLeft(2, '0')}';
   }
 
+  @override
   String toString() => '${time}s (${dateString})';
 }
 
-final List _analysisColumnSpecs = [
+final List<ChartColumnSpec> _analysisColumnSpecs = [
   new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
   new ChartColumnSpec(label: 'flutter_repo', type: ChartColumnSpec.TYPE_NUMBER, formatter: _printDurationValSeconds),
   new ChartColumnSpec(label: 'mega_gallery', type: ChartColumnSpec.TYPE_NUMBER, formatter: _printDurationValSeconds)
 ];
 
-void _updateAnalysisChart([List data = const []]) {
+void _updateAnalysisChart([List<Iterable> data = const []]) {
   if (data == null || data.length < 2)
     data = _createPlaceholderData(<double>[0.0, 0.0]);
 
@@ -162,12 +163,12 @@ void _updateAnalysisChart([List data = const []]) {
   analysisChartArea.draw();
 }
 
-final List _dartdocColumnSpecs = [
+final List<ChartColumnSpec> _dartdocColumnSpecs = [
   new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
   new ChartColumnSpec(label: 'Burndown', type: ChartColumnSpec.TYPE_NUMBER)
 ];
 
-void _updateDartdocChart([List data]) {
+void _updateDartdocChart([List<Iterable> data]) {
   if (data == null || data.length < 2)
     data = _createPlaceholderData(<int>[0]);
 
@@ -194,12 +195,12 @@ void _updateDartdocChart([List data]) {
   dartdocChartArea.draw();
 }
 
-final List _refreshColumnSpecs = [
+final List<ChartColumnSpec> _refreshColumnSpecs = [
   new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
   new ChartColumnSpec(label: 'Refresh', type: ChartColumnSpec.TYPE_NUMBER, formatter: _printDurationValMillis)
 ];
 
-void _updateRefreshChart([List data = const []]) {
+void _updateRefreshChart([List<Iterable> data = const []]) {
   if (data == null || data.length < 2)
     data = _createPlaceholderData(<int>[0]);
 
@@ -229,8 +230,8 @@ void _updateRefreshChart([List data = const []]) {
 List<dynamic> _createPlaceholderData(List<dynamic> templateItems) {
   DateTime now = new DateTime.now();
   return [
-    [now.subtract(new Duration(days: 30)).millisecondsSinceEpoch]..addAll(templateItems),
-    [now.millisecondsSinceEpoch]..addAll(templateItems),
+    <dynamic>[now.subtract(new Duration(days: 30)).millisecondsSinceEpoch]..addAll(templateItems),
+    <dynamic>[now.millisecondsSinceEpoch]..addAll(templateItems),
   ];
 }
 

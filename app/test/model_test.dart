@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:cocoon/model.dart';
 
-main() {
+void main() {
   group('GetStatusResult', () {
     test('deserializes from JSON', () {
       GetStatusResult result = GetStatusResult.fromJson({

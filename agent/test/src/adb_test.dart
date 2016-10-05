@@ -119,7 +119,7 @@ class CommandArgs {
   String toString() => 'CommandArgs(command: $command, arguments: $arguments, env: $env)';
 
   @override
-  operator==(Object other) {
+  bool operator==(Object other) {
     if (other.runtimeType != CommandArgs)
       return false;
 

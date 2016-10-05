@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:cocoon/entity.dart';
 
-main() {
+void main() {
   group('Entity', () {
     test('sets and serializes properties', () {
       TestEntity e = new TestEntity();

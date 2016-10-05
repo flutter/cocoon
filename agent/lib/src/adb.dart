@@ -138,7 +138,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 }
 
 class AndroidDevice implements Device {
-  AndroidDevice({@required String this.deviceId});
+  AndroidDevice({@required this.deviceId});
 
   @override
   final String deviceId;
@@ -248,7 +248,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
 /// iOS device.
 class IosDevice implements Device {
-  const IosDevice({ @required String this.deviceId });
+  const IosDevice({ @required this.deviceId });
 
   @override
   final String deviceId;
@@ -258,10 +258,21 @@ class IosDevice implements Device {
   // devices are already unlocked. For now we'll just keep them at minimum
   // screen brightness so they don't drain battery too fast.
 
+  @override
   Future<bool> isAwake() async => true;
+
+  @override
   Future<bool> isAsleep() async => false;
+
+  @override
   Future<Null> wakeUp() async {}
+
+  @override
   Future<Null> sendToSleep() async {}
+
+  @override
   Future<Null> togglePower() async {}
+
+  @override
   Future<Null> unlock() async {}
 }

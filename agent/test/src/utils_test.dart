@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
-main() {
+void main() {
   group('grep', () {
     test('greps lines', () {
       expect(grep('b', from: 'ab\ncd\nba'), ['ab', 'ba']);

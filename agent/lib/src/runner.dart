@@ -89,6 +89,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
 
   bool runnerFinished = false;
 
+  // ignore: unawaited_futures
   runner.exitCode.then((_) {
     runnerFinished = true;
   });
@@ -126,7 +127,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   } finally {
     await stdoutSub.cancel();
     await stderrSub.cancel();
-    sendLog('Task execution finished', flush: true);
+    await sendLog('Task execution finished', flush: true);
     if (!runnerFinished)
       runner.kill(ProcessSignal.SIGKILL);
     await forceQuitRunningProcesses();

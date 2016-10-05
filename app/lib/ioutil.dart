@@ -60,10 +60,12 @@ Future<Process> startProcess(String executable, List<String> arguments,
   if (onKill != null) {
     bool processExited = false;
 
+    // ignore: unawaited_futures
     proc.exitCode.then((_) {
       processExited = true;
     });
 
+    // ignore: unawaited_futures
     onKill.then((_) {
       if (!processExited) {
         print('Caught signal to kill process (PID: ${proc.pid}): $executable ${arguments.join(' ')}');
