@@ -129,6 +129,7 @@ class AuthenticatedClient extends BaseClient {
   final String _authToken;
   final Client _delegate = new Client();
 
+  @override
   Future<StreamedResponse> send(Request request) async {
     request.headers['Agent-ID'] = _agentId;
     request.headers['Agent-Auth-Token'] = _authToken;
@@ -162,7 +163,7 @@ class AgentHealth {
   bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
 
   /// Sets a health check [result] for a given [parameter].
-  operator []=(String parameter, HealthCheckResult result) {
+  void operator []=(String parameter, HealthCheckResult result) {
     if (checks.containsKey(parameter)) {
       print('WARNING: duplicate health check ${parameter} submitted');
     }

@@ -98,8 +98,8 @@ class StatusTable implements OnInit {
   List<AgentStatus> agentStatuses;
 
   @override
-  ngOnInit() async {
-    reloadData();
+  Future<Null> ngOnInit() async {
+    await reloadData();
     new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
   }
 

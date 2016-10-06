@@ -16,16 +16,18 @@ class Key {
   int get hashCode => value.hashCode;
 
   @override
-  operator ==(Key other) => other != null && other.value == value;
+  bool operator ==(Key other) => other != null && other.value == value;
 }
 
 class _KeySerializer implements JsonSerializer<Key> {
   const _KeySerializer();
 
+  @override
   Key deserialize(dynamic jsonValue) {
     return new Key(jsonValue);
   }
 
+  @override
   dynamic serialize(Key key) {
     return key.value;
   }
@@ -40,10 +42,10 @@ class GetStatusResult extends Entity {
     }
   );
 
+  GetStatusResult([Map<String, dynamic> props]) : super(_serializer, props);
+
   static GetStatusResult fromJson(dynamic json) =>
       _serializer.deserialize(json);
-
-  GetStatusResult([Map<String, dynamic> props]) : super(_serializer, props);
 
   List<BuildStatus> get statuses => this['Statuses'];
   List<AgentStatus> get agentStatuses => this['AgentStatuses'];

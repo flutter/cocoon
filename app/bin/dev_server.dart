@@ -28,7 +28,7 @@ const _pubServePort = 9091;
 
 /// Runs `pub serve` and `goapp serve` such that the app can be debugged in
 /// Dartium.
-main(List<String> rawArgs) {
+void main(List<String> rawArgs) {
   ArgResults args = _parseArgs(rawArgs);
 
   Zone.current.fork(specification: new ZoneSpecification(handleUncaughtError: _handleCatastrophy))
@@ -49,7 +49,7 @@ ArgResults _parseArgs(List<String> rawArgs) {
   return argp.parse(rawArgs);
 }
 
-_start(ArgResults args) async {
+Future<Null> _start(ArgResults args) async {
   bool clearDatastore = args['clear-datastore'];
 
   _streamSubscriptions.addAll(<StreamSubscription>[
@@ -89,7 +89,7 @@ _start(ArgResults args) async {
     await _whenLocalPortIsListening(_pubServePort);
   } catch(_) {
     print('\n[ERROR] Timed out waiting for goapp and pub ports to become available\n');
-    _stop();
+    await _stop();
   }
 
   HttpClient http = new HttpClient();
@@ -101,7 +101,7 @@ _start(ArgResults args) async {
       print('Failed redirecting ${request.uri}');
       print(e);
       print(s);
-      _stop();
+      await _stop();
     }
   }
 }
@@ -212,6 +212,7 @@ Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
   _streamSubscriptions.forEach((s) => s.cancel());
   await devServer.close(force: true);
 
+  // ignore: unawaited_futures
   Future
     .wait(_childProcesses.map((p) => p.process.exitCode))
     .timeout(const Duration(seconds: 5))

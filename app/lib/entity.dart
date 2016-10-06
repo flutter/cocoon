@@ -14,8 +14,8 @@ class Entity {
   final EntitySerializer _entitySerializer;
   final Map<String, dynamic> _props;
 
-  operator[](String propName) => _props[propName];
-  operator[]=(String propName, dynamic value) {
+  dynamic operator[](String propName) => _props[propName];
+  void operator[]=(String propName, dynamic value) {
     _props[propName] = value;
   }
 
@@ -53,6 +53,7 @@ class ListSerializer<E> implements JsonSerializer<List<E>> {
 
   final JsonSerializer elementSerializer;
 
+  @override
   List<E> deserialize(dynamic jsonValue) {
     if (jsonValue == null)
       return null;
@@ -70,6 +71,7 @@ class ListSerializer<E> implements JsonSerializer<List<E>> {
     return result;
   }
 
+  @override
   List<dynamic> serialize(List<E> value) {
     return value
       .map((E elem) => elementSerializer.serialize(elem))
@@ -80,27 +82,36 @@ class ListSerializer<E> implements JsonSerializer<List<E>> {
 class StringSerializer implements JsonSerializer<String> {
   const StringSerializer();
 
+  @override
   String deserialize(dynamic jsonValue) {
     return jsonValue as String;
   }
+
+  @override
   dynamic serialize(String value) => value;
 }
 
 class BoolSerializer implements JsonSerializer<bool> {
   const BoolSerializer();
 
+  @override
   bool deserialize(dynamic jsonValue) {
     return jsonValue as bool;
   }
+
+  @override
   dynamic serialize(bool value) => value;
 }
 
 class NumSerializer implements JsonSerializer<num> {
   const NumSerializer();
 
+  @override
   num deserialize(dynamic jsonValue) {
     return jsonValue as num;
   }
+
+  @override
   dynamic serialize(num value) => value;
 }
 
@@ -135,6 +146,7 @@ class EntitySerializer<T extends Entity> implements JsonSerializer<T> {
   final EntityFactory<T> _entityFactory;
   final Map<String, JsonSerializer> _propertyCodecs;
 
+  @override
   T deserialize(dynamic jsonValue) {
     Map<String, dynamic> props = <String, dynamic>{};
     (jsonValue as Map).forEach((String propName, dynamic propJsonValue) {
@@ -150,6 +162,7 @@ class EntitySerializer<T extends Entity> implements JsonSerializer<T> {
     return _entityFactory(props);
   }
 
+  @override
   dynamic serialize(T value) {
     Map<String, dynamic> json = <String, dynamic>{};
     value._props.forEach((String propName, dynamic propValue) {

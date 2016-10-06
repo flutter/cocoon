@@ -165,6 +165,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
   ProcessInfo procInfo = new ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
+  // ignore: unawaited_futures
   proc.exitCode.then((_) {
     _runningProcesses.remove(procInfo);
   });
@@ -351,7 +352,7 @@ String requireEnvVar(String name) {
   return value;
 }
 
-dynamic/*=T*/ requireConfigProperty(Map<String, dynamic/*<T>*/> map, String propertyName) {
+dynamic/*=T*/ requireConfigProperty/*<T>*/(Map<String, dynamic/*<T>*/> map, String propertyName) {
   if (!map.containsKey(propertyName))
     fail('Configuration property not found: $propertyName');
 
