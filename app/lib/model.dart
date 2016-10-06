@@ -201,3 +201,83 @@ class Task extends Entity {
   DateTime get endTimestamp => this['EndTimestamp'];
   int get attempts => this['Attempts'];
 }
+
+class GetBenchmarksResult extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new GetBenchmarksResult(props),
+    <String, JsonSerializer>{
+      'Benchmarks': listOf(BenchmarkData._serializer),
+    }
+  );
+
+  GetBenchmarksResult([Map<String, dynamic> props]) : super(_serializer, props);
+
+  static GetBenchmarksResult fromJson(dynamic json) =>
+      _serializer.deserialize(json);
+
+  List<BenchmarkData> get benchmarks => this['Benchmarks'];
+}
+
+class BenchmarkData extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new BenchmarkData(props),
+    <String, JsonSerializer>{
+      'Timeseries': TimeseriesEntity._serializer,
+    	'Values': listOf(TimeseriesValue._serializer),
+    }
+  );
+
+  BenchmarkData([Map<String, dynamic> props]) : super(_serializer, props);
+
+  TimeseriesEntity get timeseries => this['Timeseries'];
+  List<TimeseriesValue> get values => this['Values'];
+}
+
+class TimeseriesEntity extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new TimeseriesEntity(props),
+    <String, JsonSerializer>{
+      'Key': Key._serializer,
+      'Timeseries': Timeseries._serializer,
+    }
+  );
+
+  TimeseriesEntity([Map<String, dynamic> props]) : super(_serializer, props);
+
+  Key get key => this['Key'];
+  Timeseries get timeseries => this['Timeseries'];
+}
+
+class Timeseries extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new Timeseries(props),
+    <String, JsonSerializer>{
+      'ID': string(),
+      'Label': string(),
+      'Unit': string(),
+    }
+  );
+
+  Timeseries([Map<String, dynamic> props]) : super(_serializer, props);
+
+  String get id => this['ID'];
+  String get label => this['Label'];
+  String get unit => this['Unit'];
+}
+
+class TimeseriesValue extends Entity {
+  static final _serializer = new EntitySerializer(
+    (Map<String, dynamic> props) => new TimeseriesValue(props),
+    <String, JsonSerializer>{
+      'CreateTimestamp': number(),
+      'Revision': string(),
+      'Value': number(),
+    }
+  );
+
+  TimeseriesValue([Map<String, dynamic> props]) : super(_serializer, props);
+
+  int get createTimestamp => this['CreateTimestamp'];
+  String get revision => this['Revision'];
+  double get value => this['Value'];
+}

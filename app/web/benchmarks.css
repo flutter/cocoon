@@ -1,0 +1,99 @@
+/*
+  Copyright (c) 2016 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+*/
+
+@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+body {
+  background: #eee;
+  font: 16px Roboto, sans-serif;
+  font-weight: 300;
+  color: #333;
+  padding: 0;
+  margin: 0;
+}
+
+.card-container {
+  display: flex;
+  flex-direction: row;
+  flex-flow: wrap;
+}
+
+benchmark-card {
+  display: inline-block;
+  position: relative;
+  width: 250px;
+  height: 80px;
+  padding: 0;
+  margin: 5px;
+
+  background: #f7f7f7;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  text-align: center;
+
+  /* center the inside contents */
+  display: flex;
+  flex-direction: row-reverse;
+  overflow: hidden;
+}
+
+.metric {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  pointer-events: none;
+}
+
+.metric-value {
+  font-size: 42px;
+  font-weight: bold;
+}
+
+.metric-value-bar {
+  width: 5px;
+  background-color: #AAFFAA;
+  display: inline-block;
+}
+
+.metric-value-tooltip {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  border-radius: 4px;
+  padding: 5px;
+  position: fixed;
+  white-space: pre;
+}
+
+.metric-unit {
+  font-size: 42px;
+  color: #CCC;
+}
+
+.metric-label {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  pointer-events: none;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 19px;
+  z-index: 2;
+  background-color: #917FFF;
+  display: flex;
+}
+
+footer span {
+  vertical-align: bottom;
+}
+
+footer i.material-icons {
+  vertical-align: bottom;
+}

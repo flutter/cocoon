@@ -11,7 +11,9 @@ fi
 
 rm -rf build
 pub get
-pub run test
+dartanalyzer --strong bin/*.dart web/*.dart test/*.dart
+pub run test -p vm
+pub run test -p dartium
 pub build
 cp web/*.dart build/web/
 cp -RL packages build/web/

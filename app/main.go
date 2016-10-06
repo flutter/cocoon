@@ -28,6 +28,7 @@ import (
 func init() {
 	registerRPC("/api/create-agent", commands.CreateAgent)
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
+	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
 	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
