@@ -668,7 +668,7 @@ func (c *Cocoon) QueryTimeseries() ([]*TimeseriesEntity, error) {
 
 // QueryLatestTimeseriesValues fetches the latest benchmark results.
 func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*TimeseriesValue, error) {
-	query := datastore.NewQuery("TimeseriesValue").Limit(50)
+	query := datastore.NewQuery("TimeseriesValue").Ancestor(series.Key).Limit(50)
 
 	var buffer []*TimeseriesValue
 	for iter := query.Run(c.Ctx); ; {
