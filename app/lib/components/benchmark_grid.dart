@@ -55,6 +55,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 @Component(
   selector: 'benchmark-card',
   template: r'''
+<span class="metric-task-name">{{taskName}}</span>
 <div class="metric" *ngIf="latestValue != null">
   <span class="metric-value">{{latestValue}}</span>
   <span class="metric-unit">{{unit}}</span>
@@ -75,6 +76,7 @@ class BenchmarkCard implements AfterViewInit {
   }
 
   String get id => _data.timeseries.timeseries.id;
+  String get taskName => _data.timeseries.timeseries.taskName;
   String get label => _data.timeseries.timeseries.label;
   String get unit => _data.timeseries.timeseries.unit;
   String get latestValue {
@@ -102,7 +104,7 @@ class BenchmarkCard implements AfterViewInit {
     for (TimeseriesValue value in _data.values.reversed) {
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
-        ..style.height = '${80 * value.value / maxValue}px';
+        ..style.height = '${100 * value.value / maxValue}px';
 
       DivElement tooltip;
       bar.onMouseOver.listen((_) {

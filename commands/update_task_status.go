@@ -74,7 +74,7 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 	if newStatus == db.TaskSucceeded && len(command.BenchmarkScoreKeys) > 0 {
 		for _, scoreKey := range command.BenchmarkScoreKeys {
-			series, err := c.GetOrCreateTimeseries(scoreKey)
+			series, err := c.GetOrCreateTimeseries(task.Task.Name, scoreKey)
 
 			if err != nil {
 				return nil, err

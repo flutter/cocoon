@@ -585,8 +585,9 @@ func (t *Task) AgeInMillis() int64 {
 
 // GetOrCreateTimeseries fetches an existing timeseries, or creates and returns
 // a new one if one with the given scoreKey does not yet exist.
-func (c *Cocoon) GetOrCreateTimeseries(scoreKey string) (*TimeseriesEntity, error) {
-	key := datastore.NewKey(c.Ctx, "Timeseries", scoreKey, 0, nil)
+func (c *Cocoon) GetOrCreateTimeseries(taskName string, scoreKey string) (*TimeseriesEntity, error) {
+	id := fmt.Sprintf("%v.%v", taskName, scoreKey)
+	key := datastore.NewKey(c.Ctx, "Timeseries", id, 0, nil)
 
 	series := new(Timeseries)
 	err := datastore.Get(c.Ctx, key, series)
@@ -606,7 +607,8 @@ func (c *Cocoon) GetOrCreateTimeseries(scoreKey string) (*TimeseriesEntity, erro
 	// By default use scoreKey as label and "ms" as unit. It can be tweaked
 	// manually later using the datastore UI.
 	series = &Timeseries{
-		ID:    scoreKey,
+		ID:    id,
+		TaskName: taskName,
 		Label: scoreKey,
 		Unit:  "ms",
 	}

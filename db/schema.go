@@ -85,6 +85,8 @@ type Task struct {
 type Timeseries struct {
 	// Unique ID for computer consumption.
 	ID string
+	// Name of task that submits values for this series.
+	TaskName string
 	// A name used to display the series to humans.
 	Label string
 	// The unit used for the values, e.g. "ms", "kg", "pumpkins".
