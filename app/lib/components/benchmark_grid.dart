@@ -14,8 +14,8 @@ import 'package:http/http.dart' as http;
 @Component(
   selector: 'benchmark-grid',
   template: r'''
-  <div *ngIf="isLoading">Loading...</div>
-  <div *ngIf="!isLoading" class="card-container">
+  <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
+  <div *ngIf="benchmarks != null" class="card-container">
     <benchmark-card
       *ngFor="let benchmark of benchmarks"
       [data]="benchmark">
@@ -78,7 +78,7 @@ class BenchmarkCard implements AfterViewInit {
   String get label => _data.timeseries.timeseries.label;
   String get unit => _data.timeseries.timeseries.unit;
   String get latestValue {
-    if (_data.values.isEmpty) return null;
+    if (_data.values == null || _data.values.isEmpty) return null;
     num value = _data.values.first.value;
     if (value > 100) {
       // Ignore fractions in large values.
