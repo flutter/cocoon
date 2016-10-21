@@ -253,6 +253,7 @@ class Timeseries extends Entity {
     (Map<String, dynamic> props) => new Timeseries(props),
     <String, JsonSerializer>{
       'ID': string(),
+      'TaskName': string(),
       'Label': string(),
       'Unit': string(),
     }
@@ -261,6 +262,7 @@ class Timeseries extends Entity {
   Timeseries([Map<String, dynamic> props]) : super(_serializer, props);
 
   String get id => this['ID'];
+  String get taskName => this['TaskName'];
   String get label => this['Label'];
   String get unit => this['Unit'];
 }
