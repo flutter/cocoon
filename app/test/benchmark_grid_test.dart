@@ -61,6 +61,7 @@ final _testData = {
         'ID': 'series$i',
         'Label': 'Series $i',
         'Unit': 'ms',
+        'Goal': i.toDouble(),
       },
     },
     'Values': new List.generate(_rnd.nextInt(5), (int v) => {

@@ -256,6 +256,7 @@ class Timeseries extends Entity {
       'TaskName': string(),
       'Label': string(),
       'Unit': string(),
+      'Goal': number(),
     }
   );
 
@@ -265,6 +266,7 @@ class Timeseries extends Entity {
   String get taskName => this['TaskName'];
   String get label => this['Label'];
   String get unit => this['Unit'];
+  double get goal => this['Goal'];
 }
 
 class TimeseriesValue extends Entity {

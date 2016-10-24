@@ -47,6 +47,21 @@ benchmark-card {
   pointer-events: none;
 }
 
+.metric-chart-container {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+}
+
+.metric-goal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 1px dashed #81C784;
+  pointer-events: none;
+}
+
 .metric-value {
   font-size: 42px;
   font-weight: bold;
@@ -56,6 +71,10 @@ benchmark-card {
   width: 5px;
   background-color: #AAFFAA;
   display: inline-block;
+}
+
+.metric-value-bar-underperformed {
+  background-color: #FFAAAA;
 }
 
 .metric-value-tooltip {
