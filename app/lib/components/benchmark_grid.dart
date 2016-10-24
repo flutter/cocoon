@@ -61,12 +61,17 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   <span class="metric-unit">{{unit}}</span>
 </div>
 <div class="metric-label">{{label}}</div>
-<div #chartContainer></div>
+<div class="metric-chart-container" #chartContainer></div>
   ''',
   directives: const [NgIf, NgFor, NgStyle],
 )
-class BenchmarkCard implements AfterViewInit {
+class BenchmarkCard implements AfterViewInit, OnDestroy {
+  /// The total height of the chart. This value must be in sync with the height
+  /// specified for benchmark-card in benchmarks.css.
+  static const int _kChartHeight = 100;
+
   BenchmarkData _data;
+  DivElement _tooltip;
 
   @ViewChild('chartContainer') ElementRef chartContainer;
 
@@ -75,6 +80,7 @@ class BenchmarkCard implements AfterViewInit {
     _data = newData;
   }
 
+  double get goal => _data.timeseries.timeseries.goal;
   String get id => _data.timeseries.timeseries.id;
   String get taskName => _data.timeseries.timeseries.taskName;
   String get label => _data.timeseries.timeseries.label;
@@ -99,31 +105,49 @@ class BenchmarkCard implements AfterViewInit {
     if (_data.values.isEmpty) return;
     double maxValue = _data.values
       .map((TimeseriesValue v) => v.value)
-      .reduce(math.max);
+      .fold(goal, math.max);
+
+    // Leave a bit of room to bars don't fill the height of the card
+    maxValue *= 1.1;
+
+    chartContainer.nativeElement.children.add(
+        new DivElement()
+          ..classes.add('metric-goal')
+          ..style.height = '${_kChartHeight * goal / maxValue}px'
+    );
 
     for (TimeseriesValue value in _data.values.reversed) {
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
-        ..style.height = '${100 * value.value / maxValue}px';
+        ..style.height = '${_kChartHeight * value.value / maxValue}px';
 
-      DivElement tooltip;
+      if (value.value > goal) {
+        bar.classes.add('metric-value-bar-underperformed');
+      }
+
       bar.onMouseOver.listen((_) {
-        tooltip = new DivElement()
+        _tooltip = new DivElement()
           ..text = '${value.value}$unit\n'
             'Flutter revision: ${value.revision}\n'
-            'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}'
+            'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
+            'Goal: $goal$unit'
           ..classes.add('metric-value-tooltip')
           ..style.top = '${bar.getBoundingClientRect().top}px'
           ..style.left = '${bar.getBoundingClientRect().right + 5}px';
         bar.style.backgroundColor = '#11CC11';
-        document.body.append(tooltip);
+        document.body.append(_tooltip);
       });
       bar.onMouseOut.listen((_) {
-        bar.style.backgroundColor = '#AAFFAA';
-        tooltip?.remove();
+        bar.style.backgroundColor = '';
+        _tooltip?.remove();
       });
 
       chartContainer.nativeElement.children.add(bar);
     }
+  }
+
+  @override
+  void ngOnDestroy() {
+    _tooltip?.remove();
   }
 }

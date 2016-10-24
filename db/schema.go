@@ -91,6 +91,9 @@ type Timeseries struct {
 	Label string
 	// The unit used for the values, e.g. "ms", "kg", "pumpkins".
 	Unit string
+	// The current goal we want to reach for this metric. As of today, all our metrics are smaller
+	// is better.
+	Goal float64
 }
 
 // TimeseriesEntity contains storage data on a Timeseries.
