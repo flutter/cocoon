@@ -257,6 +257,7 @@ class Timeseries extends Entity {
       'Label': string(),
       'Unit': string(),
       'Goal': number(),
+      'Archived': boolean(),
     }
   );
 
@@ -267,6 +268,7 @@ class Timeseries extends Entity {
   String get label => this['Label'];
   String get unit => this['Unit'];
   double get goal => this['Goal'];
+  bool get isArchived => this['Archived'];
 }
 
 class TimeseriesValue extends Entity {

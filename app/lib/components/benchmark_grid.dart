@@ -15,6 +15,9 @@ import 'package:http/http.dart' as http;
   selector: 'benchmark-grid',
   template: r'''
   <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
+  <div style="margin: 5px;">
+    <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
+  </div>
   <div *ngIf="benchmarks != null" class="card-container">
     <benchmark-card
       *ngFor="let benchmark of benchmarks"
@@ -31,6 +34,14 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   bool isLoading = true;
   List<BenchmarkData> benchmarks;
   Timer _reloadTimer;
+  bool _isShowArchived = false;
+
+  bool get isShowArchived => _isShowArchived;
+
+  void toggleArchived() {
+    _isShowArchived = !_isShowArchived;
+    reloadData();
+  }
 
   @override
   void ngOnInit() {
@@ -47,7 +58,9 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
     GetBenchmarksResult result = GetBenchmarksResult.fromJson(statusJson);
-    benchmarks = result.benchmarks;
+    benchmarks = result.benchmarks
+        .where((BenchmarkData data) => !data.timeseries.timeseries.isArchived || _isShowArchived)
+        .toList();
     isLoading = false;
   }
 }
