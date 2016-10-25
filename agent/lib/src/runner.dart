@@ -104,7 +104,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     if (flush || buffer.length > _kLogChunkSize) {
       String chunk = buffer.toString();
       buffer = new StringBuffer();
-      await agent.uploadLogChunk(task, chunk);
+      await agent.uploadLogChunk(task.key, chunk);
     }
   }
 

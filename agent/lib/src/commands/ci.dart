@@ -81,8 +81,9 @@ class ContinuousIntegrationCommand extends Command {
             await _runTask(task);
           }
         } catch(error, stackTrace) {
-          print('ERROR: $error\n$stackTrace');
-          await agent.reportFailure(task.key);
+          String errorMessage = 'ERROR: $error\n$stackTrace';
+          print(errorMessage);
+          await agent.reportFailure(task.key, errorMessage);
         }
       } catch(error, stackTrace) {
         print('ERROR: $error\n$stackTrace');
@@ -102,7 +103,7 @@ class ContinuousIntegrationCommand extends Command {
         await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
         await _uploadDataToFirebase(task, result);
       } else {
-        await agent.reportFailure(task.key);
+        await agent.reportFailure(task.key, result.reason);
       }
     });
   }

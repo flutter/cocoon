@@ -41,8 +41,8 @@ class Agent {
     return JSON.decode(resp.body);
   }
 
-  Future<Null> uploadLogChunk(CocoonTask task, String chunk) async {
-    String url = '$baseCocoonUrl/api/append-log?ownerKey=${task.key}';
+  Future<Null> uploadLogChunk(String taskKey, String chunk) async {
+    String url = '$baseCocoonUrl/api/append-log?ownerKey=${taskKey}';
     Response resp = await httpClient.post(url, body: chunk);
     if (resp.statusCode != 200) {
       throw 'Failed uploading log chunk. Server responded with HTTP status ${resp.statusCode}\n'
@@ -102,7 +102,8 @@ class Agent {
     await _cocoon('update-task-status', status);
   }
 
-  Future<Null> reportFailure(String taskKey) async {
+  Future<Null> reportFailure(String taskKey, String reason) async {
+    await uploadLogChunk(taskKey, '\n\nTask failed with the following reason:\n$reason\n');
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
       'NewStatus': 'Failed',
