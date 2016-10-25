@@ -152,12 +152,19 @@ var whenFirebaseReady = new Promise(function(resolve, reject) {
       clone.querySelector('.metric-name').textContent = title;
       let chart = clone.querySelector('.frames');
 
-      for (let screenName in data) {
-        if (data.hasOwnProperty(screenName)) {
+      // TODO(yjbanov): old schema puts transitions data at the root of the data object. As of
+      // https://github.com/flutter/flutter/pull/6505 it is nested under 'transitions' to make room
+      // for frame data. This step should be removed when old data is no longer relevant.
+      var transitionData = data.hasOwnProperty('transitions')
+        ? data['transitions']
+        : data;
+
+      for (let screenName in transitionData) {
+        if (transitionData.hasOwnProperty(screenName)) {
           if (screenName == '__metadata__') {
             continue;
           }
-          let durations = data[screenName];
+          let durations = transitionData[screenName];
           durations.forEach(function(duration) {
             let div;
             if (duration > 300000) {
