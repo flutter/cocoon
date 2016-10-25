@@ -94,6 +94,9 @@ type Timeseries struct {
 	// The current goal we want to reach for this metric. As of today, all our metrics are smaller
 	// is better.
 	Goal float64
+	// Indicates that this series contains old data that's no longer interesting (e.g. it will be
+	// hidden from the UI).
+	Archived bool
 }
 
 // TimeseriesEntity contains storage data on a Timeseries.

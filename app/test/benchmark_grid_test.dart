@@ -31,7 +31,7 @@ void main() {
     test('should show a grid', () async {
       List<String> httpCalls = <String>[];
 
-      await bootstrap(BenchmarkGrid, [
+      var component = await bootstrap(BenchmarkGrid, [
         provide(http.Client, useValue: new MockClient((http.Request request) async {
           httpCalls.add(request.url.path);
           return new http.Response(
@@ -45,8 +45,16 @@ void main() {
       await new Future.delayed(Duration.ZERO);
 
       expect(httpCalls, <String>['/api/get-benchmarks']);
-      expect(document.querySelectorAll('benchmark-card'),
-        hasLength(_testData['Benchmarks'].length));
+      expect(document.querySelectorAll('benchmark-card'), hasLength(5));
+
+      expect(component.instance.isShowArchived, isFalse);
+      document.body.querySelector('#toggleArchived').click();
+      expect(component.instance.isShowArchived, isTrue);
+
+      await new Future.delayed(Duration.ZERO);
+
+      expect(component.instance.benchmarks, hasLength(10));
+      expect(document.querySelectorAll('benchmark-card'), hasLength(10));
     });
   });
 }
@@ -54,7 +62,7 @@ void main() {
 final math.Random _rnd = new math.Random(1234);
 
 final _testData = {
-  'Benchmarks': new List.generate(5, (int i) => {
+  'Benchmarks': new List.generate(10, (int i) => {
     'Timeseries': {
       'Key': 'key$i',
       'Timeseries': {
@@ -62,6 +70,7 @@ final _testData = {
         'Label': 'Series $i',
         'Unit': 'ms',
         'Goal': i.toDouble(),
+        'Archived': i % 2 != 0,  // make half of them archived
       },
     },
     'Values': new List.generate(_rnd.nextInt(5), (int v) => {
