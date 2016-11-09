@@ -59,8 +59,8 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
     GetBenchmarksResult result = GetBenchmarksResult.fromJson(statusJson);
     benchmarks = result.benchmarks
-        .where((BenchmarkData data) => !data.timeseries.timeseries.isArchived || _isShowArchived)
-        .toList();
+        ?.where((BenchmarkData data) => !data.timeseries.timeseries.isArchived || _isShowArchived)
+        ?.toList();
     isLoading = false;
   }
 }
@@ -94,6 +94,15 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   }
 
   double get goal => _data.timeseries.timeseries.goal;
+
+  /// The baseline value for this metric.
+  ///
+  /// We must perform better than the baseline. Otherwise, we consider it a
+  /// regression, paint it in red and must work to fix as soon as possible.
+  double get baseline => _data.timeseries.timeseries.baseline > goal
+    ? _data.timeseries.timeseries.baseline
+    : goal;
+
   String get id => _data.timeseries.timeseries.id;
   String get taskName => _data.timeseries.timeseries.taskName;
   String get label => _data.timeseries.timeseries.label;
@@ -123,10 +132,24 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
     // Leave a bit of room to bars don't fill the height of the card
     maxValue *= 1.1;
 
+    int goalHeight = (_kChartHeight * goal) ~/ maxValue;
+    int baselineHeight = (_kChartHeight * baseline) ~/ maxValue;
+
+    if (baselineHeight == goalHeight) {
+      // Just so the two lines are not on top of each other
+      baselineHeight += 1;
+    }
+
     chartContainer.nativeElement.children.add(
         new DivElement()
           ..classes.add('metric-goal')
-          ..style.height = '${_kChartHeight * goal / maxValue}px'
+          ..style.height = '${goalHeight}px'
+    );
+
+    chartContainer.nativeElement.children.add(
+        new DivElement()
+          ..classes.add('metric-baseline')
+          ..style.height = '${baselineHeight}px'
     );
 
     for (TimeseriesValue value in _data.values.reversed) {
@@ -134,8 +157,10 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
         ..classes.add('metric-value-bar')
         ..style.height = '${_kChartHeight * value.value / maxValue}px';
 
-      if (value.value > goal) {
+      if (value.value > baseline) {
         bar.classes.add('metric-value-bar-underperformed');
+      } else if (value.value > goal) {
+        bar.classes.add('metric-value-bar-needs-work');
       }
 
       bar.onMouseOver.listen((_) {

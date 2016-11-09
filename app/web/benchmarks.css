@@ -62,6 +62,15 @@ benchmark-card {
   pointer-events: none;
 }
 
+.metric-baseline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 1px dashed #FFAAAA;
+  pointer-events: none;
+}
+
 .metric-value {
   font-size: 42px;
   font-weight: bold;
@@ -75,6 +84,10 @@ benchmark-card {
 
 .metric-value-bar-underperformed {
   background-color: #FFAAAA;
+}
+
+.metric-value-bar-needs-work {
+  background-color: #AAAAFF;
 }
 
 .metric-value-tooltip {
