@@ -110,12 +110,13 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   String get latestValue {
     if (_data.values == null || _data.values.isEmpty) return null;
     num value = _data.values.first.value;
-    if (value > 100) {
-      // Ignore fractions in large values.
-      value = value.round();
-    }
-    if (value < 100000) {
-      return value.toString();
+    if (value < 10) {
+      value.toStringAsPrecision(2);
+      return value.toStringAsFixed(2);
+    } else if (value < 100) {
+      return value.toStringAsFixed(1);
+    } else if (value < 100000) {
+      return value.toStringAsFixed(0);
     } else {
       // The value is too big to fit on the card; switch to thousands.
       return '${value ~/ 1000}K';
