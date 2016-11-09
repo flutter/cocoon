@@ -168,7 +168,8 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
           ..text = '${value.value}$unit\n'
             'Flutter revision: ${value.revision}\n'
             'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
-            'Goal: $goal$unit'
+            'Goal: $goal$unit\n'
+            'Baseline: $baseline$unit'
           ..classes.add('metric-value-tooltip')
           ..style.top = '${bar.getBoundingClientRect().top}px'
           ..style.left = '${bar.getBoundingClientRect().right + 5}px';
