@@ -69,7 +69,8 @@ final _testData = {
         'ID': 'series$i',
         'Label': 'Series $i',
         'Unit': 'ms',
-        'Goal': i.toDouble(),
+        'Goal': (40 + _rnd.nextInt(60)).toDouble(),
+        'Baseline': (40 + _rnd.nextInt(60)).toDouble(),
         'Archived': i % 2 != 0,  // make half of them archived
       },
     },
