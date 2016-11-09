@@ -49,7 +49,7 @@ benchmark-card {
 
 .metric-chart-container {
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   align-items: flex-end;
 }
 
