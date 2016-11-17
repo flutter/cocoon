@@ -140,7 +140,6 @@ class ContinuousIntegrationCommand extends Command {
 
       results['cocoon-connection'] = await _captureErrors(() async {
         String authStatus = await agent.getAuthenticationStatus();
-        results['cocoon-connection'] = new HealthCheckResult.success();
 
         if (authStatus != 'OK') {
           results['cocoon-authentication'] = new HealthCheckResult.failure('Failed to authenticate to Cocoon. Check config.yaml.');
@@ -148,8 +147,6 @@ class ContinuousIntegrationCommand extends Command {
           results['cocoon-authentication'] = new HealthCheckResult.success();
         }
       });
-
-      results['able-to-perform-health-check'] = new HealthCheckResult.success();
     });
 
     return results;
@@ -184,14 +181,21 @@ class ContinuousIntegrationCommand extends Command {
 ///
 /// Null callback results are turned into [HealthCheckResult] success.
 Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) async {
-  return await Chain.capture(() async {
-    try {
-      dynamic result = await healthCheckCallback();
-      return result is HealthCheckResult ? result : new HealthCheckResult.success();
-    } catch(error, stackTrace) {
-      return new HealthCheckResult.error(error, stackTrace is Chain ? stackTrace.terse : stackTrace);
-    }
+  Completer<HealthCheckResult> completer = new Completer<HealthCheckResult>();
+
+  // We intentionally ignore the future returned by the Chain because we're
+  // reporting the results via the completer. Instead of reporting a Future
+  // error, we report a successful Future carrying a HealthCheckResult error.
+  // One way to think about this is that "we _successfully_ discovered health
+  // check error, and will report it to the Cocoon back-end".
+  // ignore: unawaited_futures
+  Chain.capture(() async {
+    dynamic result = await healthCheckCallback();
+    completer.complete(result is HealthCheckResult ? result : new HealthCheckResult.success());
+  }, onError: (error, Chain chain) {
+    completer.complete(new HealthCheckResult.error(error, chain.terse));
   });
+  return completer.future;
 }
 
 Future<Null> getFlutterAt(String revision) async {
