@@ -7,7 +7,7 @@ package commands
 import (
 	"cocoon/db"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"google.golang.org/appengine/datastore"
@@ -23,14 +23,16 @@ func GetLog(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !cocoon.EntityExists(ownerKey) {
-		serveError(cocoon, w, r, fmt.Errorf("Invalid owner key. Owner entity does not exist."))
+		serveError(cocoon, w, r, errors.New("Invalid owner key. Owner entity does not exist."))
 		return
 	}
 
-	w.Header().Set("content-type", "text/plain")
+	w.Header().Set("content-type", "text/html; charset=utf-8")
 
 	te, _ := cocoon.GetTask(ownerKey)
 	js, _ := json.MarshalIndent(te, "", "  ")
+	w.Write([]byte("<!DOCTYPE html>"))
+	w.Write([]byte("<html><body><pre>"))
 	w.Write([]byte("\n\n------------ TASK ------------\n"))
 	w.Write(js)
 	w.Write([]byte("\n\n------------ LOG ------------\n"))
@@ -54,4 +56,5 @@ func GetLog(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request) {
 		w.Write(chunk.Data)
 	}
 	w.Write([]byte("<EOF>"))
+	w.Write([]byte("</pre></body></html>"))
 }
