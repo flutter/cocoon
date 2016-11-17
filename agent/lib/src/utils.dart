@@ -204,7 +204,7 @@ Future<int> exec(String executable, List<String> arguments,
   int exitCode = await proc.exitCode;
 
   if (exitCode != 0 && !canFail)
-    fail('Executable failed with exit code ${exitCode}.');
+    fail('Executable $executable failed with exit code $exitCode.');
 
   return exitCode;
 }
@@ -222,7 +222,7 @@ Future<String> eval(String executable, List<String> arguments,
   int exitCode = await proc.exitCode;
 
   if (exitCode != 0 && !canFail)
-    fail('Executable failed with exit code ${exitCode}.');
+    fail('Executable $executable failed with exit code $exitCode.');
 
   return output.trimRight();
 }
