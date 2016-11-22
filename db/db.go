@@ -6,6 +6,7 @@ package db
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -266,7 +267,7 @@ func (c *Cocoon) QueryTasksGroupedByStage(checklistKey *datastore.Key) ([]*Stage
 
 // See docs on the Stage.Status property.
 func computeStageStatus(stage *Stage) TaskStatus {
-	len := len(stage.Tasks)
+	taskCount := len(stage.Tasks)
 
 	getter := func(i int) interface{} {
 		return stage.Tasks[i]
@@ -275,14 +276,14 @@ func computeStageStatus(stage *Stage) TaskStatus {
 	isSucceeded := func(task interface{}) bool {
 		return task.(*TaskEntity).Task.Status == TaskSucceeded
 	}
-	if Every(len, getter, isSucceeded) {
+	if Every(taskCount, getter, isSucceeded) {
 		return TaskSucceeded
 	}
 
 	isFailed := func(task interface{}) bool {
 		return task.(*TaskEntity).Task.Status == TaskFailed
 	}
-	if Any(len, getter, isFailed) {
+	if Any(taskCount, getter, isFailed) {
 		return TaskFailed
 	}
 
@@ -292,7 +293,7 @@ func computeStageStatus(stage *Stage) TaskStatus {
 	isInProgressOrNew := func(task interface{}) bool {
 		return task.(*TaskEntity).Task.Status == TaskInProgress || task.(*TaskEntity).Task.Status == TaskNew
 	}
-	if Any(len, getter, isInProgress) && Every(len, getter, isInProgressOrNew) {
+	if Any(taskCount, getter, isInProgress) && Every(taskCount, getter, isInProgressOrNew) {
 		return TaskInProgress
 	}
 
@@ -303,7 +304,7 @@ func computeStageStatus(stage *Stage) TaskStatus {
 		prevStatus = status
 		return result
 	}
-	if Every(len, getter, isSameAsPrevious) && prevStatus != TaskNoStatus {
+	if Every(taskCount, getter, isSameAsPrevious) && prevStatus != TaskNoStatus {
 		return prevStatus
 	}
 
@@ -344,7 +345,7 @@ func (c *Cocoon) newAgentKey(agentID string) *datastore.Key {
 // GetAgent retrieves an agent record from the database.
 func (c *Cocoon) GetAgent(agentID string) (*Agent, error) {
 	if agentID == "" {
-		return nil, fmt.Errorf("AgentID cannot be blank")
+		return nil, errors.New("AgentID cannot be blank")
 	}
 
 	agent := new(Agent)
@@ -551,12 +552,9 @@ func (agent *Agent) CapableOfPerforming(task *Task) bool {
 	return true
 }
 
-// IsPrimary returns whether stage is primary or not.
-//
-// There are two categories of stages: primary and secondary. Tasks in the
-// secondary stages are only performed if all tasks in the primary stages are
-// successful.
-func (stage *Stage) IsPrimary() bool {
+// IsExternal returns whether tasks in the given stage are performed by an
+// external piece of infrastructure, such as Travis and Chrome Infra.
+func (stage *Stage) IsExternal() bool {
 	name := stage.Name
 	return name == "travis" || name == "chromebot"
 }
@@ -607,10 +605,10 @@ func (c *Cocoon) GetOrCreateTimeseries(taskName string, scoreKey string) (*Times
 	// By default use scoreKey as label and "ms" as unit. It can be tweaked
 	// manually later using the datastore UI.
 	series = &Timeseries{
-		ID:    id,
+		ID:       id,
 		TaskName: taskName,
-		Label: scoreKey,
-		Unit:  "ms",
+		Label:    scoreKey,
+		Unit:     "ms",
 	}
 
 	_, err = datastore.Put(c.Ctx, key, series)
