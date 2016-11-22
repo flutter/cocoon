@@ -7,6 +7,7 @@ package commands
 import (
 	"cocoon/db"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -98,7 +99,7 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 		checklist := checklists[ci]
 		stages, err := cocoon.QueryTasksGroupedByStage(checklist.Key)
 
-		if !allPrimaryStagesSuccessful(stages) {
+		if !isTravisSuccessful(stages) {
 			continue
 		}
 
@@ -107,9 +108,8 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 		}
 
 		for _, stage := range stages {
-			if stage.IsPrimary() {
-				// Primary stages are run by Travis and Chromebots. We do not reserve
-				// these tasks for agents.
+			if stage.IsExternal() {
+				// External stages are not run by devicelab agents.
 				continue
 			}
 			for _, taskEntity := range sortByAttemptCount(stage.Tasks) {
@@ -131,7 +131,7 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 	return nil, nil, nil
 }
 
-var errLostRace = fmt.Errorf("Lost race trying to reserve a task")
+var errLostRace = errors.New("Lost race trying to reserve a task")
 
 // Reserves a task for agent and returns the updated entity. If loses a
 // race returns errLostRace.
@@ -167,15 +167,15 @@ func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.
 	return taskEntity, nil
 }
 
-func allPrimaryStagesSuccessful(stages []*db.Stage) bool {
-	isSuccessfulPrimaryOrAnySecondary := func(istage interface{}) bool {
+func isTravisSuccessful(stages []*db.Stage) bool {
+	isSuccessfulTravisOrAnySecondary := func(istage interface{}) bool {
 		stage := istage.(*db.Stage)
-		if stage.IsPrimary() {
+		if stage.Name == "travis" {
 			return stage.Status == db.TaskSucceeded
 		}
 		return true
 	}
-	return db.Every(len(stages), func(i int) interface{} { return stages[i] }, isSuccessfulPrimaryOrAnySecondary)
+	return db.Every(len(stages), func(i int) interface{} { return stages[i] }, isSuccessfulTravisOrAnySecondary)
 }
 
 // Run tasks with fewest prior attempts first.

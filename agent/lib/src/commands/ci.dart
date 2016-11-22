@@ -125,7 +125,9 @@ class ContinuousIntegrationCommand extends Command {
 
     results['able-to-perform-health-check'] = await _captureErrors(() async {
       results['ssh-connectivity'] = await _captureErrors(_scrapeRemoteAccessInfo);
-      results['firebase-connection'] = await _captureErrors(checkFirebaseConnection);
+
+      if (config.firebaseFlutterDashboardToken != 'test')
+        results['firebase-connection'] = await _captureErrors(checkFirebaseConnection);
 
       Map<String, HealthCheckResult> deviceChecks = await devices.checkDevices();
       results.addAll(deviceChecks);
@@ -222,6 +224,10 @@ Future<Null> getFlutterAt(String revision) async {
 /// convenient. The goal is only to report available IPs as part of the health
 /// check.
 Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
+  if (!Platform.isMacOS) {
+    return new HealthCheckResult.success('${Platform.operatingSystem} not yet supported.');
+  }
+
   String ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
 
   return new HealthCheckResult.success(ip.isEmpty
