@@ -81,6 +81,12 @@ type Task struct {
 	EndTimestamp       int64
 }
 
+// BuildStatus contains build status information about a particular checklist.
+type BuildStatus struct {
+	Checklist *ChecklistEntity
+	Stages    []*Stage
+}
+
 // Timeseries contains a history of values of a certain performance metric.
 type Timeseries struct {
 	// Unique ID for computer consumption.
