@@ -17,29 +17,13 @@ type GetStatusResult struct {
 }
 
 // GetStatus returns current build status.
-func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func GetStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 	var err error
 
-	const maxStatusesToReturn = 50
-	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
+	statuses, err := c.QueryBuildStatuses()
 
 	if err != nil {
 		return nil, err
-	}
-
-	var statuses []*db.BuildStatus
-	for _, checklist := range checklists {
-		var stages []*db.Stage
-		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
-
-		if err != nil {
-			return nil, err
-		}
-
-		statuses = append(statuses, &db.BuildStatus{
-			Checklist: checklist,
-			Stages:    stages,
-		})
 	}
 
 	agentStatuses, err := c.QueryAgentStatuses()

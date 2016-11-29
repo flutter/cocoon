@@ -402,6 +402,69 @@ func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
 	return buffer, nil
 }
 
+func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
+	const maxStatusesToReturn = 50
+	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var statuses []*BuildStatus
+	for _, checklist := range checklists {
+		var stages []*Stage
+		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
+
+		if err != nil {
+			return nil, err
+		}
+
+		statuses = append(statuses, &BuildStatus{
+			Checklist: checklist,
+			Stages:    stages,
+			Result:    computeBuildResult(stages),
+		})
+	}
+
+	return statuses, nil
+}
+
+func computeBuildResult(stages []*Stage) BuildResult {
+	inProgressCount := 0
+	failedCount := 0
+	successCount := 0
+	for _, stage := range stages {
+		if stage.Name == "devicelab_ios" {
+			// TODO: the iOS build is still too unstable; ignore it.
+			continue
+		}
+		for _, task := range stage.Tasks {
+			switch task.Task.Status {
+			case TaskInProgress:
+				inProgressCount++
+			case TaskFailed:
+				failedCount++
+			case TaskSucceeded:
+				successCount++
+			}
+		}
+	}
+
+	if failedCount > 0 {
+		return BuildFailed
+	}
+
+	if inProgressCount > 0 {
+		return BuildInProgress
+	}
+
+	if successCount > 0 {
+		return BuildSucceeded
+	}
+
+	return BuildNew
+}
+
 // UpdateAgent updates an agent record.
 func (c *Cocoon) UpdateAgent(agent *Agent) error {
 	agentKey := c.newAgentKey(agent.AgentID)
