@@ -81,6 +81,31 @@ type Task struct {
 	EndTimestamp       int64
 }
 
+// BuildStatus contains build status information about a particular checklist.
+type BuildStatus struct {
+	Checklist *ChecklistEntity
+	Stages    []*Stage
+	Result    BuildResult
+}
+
+// BuildResult indicates the overall result of a build.
+type BuildResult string
+
+// BuildNew indicates that the build for the given checklist has not started yet.
+const BuildNew = BuildResult("New")
+
+// BuildInProgress indicates that the build is still in progress.
+const BuildInProgress = BuildResult("In Progress")
+
+// BuildSucceeded indicates that the build succeeded.
+const BuildSucceeded = BuildResult("Succeeded")
+
+// BuildFailed indicates that the build failed.
+const BuildFailed = BuildResult("Failed")
+
+// BuildStuck indicates that the build is failing to progress due to build system issues.
+const BuildStuck = BuildResult("Stuck")
+
 // Timeseries contains a history of values of a certain performance metric.
 type Timeseries struct {
 	// Unique ID for computer consumption.

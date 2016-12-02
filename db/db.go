@@ -402,6 +402,86 @@ func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
 	return buffer, nil
 }
 
+func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
+	const maxStatusesToReturn = 50
+	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var statuses []*BuildStatus
+	for _, checklist := range checklists {
+		var stages []*Stage
+		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
+
+		if err != nil {
+			return nil, err
+		}
+
+		statuses = append(statuses, &BuildStatus{
+			Checklist: checklist,
+			Stages:    stages,
+			Result:    computeBuildResult(checklist.Checklist, stages),
+		})
+	}
+
+	return statuses, nil
+}
+
+func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
+	taskCount := 0
+	pendingCount := 0
+
+	inProgressCount := 0
+	failedCount := 0
+	for _, stage := range stages {
+		if stage.Name == "devicelab_ios" {
+			// TODO: the iOS build is still too unstable; ignore it.
+			continue
+		}
+		for _, task := range stage.Tasks {
+			taskCount++
+			switch task.Task.Status {
+			case TaskFailed, TaskSkipped:
+				failedCount++
+			case TaskSucceeded:
+				// Nothing to count. It's a success if there are zero failures.
+			case TaskInProgress:
+				inProgressCount++
+				pendingCount++
+			default:
+				// Includes TaskNew and TaskNoStatus
+				pendingCount++
+			}
+		}
+	}
+
+	if taskCount == 0 {
+		// No tasks found at all. Something's wrong.
+		return BuildFailed
+	}
+
+	if pendingCount == 0 {
+		// Build finished.
+		if failedCount > 0 {
+			return BuildFailed
+		} else {
+			return BuildSucceeded
+		}
+	} else if inProgressCount == 0 {
+		return BuildNew
+	}
+
+	const fourHoursInMillis = 4 * 3600000
+
+	if checklist.AgeInMillis() > fourHoursInMillis {
+		return BuildStuck
+	}
+
+	return BuildInProgress
+}
+
 // UpdateAgent updates an agent record.
 func (c *Cocoon) UpdateAgent(agent *Agent) error {
 	agentKey := c.newAgentKey(agent.AgentID)
@@ -579,6 +659,11 @@ func NowMillis() int64 {
 // AgeInMillis returns the current age of the task in milliseconds.
 func (t *Task) AgeInMillis() int64 {
 	return NowMillis() - t.CreateTimestamp
+}
+
+// AgeInMillis returns the current age of the checklist in milliseconds.
+func (c *Checklist) AgeInMillis() int64 {
+	return NowMillis() - c.CreateTimestamp
 }
 
 // GetOrCreateTimeseries fetches an existing timeseries, or creates and returns

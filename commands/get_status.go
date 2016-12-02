@@ -12,40 +12,18 @@ type GetStatusCommand struct {
 
 // GetStatusResult contains dashboard status.
 type GetStatusResult struct {
-	Statuses      []*BuildStatus
+	Statuses      []*db.BuildStatus
 	AgentStatuses []*db.AgentStatus
 }
 
-// BuildStatus contains build status information about a particular checklist.
-type BuildStatus struct {
-	Checklist *db.ChecklistEntity
-	Stages    []*db.Stage
-}
-
 // GetStatus returns current build status.
-func GetStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func GetStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 	var err error
 
-	const maxStatusesToReturn = 50
-	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
+	statuses, err := c.QueryBuildStatuses()
 
 	if err != nil {
 		return nil, err
-	}
-
-	var statuses []*BuildStatus
-	for _, checklist := range checklists {
-		var stages []*db.Stage
-		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
-
-		if err != nil {
-			return nil, err
-		}
-
-		statuses = append(statuses, &BuildStatus{
-			Checklist: checklist,
-			Stages:    stages,
-		})
 	}
 
 	agentStatuses, err := c.QueryAgentStatuses()

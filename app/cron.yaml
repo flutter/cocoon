@@ -11,3 +11,6 @@ cron:
 - description: clean up stale datastore records
   url: /api/vacuum-clean
   schedule: every 10 minutes
+- description: sends build status notifications
+  url: /api/check-build-status
+  schedule: every 2 minutes
