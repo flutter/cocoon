@@ -422,47 +422,64 @@ func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
 		statuses = append(statuses, &BuildStatus{
 			Checklist: checklist,
 			Stages:    stages,
-			Result:    computeBuildResult(stages),
+			Result:    computeBuildResult(checklist.Checklist, stages),
 		})
 	}
 
 	return statuses, nil
 }
 
-func computeBuildResult(stages []*Stage) BuildResult {
+func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
+	taskCount := 0
+	pendingCount := 0
+
 	inProgressCount := 0
 	failedCount := 0
-	successCount := 0
 	for _, stage := range stages {
 		if stage.Name == "devicelab_ios" {
 			// TODO: the iOS build is still too unstable; ignore it.
 			continue
 		}
 		for _, task := range stage.Tasks {
+			taskCount++
 			switch task.Task.Status {
-			case TaskInProgress:
-				inProgressCount++
-			case TaskFailed:
+			case TaskFailed, TaskSkipped:
 				failedCount++
 			case TaskSucceeded:
-				successCount++
+				// Nothing to count. It's a success if there are zero failures.
+			case TaskInProgress:
+				inProgressCount++
+				pendingCount++
+			default:
+				// Includes TaskNew and TaskNoStatus
+				pendingCount++
 			}
 		}
 	}
 
-	if failedCount > 0 {
+	if taskCount == 0 {
+		// No tasks found at all. Something's wrong.
 		return BuildFailed
 	}
 
-	if inProgressCount > 0 {
-		return BuildInProgress
+	if pendingCount == 0 {
+		// Build finished.
+		if failedCount > 0 {
+			return BuildFailed
+		} else {
+			return BuildSucceeded
+		}
+	} else if inProgressCount == 0 {
+		return BuildNew
 	}
 
-	if successCount > 0 {
-		return BuildSucceeded
+	const fourHoursInMillis = 4 * 3600000
+
+	if checklist.AgeInMillis() > fourHoursInMillis {
+		return BuildStuck
 	}
 
-	return BuildNew
+	return BuildInProgress
 }
 
 // UpdateAgent updates an agent record.
@@ -642,6 +659,11 @@ func NowMillis() int64 {
 // AgeInMillis returns the current age of the task in milliseconds.
 func (t *Task) AgeInMillis() int64 {
 	return NowMillis() - t.CreateTimestamp
+}
+
+// AgeInMillis returns the current age of the checklist in milliseconds.
+func (c *Checklist) AgeInMillis() int64 {
+	return NowMillis() - c.CreateTimestamp
 }
 
 // GetOrCreateTimeseries fetches an existing timeseries, or creates and returns

@@ -86,6 +86,8 @@ func notifyMailingList(ctx context.Context, result CachedBuildResult) error {
 
 	if result.Result == db.BuildSucceeded {
 		resultDescription = "green"
+	} else if result.Result == db.BuildStuck {
+		resultDescription = "stuck"
 	} else {
 		resultDescription = "broken"
 	}
@@ -94,7 +96,7 @@ func notifyMailingList(ctx context.Context, result CachedBuildResult) error {
 		fmt.Sprintf("Commit: https://github.com/flutter/flutter/commit/%v", result.Sha)
 
 	message := &mail.Message{
-		Sender:  "noreply@flutter-dashboard.appspotmail.com",
+		Sender:  "Flutter Build Status <noreply@flutter-dashboard.appspotmail.com>",
 		To:      []string{"Flutter Build Status <flutter-build-status@google.com>"},
 		Subject: fmt.Sprintf("Build is %v at commit %v", resultDescription, result.Sha),
 		Body: body,
@@ -109,11 +111,15 @@ func notifyMailingList(ctx context.Context, result CachedBuildResult) error {
 // This pings the cloud service that controls a device on the wall in front of Hixie, which is
 // supposed to use an electric servo to rotate an arm pointing at either "build green" or
 // "build red".
+//
+// This functionality is best effort only, which is why it does not return errors. Instead it
+// logs errors and returns.
 func notifyServoThingy(ctx context.Context, result db.BuildResult) {
 	percent := computePercentFromResult(result)
 
 	ping := StatusPing{
 		Percent:        percent,
+		// We don't use this value, but need to set it to something; -1 seems to work.
 		DurationMillis: -1,
 	}
 
@@ -203,7 +209,7 @@ func computePercentFromResult(result db.BuildResult) int {
 	switch result {
 	case db.BuildSucceeded:
 		return 100
-	case db.BuildFailed:
+	default:
 		return 0
 	}
 	panic(fmt.Sprintf("Cannot compute percent from build result %v", result))

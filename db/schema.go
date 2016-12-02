@@ -103,6 +103,9 @@ const BuildSucceeded = BuildResult("Succeeded")
 // BuildFailed indicates that the build failed.
 const BuildFailed = BuildResult("Failed")
 
+// BuildStuck indicates that the build is failing to progress due to build system issues.
+const BuildStuck = BuildResult("Stuck")
+
 // Timeseries contains a history of values of a certain performance metric.
 type Timeseries struct {
 	// Unique ID for computer consumption.
