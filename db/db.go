@@ -164,16 +164,6 @@ func (c *Cocoon) runTaskQuery(query *datastore.Query) ([]*TaskEntity, error) {
 	return buffer, nil
 }
 
-// QueryTasks queries the database for all tasks belonging to a given checklist
-// sorted by StageName.
-func (c *Cocoon) QueryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
-	query := datastore.NewQuery("Task").
-		Ancestor(checklistKey).
-		Order("-StageName").
-		Limit(20)
-	return c.runTaskQuery(query)
-}
-
 // FullTask contains information about a Task as well as surrounding metadata.
 // It is generally more expensive to query this data than to query just the task
 // records.
@@ -233,9 +223,17 @@ func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
 	return tasks, nil
 }
 
+// Queries the database for all tasks belonging to a given checklist sorted by StageName.
+func (c *Cocoon) queryTasks(checklistKey *datastore.Key) ([]*TaskEntity, error) {
+	query := datastore.NewQuery("Task").
+		Ancestor(checklistKey).
+		Order("-StageName")
+	return c.runTaskQuery(query)
+}
+
 // QueryTasksGroupedByStage retrieves all tasks of a checklist grouped by stage.
 func (c *Cocoon) QueryTasksGroupedByStage(checklistKey *datastore.Key) ([]*Stage, error) {
-	tasks, err := c.QueryTasks(checklistKey)
+	tasks, err := c.queryTasks(checklistKey)
 
 	if err != nil {
 		return nil, err
