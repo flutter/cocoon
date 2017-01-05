@@ -766,6 +766,14 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*Times
 			return nil, err
 		}
 
+		// We sometimes get negative values, e.g. memory delta between runs can be negative if GC decided to
+		// run in between. Our metrics are smaller-is-better with zero being the perfect score. Instead of
+		// trying to visualize them, a quick and dirty solution is to zero them out. This logic can be updated
+		// later if we find a reasonable interpretation/visualization for negative values.
+		if value.Value < 0.0 {
+			value.Value = 0.0
+		}
+
 		buffer = append(buffer, &value)
 	}
 	return buffer, nil

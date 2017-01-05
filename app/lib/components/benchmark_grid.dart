@@ -130,8 +130,10 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       .map((TimeseriesValue v) => v.value)
       .fold(goal, math.max);
 
-    // Leave a bit of room to bars don't fill the height of the card
-    maxValue *= 1.1;
+    // Leave a bit of room so bars don't fill the height of the card
+    maxValue = maxValue > 0.0
+      ? maxValue * 1.1
+      : 1.0;  // if everything is 0.0, use an artificial chart height
 
     int goalHeight = (_kChartHeight * goal) ~/ maxValue;
     int baselineHeight = (_kChartHeight * baseline) ~/ maxValue;
