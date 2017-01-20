@@ -346,14 +346,6 @@ td.stats-value {
   cursor: pointer;
 }
 
-.agent-healthy {
-  background-color: #33CC33;
-}
-
-.agent-unhealthy {
-  background-color: #CC3333;
-}
-
 .agent-health-details-card {
   position: relative;
   background-color: #DDD;
