@@ -20,7 +20,8 @@ import 'package:http/http.dart' as http;
 <div class="agent-bar">
   <div>Agents</div>
   <div *ngFor="let agentStatus of agentStatuses"
-       [ngClass]="getAgentStyle(agentStatus)"
+       class="agent-chip"
+       [ngStyle]="getAgentStyle(agentStatus)"
        (click)="showAgentHealthDetails(agentStatus)">
     {{agentStatus.agentId}}
   </div>
@@ -76,7 +77,7 @@ import 'package:http/http.dart' as http;
   </tr>
 </table>
 ''',
-  directives: const [NgIf, NgFor, NgClass]
+  directives: const [NgIf, NgFor, NgClass, NgStyle]
 )
 class StatusTable implements OnInit {
   static const Duration maxHealthCheckAge = const Duration(minutes: 10);
@@ -183,11 +184,39 @@ class StatusTable implements OnInit {
     return attempts == 0 || succeededImmediately ? '' : '${attempts}';
   }
 
-  List<String> getAgentStyle(AgentStatus status) {
-    return [
-      'agent-chip',
-      isAgentHealthy(status) ? 'agent-healthy' : 'agent-unhealthy',
-    ];
+  /// Maps from agent IDs to the latest time agent reported success.
+  Map<String, DateTime> _latestAgentPassTimes = <String, DateTime>{};
+
+  static const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
+  static const Color _kHealthyAgentColor = const Color(0x33, 0xCC, 0x33);
+  static const Color _kUnhealthyAgentColor = const Color(0xCC, 0x33, 0x33);
+
+  Map<String, String> getAgentStyle(AgentStatus status) {
+    DateTime now = new DateTime.now();
+
+    if (isAgentHealthy(status)) {
+      _latestAgentPassTimes[status.agentId] = now;
+    }
+
+    Duration unhealthyDuration;
+    if (!_latestAgentPassTimes.containsKey(status.agentId)) {
+      // First time an agent reports status. Assume the worst.
+      unhealthyDuration = _kBadHealthGracePeriod;
+    } else {
+      unhealthyDuration = now.difference(_latestAgentPassTimes[status.agentId]);
+      // Clamp difference to _kBadHealthGracePeriod so that lerp coefficient is between 0.0 and 1.0.
+      unhealthyDuration = unhealthyDuration > _kBadHealthGracePeriod ? _kBadHealthGracePeriod : unhealthyDuration;
+    }
+
+    Color statusColor = Color.lerp(
+      _kHealthyAgentColor,
+      _kUnhealthyAgentColor,
+      unhealthyDuration.inMilliseconds / _kBadHealthGracePeriod.inMilliseconds,
+    );
+
+    return {
+      'background-color': statusColor.cssHex,
+    };
   }
 
   /// An agent is considered healthy if the latest health report was OK and is
@@ -294,4 +323,24 @@ String _iconForStageName(String stageName) {
     'devicelab_ios': '/apple.svg',
   };
   return iconMap[stageName];
+}
+
+class Color {
+  final int r, g, b;
+
+  const Color(this.r, this.g, this.b);
+
+  /// A 6-digit hex CSS string representation of the color.
+  String get cssHex => '#${_cHex(r)}${_cHex(g)}${_cHex(b)}';
+
+  /// Prints a single color [component] to a 2-digit hex string.
+  static String _cHex(int component) => component.toRadixString(16).padLeft(2, '0');
+
+  /// Linear interpolation between two colors [from] and [to] with coefficient
+  /// [c].
+  static Color lerp(Color from, Color to, double c) => new Color(
+      (from.r + (to.r - from.r) * c).toInt(),
+      (from.g + (to.g - from.g) * c).toInt(),
+      (from.b + (to.b - from.b) * c).toInt(),
+  );
 }
