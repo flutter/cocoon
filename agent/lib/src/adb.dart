@@ -134,6 +134,16 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     // runs non-stop for too long it loses connections to devices. There may be
     // a better method, but so far that's the best one I've found.
     await exec(config.adbPath, <String>['kill-server'], canFail: false);
+
+    // Immediately after killing the `adb` server, the server may deny connections.
+    // So we wait until first successful `adb devices -l`.
+    int retry = 0;
+    bool adbOk = false;
+    do {
+      retry++;
+      await new Future<Null>.delayed(const Duration(seconds: 1));
+      adbOk = await exec(config.adbPath, <String>['devices', '-l'], canFail: true) == 0;
+    } while (!adbOk && retry < 3);
   }
 }
 
