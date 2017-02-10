@@ -13,7 +13,7 @@ import (
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	yaml "gopkg.in/yaml.v2"
+	yaml "github.com/go-yaml/yaml"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -138,6 +138,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 
 		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}),
 		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}),
+		makeTask("chromebot", "windows_bot", []string{"can-update-chromebots"}),
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
