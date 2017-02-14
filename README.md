@@ -24,6 +24,7 @@ server.
 ```sh
 cd app
 pub get
+go get
 dart bin/dev_server.dart
 ```
 

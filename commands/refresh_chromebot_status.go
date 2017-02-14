@@ -36,9 +36,16 @@ func RefreshChromebotStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, e
 		return nil, err
 	}
 
+	windowsResults, err := refreshChromebot(cocoon, "windows_bot", "Windows")
+
+	if err != nil {
+		return nil, err
+	}
+
 	var allResults []*ChromebotResult
 	allResults = append(allResults, linuxResults...)
 	allResults = append(allResults, macResults...)
+	allResults = append(allResults, windowsResults...)
 	return RefreshChromebotStatusResult{allResults}, nil
 }
 
