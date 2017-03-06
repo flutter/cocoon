@@ -9,6 +9,8 @@ if [ ! -f "pubspec.yaml" -a ! -f "app.yaml" ]; then
   exit 1
 fi
 
+(cd ../commands && go test)
+
 rm -rf build
 pub get
 dartanalyzer --strong bin/*.dart web/*.dart test/*.dart

@@ -9,11 +9,9 @@ import (
 	"errors"
 )
 
-// GetPublicStatusResult contains the latest build status.
+// GetPublicStatusResult contains the anticipated build status.
 type GetPublicStatusResult struct {
-	Result db.BuildResult
-	Commit string
-	Author string
+	AnticipatedBuildStatus db.BuildResult
 }
 
 // GetPublicBuildStatus returns latest build status.
@@ -24,15 +22,52 @@ func GetPublicBuildStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	for _, status := range statuses {
-		if (status.Result != db.BuildNew && status.Result != db.BuildInProgress) {
-			return &GetPublicStatusResult{
-				Result: status.Result,
-				Commit: status.Checklist.Checklist.Commit.Sha,
-				Author: status.Checklist.Checklist.Commit.Author.Login,
-			}, nil
-		}
+	trend := computeTrend(statuses)
+
+	if trend == db.BuildNew {
+		return nil, errors.New("No successful or failed builds found. The system might be having trouble catching up with the rate of commits.")
 	}
 
-	return nil, errors.New("No successful or failed builds found. The system might be having trouble catching up with the rate of commits.")
+	return &GetPublicStatusResult{
+		AnticipatedBuildStatus: trend,
+	}, nil
+}
+
+// Computes anticipated outcome given the build status. If the latest task statuses are all
+// successful, anticipates build success. Otherwise anticipates failure. If there are no finished
+// tasks at all, returns [BuildNew].
+func computeTrend(statuses []*db.BuildStatus) db.BuildResult {
+	relevantTasks := map[string]db.TaskStatus{}
+
+	isLatestBuild := true
+	for _, status := range statuses {
+		for _, stage := range status.Stages {
+			for _, task := range stage.Tasks {
+				if stage.Name == "devicelab_ios" {
+					// TODO: the iOS build is still too unstable; ignore it.
+					continue
+				}
+
+				if isLatestBuild {
+					// We only care about tasks defined in the latest build. If a task is removed from CI, we
+					// no longer care about its status.
+					relevantTasks[task.Task.Name] = db.TaskNoStatus
+				}
+
+				if statusSeen, isRelevant := relevantTasks[task.Task.Name]; isRelevant && !statusSeen.IsFinal() && task.Task.Status.IsFinal() {
+					relevantTasks[task.Task.Name] = task.Task.Status
+					if task.Task.Status == db.TaskFailed || task.Task.Status == db.TaskSkipped {
+						return db.BuildWillFail
+					}
+				}
+			}
+		}
+		isLatestBuild = false
+	}
+
+	if len(relevantTasks) == 0 {
+		return db.BuildWillFail
+	}
+
+	return db.BuildSucceeded
 }
