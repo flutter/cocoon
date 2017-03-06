@@ -27,12 +27,12 @@ func GetPublicBuildStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 	for _, status := range statuses {
 		if (status.Result != db.BuildNew && status.Result != db.BuildInProgress) {
 			return &GetPublicStatusResult{
-				Result: statuses[0].Result,
-				Commit: statuses[0].Checklist.Checklist.Commit.Sha,
-				Author: statuses[0].Checklist.Checklist.Commit.Author.Login,
+				Result: status.Result,
+				Commit: status.Checklist.Checklist.Commit.Sha,
+				Author: status.Checklist.Checklist.Commit.Author.Login,
 			}, nil
 		}
 	}
 
-	return nil, errors.New("No finished builds recorded")
+	return nil, errors.New("No successful or failed builds found. The system might be having trouble catching up with the rate of commits.")
 }
