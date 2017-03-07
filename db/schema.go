@@ -97,6 +97,11 @@ const BuildNew = BuildResult("New")
 // BuildInProgress indicates that the build is still in progress.
 const BuildInProgress = BuildResult("In Progress")
 
+// BuildWillFail indicates that the build is still in progress but some tasks
+// are already known to have failed. Depending on the situation an immediate
+// action may be taken without waiting until the build completes.
+const BuildWillFail = BuildResult("Build Will Fail")
+
 // BuildSucceeded indicates that the build succeeded.
 const BuildSucceeded = BuildResult("Succeeded")
 

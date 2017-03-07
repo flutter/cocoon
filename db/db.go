@@ -400,6 +400,7 @@ func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
 	return buffer, nil
 }
 
+// QueryBuildStatuses returns the statuses of the latest builds.
 func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
 	const maxStatusesToReturn = 50
 	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
@@ -430,9 +431,9 @@ func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
 func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
 	taskCount := 0
 	pendingCount := 0
-
 	inProgressCount := 0
 	failedCount := 0
+
 	for _, stage := range stages {
 		if stage.Name == "devicelab_ios" {
 			// TODO: the iOS build is still too unstable; ignore it.
@@ -475,6 +476,10 @@ func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
 
 	if checklist.AgeInMillis() > fourHoursInMillis {
 		return BuildStuck
+	}
+
+	if (failedCount > 0) {
+		return BuildWillFail
 	}
 
 	return BuildInProgress

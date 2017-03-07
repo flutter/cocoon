@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -19,7 +20,6 @@ import (
 	"strings"
 
 	"google.golang.org/appengine"
-
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/user"
@@ -42,9 +42,10 @@ func init() {
 	registerRawHandler("/api/append-log", commands.AppendLog)
 	registerRawHandler("/api/get-log", commands.GetLog)
 
-	// IMPORTANT: This is the ONLY path that does NOT require authentication. Do
-	//            not copy this pattern. Use registerRPC instead.
+	// IMPORTANT: the paths below are public. They do NOT require authentication. Make sure to only
+	//            add paths that are safe to access publicly. If unsure, use registerRPC instead.
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/build-status", commands.GetPublicBuildStatus)
 
 	// IMPORTANT: Do not expose the handlers below in production.
 	if appengine.IsDevAppServer() {
@@ -75,6 +76,34 @@ func registerRPC(path string, handler func(cocoon *db.Cocoon, requestData []byte
 			serveUnauthorizedAccess(w, err)
 			return
 		}
+
+		ctx := cocoon.Ctx
+		bytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			serveError(ctx, w, r, err)
+			return
+		}
+
+		response, err := handler(cocoon, bytes)
+		if err != nil {
+			serveError(ctx, w, r, err)
+			return
+		}
+
+		outputData, err := json.Marshal(response)
+		if err != nil {
+			serveError(ctx, w, r, err)
+			return
+		}
+
+		w.Write(outputData)
+	})
+}
+
+// Registers a public RPC handler that takes JSON and outputs JSON data back. Does not require authentication.
+func dangerouslyRegisterUnauthenticatedRPC(path string, handler func(cocoon *db.Cocoon, requestData []byte) (interface{}, error)) {
+	http.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		cocoon := db.NewCocoon(appengine.NewContext(r))
 
 		ctx := cocoon.Ctx
 		bytes, err := ioutil.ReadAll(r.Body)
@@ -141,15 +170,15 @@ func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 	} else {
 		// Authenticate as Google account. Note that it could be both a Google
 		// account and agent.
-		user := user.Current(ctx)
+		googleUser := user.Current(ctx)
 
-		if user == nil {
-			return nil, fmt.Errorf("User not signed in")
+		if googleUser == nil {
+			return nil, errors.New("User not signed in")
 		}
 
-		if !strings.HasSuffix(user.Email, "@google.com") {
+		if !strings.HasSuffix(googleUser.Email, "@google.com") {
 			cocoon := db.NewCocoon(ctx)
-			err := cocoon.IsWhitelisted(user.Email)
+			err := cocoon.IsWhitelisted(googleUser.Email)
 
 			if err != nil {
 				return nil, err
