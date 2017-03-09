@@ -15,15 +15,30 @@ type RefreshTravisStatusResult struct {
 	Results []*TravisResult
 }
 
+// The outer JSON object containing individual build results under the "builds"
+// property and commit info under the "commits" property.
+type TravisResultWrapper struct {
+	Builds []*TravisResult
+	Commits []*TravisCommit
+}
+
+// TravisCommit maps a Travis commit ID to git SHA.
+type TravisCommit struct {
+	Id int64
+	Sha string
+}
+
 // TravisResult describes a Travis build result.
 type TravisResult struct {
-	Commit string
-	State  string
+	State    string
+	CommitId int64 `json:"commit_id"`
+	// Commit SHA is not populated from JSON, but from TravisCommit.
+	Sha      string `json:"-"`
 }
 
 // RefreshTravisStatus pulls down the latest Travis builds and updates the
 // corresponding task statuses.
-func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func RefreshTravisStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	travisTasks, err := cocoon.QueryPendingTasks("travis")
 
 	if err != nil {
@@ -42,18 +57,31 @@ func RefreshTravisStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, erro
 		return nil, err
 	}
 
-	var travisResults []*TravisResult
+	var wrapper *TravisResultWrapper
 
-	if json.Unmarshal(buildData, &travisResults) != nil {
+	if json.Unmarshal(buildData, &wrapper) != nil {
 		return nil, err
 	}
 
+	travisResults := wrapper.Builds
+	commits := wrapper.Commits
+
+	// Join build results with commits by commit ID and populate TravisResult.Sha.
+	for _, travisResult := range travisResults {
+		for _, commit := range commits {
+			if travisResult.CommitId == commit.Id {
+				travisResult.Sha = commit.Sha
+			}
+		}
+	}
+
+	// Join build results with task records and populate Task.Status.
 	for _, fullTask := range travisTasks {
 		task := fullTask.TaskEntity.Task
 		checklistEntity := fullTask.ChecklistEntity
 		for _, travisResult := range travisResults {
-			if travisResult.Commit == checklistEntity.Checklist.Commit.Sha {
-				if travisResult.State == "finished" {
+			if travisResult.Sha == checklistEntity.Checklist.Commit.Sha {
+				if travisResult.State == "passed" {
 					task.Status = db.TaskSucceeded
 				} else if travisResult.State == "started" || travisResult.State == "created" {
 					task.Status = db.TaskInProgress

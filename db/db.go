@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"sort"
 	"time"
 
@@ -787,8 +788,17 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*Times
 // FetchURL performs an HTTP GET request on the given URL and returns data if
 // response is HTTP 200.
 func (c *Cocoon) FetchURL(url string) ([]byte, error) {
+	request, err := http.NewRequest("GET", url, NoBody)
+
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Add("User-Agent", "FlutterCocoon")
+	request.Header.Add("Accept", "application/json; version=2")
+
 	httpClient := urlfetch.Client(c.Ctx)
-	response, err := httpClient.Get(url)
+	response, err := httpClient.Do(request)
 
 	if err != nil {
 		return nil, err
@@ -807,3 +817,12 @@ func (c *Cocoon) FetchURL(url string) ([]byte, error) {
 
 	return commitData, err
 }
+
+// GAE version of net/http does not provide a blank ReadWriter.
+var NoBody = noBody{}
+
+type noBody struct{}
+
+func (noBody) Read([]byte) (int, error)         { return 0, io.EOF }
+func (noBody) Close() error                     { return nil }
+func (noBody) WriteTo(io.Writer) (int64, error) { return 0, nil }
