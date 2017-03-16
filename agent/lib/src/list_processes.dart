@@ -70,6 +70,7 @@ Future<List<int>> _listFlutterProcessesWindows(Directory flutterDirectory) async
   if (!canRun(_handleUtil))
     throw 'Please add Microsoft\'s Handle utility to your PATH: '
           'https://technet.microsoft.com/en-us/sysinternals/handle.aspx';
+  // `handle` return non-zero exit code when no process is found.
   String result = await eval(_handleUtil, [path.canonicalize(flutterDirectory.absolute.path)], canFail: true);
 
   return _pid.allMatches(result)
