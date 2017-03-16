@@ -303,7 +303,7 @@ class Config {
     String authToken = requireConfigProperty(agentConfig, 'auth_token');
     String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null)
-      throw "Unable to find \$HOME";
+      throw "Unable to find \$HOME or \$USERPROFILE.";
 
     Directory flutterDirectory = dir('$home/.cocoon/flutter');
     mkdirs(flutterDirectory);
