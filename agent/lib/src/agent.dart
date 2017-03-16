@@ -42,6 +42,8 @@ class Agent {
   }
 
   Future<Null> uploadLogChunk(String taskKey, String chunk) async {
+    if (taskKey == null)
+      return;
     String url = '$baseCocoonUrl/api/append-log?ownerKey=${taskKey}';
     Response resp = await httpClient.post(url, body: chunk);
     if (resp.statusCode != 200) {

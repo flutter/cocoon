@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:yaml/yaml.dart';
@@ -21,6 +22,7 @@ Config _config;
 Config get config => _config;
 
 List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
+ProcessManager _processManager = new LocalProcessManager();
 
 class ProcessInfo {
   ProcessInfo(this.command, this.process);
@@ -123,7 +125,7 @@ void section(String title) {
 
 Future<String> getDartVersion() async {
   // The Dart VM returns the version text to stderr.
-  ProcessResult result = Process.runSync(dartBin, ['--version']);
+  ProcessResult result = _processManager.runSync([dartBin, '--version']);
   String version = result.stderr.trim();
 
   // Convert:
@@ -157,11 +159,25 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
   });
 }
 
+Future<Null> getFlutterAt(String revision) async {
+  String currentRevision = await getCurrentFlutterRepoCommit();
+
+  // This agent will likely run multiple tasks in the same checklist and
+  // therefore the same revision. It would be too costly to have to reinstall
+  // Flutter every time.
+  if (currentRevision == revision) {
+    print('Reusing previously checked out Flutter revision: $revision');
+    return;
+  }
+
+  await getFlutter(revision);
+}
+
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   print('Executing: $command');
-  Process proc = await Process.start(executable, arguments, environment: env, workingDirectory: cwd);
+  Process proc = await _processManager.start([executable]..addAll(arguments), environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = new ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
@@ -285,7 +301,11 @@ class Config {
     String agentId = requireConfigProperty(agentConfig, 'agent_id');
     String firebaseFlutterDashboardToken = requireConfigProperty(agentConfig, 'firebase_flutter_dashboard_token');
     String authToken = requireConfigProperty(agentConfig, 'auth_token');
-    Directory flutterDirectory = dir('${Platform.environment['HOME']}/.cocoon/flutter');
+    String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    if (home == null)
+      throw "Unable to find \$HOME or \$USERPROFILE.";
+
+    Directory flutterDirectory = dir('$home/.cocoon/flutter');
     mkdirs(flutterDirectory);
 
     DeviceOperatingSystem deviceOperatingSystem;
@@ -324,12 +344,12 @@ class Config {
       throw 'ANDROID_HOME environment variable missing. This variable must '
             'point to the Android SDK directory containing platform-tools.';
 
-    File adbPath = file(path.join(androidHome, 'platform-tools/adb'));
+    String adbPath = path.join(androidHome, 'platform-tools', 'adb');
 
-    if (!adbPath.existsSync())
+    if (!_processManager.canRun(adbPath))
       throw 'adb not found at: $adbPath';
 
-    return adbPath.absolute.path;
+    return path.absolute(adbPath);
   }
 
   @override
@@ -482,3 +502,5 @@ Future<Null> runAndCaptureAsyncStacks(Future<Null> callback()) {
   });
   return completer.future;
 }
+
+bool canRun(String path) => _processManager.canRun(path);

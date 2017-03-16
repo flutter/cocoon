@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:vm_service_client/vm_service_client.dart';
 
 import 'agent.dart';
+import 'list_processes.dart';
 import 'utils.dart';
 
 /// Slightly longer task timeout that gives the task runner a chance to
@@ -64,6 +64,15 @@ class TaskResult {
 
   /// Explains the failure reason if [failed].
   final String reason;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': succeeded,
+      'data': data,
+      'benchmarkScoreKeys': benchmarkScoreKeys,
+      'reason' : reason,
+    };
+  }
 }
 
 /// Runs a task in a separate Dart VM and collects the result using the VM
@@ -139,50 +148,11 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   }
 }
 
-class ProcessListResult {
-  ProcessListResult({@required this.processId, @required this.currentWorkingDirectory});
-
-  /// The "PID" field reported by `ps`.
-  final int processId;
-
-  /// The "cwd" field reported by `lsof`.
-  final String currentWorkingDirectory;
-}
-
 Future<Null> _forceQuitFlutterProcesses() async {
-  List<ProcessListResult> processes = await _listFlutterProcesses();
-  for (ProcessListResult process in processes) {
-    Process.killPid(process.processId, ProcessSignal.SIGKILL);
+  List<int> pids = await listFlutterProcessIds(config.flutterDirectory);
+  for (int pid in pids) {
+    Process.killPid(pid, ProcessSignal.SIGKILL);
   }
-}
-
-Future<List<ProcessListResult>> _listFlutterProcesses() async {
-  List<ProcessListResult> processes = await _listProcesses();
-  return processes
-    .where((ProcessListResult result) => result.currentWorkingDirectory.contains(config.flutterDirectory.absolute.path))
-    .toList();
-}
-
-final _emptySpace = new RegExp(r'\s+');
-
-Future<List<ProcessListResult>> _listProcesses() async {
-  var results = <ProcessListResult>[];
-  String ps = await eval('ps', ['-ef', '-u', Platform.environment['USER']]);
-  for (String psLine in ps.split('\n').skip(1)) {
-    int processId = int.parse(psLine.trim().split(_emptySpace)[1].trim());
-    String lsof = await eval('lsof', ['-p', '$processId'], canFail: true);
-    Iterable<String> cwdGrep = grep('cwd', from: lsof);
-    if (cwdGrep.isEmpty) {
-      // Not all processes report cwd; skip those, unlikely to be interesting.
-      continue;
-    }
-    String cwd = cwdGrep.first.split(' ').last;
-    results.add(new ProcessListResult(
-      processId: processId,
-      currentWorkingDirectory: cwd,
-    ));
-  }
-  return results;
 }
 
 Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
