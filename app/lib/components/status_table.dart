@@ -275,7 +275,7 @@ class HeaderRow {
         "chromebot",
         "devicelab",
         "devicelab_win",
-        "devicelab_ios"
+        "devicelab_ios",
       ];
 
       int aIdx = stagePrecedence.indexOf(a.stageName);
