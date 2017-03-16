@@ -271,9 +271,11 @@ class HeaderRow {
     }
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
-      	"travis",
-      	"chromebot",
-      	"devicelab",
+        "travis",
+        "chromebot",
+        "devicelab",
+        "devicelab_win",
+        "devicelab_ios"
       ];
 
       int aIdx = stagePrecedence.indexOf(a.stageName);
@@ -321,6 +323,7 @@ String _iconForStageName(String stageName) {
     'chromebot': '/chromium.svg',
     'devicelab': '/android.svg',
     'devicelab_ios': '/apple.svg',
+    'devicelab_win': '/windows.svg',
   };
   return iconMap[stageName];
 }

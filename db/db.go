@@ -322,6 +322,7 @@ var stagePrecedence = []string{
 	"travis",
 	"chromebot",
 	"devicelab",
+	"devicelab_win",
 	"devicelab_ios",
 }
 
