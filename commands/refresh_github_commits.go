@@ -13,7 +13,8 @@ import (
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	yaml "github.com/go-yaml/yaml"
+	"github.com/go-yaml/yaml"
+	"errors"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -30,7 +31,7 @@ type CommitSyncResult struct {
 }
 
 // RefreshGithubCommits returns the information about the latest GitHub commits.
-func RefreshGithubCommits(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func RefreshGithubCommits(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	commitData, err := cocoon.FetchURL("https://api.github.com/repos/flutter/flutter/commits")
 
 	if err != nil {
@@ -142,7 +143,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
-	manifestYaml, err := cocoon.FetchURL(url)
+	manifestBytes, err := cocoon.FetchURL(url)
 
 	if err != nil {
 		// There is no guarantee that every commit will have a manifest file
@@ -150,8 +151,16 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 		return tasks, nil
 	}
 
-	var manifest Manifest
-	yaml.Unmarshal(manifestYaml, &manifest)
+	manifest, err := ParseManifest(manifestBytes)
+
+	if err != nil {
+		log.Errorf(cocoon.Ctx, "%v", err)
+		subject := fmt.Sprintf("Invalid devicelab manifest at %v", commit)
+		message := fmt.Sprintf("%v. We will not be able to run devicelab tests at this commit.\n\n" +
+				"Error: %v", subject, err)
+		db.SendTeamNotification(cocoon.Ctx, subject, message)
+		return tasks, nil
+	}
 
 	for name, info := range manifest.Tasks {
 		tasks = append(tasks, makeTask(info.Stage, name, info.RequiredAgentCapabilities))
@@ -167,8 +176,62 @@ type Manifest struct {
 
 // ManifestTask contains information about a CI task.
 type ManifestTask struct {
-	Name                      string
 	Description               string
 	Stage                     string
 	RequiredAgentCapabilities []string `yaml:"required_agent_capabilities"`
+}
+
+// Parses the task manifest YAML and returns the manifest object.
+func ParseManifest(manifestBytes []byte) (*Manifest, error) {
+	manifestYaml := make(map[string]interface{})
+	var manifest Manifest
+
+	err := yaml.Unmarshal(manifestBytes, &manifestYaml)
+	if err == nil {
+		err = validateManifestYaml(manifestYaml)
+		if err == nil {
+			err = yaml.Unmarshal(manifestBytes, &manifest)
+			if err == nil {
+				err = validateManifest(&manifest)
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &manifest, nil
+}
+
+// Checks that the manifest YAML doesn't contain unknown keys. This can happen accidentally because
+// YAML is sensitive to indentation.
+func validateManifestYaml(manifestYaml map[string]interface{}) error {
+	for key := range manifestYaml {
+		if key != "tasks" {
+			return fmt.Errorf("Unrecognized key '%v' in manifest YAML.", key)
+		}
+	}
+	return nil
+}
+
+// Checks if the manifest information looks valid.
+func validateManifest(manifest *Manifest) error {
+	if len(manifest.Tasks) == 0 {
+		return errors.New("Manifest does not contain tasks.")
+	}
+
+	for name, task := range manifest.Tasks {
+		if len(task.Description) == 0 {
+			return fmt.Errorf("Task %v is missing a description", name)
+		}
+		if len(task.Stage) == 0 {
+			return fmt.Errorf("Task %v is missing a stage", name)
+		}
+		if len(task.RequiredAgentCapabilities) == 0 {
+			return fmt.Errorf("Task %v is missing required_agent_capabilities", name)
+		}
+	}
+
+	return nil
 }
