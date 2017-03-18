@@ -70,7 +70,7 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
       <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name)">
+           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)">
         {{getAttempts(status.checklist.checklist.commit.sha, metaTask.name)}}
       </div>
     </td>
@@ -246,11 +246,28 @@ class StatusTable implements OnInit {
     return '(${age.inMinutes} minutes $ageQualifier)';
   }
 
-  void openLog(String sha, String taskName) {
+  void openLog(String sha, String taskName, String taskStage) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (taskEntity != null)
+    if (taskStage == 'travis') {
+      window.open('https://travis-ci.org/flutter/flutter/builds', '_blank');
+    } else if (taskStage == 'chromebot') {
+      switch (taskName) {
+        case 'mac_bot':
+          window.open('https://build.chromium.org/p/client.flutter/builders/Mac', '_blank');
+          break;
+        case 'linux_bot':
+          window.open('https://build.chromium.org/p/client.flutter/builders/Linux', '_blank');
+          break;
+        case 'windows_bot':
+          window.open('https://build.chromium.org/p/client.flutter/builders/Windows', '_blank');
+          break;
+        default:
+          window.open('https://travis-ci.org/flutter/flutter/builds', '_blank');
+      }
+    } else if (taskEntity != null) {
       window.open('/api/get-log?ownerKey=${taskEntity.key.value}', '_blank');
+    }
   }
 }
 
