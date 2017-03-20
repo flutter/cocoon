@@ -23,7 +23,7 @@ type ChromebotResult struct {
 
 // RefreshChromebotStatus pulls down the latest chromebot builds and updates the
 // corresponding task statuses.
-func RefreshChromebotStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func RefreshChromebotStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	linuxResults, err := refreshChromebot(cocoon, "linux_bot", "Linux")
 
 	if err != nil {
@@ -50,7 +50,7 @@ func RefreshChromebotStatus(cocoon *db.Cocoon, inputJSON []byte) (interface{}, e
 }
 
 func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([]*ChromebotResult, error) {
-	tasks, err := cocoon.QueryPendingTasks(taskName)
+	tasks, err := cocoon.QueryLatestTasksByName(taskName)
 
 	if err != nil {
 		return nil, err

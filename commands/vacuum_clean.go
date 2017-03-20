@@ -7,8 +7,8 @@ package commands
 import "cocoon/db"
 
 // VacuumClean cleans up stale datastore records.
-func VacuumClean(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
-	entities, err := cocoon.QueryAllPendingTasks()
+func VacuumClean(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
+	entities, err := cocoon.QueryLatestTasks()
 
 	if err != nil {
 		return nil, err

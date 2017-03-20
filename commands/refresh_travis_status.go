@@ -39,7 +39,7 @@ type TravisResult struct {
 // RefreshTravisStatus pulls down the latest Travis builds and updates the
 // corresponding task statuses.
 func RefreshTravisStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
-	travisTasks, err := cocoon.QueryPendingTasks("travis")
+	travisTasks, err := cocoon.QueryLatestTasksByName("travis")
 
 	if err != nil {
 		return nil, err
