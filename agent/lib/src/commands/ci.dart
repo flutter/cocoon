@@ -155,7 +155,11 @@ Future<Null> _uploadDataToFirebase(CocoonTask task, TaskResult result) async {
   List<Map<String, dynamic>> golemData = <Map<String, dynamic>>[];
   int golemRevision = await computeGolemRevision();
 
-  Map<String, dynamic> data = new Map<String, dynamic>.from(result.data);
+  Map<String, dynamic> data = <String, dynamic>{};
+
+  if (result.data != null) {
+    data.addAll(result.data);
+  }
 
   if (result.benchmarkScoreKeys != null) {
     for (String scoreKey in result.benchmarkScoreKeys) {
