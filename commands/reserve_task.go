@@ -99,10 +99,6 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 		checklist := checklists[ci]
 		stages, err := cocoon.QueryTasksGroupedByStage(checklist.Key)
 
-		if !isTravisSuccessful(stages) {
-			continue
-		}
-
 		if err != nil {
 			return nil, nil, err
 		}
@@ -165,17 +161,6 @@ func atomicallyReserveTask(cocoon *db.Cocoon, taskKey *datastore.Key, agent *db.
 	}
 
 	return taskEntity, nil
-}
-
-func isTravisSuccessful(stages []*db.Stage) bool {
-	isSuccessfulTravisOrAnySecondary := func(istage interface{}) bool {
-		stage := istage.(*db.Stage)
-		if stage.Name == "travis" {
-			return stage.Status == db.TaskSucceeded
-		}
-		return true
-	}
-	return db.Every(len(stages), func(i int) interface{} { return stages[i] }, isSuccessfulTravisOrAnySecondary)
 }
 
 // Run tasks with fewest prior attempts first.

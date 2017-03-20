@@ -19,7 +19,9 @@ import (
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/mail"
 	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/log"
 )
 
 // NewCocoon creates a new Cocoon.
@@ -827,3 +829,17 @@ type noBody struct{}
 func (noBody) Read([]byte) (int, error)         { return 0, io.EOF }
 func (noBody) Close() error                     { return nil }
 func (noBody) WriteTo(io.Writer) (int64, error) { return 0, nil }
+
+// SendTeamNotification sends an email to "flutter-build-status@google.com".
+func SendTeamNotification(ctx context.Context, subject string, message string) error {
+	mailMessage := &mail.Message{
+		Sender:  "Flutter Build Status <noreply@flutter-dashboard.appspotmail.com>",
+		To:      []string{"Flutter Build Status <flutter-build-status@google.com>"},
+		Subject: subject,
+		Body: message,
+	}
+
+	log.Errorf(ctx, message)
+
+	return mail.Send(ctx, mailMessage)
+}
