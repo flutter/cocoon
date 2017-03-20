@@ -11,16 +11,20 @@ import 'package:angular2/angular2.dart';
 import 'package:cocoon/model.dart';
 import 'package:http/http.dart' as http;
 
+/// Checks if benchmark [data] satisfies some condition.
+typedef bool _BenchmarkPredicate(BenchmarkData data);
+
 @Component(
   selector: 'benchmark-grid',
   template: r'''
   <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
   <div style="margin: 5px;">
     <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
+    <input type="text" placeholder="Filter visible benchmarks" (keyup)="applyTextFilter($event.target.value)">
   </div>
-  <div *ngIf="benchmarks != null" class="card-container">
+  <div *ngIf="visibleBenchmarks != null" class="card-container">
     <benchmark-card
-      *ngFor="let benchmark of benchmarks"
+      *ngFor="let benchmark of visibleBenchmarks"
       [data]="benchmark">
     </benchmark-card>
   </div>
@@ -32,15 +36,17 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   final http.Client _httpClient;
   bool isLoading = true;
-  List<BenchmarkData> benchmarks;
+  List<BenchmarkData> _benchmarks;
+  List<BenchmarkData> visibleBenchmarks;
   Timer _reloadTimer;
   bool _isShowArchived = false;
 
+  String _taskTextFilter;
   bool get isShowArchived => _isShowArchived;
 
   void toggleArchived() {
     _isShowArchived = !_isShowArchived;
-    reloadData();
+    _applyFilters();
   }
 
   @override
@@ -57,11 +63,40 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   Future<Null> reloadData() async {
     isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
-    GetBenchmarksResult result = GetBenchmarksResult.fromJson(statusJson);
-    benchmarks = result.benchmarks
-        ?.where((BenchmarkData data) => !data.timeseries.timeseries.isArchived || _isShowArchived)
-        ?.toList();
+    _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
+    _applyFilters();
     isLoading = false;
+  }
+
+  void applyTextFilter(String newFilter) {
+    _taskTextFilter = newFilter?.trim()?.toLowerCase();
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    if (_benchmarks == null) {
+      visibleBenchmarks = [];
+      return;
+    }
+
+    List<_BenchmarkPredicate> filters = <_BenchmarkPredicate>[];
+
+    if (_taskTextFilter != null && _taskTextFilter.trim().isNotEmpty) {
+      filters.add((BenchmarkData data) {
+        bool labelMatches = data.timeseries.timeseries.label?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool taskNameMatches = data.timeseries.timeseries.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
+        return labelMatches || taskNameMatches;
+      });
+    }
+
+    if (!_isShowArchived) {
+      filters.add((BenchmarkData data) => !data.timeseries.timeseries.isArchived);
+    }
+
+    visibleBenchmarks = _benchmarks;
+    for (_BenchmarkPredicate filter in filters) {
+      visibleBenchmarks = visibleBenchmarks.where(filter).toList();
+    }
   }
 }
 
