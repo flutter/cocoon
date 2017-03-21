@@ -22,7 +22,7 @@ type BenchmarkData struct {
 }
 
 // GetBenchmarks returns recent benchmark results.
-func GetBenchmarks(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
+func GetBenchmarks(c *db.Cocoon, _ []byte) (interface{}, error) {
 	seriesList, err := c.QueryTimeseries()
 
 	if err != nil {
@@ -31,7 +31,7 @@ func GetBenchmarks(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 
 	var benchmarks []*BenchmarkData
 	for _, series := range seriesList {
-		values, err := c.QueryLatestTimeseriesValues(series)
+		values, _, err := c.QueryLatestTimeseriesValues(series, nil, 50)
 
 		if err != nil {
 			return nil, err

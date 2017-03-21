@@ -22,14 +22,19 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
     <input type="text" placeholder="Filter visible benchmarks" (keyup)="applyTextFilter($event.target.value)">
   </div>
+  <div *ngIf="zoomInto != null" class="benchmark-history-container">
+    <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
+  </div>
   <div *ngIf="visibleBenchmarks != null" class="card-container">
     <benchmark-card
+      class="short-benchmark-card"
       *ngFor="let benchmark of visibleBenchmarks"
-      [data]="benchmark">
+      [data]="benchmark"
+      (onZoomIn)="zoomInto = benchmark">
     </benchmark-card>
   </div>
 ''',
-  directives: const [NgIf, NgFor, NgClass, BenchmarkCard],
+  directives: const [NgIf, NgFor, NgClass, BenchmarkCard, BenchmarkHistory],
 )
 class BenchmarkGrid implements OnInit, OnDestroy {
   BenchmarkGrid(this._httpClient);
@@ -43,6 +48,17 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   String _taskTextFilter;
   bool get isShowArchived => _isShowArchived;
+
+  /// If not `null` the benchmark whose history is shown on screen.
+  BenchmarkData _zoomInto;
+  BenchmarkData get zoomInto => _zoomInto;
+  set zoomInto(BenchmarkData newData) {
+    // Force angular to destroy old card and create a new one.
+    _zoomInto = null;
+    Timer.run(() {
+      _zoomInto = newData;
+    });
+  }
 
   void toggleArchived() {
     _isShowArchived = !_isShowArchived;
@@ -101,6 +117,47 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 }
 
 @Component(
+  selector: 'benchmark-history',
+  template: r'''
+    <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
+  ''',
+  directives: const [NgIf, BenchmarkCard],
+)
+class BenchmarkHistory {
+  BenchmarkHistory(this._httpClient);
+
+  final http.Client _httpClient;
+
+  Key _key;
+
+  @Input() set timeseriesKey(Key key) {
+    if (key == null) {
+      throw 'Timeseries key must not be null';
+    }
+    _key = key;
+    _loadData();
+  }
+
+  BenchmarkData data;
+  Cursor lastPosition;
+
+  Future<Null> _loadData() async {
+    Map<String, dynamic> request = <String, dynamic>{
+      'TimeSeriesKey': _key.value,
+    };
+
+    if (lastPosition != null) {
+      request['StartFrom'] = lastPosition.value;
+    }
+
+    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: JSON.encode(request));
+    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
+    data = result.benchmarkData;
+    lastPosition = result.lastPosition;
+  }
+}
+
+@Component(
   selector: 'benchmark-card',
   template: r'''
 <span class="metric-task-name">{{taskName}}</span>
@@ -110,6 +167,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 </div>
 <div class="metric-label">{{label}}</div>
 <div class="metric-chart-container" #chartContainer></div>
+<div class="zoom-button" (click)="zoomIn()">&#x1f50d;</div>
   ''',
   directives: const [NgIf, NgFor, NgStyle],
 )
@@ -123,9 +181,20 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
 
   @ViewChild('chartContainer') ElementRef chartContainer;
 
+  @Input() String barWidth = 'medium';
+
   @Input() set data(BenchmarkData newData) {
     chartContainer.nativeElement.children.clear();
     _data = newData;
+  }
+
+  final StreamController<Null> _onZoomIn = new StreamController<Null>();
+
+  /// Emits an event when the user clicks on the zoom in button.
+  @Output() Stream<Null> get onZoomIn => _onZoomIn.stream;
+
+  void zoomIn() {
+    _onZoomIn.add(null);
   }
 
   double get goal => _data.timeseries.timeseries.goal;
@@ -194,6 +263,9 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
         ..style.height = '${_kChartHeight * value.value / maxValue}px';
+
+      if (barWidth == 'narrow')
+        bar.classes.add('metric-value-bar-narrow');
 
       if (value.value > baseline) {
         bar.classes.add('metric-value-bar-underperformed');

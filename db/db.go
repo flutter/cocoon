@@ -673,6 +673,21 @@ func (c *Checklist) AgeInMillis() int64 {
 	return NowMillis() - c.CreateTimestamp
 }
 
+// GetTimeseries retrieves a timeseries from the database.
+func (c *Cocoon) GetTimeseries(key *datastore.Key) (*TimeseriesEntity, error) {
+	timeseries := new(Timeseries)
+	err := datastore.Get(c.Ctx, key, timeseries)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TimeseriesEntity{
+		Key:  key,
+		Timeseries: timeseries,
+	}, nil
+}
+
 // GetOrCreateTimeseries fetches an existing timeseries, or creates and returns
 // a new one if one with the given scoreKey does not yet exist.
 func (c *Cocoon) GetOrCreateTimeseries(taskName string, scoreKey string) (*TimeseriesEntity, error) {
@@ -758,21 +773,30 @@ func (c *Cocoon) QueryTimeseries() ([]*TimeseriesEntity, error) {
 	return buffer, nil
 }
 
-// QueryLatestTimeseriesValues fetches the latest benchmark results.
-func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*TimeseriesValue, error) {
+type TimeseriesValuePredicate func(*TimeseriesValue) bool;
+
+// QueryLatestTimeseriesValues fetches the latest benchmark results starting from startFrom and up to a given limit.
+//
+// If startFrom is nil, starts from the latest available record.
+func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity, startFrom *datastore.Cursor, limit int) ([]*TimeseriesValue, *datastore.Cursor, error) {
 	query := datastore.NewQuery("TimeseriesValue").
 		Ancestor(series.Key).
 		Order("-CreateTimestamp").
-		Limit(50)
+	  Limit(limit)
+
+	if startFrom != nil {
+		query.Start(*startFrom)
+	}
 
 	var buffer []*TimeseriesValue
-	for iter := query.Run(c.Ctx); ; {
+	iter := query.Run(c.Ctx)
+	for {
 		var value TimeseriesValue
 		_, err := iter.Next(&value)
 		if err == datastore.Done {
 			break
 		} else if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// We sometimes get negative values, e.g. memory delta between runs can be negative if GC decided to
@@ -784,8 +808,19 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity) ([]*Times
 		}
 
 		buffer = append(buffer, &value)
+
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	return buffer, nil
+
+	cursor, err := iter.Cursor()
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buffer, &cursor, nil
 }
 
 // FetchURL performs an HTTP GET request on the given URL and returns data if
