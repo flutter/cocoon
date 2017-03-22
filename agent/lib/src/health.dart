@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import 'adb.dart';
 import 'agent.dart';
 import 'firebase.dart';
@@ -58,12 +56,12 @@ Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) 
   // One way to think about this is that "we _successfully_ discovered health
   // check error, and will report it to the Cocoon back-end".
   // ignore: unawaited_futures
-  Chain.capture(() async {
+  try {
     dynamic result = await healthCheckCallback();
     completer.complete(result is HealthCheckResult ? result : new HealthCheckResult.success());
-  }, onError: (error, Chain chain) {
-    completer.complete(new HealthCheckResult.error(error, chain.terse));
-  });
+  } catch (error, stackTrace) {
+    completer.complete(new HealthCheckResult.error(error, stackTrace));
+  }
   return completer.future;
 }
 

@@ -32,10 +32,6 @@ class ContinuousIntegrationCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
-    return runAndCaptureAsyncStacks(() => _runContinuously(args));
-  }
-
-  Future<Null> _runContinuously(ArgResults args) async {
     // Perform one pre-flight round of checks and quit immediately if something
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
@@ -98,15 +94,13 @@ class ContinuousIntegrationCommand extends Command {
   }
 
   Future<Null> _runTask(CocoonTask task) async {
-    await runAndCaptureAsyncStacks(() async {
-      TaskResult result = await runTask(agent, task);
-      if (result.succeeded) {
-        await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
-        await _uploadDataToFirebase(task, result);
-      } else {
-        await agent.reportFailure(task.key, result.reason);
-      }
-    });
+    TaskResult result = await runTask(agent, task);
+    if (result.succeeded) {
+      await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
+      await _uploadDataToFirebase(task, result);
+    } else {
+      await agent.reportFailure(task.key, result.reason);
+    }
   }
 
   Future<Null> _screensOff() async {
