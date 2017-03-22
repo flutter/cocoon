@@ -175,20 +175,15 @@ type FullTask struct {
 	ChecklistEntity *ChecklistEntity
 }
 
-// QueryAllPendingTasks queries all tasks that are not in a final state.
-//
-// The query goes back up to 20 checklists.
-//
-// See also IsFinal.
-func (c *Cocoon) QueryAllPendingTasks() ([]*FullTask, error) {
-	return c.QueryPendingTasks("")
+// QueryLatestTasks queries the latest tasks in reverse chronological order up to 20 checklists
+// back in history.
+func (c *Cocoon) QueryLatestTasks() ([]*FullTask, error) {
+	return c.QueryLatestTasksByName("")
 }
 
-// QueryPendingTasks lists the latest tasks with the given name that are not yet
-// in a final status.
-//
-// See also IsFinal.
-func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
+// QueryLatestTasksByName queries the latest tasks by name in reverse chronological order up to 20
+// checklists back in history.
+func (c *Cocoon) QueryLatestTasksByName(taskName string) ([]*FullTask, error) {
 	const maxChecklistsToScan = 20
 	checklists, err := c.QueryLatestChecklists(maxChecklistsToScan)
 
@@ -214,12 +209,10 @@ func (c *Cocoon) QueryPendingTasks(taskName string) ([]*FullTask, error) {
 		}
 
 		for _, candidate := range candidates {
-			if !candidate.Task.Status.IsFinal() {
-				tasks = append(tasks, &FullTask{
-					TaskEntity:      candidate,
-					ChecklistEntity: checklists[i],
-				})
-			}
+			tasks = append(tasks, &FullTask{
+				TaskEntity:      candidate,
+				ChecklistEntity: checklists[i],
+			})
 		}
 	}
 
