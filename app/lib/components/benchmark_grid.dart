@@ -11,36 +11,58 @@ import 'package:angular2/angular2.dart';
 import 'package:cocoon/model.dart';
 import 'package:http/http.dart' as http;
 
+/// Checks if benchmark [data] satisfies some condition.
+typedef bool _BenchmarkPredicate(BenchmarkData data);
+
 @Component(
   selector: 'benchmark-grid',
   template: r'''
   <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
   <div style="margin: 5px;">
     <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
+    <input type="text" placeholder="Filter visible benchmarks" (keyup)="applyTextFilter($event.target.value)">
   </div>
-  <div *ngIf="benchmarks != null" class="card-container">
+  <div *ngIf="zoomInto != null" class="benchmark-history-container">
+    <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
+  </div>
+  <div *ngIf="visibleBenchmarks != null" class="card-container">
     <benchmark-card
-      *ngFor="let benchmark of benchmarks"
-      [data]="benchmark">
+      class="short-benchmark-card"
+      *ngFor="let benchmark of visibleBenchmarks"
+      [data]="benchmark"
+      (onZoomIn)="zoomInto = benchmark">
     </benchmark-card>
   </div>
 ''',
-  directives: const [NgIf, NgFor, NgClass, BenchmarkCard],
+  directives: const [NgIf, NgFor, NgClass, BenchmarkCard, BenchmarkHistory],
 )
 class BenchmarkGrid implements OnInit, OnDestroy {
   BenchmarkGrid(this._httpClient);
 
   final http.Client _httpClient;
   bool isLoading = true;
-  List<BenchmarkData> benchmarks;
+  List<BenchmarkData> _benchmarks;
+  List<BenchmarkData> visibleBenchmarks;
   Timer _reloadTimer;
   bool _isShowArchived = false;
 
+  String _taskTextFilter;
   bool get isShowArchived => _isShowArchived;
+
+  /// If not `null` the benchmark whose history is shown on screen.
+  BenchmarkData _zoomInto;
+  BenchmarkData get zoomInto => _zoomInto;
+  set zoomInto(BenchmarkData newData) {
+    // Force angular to destroy old card and create a new one.
+    _zoomInto = null;
+    Timer.run(() {
+      _zoomInto = newData;
+    });
+  }
 
   void toggleArchived() {
     _isShowArchived = !_isShowArchived;
-    reloadData();
+    _applyFilters();
   }
 
   @override
@@ -57,11 +79,81 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   Future<Null> reloadData() async {
     isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
-    GetBenchmarksResult result = GetBenchmarksResult.fromJson(statusJson);
-    benchmarks = result.benchmarks
-        ?.where((BenchmarkData data) => !data.timeseries.timeseries.isArchived || _isShowArchived)
-        ?.toList();
+    _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
+    _applyFilters();
     isLoading = false;
+  }
+
+  void applyTextFilter(String newFilter) {
+    _taskTextFilter = newFilter?.trim()?.toLowerCase();
+    _applyFilters();
+  }
+
+  void _applyFilters() {
+    if (_benchmarks == null) {
+      visibleBenchmarks = [];
+      return;
+    }
+
+    List<_BenchmarkPredicate> filters = <_BenchmarkPredicate>[];
+
+    if (_taskTextFilter != null && _taskTextFilter.trim().isNotEmpty) {
+      filters.add((BenchmarkData data) {
+        bool labelMatches = data.timeseries.timeseries.label?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool taskNameMatches = data.timeseries.timeseries.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
+        return labelMatches || taskNameMatches;
+      });
+    }
+
+    if (!_isShowArchived) {
+      filters.add((BenchmarkData data) => !data.timeseries.timeseries.isArchived);
+    }
+
+    visibleBenchmarks = _benchmarks;
+    for (_BenchmarkPredicate filter in filters) {
+      visibleBenchmarks = visibleBenchmarks.where(filter).toList();
+    }
+  }
+}
+
+@Component(
+  selector: 'benchmark-history',
+  template: r'''
+    <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
+  ''',
+  directives: const [NgIf, BenchmarkCard],
+)
+class BenchmarkHistory {
+  BenchmarkHistory(this._httpClient);
+
+  final http.Client _httpClient;
+
+  Key _key;
+
+  @Input() set timeseriesKey(Key key) {
+    if (key == null) {
+      throw 'Timeseries key must not be null';
+    }
+    _key = key;
+    _loadData();
+  }
+
+  BenchmarkData data;
+  Cursor lastPosition;
+
+  Future<Null> _loadData() async {
+    Map<String, dynamic> request = <String, dynamic>{
+      'TimeSeriesKey': _key.value,
+    };
+
+    if (lastPosition != null) {
+      request['StartFrom'] = lastPosition.value;
+    }
+
+    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: JSON.encode(request));
+    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
+    data = result.benchmarkData;
+    lastPosition = result.lastPosition;
   }
 }
 
@@ -75,6 +167,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 </div>
 <div class="metric-label">{{label}}</div>
 <div class="metric-chart-container" #chartContainer></div>
+<div class="zoom-button" (click)="zoomIn()">&#x1f50d;</div>
   ''',
   directives: const [NgIf, NgFor, NgStyle],
 )
@@ -88,9 +181,20 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
 
   @ViewChild('chartContainer') ElementRef chartContainer;
 
+  @Input() String barWidth = 'medium';
+
   @Input() set data(BenchmarkData newData) {
     chartContainer.nativeElement.children.clear();
     _data = newData;
+  }
+
+  final StreamController<Null> _onZoomIn = new StreamController<Null>();
+
+  /// Emits an event when the user clicks on the zoom in button.
+  @Output() Stream<Null> get onZoomIn => _onZoomIn.stream;
+
+  void zoomIn() {
+    _onZoomIn.add(null);
   }
 
   double get goal => _data.timeseries.timeseries.goal;
@@ -159,6 +263,9 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
         ..style.height = '${_kChartHeight * value.value / maxValue}px';
+
+      if (barWidth == 'narrow')
+        bar.classes.add('metric-value-bar-narrow');
 
       if (value.value > baseline) {
         bar.classes.add('metric-value-bar-underperformed');

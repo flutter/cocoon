@@ -33,6 +33,35 @@ class _KeySerializer implements JsonSerializer<Key> {
   }
 }
 
+/// Datastore cursor.
+class Cursor {
+  static const _serializer = const _CursorSerializer();
+
+  const Cursor(this.value);
+
+  final String value;
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  bool operator ==(Cursor other) => other != null && other.value == value;
+}
+
+class _CursorSerializer implements JsonSerializer<Cursor> {
+  const _CursorSerializer();
+
+  @override
+  Cursor deserialize(dynamic jsonValue) {
+    return new Cursor(jsonValue);
+  }
+
+  @override
+  dynamic serialize(Cursor cursor) {
+    return cursor.value;
+  }
+}
+
 class GetStatusResult extends Entity {
   static final _serializer = new EntitySerializer(
     (Map<String, dynamic> props) => new GetStatusResult(props),
@@ -231,6 +260,24 @@ class BenchmarkData extends Entity {
 
   TimeseriesEntity get timeseries => this['Timeseries'];
   List<TimeseriesValue> get values => this['Values'];
+}
+
+class GetTimeseriesHistoryResult extends Entity {
+  static final _serializer = new EntitySerializer(
+          (Map<String, dynamic> props) => new GetTimeseriesHistoryResult(props),
+      <String, JsonSerializer>{
+        'BenchmarkData': BenchmarkData._serializer,
+        'LastPosition': Cursor._serializer,
+      }
+  );
+
+  GetTimeseriesHistoryResult([Map<String, dynamic> props]) : super(_serializer, props);
+
+  static GetTimeseriesHistoryResult fromJson(dynamic json) =>
+      _serializer.deserialize(json);
+
+  BenchmarkData get benchmarkData => this['BenchmarkData'];
+  Cursor get lastPosition => this['LastPosition'];
 }
 
 class TimeseriesEntity extends Entity {

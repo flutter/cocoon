@@ -24,7 +24,6 @@ body {
 benchmark-card {
   display: inline-block;
   position: relative;
-  width: 250px;
   height: 100px;
   padding: 0;
   margin: 5px;
@@ -38,6 +37,16 @@ benchmark-card {
   display: flex;
   flex-direction: row-reverse;
   overflow: hidden;
+}
+
+.short-benchmark-card {
+  width: 250px;
+}
+
+.benchmark-history-container {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ccc;
 }
 
 .metric {
@@ -82,6 +91,10 @@ benchmark-card {
   display: inline-block;
 }
 
+.metric-value-bar-narrow {
+  width: 2px;
+}
+
 .metric-value-bar-underperformed {
   background-color: #FFAAAA;
 }
@@ -116,6 +129,22 @@ benchmark-card {
   bottom: 5px;
   left: 5px;
   pointer-events: none;
+}
+
+.zoom-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #f7f7f7;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  padding: 3px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.zoom-button:hover {
+  opacity: 1.0;
 }
 
 footer {

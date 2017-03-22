@@ -31,7 +31,7 @@ void main() {
     test('should show a grid', () async {
       List<String> httpCalls = <String>[];
 
-      var component = await bootstrap(BenchmarkGrid, [
+      var componentRef = await bootstrap(BenchmarkGrid, [
         provide(http.Client, useValue: new MockClient((http.Request request) async {
           httpCalls.add(request.url.path);
           return new http.Response(
@@ -47,14 +47,18 @@ void main() {
       expect(httpCalls, <String>['/api/get-benchmarks']);
       expect(document.querySelectorAll('benchmark-card'), hasLength(5));
 
-      expect(component.instance.isShowArchived, isFalse);
+      BenchmarkGrid component = componentRef.instance;
+      expect(component.isShowArchived, isFalse);
       document.body.querySelector('#toggleArchived').click();
-      expect(component.instance.isShowArchived, isTrue);
+      expect(component.isShowArchived, isTrue);
 
       await new Future.delayed(Duration.ZERO);
 
-      expect(component.instance.benchmarks, hasLength(10));
+      expect(component.visibleBenchmarks, hasLength(10));
       expect(document.querySelectorAll('benchmark-card'), hasLength(10));
+
+      component.applyTextFilter('series 1');
+      expect(component.visibleBenchmarks.single.timeseries.timeseries.label, 'Series 1');
     });
   });
 }
