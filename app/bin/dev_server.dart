@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import 'package:cocoon/ioutil.dart';
 
@@ -28,25 +27,16 @@ const _pubServePort = 9091;
 
 /// Runs `pub serve` and `goapp serve` such that the app can be debugged in
 /// Dartium.
-void main(List<String> rawArgs) {
+Future<Null> main(List<String> rawArgs) async {
   ArgResults args = _parseArgs(rawArgs);
 
-  Zone.current.fork(specification: new ZoneSpecification(handleUncaughtError: _handleCatastrophy))
-    .run(() {
-      Chain.capture(() async {
-        await _start(args);
-      }, onError: (error, Chain chain) {
-        print(error);
-        print(chain.terse);
-      });
-    });
-}
-
-ArgResults _parseArgs(List<String> rawArgs) {
-  ArgParser argp = new ArgParser()
-    ..addFlag('clear-datastore');
-
-  return argp.parse(rawArgs);
+  try {
+    await _start(args);
+  } catch (error, stackTrace) {
+    print('Dev server error: $error\n$stackTrace');
+    print('Quitting');
+    await _stop();
+  }
 }
 
 Future<Null> _start(ArgResults args) async {
@@ -106,9 +96,11 @@ Future<Null> _start(ArgResults args) async {
   }
 }
 
-void _handleCatastrophy(Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
-  print('Catastrophic error: $error\n$stackTrace');
-  _stop();
+ArgResults _parseArgs(List<String> rawArgs) {
+  ArgParser argp = new ArgParser()
+    ..addFlag('clear-datastore');
+
+  return argp.parse(rawArgs);
 }
 
 Future<Null> _redirectRequest(HttpRequest request, HttpClient http) async {

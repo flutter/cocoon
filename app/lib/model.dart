@@ -16,7 +16,7 @@ class Key {
   int get hashCode => value.hashCode;
 
   @override
-  bool operator ==(Key other) => other != null && other.value == value;
+  bool operator==(Object other) => other is Key && other.value == value;
 }
 
 class _KeySerializer implements JsonSerializer<Key> {

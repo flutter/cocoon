@@ -10,7 +10,6 @@ import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 import 'package:yaml/yaml.dart';
 
 import 'adb.dart';
@@ -478,29 +477,6 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   return from.split('\n').where((String line) {
     return line.contains(pattern);
   });
-}
-
-/// Captures asynchronous stack traces thrown by [callback].
-///
-/// This is a convenience wrapper around [Chain] optimized for use with
-/// `async`/`await`.
-///
-/// Example:
-///
-///     try {
-///       await captureAsyncStacks(() { /* async things */ });
-///     } catch (error, chain) {
-///
-///     }
-Future<Null> runAndCaptureAsyncStacks(Future<Null> callback()) {
-  Completer<Null> completer = new Completer<Null>();
-  Chain.capture(() async {
-    await callback();
-    completer.complete();
-  }, onError: (error, Chain chain) async {
-    completer.completeError(error, chain);
-  });
-  return completer.future;
 }
 
 bool canRun(String path) => _processManager.canRun(path);
