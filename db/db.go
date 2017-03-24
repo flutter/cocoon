@@ -681,6 +681,12 @@ func (c *Cocoon) GetTimeseries(key *datastore.Key) (*TimeseriesEntity, error) {
 	}, nil
 }
 
+// PutTimeseries updates a timeseries entity.
+func (c *Cocoon) PutTimeseries(entity *TimeseriesEntity) (error) {
+	_, err := datastore.Put(c.Ctx, entity.Key, entity.Timeseries)
+	return err
+}
+
 // GetOrCreateTimeseries fetches an existing timeseries, or creates and returns
 // a new one if one with the given scoreKey does not yet exist.
 func (c *Cocoon) GetOrCreateTimeseries(taskName string, scoreKey string) (*TimeseriesEntity, error) {

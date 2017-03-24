@@ -24,6 +24,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
   </div>
   <div *ngIf="zoomInto != null" class="benchmark-history-container">
     <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
+    <button (click)="zoomInto = null">Close History</button>
   </div>
   <div *ngIf="visibleBenchmarks != null" class="card-container">
     <benchmark-card
@@ -55,9 +56,11 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   set zoomInto(BenchmarkData newData) {
     // Force angular to destroy old card and create a new one.
     _zoomInto = null;
-    Timer.run(() {
-      _zoomInto = newData;
-    });
+    if (newData != null) {
+      Timer.run(() {
+        _zoomInto = newData;
+      });
+    }
   }
 
   void toggleArchived() {
@@ -120,8 +123,16 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   selector: 'benchmark-history',
   template: r'''
     <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
+    <div>{{statusMessage}}</div>
+    <div>
+      <span>Goal:</span>
+      <input type="text" [(ngModel)]="goal">
+      <span>Baseline:</span>
+      <input type="text" [(ngModel)]="baseline">
+      <button [disabled]="!isInputValid" (click)="updateTargets()">Update</button>
+    </div>
   ''',
-  directives: const [NgIf, BenchmarkCard],
+  directives: const [NgIf, NgModel, BenchmarkCard],
 )
 class BenchmarkHistory {
   BenchmarkHistory(this._httpClient);
@@ -129,6 +140,61 @@ class BenchmarkHistory {
   final http.Client _httpClient;
 
   Key _key;
+
+  String _goal = '';
+  String get goal => _goal;
+  set goal(String textValue) {
+    _goal = textValue.trim();
+    _validateInputs();
+  }
+
+  String _baseline = '';
+  String get baseline => _baseline;
+  set baseline(String textValue) {
+    _baseline = textValue.trim();
+    _validateInputs();
+  }
+
+  bool _isInputValid = false;
+  bool get isInputValue => _isInputValid;
+
+  String _statusMessage;
+  String get statusMessage => _statusMessage;
+
+  void _validateInputs() {
+    _isInputValid = true;
+    double.parse(_goal, (_) {
+      _isInputValid = false;
+    });
+    double.parse(_baseline, (_) {
+      _isInputValid = false;
+    });
+  }
+
+  Future<Null> updateTargets() async {
+    _validateInputs();
+
+    if (!_isInputValid) {
+      window.alert('Invalid input.');
+      return;
+    }
+
+    Map<String, dynamic> request = <String, dynamic>{
+      'TimeSeriesKey': _key.value,
+      'Goal': double.parse(_goal),
+      'Baseline': double.parse(_baseline),
+    };
+
+    http.Response response = await _httpClient.post('/api/update-benchmark-targets', body: JSON.encode(request));
+    if (response.statusCode == 200) {
+      goal = '';
+      baseline = '';
+      _statusMessage = 'New targets saved.';
+      await _loadData();
+    } else {
+      _statusMessage = 'Server responded with and error saving new targets (HTTP ${response.statusCode})';
+    }
+  }
 
   @Input() set timeseriesKey(Key key) {
     if (key == null) {
@@ -152,8 +218,14 @@ class BenchmarkHistory {
 
     http.Response response = await _httpClient.post('/api/get-timeseries-history', body: JSON.encode(request));
     GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
-    data = result.benchmarkData;
-    lastPosition = result.lastPosition;
+
+    data = null;
+    Timer.run(() {
+      data = result.benchmarkData;
+      _goal = result.benchmarkData.timeseries.timeseries.goal.toString();
+      _baseline = result.benchmarkData.timeseries.timeseries.baseline.toString();
+      lastPosition = result.lastPosition;
+    });
   }
 }
 
