@@ -35,7 +35,7 @@ func UpdateBenchmarkTargets(cocoon *db.Cocoon, inputJSON []byte) (interface{}, e
 
 	entity, err := cocoon.GetTimeseries(command.TimeSeriesKey)
 	entity.Timeseries.Goal = command.Goal
-	entity.Timeseries.Baseline = command.Goal
+	entity.Timeseries.Baseline = command.Baseline
 
 	if err != nil {
 		return nil, err
