@@ -14,7 +14,7 @@ import 'utils.dart';
 
 /// Slightly longer task timeout that gives the task runner a chance to
 /// clean-up before forcefully quitting it.
-const Duration taskTimeoutWithGracePeriod = const Duration(minutes: 16);
+const Duration taskTimeoutWithGracePeriod = const Duration(minutes: 26);
 
 /// Send logs in 10KB chunks.
 const int _kLogChunkSize = 10000;
