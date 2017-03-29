@@ -158,8 +158,23 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
   });
 }
 
+/// When exists, this file indicates an installation is in progress or failed
+/// to complete.
+File get _installationLock => file('${config.flutterDirectory.path}/.installation-lock');
+
+/// Flutter repository revision that's currently installed.
+///
+/// Returns `null` if nothing is installed or installation failed to complete.
+Future<String> _getCurrentInstallationRevision() async {
+  if (exists(_installationLock)) {
+    return null;
+  }
+
+  return getCurrentFlutterRepoCommit();
+}
+
 Future<Null> getFlutterAt(String revision) async {
-  String currentRevision = await getCurrentFlutterRepoCommit();
+  String currentRevision = await _getCurrentInstallationRevision();
 
   // This agent will likely run multiple tasks in the same checklist and
   // therefore the same revision. It would be too costly to have to reinstall
@@ -385,6 +400,8 @@ String jsonEncode(dynamic data) {
 Future<Null> getFlutter(String revision) async {
   section('Get Flutter!');
 
+  await _installationLock.writeAsString('installation in progress');
+
   if (exists(config.flutterDirectory)) {
     rrm(config.flutterDirectory);
   }
@@ -404,6 +421,8 @@ Future<Null> getFlutter(String revision) async {
 
   section('flutter update-packages');
   await flutter('update-packages');
+
+  rm(_installationLock);
 }
 
 void checkNotNull(Object o1, [Object o2 = 1, Object o3 = 1, Object o4 = 1,
