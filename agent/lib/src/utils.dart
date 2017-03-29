@@ -168,7 +168,7 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
 
 /// When exists, this file indicates an installation is in progress or failed
 /// to complete.
-File get _installationLock => file(config.flutterDirectory.path, '.installation-lock');
+File get _installationLock => file(config.flutterDirectory.parent.path, '.installation-lock');
 
 /// Flutter repository revision that's currently installed.
 ///
@@ -408,7 +408,7 @@ String jsonEncode(dynamic data) {
 Future<Null> getFlutter(String revision) async {
   section('Get Flutter!');
 
-  await _installationLock.writeAsString('installation in progress');
+  _installationLock.createSync(recursive: true);
 
   if (exists(config.flutterDirectory)) {
     rrm(config.flutterDirectory);
