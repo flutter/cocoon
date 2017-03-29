@@ -92,9 +92,17 @@ void rrm(FileSystemEntity entity) {
 
 List<FileSystemEntity> ls(Directory directory) => directory.listSync();
 
-Directory dir(String path) => new Directory(path);
+/// Creates a directory from the given path, or multiple path parts by joining
+/// them using OS-specific file path separator.
+Directory dir(String thePath, [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
+  return new Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+}
 
-File file(String path) => new File(path);
+/// Creates a file from the given path, or multiple path parts by joining
+/// them using OS-specific file path separator.
+File file(String thePath, [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
+  return new File(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+}
 
 void copy(File sourceFile, Directory targetDirectory, { String name }) {
   File target = file(path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
@@ -140,7 +148,7 @@ Future<String> getDartVersion() async {
 }
 
 Future<String> getCurrentFlutterRepoCommit() {
-  if (!dir('${config.flutterDirectory.path}/.git').existsSync()) {
+  if (!dir(config.flutterDirectory.path, '.git').existsSync()) {
     return null;
   }
 
@@ -160,7 +168,7 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
 
 /// When exists, this file indicates an installation is in progress or failed
 /// to complete.
-File get _installationLock => file('${config.flutterDirectory.path}/.installation-lock');
+File get _installationLock => file(config.flutterDirectory.path, '.installation-lock');
 
 /// Flutter repository revision that's currently installed.
 ///
@@ -263,7 +271,7 @@ Future<int> flutter(String command, {List<String> options: const<String>[], bool
   return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail);
 }
 
-String get dartBin => path.join(config.flutterDirectory.path, 'bin/cache/dart-sdk/bin/dart');
+String get dartBin => path.join(config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
 
 Future<int> dart(List<String> args) => exec(dartBin, args);
 
@@ -312,14 +320,14 @@ class Config {
 
     Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
     String baseCocoonUrl = agentConfig['base_cocoon_url'] ?? 'https://flutter-dashboard.appspot.com';
-    String agentId = requireConfigProperty(agentConfig, 'agent_id');
-    String firebaseFlutterDashboardToken = requireConfigProperty(agentConfig, 'firebase_flutter_dashboard_token');
-    String authToken = requireConfigProperty(agentConfig, 'auth_token');
+    String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
+    String firebaseFlutterDashboardToken = requireConfigProperty<String>(agentConfig, 'firebase_flutter_dashboard_token');
+    String authToken = requireConfigProperty<String>(agentConfig, 'auth_token');
     String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null)
       throw "Unable to find \$HOME or \$USERPROFILE.";
 
-    Directory flutterDirectory = dir('$home/.cocoon/flutter');
+    Directory flutterDirectory = dir(home, '.cocoon', 'flutter');
     mkdirs(flutterDirectory);
 
     DeviceOperatingSystem deviceOperatingSystem;
@@ -386,7 +394,7 @@ String requireEnvVar(String name) {
   return value;
 }
 
-dynamic/*=T*/ requireConfigProperty/*<T>*/(Map<String, dynamic/*<T>*/> map, String propertyName) {
+T requireConfigProperty<T>(Map<String, T> map, String propertyName) {
   if (!map.containsKey(propertyName))
     fail('Configuration property not found: $propertyName');
 
