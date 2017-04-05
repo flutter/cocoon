@@ -120,7 +120,7 @@ func RefreshGithubCommits(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 }
 
 func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *datastore.Key, commit string) ([]*db.Task, error) {
-	var makeTask = func(stageName string, name string, requiredCapabilities []string) *db.Task {
+	var makeTask = func(stageName string, name string, requiredCapabilities []string, flaky bool, timeoutInMinutes int64) *db.Task {
 		return &db.Task{
 			ChecklistKey:         checklistKey,
 			StageName:            stageName,
@@ -130,16 +130,18 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 			CreateTimestamp:      createTimestamp,
 			StartTimestamp:       0,
 			EndTimestamp:         0,
+			Flaky:                flaky,
+			TimeoutInMinutes:     timeoutInMinutes,
 		}
 	}
 
 	// These built-in tasks are not listed in the manifest.
 	tasks := []*db.Task{
-		makeTask("travis", "travis", []string{"can-update-travis"}),
+		makeTask("travis", "travis", []string{"can-update-travis"}, false, 0),
 
-		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}),
-		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}),
-		makeTask("chromebot", "windows_bot", []string{"can-update-chromebots"}),
+		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}, false, 0),
+		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}, false, 0),
+		makeTask("chromebot", "windows_bot", []string{"can-update-chromebots"}, false, 0),
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
@@ -163,7 +165,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	}
 
 	for name, info := range manifest.Tasks {
-		tasks = append(tasks, makeTask(info.Stage, name, info.RequiredAgentCapabilities))
+		tasks = append(tasks, makeTask(info.Stage, name, info.RequiredAgentCapabilities, info.Flaky, info.TimeoutInMinutes))
 	}
 
 	return tasks, nil
@@ -179,6 +181,8 @@ type ManifestTask struct {
 	Description               string
 	Stage                     string
 	RequiredAgentCapabilities []string `yaml:"required_agent_capabilities"`
+	Flaky                     bool
+	TimeoutInMinutes          int64 `yaml:"timeout_in_minutes"`
 }
 
 // Parses the task manifest YAML and returns the manifest object.

@@ -79,6 +79,10 @@ type Task struct {
 	CreateTimestamp    int64
 	StartTimestamp     int64
 	EndTimestamp       int64
+	Flaky              bool
+
+	// Optional custom timeout for this task. The default value of 0 means "use default timeout".
+	TimeoutInMinutes int64
 }
 
 // BuildStatus contains build status information about a particular checklist.
