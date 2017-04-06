@@ -14,11 +14,17 @@ import 'package:cocoon_agent/src/utils.dart';
 
 /// Contains information about a Cocoon task.
 class CocoonTask {
-  CocoonTask({this.name, this.key, this.revision});
+  CocoonTask({
+    @required this.name,
+    @required this.key,
+    @required this.revision,
+    @required this.timeoutInMinutes,
+  });
 
   final String name;
   final String key;
   final String revision;
+  final int timeoutInMinutes;
 }
 
 /// Client to the Coocon backend.
@@ -64,7 +70,8 @@ class Agent {
       return new CocoonTask(
         name: reservation['TaskEntity']['Task']['Name'],
         key: reservation['TaskEntity']['Key'],
-        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha']
+        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'],
+        timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'],
       );
     }
 
