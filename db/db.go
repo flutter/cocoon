@@ -432,12 +432,14 @@ func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
 	failedCount := 0
 
 	for _, stage := range stages {
-		if stage.Name == "devicelab_ios" {
-			// TODO: the iOS build is still too unstable; ignore it.
-			continue
-		}
 		for _, task := range stage.Tasks {
 			taskCount++
+
+			if !task.Task.Flaky {
+				// Do not count flakes towards failures.
+				continue
+			}
+
 			switch task.Task.Status {
 			case TaskFailed, TaskSkipped:
 				failedCount++

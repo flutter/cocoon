@@ -43,11 +43,6 @@ func computeTrend(statuses []*db.BuildStatus) db.BuildResult {
 	for _, status := range statuses {
 		for _, stage := range status.Stages {
 			for _, task := range stage.Tasks {
-				if stage.Name == "devicelab_ios" {
-					// TODO: the iOS build is still too unstable; ignore it.
-					continue
-				}
-
 				if isLatestBuild {
 					// We only care about tasks defined in the latest build. If a task is removed from CI, we
 					// no longer care about its status.
@@ -56,7 +51,7 @@ func computeTrend(statuses []*db.BuildStatus) db.BuildResult {
 
 				if statusSeen, isRelevant := relevantTasks[task.Task.Name]; isRelevant && !statusSeen.IsFinal() && task.Task.Status.IsFinal() {
 					relevantTasks[task.Task.Name] = task.Task.Status
-					if task.Task.Status == db.TaskFailed || task.Task.Status == db.TaskSkipped {
+					if !task.Task.Flaky && (task.Task.Status == db.TaskFailed || task.Task.Status == db.TaskSkipped) {
 						return db.BuildWillFail
 					}
 				}
