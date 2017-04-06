@@ -12,9 +12,14 @@ import 'agent.dart';
 import 'list_processes.dart';
 import 'utils.dart';
 
-/// Slightly longer task timeout that gives the task runner a chance to
-/// clean-up before forcefully quitting it.
-const Duration taskTimeoutWithGracePeriod = const Duration(minutes: 26);
+/// The default task timeout, if a custom value is not provided.
+///
+/// This should be the same as `_kDefaultTaskTimeout` defined in https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/framework.dart
+const Duration _kDefaultTaskTimeout = const Duration(minutes: 15);
+
+/// Extra amount of time we give the devicelab task to finish or timeout on its
+/// own before forcefully quitting it.
+const Duration _kGracePeriod = const Duration(minutes: 1);
 
 /// Send logs in 10KB chunks.
 const int _kLogChunkSize = 10000;
@@ -124,8 +129,15 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   try {
     VMIsolate isolate = await _connectToRunnerIsolate(vmServicePort);
     waitingFor = 'task completion';
+
+    Duration taskTimeout = task.timeoutInMinutes != 0
+      ? new Duration(minutes: task.timeoutInMinutes)
+      : _kDefaultTaskTimeout;
+
     Map<String, dynamic> taskResult =
-        await isolate.invokeExtension('ext.cocoonRunTask').timeout(taskTimeoutWithGracePeriod);
+        await isolate.invokeExtension('ext.cocoonRunTask', <String, String>{'timeoutInMinutes': '${taskTimeout.inMinutes}'})
+            .timeout(taskTimeout + _kGracePeriod);
+
     waitingFor = 'task process to exit';
     await runner.exitCode.timeout(const Duration(seconds: 1));
     return new TaskResult.parse(taskResult);

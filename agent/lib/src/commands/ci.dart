@@ -68,9 +68,12 @@ class ContinuousIntegrationCommand extends Command {
         try {
           if (task != null) {
             section('Task info:');
-            print('  name     : ${task.name}');
-            print('  key      : ${task.key ?? ""}');
-            print('  revision : ${task.revision}');
+            print('  name           : ${task.name}');
+            print('  key            : ${task.key ?? ""}');
+            print('  revision       : ${task.revision}');
+            if (task.timeoutInMinutes != 0) {
+              print('  custom timeout : ${task.timeoutInMinutes}');
+            }
 
             // Sync flutter outside of the task so it does not contribute to
             // the task timeout.
