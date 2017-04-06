@@ -20,4 +20,4 @@ pub build
 
 echo
 echo "Build succeeded! To deploy to App Engine run the following command after replacing {VERSION}:"
-echo "appcfg.py update -A flutter-dashboard -V {VERSION} ./"
+echo "gcloud app deploy --no-promote --no-stop-previous-version -v {VERSION}"

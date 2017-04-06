@@ -56,13 +56,13 @@ Future<Null> _start(ArgResults args) async {
   await _validateCwd();
 
   print('Running `goapp serve` on port $_goappServePort');
-  List<String> goappArgs = <String>['serve', '-port', '$_goappServePort'];
+  List<String> goappArgs = <String>['app.yaml', '--port', '$_goappServePort'];
   if (clearDatastore)
-    goappArgs.add('-clear_datastore');
+    goappArgs.add('--clear_datastore');
 
   _childProcesses.add(new ManagedProcess(
-    'goapp serve',
-    await startProcess('goapp', goappArgs)
+    'dev_appserver.py',
+    await startProcess('dev_appserver.py', goappArgs)
   ));
 
   print('Running `pub serve` on port $_pubServePort');
