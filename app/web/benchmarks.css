@@ -51,9 +51,9 @@ benchmark-card {
 
 .metric {
   position: absolute;
-  top: 25px;
+  bottom: 25px;
   left: 5px;
-  pointer-events: none;
+  white-space: nowrap;
 }
 
 .metric-chart-container {
@@ -81,8 +81,8 @@ benchmark-card {
 }
 
 .metric-value {
-  font-size: 42px;
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .metric-value-bar {
@@ -113,8 +113,7 @@ benchmark-card {
 }
 
 .metric-unit {
-  font-size: 42px;
-  color: #CCC;
+  font-size: 10px;
 }
 
 .metric-task-name {
