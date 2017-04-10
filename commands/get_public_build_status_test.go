@@ -192,6 +192,48 @@ func TestGetPublicBuildStatusFlakyThenFailed(t *testing.T) {
 	}
 }
 
+// Test that marking a test as flaky shuts off warnings immediately:
+// foo
+// new (flaky)
+// failed
+func TestGetPublicBuildStatusEagerlyFlaky(t *testing.T) {
+	result := computeTrend([]*db.BuildStatus{
+		{
+			Stages: []*db.Stage {
+				{
+					Tasks: []*db.TaskEntity{
+						{
+							Task: &db.Task{
+								Name: "foo",
+								Status: db.TaskNew,
+								Flaky: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Stages: []*db.Stage {
+				{
+					Tasks: []*db.TaskEntity{
+						{
+							Task: &db.Task{
+								Name: "foo",
+								Status: db.TaskFailed,
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	if result != db.BuildSucceeded {
+		t.Errorf("Expected %v but was %v", db.BuildSucceeded, result)
+		t.Fail()
+	}
+}
+
 // Test:
 // foo
 // succeeded
