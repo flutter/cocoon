@@ -20,8 +20,9 @@ transformers:
     platform_directives:
     - 'package:angular2/common.dart#COMMON_DIRECTIVES'
     entry_points:
-      - web/build.dart
       - web/benchmarks.dart
+      - web/build.dart
+      - web/index.dart
     resolved_identifiers:
       Client: 'package:http/http.dart'
 - $dart2js:

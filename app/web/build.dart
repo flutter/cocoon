@@ -8,16 +8,16 @@ import 'dart:html';
 import 'package:angular2/core.dart';
 import 'package:angular2/platform/browser.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart' as browser_http;
 
 import 'package:cocoon/cli.dart';
 import 'package:cocoon/components/status_table.dart';
-import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
 @AngularEntrypoint()
 Future<Null> main() async {
   logger = new HtmlLogger();
-  http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn();
+  http.Client httpClient = new browser_http.BrowserClient();
 
   if (httpClient == null)
     return;

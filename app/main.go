@@ -30,7 +30,6 @@ func init() {
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
 	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
 	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
-	registerRPC("/api/get-status", commands.GetStatus)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
@@ -48,6 +47,7 @@ func init() {
 	//            add paths that are safe to access publicly. If unsure, use registerRPC instead.
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/build-status", commands.GetPublicBuildStatus)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-status", commands.GetStatus)
 
 	// IMPORTANT: Do not expose the handlers below in production.
 	if appengine.IsDevAppServer() {
@@ -203,9 +203,10 @@ func getAuthenticationStatus(w http.ResponseWriter, r *http.Request) {
 		status = "Unauthorized"
 	}
 
+	returnPage := r.URL.Query().Get("return-page")
 	ctx := appengine.NewContext(r)
-	loginURL, _ := user.LoginURL(ctx, "/build.html")
-	logoutURL, _ := user.LogoutURL(ctx, "/build.html")
+	loginURL, _ := user.LoginURL(ctx, returnPage)
+	logoutURL, _ := user.LogoutURL(ctx, "/")
 
 	response := map[string]interface{}{
 		"Status":    status,

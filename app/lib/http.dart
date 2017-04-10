@@ -10,23 +10,36 @@ import 'package:angular2/core.dart';
 import 'package:http/browser_client.dart' as browser_http;
 import 'package:http/http.dart' as http;
 
-Future<http.Client> getAuthenticatedClientOrRedirectToSignIn() async {
+class AuthenticationStatus {
+  final bool isAuthenticated;
+  final String loginUrl;
+  final String logoutUrl;
+
+  AuthenticationStatus(this.isAuthenticated, this.loginUrl, this.logoutUrl);
+}
+
+Future<AuthenticationStatus> getAuthenticationStatus(String returnPage) async {
   http.Client client = new browser_http.BrowserClient();
-  Map<String, dynamic> status = JSON.decode((await client.get('/api/get-authentication-status')).body);
+  final String url = '/api/get-authentication-status?return-page=${returnPage}';
+  Map<String, dynamic> status = JSON.decode((await client.get(url)).body);
 
-  document.querySelector('#logout-button').on['click'].listen((_) {
-    window.open(status['LogoutURL'], '_self');
-  });
+  return new AuthenticationStatus(
+    status['Status'] == 'OK',
+    status['LoginURL'],
+    status['LogoutURL'],
+  );
+}
 
-  document.querySelector('#login-button').on['click'].listen((_) {
-    window.open(status['LoginURL'], '_self');
-  });
+Future<http.Client> getAuthenticatedClientOrRedirectToSignIn(String returnPage) async {
+  final AuthenticationStatus status = await getAuthenticationStatus(returnPage);
 
-  if (status['Status'] == 'OK')
-    return client;
+  if (status.isAuthenticated)
+    return new browser_http.BrowserClient();
 
   document.body.append(new DivElement()
-    ..text = 'You are not signed in, or signed in under an unauthorized account. '
-             'Use the buttons at the bottom of this page to sign in.');
+    ..text = 'You are not signed in, or signed in under an unauthorized account, '
+        'and will be redirected to a Google sign in page.');
+
+  window.open(status.loginUrl, '_self');
   return null;
 }
