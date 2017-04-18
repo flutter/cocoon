@@ -6,6 +6,13 @@ package db
 
 import "google.golang.org/appengine/datastore"
 
+// CocoonConfig table stores global configuration parameters. It is keyed by
+// parameter name (and therefore must use named datastore keys). The values
+// can be edited using the datastore explorer in the GAE console.
+type CocoonConfig struct {
+	ParameterValue string
+}
+
 // CommitInfo contain information about a GitHub commit.
 type CommitInfo struct {
 	Sha    string

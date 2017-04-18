@@ -826,11 +826,15 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity, startFrom
 
 // FetchURL performs an HTTP GET request on the given URL and returns data if
 // response is HTTP 200.
-func (c *Cocoon) FetchURL(url string) ([]byte, error) {
+func (c *Cocoon) FetchURL(url string, authenticateWithGithub bool) ([]byte, error) {
 	request, err := http.NewRequest("GET", url, NoBody)
 
 	if err != nil {
 		return nil, err
+	}
+
+	if authenticateWithGithub {
+		request.Header.Add("Authorization", fmt.Sprintf("token %v", c.GetConfigValue("GithubToken")))
 	}
 
 	request.Header.Add("User-Agent", "FlutterCocoon")
@@ -865,6 +869,24 @@ type noBody struct{}
 func (noBody) Read([]byte) (int, error)         { return 0, io.EOF }
 func (noBody) Close() error                     { return nil }
 func (noBody) WriteTo(io.Writer) (int64, error) { return 0, nil }
+
+// GetConfigValue returns the value of the CocoonConfig parameter with key parameterName. This
+// function is intended to always succeed and therefore it panics when things go wrong.
+func (c *Cocoon) GetConfigValue(parameterName string) string {
+	var value *CocoonConfig
+	err := datastore.Get(c.Ctx, datastore.NewKey(c.Ctx, "CocoonConfig", parameterName, 0, nil), value)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return value.ParameterValue
+}
+
+// GetGithubAuthToken returns the Github authentication token stored in CocoonConfig table.
+func (c *Cocoon) GetGithubAuthToken() string {
+	return c.GetConfigValue("GithubToken")
+}
 
 // SendTeamNotification sends an email to "flutter-build-status@google.com".
 func SendTeamNotification(ctx context.Context, subject string, message string) error {

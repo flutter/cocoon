@@ -14,3 +14,6 @@ cron:
 - description: sends build status notifications
   url: /api/check-build-status
   schedule: every 2 minutes
+- description: sends build status to GitHub to annotate PRs and commits
+  url: /api/push-build-status-to-github
+  schedule: every 1 minutes
