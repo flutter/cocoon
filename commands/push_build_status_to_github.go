@@ -54,7 +54,7 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 			}
 
 			if lastSubmittedValue != trend {
-				err := pushToGithub(c.Ctx, pr.Head.Sha, trend)
+				err := pushToGithub(c, pr.Head.Sha, trend)
 
 				if err != nil {
 					return err
@@ -101,7 +101,7 @@ type PullRequestHead struct {
 	Sha string
 }
 
-func pushToGithub(c db.Cocoon, sha string, status db.BuildResult) (error) {
+func pushToGithub(c *db.Cocoon, sha string, status db.BuildResult) (error) {
 	url := fmt.Sprintf("%v/statuses/%v", flutterRepositoryApiUrl, sha)
 
 	data := make(map[string]string)

@@ -145,7 +145,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
-	manifestBytes, err := cocoon.FetchURL(url)
+	manifestBytes, err := cocoon.FetchURL(url, false)
 
 	if err != nil {
 		// There is no guarantee that every commit will have a manifest file
