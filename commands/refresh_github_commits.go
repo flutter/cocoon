@@ -32,7 +32,7 @@ type CommitSyncResult struct {
 
 // RefreshGithubCommits returns the information about the latest GitHub commits.
 func RefreshGithubCommits(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
-	commitData, err := cocoon.FetchURL("https://api.github.com/repos/flutter/flutter/commits")
+	commitData, err := cocoon.FetchURL("https://api.github.com/repos/flutter/flutter/commits", true)
 
 	if err != nil {
 		return nil, err

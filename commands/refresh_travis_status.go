@@ -52,7 +52,7 @@ func RefreshTravisStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	}
 
 	// Fetch data from Travis
-	buildData, err := cocoon.FetchURL("https://api.travis-ci.org/repos/flutter/flutter/builds")
+	buildData, err := cocoon.FetchURL("https://api.travis-ci.org/repos/flutter/flutter/builds", false)
 	if err != nil {
 		return nil, err
 	}

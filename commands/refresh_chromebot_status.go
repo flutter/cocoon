@@ -117,7 +117,7 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 }
 
 func fetchJSON(cocoon *db.Cocoon, url string) (interface{}, error) {
-	body, err := cocoon.FetchURL(url)
+	body, err := cocoon.FetchURL(url, false)
 
 	if err != nil {
 		return nil, err

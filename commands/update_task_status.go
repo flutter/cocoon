@@ -10,6 +10,7 @@ import (
 	"errors"
 
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 // UpdateTaskStatusCommand updates the status of a task.
@@ -71,6 +72,11 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	}
 
 	c.PutTask(task.Key, task.Task)
+	err = PushBuildStatusToGithub(c)
+
+	if err != nil {
+		log.Warningf(c.Ctx, "Error trying to push build status to GitHub: %v", err)
+	}
 
 	if newStatus == db.TaskSucceeded && len(command.BenchmarkScoreKeys) > 0 {
 		for _, scoreKey := range command.BenchmarkScoreKeys {
