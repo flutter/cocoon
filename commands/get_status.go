@@ -20,7 +20,7 @@ type GetStatusResult struct {
 func GetStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 	var err error
 
-	statuses, err := c.QueryBuildStatuses()
+	statuses, err := c.QueryBuildStatusesWithMemcache()
 
 	if err != nil {
 		return nil, err
