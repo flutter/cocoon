@@ -16,7 +16,7 @@ import (
 	"io/ioutil"
 )
 
-const flutterRepository = "https://api.github.com/repos/flutter/flutter"
+const flutterRepositoryApiUrl = "https://api.github.com/repos/flutter/flutter"
 
 func PushBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
 	return nil, PushBuildStatusToGithub(c)
@@ -31,10 +31,9 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 	}
 
 	trend := computeTrend(statuses)
-	trend = db.BuildSucceeded
 
 	if trend == db.BuildWillFail || trend == db.BuildSucceeded || trend == db.BuildFailed {
-		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", flutterRepository), true)
+		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", flutterRepositoryApiUrl), true)
 
 		if err != nil {
 			return err
@@ -103,7 +102,7 @@ type PullRequestHead struct {
 }
 
 func pushToGithub(c db.Cocoon, sha string, status db.BuildResult) (error) {
-	url := fmt.Sprintf("%v/statuses/%v", flutterRepository, sha)
+	url := fmt.Sprintf("%v/statuses/%v", flutterRepositoryApiUrl, sha)
 
 	data := make(map[string]string)
 	if status == db.BuildSucceeded {
