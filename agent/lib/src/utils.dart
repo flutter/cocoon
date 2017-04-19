@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'adb.dart';
+import 'list_processes.dart';
 
 /// Virtual current working directory, which affect functions, such as [exec].
 String cwd = Directory.current.path;
@@ -223,6 +224,14 @@ Future<Null> forceQuitRunningProcesses() async {
     }
   }
   _runningProcesses.clear();
+
+  // Also kill sub-processes launched by top-level processes. We may not be
+  // able to find all of them, but finding those whose CWD is the Flutter
+  // repository are good candidates.
+  List<int> pids = await listFlutterProcessIds(config.flutterDirectory);
+  for (int pid in pids) {
+    Process.killPid(pid, ProcessSignal.SIGKILL);
+  }
 }
 
 /// Executes a command and returns its exit code.

@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:vm_service_client/vm_service_client.dart';
 
 import 'agent.dart';
-import 'list_processes.dart';
 import 'utils.dart';
 
 /// The default task timeout, if a custom value is not provided.
@@ -153,17 +152,8 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     // Force-quit the task runner process.
     if (!runnerFinished)
       runner.kill(ProcessSignal.SIGKILL);
-    // Force-quit processes launched by Flutter.
-    await _forceQuitFlutterProcesses();
     // Force-quit dangling local processes (such as adb commands).
     await forceQuitRunningProcesses();
-  }
-}
-
-Future<Null> _forceQuitFlutterProcesses() async {
-  List<int> pids = await listFlutterProcessIds(config.flutterDirectory);
-  for (int pid in pids) {
-    Process.killPid(pid, ProcessSignal.SIGKILL);
   }
 }
 
