@@ -873,7 +873,7 @@ func (noBody) WriteTo(io.Writer) (int64, error) { return 0, nil }
 // GetConfigValue returns the value of the CocoonConfig parameter with key parameterName. This
 // function is intended to always succeed and therefore it panics when things go wrong.
 func (c *Cocoon) GetConfigValue(parameterName string) string {
-	var value *CocoonConfig
+	value := new(CocoonConfig)
 	err := datastore.Get(c.Ctx, datastore.NewKey(c.Ctx, "CocoonConfig", parameterName, 0, nil), value)
 
 	if err != nil {
