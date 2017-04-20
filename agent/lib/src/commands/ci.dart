@@ -19,6 +19,9 @@ import '../utils.dart';
 /// used to prevent us from DDoS-ing the server.
 const Duration _sleepBetweenBuilds = const Duration(seconds: 10);
 
+/// Maximum amount of time we're allowing Flutter to install.
+const Duration _kInstallationTimeout = const Duration(minutes: 20);
+
 /// Runs the agent in continuous integration mode.
 ///
 /// In this mode the agent runs in an infinite loop, continuously asking for
@@ -77,7 +80,7 @@ class ContinuousIntegrationCommand extends Command {
 
             // Sync flutter outside of the task so it does not contribute to
             // the task timeout.
-            await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
+            await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
             await _runTask(task);
           }
         } catch(error, stackTrace) {
