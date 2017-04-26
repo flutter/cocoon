@@ -250,8 +250,10 @@ Future<int> exec(String executable, List<String> arguments,
 
   int exitCode = await proc.exitCode;
 
-  if (exitCode != 0 && !canFail)
-    fail('Executable $executable failed with exit code $exitCode.');
+  if (exitCode != 0 && !canFail) {
+    final List<String> command = [executable]..addAll(arguments);
+    fail('Command "${command.join(' ')}" failed with exit code $exitCode.');
+  }
 
   return exitCode;
 }
