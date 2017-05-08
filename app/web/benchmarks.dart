@@ -16,7 +16,7 @@ import 'package:cocoon/logging.dart';
 @AngularEntrypoint()
 Future<Null> main() async {
   logger = new HtmlLogger();
-  http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn();
+  http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn('/benchmarks.html');
 
   if (httpClient == null)
     return null;

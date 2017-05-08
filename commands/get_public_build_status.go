@@ -16,7 +16,7 @@ type GetPublicStatusResult struct {
 
 // GetPublicBuildStatus returns latest build status.
 func GetPublicBuildStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
-	statuses, err := c.QueryBuildStatuses()
+	statuses, err := c.QueryBuildStatusesWithMemcache()
 
 	if err != nil {
 		return nil, err

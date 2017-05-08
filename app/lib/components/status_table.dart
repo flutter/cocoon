@@ -106,7 +106,7 @@ class StatusTable implements OnInit {
 
   Future<Null> reloadData() async {
     isLoading = true;
-    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-status')).body);
+    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/public/get-status')).body);
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
 

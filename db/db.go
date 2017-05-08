@@ -6,6 +6,7 @@ package db
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +23,7 @@ import (
 	"google.golang.org/appengine/mail"
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
 )
 
 // NewCocoon creates a new Cocoon.
@@ -106,8 +108,8 @@ func (c *Cocoon) QueryLatestChecklists(limit int) ([]*ChecklistEntity, error) {
 		}
 
 		buffer = append(buffer, &ChecklistEntity{
-			key,
-			&checklist,
+			Key: key,
+			Checklist: &checklist,
 		})
 	}
 	return buffer, nil
@@ -398,7 +400,7 @@ func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
 }
 
 // QueryBuildStatuses returns the statuses of the latest builds.
-func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
+func (c *Cocoon) QueryBuildStatusesWithMemcache() ([]*BuildStatus, error) {
 	const maxStatusesToReturn = 50
 	checklists, err := c.QueryLatestChecklists(maxStatusesToReturn)
 
@@ -408,18 +410,49 @@ func (c *Cocoon) QueryBuildStatuses() ([]*BuildStatus, error) {
 
 	var statuses []*BuildStatus
 	for _, checklist := range checklists {
-		var stages []*Stage
-		stages, err = c.QueryTasksGroupedByStage(checklist.Key)
+		var buildStatus BuildStatus
+		cachedValue, err := memcache.Get(c.Ctx, checklist.Key.Encode())
 
-		if err != nil {
+		if err == nil {
+			err := json.Unmarshal(cachedValue.Value, &buildStatus)
+
+			if err != nil {
+				return nil, err
+			}
+		} else if err == memcache.ErrCacheMiss {
+			var stages []*Stage
+			stages, err = c.QueryTasksGroupedByStage(checklist.Key)
+
+			if err != nil {
+				return nil, err
+			}
+
+			buildStatus = BuildStatus{
+				Checklist: checklist,
+				Stages:    stages,
+				Result:    computeBuildResult(checklist.Checklist, stages),
+			}
+
+			if buildStatus.Result.IsFinal() {
+				// Cache it
+				cachedValue, err := json.Marshal(&buildStatus)
+
+				if err != nil {
+					return nil, err
+				}
+
+				const nanosInASecond = 1e9;
+				memcache.Set(c.Ctx, &memcache.Item{
+					Key: checklist.Key.Encode(),
+					Value: cachedValue,
+					Expiration: time.Duration(15 * nanosInASecond),
+				})
+			}
+		} else {
 			return nil, err
 		}
 
-		statuses = append(statuses, &BuildStatus{
-			Checklist: checklist,
-			Stages:    stages,
-			Result:    computeBuildResult(checklist.Checklist, stages),
-		})
+		statuses = append(statuses, &buildStatus)
 	}
 
 	return statuses, nil
@@ -602,6 +635,11 @@ var allTaskStatuses = [...]TaskStatus{
 // IsFinal indicates whether the task status is no longer expected to change.
 func (s TaskStatus) IsFinal() bool {
 	return s == TaskSucceeded || s == TaskFailed || s == TaskSkipped
+}
+
+// IsFinal indicates whether the build result is no longer expected to change.
+func (r BuildResult) IsFinal() bool {
+	return r == BuildFailed || r == BuildSucceeded
 }
 
 // TaskStatusByName looks up a TaskStatus by its name.
