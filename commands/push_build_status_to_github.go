@@ -109,6 +109,8 @@ func pushToGithub(c *db.Cocoon, sha string, status db.BuildResult) (error) {
 		data["state"] = "success"
 	} else {
 		data["state"] = "failure"
+		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
+		data["description"] = "Flutter build is currently broken. Be careful when merging this PR."
 	}
 	data["context"] = "flutter-build"
 
