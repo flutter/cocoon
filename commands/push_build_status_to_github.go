@@ -24,7 +24,7 @@ func PushBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error)
 
 // PushBuildStatusToGithub pushes the latest build status to Github PRs and commits.
 func PushBuildStatusToGithub(c *db.Cocoon) (error) {
-	statuses, err := c.QueryBuildStatuses()
+	statuses, err := c.QueryBuildStatusesWithMemcache()
 
 	if err != nil {
 		return err
