@@ -346,7 +346,7 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       }
 
       bar.onMouseOver.listen((_) {
-        _tooltip = new DivElement()
+        final DivElement tooltip = new DivElement()
           ..text = '${value.value}$unit\n'
             'Flutter revision: ${value.revision}\n'
             'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
@@ -354,13 +354,25 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
             'Baseline: $baseline$unit'
           ..classes.add('metric-value-tooltip')
           ..style.top = '${bar.getBoundingClientRect().top}px'
-          ..style.left = '${bar.getBoundingClientRect().right + 5}px';
-        bar.style.backgroundColor = '#11CC11';
-        document.body.append(_tooltip);
+          ..onClick.listen((_) {
+              tooltip.remove();
+            });
+        final double left = bar.getBoundingClientRect().left;
+        if (left < window.innerWidth / 2.0) {
+          tooltip.style.left = '${bar.getBoundingClientRect().right + 5}px';
+        } else {
+          tooltip.style.right = '${left - 5}px';
+        }
+        bar.style.backgroundColor = '#FFC400'; // Amber Accent 400
+        document.body.append(tooltip);
+        _tooltip = tooltip;
       });
       bar.onMouseOut.listen((_) {
         bar.style.backgroundColor = '';
         _tooltip?.remove();
+      });
+      bar.onClick.listen((_) {
+        _tooltip = null;
       });
 
       chartContainer.nativeElement.children.add(bar);
