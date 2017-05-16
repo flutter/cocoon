@@ -346,7 +346,10 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       }
 
       bar.onMouseOver.listen((_) {
-        final DivElement tooltip = new DivElement()
+        DivElement tooltip;
+        // Used to distinguish between clicks and drags.
+        bool dragHappened = false;
+        tooltip = new DivElement()
           ..text = '${value.value}$unit\n'
             'Flutter revision: ${value.revision}\n'
             'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
@@ -354,14 +357,21 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
             'Baseline: $baseline$unit'
           ..classes.add('metric-value-tooltip')
           ..style.top = '${bar.getBoundingClientRect().top}px'
+          ..onMouseDown.listen((_) {
+            dragHappened = false;
+          })
+          ..onMouseMove.listen((_) {
+            dragHappened = true;
+          })
           ..onClick.listen((_) {
-              tooltip.remove();
+              if (!dragHappened)
+                tooltip.remove();
             });
         final double left = bar.getBoundingClientRect().left;
         if (left < window.innerWidth / 2.0) {
           tooltip.style.left = '${bar.getBoundingClientRect().right + 5}px';
         } else {
-          tooltip.style.right = '${left - 5}px';
+          tooltip.style.right = '${window.innerWidth - left - 5}px';
         }
         bar.style.backgroundColor = '#FFC400'; // Amber Accent 400
         document.body.append(tooltip);

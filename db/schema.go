@@ -200,10 +200,13 @@ type Agent struct {
 	AgentID              string
 	IsHealthy            bool
 	HealthCheckTimestamp int64
-	// a human-readable printout of health details
+	// A human-readable printout of health details
 	HealthDetails string `datastore:"HealthDetails,noindex"`
 	AuthTokenHash []byte
 	Capabilities  []string
+	// Whether this agent is visible on the dashboard. Use this for testing without polluting the
+	// screen.
+	Hidden        bool
 }
 
 // AgentStatus contains agent health status.
