@@ -253,7 +253,7 @@ td.stats-value {
   position: relative;
   font-weight: bold;
   background-color: #eee;
-  border-right: 1px solid black;
+  border-right: 1px solid #CCC;
 }
 
 .task-name {
@@ -278,14 +278,13 @@ td.stats-value {
 }
 
 .task-status-cell {
-  padding: 5px 5px 0 18px;
-  border-right: 1px solid black;
+  padding: 5px 2px 0 18px;
+  border-right: 1px solid #CCC;
 }
 
 .task-status-circle {
-  border-radius: 4px;
   height: 20px;
-  width: 8px;
+  width: 10px;
   text-align: center;
   color: white;
 }
