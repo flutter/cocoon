@@ -54,6 +54,7 @@ benchmark-card {
   bottom: 25px;
   left: 5px;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .metric-chart-container {
@@ -69,6 +70,7 @@ benchmark-card {
   bottom: 0;
   border-top: 1px dashed #00C853;
   pointer-events: none;
+  z-index: 2;
 }
 
 .metric-baseline {
@@ -78,6 +80,7 @@ benchmark-card {
   bottom: 0;
   border-top: 1px dashed #DD2C00;
   pointer-events: none;
+  z-index: 2;
 }
 
 .metric-value {
@@ -87,8 +90,11 @@ benchmark-card {
 
 .metric-value-bar {
   width: 5px;
-  background-color: #66BB6A;
+  background-color: #FFFFFF;
+  border-color: #66BB6A;
+  border-style: solid;
   display: inline-block;
+  position: relative;
 }
 
 .metric-value-bar-narrow {
@@ -96,11 +102,11 @@ benchmark-card {
 }
 
 .metric-value-bar-underperformed {
-  background-color: #E65100;
+  border-color: #E65100;
 }
 
 .metric-value-bar-needs-work {
-  background-color: #A5D6A7;
+  border-color: #A5D6A7;
 }
 
 .metric-value-tooltip {
@@ -110,6 +116,7 @@ benchmark-card {
   padding: 5px;
   position: fixed;
   white-space: pre;
+  z-index: 2;
 }
 
 .metric-unit {
@@ -121,6 +128,7 @@ benchmark-card {
   bottom: 15px;
   left: 5px;
   font-size: 10px;
+  z-index: 1;
 }
 
 .metric-label {
@@ -128,6 +136,7 @@ benchmark-card {
   bottom: 5px;
   left: 5px;
   font-size: 10px;
+  z-index: 1;
 }
 
 .zoom-button {
