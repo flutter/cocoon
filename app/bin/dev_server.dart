@@ -25,6 +25,21 @@ const _devServerPort = 8080;
 const _goappServePort = 9090;
 const _pubServePort = 9091;
 
+/// Set from the `--test-agent-auth` command-line argument, instructs the dev
+/// server to send API calls to production servers.
+///
+/// Use this to test local changes on production data, but BE CAREFUL to not
+/// corrupt production data.
+///
+/// See go/flutter-dev-server-auth.
+TestAgentAuthentication _testAgentAuth;
+
+/// Forwards requests to pub server and local Google App Engine servers.
+HttpClient _localhostProxy;
+
+/// Forwards requests to production Google App Engine servers.
+HttpClient _gaeProxy;
+
 /// Runs `pub serve` and `goapp serve` such that the app can be debugged in
 /// Dartium.
 Future<Null> main(List<String> rawArgs) async {
@@ -82,11 +97,14 @@ Future<Null> _start(ArgResults args) async {
     await _stop();
   }
 
-  HttpClient http = new HttpClient();
-  http.autoUncompress = false;
+  // We need separate HTTP clients because we keep connections alive, and one
+  // is HTTP while the other is HTTPS.
+  _localhostProxy = new HttpClient()..autoUncompress = false;
+  _gaeProxy = new HttpClient()..autoUncompress = false;
+
   await for (HttpRequest request in devServer) {
     try {
-      await _redirectRequest(request, http);
+      await _dispatchRequest(request);
     } catch(e, s) {
       print('Failed redirecting ${request.uri}');
       print(e);
@@ -96,29 +114,79 @@ Future<Null> _start(ArgResults args) async {
   }
 }
 
+/// If supplied, causes the dev server to forward API calls to the production
+/// servers.
+class TestAgentAuthentication {
+  TestAgentAuthentication._(this.agentId, this.authToken);
+
+  static TestAgentAuthentication fromArgs(String value) {
+    final List<String> parts = value.split(':');
+    return new TestAgentAuthentication._(parts[0], parts[1]);
+  }
+
+  String agentId;
+  String authToken;
+}
+
 ArgResults _parseArgs(List<String> rawArgs) {
   ArgParser argp = new ArgParser()
-    ..addFlag('clear-datastore');
+    ..addFlag('clear-datastore')
+    ..addOption('test-agent-auth', callback: (String value) {
+      if (value != null) {
+        _testAgentAuth = TestAgentAuthentication.fromArgs(value);
+      }
+    });
 
   return argp.parse(rawArgs);
 }
 
-Future<Null> _redirectRequest(HttpRequest request, HttpClient http) async {
-  Uri uri = request.uri.replace(
-    scheme: 'http',
-    host: 'localhost',
-    port: request.uri.path.contains('/api/') || request.uri.path.contains('/_ah/')
-      ? _goappServePort
-      : _pubServePort
-  );
+bool get _hasTestAgentAuth => _testAgentAuth != null;
 
-  HttpClientRequest proxyRequest = await http.openUrl(request.method, uri);
+Future<Null> _dispatchRequest(HttpRequest request) async {
+  final bool isApiRequest = request.uri.path.contains('/api/') || request.uri.path.contains('/_ah/');
+
+  HttpClient proxy;
+  Uri uri;
+  if (!isApiRequest) {
+    // Pub request
+    proxy = _localhostProxy;
+    uri = request.uri.replace(
+      scheme: 'http',
+      host: 'localhost',
+      port: _pubServePort,
+    );
+  } else if (_hasTestAgentAuth) {
+    // API request with prod auth: forward to prod server
+    proxy = _gaeProxy;
+    uri = request.uri.replace(
+      scheme: 'https',
+      host: 'flutter-dashboard.appspot.com',
+      port: 443,
+    );
+  } else {
+    // API request with no auth: forward to local dev server
+    proxy = _localhostProxy;
+    uri = request.uri.replace(
+      scheme: 'http',
+      host: 'localhost',
+      port: _goappServePort,
+    );
+  }
+
+  HttpClientRequest proxyRequest = await proxy.openUrl(request.method, uri);
   proxyRequest.followRedirects = false;
-  request.headers.forEach((String name, List<String> values) {
-    for (String value in values) {
-      proxyRequest.headers.add(name, value);
-    }
-  });
+
+  if (isApiRequest && _hasTestAgentAuth) {
+    proxyRequest.headers.add('Agent-ID', _testAgentAuth.agentId);
+    proxyRequest.headers.add('Agent-Auth-Token', _testAgentAuth.authToken);
+  } else {
+    request.headers.forEach((String name, List<String> values) {
+      for (String value in values) {
+        proxyRequest.headers.add(name, value);
+      }
+    });
+  }
+
   await proxyRequest.addStream(request);
 
   HttpClientResponse proxyResponse = await proxyRequest.close();

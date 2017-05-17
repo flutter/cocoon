@@ -388,13 +388,15 @@ func (c *Cocoon) QueryAgentStatuses() ([]*AgentStatus, error) {
 			return nil, err
 		}
 
-		buffer = append(buffer, &AgentStatus{
-			AgentID:              agent.AgentID,
-			IsHealthy:            agent.IsHealthy,
-			HealthDetails:        agent.HealthDetails,
-			HealthCheckTimestamp: agent.HealthCheckTimestamp,
-			Capabilities:         agent.Capabilities,
-		})
+		if !agent.Hidden {
+			buffer = append(buffer, &AgentStatus{
+				AgentID:              agent.AgentID,
+				IsHealthy:            agent.IsHealthy,
+				HealthDetails:        agent.HealthDetails,
+				HealthCheckTimestamp: agent.HealthCheckTimestamp,
+				Capabilities:         agent.Capabilities,
+			})
+		}
 	}
 	return buffer, nil
 }

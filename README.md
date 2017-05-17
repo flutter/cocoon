@@ -31,6 +31,12 @@ dart bin/dev_server.dart
 Once the log messages quiet down you should be able to open http://localhost:8080
 and see the status dashboard backed by a fake local datastore.
 
+# Testing Angular changes with production data
+
+Run `dart bin/dev_server.dart` with the option go/flutter-dev-server-auth. This will cause the dev
+server to call the production servers for all API calls. This only works for testing Angular
+changes. Changes in Go code require building and deploying the whole thing (see next section).
+
 # Building Cocoon for deployment
 
 The following command will run tests and build the app, and provide instructions
@@ -40,6 +46,10 @@ for deploying to Google App Engine.
 cd app
 bin/build_and_test.sh
 ```
+
+You can test the new version by accessing {VERSION}-dot-flutter-dashboard.appspot.com in your
+browser. If the result is satisfactory, the new version can be activated by using the Cloud Console
+UI: https://pantheon.corp.google.com/appengine/versions?project=flutter-dashboard&serviceId=default
 
 # Design
 
