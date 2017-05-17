@@ -4,7 +4,17 @@
 
 package commands
 
-import "cocoon/db"
+import (
+	"bytes"
+	"cocoon/db"
+	"compress/gzip"
+	"encoding/json"
+	"google.golang.org/appengine/memcache"
+	"io"
+	"time"
+)
+
+const cacheKey = "cached-get-benchmarks-result"
 
 // GetBenchmarksCommand returns recent benchmark results.
 type GetBenchmarksCommand struct {
@@ -23,6 +33,51 @@ type BenchmarkData struct {
 
 // GetBenchmarks returns recent benchmark results.
 func GetBenchmarks(c *db.Cocoon, _ []byte) (interface{}, error) {
+	cachedValue, err := loadFromMemcache(c)
+
+	if err == nil {
+		return cachedValue, nil
+	} else if err == memcache.ErrCacheMiss {
+		return loadFromDatabase(c)
+	} else {
+		return nil, err
+	}
+}
+
+func loadFromMemcache(c *db.Cocoon) (*GetBenchmarksResult, error) {
+	cachedValue, err := memcache.Get(c.Ctx, cacheKey)
+
+	if err == nil {
+		var result GetBenchmarksResult
+
+		reader, err := gzip.NewReader(bytes.NewReader(cachedValue.Value))
+
+		if err != nil {
+			return nil, err
+		}
+
+		var decompressionBuffer bytes.Buffer
+		io.Copy(&decompressionBuffer, reader)
+
+		err = reader.Close()
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(decompressionBuffer.Bytes(), &result)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return &result, nil
+	} else {
+		return nil, err
+	}
+}
+
+func loadFromDatabase(c *db.Cocoon) (*GetBenchmarksResult, error) {
 	seriesList, err := c.QueryTimeseries()
 
 	if err != nil {
@@ -43,7 +98,48 @@ func GetBenchmarks(c *db.Cocoon, _ []byte) (interface{}, error) {
 		})
 	}
 
-	return &GetBenchmarksResult{
+	result := &GetBenchmarksResult{
 		Benchmarks: benchmarks,
-	}, nil
+	}
+
+	err = storeInMemcache(c, result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func storeInMemcache(c *db.Cocoon, newValue *GetBenchmarksResult) error {
+	jsonBytes, err := json.Marshal(newValue)
+
+	if err != nil {
+		return err
+	}
+
+	var compressionBuffer bytes.Buffer
+	gzipWriter := gzip.NewWriter(&compressionBuffer)
+	_, err = gzipWriter.Write(jsonBytes)
+
+	if err != nil {
+		return err
+	}
+
+	err = gzipWriter.Close()
+
+	if err != nil {
+		return err
+	}
+
+	const nanosInASecond = 1e9
+	const twoMinutes = 120 * nanosInASecond
+
+	err = memcache.Set(c.Ctx, &memcache.Item{
+		Key:        cacheKey,
+		Value:      compressionBuffer.Bytes(),
+		Expiration: time.Duration(twoMinutes),
+	})
+
+	return err
 }
