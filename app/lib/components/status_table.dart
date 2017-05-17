@@ -55,7 +55,7 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="table-header-cell first-row"
         *ngFor="let metaTask of headerRow.allMetaTasks">
-      <img width="20px" [src]="metaTask.iconUrl">
+      <img width="18px" [src]="metaTask.iconUrl">
       <div class="task-name">{{metaTask.name}}</div>
     </td>
   </tr>
@@ -71,7 +71,6 @@ import 'package:http/http.dart' as http;
     <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
       <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
            (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)">
-        {{getAttempts(status.checklist.checklist.commit.sha, metaTask.name)}}
       </div>
     </td>
   </tr>
@@ -171,17 +170,6 @@ class StatusTable implements OnInit {
       return taskStatusToCssStyle('Skipped', 0);
 
     return taskStatusToCssStyle(taskEntity.task.status, taskEntity.task.attempts);
-  }
-
-  String getAttempts(String sha, String taskName) {
-    TaskEntity taskEntity = _findTask(sha, taskName);
-
-    if (taskEntity == null)
-      return '';
-
-    int attempts = taskEntity.task.attempts;
-    bool succeededImmediately = attempts == 1 && taskEntity.task.status == 'Succeeded';
-    return attempts == 0 || succeededImmediately ? '' : '${attempts}';
   }
 
   /// Maps from agent IDs to the latest time agent reported success.
