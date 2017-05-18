@@ -61,12 +61,30 @@ void main() {
       expect(component.visibleBenchmarks.single.timeseries.timeseries.label, 'Series 1');
     });
   });
+
+  group('computeSecondHighest', () {
+    void expectSecondHighest(List<double> values, double expected) {
+      expect(computeSecondHighest(values), expected);
+    }
+
+    test('defaults to zero on empty list', () {
+      expectSecondHighest(<double>[], 0.0);
+    });
+
+    test('pick the only element in the 1-element list', () {
+      expectSecondHighest(<double>[3.0], 3.0);
+    });
+
+    test('pick the second highest element', () {
+      expectSecondHighest(<double>[1.0, 3.0, 2.0], 2.0);
+    });
+  });
 }
 
 final math.Random _rnd = new math.Random(1234);
 
 final _testData = {
-  'Benchmarks': new List.generate(10, (int i) => {
+  'Benchmarks': new List<Map<String, dynamic>>.generate(10, (int i) => {
     'Timeseries': {
       'Key': 'key$i',
       'Timeseries': {

@@ -124,12 +124,13 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   template: r'''
     <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
     <div>{{statusMessage}}</div>
-    <div>
+    <div style="margin: 20px">
       <span>Goal:</span>
       <input type="text" [(ngModel)]="goal">
       <span>Baseline:</span>
       <input type="text" [(ngModel)]="baseline">
       <button [disabled]="!isInputValid" (click)="updateTargets()">Update</button>
+      <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
     </div>
   ''',
   directives: const [NgIf, NgModel, BenchmarkCard],
@@ -140,6 +141,11 @@ class BenchmarkHistory {
   final http.Client _httpClient;
 
   Key _key;
+
+  double _autoUpdateGoal;
+  double _autoUpdateBaseline;
+  String _autoUpdateTitle = 'Calculating autoupdate...';
+  String get autoUpdateTitle => _autoUpdateTitle;
 
   String _goal = '';
   String get goal => _goal;
@@ -156,7 +162,7 @@ class BenchmarkHistory {
   }
 
   bool _isInputValid = false;
-  bool get isInputValue => _isInputValid;
+  bool get isInputValid => _isInputValid;
 
   String _statusMessage;
   String get statusMessage => _statusMessage;
@@ -169,6 +175,14 @@ class BenchmarkHistory {
     double.parse(_baseline, (_) {
       _isInputValid = false;
     });
+  }
+
+  void autoUpdateTargets() {
+    if (_autoUpdateGoal == null)
+      return;
+
+    goal = _autoUpdateGoal.toString();
+    baseline = _autoUpdateBaseline.toString();
   }
 
   Future<Null> updateTargets() async {
@@ -220,13 +234,39 @@ class BenchmarkHistory {
     GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
 
     data = null;
-    Timer.run(() {
+    Timer.run(() {  // force Angular to rerender
+      final double secondHighest = computeSecondHighest(result.benchmarkData.values.map((t) => t.value));
+      _autoUpdateGoal = 1.05 * secondHighest;
+      _autoUpdateBaseline = 1.1 * secondHighest;
+      _autoUpdateTitle = 'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
+
       data = result.benchmarkData;
       _goal = result.benchmarkData.timeseries.timeseries.goal.toString();
       _baseline = result.benchmarkData.timeseries.timeseries.baseline.toString();
       lastPosition = result.lastPosition;
     });
   }
+}
+
+double computeSecondHighest(Iterable<double> values) {
+  double highest = 0.0;
+  double secondHighest = 0.0;
+
+  int count = 0;
+  for (double value in values.take(50)) {
+    count++;
+
+    if (value > secondHighest) {
+      if (value > highest) {
+        secondHighest = highest;
+        highest = value;
+      } else {
+        secondHighest = value;
+      }
+    }
+  }
+
+  return count > 1 ? secondHighest : highest;
 }
 
 @Component(
@@ -332,9 +372,12 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
     );
 
     for (TimeseriesValue value in _data.values.reversed) {
+      final double valueHeight = _kChartHeight * value.value / maxValue;
+
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
-        ..style.height = '${_kChartHeight * value.value / maxValue}px';
+        ..style.height = '${_kChartHeight - valueHeight}px'
+        ..style.borderWidth = '0 0 ${valueHeight}px 0';
 
       if (barWidth == 'narrow')
         bar.classes.add('metric-value-bar-narrow');
@@ -371,13 +414,15 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
         if (left < window.innerWidth / 2.0) {
           tooltip.style.left = '${bar.getBoundingClientRect().right + 5}px';
         } else {
-          tooltip.style.right = '${window.innerWidth - left - 5}px';
+          tooltip.style.right = '${window.innerWidth - left + 5}px';
         }
+        bar.style.opacity = '0.5';
         bar.style.backgroundColor = '#FFC400'; // Amber Accent 400
         document.body.append(tooltip);
         _tooltip = tooltip;
       });
       bar.onMouseOut.listen((_) {
+        bar.style.opacity = '1.0';
         bar.style.backgroundColor = '';
         _tooltip?.remove();
       });
