@@ -55,8 +55,7 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="table-header-cell first-row"
         *ngFor="let metaTask of headerRow.allMetaTasks">
-      <img width="18px" [src]="metaTask.iconUrl">
-      <div class="task-name">{{metaTask.name}}</div>
+      <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
     </td>
   </tr>
   <tr *ngFor="let status of headerCol">
@@ -70,8 +69,25 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
       <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)">
+           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
+           title="{{metaTask.name}}">
       </div>
+    </td>
+  </tr>
+</table>
+<table class="status-table"
+       style="position:fixed;bottom:0;left:0"
+       cellspacing="0"
+       cellpadding="0"
+       *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
+  <tr>
+    <td class="table-footer-first-cell">
+      &nbsp;
+    </td>
+    <td class="table-footer-cell"
+        *ngFor="let metaTask of headerRow.allMetaTasks">
+      <img width="18px" [src]="metaTask.iconUrl">
+      <div class="task-name">{{metaTask.name}}</div>
     </td>
   </tr>
 </table>
