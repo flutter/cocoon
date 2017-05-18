@@ -316,7 +316,6 @@ class Config {
   Config({
     @required this.baseCocoonUrl,
     @required this.agentId,
-    @required this.firebaseFlutterDashboardToken,
     @required this.authToken,
     @required this.flutterDirectory,
     @required this.deviceOperatingSystem,
@@ -332,7 +331,6 @@ class Config {
     Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
     String baseCocoonUrl = agentConfig['base_cocoon_url'] ?? 'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
-    String firebaseFlutterDashboardToken = requireConfigProperty<String>(agentConfig, 'firebase_flutter_dashboard_token');
     String authToken = requireConfigProperty<String>(agentConfig, 'auth_token');
     String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null)
@@ -356,7 +354,6 @@ class Config {
     _config = new Config(
       baseCocoonUrl: baseCocoonUrl,
       agentId: agentId,
-      firebaseFlutterDashboardToken: firebaseFlutterDashboardToken,
       authToken: authToken,
       flutterDirectory: flutterDirectory,
       deviceOperatingSystem: deviceOperatingSystem,
@@ -365,7 +362,6 @@ class Config {
 
   final String baseCocoonUrl;
   final String agentId;
-  final String firebaseFlutterDashboardToken;
   final String authToken;
   final Directory flutterDirectory;
   final DeviceOperatingSystem deviceOperatingSystem;

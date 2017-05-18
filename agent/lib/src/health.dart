@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'adb.dart';
 import 'agent.dart';
-import 'firebase.dart';
 import 'utils.dart';
 
 Future<AgentHealth> performHealthChecks(Agent agent) async {
@@ -15,9 +14,6 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
 
   results['able-to-perform-health-check'] = await _captureErrors(() async {
     results['ssh-connectivity'] = await _captureErrors(_scrapeRemoteAccessInfo);
-
-    if (config.firebaseFlutterDashboardToken != 'test')
-      results['firebase-connection'] = await _captureErrors(checkFirebaseConnection);
 
     Map<String, HealthCheckResult> deviceChecks = await devices.checkDevices();
     results.addAll(deviceChecks);
