@@ -393,11 +393,6 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
         // Used to distinguish between clicks and drags.
         bool dragHappened = false;
         tooltip = new DivElement()
-          ..text = '${value.value}$unit\n'
-            'Flutter revision: ${value.revision}\n'
-            'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
-            'Goal: $goal$unit\n'
-            'Baseline: $baseline$unit'
           ..classes.add('metric-value-tooltip')
           ..style.top = '${bar.getBoundingClientRect().top}px'
           ..onMouseDown.listen((_) {
@@ -410,6 +405,18 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
               if (!dragHappened)
                 tooltip.remove();
             });
+
+        final String revisionLink = 'https://github.com/flutter/flutter/commit/${value.revision}';
+
+        tooltip.setInnerHtml(
+          '${value.value}$unit\n'
+          'Flutter revision: <a href="$revisionLink" target="_blank">${value.revision}</a>\n'
+          'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
+          'Goal: $goal$unit\n'
+          'Baseline: $baseline$unit',
+          validator: const _NullValidator(),
+        );
+
         final double left = bar.getBoundingClientRect().left;
         if (left < window.innerWidth / 2.0) {
           tooltip.style.left = '${bar.getBoundingClientRect().right + 5}px';
@@ -438,4 +445,14 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   void ngOnDestroy() {
     _tooltip?.remove();
   }
+}
+
+class _NullValidator implements NodeValidator {
+  const _NullValidator();
+
+  @override
+  bool allowsElement(Element element) => true;
+
+  @override
+  bool allowsAttribute(Element element, String attributeName, String value) => true;
 }
