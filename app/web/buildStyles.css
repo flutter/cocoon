@@ -253,15 +253,18 @@ td.stats-value {
   position: relative;
   font-weight: bold;
   background-color: #eee;
+  border-right: 1px solid #CCC;
 }
 
 .task-name {
   position: absolute;
-  transform: rotate(90deg);
+  transform: translateY(-47px) translateX(20px) rotate(-90deg);
   transform-origin: 0% 100%;
-  font-size: 14px;
+  padding: 6px;
+  font-size: 12px;
   color: #727272;
-  margin: -8px 0 0 2px;
+  background-color: white;
+  height: 12px;
 }
 
 .first-row {
@@ -277,15 +280,29 @@ td.stats-value {
 }
 
 .task-status-cell {
-  padding: 5px 5px 0 20px;
+  padding: 0 2px;
+  border-right: 1px solid #CCC;
 }
 
 .task-status-circle {
-  border-radius: 10px;
   height: 20px;
   width: 20px;
+  border-radius: 4px;
   text-align: center;
   color: white;
+}
+
+.table-footer-first-cell {
+  border-right: 1px solid #CCC;
+  width: 183px;
+}
+
+.table-footer-cell {
+  width: 20px;
+  border-right: 1px solid #CCC;
+  padding-left: 4px;
+  height: 320px;
+  vertical-align: bottom;
 }
 
 .task-new {
