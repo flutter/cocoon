@@ -181,8 +181,8 @@ class BenchmarkHistory {
     if (_autoUpdateGoal == null)
       return;
 
-    goal = _autoUpdateGoal.toString();
-    baseline = _autoUpdateBaseline.toString();
+    goal = _autoUpdateGoal.toStringAsFixed(1);
+    baseline = _autoUpdateBaseline.toStringAsFixed(1);
   }
 
   Future<Null> updateTargets() async {
