@@ -45,10 +45,9 @@ Read [Creating an agent](https://github.com/flutter/cocoon#creating-an-agent)
 about how to create the agent and acquire an authentication token to connect it
 to Cocoon.
 
-To authenticate with Firebase read go/flutter-cocoon.
+For authentication instructions read go/flutter-cocoon.
 
-At the end of this exercise you should have an agent ID, a Cocoon auth token
-and a Firebase auth token.
+At the end of this exercise you should have an agent ID and an agent auth token.
 
 ### config.yaml
 

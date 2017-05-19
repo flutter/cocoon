@@ -29,10 +29,5 @@ agent_id: agent-with-ios-devices-#5
 # Replace AGENT_ID with the value of `agent_id`.
 auth_token: blahblahblah
 
-# Contact sethladd@google.com, yjbanov@google.com or devoncarew@google.com to
-# get a Firebase token. Token "test" will cause the agent to skip uploading
-# results to Firebase.
-firebase_flutter_dashboard_token: test
-
 # The device operating system. Possible values: android, ios.
 device_os: android

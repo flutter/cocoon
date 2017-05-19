@@ -9,8 +9,6 @@ import 'package:args/args.dart';
 
 import '../adb.dart';
 import '../agent.dart';
-import '../firebase.dart';
-import '../golem.dart';
 import '../health.dart';
 import '../runner.dart';
 import '../utils.dart';
@@ -103,7 +101,6 @@ class ContinuousIntegrationCommand extends Command {
     TaskResult result = await runTask(agent, task);
     if (result.succeeded) {
       await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
-      await _uploadDataToFirebase(task, result);
     } else {
       await agent.reportFailure(task.key, result.reason);
     }
@@ -147,40 +144,4 @@ class ContinuousIntegrationCommand extends Command {
     await new Future.delayed(const Duration(seconds: 1));
     exit(0);
   }
-}
-
-
-
-Future<Null> _uploadDataToFirebase(CocoonTask task, TaskResult result) async {
-  List<Map<String, dynamic>> golemData = <Map<String, dynamic>>[];
-  int golemRevision = await computeGolemRevision();
-
-  Map<String, dynamic> data = <String, dynamic>{};
-
-  if (result.data != null) {
-    data.addAll(result.data);
-  }
-
-  if (result.benchmarkScoreKeys != null) {
-    for (String scoreKey in result.benchmarkScoreKeys) {
-      String benchmarkName = '${task.name}.$scoreKey';
-      if (registeredBenchmarkNames.contains(benchmarkName)) {
-        golemData.add(<String, dynamic>{
-          'benchmark_name': benchmarkName,
-          'golem_revision': golemRevision,
-          'score': result.data[scoreKey],
-        });
-      }
-    }
-  }
-
-  data['__metadata__'] = <String, dynamic>{
-    'success': result.succeeded,
-    'revision': task.revision,
-    'message': result.reason ?? 'N/A',
-  };
-
-  data['__golem__'] = golemData;
-
-  await uploadToFirebase(task.name, data);
 }

@@ -11,7 +11,6 @@ import 'package:cocoon/http.dart';
 
 Future<Null> main() async {
   hide('#benchmarks-link');
-  hide('#experimental-link');
   hide('#logout-button');
   hide('.login-button');
 
@@ -20,7 +19,6 @@ Future<Null> main() async {
   final AuthenticationStatus status = await getAuthenticationStatus('/');
   if (status.isAuthenticated) {
     show('#benchmarks-link');
-    show('#experimental-link');
     show('#logout-button');
 
     document.querySelector('#logout-button').on['click'].listen((_) {
