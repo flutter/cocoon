@@ -138,6 +138,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	// These built-in tasks are not listed in the manifest.
 	tasks := []*db.Task{
 		makeTask("travis", "travis", []string{"can-update-travis"}, false, 0),
+		makeTask("appveyor", "appveyor", []string{"can-update-appveyor"}, false, 0),
 
 		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}, false, 0),
 		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}, false, 0),

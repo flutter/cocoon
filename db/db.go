@@ -24,6 +24,7 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine"
 )
 
 // NewCocoon creates a new Cocoon.
@@ -317,6 +318,7 @@ func (stages byPrecedence) Less(i, j int) bool {
 
 var stagePrecedence = []string{
 	"travis",
+	"appveyor",
 	"chromebot",
 	"devicelab",
 	"devicelab_win",
@@ -678,7 +680,7 @@ func (agent *Agent) CapableOfPerforming(task *Task) bool {
 // external piece of infrastructure, such as Travis and Chrome Infra.
 func (stage *Stage) IsExternal() bool {
 	name := stage.Name
-	return name == "travis" || name == "chromebot"
+	return name == "travis" || name == "appveyor" || name == "chromebot"
 }
 
 // PutLogChunk creates a new log chunk record in the datastore.
@@ -873,7 +875,7 @@ func (c *Cocoon) FetchURL(url string, authenticateWithGithub bool) ([]byte, erro
 		return nil, err
 	}
 
-	if authenticateWithGithub {
+	if authenticateWithGithub && !appengine.IsDevAppServer() {
 		request.Header.Add("Authorization", fmt.Sprintf("token %v", c.GetConfigValue("GithubToken")))
 	}
 
