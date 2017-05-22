@@ -55,7 +55,9 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="table-header-cell first-row"
         *ngFor="let metaTask of headerRow.allMetaTasks">
-      <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
+      <a [href]="computeLinkToTaskSourceFile(metaTask.name)" target="_blank">
+        <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
+      </a>
     </td>
   </tr>
   <tr *ngFor="let status of headerCol">
@@ -272,6 +274,10 @@ class StatusTable implements OnInit {
     } else if (taskEntity != null) {
       window.open('/api/get-log?ownerKey=${taskEntity.key.value}', '_blank');
     }
+  }
+
+  String computeLinkToTaskSourceFile(String taskName) {
+    return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
   }
 }
 
