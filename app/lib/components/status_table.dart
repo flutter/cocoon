@@ -17,6 +17,8 @@ import 'package:http/http.dart' as http;
   Loading...
 </div>
 
+<legend></legend>
+
 <div class="agent-bar">
   <div>Agents</div>
   <div *ngFor="let agentStatus of agentStatuses"
@@ -92,7 +94,7 @@ import 'package:http/http.dart' as http;
   </tr>
 </table>
 ''',
-  directives: const [NgIf, NgFor, NgClass, NgStyle]
+  directives: const [Legend, NgIf, NgFor, NgClass, NgStyle],
 )
 class StatusTable implements OnInit {
   static const Duration maxHealthCheckAge = const Duration(minutes: 10);
@@ -367,4 +369,45 @@ class Color {
       (from.g + (to.g - from.g) * c).toInt(),
       (from.b + (to.b - from.b) * c).toInt(),
   );
+}
+
+@Component(
+  selector: 'legend',
+  template: '''
+  <div class="legend-icon" (click)="toggleVisibility()">?</div>
+  <div *ngIf="legendVisible" class="legend">
+    <div class="row">
+      <div class="task-status-circle task-new"></div><span class="description">- new task</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-in-progress"></div><span class="description">- task is running</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-succeeded"></div><span class="description">- task succeeded</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-succeeded-but-flaky"></div><span class="description">- task is flaky</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-failed"></div><span class="description">- task failed</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-underperformed"></div><span class="description">- task underperformed</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-skipped"></div><span class="description">- task was skipped</span>
+    </div>
+    <div class="row">
+      <div class="task-status-circle task-unknown"></div><span class="description">- task status unknown</span>
+    </div>
+  </div>
+  ''',
+  directives: const [NgIf, NgFor, NgClass, NgStyle],
+)
+class Legend {
+  bool legendVisible = false;
+
+  void toggleVisibility() {
+    legendVisible = !legendVisible;
+  }
 }
