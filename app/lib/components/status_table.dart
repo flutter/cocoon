@@ -57,7 +57,7 @@ import 'package:http/http.dart' as http;
     </td>
     <td class="table-header-cell first-row"
         *ngFor="let metaTask of headerRow.allMetaTasks">
-      <a [href]="computeLinkToTaskSourceFile(metaTask.name)" target="_blank">
+      <a [href]="computeLinkToTaskSourceFile(metaTask.name, metaTask.stageName)" target="_blank">
         <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
       </a>
     </td>
@@ -257,29 +257,48 @@ class StatusTable implements OnInit {
   void openLog(String sha, String taskName, String taskStage) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (taskStage == 'travis') {
-      window.open('https://travis-ci.org/flutter/flutter/builds', '_blank');
-    } else if (taskStage == 'chromebot') {
-      switch (taskName) {
-        case 'mac_bot':
-          window.open('https://build.chromium.org/p/client.flutter/builders/Mac', '_blank');
-          break;
-        case 'linux_bot':
-          window.open('https://build.chromium.org/p/client.flutter/builders/Linux', '_blank');
-          break;
-        case 'windows_bot':
-          window.open('https://build.chromium.org/p/client.flutter/builders/Windows', '_blank');
-          break;
-        default:
-          window.open('https://travis-ci.org/flutter/flutter/builds', '_blank');
-      }
+    if (isExternal(taskStage)) {
+      // We cannot serve the log file from an external system directly, but we
+      // can redirect the user closer to where they can find it.
+      window.open(computeLinkToExternalBuildHistory(taskName, taskStage), '_blank');
     } else if (taskEntity != null) {
       window.open('/api/get-log?ownerKey=${taskEntity.key.value}', '_blank');
     }
   }
 
-  String computeLinkToTaskSourceFile(String taskName) {
+  String computeLinkToTaskSourceFile(String taskName, String taskStage) {
+    if (isExternal(taskStage)) {
+      return computeLinkToExternalBuildHistory(taskName, taskStage);
+    }
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
+  }
+
+  bool isExternal(String taskStage) {
+    return taskStage == 'travis' || taskStage == 'appveyor' || taskStage == 'chromebot';
+  }
+
+  String computeLinkToExternalBuildHistory(taskName, taskStage) {
+    if (taskStage == 'travis') {
+      return 'https://travis-ci.org/flutter/flutter/builds';
+    } else if (taskStage == 'appveyor') {
+      return 'https://ci.appveyor.com/project/flutter/flutter/history';
+    } else if (taskStage == 'chromebot') {
+      switch (taskName) {
+        case 'mac_bot':
+          return 'https://build.chromium.org/p/client.flutter/builders/Mac';
+          break;
+        case 'linux_bot':
+          return 'https://build.chromium.org/p/client.flutter/builders/Linux';
+          break;
+        case 'windows_bot':
+          return 'https://build.chromium.org/p/client.flutter/builders/Windows';
+          break;
+        default:
+          return 'https://travis-ci.org/flutter/flutter/builds';
+      }
+    } else {
+      return '#';
+    }
   }
 }
 
@@ -301,6 +320,7 @@ class HeaderRow {
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
         "travis",
+        "appveyor",
         "chromebot",
         "devicelab",
         "devicelab_win",
@@ -349,6 +369,7 @@ class MetaTask {
 String _iconForStageName(String stageName) {
   const Map<String, String> iconMap = const <String, String>{
     'travis': '/travis.svg',
+    'appveyor': '/appveyor.png',
     'chromebot': '/chromium.svg',
     'devicelab': '/android.svg',
     'devicelab_ios': '/apple.svg',

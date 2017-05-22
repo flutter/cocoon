@@ -5,6 +5,9 @@ cron:
 - description: refresh travis build status
   url: /api/refresh-travis-status
   schedule: every 3 minutes
+- description: refresh appveyor build status
+  url: /api/refresh-appveyor-status
+  schedule: every 3 minutes
 - description: refresh chromebot build status
   url: /api/refresh-chromebot-status
   schedule: every 3 minutes
