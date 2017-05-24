@@ -15,6 +15,7 @@ import (
 	"google.golang.org/appengine/log"
 	"github.com/go-yaml/yaml"
 	"errors"
+	"time"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -146,11 +147,30 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/flutter/flutter/%v/dev/devicelab/manifest.yaml", commit)
-	manifestBytes, err := cocoon.FetchURL(url, false)
 
-	if err != nil {
-		// There is no guarantee that every commit will have a manifest file
-		log.Warningf(cocoon.Ctx, "Error fetching CI manifest at %v. Error: %v", url, err)
+	attempts := 0
+	var manifestBytes []byte
+	var lastError error
+	for manifestBytes == nil && attempts < 3 {
+		if attempts > 0 {
+			log.Warningf(cocoon.Ctx, "Attempt to download manifest.yaml #%v", attempts + 1)
+		}
+
+		manifestBytes, lastError = cocoon.FetchURL(url, false)
+
+		if lastError != nil {
+			// There is no guarantee that every commit will have a manifest file; consider 404 a permanent
+			// failure. Also, consider all unrecognized errors as permanent.
+			if fetchError, isFetchError := lastError.(*db.FetchError); isFetchError && fetchError.StatusCode != 404 {
+				time.Sleep(time.Duration(2 * time.Second))
+			}
+		}
+
+		attempts++
+	}
+
+	if manifestBytes == nil {
+		log.Warningf(cocoon.Ctx, "Error fetching CI manifest at %v. Error: %v", url, lastError)
 		return tasks, nil
 	}
 

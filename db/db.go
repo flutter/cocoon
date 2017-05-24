@@ -866,6 +866,17 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity, startFrom
 	return buffer, &cursor, nil
 }
 
+// FetchError is a custom error indicating failure to fetch a resource using FetchURL.
+type FetchError struct {
+	Description string  // Error description
+	StatusCode int      // HTTP status code, e.g. 500
+}
+
+// This makes FetchError conform to the error interface.
+func (e *FetchError) Error() string {
+	return e.Description
+}
+
 // FetchURL performs an HTTP GET request on the given URL and returns data if
 // response is HTTP 200.
 func (c *Cocoon) FetchURL(url string, authenticateWithGithub bool) ([]byte, error) {
@@ -890,7 +901,10 @@ func (c *Cocoon) FetchURL(url string, authenticateWithGithub bool) ([]byte, erro
 	}
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
+		return nil, &FetchError{
+			Description: fmt.Sprintf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode),
+			StatusCode: response.StatusCode,
+		}
 	}
 
 	defer response.Body.Close()
