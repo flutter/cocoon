@@ -110,7 +110,7 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 		}
 
 		results = append(results, &ChromebotResult{
-			Commit: getBuildProperty(buildJSON.(map[string]interface{}), "git_revision"),
+			Commit: getBuildProperty(buildJSON.(map[string]interface{}), "got_revision"),
 			State:  getStatus(buildJSON.(map[string]interface{})),
 		})
 	}
