@@ -142,8 +142,8 @@ class BenchmarkHistory {
 
   Key _key;
 
-  double _autoUpdateGoal;
-  double _autoUpdateBaseline;
+  String _autoUpdateGoal;
+  String _autoUpdateBaseline;
   String _autoUpdateTitle = 'Calculating autoupdate...';
   String get autoUpdateTitle => _autoUpdateTitle;
 
@@ -181,8 +181,8 @@ class BenchmarkHistory {
     if (_autoUpdateGoal == null)
       return;
 
-    goal = _autoUpdateGoal.toStringAsFixed(1);
-    baseline = _autoUpdateBaseline.toStringAsFixed(1);
+    goal = _autoUpdateGoal;
+    baseline = _autoUpdateBaseline;
   }
 
   Future<Null> updateTargets() async {
@@ -236,8 +236,8 @@ class BenchmarkHistory {
     data = null;
     Timer.run(() {  // force Angular to rerender
       final double secondHighest = computeSecondHighest(result.benchmarkData.values.map((t) => t.value));
-      _autoUpdateGoal = 1.05 * secondHighest;
-      _autoUpdateBaseline = 1.1 * secondHighest;
+      _autoUpdateGoal = (1.005 * secondHighest).toStringAsFixed(1);
+      _autoUpdateBaseline = (1.02 * secondHighest).toStringAsFixed(1);
       _autoUpdateTitle = 'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
 
       data = result.benchmarkData;
@@ -253,7 +253,7 @@ double computeSecondHighest(Iterable<double> values) {
   double secondHighest = 0.0;
 
   int count = 0;
-  for (double value in values.take(50)) {
+  for (double value in values.take(20)) {
     count++;
 
     if (value > secondHighest) {
