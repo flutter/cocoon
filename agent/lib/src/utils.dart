@@ -197,9 +197,10 @@ Future<Null> getFlutterAt(String revision) async {
 }
 
 Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String> env}) async {
+    {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
-  print('Executing: $command');
+  if (!silent)
+    print('Executing: $command');
   Process proc = await _processManager.start([executable]..addAll(arguments), environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = new ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);

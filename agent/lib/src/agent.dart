@@ -19,12 +19,14 @@ class CocoonTask {
     @required this.key,
     @required this.revision,
     @required this.timeoutInMinutes,
+    @required this.cloudAuthToken,
   });
 
   final String name;
   final String key;
   final String revision;
   final int timeoutInMinutes;
+  final String cloudAuthToken;
 }
 
 /// Client to the Coocon backend.
@@ -72,6 +74,7 @@ class Agent {
         key: reservation['TaskEntity']['Key'],
         revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'],
         timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'],
+        cloudAuthToken: reservation['CloudAuthToken'],
       );
     }
 

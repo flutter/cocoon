@@ -98,7 +98,8 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
       '--enable-vm-service=$vmServicePort',
       '--no-pause-isolates-on-exit',
       taskExecutable,
-    ]);
+      '--cloud-auth-token=${task.cloudAuthToken}',
+    ], silent: true);
   });
 
   bool runnerFinished = false;
