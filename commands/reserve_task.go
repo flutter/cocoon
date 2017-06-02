@@ -15,6 +15,8 @@ import (
 
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine"
+	"golang.org/x/oauth2/jwt"
 )
 
 // ReserveTaskCommand reserves a task for an agent.
@@ -31,6 +33,9 @@ type ReserveTaskResult struct {
 
 	// The checklist the task belongs to.
 	ChecklistEntity *db.ChecklistEntity
+
+	// Authentication token to Google Cloud.
+	CloudAuthToken string
 }
 
 // ReserveTask reserves a task for an agent to perform.
@@ -79,12 +84,56 @@ func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 			return nil, err
 		} else {
 			// Found a task
+			cloudAuthToken, err := getCloudAuthToken(cocoon)
+
+			if err != nil {
+				return nil, err
+			}
+
 			return &ReserveTaskResult{
 				TaskEntity:      task,
 				ChecklistEntity: checklist,
+				CloudAuthToken: cloudAuthToken,
 			}, nil
 		}
 	}
+}
+
+type ServiceAccountInfo struct {
+	Email string `json:"client_email"`
+	PrivateKey string `json:"private_key"`
+	PrivateKeyID string `json:"private_key_id"`
+	TokenURL string `json:"token_uri"`
+}
+
+func getCloudAuthToken(cocoon *db.Cocoon) (string, error) {
+	if appengine.IsDevAppServer() {
+		return "", nil
+	}
+
+	accountInfoJson := cocoon.GetConfigValue("DevicelabServiceAccount")
+	var accountInfo *ServiceAccountInfo
+	err := json.Unmarshal([]byte(accountInfoJson), &accountInfo)
+
+	if err != nil {
+		return "", err
+	}
+
+	conf := &jwt.Config{
+		Email: accountInfo.Email,
+		PrivateKey: []byte(accountInfo.PrivateKey),
+		PrivateKeyID: accountInfo.PrivateKeyID,
+		TokenURL: accountInfo.TokenURL,
+		Scopes: []string{"https://www.googleapis.com/auth/devstorage.read_write"},
+	}
+
+	token, err := conf.TokenSource(cocoon.Ctx).Token()
+
+	if err != nil {
+		return "", err
+	}
+
+	return token.AccessToken, nil
 }
 
 func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.ChecklistEntity, error) {
