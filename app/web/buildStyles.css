@@ -307,22 +307,27 @@ td.stats-value {
 
 .task-new {
   background-color: #CCCCFF;
+  border: 1px solid #aaa;
 }
 .task-in-progress {
-  background-color: blue;
+  background-color: #7171Ff;
+  border: 1px solid #5151FF;
   animation: inProgressAnimation 3s infinite linear;
   cursor: pointer;
 }
 .task-succeeded {
-  background-color: green;
+  background-color: #8fdf5f;
+  border: 1px solid #4F8530;
   cursor: pointer;
 }
 .task-succeeded-but-flaky {
-  background-color: #cccc00;
+  background-color: #fffc6c;
+  border: 1px solid #C5C56D;
   cursor: pointer;
 }
 .task-failed {
-  background-color: red;
+  background-color: #e98080;
+  border: 1px solid #A77272;
   cursor: pointer;
 }
 .task-underperformed {
@@ -330,7 +335,8 @@ td.stats-value {
   cursor: pointer;
 }
 .task-skipped {
-  background-color: gray;
+  background-color: #999;
+  border: 1px solid #777;
 }
 .task-unknown {
   background-color: #6600cc;
