@@ -196,8 +196,8 @@ class StatusTable implements OnInit {
   Map<String, DateTime> _latestAgentPassTimes = <String, DateTime>{};
 
   static const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
-  static const Color _kHealthyAgentColor = const Color(0x33, 0xCC, 0x33);
-  static const Color _kUnhealthyAgentColor = const Color(0xCC, 0x33, 0x33);
+  static const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
+  static const Color _kUnhealthyAgentColor = const Color(0xE9, 0x80, 0x80);
 
   Map<String, String> getAgentStyle(AgentStatus status) {
     DateTime now = new DateTime.now();

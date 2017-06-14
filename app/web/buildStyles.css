@@ -285,11 +285,12 @@ td.stats-value {
 }
 
 .task-status-circle {
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   border-radius: 4px;
   text-align: center;
   color: white;
+  border: 1px solid #999;
 }
 
 .table-footer-first-cell {
@@ -307,22 +308,27 @@ td.stats-value {
 
 .task-new {
   background-color: #CCCCFF;
+  border-color:  #aaa;
 }
 .task-in-progress {
-  background-color: blue;
+  background-color: #7171Ff;
+  border-color: #5151FF;
   animation: inProgressAnimation 3s infinite linear;
   cursor: pointer;
 }
 .task-succeeded {
-  background-color: green;
+  background-color: #8fdf5f;
+  border-color: #4F8530;
   cursor: pointer;
 }
 .task-succeeded-but-flaky {
-  background-color: #cccc00;
+  background-color: #fffc6c;
+  border-color: #C5C56D;
   cursor: pointer;
 }
 .task-failed {
-  background-color: red;
+  background-color: #e98080;
+  border-color: #A77272;
   cursor: pointer;
 }
 .task-underperformed {
@@ -330,7 +336,8 @@ td.stats-value {
   cursor: pointer;
 }
 .task-skipped {
-  background-color: gray;
+  background-color: #999;
+  border-color: #777;
 }
 .task-unknown {
   background-color: #6600cc;
