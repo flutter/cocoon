@@ -237,7 +237,7 @@ class BenchmarkHistory {
     Timer.run(() {  // force Angular to rerender
       final double secondHighest = computeSecondHighest(result.benchmarkData.values.map((t) => t.value));
       _autoUpdateGoal = (1.005 * secondHighest).toStringAsFixed(1);
-      _autoUpdateBaseline = (1.02 * secondHighest).toStringAsFixed(1);
+      _autoUpdateBaseline = (1.05 * secondHighest).toStringAsFixed(1);
       _autoUpdateTitle = 'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
 
       data = result.benchmarkData;
