@@ -312,7 +312,7 @@ td.stats-value {
 }
 .task-in-progress {
   background-color: #7171Ff;
-  border: 1px solid #5151FF;
+  border-color: #5151FF;
   animation: inProgressAnimation 3s infinite linear;
   cursor: pointer;
 }
