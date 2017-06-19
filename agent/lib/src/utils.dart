@@ -22,7 +22,7 @@ Config _config;
 Config get config => _config;
 
 List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
-ProcessManager _processManager = new LocalProcessManager();
+ProcessManager _processManager = const LocalProcessManager();
 
 class ProcessInfo {
   ProcessInfo(this.command, this.process);
@@ -133,16 +133,16 @@ void section(String title) {
 
 Future<String> getDartVersion() async {
   // The Dart VM returns the version text to stderr.
-  ProcessResult result = _processManager.runSync([dartBin, '--version']);
+  ProcessResult result = _processManager.runSync(<String>[dartBin, '--version']);
   String version = result.stderr.trim();
 
   // Convert:
   //   Dart VM version: 1.17.0-dev.2.0 (Tue May  3 12:14:52 2016) on "macos_x64"
   // to:
   //   1.17.0-dev.2.0
-  if (version.indexOf('(') != -1)
+  if (version.contains('('))
     version = version.substring(0, version.indexOf('(')).trim();
-  if (version.indexOf(':') != -1)
+  if (version.contains(':'))
     version = version.substring(version.indexOf(':') + 1).trim();
 
   return version.replaceAll('"', "'");
@@ -201,7 +201,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent)
     print('Executing: $command');
-  Process proc = await _processManager.start([executable]..addAll(arguments), environment: env, workingDirectory: cwd);
+  Process proc = await _processManager.start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = new ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
@@ -215,7 +215,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
 
 Future<Null> forceQuitRunningProcesses() async {
   // Give normally quitting processes a chance to report their exit code.
-  await new Future.delayed(const Duration(seconds: 1));
+  await new Future<Null>.delayed(const Duration(seconds: 1));
 
   // Whatever's left, kill it.
   for (ProcessInfo p in _runningProcesses) {
@@ -410,7 +410,7 @@ T requireConfigProperty<T>(Map<String, T> map, String propertyName) {
 }
 
 String jsonEncode(dynamic data) {
-  return new JsonEncoder.withIndent('  ').convert(data) + '\n';
+  return const JsonEncoder.withIndent('  ').convert(data) + '\n';
 }
 
 Future<Null> getFlutter(String revision) async {

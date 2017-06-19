@@ -70,7 +70,7 @@ class TaskResult {
   final String reason;
 
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'success': succeeded,
       'data': data,
       'benchmarkScoreKeys': benchmarkScoreKeys,

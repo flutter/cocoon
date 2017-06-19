@@ -60,7 +60,7 @@ class ContinuousIntegrationCommand extends Command {
         if (!health.ok) {
           print('Some health checks failed:');
           print(health);
-          await new Future.delayed(_sleepBetweenBuilds);
+          await new Future<Null>.delayed(_sleepBetweenBuilds);
           // Don't bother requesting new tasks if health is bad.
           continue;
         }
@@ -93,7 +93,7 @@ class ContinuousIntegrationCommand extends Command {
         await forceQuitRunningProcesses();
       }
 
-      await new Future.delayed(_sleepBetweenBuilds);
+      await new Future<Null>.delayed(_sleepBetweenBuilds);
     }
   }
 
@@ -141,7 +141,7 @@ class ContinuousIntegrationCommand extends Command {
     }
     _streamSubscriptions.clear();
     // TODO(yjbanov): stop processes launched by tasks, if any
-    await new Future.delayed(const Duration(seconds: 1));
+    await new Future<Null>.delayed(const Duration(seconds: 1));
     exit(0);
   }
 }
