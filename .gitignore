@@ -7,3 +7,7 @@ packages
 app/build
 pubspec.lock
 config.yaml
+
+# IntelliJ
+.idea
+*.iml
