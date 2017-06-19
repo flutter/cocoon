@@ -124,20 +124,20 @@ class CommandArgs {
       return false;
 
     CommandArgs otherCmd = other;
-    return otherCmd.command == this.command &&
-      const ListEquality().equals(otherCmd.arguments, this.arguments) &&
-      const MapEquality().equals(otherCmd.env, this.env);
+    return otherCmd.command == command &&
+      const ListEquality<dynamic>().equals(otherCmd.arguments, arguments) &&
+      const MapEquality<dynamic, dynamic>().equals(otherCmd.env, env);
   }
 
   @override
   int get hashCode => 17 * (17 * command.hashCode + _hashArguments) + _hashEnv;
 
   int get _hashArguments => arguments != null
-    ? const ListEquality().hash(arguments)
+    ? const ListEquality<dynamic>().hash(arguments)
     : null.hashCode;
 
   int get _hashEnv => env != null
-    ? const MapEquality().hash(env)
+    ? const MapEquality<dynamic, dynamic>().hash(env)
     : null.hashCode;
 }
 

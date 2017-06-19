@@ -76,7 +76,7 @@ class AuthenticatedClient extends BaseClient {
   final Client _delegate = new Client();
 
   @override
-  Future<StreamedResponse> send(Request request) async {
+  Future<StreamedResponse> send(BaseRequest request) async {
     request.headers['Agent-ID'] = _agentId;
     request.headers['Agent-Auth-Token'] = _authToken;
     final StreamedResponse resp = await _delegate.send(request);

@@ -1,0 +1,13 @@
+matrix:
+  include:
+    - os: linux
+      language: dart
+      dart: stable
+      before_script:
+        - cd agent
+        - dartanalyzer --fatal-warnings .
+        - pub run test
+
+cache:
+  directories:
+    - $HOME/.pub-cache
