@@ -60,6 +60,14 @@ Future<Null> main(List<String> rawArgs) async {
   await command.run(args.command);
 }
 
+/// An error thrown by [AuthenticatedClient].
+class AuthenticatedClientError extends Error {
+  AuthenticatedClientError(this.message);
+
+  /// Error message.
+  final String message;
+}
+
 class AuthenticatedClient extends BaseClient {
   AuthenticatedClient(this._agentId, this._authToken);
 
@@ -71,10 +79,12 @@ class AuthenticatedClient extends BaseClient {
   Future<StreamedResponse> send(Request request) async {
     request.headers['Agent-ID'] = _agentId;
     request.headers['Agent-Auth-Token'] = _authToken;
-    StreamedResponse resp = await _delegate.send(request);
+    final StreamedResponse resp = await _delegate.send(request);
 
-    if (resp.statusCode != 200)
-      throw 'HTTP error ${resp.statusCode}:\n${(await Response.fromStream(resp)).body}';
+    if (resp.statusCode != 200) {
+      final String message = 'HTTP error ${resp.statusCode}:\n${(await Response.fromStream(resp)).body}';
+      throw new AuthenticatedClientError(message);
+    }
 
     return resp;
   }

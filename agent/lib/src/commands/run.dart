@@ -39,7 +39,7 @@ class RunCommand extends Command {
       exit(1);
     }
 
-    CocoonTask task = new CocoonTask(name: taskName, revision: revision);
+    CocoonTask task = new CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
     TaskResult result;
     try {
       if (task.revision != null) {

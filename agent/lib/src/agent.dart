@@ -16,16 +16,26 @@ import 'package:cocoon_agent/src/utils.dart';
 class CocoonTask {
   CocoonTask({
     @required this.name,
-    @required this.key,
     @required this.revision,
     @required this.timeoutInMinutes,
-    @required this.cloudAuthToken,
+    this.key,
+    this.cloudAuthToken,
   });
 
+  /// Task name as it appears on dashboards and in logs.
   final String name;
+
+  /// Identifies the task in the database, where the tasks status is stored.
   final String key;
+
+  /// The Flutter revision (git SHA) this task is expected to run with.
   final String revision;
+
+  /// Task timeout.
   final int timeoutInMinutes;
+
+  /// Authentication token that gives the task write access to Google Cloud
+  /// Storage buckets to upload artifacts, such as screenshots.
   final String cloudAuthToken;
 }
 
