@@ -122,8 +122,12 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     }
   }
 
-  var stdoutSub = runner.stdout.transform(UTF8.decoder).listen(sendLog);
-  var stderrSub = runner.stderr.transform(UTF8.decoder).listen(sendLog);
+  var stdoutSub = runner.stdout.transform(UTF8.decoder).listen((String message) async {
+    await sendLog(message);
+  });
+  var stderrSub = runner.stderr.transform(UTF8.decoder).listen((String message) async {
+    await sendLog(message);
+  });
 
   String waitingFor = 'connection';
   try {
@@ -139,7 +143,12 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
             .timeout(taskTimeout + _kGracePeriod);
 
     waitingFor = 'task process to exit';
-    await runner.exitCode.timeout(const Duration(seconds: 1));
+    final Future<dynamic> whenProcessExits = Future.wait([
+      runner.exitCode,
+      stdoutSub.asFuture(),
+      stderrSub.asFuture(),
+    ]);
+    await whenProcessExits.timeout(const Duration(seconds: 1));
     return new TaskResult.parse(taskResult);
   } on TimeoutException catch (timeout) {
     runner.kill(ProcessSignal.SIGINT);

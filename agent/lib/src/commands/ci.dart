@@ -48,7 +48,8 @@ class ContinuousIntegrationCommand extends Command {
     section('Started continuous integration:');
     _listenToShutdownSignals();
     while(!_exiting) {
-      try {
+      await runZoned(() async {
+        section('Preflight checks');
         await devices.performPreflightTasks();
 
         // Check health before requesting a new task.
@@ -62,9 +63,10 @@ class ContinuousIntegrationCommand extends Command {
           print(health);
           await new Future.delayed(_sleepBetweenBuilds);
           // Don't bother requesting new tasks if health is bad.
-          continue;
+          return;
         }
 
+        section('Requesting a task');
         CocoonTask task = await agent.reserveTask();
         try {
           if (task != null) {
@@ -80,19 +82,23 @@ class ContinuousIntegrationCommand extends Command {
             // the task timeout.
             await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
             await _runTask(task);
+          } else {
+            print('No tasks available for this agent.');
           }
         } catch(error, stackTrace) {
           String errorMessage = 'ERROR: $error\n$stackTrace';
           print(errorMessage);
           await agent.reportFailure(task.key, errorMessage);
         }
-      } catch(error, stackTrace) {
-        print('ERROR: $error\n$stackTrace');
-      } finally {
+      }, onError: (error, stackTrace) {
+        // Unable to report failure to the backend.
+        stderr.writeln('ERROR: $error\n$stackTrace');
+      }).whenComplete(() async {
         await _screensOff();
         await forceQuitRunningProcesses();
-      }
+      });
 
+      print('Pausing before asking for more tasks.');
       await new Future.delayed(_sleepBetweenBuilds);
     }
   }
