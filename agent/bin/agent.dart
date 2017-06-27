@@ -62,7 +62,6 @@ Future<Null> main(List<String> rawArgs) async {
 }
 
 /// An error thrown by [AuthenticatedClient].
-
 class AuthenticatedClientError extends Error {
   AuthenticatedClientError({
     @required this.uri,
