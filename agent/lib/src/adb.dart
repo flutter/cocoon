@@ -225,18 +225,33 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   IosDeviceDiscovery._();
 
+  // Physical device line format to be matched:
+  // My iPhone (10.3.2) [75b90e947c5f429fa67f3e9169fda0d89f0492f1]
+  //
+  // Other formats in output (desktop, simulator) to be ignored:
+  // my-mac-pro [2C10513E-4dA5-405C-8EF5-C44353DB3ADD]
+  // iPhone 6s (9.3) [F6CEE7CF-81EB-4448-81B4-1755288C7C11] (Simulator)
+  static final RegExp _deviceRegex = new RegExp(r'^.* +\(.*\) +\[(.*)\]$');
+
   @override
   Future<List<Device>> discoverDevices() async {
-    // TODO: use the -k UniqueDeviceID option, which requires much less parsing.
-    List<String> iosDeviceIds = grep('UniqueDeviceID', from: await eval('ideviceinfo', []))
-      .map((String line) => line.split(' ').last).toList();
-
-    if (iosDeviceIds.isEmpty)
+    final List<String> iosDeviceIDs = <String>[];
+    final Iterable<String> deviceLines = (await eval('instruments', <String>['-s', 'devices']))
+        .split('\n')
+        .map((String line) => line.trim());
+    for (String line in deviceLines) {
+      final Match match = _deviceRegex.firstMatch(line);
+      if (match != null) {
+        final String deviceID = match.group(1);
+        iosDeviceIDs.add(deviceID);
+      }
+    }
+    if (iosDeviceIDs.isEmpty)
       throw 'No connected iOS devices found.';
 
-    return iosDeviceIds
-      .map((String id) => new IosDevice(deviceId: id))
-      .toList();
+    return iosDeviceIDs
+        .map((String id) => new IosDevice(deviceId: id))
+        .toList();
   }
 
   @override
