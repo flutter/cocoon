@@ -12,6 +12,7 @@ import 'package:cocoon_agent/src/agent.dart';
 import 'package:cocoon_agent/src/commands/ci.dart';
 import 'package:cocoon_agent/src/commands/run.dart';
 import 'package:cocoon_agent/src/utils.dart';
+import 'package:meta/meta.dart';
 
 Future<Null> main(List<String> rawArgs) async {
   ArgParser argParser = new ArgParser()
@@ -61,11 +62,24 @@ Future<Null> main(List<String> rawArgs) async {
 }
 
 /// An error thrown by [AuthenticatedClient].
-class AuthenticatedClientError extends Error {
-  AuthenticatedClientError(this.message);
 
-  /// Error message.
-  final String message;
+class AuthenticatedClientError extends Error {
+  AuthenticatedClientError({
+    @required this.uri,
+    @required this.statusCode,
+    @required this.body,
+  });
+
+  final Uri uri;
+  final int statusCode;
+  final String body;
+
+  @override
+  String toString() => '$AuthenticatedClientError:\n'
+      '  URI: $uri\n'
+      '  HTTP status: $statusCode\n'
+      '  Response body:\n'
+      '$body';
 }
 
 class AuthenticatedClient extends BaseClient {
@@ -82,8 +96,11 @@ class AuthenticatedClient extends BaseClient {
     final StreamedResponse resp = await _delegate.send(request);
 
     if (resp.statusCode != 200) {
-      final String message = 'HTTP error ${resp.statusCode}:\n${(await Response.fromStream(resp)).body}';
-      throw new AuthenticatedClientError(message);
+      throw new AuthenticatedClientError(
+        uri: request.url,
+        statusCode: resp.statusCode,
+        body: (await Response.fromStream(resp)).body,
+      );
     }
 
     return resp;

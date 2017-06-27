@@ -145,26 +145,6 @@ class Agent {
   }
 }
 
-class AuthenticatedClient extends BaseClient {
-  AuthenticatedClient(this._agentId, this._authToken);
-
-  final String _agentId;
-  final String _authToken;
-  final Client _delegate = new Client();
-
-  @override
-  Future<StreamedResponse> send(Request request) async {
-    request.headers['Agent-ID'] = _agentId;
-    request.headers['Agent-Auth-Token'] = _authToken;
-    StreamedResponse resp = await _delegate.send(request);
-
-    if (resp.statusCode != 200)
-      throw 'HTTP error ${resp.statusCode}:\n${(await Response.fromStream(resp)).body}';
-
-    return resp;
-  }
-}
-
 abstract class Command {
   Command(this.name, this.agent);
 
