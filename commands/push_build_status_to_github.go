@@ -7,13 +7,14 @@ package commands
 import (
 	"bytes"
 	"cocoon/db"
-	"google.golang.org/appengine/memcache"
-	"golang.org/x/net/context"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/memcache"
 	"google.golang.org/appengine/urlfetch"
+	"golang.org/x/net/context"
 	"io/ioutil"
+	"net/http"
 )
 
 const flutterRepositoryApiUrl = "https://api.github.com/repos/flutter/flutter"
@@ -24,6 +25,11 @@ func PushBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error)
 
 // PushBuildStatusToGithub pushes the latest build status to Github PRs and commits.
 func PushBuildStatusToGithub(c *db.Cocoon) (error) {
+	if appengine.IsDevAppServer() {
+		// Don't push GitHub status from the local dev server.
+		return nil
+	}
+
 	statuses, err := c.QueryBuildStatusesWithMemcache()
 
 	if err != nil {
