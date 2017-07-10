@@ -16,7 +16,7 @@ Future<List<int>> listFlutterProcessIds(Directory flutterDirectory) {
     return _listFlutterProcessesPosix(flutterDirectory);
   if (Platform.isWindows)
     return _listFlutterProcessesWindows(flutterDirectory);
-  throw "Unsupported platform: ${Platform.operatingSystem}";
+  throw 'Unsupported platform: ${Platform.operatingSystem}';
 }
 
 // POSIX implementation
@@ -46,7 +46,7 @@ Future<List<ProcessListResult>> _listProcessesPosix() async {
   String ps = await eval('ps', ['-ef', '-u', Platform.environment['USER']]);
   for (String psLine in ps.split('\n').skip(1)) {
     int processId = int.parse(psLine.trim().split(_emptySpace)[1].trim());
-    String lsof = await eval('lsof', ['-p', '$processId'], canFail: true);
+    String lsof = await eval('lsof', ['-p', '$processId'], canFail: true, silent: true);
     Iterable<String> cwdGrep = grep('cwd', from: lsof);
     if (cwdGrep.isEmpty) {
       // Not all processes report cwd; skip those, unlikely to be interesting.
