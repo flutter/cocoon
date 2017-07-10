@@ -47,60 +47,72 @@ class ContinuousIntegrationCommand extends Command {
     // Start CI mode
     section('Started continuous integration:');
     _listenToShutdownSignals();
-    while(!_exiting) {
-      await runZoned(() async {
-        section('Preflight checks');
-        await devices.performPreflightTasks();
-
-        // Check health before requesting a new task.
-        health = await performHealthChecks(agent);
-
-        // Always upload health status whether succeeded or failed.
-        await agent.updateHealthStatus(health);
-
-        if (!health.ok) {
-          print('Some health checks failed:');
-          print(health);
-          await new Future.delayed(_sleepBetweenBuilds);
-          // Don't bother requesting new tasks if health is bad.
-          return;
-        }
-
-        section('Requesting a task');
-        CocoonTask task = await agent.reserveTask();
+    await runZoned(() async {
+      while(!_exiting) {
+        // This try/catch captures errors that we cannot send to the server,
+        // because we have not yet reserved a task. It will simply log to the
+        // console.
         try {
-          if (task != null) {
-            section('Task info:');
-            print('  name           : ${task.name}');
-            print('  key            : ${task.key ?? ""}');
-            print('  revision       : ${task.revision}');
-            if (task.timeoutInMinutes != 0) {
-              print('  custom timeout : ${task.timeoutInMinutes}');
-            }
+          section('Preflight checks');
+          await devices.performPreflightTasks();
 
-            // Sync flutter outside of the task so it does not contribute to
-            // the task timeout.
-            await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
-            await _runTask(task);
-          } else {
-            print('No tasks available for this agent.');
+          // Check health before requesting a new task.
+          health = await performHealthChecks(agent);
+
+          // Always upload health status whether succeeded or failed.
+          await agent.updateHealthStatus(health);
+
+          if (!health.ok) {
+            print('Some health checks failed:');
+            print(health);
+            await new Future.delayed(_sleepBetweenBuilds);
+            // Don't bother requesting new tasks if health is bad.
+            return;
           }
-        } catch(error, stackTrace) {
-          String errorMessage = 'ERROR: $error\n$stackTrace';
-          print(errorMessage);
-          await agent.reportFailure(task.key, errorMessage);
-        }
-      }, onError: (error, stackTrace) {
-        // Unable to report failure to the backend.
-        stderr.writeln('ERROR: $error\n$stackTrace');
-      }).whenComplete(() async {
-        await _screensOff();
-        await forceQuitRunningProcesses();
-      });
 
-      print('Pausing before asking for more tasks.');
-      await new Future.delayed(_sleepBetweenBuilds);
-    }
+          section('Requesting a task');
+          CocoonTask task = await agent.reserveTask();
+
+          // Errors that happen inside this try/catch will be uploaded to the
+          // server because we have succeeded at reserving a task.
+          try {
+            if (task != null) {
+              section('Task info:');
+              print('  name           : ${task.name}');
+              print('  key            : ${task.key ?? ""}');
+              print('  revision       : ${task.revision}');
+              if (task.timeoutInMinutes != 0) {
+                print('  custom timeout : ${task.timeoutInMinutes}');
+              }
+
+              // Sync flutter outside of the task so it does not contribute to
+              // the task timeout.
+              await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
+              await _runTask(task);
+            } else {
+              print('No tasks available for this agent.');
+            }
+          } catch (error, stackTrace) {
+            String errorMessage = 'ERROR: $error\n$stackTrace';
+            print(errorMessage);
+            await agent.reportFailure(task.key, errorMessage);
+          }
+        } catch (error, stackTrace) {
+          // Unable to report failure to the backend.
+          stderr.writeln('ERROR: $error\n$stackTrace');
+        } finally {
+          await _screensOff();
+          await forceQuitRunningProcesses();
+        }
+
+        print('Pausing before asking for more tasks.');
+        await new Future.delayed(_sleepBetweenBuilds);
+      }
+    }, onError: (error, stackTrace) {
+      // Catches errors from dangling futures that cannot be reported to the
+      // server.
+      stderr.writeln('ERROR: $error\n$stackTrace');
+    });
   }
 
   Future<Null> _runTask(CocoonTask task) async {
