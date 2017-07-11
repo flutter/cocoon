@@ -263,8 +263,8 @@ Future<int> exec(String executable, List<String> arguments,
 ///
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env);
+    {Map<String, String> env, bool canFail: false, bool silent: false}) async {
+  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
