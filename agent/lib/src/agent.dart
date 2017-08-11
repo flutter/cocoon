@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart';
@@ -42,6 +43,15 @@ class CocoonTask {
 /// Client to the Coocon backend.
 class Agent {
   Agent({@required this.baseCocoonUrl, @required this.agentId, @required this.httpClient});
+
+  /// Creates an agent from parameters in the global [config] object.
+  factory Agent.fromConfig() {
+    return new Agent(
+      baseCocoonUrl: config.baseCocoonUrl,
+      agentId: config.agentId,
+      httpClient: new AuthenticatedClient(config.agentId, config.authToken)
+    );
+  }
 
   final String baseCocoonUrl;
   final String agentId;
@@ -145,16 +155,27 @@ class Agent {
   }
 }
 
+/// A CLI command.
+/// 
+/// Commands run in an isolate separate from the main isolate. This way a
+/// command may be restarted when it fails.
 abstract class Command {
-  Command(this.name, this.agent);
+  Command(this.name, this.runContinuously);
 
   /// Command name as it appears in the CLI.
   final String name;
 
-  /// Coocon agent client.
-  final Agent agent;
+  /// If `true`, causes the command to run repeatedly, even when it fails.
+  final bool runContinuously;
 
-  Future<Null> run(ArgResults args);
+  /// Runs the command logic in the current isolate.
+  /// 
+  /// [args] contains command-specific arguments (e.g. obtained by calling
+  /// [ArgResults.command]).
+  /// 
+  /// [mainIsolate] is the port for sending messages to the main isolate of
+  /// the process (the command itself normally runs in a dedicated isolate).
+  Future<Null> run(ArgResults args, SendPort mainIsolate);
 }
 
 /// Overall health of the agent.
@@ -188,4 +209,55 @@ class AgentHealth {
     });
     return buf.toString();
   }
+}
+
+/// HTTP client authenticated with the Cocoon backend.
+class AuthenticatedClient extends BaseClient {
+  AuthenticatedClient(this._agentId, this._authToken);
+
+  final String _agentId;
+  final String _authToken;
+  final Client _delegate = new Client();
+
+  @override
+  Future<StreamedResponse> send(Request request) async {
+    request.headers['Agent-ID'] = _agentId;
+    request.headers['Agent-Auth-Token'] = _authToken;
+    final StreamedResponse resp = await _delegate.send(request);
+
+    if (resp.statusCode != 200) {
+      throw new AuthenticatedClientError(
+        uri: request.url,
+        statusCode: resp.statusCode,
+        body: (await Response.fromStream(resp)).body,
+      );
+    }
+
+    return resp;
+  }
+}
+
+/// An error thrown by [AuthenticatedClient].
+class AuthenticatedClientError extends Error {
+  AuthenticatedClientError({
+    @required this.uri,
+    @required this.statusCode,
+    @required this.body,
+  });
+
+  /// The URI that resulted in this error.
+  final Uri uri;
+
+  /// HTTP status code.
+  final int statusCode;
+
+  /// HTTP response body.
+  final String body;
+
+  @override
+  String toString() => '$AuthenticatedClientError:\n'
+      '  URI: $uri\n'
+      '  HTTP status: $statusCode\n'
+      '  Response body:\n'
+      '$body';
 }

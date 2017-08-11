@@ -4,17 +4,35 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
-import 'package:http/http.dart';
 
 import 'package:cocoon_agent/src/agent.dart';
 import 'package:cocoon_agent/src/commands/ci.dart';
 import 'package:cocoon_agent/src/commands/run.dart';
 import 'package:cocoon_agent/src/utils.dart';
-import 'package:meta/meta.dart';
+
+/// Agents periodically poll the server for more tasks. This sleep period is
+/// used to prevent us from DDoS-ing the server.
+const Duration _sleepBetweenBuilds = const Duration(seconds: 10);
+
+/// Extra amount of time we give the command isolate to finish before
+/// forcefully quitting it.
+const Duration _kGracePeriod = const Duration(minutes: 2);
+
+/// The amount of time we give the command isolate to request a task and
+/// report the desired task timeout, before we give up.
+/// 
+/// This generally does not take a lot of time - connect to App Engine, reserve
+/// a task, parse task data, report timeout.
+const Duration _kTimeoutTimeout = const Duration(minutes: 1);
+
+final List<StreamSubscription> _streamSubscriptions = <StreamSubscription>[];
 
 Future<Null> main(List<String> rawArgs) async {
+  _listenToShutdownSignals();
+
   ArgParser argParser = new ArgParser()
     ..addOption(
       'config-file',
@@ -28,20 +46,14 @@ Future<Null> main(List<String> rawArgs) async {
 
   Config.initialize(args);
 
-  Agent agent = new Agent(
-    baseCocoonUrl: config.baseCocoonUrl,
-    agentId: config.agentId,
-    httpClient: new AuthenticatedClient(config.agentId, config.authToken)
-  );
-
   Map<String, Command> allCommands = <String, Command>{};
 
   void registerCommand(Command command) {
     allCommands[command.name] = command;
   }
 
-  registerCommand(new ContinuousIntegrationCommand(agent));
-  registerCommand(new RunCommand(agent));
+  registerCommand(new ContinuousIntegrationCommand());
+  registerCommand(new RunCommand());
 
   if (args.command == null) {
     print('No command specified, expected one of: ${allCommands.keys.join(', ')}');
@@ -58,50 +70,109 @@ Future<Null> main(List<String> rawArgs) async {
   section('Agent configuration:');
   print(config);
 
-  await command.run(args.command);
+  await new IsolateCommandRunner().run(command, args.command);
 }
 
-/// An error thrown by [AuthenticatedClient].
-class AuthenticatedClientError extends Error {
-  AuthenticatedClientError({
-    @required this.uri,
-    @required this.statusCode,
-    @required this.body,
-  });
+/// Runs commands in an isolate.
+class IsolateCommandRunner {
+  Future<Null> run(Command command, ArgResults commandArgs) async {
+    Completer commandCompleter = new Completer();
+    Completer<Duration> targetTimeout = new Completer<Duration>();
 
-  final Uri uri;
-  final int statusCode;
-  final String body;
+    ReceivePort messagePort = new ReceivePort()..listen((dynamic message) {
+      if (message is Duration)
+        targetTimeout.complete(message);
+      else
+        throw new Exception('Unsupported message from command isolate of type ${message.runtimeType}: $message');
+    });
 
-  @override
-  String toString() => '$AuthenticatedClientError:\n'
-      '  URI: $uri\n'
-      '  HTTP status: $statusCode\n'
-      '  Response body:\n'
-      '$body';
-}
+    ReceivePort exitPort = new ReceivePort()..listen((_) {
+      commandCompleter.complete();
+    });
 
-class AuthenticatedClient extends BaseClient {
-  AuthenticatedClient(this._agentId, this._authToken);
-
-  final String _agentId;
-  final String _authToken;
-  final Client _delegate = new Client();
-
-  @override
-  Future<StreamedResponse> send(Request request) async {
-    request.headers['Agent-ID'] = _agentId;
-    request.headers['Agent-Auth-Token'] = _authToken;
-    final StreamedResponse resp = await _delegate.send(request);
-
-    if (resp.statusCode != 200) {
-      throw new AuthenticatedClientError(
-        uri: request.url,
-        statusCode: resp.statusCode,
-        body: (await Response.fromStream(resp)).body,
+    ReceivePort errorPort = new ReceivePort()..listen((List<String> errorInfo) {
+      String stackTrace = errorInfo[1];
+      commandCompleter.completeError(
+        errorInfo[0],
+        stackTrace != null ? new StackTrace.fromString(stackTrace) : null,
       );
-    }
+    });
 
-    return resp;
+    Isolate isolate = await Isolate.spawn(
+      _runCommandInIsolate,
+      new CommandConfig(config, command, commandArgs, messagePort.sendPort),
+      errorsAreFatal: false,
+      onExit: exitPort.sendPort,
+      onError: errorPort.sendPort,
+    );
+
+    try {
+      Duration timeout = await targetTimeout.future.timeout(_kTimeoutTimeout);
+
+      Timer timeoutTimer = new Timer(timeout + _kGracePeriod, () {
+        if (!commandCompleter.isCompleted)
+          commandCompleter.completeError(new TimeoutException('Command isolate took too long to finish.'));
+      });
+
+      await commandCompleter.future;
+      timeoutTimer.cancel();
+    } catch (error, stackTrace) {
+      print('Error in command isolate: $error');
+      print(stackTrace);
+      print('\nKilling isolate as might be in inconsistent state.');
+      isolate.kill();
+      if (!command.runContinuously) {
+        print('Quitting with error');
+        exit(1);
+      }
+    } finally {
+      if (command.runContinuously) {
+        print('Pause before the next cycle.');
+        await new Future.delayed(_sleepBetweenBuilds);
+        await run(command, commandArgs);
+      }
+    }
   }
+}
+
+void _runCommandInIsolate(CommandConfig commandConfig) {
+  Config.adopt(commandConfig.config);
+  commandConfig.command.run(commandConfig.args, commandConfig.sendPort);
+}
+
+void _listenToShutdownSignals() {
+  _streamSubscriptions.add(
+    ProcessSignal.SIGINT.watch().listen((_) {
+      print('\nReceived SIGINT. Shutting down.');
+      _stop();
+    })
+  );
+  if (!Platform.isWindows) {
+    _streamSubscriptions.add(
+      ProcessSignal.SIGTERM.watch().listen((_) {
+        print('\nReceived SIGTERM. Shutting down.');
+        _stop();
+      })
+    );
+  }
+}
+
+Future<Null> _stop() async {
+  print('Stopping');
+
+  for (StreamSubscription sub in _streamSubscriptions) {
+    await sub.cancel();
+  }
+  _streamSubscriptions.clear();
+
+  exit(0);
+}
+
+class CommandConfig {
+  CommandConfig(this.config, this.command, this.args, this.sendPort);
+
+  final Config config;
+  final Command command;
+  final ArgResults args;
+  final SendPort sendPort;
 }

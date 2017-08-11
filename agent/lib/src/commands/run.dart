@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 
@@ -16,21 +17,26 @@ import '../utils.dart';
 /// Runs a single task at a specified revision.
 class RunCommand extends Command {
 
-  RunCommand(Agent agent) : super('run', agent);
+  RunCommand() : super('run', false);
 
   static ArgParser argParser = new ArgParser()
     ..addOption('task', abbr: 't')
     ..addOption('revision', abbr: 'r');
 
+  Agent _agent;
+
   @override
-  Future<Null> run(ArgResults args) async {
+  Future<Null> run(ArgResults args, SendPort mainIsolate) async {
+    mainIsolate.send(kDefaultTaskTimeout);
+    _agent = new Agent.fromConfig();
+
     print(args);
     String taskName = args['task'];
     if (taskName == null)
       throw new ArgumentError('--task is required');
     String revision = args['revision'];
 
-    AgentHealth health = await performHealthChecks(agent);
+    AgentHealth health = await performHealthChecks(_agent);
     section('Pre-flight checks:');
     print(health);
 
@@ -39,7 +45,7 @@ class RunCommand extends Command {
       exit(1);
     }
 
-    CocoonTask task = new CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
+    CocoonTask task = new CocoonTask(name: taskName, revision: revision, timeoutInMinutes: kDefaultTaskTimeout.inMinutes);
     TaskResult result;
     try {
       if (task.revision != null) {
@@ -49,7 +55,7 @@ class RunCommand extends Command {
       } else {
         print('NOTE: No --revision specified. Running on current checkout.');
       }
-      result = await runTask(agent, task);
+      result = await runTask(_agent, task);
     } catch(error, stackTrace) {
       print('ERROR: $error\n$stackTrace');
     } finally {

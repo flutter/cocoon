@@ -322,6 +322,11 @@ class Config {
     @required this.deviceOperatingSystem,
   });
 
+  /// Uses a pre-existing configuration object as the global [config].
+  static void adopt(Config existingConfig) {
+    _config = existingConfig;
+  }
+
   static void initialize(ArgResults args) {
     File agentConfigFile = file(args['config-file']);
 
