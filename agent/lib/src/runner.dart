@@ -13,8 +13,8 @@ import 'utils.dart';
 
 /// The default task timeout, if a custom value is not provided.
 ///
-/// This should be the same as `_kDefaultTaskTimeout` defined in https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/framework.dart
-const Duration _kDefaultTaskTimeout = const Duration(minutes: 15);
+/// This should be the same as `kDefaultTaskTimeout` defined in https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/framework.dart
+const Duration kDefaultTaskTimeout = const Duration(minutes: 15);
 
 /// Extra amount of time we give the devicelab task to finish or timeout on its
 /// own before forcefully quitting it.
@@ -79,6 +79,15 @@ class TaskResult {
   }
 }
 
+/// Computes the timeout for a task given its configuration.
+/// 
+/// Uses [kDefaultTaskTimeout] if [CocoonTask.timeoutInMinutes] is zero (which
+/// is the "zero value" in Golang assigned to this field if none it specified
+/// in the task's manifest).
+Duration taskTimeout(CocoonTask task) => task.timeoutInMinutes != 0
+  ? new Duration(minutes: task.timeoutInMinutes)
+  : kDefaultTaskTimeout;
+
 /// Runs a task in a separate Dart VM and collects the result using the VM
 /// service protocol.
 ///
@@ -134,13 +143,9 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     VMIsolate isolate = await _connectToRunnerIsolate(vmServicePort);
     waitingFor = 'task completion';
 
-    Duration taskTimeout = task.timeoutInMinutes != 0
-      ? new Duration(minutes: task.timeoutInMinutes)
-      : _kDefaultTaskTimeout;
-
     Map<String, dynamic> taskResult =
-        await isolate.invokeExtension('ext.cocoonRunTask', <String, String>{'timeoutInMinutes': '${taskTimeout.inMinutes}'})
-            .timeout(taskTimeout + _kGracePeriod);
+        await isolate.invokeExtension('ext.cocoonRunTask', <String, String>{'timeoutInMinutes': '${taskTimeout(task).inMinutes}'})
+            .timeout(taskTimeout(task) + _kGracePeriod);
 
     waitingFor = 'task process to exit';
     final Future<dynamic> whenProcessExits = Future.wait([
