@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 
@@ -43,6 +44,9 @@ class ContinuousIntegrationCommand extends Command {
       print('Some pre-flight checks failed. Quitting.');
       exit(1);
     }
+
+    // Do not quit on uncaught exceptions because we're in CI mode.
+    Isolate.current.setErrorsFatal(false);
 
     // Start CI mode
     section('Started continuous integration:');
