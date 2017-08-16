@@ -47,6 +47,18 @@ benchmark-card {
   margin-bottom: 15px;
   padding-bottom: 15px;
   border-bottom: 1px solid #ccc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  color: black;
+  box-shadow: 0 5px 10px 0 #666;
+  z-index: 3;
+}
+
+.benchmark-history-container + * {
+  padding-top: 200px;
 }
 
 .metric {
@@ -116,7 +128,7 @@ benchmark-card {
   padding: 5px;
   position: fixed;
   white-space: pre;
-  z-index: 2;
+  z-index: 4;
 }
 
 .metric-unit {
