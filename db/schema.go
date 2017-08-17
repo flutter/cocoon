@@ -164,6 +164,8 @@ type TimeseriesValue struct {
 	TaskKey *datastore.Key
 	// The value.
 	Value float64
+	// Whether data is missing for this Revision.
+	DataMissing bool
 }
 
 // MaxAttempts is the maximum number of times a single task will be attempted

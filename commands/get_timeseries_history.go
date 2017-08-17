@@ -24,9 +24,16 @@ type GetTimeseriesHistoryResult struct {
 
 // GetTimeseriesHistory returns recent benchmark results.
 func GetTimeseriesHistory(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
+	const maxRecords = 1500
 	var command *GetTimeseriesHistoryCommand
 
-	err := json.Unmarshal(inputJSON, &command)
+	checklists, err := c.QueryLatestChecklists(maxRecords)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(inputJSON, &command)
 
 	if err != nil {
 		return nil, err
@@ -38,7 +45,8 @@ func GetTimeseriesHistory(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 		return nil, err
 	}
 
-	values, cursor, err := c.QueryLatestTimeseriesValues(series, command.StartFrom, 1500)
+	values, cursor, err := c.QueryLatestTimeseriesValues(series, command.StartFrom, maxRecords)
+	values = insertMissingTimeseriesValues(values, checklists)
 
 	return &GetTimeseriesHistoryResult{
 		BenchmarkData: &BenchmarkData{

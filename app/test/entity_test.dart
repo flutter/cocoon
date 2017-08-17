@@ -72,7 +72,7 @@ void main() {
 }
 
 class TestEntity extends Entity {
-  static final _serializer = new EntitySerializer(
+  static final _serializer = new EntitySerializer<TestEntity>(
     (Map<String, dynamic> props) => new TestEntity(props),
     <String, JsonSerializer>{
       'foo': number(),

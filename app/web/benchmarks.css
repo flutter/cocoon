@@ -97,6 +97,10 @@ benchmark-card {
   position: relative;
 }
 
+.metric-value-bar-missing {
+  border-color: #EEEEEE;
+}
+
 .metric-value-bar-narrow {
   width: 2px;
 }
