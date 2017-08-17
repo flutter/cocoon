@@ -323,9 +323,20 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   String get taskName => _data.timeseries.timeseries.taskName;
   String get label => _data.timeseries.timeseries.label;
   String get unit => _data.timeseries.timeseries.unit;
+
   String get latestValue {
-    if (_data.values == null || _data.values.isEmpty) return null;
-    num value = _data.values.first.value;
+    if (_data.values == null || _data.values.isEmpty)
+      return null;
+
+    TimeseriesValue timeseriesValue = _data.values.firstWhere(
+      (TimeseriesValue value) => !value.isDataMissing,
+      orElse: () => null,
+    );
+
+    if (timeseriesValue == null)
+      return null;
+
+    num value = timeseriesValue.value;
     if (value < 10) {
       value.toStringAsPrecision(2);
       return value.toStringAsFixed(2);
@@ -372,7 +383,11 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
     );
 
     for (TimeseriesValue value in _data.values.reversed) {
-      final double valueHeight = _kChartHeight * value.value / maxValue;
+      // For missing values create a greyed out bar that takes the full height
+      // of the chart.
+      final double valueHeight = !value.isDataMissing
+        ? _kChartHeight * value.value / maxValue
+        : _kChartHeight;
 
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
@@ -382,7 +397,9 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       if (barWidth == 'narrow')
         bar.classes.add('metric-value-bar-narrow');
 
-      if (value.value > baseline) {
+      if (value.isDataMissing) {
+        bar.classes.add('metric-value-bar-missing');
+      } else if (value.value > baseline) {
         bar.classes.add('metric-value-bar-underperformed');
       } else if (value.value > goal) {
         bar.classes.add('metric-value-bar-needs-work');
@@ -407,9 +424,12 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
             });
 
         final String revisionLink = 'https://github.com/flutter/flutter/commit/${value.revision}';
+        final String formattedValue = !value.isDataMissing
+          ? '${value.value}$unit'
+          : 'Value missing';
 
         tooltip.setInnerHtml(
-          '${value.value}$unit\n'
+          '${formattedValue}\n'
           'Flutter revision: <a href="$revisionLink" target="_blank">${value.revision}</a>\n'
           'Recorded on: ${new DateTime.fromMillisecondsSinceEpoch(value.createTimestamp)}\n'
           'Goal: $goal$unit\n'

@@ -327,6 +327,7 @@ class TimeseriesValue extends Entity {
       'CreateTimestamp': number(),
       'Revision': string(),
       'Value': number(),
+      'DataMissing': boolean(),
     }
   );
 
@@ -335,4 +336,5 @@ class TimeseriesValue extends Entity {
   int get createTimestamp => this['CreateTimestamp'];
   String get revision => this['Revision'];
   double get value => this['Value'];
+  bool get isDataMissing => this['DataMissing'] ?? false;
 }

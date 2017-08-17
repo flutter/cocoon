@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const cacheKey = "cached-get-benchmarks-result"
+const cacheKey = "cached-get-benchmarks-result-v2"
 
 // GetBenchmarksCommand returns recent benchmark results.
 type GetBenchmarksCommand struct {
@@ -78,6 +78,14 @@ func loadFromMemcache(c *db.Cocoon) (*GetBenchmarksResult, error) {
 }
 
 func loadFromDatabase(c *db.Cocoon) (*GetBenchmarksResult, error) {
+	const maxRecords = 50
+
+	checklists, err := c.QueryLatestChecklists(maxRecords)
+
+	if err != nil {
+		return nil, err
+	}
+
 	seriesList, err := c.QueryTimeseries()
 
 	if err != nil {
@@ -86,11 +94,13 @@ func loadFromDatabase(c *db.Cocoon) (*GetBenchmarksResult, error) {
 
 	var benchmarks []*BenchmarkData
 	for _, series := range seriesList {
-		values, _, err := c.QueryLatestTimeseriesValues(series, nil, 50)
+		values, _, err := c.QueryLatestTimeseriesValues(series, nil, maxRecords)
 
 		if err != nil {
 			return nil, err
 		}
+
+		values = insertMissingTimeseriesValues(values, checklists)
 
 		benchmarks = append(benchmarks, &BenchmarkData{
 			Timeseries: series,
@@ -109,6 +119,29 @@ func loadFromDatabase(c *db.Cocoon) (*GetBenchmarksResult, error) {
 	}
 
 	return result, nil
+}
+
+func insertMissingTimeseriesValues(values []*db.TimeseriesValue, checklists []*db.ChecklistEntity) []*db.TimeseriesValue {
+	var result []*db.TimeseriesValue
+	for _, checklist := range checklists {
+		var timeseriesValue *db.TimeseriesValue
+		for _, value := range values {
+			if value.Revision == checklist.Checklist.Commit.Sha {
+				timeseriesValue = value
+				break
+			}
+		}
+		if timeseriesValue != nil {
+			result = append(result, timeseriesValue)
+		} else {
+			result = append(result, &db.TimeseriesValue{
+				Revision: checklist.Checklist.Commit.Sha,
+				CreateTimestamp: checklist.Checklist.CreateTimestamp,
+				DataMissing: true,
+			})
+		}
+	}
+	return result
 }
 
 func storeInMemcache(c *db.Cocoon, newValue *GetBenchmarksResult) error {
