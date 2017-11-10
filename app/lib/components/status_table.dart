@@ -9,6 +9,7 @@ import 'dart:html';
 import 'package:angular2/angular2.dart';
 import 'package:cocoon/model.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 @Component(
   selector: 'status-table',
@@ -152,7 +153,11 @@ class StatusTable implements OnInit {
     return fullSha.length > 7 ? fullSha.substring(0, 7) : fullSha;
   }
 
-  List<String> taskStatusToCssStyle(String taskStatus, int attempts, bool isKnownToBeFlaky) {
+  List<String> taskStatusToCssStyle({
+    @required String taskStatus,
+    @required int attempts,
+    @required bool knownToBeFlaky
+  }) {
     const statusMap = const <String, String> {
       'New': 'task-new',
       'In Progress': 'task-in-progress',
@@ -173,7 +178,7 @@ class StatusTable implements OnInit {
 
     final List<String> classNames = ['task-status-circle', cssClass];
 
-    if (isKnownToBeFlaky)
+    if (knownToBeFlaky)
       classNames.add('task-known-to-be-flaky');
 
     return classNames;
@@ -191,10 +196,19 @@ class StatusTable implements OnInit {
   List<String> getStatusStyle(String sha, String taskName) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (taskEntity == null)
-      return taskStatusToCssStyle('Skipped', 0, false);
+    if (taskEntity == null) {
+      return taskStatusToCssStyle(
+        taskStatus: 'Skipped',
+        attempts: 0,
+        knownToBeFlaky: false,
+      );
+    }
 
-    return taskStatusToCssStyle(taskEntity.task.status, taskEntity.task.attempts, taskEntity.task.isFlaky);
+    return taskStatusToCssStyle(
+      taskStatus: taskEntity.task.status,
+      attempts: taskEntity.task.attempts,
+      knownToBeFlaky: taskEntity.task.isFlaky,
+    );
   }
 
   /// Maps from agent IDs to the latest time agent reported success.
