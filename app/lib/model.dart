@@ -217,6 +217,7 @@ class Task extends Entity {
       'StartTimestamp': dateTime(),
       'EndTimestamp': dateTime(),
       'Attempts': number(),
+      'Flaky': boolean(),
     }
   );
 
@@ -229,6 +230,7 @@ class Task extends Entity {
   DateTime get startTimestamp => this['StartTimestamp'];
   DateTime get endTimestamp => this['EndTimestamp'];
   int get attempts => this['Attempts'];
+  bool get isFlaky => this['Flaky'];
 }
 
 class GetBenchmarksResult extends Entity {
