@@ -21,13 +21,31 @@ import 'package:meta/meta.dart';
 <legend></legend>
 
 <div class="agent-bar">
-  <div>Agents</div>
+  <div><b>Agents</b></div>
   <div *ngFor="let agentStatus of agentStatuses"
        class="agent-chip"
        [ngStyle]="getAgentStyle(agentStatus)"
        (click)="showAgentHealthDetails(agentStatus)">
     {{agentStatus.agentId}}
   </div>
+
+  <div style="width: 40px; text-align: center">
+  |
+  </div>
+
+  <div><b>Other</b></div>
+  <a href="https://github.com/flutter/website" target="_new">
+    <img src="www.png" style="height: 20px" title="Build status of flutter/website">
+  </a>
+  <a href="https://travis-ci.org/flutter/website" target="_new">
+    <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
+  </a>
+  <a href="https://github.com/flutter/plugins" target="_new">
+    <img src="plugin.png" style="height: 20px" title="Build status of flutter/plugins">
+  </a>
+  <a href="https://travis-ci.org/flutter/plugins" target="_new">
+    <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
+  </a>
 </div>
 
 <div *ngIf="displayedAgentStatus != null"

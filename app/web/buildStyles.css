@@ -369,6 +369,7 @@ td.stats-value {
 }
 
 .agent-bar > * {
+  display: block;
   align-self: center;
   padding: 7px;
 }
