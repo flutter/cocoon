@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
 import '../adb.dart';
 import '../agent.dart';
@@ -92,6 +93,7 @@ class ContinuousIntegrationCommand extends Command {
               // Sync flutter outside of the task so it does not contribute to
               // the task timeout.
               await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
+              await _cleanBuildDirectories(agent, task);
               await _runTask(task);
             } else {
               print('No tasks available for this agent.');
@@ -117,6 +119,42 @@ class ContinuousIntegrationCommand extends Command {
       // server.
       stderr.writeln('ERROR: $error\n$stackTrace');
     });
+  }
+
+  /// Recursively finds all Dart packages in the cloned Flutter repository
+  /// (i.e. directories with `pubspec.yaml` files), and deletes the `build`
+  /// directories, if any.
+  /// 
+  /// This is to prevent cross-contamination of build artifacts across tests.
+  Future<Null> _cleanBuildDirectories(Agent agent, CocoonTask task) async {
+    Future<Null> recursivelyDeleteBuildDirectories(Directory directory) async {
+      final List<FileSystemEntity> contents = directory.listSync();
+      final bool isDartPackage = contents.any((FileSystemEntity entity) => entity is File && path.basename(entity.path) == 'pubspec.yaml');
+      if (isDartPackage) {
+        for (FileSystemEntity entity in contents) {
+          if (entity is Directory && path.basename(entity.path) == 'build') {
+            await agent.uploadLogChunk(task.key, 'Deleting ${entity.path}\n');
+            rrm(entity);
+          }
+        }
+      } else {
+        for (FileSystemEntity entity in contents) {
+          if (entity is Directory) {
+            await recursivelyDeleteBuildDirectories(entity);
+          }
+        }
+      }
+    }
+
+    await agent.uploadLogChunk(task.key, 'Deleting build/ directories, if any.\n');
+    try {
+      await recursivelyDeleteBuildDirectories(config.flutterDirectory);
+    } catch (error, stack) {
+      await agent.uploadLogChunk(
+        task.key,
+        'Failed to delete build/ directories: $error\n\n$stack',
+      );
+    }
   }
 
   Future<Null> _runTask(CocoonTask task) async {
