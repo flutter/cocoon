@@ -133,6 +133,7 @@ class ContinuousIntegrationCommand extends Command {
       if (isDartPackage) {
         for (FileSystemEntity entity in contents) {
           if (entity is Directory && path.basename(entity.path) == 'build') {
+            await agent.uploadLogChunk(task.key, 'Deleting ${entity.path}\n');
             rrm(entity);
           }
         }
@@ -145,7 +146,7 @@ class ContinuousIntegrationCommand extends Command {
       }
     }
 
-    await agent.uploadLogChunk(task.key, 'Deleting build/ directories, if any.');
+    await agent.uploadLogChunk(task.key, 'Deleting build/ directories, if any.\n');
     try {
       await recursivelyDeleteBuildDirectories(config.flutterDirectory);
     } catch (error, stack) {
