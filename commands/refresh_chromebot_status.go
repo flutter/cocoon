@@ -8,6 +8,11 @@ import (
 	"cocoon/db"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"bytes"
+	"google.golang.org/appengine/urlfetch"
+	"io/ioutil"
+    "encoding/base64"
 )
 
 // RefreshChromebotStatusResult contains chromebot status results.
@@ -84,53 +89,86 @@ func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([
 }
 
 func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*ChromebotResult, error) {
-	builderURL := fmt.Sprintf("https://build.chromium.org/p/client.flutter/json/builders/%v", builderName)
-
-	jsonResponse, err := fetchJSON(cocoon, builderURL)
+	const miloURL = "https://ci.chromium.org/prpc/milo.Buildbot/GetBuildbotBuildsJSON"
+	requestData := fmt.Sprintf("{\"master\": \"client.flutter\", \"builder\": \"%v\"}", builderName)
+	request, err := http.NewRequest("POST", miloURL, bytes.NewReader([]byte(requestData)))
 
 	if err != nil {
 		return nil, err
 	}
 
-	buildIds := jsonResponse.(map[string]interface{})["cachedBuilds"].([]interface{})
+	request.Header.Add("Accept", "application/json")
+	request.Header.Add("Content-Type", "application/json")
 
-	if len(buildIds) > 10 {
-		// Build IDs are sorted in ascending order, to get the latest 10 builds we
-		// grab the tail.
-		buildIds = buildIds[len(buildIds)-10:]
+	httpClient := urlfetch.Client(cocoon.Ctx)
+	response, err := httpClient.Do(request)
+
+	if err != nil {
+		return nil, err
 	}
 
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("%v responded with HTTP status %v", miloURL, response.StatusCode)
+	}
+
+	defer response.Body.Close()
+
+	responseData, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// The returned JSON contains some garbage prepended to it, presumably to
+	// prevent naive apps from eval()-ing in JavaScript. We need to skip past
+	// this garbage to the first "{".
+	openBraceIndex := bytes.Index(responseData, []byte("{"))
+
+	if openBraceIndex == -1 {
+		return nil, fmt.Errorf("%v returned JSON that's missing open brace", miloURL)
+	}
+
+	responseData = responseData[openBraceIndex:]
+
+	var responseJson interface{}
+	err = json.Unmarshal(responseData, &responseJson)
+
+	if err != nil {
+		return nil, err
+	}
+
+	builds := responseJson.(map[string]interface{})["builds"].([]interface{})
+
 	var results []*ChromebotResult
-	for i := len(buildIds) - 1; i >= 0; i-- {
-		buildID := buildIds[i]
-		buildJSON, err := fetchJSON(cocoon, fmt.Sprintf("%v/builds/%v", builderURL, buildID))
+
+	count := len(builds)
+	if count > 40 {
+		count = 40
+	}
+
+	for i := count - 1; i >= 0; i-- {
+		rawBuildJSON := builds[i].(map[string]interface{})
+		buildBase64String := rawBuildJSON["data"].(string)
+		buildBase64Bytes, err := base64.StdEncoding.DecodeString(buildBase64String)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var buildJSON map[string]interface{}
+		err = json.Unmarshal(buildBase64Bytes, &buildJSON)
 
 		if err != nil {
 			return nil, err
 		}
 
 		results = append(results, &ChromebotResult{
-			Commit: getBuildProperty(buildJSON.(map[string]interface{}), "got_revision"),
-			State:  getStatus(buildJSON.(map[string]interface{})),
+			Commit: getBuildProperty(buildJSON, "got_revision"),
+			State:  getStatus(buildJSON),
 		})
 	}
 
 	return results, nil
-}
-
-func fetchJSON(cocoon *db.Cocoon, url string) (interface{}, error) {
-	body, err := cocoon.FetchURL(url, false)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var js interface{}
-	if json.Unmarshal(body, &js) != nil {
-		return nil, err
-	}
-
-	return js, nil
 }
 
 // Properties are encoded as:
