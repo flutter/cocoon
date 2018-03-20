@@ -23,7 +23,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     <input type="text" placeholder="Filter visible benchmarks" (keyup)="applyTextFilter($event.target.value)">
   </div>
   <div *ngIf="zoomInto != null" class="benchmark-history-container">
-    <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
+    <benchmark-history [timeseriesKey]="zoomInto.timeseries.key" [legacyGoal]="legacyInfo?.timeseries?.timeseries?.goal" [legacyBaseline]="legacyInfo?.timeseries?.timeseries?.baseline"></benchmark-history>
     <button (click)="zoomInto = null">Close History</button>
   </div>
   <div *ngIf="visibleBenchmarks != null" class="card-container">
@@ -59,9 +59,29 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     if (newData != null) {
       Timer.run(() {
         _zoomInto = newData;
+
+        // Retrieve corresponding pre-migration dart1 benchmark
+        String label = _zoomInto.timeseries?.timeseries?.label;
+        if (label?.endsWith("dart1")) {
+          String taskName = _zoomInto.timeseries?.timeseries?.taskName;
+          String legacyLabel = label.substring(0, label.length - "__dart1".length);
+          for (BenchmarkData benchmark in _benchmarks) {
+            Timeseries timeseries = benchmark.timeseries?.timeseries;
+            if (timeseries != null &&
+                timeseries.taskName == taskName &&
+                timeseries.label == legacyLabel) {
+              _legacyInfo = benchmark;
+              print("Found legacy benchmark:$_legacyInfo");
+              break;
+            }
+          }
+        }
       });
     }
   }
+
+  BenchmarkData _legacyInfo;
+  BenchmarkData get legacyInfo => _legacyInfo;
 
   void toggleArchived() {
     _isShowArchived = !_isShowArchived;
@@ -131,6 +151,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
       <input type="text" [(ngModel)]="baseline">
       <button [disabled]="!isInputValid" (click)="updateTargets()">Update</button>
       <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
+      <button [disabled]="!hasLegacyGoals" (click)="cloneTargets()">Clone legacy targets</button>
     </div>
   ''',
   directives: const [NgIf, NgModel, BenchmarkCard],
@@ -160,6 +181,19 @@ class BenchmarkHistory {
     _baseline = textValue.trim();
     _validateInputs();
   }
+
+  double _legacyGoal;
+  double get legacyGoal => _legacyGoal;
+  @Input() set legacyGoal(double goal) {
+    _legacyGoal = goal;
+  }
+  double _legacyBaseline;
+  double get legacyBaseline => _legacyBaseline;
+  @Input() set legacyBaseline(double baseline) {
+    _legacyBaseline = baseline;
+  }
+
+  bool get hasLegacyGoals => legacyGoal != null && legacyBaseline != null;
 
   bool _isInputValid = false;
   bool get isInputValid => _isInputValid;
@@ -208,6 +242,23 @@ class BenchmarkHistory {
     } else {
       _statusMessage = 'Server responded with and error saving new targets (HTTP ${response.statusCode})';
     }
+  }
+
+  Future<Null> cloneTargets() async {
+    _validateInputs();
+
+    if (!_isInputValid) {
+      window.alert('Invalid input.');
+      return;
+    }
+
+    if (!hasLegacyGoals) {
+      window.alert('Cloning of targets only work for dart1 benchmarks.');
+      return;
+    }
+
+    goal = _legacyGoal.toString();
+    baseline = _legacyBaseline.toString();
   }
 
   @Input() set timeseriesKey(Key key) {
