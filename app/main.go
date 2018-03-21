@@ -40,6 +40,7 @@ func init() {
 	registerRPC("/api/vacuum-clean", commands.VacuumClean)
 	registerRPC("/api/check-build-status", commands.CheckBuildStatus)
 	registerRPC("/api/update-benchmark-targets", commands.UpdateBenchmarkTargets)
+	registerRPC("/api/update-timeseries", commands.UpdateTimeseries)
 	registerRPC("/api/push-build-status-to-github", commands.PushBuildStatusToGithubHandler)
 
 	registerRawHandler("/api/append-log", commands.AppendLog)
