@@ -125,12 +125,32 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
     <div>{{statusMessage}}</div>
     <div style="margin: 20px">
-      <span>Goal:</span>
-      <input type="text" [(ngModel)]="goal">
-      <span>Baseline:</span>
-      <input type="text" [(ngModel)]="baseline">
-      <button [disabled]="!isInputValid" (click)="updateTargets()">Update</button>
-      <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
+      <div>
+        <span>Goal:</span>
+        <input type="text" [(ngModel)]="goal">
+        <span>Baseline:</span>
+        <input type="text" [(ngModel)]="baseline">
+        <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
+      </div>
+      <div>
+        <span>TaskName:</span>
+        <input type="text" [(ngModel)]="taskName">
+      </div>
+      <div>
+        <span>Label:</span>
+        <input type="text" [(ngModel)]="label">
+      </div>
+      <div>
+        <span>Unit:</span>
+        <input type="text" [(ngModel)]="unit">
+      </div>
+      <div>
+        <span>Archived:</span>
+        <input type="checkbox" [(ngModel)]="archived">
+      </div>
+      <div>
+        <button [disabled]="!isInputValid" (click)="update()">Update</button>
+      </div>
     </div>
   ''',
   directives: const [NgIf, NgModel, BenchmarkCard],
@@ -161,6 +181,34 @@ class BenchmarkHistory {
     _validateInputs();
   }
 
+  String _taskName = '';
+  String get taskName => _taskName;
+  set taskName(String value) {
+    _taskName = value;
+    _validateInputs();
+  }
+
+  String _label = '';
+  String get label => _label;
+  set label(String value) {
+    _label = value;
+    _validateInputs();
+  }
+
+  String _unit = '';
+  String get unit => _unit;
+  set unit(String value) {
+    _unit = value;
+    _validateInputs();
+  }
+
+  bool _archived;
+  bool get archived => _archived;
+  set archived(bool value) {
+    _archived = value;
+    _validateInputs();
+  }
+
   bool _isInputValid = false;
   bool get isInputValid => _isInputValid;
 
@@ -175,6 +223,18 @@ class BenchmarkHistory {
     double.parse(_baseline, (_) {
       _isInputValid = false;
     });
+    if (_taskName == null || _taskName.trim().isEmpty) {
+      _isInputValid = false;
+    }
+    if (_label == null || _label.trim().isEmpty) {
+      _isInputValid = false;
+    }
+    if (_unit == null || _unit.trim().isEmpty) {
+      _isInputValid = false;
+    }
+    if (archived == null) {
+      _isInputValid = false;
+    }
   }
 
   void autoUpdateTargets() {
@@ -185,7 +245,7 @@ class BenchmarkHistory {
     baseline = _autoUpdateBaseline;
   }
 
-  Future<Null> updateTargets() async {
+  Future<Null> update() async {
     _validateInputs();
 
     if (!_isInputValid) {
@@ -197,12 +257,14 @@ class BenchmarkHistory {
       'TimeSeriesKey': _key.value,
       'Goal': double.parse(_goal),
       'Baseline': double.parse(_baseline),
+      'TaskName': _taskName.trim(),
+      'Label': _label.trim(),
+      'Unit': _unit.trim(),
+      'Archived': _archived,
     };
 
-    http.Response response = await _httpClient.post('/api/update-benchmark-targets', body: JSON.encode(request));
+    http.Response response = await _httpClient.post('/api/update-timeseries', body: JSON.encode(request));
     if (response.statusCode == 200) {
-      goal = '';
-      baseline = '';
       _statusMessage = 'New targets saved.';
       await _loadData();
     } else {
@@ -241,8 +303,13 @@ class BenchmarkHistory {
       _autoUpdateTitle = 'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
 
       data = result.benchmarkData;
-      _goal = result.benchmarkData.timeseries.timeseries.goal.toString();
-      _baseline = result.benchmarkData.timeseries.timeseries.baseline.toString();
+      final Timeseries timeseries = result.benchmarkData.timeseries.timeseries;
+      _goal = timeseries.goal.toString();
+      _baseline = timeseries.baseline.toString();
+      _taskName = timeseries.taskName;
+      _label = timeseries.label;
+      _unit = timeseries.unit;
+      _archived = timeseries.isArchived;
       lastPosition = result.lastPosition;
     });
   }
