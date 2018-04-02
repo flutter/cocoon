@@ -62,7 +62,10 @@ func RefreshAppVeyorStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	for _, fullTask := range appveyorTasks {
 		task := fullTask.TaskEntity.Task
 		checklistEntity := fullTask.ChecklistEntity
-		for _, appveyorResult := range appveyorResults {
+		// Scan results in reverse, as AppVeyor sorts the results with the latest
+		// towards the tail of the list.
+		for i := len(appveyorResults) - 1; i >= 0; i-- {
+			appveyorResult := appveyorResults[i]
 			if appveyorResult.CommitId == checklistEntity.Checklist.Commit.Sha {
 				if appveyorResult.Status == "success" {
 					task.Status = db.TaskSucceeded
