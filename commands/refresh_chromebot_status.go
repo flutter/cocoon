@@ -74,8 +74,7 @@ func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([
 	}
 
 	for _, fullTask := range tasks {
-		// Scan build statuses in reverse so the newer result take precedence over old results.
-		for i := len(buildStatuses) - 1; i >= 0; i-- {
+		for i := 0; i < len(buildStatuses); i++ {
 			status := buildStatuses[i]
 			if status.Commit == fullTask.ChecklistEntity.Checklist.Commit.Sha {
 				task := fullTask.TaskEntity.Task
