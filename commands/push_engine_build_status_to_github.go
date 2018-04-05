@@ -86,7 +86,13 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string) error
 
 		// Do not ping GitHub unnecessarily if the latest status hasn't changed. GitHub can rate limit us for this.
 		if lastSubmittedValue != latestStatus {
-			err := pushToGithub(c, pr.Head.Sha, latestStatus, builderName, engineRepositoryApiUrl)
+			err := pushToGitHub(c, GitHubBuildStatusInfo{
+				buildName: builderName,
+				link: "https://build.chromium.org/p/client.flutter/waterfall",
+				commit: pr.Head.Sha,
+				gitHubRepoApiURL: engineRepositoryApiUrl,
+				status: latestStatus,
+			})
 
 			if err != nil {
 				return err

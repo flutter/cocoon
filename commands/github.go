@@ -18,17 +18,31 @@ type PullRequestHead struct {
 	Sha string
 }
 
+// Named parameters to the `pushToGitHub` function.
+type GitHubBuildStatusInfo struct {
+	// Commit SHA that this build status is for.
+	commit string
+	// The latest build status. Must be either db.BuildSucceeded or db.BuildFailed.
+	status db.BuildResult
+	// The name that describes the build (e.g. "Engine Windows").
+	buildName string
+	// The URL link that will be added to the PR that the contributor can use to find more details.
+	link string
+	// The URL of the JSON endpoint for the GitHub repository that is being notified.
+	gitHubRepoApiURL string
+}
+
 // Labels the given `commit` SHA on GitHub with the build status information.
-func pushToGithub(c *db.Cocoon, commit string, status db.BuildResult, buildDescription string, gitHubApiUrl string) (error) {
-	url := fmt.Sprintf("%v/statuses/%v", gitHubApiUrl, commit)
+func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) (error) {
+	url := fmt.Sprintf("%v/statuses/%v", info.gitHubRepoApiURL, info.commit)
 
 	data := make(map[string]string)
-	if status == db.BuildSucceeded {
+	if info.status == db.BuildSucceeded {
 		data["state"] = "success"
 	} else {
 		data["state"] = "failure"
 		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
-		data["description"] = fmt.Sprintf("%v is currently broken. Be careful when merging this PR.", buildDescription)
+		data["description"] = fmt.Sprintf("%v is currently broken. Be careful when merging this PR.", info.buildName)
 	}
 	data["context"] = "flutter-build"
 
