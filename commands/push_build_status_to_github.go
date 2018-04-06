@@ -5,16 +5,11 @@
 package commands
 
 import (
-	"bytes"
 	"cocoon/db"
-	"encoding/json"
 	"fmt"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/memcache"
-	"google.golang.org/appengine/urlfetch"
 	"golang.org/x/net/context"
-	"io/ioutil"
-	"net/http"
 )
 
 const flutterRepositoryApiUrl = "https://api.github.com/repos/flutter/flutter"
@@ -39,34 +34,34 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 	trend := computeTrend(statuses)
 
 	if trend == db.BuildWillFail || trend == db.BuildSucceeded || trend == db.BuildFailed {
-		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", flutterRepositoryApiUrl), true)
+		pullRequests, err := fetchPullRequests(c, flutterRepositoryApiUrl)
 
 		if err != nil {
 			return err
 		}
 
-		var pullRequests []*PullRequest
-		err = json.Unmarshal(prData, &pullRequests)
-
-		if err != nil {
-			return fmt.Errorf("%v: %v", err, string(prData))
-		}
-
-		for _, pr := range(pullRequests) {
-			lastSubmittedValue, err := fetchLastSubmittedValue(c.Ctx, pr.Head.Sha)
+		for _, pr := range pullRequests {
+			lastSubmittedValue, err := fetchLastFrameworkBuildStatusSubmittedToGihub(c.Ctx, pr.Head.Sha)
 
 			if err != nil {
 				return err
 			}
 
 			if lastSubmittedValue != trend {
-				err := pushToGithub(c, pr.Head.Sha, trend)
+				err := pushToGitHub(c, GitHubBuildStatusInfo{
+					buildName: "Flutter build",
+					buildContext: "flutter-build",
+					link: "https://flutter-dashboard.appspot.com/build.html",
+					commit: pr.Head.Sha,
+					gitHubRepoApiURL: flutterRepositoryApiUrl,
+					status: trend,
+				})
 
 				if err != nil {
 					return err
 				}
 
-				cacheSubmittedValue(c.Ctx, pr.Head.Sha, trend)
+				cacheLastFrameworkBuildStatusSubmittedToGithub(c.Ctx, pr.Head.Sha, trend)
 			}
 		}
 	}
@@ -78,7 +73,7 @@ func lastBuildStatusSubmittedToGithubMemcacheKey(sha string) string {
 	return fmt.Sprintf("last-build-status-submitted-to-github-%v", sha)
 }
 
-func fetchLastSubmittedValue(ctx context.Context, sha string) (db.BuildResult, error) {
+func fetchLastFrameworkBuildStatusSubmittedToGihub(ctx context.Context, sha string) (db.BuildResult, error) {
 	cachedValue, err := memcache.Get(ctx, lastBuildStatusSubmittedToGithubMemcacheKey(sha))
 
 	if err == nil {
@@ -92,68 +87,9 @@ func fetchLastSubmittedValue(ctx context.Context, sha string) (db.BuildResult, e
 	}
 }
 
-func cacheSubmittedValue(ctx context.Context, sha string, newValue db.BuildResult) (error) {
+func cacheLastFrameworkBuildStatusSubmittedToGithub(ctx context.Context, sha string, newValue db.BuildResult) (error) {
 	return memcache.Set(ctx, &memcache.Item{
 		Key: lastBuildStatusSubmittedToGithubMemcacheKey(sha),
 		Value: []byte(fmt.Sprintf("%v", newValue)),
 	})
-}
-
-type PullRequest struct {
-	Head *PullRequestHead
-}
-
-type PullRequestHead struct {
-	Sha string
-}
-
-func pushToGithub(c *db.Cocoon, sha string, status db.BuildResult) (error) {
-	url := fmt.Sprintf("%v/statuses/%v", flutterRepositoryApiUrl, sha)
-
-	data := make(map[string]string)
-	if status == db.BuildSucceeded {
-		data["state"] = "success"
-	} else {
-		data["state"] = "failure"
-		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
-		data["description"] = "Flutter build is currently broken. Be careful when merging this PR."
-	}
-	data["context"] = "flutter-build"
-
-	dataBytes, err := json.Marshal(data)
-
-	if err != nil {
-		return err
-	}
-
-	request, err := http.NewRequest("POST", url, bytes.NewReader(dataBytes))
-
-	if err != nil {
-		return err
-	}
-
-	request.Header.Add("User-Agent", "FlutterCocoon")
-	request.Header.Add("Accept", "application/json; version=2")
-	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", fmt.Sprintf("token %v", c.GetGithubAuthToken()))
-
-	httpClient := urlfetch.Client(c.Ctx)
-	response, err := httpClient.Do(request)
-
-	if err != nil {
-		return err
-	}
-
-	if response.StatusCode != 201 {
-		return fmt.Errorf("HTTP POST %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
-	}
-
-	defer response.Body.Close()
-	_, err = ioutil.ReadAll(response.Body)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

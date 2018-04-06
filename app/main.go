@@ -42,6 +42,7 @@ func init() {
 	registerRPC("/api/update-benchmark-targets", commands.UpdateBenchmarkTargets)
 	registerRPC("/api/update-timeseries", commands.UpdateTimeseries)
 	registerRPC("/api/push-build-status-to-github", commands.PushBuildStatusToGithubHandler)
+	registerRPC("/api/push-engine-build-status-to-github", commands.PushEngineBuildStatusToGithubHandler)
 
 	registerRawHandler("/api/append-log", commands.AppendLog)
 	registerRawHandler("/api/get-log", commands.GetLog)
