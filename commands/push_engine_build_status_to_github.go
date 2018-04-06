@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Chromium Authors. All rights reserved.
+// Copyright (c) 2018 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,75 +6,64 @@ package commands
 
 import (
 	"cocoon/db"
-	"encoding/json"
 	"fmt"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/memcache"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
 )
 
 const engineRepositoryApiUrl = "https://api.github.com/repos/flutter/engine"
 
-func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
-	return nil, pushEngineBuildStatusToGithub(c)
-}
-
 // Pushes the latest build status to Github PRs and commits.
-func pushEngineBuildStatusToGithub(c *db.Cocoon) (error) {
-	if appengine.IsDevAppServer() {
-		// Don't push GitHub status from the local dev server.
-		return nil
-	}
-
+func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
 	if err := pushLatestEngineBuildStatusToGithub(c, "Linux Engine"); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := pushLatestEngineBuildStatusToGithub(c, "Mac Engine"); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := pushLatestEngineBuildStatusToGithub(c, "Windows Engine"); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return nil, nil
 }
 
 // Fetches build statuses for the given builder, then updates all PRs with the latest failed or succeeded status.
 func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string) error {
-	results, err := fetchChromebotBuildStatuses(c, builderName)
+	statuses, err := fetchChromebotBuildStatuses(c, builderName)
 
 	if err != nil {
 		return err
 	}
 
-	if len(results) == 0 {
+	if len(statuses) == 0 {
 		return nil
 	}
 
 	latestStatus := db.BuildNew
-	switch results[len(results) - 1].State {
-	case db.TaskFailed:
-		latestStatus = db.BuildFailed
-	case db.TaskSucceeded:
-		latestStatus = db.BuildSucceeded
-	default:
-		// Push only final statuses. Pending statuses are not interesting.
+	for i := len(statuses) - 1; i >= 0 && latestStatus == db.BuildNew; i-- {
+		status := statuses[i]
+
+		switch status.State {
+		case db.TaskFailed:
+			latestStatus = db.BuildFailed
+		case db.TaskSucceeded:
+			latestStatus = db.BuildSucceeded
+		}
+	}
+
+	if latestStatus == db.BuildNew {
+		// No final statuses found. Nothing to report
 		return nil
 	}
 
-	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", engineRepositoryApiUrl), true)
+	pullRequests, err := fetchPullRequests(c, engineRepositoryApiUrl)
 
 	if err != nil {
 		return err
-	}
-
-	var pullRequests []*PullRequest
-	err = json.Unmarshal(prData, &pullRequests)
-
-	if err != nil {
-		return fmt.Errorf("%v: %v", err, string(prData))
 	}
 
 	for _, pr := range pullRequests {
@@ -86,16 +75,19 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string) error
 
 		// Do not ping GitHub unnecessarily if the latest status hasn't changed. GitHub can rate limit us for this.
 		if lastSubmittedValue != latestStatus {
-			err := pushToGitHub(c, GitHubBuildStatusInfo{
-				buildName: builderName,
-				link: "https://build.chromium.org/p/client.flutter/waterfall",
-				commit: pr.Head.Sha,
-				gitHubRepoApiURL: engineRepositoryApiUrl,
-				status: latestStatus,
-			})
+			// Don't push GitHub status from the local dev server.
+			if !appengine.IsDevAppServer() {
+				err := pushToGitHub(c, GitHubBuildStatusInfo{
+					buildName: builderName,
+					link: "https://build.chromium.org/p/client.flutter/waterfall",
+					commit: pr.Head.Sha,
+					gitHubRepoApiURL: engineRepositoryApiUrl,
+					status: latestStatus,
+				})
 
-			if err != nil {
-				return err
+				if err != nil {
+					return err
+				}
 			}
 
 			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, builderName, pr.Head.Sha, latestStatus)

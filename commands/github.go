@@ -84,3 +84,19 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) (error) {
 	return nil
 }
 
+func fetchPullRequests(c *db.Cocoon, gitHubRepoApiURL string) ([]*PullRequest, error) {
+	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoApiURL), true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var pullRequests []*PullRequest
+	err = json.Unmarshal(prData, &pullRequests)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return pullRequests, nil
+}

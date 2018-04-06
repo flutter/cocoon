@@ -6,7 +6,6 @@ package commands
 
 import (
 	"cocoon/db"
-	"encoding/json"
 	"fmt"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/memcache"
@@ -35,17 +34,10 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 	trend := computeTrend(statuses)
 
 	if trend == db.BuildWillFail || trend == db.BuildSucceeded || trend == db.BuildFailed {
-		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", flutterRepositoryApiUrl), true)
+		pullRequests, err := fetchPullRequests(c, flutterRepositoryApiUrl)
 
 		if err != nil {
 			return err
-		}
-
-		var pullRequests []*PullRequest
-		err = json.Unmarshal(prData, &pullRequests)
-
-		if err != nil {
-			return fmt.Errorf("%v: %v", err, string(prData))
 		}
 
 		for _, pr := range pullRequests {
