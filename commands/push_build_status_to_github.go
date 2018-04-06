@@ -50,6 +50,7 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 			if lastSubmittedValue != trend {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
 					buildName: "Flutter build",
+					buildContext: "flutter-build",
 					link: "https://flutter-dashboard.appspot.com/build.html",
 					commit: pr.Head.Sha,
 					gitHubRepoApiURL: flutterRepositoryApiUrl,

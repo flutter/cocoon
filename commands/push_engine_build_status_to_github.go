@@ -16,15 +16,15 @@ const engineRepositoryApiUrl = "https://api.github.com/repos/flutter/engine"
 
 // Pushes the latest build status to Github PRs and commits.
 func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
-	if err := pushLatestEngineBuildStatusToGithub(c, "Linux Engine"); err != nil {
+	if err := pushLatestEngineBuildStatusToGithub(c, "Linux Engine", "linux-build"); err != nil {
 		return nil, err
 	}
 
-	if err := pushLatestEngineBuildStatusToGithub(c, "Mac Engine"); err != nil {
+	if err := pushLatestEngineBuildStatusToGithub(c, "Mac Engine", "mac-build"); err != nil {
 		return nil, err
 	}
 
-	if err := pushLatestEngineBuildStatusToGithub(c, "Windows Engine"); err != nil {
+	if err := pushLatestEngineBuildStatusToGithub(c, "Windows Engine", "windows-build"); err != nil {
 		return nil, err
 	}
 
@@ -32,7 +32,7 @@ func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, 
 }
 
 // Fetches build statuses for the given builder, then updates all PRs with the latest failed or succeeded status.
-func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string) error {
+func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, buildContext string) error {
 	statuses, err := fetchChromebotBuildStatuses(c, builderName)
 
 	if err != nil {
@@ -78,6 +78,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string) error
 			// Don't push GitHub status from the local dev server.
 			if !appengine.IsDevAppServer() {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
+					buildContext: buildContext,
 					buildName: builderName,
 					link: "https://build.chromium.org/p/client.flutter/waterfall",
 					commit: pr.Head.Sha,

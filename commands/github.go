@@ -26,6 +26,8 @@ type GitHubBuildStatusInfo struct {
 	status db.BuildResult
 	// The name that describes the build (e.g. "Engine Windows").
 	buildName string
+	// Set as the "context" field on the GitHub SHA.
+	buildContext string
 	// The URL link that will be added to the PR that the contributor can use to find more details.
 	link string
 	// The URL of the JSON endpoint for the GitHub repository that is being notified.
@@ -44,7 +46,7 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) (error) {
 		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
 		data["description"] = fmt.Sprintf("%v is currently broken. Be careful when merging this PR.", info.buildName)
 	}
-	data["context"] = "flutter-build"
+	data["context"] = info.buildContext
 
 	dataBytes, err := json.Marshal(data)
 
