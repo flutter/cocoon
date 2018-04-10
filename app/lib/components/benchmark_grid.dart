@@ -20,7 +20,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
   <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
   <div style="margin: 5px;">
     <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
-    <input type="text" placeholder="Filter visible benchmarks" (keyup)="applyTextFilter($event.target.value)">
+    <input type="text" [(ngModel)]="taskTextFilter" placeholder="Filter visible benchmarks"/>
   </div>
   <div *ngIf="zoomInto != null" class="benchmark-history-container">
     <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
@@ -37,6 +37,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
 ''',
   directives: const [NgIf, NgFor, NgClass, BenchmarkCard, BenchmarkHistory],
 )
+
 class BenchmarkGrid implements OnInit, OnDestroy {
   BenchmarkGrid(this._httpClient);
 
@@ -48,6 +49,10 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   bool _isShowArchived = false;
 
   String _taskTextFilter;
+  String get taskTextFilter => _taskTextFilter;
+  set taskTextFilter(String value) {
+    applyTextFilter(value);
+  }
   bool get isShowArchived => _isShowArchived;
 
   /// If not `null` the benchmark whose history is shown on screen.
@@ -83,7 +88,9 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
     _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
-    _applyFilters();
+    Map<String,String> parameters = Uri.parse(window.location.href).queryParameters;
+    _taskTextFilter = parameters != null ? parameters['filter'] : null;
+    applyTextFilter(_taskTextFilter);
     isLoading = false;
   }
 
