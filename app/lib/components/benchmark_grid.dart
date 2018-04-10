@@ -89,7 +89,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
     _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
     Map<String,String> parameters = Uri.parse(window.location.href).queryParameters;
-    _taskTextFilter = parameters != null? parameters['filter']: null;
+    _taskTextFilter = parameters != null ? parameters['filter'] : null;
     applyTextFilter(_taskTextFilter);
     isLoading = false;
   }
