@@ -179,16 +179,16 @@ class ContinuousIntegrationCommand extends Command {
 
   void _listenToShutdownSignals() {
     _streamSubscriptions.add(
-      ProcessSignal.SIGINT.watch().listen((_) {
+      ProcessSignal.sigint.watch().listen((_) {
         print('\nReceived SIGINT. Shutting down.');
-        _stop(ProcessSignal.SIGINT);
+        _stop(ProcessSignal.sigint);
       })
     );
     if (!Platform.isWindows) {
       _streamSubscriptions.add(
-        ProcessSignal.SIGTERM.watch().listen((_) {
+        ProcessSignal.sigterm.watch().listen((_) {
           print('\nReceived SIGTERM. Shutting down.');
-          _stop(ProcessSignal.SIGTERM);
+          _stop(ProcessSignal.sigterm);
        })
       );
     }

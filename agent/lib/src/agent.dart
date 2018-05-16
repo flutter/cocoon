@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' show json;
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -48,15 +48,15 @@ class Agent {
   final Client httpClient;
 
   /// Makes a REST API request to Cocoon.
-  Future<dynamic> _cocoon(String apiPath, [dynamic json]) async {
+  Future<dynamic> _cocoon(String apiPath, [dynamic jsonData]) async {
     String url = '$baseCocoonUrl/api/$apiPath';
     Response resp;
-    if (json != null) {
-      resp = await httpClient.post(url, body: JSON.encode(json));
+    if (jsonData != null) {
+      resp = await httpClient.post(url, body: json.encode(jsonData));
     } else {
       resp = await httpClient.get(url);
     }
-    return JSON.decode(resp.body);
+    return json.decode(resp.body);
   }
 
   Future<Null> uploadLogChunk(String taskKey, String chunk) async {

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' show utf8;
 import 'dart:io';
 
 import 'package:vm_service_client/vm_service_client.dart';
@@ -122,10 +122,10 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     }
   }
 
-  var stdoutSub = runner.stdout.transform(UTF8.decoder).listen((String message) async {
+  var stdoutSub = runner.stdout.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
-  var stderrSub = runner.stderr.transform(UTF8.decoder).listen((String message) async {
+  var stderrSub = runner.stderr.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
 
@@ -151,7 +151,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     await whenProcessExits.timeout(const Duration(seconds: 1));
     return new TaskResult.parse(taskResult);
   } on TimeoutException catch (timeout) {
-    runner.kill(ProcessSignal.SIGINT);
+    runner.kill(ProcessSignal.sigint);
     return new TaskResult.failure(
       'Timeout waiting for $waitingFor: ${timeout.message}'
     );
@@ -161,7 +161,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     await sendLog('Task execution finished', flush: true);
     // Force-quit the task runner process.
     if (!runnerFinished)
-      runner.kill(ProcessSignal.SIGKILL);
+      runner.kill(ProcessSignal.sigkill);
     // Force-quit dangling local processes (such as adb commands).
     await forceQuitRunningProcesses();
   }
@@ -212,7 +212,7 @@ Future<int> _findAvailablePort() async {
   while (true) {
     try {
       ServerSocket socket =
-          await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, port);
+          await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
       await socket.close();
       return port;
     } catch (_) {
