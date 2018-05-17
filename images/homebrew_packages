@@ -1,0 +1,5 @@
+libimobiledevice:--HEAD
+ideviceinstaller
+ios-deploy
+tmux
+-python@2
