@@ -7,20 +7,20 @@ import sys
 import tempfile
 
 
-# Returns the image tools directory (where this script is located).
 def get_tools_dir():
+  """Returns the image tools directory (where this script is located)."""
   return os.path.dirname(os.path.abspath(__file__))
 
 
-# Returns the root directory of the Cocoon repo.
 def get_repo_root_dir():
+  """Returns the root directory of the Cocoon repo."""
   p = subprocess.Popen(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE)
   out, err = p.communicate()
   return out.strip()
 
 
-# Creates a sparseimage with the specified volume name at out_path.
 def create_sparse_dmg(name, out_path):
+  """Creates a sparseimage (auto resizing read/write image) with the specified volume name at out_path."""
   print('Creating disk image (%s)...' % out_path)
   return subprocess.call([
     'hdiutil', 'create',
@@ -33,8 +33,8 @@ def create_sparse_dmg(name, out_path):
   ])
 
 
-# Creates a disk image from the specified directory contents.
 def create_disk_image(name, src_dir, out_path):
+   """Creates a disk image (compressed, read-only image) from the specified directory contents."""
    print('Creating disk image (%s)...' % out_path)
    return subprocess.call([
      'hdiutil', 'create',
@@ -47,53 +47,53 @@ def create_disk_image(name, src_dir, out_path):
    ])
 
 
-# Mounts the specified disk image.
 def mount_dmg(dmg_path):
+  """Mounts the specified disk image."""
   print('Mounting disk image (%s)...' % dmg_path)
   return subprocess.call(['hdiutil', 'attach', dmg_path])
 
 
-# Unmounts the specified disk image.
 def unmount_dmg(mount_path):
+  """Unmounts the specified disk image."""
   print('Unmounting disk image (%s)...' % mount_path)
   return subprocess.call(['hdiutil', 'detach', mount_path])
 
 
-# Reads a one-line file containing a version number.
 def read_version_file(file_path):
+  """Reads a one-line file containing a version number."""
   with open(file_path, 'r') as version_file:
     return version_file.read().strip()
 
 
-# Downloads a file from the specified URL to the specified path on disk.
 def download_archive(url, out_path):
+  """Downloads a file from the specified URL to the specified path on disk."""
   return subprocess.call(['curl', url, '-o', out_path])
 
 
-# Downloads the specified (dev) version of the Dart SDK.
 def download_dart_sdk(version, out_zip):
+  """Downloads the specified (dev) version of the Dart SDK."""
   channel = 'dev'
   archive = 'dartsdk-macos-x64-release.zip'
   dl_uri = 'https://storage.googleapis.com/dart-archive/channels/%s/release/%s/sdk/%s' % (channel, version, archive)
   download_archive(dl_uri, out_zip)
 
 
-# Downloads the specified version of the Android SDK tools bundle.
 def download_android_sdk(version, out_zip):
+  """Downloads the specified version of the Android SDK tools bundle."""
   archive = 'sdk-tools-darwin-%s.zip' % version
   dl_uri = 'https://dl.google.com/android/repository/%s' % archive
   download_archive(dl_uri, out_zip)
 
 
-# Unzips the specified zip archive in place, then deletes the archive.
 def unzip_in_place(zip_path):
+  """Unzips the specified zip archive in place, then deletes the archive."""
   zip_dir = os.path.abspath(os.path.dirname(zip_path))
   subprocess.call(['unzip', zip_path, '-d', zip_dir])
   os.remove(zip_path)
 
 
-# Copy all files in one src_dir to dst_dir.
 def copy_dir_contents(src_dir, dst_dir):
+  """Copy all files in one src_dir to dst_dir."""
   print('Copying files...')
   for fname in os.listdir(src_dir):
     print('... ' + fname)
@@ -103,8 +103,8 @@ def copy_dir_contents(src_dir, dst_dir):
     shutil.copymode(fsrc, fdst)
 
 
-# Creates a DevicelabCore disk image in the specified output directory.
 def create_image_core(output_dir):
+  """Creates a DevicelabCore disk image in the specified output directory."""
   image_name = 'DevicelabCore'
   image_path = os.path.join(output_dir, image_name + '.dmg')
   if os.path.isfile(image_path):
@@ -145,8 +145,8 @@ def create_image_core(output_dir):
   os.remove(sparseimage_path)
 
 
-# Creates a DevicelabIOS disk image in the specified output directory.
 def create_image_ios(output_dir):
+  """Creates a DevicelabIOS disk image in the specified output directory."""
   image_name = 'DevicelabIOS'
   image_path = os.path.join(output_dir, image_name + '.dmg')
   if os.path.isfile(image_path):
@@ -226,8 +226,8 @@ def create_image_ios(output_dir):
   os.remove(sparseimage_path)
 
 
-# Creates a DevicelabAndroid disk image in the specified output directory.
 def create_image_android(output_dir):
+  """Creates a DevicelabAndroid disk image in the specified output directory."""
   image_name = 'DevicelabAndroid'
   image_path = os.path.join(output_dir, image_name + '.dmg')
   if os.path.isfile(image_path):
