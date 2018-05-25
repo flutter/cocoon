@@ -75,7 +75,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   @override
   void ngOnInit() {
-    reloadData();
+    reloadData(initialLoad : true);
     _reloadTimer = new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
   }
 
@@ -84,12 +84,15 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _reloadTimer?.cancel();
   }
 
-  Future<Null> reloadData() async {
+  Future<Null> reloadData({bool initialLoad : false}) async {
     isLoading = true;
     Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
     _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
-    Map<String,String> parameters = Uri.parse(window.location.href).queryParameters;
-    _taskTextFilter = parameters != null ? parameters['filter'] : null;
+    // Only query uri parameters when page loads for the first time
+    if (initialLoad) {
+      Map<String, String> parameters = Uri.parse(window.location.href).queryParameters;
+      _taskTextFilter = parameters != null ? parameters['filter'] : null;
+    }
     applyTextFilter(_taskTextFilter);
     isLoading = false;
   }
