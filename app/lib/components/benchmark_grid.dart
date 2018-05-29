@@ -133,7 +133,6 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   selector: 'benchmark-history',
   template: r'''
     <benchmark-card *ngIf="data != null" [barWidth]="'narrow'" [data]="data"></benchmark-card>
-    <div>{{statusMessage}}</div>
     <div style="margin: 20px">
       <div>
         <span>Goal:</span>
@@ -143,23 +142,28 @@ class BenchmarkGrid implements OnInit, OnDestroy {
         <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
       </div>
       <div>
-        <span>TaskName:</span>
-        <input type="text" [(ngModel)]="taskName">
+        <label>
+          <span>TaskName:</span>
+          <input type="text" [(ngModel)]="taskName">
+        </label>
+        <label>
+          <span>Label:</span>
+          <input type="text" [(ngModel)]="label">
+        </label>
       </div>
       <div>
-        <span>Label:</span>
-        <input type="text" [(ngModel)]="label">
-      </div>
-      <div>
-        <span>Unit:</span>
-        <input type="text" [(ngModel)]="unit">
-      </div>
-      <div>
-        <span>Archived:</span>
-        <input type="checkbox" [(ngModel)]="archived">
+        <label>
+          <span>Unit:</span>
+          <input type="text" [(ngModel)]="unit">
+        </label>
+        <label>
+          <span>Archived:</span>
+          <input type="checkbox" [(ngModel)]="archived">
+        </label>
       </div>
       <div>
         <button [disabled]="!isInputValid" (click)="update()">Update</button>
+        {{statusMessage}}
       </div>
     </div>
   ''',
