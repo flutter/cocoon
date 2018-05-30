@@ -9,6 +9,8 @@ import 'adb.dart';
 import 'agent.dart';
 import 'utils.dart';
 
+final RegExp _kLinuxIpAddrExp = new RegExp(r'inet ([0-9.])/\d+');
+
 Future<AgentHealth> performHealthChecks(Agent agent) async {
   AgentHealth results = new AgentHealth();
 
@@ -71,15 +73,22 @@ Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) 
 /// convenient. The goal is only to report available IPs as part of the health
 /// check.
 Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
-  if (!Platform.isMacOS) {
-    return new HealthCheckResult.success('${Platform.operatingSystem} not yet supported.');
+  if (Platform.isWindows) {
+    return new HealthCheckResult.success('Windows not yet supported.');
   }
 
-  String ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
+  String ip;
+  if (Platform.isMacOS) {
+    ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
+  } else if (Platform.isLinux) {
+    // Expect: 3: eth0    inet 172.27.202.26/24 brd 172.27.202.255 scope ...
+    final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eth0'], canFail: true)).trim();
+    final Match match = _kLinuxIpAddrExp.firstMatch(out);
+    ip = match?.group(1);
+  }
 
   return new HealthCheckResult.success(ip.isEmpty
-      ? 'No IP found for remote (SSH) access to this client. '
-      'Did you forget to plug the Ethernet cable?'
-      : 'Possible remote access IP: $ip'
+      ? 'Unable to determine IP address. Is wired ethernet connected?'
+      : 'Last known IP address: $ip'
   );
 }
