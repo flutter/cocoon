@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' show json, utf8, JsonEncoder, LineSplitter;
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -231,7 +231,7 @@ Future<Null> forceQuitRunningProcesses() async {
   // repository are good candidates.
   List<int> pids = await listFlutterProcessIds(config.flutterDirectory);
   for (int pid in pids) {
-    Process.killPid(pid, ProcessSignal.SIGKILL);
+    Process.killPid(pid, ProcessSignal.sigkill);
   }
 }
 
@@ -241,11 +241,11 @@ Future<int> exec(String executable, List<String> arguments,
   Process proc = await startProcess(executable, arguments, env: env);
 
   proc.stdout
-    .transform(UTF8.decoder)
+    .transform(utf8.decoder)
     .transform(const LineSplitter())
     .listen(print);
   proc.stderr
-    .transform(UTF8.decoder)
+    .transform(utf8.decoder)
     .transform(const LineSplitter())
     .listen(stderr.writeln);
 
@@ -268,7 +268,7 @@ Future<String> eval(String executable, List<String> arguments,
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
-  String output = await UTF8.decodeStream(proc.stdout);
+  String output = await utf8.decodeStream(proc.stdout);
   int exitCode = await proc.exitCode;
 
   if (exitCode != 0 && !canFail)
@@ -485,26 +485,26 @@ num addBuildInfo(File jsonFile, {
   String commit,
   DateTime timestamp
 }) {
-  Map<String, dynamic> json;
+  Map<String, dynamic> jsonData;
 
   if (jsonFile.existsSync())
-    json = JSON.decode(jsonFile.readAsStringSync());
+    jsonData = json.decode(jsonFile.readAsStringSync());
   else
-    json = <String, dynamic>{};
+    jsonData = <String, dynamic>{};
 
   if (expected != null)
-    json['expected'] = expected;
+    jsonData['expected'] = expected;
   if (sdk != null)
-    json['sdk'] = sdk;
+    jsonData['sdk'] = sdk;
   if (commit != null)
-    json['commit'] = commit;
+    jsonData['commit'] = commit;
   if (timestamp != null)
-    json['timestamp'] = timestamp.millisecondsSinceEpoch;
+    jsonData['timestamp'] = timestamp.millisecondsSinceEpoch;
 
-  jsonFile.writeAsStringSync(jsonEncode(json));
+  jsonFile.writeAsStringSync(jsonEncode(jsonData));
 
   // Return the elapsed time of the benchmark (if any).
-  return json['time'];
+  return jsonData['time'];
 }
 
 /// Splits [from] into lines and selects those that contain [pattern].

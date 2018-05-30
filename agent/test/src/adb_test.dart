@@ -142,7 +142,7 @@ class CommandArgs {
 }
 
 class FakeDevice extends AndroidDevice {
-  FakeDevice({String deviceId: null}) : super(deviceId: deviceId);
+  FakeDevice({String deviceId}) : super(deviceId: deviceId);
 
   static String output = '';
   static ExitErrorFactory exitErrorFactory = () => null;
