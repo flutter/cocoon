@@ -1,4 +1,5 @@
 tools
 platform-tools
+build-tools;26.0.2
 build-tools;27.0.3
 platforms;android-27
