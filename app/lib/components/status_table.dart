@@ -388,6 +388,9 @@ class StageHeader {
     if (metaTasks.any((MetaTask m) => m.name == task.name))
       return;
     metaTasks.add(new MetaTask(taskEntity.key, task.name, task.stageName));
+    metaTasks.sort((MetaTask m1, MetaTask m2) {
+      return m1.name.compareTo(m2.name);
+    });
   }
 }
 
