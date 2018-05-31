@@ -12,6 +12,31 @@ import 'package:meta/meta.dart';
 
 import 'package:cocoon_agent/src/utils.dart';
 
+class AuthenticatedClient extends BaseClient {
+  AuthenticatedClient(this._agentId, this._authToken);
+
+  final String _agentId;
+  final String _authToken;
+  final Client _delegate = new Client();
+
+  @override
+  Future<StreamedResponse> send(Request request) async {
+    request.headers['Agent-ID'] = _agentId;
+    request.headers['Agent-Auth-Token'] = _authToken;
+    final StreamedResponse resp = await _delegate.send(request);
+
+    if (resp.statusCode != 200) {
+      throw new ClientException(
+        'AuthenticatedClientError:\n'
+        '  URI: ${request.url}\n'
+        '  HTTP Status: ${resp.statusCode}\n'
+        '  Response body:\n'
+        '${(await Response.fromStream(resp)).body}', request.url);
+    }
+    return resp;
+  }
+}
+
 /// Contains information about a Cocoon task.
 class CocoonTask {
   CocoonTask({
@@ -41,11 +66,13 @@ class CocoonTask {
 
 /// Client to the Coocon backend.
 class Agent {
-  Agent({@required this.baseCocoonUrl, @required this.agentId, @required this.httpClient});
+  Agent({@required this.baseCocoonUrl, @required this.agentId, @required this.authToken})
+    : httpClient = new AuthenticatedClient(agentId, authToken);
 
   final String baseCocoonUrl;
   final String agentId;
-  final Client httpClient;
+  final String authToken;
+  Client httpClient;
 
   /// Makes a REST API request to Cocoon.
   Future<dynamic> _cocoon(String apiPath, [dynamic jsonData]) async {
@@ -142,6 +169,13 @@ class Agent {
     	'IsHealthy': health.ok,
     	'HealthDetails': '$health',
     });
+  }
+
+  void resetHttpClient() {
+    if (httpClient != null) {
+      httpClient.close();
+    }
+    httpClient = new AuthenticatedClient(agentId, authToken);
   }
 }
 

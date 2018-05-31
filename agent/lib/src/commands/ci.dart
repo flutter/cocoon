@@ -54,6 +54,8 @@ class ContinuousIntegrationCommand extends Command {
     _listenToShutdownSignals();
     await runZoned(() async {
       while(!_exiting) {
+        agent.resetHttpClient();
+
         // This try/catch captures errors that we cannot send to the server,
         // because we have not yet reserved a task. It will simply log to the
         // console.
