@@ -9,7 +9,7 @@ import 'adb.dart';
 import 'agent.dart';
 import 'utils.dart';
 
-final RegExp _kLinuxIpAddrExp = new RegExp(r'inet ([0-9.])/\d+');
+final RegExp _kLinuxIpAddrExp = new RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
 
 Future<AgentHealth> performHealthChecks(Agent agent) async {
   AgentHealth results = new AgentHealth();
@@ -81,10 +81,10 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
   if (Platform.isMacOS) {
     ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
   } else if (Platform.isLinux) {
-    // Expect: 3: eth0    inet 172.27.202.26/24 brd 172.27.202.255 scope ...
-    final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eth0'], canFail: true)).trim();
+    // Expect: 3: enp0s25    inet 123.45.67.89/26 brd ...
+    final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'enp0s25'], canFail: true)).trim();
     final Match match = _kLinuxIpAddrExp.firstMatch(out);
-    ip = match?.group(1);
+    ip = match?.group(1) ?? '';
   }
 
   return new HealthCheckResult.success(ip.isEmpty
