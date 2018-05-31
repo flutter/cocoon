@@ -58,13 +58,13 @@ Future<Null> _start(ArgResults args) async {
   bool clearDatastore = args['clear-datastore'];
 
   _streamSubscriptions.addAll(<StreamSubscription>[
-    ProcessSignal.SIGINT.watch().listen((_) {
+    ProcessSignal.sigint.watch().listen((_) {
       print('\nReceived SIGINT. Shutting down.');
-      _stop(ProcessSignal.SIGINT);
+      _stop(ProcessSignal.sigint);
     }),
-    ProcessSignal.SIGTERM.watch().listen((_) {
+    ProcessSignal.sigterm.watch().listen((_) {
       print('\nReceived SIGTERM. Shutting down.');
-      _stop(ProcessSignal.SIGTERM);
+      _stop(ProcessSignal.sigterm);
     }),
   ]);
 
@@ -86,7 +86,7 @@ Future<Null> _start(ArgResults args) async {
     await startProcess('pub', ['serve', '--port=${_pubServePort}'])
   ));
 
-  devServer = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, _devServerPort);
+  devServer = await HttpServer.bind(InternetAddress.loopbackIPv4, _devServerPort);
   print('Listening on http://localhost:$_devServerPort');
 
   try {
@@ -131,7 +131,7 @@ class TestAgentAuthentication {
 ArgResults _parseArgs(List<String> rawArgs) {
   ArgParser argp = new ArgParser()
     ..addFlag('clear-datastore')
-    ..addOption('test-agent-auth', callback: (String value) {
+    ..addOption('test-agent-auth', callback: (dynamic value) {
       if (value != null) {
         _testAgentAuth = TestAgentAuthentication.fromArgs(value);
       }
@@ -233,7 +233,7 @@ class ManagedProcess {
       print('$name exited.');
       if (!_stopping) {
         _childProcesses.remove(process);
-        _stop(ProcessSignal.SIGINT);
+        _stop(ProcessSignal.sigint);
       }
     });
     _redirectIoStream('[$name][STDOUT]', process.stdout);
@@ -264,7 +264,7 @@ Future<Null> _validateCwd() async {
     throw '${appYaml.path} not found in current working directory';
 }
 
-Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
+Future<Null> _stop([ProcessSignal signal = ProcessSignal.sigint]) async {
   if (_stopping)
     return;
 

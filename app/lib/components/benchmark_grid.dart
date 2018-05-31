@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 import 'dart:math' as math;
 
@@ -86,7 +86,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   Future<Null> reloadData({bool initialLoad : false}) async {
     isLoading = true;
-    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
+    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/get-benchmarks')).body);
     _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
@@ -231,12 +231,12 @@ class BenchmarkHistory {
 
   void _validateInputs() {
     _isInputValid = true;
-    double.parse(_goal, (_) {
+    if (double.tryParse(_goal) == null) {
       _isInputValid = false;
-    });
-    double.parse(_baseline, (_) {
+    }
+    if (double.tryParse(_baseline) == null) {
       _isInputValid = false;
-    });
+    }
     if (_taskName == null || _taskName.trim().isEmpty) {
       _isInputValid = false;
     }
@@ -277,7 +277,7 @@ class BenchmarkHistory {
       'Archived': _archived,
     };
 
-    http.Response response = await _httpClient.post('/api/update-timeseries', body: JSON.encode(request));
+    http.Response response = await _httpClient.post('/api/update-timeseries', body: json.encode(request));
     if (response.statusCode == 200) {
       _statusMessage = 'New targets saved.';
       await _loadData();
@@ -306,8 +306,8 @@ class BenchmarkHistory {
       request['StartFrom'] = lastPosition.value;
     }
 
-    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: JSON.encode(request));
-    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
+    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: json.encode(request));
+    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(json.decode(response.body));
 
     data = null;
     Timer.run(() {  // force Angular to rerender
