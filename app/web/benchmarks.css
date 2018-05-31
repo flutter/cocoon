@@ -58,7 +58,7 @@ benchmark-card {
 }
 
 .benchmark-history-container + * {
-  padding-top: 200px;
+  padding-top: 320px;
 }
 
 .metric {
