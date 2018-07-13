@@ -24,6 +24,55 @@ Config get config => _config;
 List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
 ProcessManager _processManager = new LocalProcessManager();
 
+final Logger logger = new PrintLogger(out: stdout, level: LogLevel.info);
+
+class LogLevel {
+  const LogLevel._(this._level);
+
+  final int _level;
+
+  static const LogLevel debug = const LogLevel._(0);
+  static const LogLevel info = const LogLevel._(1);
+  static const LogLevel warning = const LogLevel._(2);
+  static const LogLevel error = const LogLevel._(3);
+}
+
+abstract class Logger {
+  void debug(Object message);
+  void info(Object message);
+  void warning(Object message);
+  void error(Object message);
+}
+
+class PrintLogger implements Logger {
+  PrintLogger({
+    IOSink out,
+    this.level = LogLevel.info,
+  }) : out = out ?? stdout;
+
+  final IOSink out;
+  final LogLevel level;
+
+  @override
+  void debug(Object message) => _log(LogLevel.debug, message);
+
+  @override
+  void info(Object message) => _log(LogLevel.info, message);
+
+  @override
+  void warning(Object message) => _log(LogLevel.warning, message);
+
+  @override
+  void error(Object message) => _log(LogLevel.error, message);
+
+  void _log(LogLevel level, Object message) {
+    if (level._level >= this.level._level)
+      out.writeln(toLogString('$message'));
+  }
+}
+
+String toLogString(String message) => '${new DateTime.now().toIso8601String()}: $message';
+
 class ProcessInfo {
   ProcessInfo(this.command, this.process);
 
@@ -127,8 +176,8 @@ void mkdirs(Directory directory) {
 bool exists(FileSystemEntity entity) => entity.existsSync();
 
 void section(String title) {
-  print('');
-  print('••• $title •••');
+  logger.info('');
+  logger.info('••• $title •••');
 }
 
 Future<String> getDartVersion() async {
@@ -189,7 +238,7 @@ Future<Null> getFlutterAt(String revision) async {
   // therefore the same revision. It would be too costly to have to reinstall
   // Flutter every time.
   if (currentRevision == revision) {
-    print('Reusing previously checked out Flutter revision: $revision');
+    logger.info('Reusing previously checked out Flutter revision: $revision');
     return;
   }
 
@@ -200,7 +249,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent)
-    print('Executing: $command');
+    logger.info('Executing: $command');
   Process proc = await _processManager.start([executable]..addAll(arguments), environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = new ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
@@ -219,9 +268,9 @@ Future<Null> forceQuitRunningProcesses() async {
 
   // Whatever's left, kill it.
   for (ProcessInfo p in _runningProcesses) {
-    print('Force quitting process:\n$p');
+    logger.info('Force quitting process:\n$p');
     if (!p.process.kill()) {
-      print('Failed to force quit process');
+      logger.warning('Failed to force quit process');
     }
   }
   _runningProcesses.clear();
@@ -243,11 +292,11 @@ Future<int> exec(String executable, List<String> arguments,
   proc.stdout
     .transform(utf8.decoder)
     .transform(const LineSplitter())
-    .listen(print);
+    .listen(logger.info);
   proc.stderr
     .transform(utf8.decoder)
     .transform(const LineSplitter())
-    .listen(stderr.writeln);
+    .listen(logger.warning);
 
   int exitCode = await proc.exitCode;
 
