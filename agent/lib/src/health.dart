@@ -10,6 +10,7 @@ import 'agent.dart';
 import 'utils.dart';
 
 final RegExp _kLinuxIpAddrExp = new RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
+final RegExp _kWindowsIpAddrExp = new RegExp(r'IPv4 Address.*: +(\d+\.\d+\.\d+.\d+)\(Preferred\)');
 
 Future<AgentHealth> performHealthChecks(Agent agent) async {
   AgentHealth results = new AgentHealth();
@@ -73,10 +74,6 @@ Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) 
 /// convenient. The goal is only to report available IPs as part of the health
 /// check.
 Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
-  if (Platform.isWindows) {
-    return new HealthCheckResult.success('Windows not yet supported.');
-  }
-
   String ip;
   if (Platform.isMacOS) {
     ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
@@ -84,6 +81,10 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
     // Expect: 3: enp0s25    inet 123.45.67.89/26 brd ...
     final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'enp0s25'], canFail: true)).trim();
     final Match match = _kLinuxIpAddrExp.firstMatch(out);
+    ip = match?.group(1) ?? '';
+  } else if (Platform.isWindows) {
+    final String out = (await eval('ipconfig', ['/all'], canFail: true)).trim();
+    final Match match = _kWindowsIpAddrExp.firstMatch(out);
     ip = match?.group(1) ?? '';
   }
 
