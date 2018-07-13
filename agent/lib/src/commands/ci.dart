@@ -56,8 +56,8 @@ class ContinuousIntegrationCommand extends Command {
     // Start CI mode
     section('Started continuous integration:');
     _listenToShutdownSignals();
-    await runZoned(() async {
-      while(!_exiting) {
+    while(!_exiting) {
+      await runZoned(() async {
         agent.resetHttpClient();
 
         // This try/catch captures errors that we cannot send to the server,
@@ -123,12 +123,12 @@ class ContinuousIntegrationCommand extends Command {
 
         logger.info('Pausing before asking for more tasks.');
         await new Future.delayed(_sleepBetweenBuilds);
-      }
-    }, onError: (error, stackTrace) {
-      // Catches errors from dangling futures that cannot be reported to the
-      // server.
-      stderr.writeln('ERROR: $error\n$stackTrace');
-    });
+      }, onError: (error, stackTrace) {
+        // Catches errors from dangling futures that cannot be reported to the
+        // server.
+        stderr.writeln('ERROR: $error\n$stackTrace');
+      });
+    }
   }
 
   /// Recursively finds all Dart packages in the cloned Flutter repository
