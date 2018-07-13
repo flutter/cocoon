@@ -24,7 +24,7 @@ class RunCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
-    print(args);
+    logger.info('Running with args: ${args.arguments}');
     String taskName = args['task'];
     if (taskName == null)
       throw new ArgumentError('--task is required');
@@ -32,10 +32,14 @@ class RunCommand extends Command {
 
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    print(health);
+    health.toString()
+      .split('\n')
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .forEach(logger.info);
 
     if (!health.ok) {
-      print('Some pre-flight checks failed. Quitting.');
+      logger.error('Some pre-flight checks failed. Quitting.');
       exit(1);
     }
 
@@ -47,11 +51,11 @@ class RunCommand extends Command {
         // the task timeout.
         await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
       } else {
-        print('NOTE: No --revision specified. Running on current checkout.');
+        logger.info('NOTE: No --revision specified. Running on current checkout.');
       }
       result = await runTask(agent, task);
     } catch(error, stackTrace) {
-      print('ERROR: $error\n$stackTrace');
+      logger.error('ERROR: $error\n$stackTrace');
     } finally {
       await forceQuitRunningProcesses();
     }

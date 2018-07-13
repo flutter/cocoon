@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert' show json;
-import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart';
@@ -142,7 +141,7 @@ class Agent {
           resultData[scoreKey] = score.toDouble();
           validScoreKeys.add(scoreKey);
         } else {
-          stderr.writeln('WARNING: non-numeric score value $score submitted for $scoreKey');
+          logger.warning('non-numeric score value $score submitted for $scoreKey');
         }
       }
     }
@@ -165,9 +164,9 @@ class Agent {
 
   Future<Null> updateHealthStatus(AgentHealth health) async {
     await _cocoon('update-agent-health', {
-    	'AgentID': agentId,
-    	'IsHealthy': health.ok,
-    	'HealthDetails': '$health',
+      'AgentID': agentId,
+      'IsHealthy': health.ok,
+      'HealthDetails': '$health',
     });
   }
 
@@ -202,7 +201,7 @@ class AgentHealth {
   /// Sets a health check [result] for a given [parameter].
   void operator []=(String parameter, HealthCheckResult result) {
     if (checks.containsKey(parameter)) {
-      print('WARNING: duplicate health check ${parameter} submitted');
+      logger.warning('duplicate health check ${parameter} submitted');
     }
     checks[parameter] = result;
   }

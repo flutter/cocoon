@@ -112,8 +112,8 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   StringBuffer buffer = new StringBuffer();
 
   Future<Null> sendLog(String message, {bool flush: false}) async {
-    buffer.write(message);
-    print('[task runner] [${task.name}] $message');
+    buffer.write(toLogString(message));
+    logger.info('[task runner] [${task.name}] $message');
     // Send a chunk at a time, or upon request.
     if (flush || buffer.length > _kLogChunkSize) {
       String chunk = buffer.toString();
@@ -199,9 +199,9 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
           connectionTimeout,
         );
       }
-      print('VM service not ready yet: $error');
+      logger.info('VM service not ready yet: $error');
       const Duration pauseBetweenRetries = const Duration(milliseconds: 200);
-      print('Will retry in $pauseBetweenRetries.');
+      logger.info('Will retry in $pauseBetweenRetries.');
       await new Future<Null>.delayed(pauseBetweenRetries);
     }
   }

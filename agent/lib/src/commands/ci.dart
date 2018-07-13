@@ -39,10 +39,14 @@ class ContinuousIntegrationCommand extends Command {
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    print(health);
+    health.toString()
+      .split('\n')
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .forEach(logger.info);
 
     if (!health.ok) {
-      print('Some pre-flight checks failed. Quitting.');
+      logger.error('Some pre-flight checks failed. Quitting.');
       exit(1);
     }
 
@@ -70,8 +74,12 @@ class ContinuousIntegrationCommand extends Command {
           await agent.updateHealthStatus(health);
 
           if (!health.ok) {
-            print('Some health checks failed:');
-            print(health);
+            logger.warning('Some health checks failed:');
+            health.toString()
+              .split('\n')
+              .map((String line) => line.trim())
+              .where((String line) => line.isNotEmpty)
+              .forEach(logger.warning);
             await new Future.delayed(_sleepBetweenBuilds);
             // Don't bother requesting new tasks if health is bad.
             return;
@@ -85,11 +93,11 @@ class ContinuousIntegrationCommand extends Command {
           try {
             if (task != null) {
               section('Task info:');
-              print('  name           : ${task.name}');
-              print('  key            : ${task.key ?? ""}');
-              print('  revision       : ${task.revision}');
+              logger.info('  name           : ${task.name}');
+              logger.info('  key            : ${task.key ?? ""}');
+              logger.info('  revision       : ${task.revision}');
               if (task.timeoutInMinutes != 0) {
-                print('  custom timeout : ${task.timeoutInMinutes}');
+                logger.info('  custom timeout : ${task.timeoutInMinutes}');
               }
 
               // Sync flutter outside of the task so it does not contribute to
@@ -98,11 +106,11 @@ class ContinuousIntegrationCommand extends Command {
               await _cleanBuildDirectories(agent, task);
               await _runTask(task);
             } else {
-              print('No tasks available for this agent.');
+              logger.info('No tasks available for this agent.');
             }
           } catch (error, stackTrace) {
             String errorMessage = 'ERROR: $error\n$stackTrace';
-            print(errorMessage);
+            logger.error(errorMessage);
             await agent.reportFailure(task.key, errorMessage);
           }
         } catch (error, stackTrace) {
@@ -113,7 +121,7 @@ class ContinuousIntegrationCommand extends Command {
           await forceQuitRunningProcesses();
         }
 
-        print('Pausing before asking for more tasks.');
+        logger.info('Pausing before asking for more tasks.');
         await new Future.delayed(_sleepBetweenBuilds);
       }
     }, onError: (error, stackTrace) {
@@ -126,7 +134,7 @@ class ContinuousIntegrationCommand extends Command {
   /// Recursively finds all Dart packages in the cloned Flutter repository
   /// (i.e. directories with `pubspec.yaml` files), and deletes the `build`
   /// directories, if any.
-  /// 
+  ///
   /// This is to prevent cross-contamination of build artifacts across tests.
   Future<Null> _cleanBuildDirectories(Agent agent, CocoonTask task) async {
     Future<Null> recursivelyDeleteBuildDirectories(Directory directory) async {
@@ -175,21 +183,21 @@ class ContinuousIntegrationCommand extends Command {
       }
     } catch(error, stackTrace) {
       // Best effort only.
-      print('Failed to turn off screen: $error\n$stackTrace');
+      logger.warning('Failed to turn off screen: $error\n$stackTrace');
     }
   }
 
   void _listenToShutdownSignals() {
     _streamSubscriptions.add(
       ProcessSignal.sigint.watch().listen((_) {
-        print('\nReceived SIGINT. Shutting down.');
+        logger.info('\nReceived SIGINT. Shutting down.');
         _stop(ProcessSignal.sigint);
       })
     );
     if (!Platform.isWindows) {
       _streamSubscriptions.add(
         ProcessSignal.sigterm.watch().listen((_) {
-          print('\nReceived SIGTERM. Shutting down.');
+          logger.info('\nReceived SIGTERM. Shutting down.');
           _stop(ProcessSignal.sigterm);
        })
       );
