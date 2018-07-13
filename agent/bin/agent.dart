@@ -54,7 +54,11 @@ Future<Null> main(List<String> rawArgs) async {
   }
 
   section('Agent configuration:');
-  print(config);
+  config.toString()
+    .split('\n')
+    .map((String line) => line.trim())
+    .where((String line) => line.isNotEmpty)
+    .forEach(logger.info);
 
   await command.run(args.command);
 }

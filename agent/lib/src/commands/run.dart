@@ -24,7 +24,7 @@ class RunCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
-    logger.info(args);
+    logger.info('Running with args: ${args.arguments}');
     String taskName = args['task'];
     if (taskName == null)
       throw new ArgumentError('--task is required');
@@ -32,7 +32,11 @@ class RunCommand extends Command {
 
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    logger.info(health);
+    health.toString()
+      .split('\n')
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .forEach(logger.info);
 
     if (!health.ok) {
       logger.error('Some pre-flight checks failed. Quitting.');

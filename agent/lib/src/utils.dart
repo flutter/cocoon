@@ -27,14 +27,15 @@ ProcessManager _processManager = new LocalProcessManager();
 final Logger logger = new PrintLogger(out: stdout, level: LogLevel.info);
 
 class LogLevel {
-  const LogLevel._(this._level);
+  const LogLevel._(this._level, this.name);
 
   final int _level;
+  final String name;
 
-  static const LogLevel debug = const LogLevel._(0);
-  static const LogLevel info = const LogLevel._(1);
-  static const LogLevel warning = const LogLevel._(2);
-  static const LogLevel error = const LogLevel._(3);
+  static const LogLevel debug = const LogLevel._(0, 'DEBUG');
+  static const LogLevel info = const LogLevel._(1, 'INFO');
+  static const LogLevel warning = const LogLevel._(2, 'WARN');
+  static const LogLevel error = const LogLevel._(3, 'ERROR');
 }
 
 abstract class Logger {
@@ -67,11 +68,21 @@ class PrintLogger implements Logger {
 
   void _log(LogLevel level, Object message) {
     if (level._level >= this.level._level)
-      out.writeln(toLogString('$message'));
+      out.writeln(toLogString('$message', level: level));
   }
 }
 
-String toLogString(String message) => '${new DateTime.now().toIso8601String()}: $message';
+String toLogString(String message, {LogLevel level}) {
+  final StringBuffer buffer = new StringBuffer();
+  buffer.write(new DateTime.now().toIso8601String());
+  buffer.write(': ');
+  if (level != null) {
+    buffer.write(level.name);
+    buffer.write(' ');
+  }
+  buffer.write(message);
+  return buffer.toString();
+}
 
 class ProcessInfo {
   ProcessInfo(this.command, this.process);

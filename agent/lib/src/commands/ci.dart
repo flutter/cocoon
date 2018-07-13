@@ -39,7 +39,11 @@ class ContinuousIntegrationCommand extends Command {
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    logger.info(health);
+    health.toString()
+      .split('\n')
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .forEach(logger.info);
 
     if (!health.ok) {
       logger.error('Some pre-flight checks failed. Quitting.');
@@ -71,7 +75,11 @@ class ContinuousIntegrationCommand extends Command {
 
           if (!health.ok) {
             logger.warning('Some health checks failed:');
-            logger.warning(health);
+            health.toString()
+              .split('\n')
+              .map((String line) => line.trim())
+              .where((String line) => line.isNotEmpty)
+              .forEach(logger.warning);
             await new Future.delayed(_sleepBetweenBuilds);
             // Don't bother requesting new tasks if health is bad.
             return;
