@@ -26,39 +26,46 @@ Future<Null> main(List<String> rawArgs) async {
 
   Config.initialize(args);
 
-  Agent agent = new Agent(
-    baseCocoonUrl: config.baseCocoonUrl,
-    agentId: config.agentId,
-    authToken: config.authToken,
-  );
+  Agent agent;
+  try {
+    agent = new Agent(
+      baseCocoonUrl: config.baseCocoonUrl,
+      agentId: config.agentId,
+      authToken: config.authToken,
+    );
 
-  Map<String, Command> allCommands = <String, Command>{};
+    Map<String, Command> allCommands = <String, Command>{};
 
-  void registerCommand(Command command) {
-    allCommands[command.name] = command;
+    void registerCommand(Command command) {
+      allCommands[command.name] = command;
+    }
+
+    registerCommand(new ContinuousIntegrationCommand(agent));
+    registerCommand(new RunCommand(agent));
+
+    if (args.command == null) {
+      print('No command specified, expected one of: ${allCommands.keys.join(', ')}');
+      exit(1);
+    }
+
+    Command command = allCommands[args.command.name];
+
+    if (command == null) {
+      print('Unrecognized command $command');
+      exit(1);
+    }
+
+    section('Agent configuration:');
+    config.toString()
+      .split('\n')
+      .map((String line) => line.trim())
+      .where((String line) => line.isNotEmpty)
+      .forEach(logger.info);
+
+    await command.run(args.command);
+  } finally {
+    if (agent != null) {
+      agent.close();
+    }
   }
-
-  registerCommand(new ContinuousIntegrationCommand(agent));
-  registerCommand(new RunCommand(agent));
-
-  if (args.command == null) {
-    print('No command specified, expected one of: ${allCommands.keys.join(', ')}');
-    exit(1);
-  }
-
-  Command command = allCommands[args.command.name];
-
-  if (command == null) {
-    print('Unrecognized command $command');
-    exit(1);
-  }
-
-  section('Agent configuration:');
-  config.toString()
-    .split('\n')
-    .map((String line) => line.trim())
-    .where((String line) => line.isNotEmpty)
-    .forEach(logger.info);
-
-  await command.run(args.command);
 }

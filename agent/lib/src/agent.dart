@@ -176,6 +176,13 @@ class Agent {
     }
     httpClient = new AuthenticatedClient(agentId, authToken);
   }
+
+  void close() {
+    if (httpClient != null) {
+      httpClient.close();
+    }
+    httpClient = null;
+  }
 }
 
 abstract class Command {
