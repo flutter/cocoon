@@ -24,8 +24,8 @@ type AppVeyorApiResponse struct {
 
 // AppVeyorBuild describes a AppVeyor build result.
 type AppVeyorBuild struct {
-	Status    string
-	CommitId  string
+	Status   string
+	CommitId string
 }
 
 // RefreshAppVeyorStatus pulls down the latest AppVeyor builds and updates the
