@@ -150,7 +150,7 @@ func fetchCommitStatus(c *db.Cocoon, commit string) ([]*GithubRequestStatusInfo,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var GithubRequestStatusResult result;
 	err = json.Unmarshal(bytes, &result);
 	if err != nil {
