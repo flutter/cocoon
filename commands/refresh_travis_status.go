@@ -18,13 +18,13 @@ type RefreshTravisStatusResult struct {
 // The outer JSON object containing individual build results under the "builds"
 // property and commit info under the "commits" property.
 type TravisResultWrapper struct {
-	Builds []*TravisResult
+	Builds  []*TravisResult
 	Commits []*TravisCommit
 }
 
 // TravisCommit maps a Travis commit ID to git SHA.
 type TravisCommit struct {
-	Id int64
+	Id  int64
 	Sha string
 }
 
@@ -33,7 +33,7 @@ type TravisResult struct {
 	State    string
 	CommitId int64 `json:"commit_id"`
 	// Commit SHA is not populated from JSON, but from TravisCommit.
-	Sha      string `json:"-"`
+	Sha string `json:"-"`
 }
 
 // RefreshTravisStatus pulls down the latest Travis builds and updates the

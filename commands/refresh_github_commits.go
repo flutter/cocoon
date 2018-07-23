@@ -11,11 +11,12 @@ import (
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-	"github.com/go-yaml/yaml"
 	"errors"
 	"time"
+
+	"github.com/go-yaml/yaml"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 // RefreshGithubCommitsResult pulls down the latest GitHub commit data and
@@ -140,7 +141,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	tasks := []*db.Task{
 		makeTask("travis", "travis", []string{"can-update-travis"}, false, 0),
 		makeTask("appveyor", "appveyor", []string{"can-update-appveyor"}, false, 0),
-
+		makeTask("github-status", "github-status", []string{"can-update-github"}, false, 0),
 		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}, false, 0),
 		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}, false, 0),
 		makeTask("chromebot", "windows_bot", []string{"can-update-chromebots"}, false, 0),
@@ -153,7 +154,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	var lastError error
 	for manifestBytes == nil && attempts < 3 {
 		if attempts > 0 {
-			log.Warningf(cocoon.Ctx, "Attempt to download manifest.yaml #%v", attempts + 1)
+			log.Warningf(cocoon.Ctx, "Attempt to download manifest.yaml #%v", attempts+1)
 		}
 
 		manifestBytes, lastError = cocoon.FetchURL(url, false)
@@ -179,8 +180,8 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	if err != nil {
 		log.Errorf(cocoon.Ctx, "%v", err)
 		subject := fmt.Sprintf("Invalid devicelab manifest at %v", commit)
-		message := fmt.Sprintf("%v. We will not be able to run devicelab tests at this commit.\n\n" +
-				"Error: %v", subject, err)
+		message := fmt.Sprintf("%v. We will not be able to run devicelab tests at this commit.\n\n"+
+			"Error: %v", subject, err)
 		db.SendTeamNotification(cocoon.Ctx, subject, message)
 		return tasks, nil
 	}
