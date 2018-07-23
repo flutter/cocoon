@@ -22,7 +22,6 @@ var map[string]bool GithubCIAgents = map[string]bool{
 	"tests-windows": true,
 	"analyze": true,
 	"docs": true,
-	"continuous-integration/travis-ci/pr": true,
 }
 
 type PullRequest struct {
