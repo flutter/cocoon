@@ -40,6 +40,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     NgIf,
     NgFor,
     NgClass,
+    NgModel,
     BenchmarkCard,
     BenchmarkHistory,
   ],

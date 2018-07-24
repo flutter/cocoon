@@ -14,8 +14,6 @@ fi
 rm -rf build
 pub get
 dartanalyzer --strong bin/*.dart web/*.dart test/*.dart
-pub run test -p vm
-pub run test -p dartium
 pub build
 
 echo

@@ -8,23 +8,18 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:cocoon/components/benchmark_grid.dart';
+import 'package:cocoon/components/benchmark_grid.template.dart' as ng;
 import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
 Future<Null> main() async {
   logger = new HtmlLogger();
   http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn('/benchmarks.html');
-
-  if (httpClient == null)
-    return null;
-
-  // Start the angular app
-  await runAppLegacyAsync(BenchmarkGrid,
-    beforeComponentCreated: (_) async {},
-    createInjectorFromProviders: [
-    provide(http.Client, useValue: httpClient),
-  ]);
+  runApp(ng.BenchmarkGridNgFactory, createInjector: ([Injector injector]) {
+    return new Injector.map({
+      http.Client: httpClient,
+    }, injector);
+  });
 }
 
 class HtmlLogger implements Logger {

@@ -59,7 +59,6 @@ abstract class CliCommand {
   Future<Null> run(ArgResults args);
 }
 
-@Injectable()
 class AuthorizeAgentCommand extends CliCommand {
   AuthorizeAgentCommand(this.httpClient) : super('authAgent');
 
@@ -85,7 +84,6 @@ class AuthorizeAgentCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class CreateAgentCommand extends CliCommand {
   CreateAgentCommand(this.httpClient) : super('createAgent');
 
@@ -120,7 +118,6 @@ class CreateAgentCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class RefreshGithubCommitsCommand extends CliCommand {
   RefreshGithubCommitsCommand(this.httpClient) : super('refreshGithubCommits');
 
@@ -136,7 +133,6 @@ class RefreshGithubCommitsCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class ReserveTaskCommand extends CliCommand {
   ReserveTaskCommand(this.httpClient) : super('reserveTask');
 
@@ -162,7 +158,6 @@ class ReserveTaskCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class RawHttpCommand extends CliCommand {
   RawHttpCommand(this.httpClient) : super('http');
 
