@@ -11,19 +11,6 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
-/// The CI agents we care about on the github status page.
-/// The name must match the value in the "context" field of the json response.
-var map[string]bool GithubCIAgents = map[string]bool{
-	"tool_tests-macos": true,
-	"tool_tests-windows": true,
-	"tool_tests-linux": true,
-	"tests-linux": true,
-	"tests-macos": true,
-	"tests-windows": true,
-	"analyze": true,
-	"docs": true,
-}
-
 type PullRequest struct {
 	Head *PullRequestHead
 }
@@ -48,7 +35,7 @@ type GitHubBuildStatusInfo struct {
 	gitHubRepoApiURL string
 }
 
-type GithubRequestStatusResult {
+type GithubRequestStatusResult struct {
 	Statuses []*GithubRequestStatusInfo
 }
 
@@ -109,8 +96,8 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 	return nil
 }
 
-func fetchPullRequests(c *db.Cocoon, gitHubRepoApiURL string) ([]*PullRequest, error) {
-	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoApiURL), true)
+func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, error) {
+	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoAPIURL), true)
 
 	if err != nil {
 		return nil, err
@@ -126,9 +113,23 @@ func fetchPullRequests(c *db.Cocoon, gitHubRepoApiURL string) ([]*PullRequest, e
 	return pullRequests, nil
 }
 
-func fetchCommitStatus(c *db.Cocoon, commit string) ([]*GithubRequestStatusInfo, error) {
-	url := fmt.Sprintf("%v/statuses/%v", info.gitHubRepoApiURL, commit)
-	request, err := http.NewRequest("GET", url, bytes.NewReader(dataBytes))
+func fetchCommitStatus(c *db.Cocoon, commit string, gitHubRepoAPIURL string) ([]*GithubRequestStatusInfo, error) {
+	/// The CI agents we care about on the github status page.
+	/// The name must match the value in the "context" field of the json response.
+	var GithubCIAgents = map[string]bool{
+		"tool_tests-macos":   true,
+		"tool_tests-windows": true,
+		"tool_tests-linux":   true,
+		"tests-linux":        true,
+		"tests-macos":        true,
+		"tests-windows":      true,
+		"analyze":            true,
+		"docs":               true,
+	}
+
+	url := fmt.Sprintf("%v/statuses/%v", gitHubRepoAPIURL, commit)
+	b := new(bytes.Buffer)
+	request, err := http.NewRequest("GET", url, b)
 	if err != nil {
 		return nil, err
 	}
@@ -142,24 +143,24 @@ func fetchCommitStatus(c *db.Cocoon, commit string) ([]*GithubRequestStatusInfo,
 		return nil, err
 	}
 	if response.StatusCode != 200 {
-		return fmt.Errorf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
+		return nil, fmt.Errorf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
 	}
 	defer response.Body.Close()
-	bytes, err = ioutil.ReadAll(response.Body)
+	dataBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var GithubRequestStatusResult result;
-	err = json.Unmarshal(bytes, &result);
+	var result GithubRequestStatusResult
+	err = json.Unmarshal(dataBytes, &result)
 	if err != nil {
 		return nil, err
 	}
-	results := make([]*GithubRequestStatusInfo, 0);
+	results := make([]*GithubRequestStatusInfo, 0)
 	for _, result := range result.Statuses {
 		if _, ok := GithubCIAgents[result.Context]; ok {
-			results = append(results, result);
+			results = append(results, result)
 		}
 	}
-	return results;
+	return results, nil
 }

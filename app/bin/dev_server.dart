@@ -22,8 +22,9 @@ final List<StreamSubscription> _streamSubscriptions = <StreamSubscription>[];
 HttpServer devServer;
 
 const _devServerPort = 8080;
-const _goappServePort = 9090;
-const _pubServePort = 9091;
+const _adminPort = 9089;
+const _goappServePort = 9001;
+const _pubServePort = 9002;
 
 /// Set from the `--test-agent-auth` command-line argument, instructs the dev
 /// server to send API calls to production servers.
@@ -58,20 +59,20 @@ Future<Null> _start(ArgResults args) async {
   bool clearDatastore = args['clear-datastore'];
 
   _streamSubscriptions.addAll(<StreamSubscription>[
-    ProcessSignal.SIGINT.watch().listen((_) {
+    ProcessSignal.sigint.watch().listen((_) {
       print('\nReceived SIGINT. Shutting down.');
-      _stop(ProcessSignal.SIGINT);
+      _stop(ProcessSignal.sigint);
     }),
-    ProcessSignal.SIGTERM.watch().listen((_) {
+    ProcessSignal.sigint.watch().listen((_) {
       print('\nReceived SIGTERM. Shutting down.');
-      _stop(ProcessSignal.SIGTERM);
+      _stop(ProcessSignal.sigint);
     }),
   ]);
 
   await _validateCwd();
 
   print('Running `goapp serve` on port $_goappServePort');
-  List<String> goappArgs = <String>['app.yaml', '--port', '$_goappServePort'];
+  List<String> goappArgs = <String>['app.yaml', '--admin_port', '$_adminPort', '--port', '$_goappServePort'];
   if (clearDatastore)
     goappArgs.add('--clear_datastore');
 
@@ -80,13 +81,13 @@ Future<Null> _start(ArgResults args) async {
     await startProcess('dev_appserver.py', goappArgs)
   ));
 
-  print('Running `pub serve` on port $_pubServePort');
+  print('Running `pub run build_runner server` on port $_pubServePort');
   _childProcesses.add(new ManagedProcess(
-    'pub serve',
-    await startProcess('pub', ['serve', '--port=${_pubServePort}'])
+    'pub run',
+    await startProcess('pub', ['run', 'build_runner', 'serve', 'web:${_pubServePort}'])
   ));
 
-  devServer = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, _devServerPort);
+  devServer = await HttpServer.bind(InternetAddress.loopbackIPv4, _devServerPort);
   print('Listening on http://localhost:$_devServerPort');
 
   try {
@@ -197,7 +198,7 @@ Future<Null> _dispatchRequest(HttpRequest request) async {
     'location',
     'cookie',
     'set-cookie',
-  ]..addAll(HttpHeaders.RESPONSE_HEADERS);
+  ]..addAll(HttpHeaders.responseHeaders);
   for (String headerName in copyHeaders) {
     request.response.headers.set(headerName, proxyResponse.headers.value(headerName));
   }
@@ -233,7 +234,7 @@ class ManagedProcess {
       print('$name exited.');
       if (!_stopping) {
         _childProcesses.remove(process);
-        _stop(ProcessSignal.SIGINT);
+        _stop(ProcessSignal.sigint);
       }
     });
     _redirectIoStream('[$name][STDOUT]', process.stdout);
@@ -264,7 +265,7 @@ Future<Null> _validateCwd() async {
     throw '${appYaml.path} not found in current working directory';
 }
 
-Future<Null> _stop([ProcessSignal signal = ProcessSignal.SIGINT]) async {
+Future<Null> _stop([ProcessSignal signal = ProcessSignal.sigint]) async {
   if (_stopping)
     return;
 

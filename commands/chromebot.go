@@ -1,14 +1,15 @@
 package commands
 
 import (
-	"cocoon/db"
-	"fmt"
-	"net/http"
 	"bytes"
-	"google.golang.org/appengine/urlfetch"
-	"io/ioutil"
-	"encoding/json"
+	"cocoon/db"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+
+	"google.golang.org/appengine/urlfetch"
 )
 
 // ChromebotResult describes a chromebot build result.
@@ -60,14 +61,14 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 
 	responseData = responseData[openBraceIndex:]
 
-	var responseJson interface{}
-	err = json.Unmarshal(responseData, &responseJson)
+	var responseJSON interface{}
+	err = json.Unmarshal(responseData, &responseJSON)
 
 	if err != nil {
 		return nil, err
 	}
 
-	builds := responseJson.(map[string]interface{})["builds"].([]interface{})
+	builds := responseJSON.(map[string]interface{})["builds"].([]interface{})
 
 	var results []*ChromebotResult
 

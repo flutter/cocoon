@@ -4,12 +4,11 @@
 @TestOn('dartium')
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:angular2/angular2.dart';
-import 'package:angular2/platform/browser.dart';
+import 'package:angular/angular.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -31,18 +30,21 @@ void main() {
     test('should show a grid', () async {
       List<String> httpCalls = <String>[];
 
-      var componentRef = await bootstrap(BenchmarkGrid, [
+      var componentRef = await runAppLegacyAsync(
+        BenchmarkGrid,
+        beforeComponentCreated: (_) async {},
+        createInjectorFromProviders: [
         provide(http.Client, useValue: new MockClient((http.Request request) async {
           httpCalls.add(request.url.path);
           return new http.Response(
-              JSON.encode(_testData),
+              json.encode(_testData),
               200,
               headers: {'content-type': 'application/json'});
         })),
       ]);
 
       // Flush microtasks to allow Angular do its thing.
-      await new Future.delayed(Duration.ZERO);
+      await new Future.delayed(Duration.zero);
 
       expect(httpCalls, <String>['/api/get-benchmarks']);
       expect(document.querySelectorAll('benchmark-card'), hasLength(5));
@@ -52,7 +54,7 @@ void main() {
       document.body.querySelector('#toggleArchived').click();
       expect(component.isShowArchived, isTrue);
 
-      await new Future.delayed(Duration.ZERO);
+      await new Future.delayed(Duration.zero);
 
       expect(component.visibleBenchmarks, hasLength(10));
       expect(document.querySelectorAll('benchmark-card'), hasLength(10));

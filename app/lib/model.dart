@@ -45,7 +45,7 @@ class Cursor {
   int get hashCode => value.hashCode;
 
   @override
-  bool operator ==(Cursor other) => other != null && other.value == value;
+  bool operator ==(Object other) => other is Cursor && other != null && other.value == value;
 }
 
 class _CursorSerializer implements JsonSerializer<Cursor> {

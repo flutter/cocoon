@@ -8,10 +8,11 @@ import (
 	"cocoon/db"
 
 	"encoding/json"
+	"errors"
 	"fmt"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/memcache"
-	"errors"
 )
 
 // CheckBuildStatus checks if the build status changes and sends out notifications.
@@ -29,7 +30,7 @@ func CheckBuildStatus(c *db.Cocoon, _ []byte) (interface{}, error) {
 	if len(statuses) == 0 {
 		// Most likely the database is corrupted. We should never see an empty list of
 		// build results.
-		return nil, errors.New("Database returned empty build list.")
+		return nil, errors.New("Database returned empty build list")
 	}
 
 	cachedResult, err := fetchCachedBuildResult(c.Ctx)
@@ -119,7 +120,7 @@ func storeCachedBuildResult(ctx context.Context, newValue CachedBuildResult) err
 	}
 
 	err = memcache.Set(ctx, &memcache.Item{
-		Key: "last-known-build-result",
+		Key:   "last-known-build-result",
 		Value: resultBytes,
 	})
 

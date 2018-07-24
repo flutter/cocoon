@@ -20,3 +20,6 @@ cron:
 - description: sends build status to GitHub to annotate PRs and commits
   url: /api/push-build-status-to-github
   schedule: every 1 minutes
+- description: refresh github CI status (cirrus)
+  url: /api/refresh-github-status
+  schedule: every 2 minutes

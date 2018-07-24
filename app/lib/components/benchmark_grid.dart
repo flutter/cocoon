@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:angular2/angular2.dart';
+import 'package:angular/angular.dart';
+import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/model.dart';
 import 'package:http/http.dart' as http;
 
@@ -35,9 +36,14 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     </benchmark-card>
   </div>
 ''',
-  directives: const [NgIf, NgFor, NgClass, BenchmarkCard, BenchmarkHistory],
+  directives: const [
+    NgIf,
+    NgFor,
+    NgClass,
+    BenchmarkCard,
+    BenchmarkHistory,
+  ],
 )
-
 class BenchmarkGrid implements OnInit, OnDestroy {
   BenchmarkGrid(this._httpClient);
 
@@ -86,7 +92,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   Future<Null> reloadData({bool initialLoad : false}) async {
     isLoading = true;
-    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/get-benchmarks')).body);
+    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/get-benchmarks')).body);
     _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
@@ -167,7 +173,11 @@ class BenchmarkGrid implements OnInit, OnDestroy {
       </div>
     </div>
   ''',
-  directives: const [NgIf, NgModel, BenchmarkCard],
+  directives: const [
+    NgIf,
+    NgModel,
+    BenchmarkCard,
+  ],
 )
 class BenchmarkHistory {
   BenchmarkHistory(this._httpClient);
@@ -231,12 +241,10 @@ class BenchmarkHistory {
 
   void _validateInputs() {
     _isInputValid = true;
-    double.parse(_goal, (_) {
+    if (double.tryParse(_goal) == null)
       _isInputValid = false;
-    });
-    double.parse(_baseline, (_) {
+    if (double.tryParse(_baseline) == null)
       _isInputValid = false;
-    });
     if (_taskName == null || _taskName.trim().isEmpty) {
       _isInputValid = false;
     }
@@ -277,7 +285,7 @@ class BenchmarkHistory {
       'Archived': _archived,
     };
 
-    http.Response response = await _httpClient.post('/api/update-timeseries', body: JSON.encode(request));
+    http.Response response = await _httpClient.post('/api/update-timeseries', body: json.encode(request));
     if (response.statusCode == 200) {
       _statusMessage = 'New targets saved.';
       await _loadData();
@@ -306,8 +314,8 @@ class BenchmarkHistory {
       request['StartFrom'] = lastPosition.value;
     }
 
-    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: JSON.encode(request));
-    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(JSON.decode(response.body));
+    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: json.encode(request));
+    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(json.decode(response.body));
 
     data = null;
     Timer.run(() {  // force Angular to rerender
@@ -353,38 +361,45 @@ double computeSecondHighest(Iterable<double> values) {
 @Component(
   selector: 'benchmark-card',
   template: r'''
-<span class="metric-task-name">{{taskName}}</span>
-<div class="metric" *ngIf="latestValue != null">
-  <span class="metric-value">{{latestValue}}</span>
-  <span class="metric-unit">{{unit}}</span>
-</div>
-<div class="metric-label">{{label}}</div>
-<div class="metric-chart-container" #chartContainer></div>
-<div class="zoom-button" (click)="zoomIn()">&#x1f50d;</div>
+  <span class="metric-task-name">{{taskName}}</span>
+  <div class="metric" *ngIf="latestValue != null">
+    <span class="metric-value">{{latestValue}}</span>
+    <span class="metric-unit">{{unit}}</span>
+  </div>
+  <div class="metric-label">{{label}}</div>
+  <div class="metric-chart-container" #chartContainer></div>
+  <div class="zoom-button" (click)="zoomIn()">&#x1f50d;</div>
   ''',
-  directives: const [NgIf, NgFor, NgStyle],
+  directives: const [
+    NgIf,
+    NgFor,
+    NgStyle,
+  ],
 )
 class BenchmarkCard implements AfterViewInit, OnDestroy {
   /// The total height of the chart. This value must be in sync with the height
   /// specified for benchmark-card in benchmarks.css.
   static const int _kChartHeight = 100;
+  final StreamController<Null> _onZoomIn = new StreamController<Null>();
 
   BenchmarkData _data;
   DivElement _tooltip;
 
-  @ViewChild('chartContainer') ElementRef chartContainer;
+  @ViewChild('chartContainer')
+  Element chartContainer;
 
-  @Input() String barWidth = 'medium';
+  @Input()
+  String barWidth = 'medium';
 
-  @Input() set data(BenchmarkData newData) {
-    chartContainer.nativeElement.children.clear();
+  @Input()
+  set data(BenchmarkData newData) {
+    chartContainer.children.clear();
     _data = newData;
   }
 
-  final StreamController<Null> _onZoomIn = new StreamController<Null>();
-
   /// Emits an event when the user clicks on the zoom in button.
-  @Output() Stream<Null> get onZoomIn => _onZoomIn.stream;
+  @Output()
+  Stream<Null> get onZoomIn => _onZoomIn.stream;
 
   void zoomIn() {
     _onZoomIn.add(null);
@@ -451,13 +466,13 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       baselineHeight += 1;
     }
 
-    chartContainer.nativeElement.children.add(
+    chartContainer.children.add(
         new DivElement()
           ..classes.add('metric-goal')
           ..style.height = '${goalHeight}px'
     );
 
-    chartContainer.nativeElement.children.add(
+    chartContainer.children.add(
         new DivElement()
           ..classes.add('metric-baseline')
           ..style.height = '${baselineHeight}px'
@@ -538,7 +553,7 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
         _tooltip = null;
       });
 
-      chartContainer.nativeElement.children.add(bar);
+      chartContainer.children.add(bar);
     }
   }
 

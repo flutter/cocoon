@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 
-import 'package:angular2/angular2.dart';
+import 'package:angular/angular.dart';
 import 'package:cocoon/model.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart' as http;
 import 'package:meta/meta.dart';
 
 @Component(
@@ -115,14 +115,18 @@ import 'package:meta/meta.dart';
   </tr>
 </table>
 ''',
-  directives: const [Legend, NgIf, NgFor, NgClass, NgStyle],
+  directives: const [
+    Legend,
+    NgIf,
+    NgFor,
+    NgClass,
+    NgStyle,
+  ],
 )
 class StatusTable implements OnInit {
   static const Duration maxHealthCheckAge = const Duration(minutes: 10);
 
-  StatusTable(this._httpClient);
-
-  final http.Client _httpClient;
+  final http.BrowserClient _httpClient = new http.BrowserClient();
   bool isLoading = true;
 
   /// The first row in the table that shows stage names and task names.
@@ -144,7 +148,7 @@ class StatusTable implements OnInit {
 
   Future<Null> reloadData() async {
     isLoading = true;
-    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/public/get-status')).body);
+    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/public/get-status')).body);
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
 

@@ -5,15 +5,13 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:angular2/core.dart';
-import 'package:angular2/platform/browser.dart';
+import 'package:angular/angular.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:cocoon/components/benchmark_grid.dart';
 import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
-@AngularEntrypoint()
 Future<Null> main() async {
   logger = new HtmlLogger();
   http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn('/benchmarks.html');
@@ -22,7 +20,9 @@ Future<Null> main() async {
     return null;
 
   // Start the angular app
-  await bootstrap(BenchmarkGrid, [
+  await runAppLegacyAsync(BenchmarkGrid,
+    beforeComponentCreated: (_) async {},
+    createInjectorFromProviders: [
     provide(http.Client, useValue: httpClient),
   ]);
 }

@@ -235,7 +235,7 @@ func ParseManifest(manifestBytes []byte) (*Manifest, error) {
 func validateManifestYaml(manifestYaml map[string]interface{}) error {
 	for key := range manifestYaml {
 		if key != "tasks" {
-			return fmt.Errorf("Unrecognized key '%v' in manifest YAML.", key)
+			return fmt.Errorf("Unrecognized key '%v' in manifest YAML", key)
 		}
 	}
 	return nil
@@ -244,7 +244,7 @@ func validateManifestYaml(manifestYaml map[string]interface{}) error {
 // Checks if the manifest information looks valid.
 func validateManifest(manifest *Manifest) error {
 	if len(manifest.Tasks) == 0 {
-		return errors.New("Manifest does not contain tasks.")
+		return errors.New("Manifest does not contain tasks")
 	}
 
 	for name, task := range manifest.Tasks {

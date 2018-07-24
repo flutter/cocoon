@@ -111,9 +111,9 @@ func getCloudAuthToken(cocoon *db.Cocoon) (string, error) {
 		return "", nil
 	}
 
-	accountInfoJson := cocoon.GetConfigValue("DevicelabServiceAccount")
+	accountInfoJSON := cocoon.GetConfigValue("DevicelabServiceAccount")
 	var accountInfo *ServiceAccountInfo
-	err := json.Unmarshal([]byte(accountInfoJson), &accountInfo)
+	err := json.Unmarshal([]byte(accountInfoJSON), &accountInfo)
 
 	if err != nil {
 		return "", err

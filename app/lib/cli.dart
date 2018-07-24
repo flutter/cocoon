@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
-import 'package:angular2/core.dart';
+import 'package:angular/angular.dart';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 
@@ -78,7 +78,7 @@ class AuthorizeAgentCommand extends CliCommand {
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/authorize-agent', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/authorize-agent', body: json.encode({
       'AgentID': agentId
     }));
     print(resp.body);
@@ -112,7 +112,7 @@ class CreateAgentCommand extends CliCommand {
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
     List<String> capabilities = args['capability'];
-    http.Response resp = await httpClient.post('/api/create-agent', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/create-agent', body: json.encode({
       'AgentID': agentId,
       'Capabilities': capabilities,
     }));
@@ -155,7 +155,7 @@ class ReserveTaskCommand extends CliCommand {
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/reserve-task', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/reserve-task', body: json.encode({
       'AgentID': agentId
     }));
     print(resp.body);

@@ -252,3 +252,7 @@ func whitelistAccount(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("OK"))
 }
+
+func main() {
+	appengine.Main()
+}

@@ -152,7 +152,7 @@ class EntitySerializer<T extends Entity> implements JsonSerializer<T> {
       return null;
 
     Map<String, dynamic> props = <String, dynamic>{};
-    (jsonValue as Map).forEach((String propName, dynamic propJsonValue) {
+    (jsonValue as Map).forEach((dynamic propName, dynamic propJsonValue) {
       if (_propertyCodecs.containsKey(propName)) {
         try {
           props[propName] = _propertyCodecs[propName].deserialize(propJsonValue);
