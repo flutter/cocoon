@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular2/angular2.dart';
@@ -144,7 +144,7 @@ class StatusTable implements OnInit {
 
   Future<Null> reloadData() async {
     isLoading = true;
-    Map<String, dynamic> statusJson = JSON.decode((await _httpClient.get('/api/public/get-status')).body);
+    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/public/get-status')).body);
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
 

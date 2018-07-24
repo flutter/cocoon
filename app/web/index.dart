@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:angular2/core.dart';
 import 'package:cocoon/logging.dart';
 import 'package:cocoon/http.dart';
 
