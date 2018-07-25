@@ -31,7 +31,6 @@ func init() {
 	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
 	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
-	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-agent-health", commands.UpdateAgentHealth)

@@ -20,7 +20,6 @@ class HeaderRow {
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
         "cirrus",
-        "travis",
         "appveyor",
         "chromebot",
         "devicelab",
