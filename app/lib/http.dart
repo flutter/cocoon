@@ -18,9 +18,9 @@ class AuthenticationStatus {
 }
 
 Future<AuthenticationStatus> getAuthenticationStatus(String returnPage) async {
-  http.Client client = new browser_http.BrowserClient();
-  final String url = '/api/get-authentication-status?return-page=${returnPage}';
-  Map<String, dynamic> status = json.decode((await client.get(url)).body);
+  final url = '/api/get-authentication-status?return-page=${returnPage}';
+  final response = await HttpRequest.getString(url);
+  final Map<String, Object> status = json.decode(response);
 
   return new AuthenticationStatus(
     status['Status'] == 'OK',

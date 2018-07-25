@@ -7,94 +7,65 @@
 <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; background-color: #AAFFAA;">
     Loading...
 </div>
-<legend></legend>
+
+<task-legend></task-legend>
+
 <div class="agent-bar">
-<div><b>Agents</b></div>
-<div *ngFor="let agentStatus of agentStatuses"
-    class="agent-chip"
-    [ngStyle]="getAgentStyle(agentStatus)"
-    (click)="showAgentHealthDetails(agentStatus)">
-    {{agentStatus.agentId}}
-</div>
-<div style="width: 40px; text-align: center">
-</div>
-<div><b>Other</b></div>
-<a href="https://github.com/flutter/website" target="_new">
-    <img src="www.png" style="height: 20px" title="Build status of flutter/website">
-</a>
-<a href="https://travis-ci.org/flutter/website" target="_new">
-    <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
-</a>
-<a href="https://github.com/flutter/plugins" target="_new">
-    <img src="plugin.png" style="height: 20px" title="Build status of flutter/plugins">
-</a>
-<a href="https://travis-ci.org/flutter/plugins" target="_new">
-    <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
-</a>
-</div>
-
-<div *ngIf="displayedAgentStatus != null"
-    class="agent-health-details-card">
-<div style="position: absolute; top: 5px; right: 5px; cursor: pointer"
-        (click)="hideAgentHealthDetails()">
-    [X]
-</div>
-<div>
-    {{displayedAgentStatus.agentId}}
-    {{isAgentHealthy(displayedAgentStatus) ? "☺" : "☹"}}
-</div>
-<div>
-    Last health check: {{displayedAgentStatus.healthCheckTimestamp}}
-    {{agentHealthCheckAge(displayedAgentStatus.healthCheckTimestamp)}}
-</div>
-<div>Details:</div>
-<pre>{{displayedAgentStatus.healthDetails}}</pre>
-</div>
-
-<table class="status-table"
-        cellspacing="0"
-        cellpadding="0"
-        *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
-<tr>
-    <td class="table-header-cell first-column">
-    &nbsp;
-    </td>
-    <td class="table-header-cell first-row"
-        *ngFor="let metaTask of headerRow.allMetaTasks">
-    <a [href]="computeLinkToTaskSourceFile(metaTask.name, metaTask.stageName)" target="_blank">
-        <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
-    </a>
-    </td>
-</tr>
-<tr *ngFor="let status of headerCol">
-    <td class="table-header-cell first-column">
-    <img width="20px" [src]="status.checklist.checklist.commit.author.avatarUrl">
-    <a href="https://github.com/flutter/flutter/commit/{{status.checklist.checklist.commit.sha}}" target="_blank">
-        {{shortSha(status.checklist.checklist.commit.sha)}}
-        ({{shortSha(status.checklist.checklist.commit.author.login)}})
-    </a>
-    </td>
-    <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
-    <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-         (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
-         title="{{metaTask.name}}">
+    <div><b>Agents</b></div>
+    <div *ngFor="let agentStatus of agentStatuses"
+        class="agent-chip"
+        [ngStyle]="getAgentStyle(agentStatus)"
+        (click)="showAgentHealthDetails(agentStatus)">
+        {{agentStatus.agentId}}
     </div>
-    </td>
-</tr>
-</table>
+    <div style="width: 40px; text-align: center">
+    </div>
+    <div><b>Other</b></div>
+    <a href="https://github.com/flutter/website" target="_new">
+        <img src="assets/www.png" style="height: 20px" title="Build status of flutter/website">
+    </a>
+    <a href="https://travis-ci.org/flutter/website" target="_new">
+        <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
+    </a>
+    <a href="https://github.com/flutter/plugins" target="_new">
+        <img src="assets/plugin.png" style="height: 20px" title="Build status of flutter/plugins">
+    </a>
+    <a href="https://travis-ci.org/flutter/plugins" target="_new">
+        <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
+    </a>
+</div>
+
+<agent-status-card></agent-status-card>
+
 <table class="status-table"
-    style="position:fixed;bottom:0;left:0"
     cellspacing="0"
     cellpadding="0"
     *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
-<tr>
-    <td class="table-footer-first-cell">
-    &nbsp;
-    </td>
-    <td class="table-footer-cell"
-        *ngFor="let metaTask of headerRow.allMetaTasks">
-    <img width="18px" [src]="metaTask.iconUrl">
-    <div class="task-name">{{metaTask.name}}</div>
-    </td>
-</tr>
+    <tr>
+        <td class="table-header-cell first-column">&nbsp;</td>
+        <td class="table-header-cell first-row"
+            *ngFor="let metaTask of headerRow.allMetaTasks">
+            <a [attr.href]="metaTask.name | source_url :metaTask.stageName" target="_blank">
+                <img width="18px" [attr.src]="metaTask.iconUrl" [attr.title]="metaTask.name">
+            </a>
+        </td>
+    </tr>
+    <tr *ngFor="let status of headerCol">
+        <td class="table-header-cell first-column">
+        <img width="20px" [attr.src]="status.checklist.checklist.commit.author.avatarUrl">
+        <a href="https://github.com/flutter/flutter/commit/{{status.checklist.checklist.commit.sha}}" target="_blank">
+            {{status.checklist.checklist.commit.sha | max_length :7}}
+            ({{status.checklist.checklist.commit.author.login | max_length :7}})
+        </a>
+        </td>
+        <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
+            <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
+                (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
+                title="{{metaTask.name}}">
+            </div>
+        </td>
+    </tr>
 </table>
+
+<task-guide [headerRow]="headerRow" [headerCol]="headerCol">
+</task-guide>

@@ -7,8 +7,11 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-import 'package:cocoon/build/legend.dart';
-import 'package:cocoon/model.dart';
+import 'package:cocoon/build/status_card.dart';
+import 'package:cocoon/build/common.dart';
+import 'package:cocoon/build/task_legend.dart';
+import 'package:cocoon/build/task_guide.dart';
+import 'package:cocoon/models.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -17,15 +20,24 @@ const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
 const Color _kUnhealthyAgentColor = const Color(0xE9, 0x80, 0x80);
 const Duration maxHealthCheckAge = const Duration(minutes: 10);
 
+/// A matrix of build results for each commit to the master branch of
+/// flutter/flutter.
 @Component(
   selector: 'status-table',
   templateUrl: 'status_table.html',
-  directives: const [
-    LegendComponent,
+  styleUrls: const ['status_table.css'],
+  directives: [
     NgIf,
     NgFor,
     NgClass,
     NgStyle,
+    StatusCard,
+    TaskGuideComponent,
+    TaskLegend,
+  ],
+  pipes: [
+    MaxLengthPipe,
+    SourceUrlPipe,
   ],
 )
 class StatusTableComponent implements OnInit, OnDestroy {
@@ -41,7 +53,12 @@ class StatusTableComponent implements OnInit, OnDestroy {
   List<BuildStatus> headerCol;
 
   /// A sparse Commit X Task matrix of test results.
-  Map<String, Map<String, TaskEntity>> resultMatrix = <String, Map<String, TaskEntity>>{};
+  Map<String, Map<String, TaskEntity>> resultMatrix =
+      <String, Map<String, TaskEntity>>{};
+
+  /// The card to display the status of an agent.
+  @ViewChild(StatusCard)
+  StatusCard agentStatusCard;
 
   List<AgentStatus> agentStatuses;
 
@@ -50,7 +67,8 @@ class StatusTableComponent implements OnInit, OnDestroy {
   @override
   void ngOnInit() {
     _handleReloadData(null);
-    _reloadData = new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
+    _reloadData =
+        new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
   }
 
   @override
@@ -65,7 +83,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
       return;
     }
     Map<String, Object> statusJson = json.decode(response.body);
-    GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
+    GetStatusResult statusResult = new GetStatusResult.fromJson(statusJson);
     isLoading = false;
     agentStatuses = statusResult.agentStatuses ?? <AgentStatus>[];
     List<BuildStatus> statuses = statusResult.statuses ?? <BuildStatus>[];
@@ -85,16 +103,11 @@ class StatusTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  String shortSha(String fullSha) {
-    return fullSha.length > 7 ? fullSha.substring(0, 7) : fullSha;
-  }
-
-  List<String> taskStatusToCssStyle({
-    @required String taskStatus,
-    @required int attempts,
-    @required bool knownToBeFlaky
-  }) {
-    const statusMap = const <String, String> {
+  List<String> taskStatusToCssStyle(
+      {@required String taskStatus,
+      @required int attempts,
+      @required bool knownToBeFlaky}) {
+    const statusMap = const <String, String>{
       'New': 'task-new',
       'In Progress': 'task-in-progress',
       'Succeeded': 'task-succeeded',
@@ -114,8 +127,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
 
     final List<String> classNames = ['task-status-circle', cssClass];
 
-    if (knownToBeFlaky)
-      classNames.add('task-known-to-be-flaky');
+    if (knownToBeFlaky) classNames.add('task-known-to-be-flaky');
 
     return classNames;
   }
@@ -123,8 +135,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
   TaskEntity _findTask(String sha, String taskName) {
     Map<String, TaskEntity> row = resultMatrix[sha];
 
-    if (row == null || !row.containsKey(taskName))
-      return null;
+    if (row == null || !row.containsKey(taskName)) return null;
 
     return row[taskName];
   }
@@ -164,7 +175,9 @@ class StatusTableComponent implements OnInit, OnDestroy {
     } else {
       unhealthyDuration = now.difference(_latestAgentPassTimes[status.agentId]);
       // Clamp difference to _kBadHealthGracePeriod so that lerp coefficient is between 0.0 and 1.0.
-      unhealthyDuration = unhealthyDuration > _kBadHealthGracePeriod ? _kBadHealthGracePeriod : unhealthyDuration;
+      unhealthyDuration = unhealthyDuration > _kBadHealthGracePeriod
+          ? _kBadHealthGracePeriod
+          : unhealthyDuration;
     }
 
     Color statusColor = Color.lerp(
@@ -181,54 +194,65 @@ class StatusTableComponent implements OnInit, OnDestroy {
   /// An agent is considered healthy if the latest health report was OK and is
   /// up-to-date.
   bool isAgentHealthy(AgentStatus status) {
-    return status.isHealthy && status.healthCheckTimestamp != null &&
-      new DateTime.now().difference(status.healthCheckTimestamp) < maxHealthCheckAge;
+    return status.isHealthy &&
+        status.healthCheckTimestamp != null &&
+        new DateTime.now().difference(status.healthCheckTimestamp) <
+            maxHealthCheckAge;
   }
 
-  AgentStatus displayedAgentStatus;
-
+  /// Show an agent status card for [agentStatus].
   void showAgentHealthDetails(AgentStatus agentStatus) {
-    displayedAgentStatus = agentStatus;
+    agentStatusCard.show(agentStatus);
   }
 
+  /// Hide the the current agent status card.
   void hideAgentHealthDetails() {
-    displayedAgentStatus = null;
+    agentStatusCard.hide();
   }
 
-  String agentHealthCheckAge(DateTime dt) {
-    if (dt == null)
-      return '';
-    Duration age = new DateTime.now().difference(dt);
-    String ageQualifier = age > maxHealthCheckAge
-      ? 'out-of-date!!!'
-      : 'old';
-    return '(${age.inMinutes} minutes $ageQualifier)';
-  }
-
+  /// Opens a new window linking to the provided task's log information.
   void openLog(String sha, String taskName, String taskStage) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (isExternal(taskStage)) {
+    if (SourceUrlPipe._isExternal(taskStage)) {
       // We cannot serve the log file from an external system directly, but we
       // can redirect the user closer to where they can find it.
-      window.open(computeLinkToExternalBuildHistory(taskName, taskStage), '_blank');
+      window.open(
+          SourceUrlPipe._computeLinkToExternalBuildHistory(taskName, taskStage),
+          '_blank');
     } else if (taskEntity != null) {
-      window.open('/api/get-log?ownerKey=${taskEntity.key.value}', '_blank');
+      window.open('/api/get-log?ownerKey=${taskEntity.key}', '_blank');
     }
   }
+}
 
-  String computeLinkToTaskSourceFile(String taskName, String taskStage) {
-    if (isExternal(taskStage)) {
-      return computeLinkToExternalBuildHistory(taskName, taskStage);
+/// A formatter which displays a string with a maximum length
+@Pipe('max_length')
+class MaxLengthPipe extends PipeTransform {
+  String transform(String source, int max) {
+    return source.length > max ? source.substring(0, max) : source;
+  }
+}
+
+/// A formatter to compute the source url of a task
+@Pipe('source_url')
+class SourceUrlPipe extends PipeTransform {
+  String transform(String taskName, String taskStage) {
+    if (_isExternal(taskStage)) {
+      return _computeLinkToExternalBuildHistory(taskName, taskStage);
     }
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
   }
 
-  bool isExternal(String taskStage) {
-    return taskStage == 'travis' || taskStage == 'appveyor' || taskStage == 'chromebot' || taskStage == 'cirrus';
+  static bool _isExternal(String taskStage) {
+    return taskStage == 'travis' ||
+        taskStage == 'appveyor' ||
+        taskStage == 'chromebot' ||
+        taskStage == 'cirrus';
   }
 
-  String computeLinkToExternalBuildHistory(taskName, taskStage) {
+  static String _computeLinkToExternalBuildHistory(
+      String taskName, String taskStage) {
     if (taskStage == 'travis') {
       return 'https://travis-ci.org/flutter/flutter/builds';
     } else if (taskStage == 'appveyor') {
@@ -253,105 +277,4 @@ class StatusTableComponent implements OnInit, OnDestroy {
       return '#';
     }
   }
-}
-
-class HeaderRow {
-  List<StageHeader> stageHeaders = <StageHeader>[];
-
-  void addStage(Stage stage) {
-    StageHeader header = stageHeaders.firstWhere(
-      (StageHeader h) => h.stageName == stage.name,
-      orElse: () {
-        StageHeader newHeader = new StageHeader(stage.name);
-        stageHeaders.add(newHeader);
-        return newHeader;
-      }
-    );
-    for (TaskEntity taskEntity in stage.tasks) {
-      header.addMetaTask(taskEntity);
-    }
-    stageHeaders.sort((StageHeader a, StageHeader b) {
-      const stagePrecedence = const <String>[
-        "cirrus",
-        "travis",
-        "appveyor",
-        "chromebot",
-        "devicelab",
-        "devicelab_win",
-        "devicelab_ios",
-      ];
-
-      int aIdx = stagePrecedence.indexOf(a.stageName);
-      aIdx = aIdx == -1 ? 1000000 : aIdx;
-      int bIdx = stagePrecedence.indexOf(b.stageName);
-      bIdx = bIdx == -1 ? 1000000 : bIdx;
-      return aIdx.compareTo(bIdx);
-    });
-  }
-
-  List<MetaTask> get allMetaTasks => stageHeaders.fold(<MetaTask>[], (List<MetaTask> prev, StageHeader h) {
-    return prev..addAll(h.metaTasks);
-  });
-}
-
-class StageHeader {
-  StageHeader(this.stageName);
-
-  final String stageName;
-  final List<MetaTask> metaTasks = <MetaTask>[];
-
-  void addMetaTask(TaskEntity taskEntity) {
-    Task task = taskEntity.task;
-    if (metaTasks.any((MetaTask m) => m.name == task.name))
-      return;
-    metaTasks.add(new MetaTask(taskEntity.key, task.name, task.stageName));
-    metaTasks.sort((MetaTask m1, MetaTask m2) {
-      return m1.name.compareTo(m2.name);
-    });
-  }
-}
-
-/// Information about a task without a result.
-class MetaTask {
-  MetaTask(this.key, this.name, String stageName)
-    : this.stageName = stageName,
-      iconUrl = _iconForStageName(stageName);
-
-  final Key key;
-  final String name;
-  final String stageName;
-  final String iconUrl;
-}
-
-String _iconForStageName(String stageName) {
-  const Map<String, String> iconMap = const <String, String>{
-    'cirrus': '/cirrus.svg',
-    'travis': '/travis.svg',
-    'appveyor': '/appveyor.png',
-    'chromebot': '/chromium.svg',
-    'devicelab': '/android.svg',
-    'devicelab_ios': '/apple.svg',
-    'devicelab_win': '/windows.svg',
-  };
-  return iconMap[stageName];
-}
-
-class Color {
-  final int r, g, b;
-
-  const Color(this.r, this.g, this.b);
-
-  /// A 6-digit hex CSS string representation of the color.
-  String get cssHex => '#${_cHex(r)}${_cHex(g)}${_cHex(b)}';
-
-  /// Prints a single color [component] to a 2-digit hex string.
-  static String _cHex(int component) => component.toRadixString(16).padLeft(2, '0');
-
-  /// Linear interpolation between two colors [from] and [to] with coefficient
-  /// [c].
-  static Color lerp(Color from, Color to, double c) => new Color(
-      (from.r + (to.r - from.r) * c).toInt(),
-      (from.g + (to.g - from.g) * c).toInt(),
-      (from.b + (to.b - from.b) * c).toInt(),
-  );
 }

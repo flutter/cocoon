@@ -10,7 +10,7 @@ import 'package:angular/angular.dart';
 import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/benchmark/benchmark_card.dart';
 import 'package:cocoon/benchmark/benchmark_history.dart';
-import 'package:cocoon/model.dart';
+import 'package:cocoon/models.dart';
 import 'package:http/http.dart' as http;
 
 /// Checks if benchmark [data] satisfies some condition.

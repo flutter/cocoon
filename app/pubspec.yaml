@@ -11,12 +11,14 @@ dependencies:
   js:
   http:
   meta:
+  json_annotation:
 
 dev_dependencies:
   test:
   build_runner:
   build_test:
   build_web_compilers:
+  json_serializable:
 
 environment:
   sdk: ">=2.0.0-dev.64.2 <3.0.0"

@@ -9,7 +9,7 @@ import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/benchmark/benchmark_card.dart';
-import 'package:cocoon/model.dart';
+import 'package:cocoon/models.dart';
 import 'package:http/http.dart' as http;
 
 @Component(
@@ -26,7 +26,7 @@ class BenchmarkHistory {
 
   final http.Client _httpClient;
 
-  Key _key;
+  String _key;
 
   String _autoUpdateGoal;
   String _autoUpdateBaseline;
@@ -118,7 +118,7 @@ class BenchmarkHistory {
     }
 
     Map<String, dynamic> request = <String, dynamic>{
-      'TimeSeriesKey': _key.value,
+      'TimeSeriesKey': _key,
       'Goal': double.parse(_goal),
       'Baseline': double.parse(_baseline),
       'TaskName': _taskName.trim(),
@@ -136,7 +136,8 @@ class BenchmarkHistory {
     }
   }
 
-  @Input() set timeseriesKey(Key key) {
+  @Input()
+  set timeseriesKey(String key) {
     if (key == null) {
       throw 'Timeseries key must not be null';
     }
@@ -145,15 +146,15 @@ class BenchmarkHistory {
   }
 
   BenchmarkData data;
-  Cursor lastPosition;
+  String lastPosition;
 
   Future<Null> _loadData() async {
     Map<String, dynamic> request = <String, dynamic>{
-      'TimeSeriesKey': _key.value,
+      'TimeSeriesKey': _key,
     };
 
     if (lastPosition != null) {
-      request['StartFrom'] = lastPosition.value;
+      request['StartFrom'] = lastPosition;
     }
 
     http.Response response = await _httpClient.post('/api/get-timeseries-history', body: json.encode(request));

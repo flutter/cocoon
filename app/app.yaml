@@ -22,3 +22,4 @@ skip_files:
 - .pub/.*
 - .atom/.*
 - .packages
+- .dart_tool/.*

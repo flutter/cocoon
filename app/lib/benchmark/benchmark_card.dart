@@ -7,7 +7,7 @@ import 'dart:html';
 import 'dart:math' as math;
 
 import 'package:angular/angular.dart';
-import 'package:cocoon/model.dart';
+import 'package:cocoon/models.dart';
 
 @Component(
   selector: 'benchmark-card',
