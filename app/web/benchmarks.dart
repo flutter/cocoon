@@ -7,17 +7,18 @@ import 'dart:html';
 
 import 'package:angular/angular.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart' as browser_http;
 
-import 'package:cocoon/components/benchmark_grid.template.dart' as ng;
+import 'package:cocoon/benchmark/benchmark_grid.template.dart' as ng;
 import 'package:cocoon/http.dart';
 import 'package:cocoon/logging.dart';
 
 Future<Null> main() async {
   logger = new HtmlLogger();
-  http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn('/benchmarks.html');
+  //http.Client httpClient = await getAuthenticatedClientOrRedirectToSignIn('/benchmarks.html');
   runApp(ng.BenchmarkGridNgFactory, createInjector: ([Injector injector]) {
     return new Injector.map({
-      http.Client: httpClient,
+      http.Client: new browser_http.BrowserClient(),
     }, injector);
   });
 }

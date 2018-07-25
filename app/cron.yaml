@@ -21,5 +21,5 @@ cron:
   url: /api/push-build-status-to-github
   schedule: every 1 minutes
 - description: refresh github CI status (cirrus)
-  url: /api/refresh-github-status
+  url: /api/refresh-cirrus-status
   schedule: every 2 minutes

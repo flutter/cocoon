@@ -76,8 +76,8 @@ class GetStatusResult extends Entity {
   static GetStatusResult fromJson(dynamic json) =>
       _serializer.deserialize(json);
 
-  List<BuildStatus> get statuses => this['Statuses'];
-  List<AgentStatus> get agentStatuses => this['AgentStatuses'];
+  List<BuildStatus> get statuses => this['Statuses']?.cast<BuildStatus>();
+  List<AgentStatus> get agentStatuses => this['AgentStatuses']?.cast<AgentStatus>();
 }
 
 class BuildStatus extends Entity {
@@ -92,7 +92,7 @@ class BuildStatus extends Entity {
   BuildStatus([Map<String, dynamic> props]) : super(_serializer, props);
 
   ChecklistEntity get checklist => this['Checklist'];
-  List<Stage> get stages => this['Stages'];
+  List<Stage> get stages => this['Stages']?.cast<Stage>();
 }
 
 class AgentStatus extends Entity {
@@ -188,7 +188,7 @@ class Stage extends Entity {
   Stage([Map<String, dynamic> props]) : super(_serializer, props);
 
   String get name => this['Name'];
-  List<TaskEntity> get tasks => this['Tasks'];
+  List<TaskEntity> get tasks => this['Tasks']?.cast<TaskEntity>();
 }
 
 class TaskEntity extends Entity {
@@ -246,7 +246,7 @@ class GetBenchmarksResult extends Entity {
   static GetBenchmarksResult fromJson(dynamic json) =>
       _serializer.deserialize(json);
 
-  List<BenchmarkData> get benchmarks => this['Benchmarks'];
+  List<BenchmarkData> get benchmarks => this['Benchmarks']?.cast<BenchmarkData>();
 }
 
 class BenchmarkData extends Entity {
@@ -261,7 +261,7 @@ class BenchmarkData extends Entity {
   BenchmarkData([Map<String, dynamic> props]) : super(_serializer, props);
 
   TimeseriesEntity get timeseries => this['Timeseries'];
-  List<TimeseriesValue> get values => this['Values'];
+  List<TimeseriesValue> get values => this['Values']?.cast<TimeseriesValue>();
 }
 
 class GetTimeseriesHistoryResult extends Entity {

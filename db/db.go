@@ -19,12 +19,12 @@ import (
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/mail"
-	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/memcache"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/mail"
+	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/urlfetch"
 )
 
 // NewCocoon creates a new Cocoon.
@@ -109,7 +109,7 @@ func (c *Cocoon) QueryLatestChecklists(limit int) ([]*ChecklistEntity, error) {
 		}
 
 		buffer = append(buffer, &ChecklistEntity{
-			Key: key,
+			Key:       key,
 			Checklist: &checklist,
 		})
 	}
@@ -445,10 +445,10 @@ func (c *Cocoon) QueryBuildStatusesWithMemcache() ([]*BuildStatus, error) {
 					return nil, err
 				}
 
-				const nanosInASecond = 1e9;
+				const nanosInASecond = 1e9
 				memcache.Set(c.Ctx, &memcache.Item{
-					Key: checklist.Key.Encode(),
-					Value: cachedValue,
+					Key:        checklist.Key.Encode(),
+					Value:      cachedValue,
 					Expiration: time.Duration(15 * nanosInASecond),
 				})
 			}
@@ -501,9 +501,8 @@ func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
 		// Build finished.
 		if failedCount > 0 {
 			return BuildFailed
-		} else {
-			return BuildSucceeded
 		}
+		return BuildSucceeded
 	} else if inProgressCount == 0 {
 		return BuildNew
 	}
@@ -514,7 +513,7 @@ func computeBuildResult(checklist *Checklist, stages []*Stage) BuildResult {
 		return BuildStuck
 	}
 
-	if (failedCount > 0) {
+	if failedCount > 0 {
 		return BuildWillFail
 	}
 
@@ -720,13 +719,13 @@ func (c *Cocoon) GetTimeseries(key *datastore.Key) (*TimeseriesEntity, error) {
 	}
 
 	return &TimeseriesEntity{
-		Key:  key,
+		Key:        key,
 		Timeseries: timeseries,
 	}, nil
 }
 
 // PutTimeseries updates a timeseries entity.
-func (c *Cocoon) PutTimeseries(entity *TimeseriesEntity) (error) {
+func (c *Cocoon) PutTimeseries(entity *TimeseriesEntity) error {
 	_, err := datastore.Put(c.Ctx, entity.Key, entity.Timeseries)
 	return err
 }
@@ -816,7 +815,7 @@ func (c *Cocoon) QueryTimeseries() ([]*TimeseriesEntity, error) {
 	return buffer, nil
 }
 
-type TimeseriesValuePredicate func(*TimeseriesValue) bool;
+type TimeseriesValuePredicate func(*TimeseriesValue) bool
 
 // QueryLatestTimeseriesValues fetches the latest benchmark results starting from startFrom and up to a given limit.
 //
@@ -825,7 +824,7 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity, startFrom
 	query := datastore.NewQuery("TimeseriesValue").
 		Ancestor(series.Key).
 		Order("-CreateTimestamp").
-	  Limit(limit)
+		Limit(limit)
 
 	if startFrom != nil {
 		query.Start(*startFrom)
@@ -868,8 +867,8 @@ func (c *Cocoon) QueryLatestTimeseriesValues(series *TimeseriesEntity, startFrom
 
 // FetchError is a custom error indicating failure to fetch a resource using FetchURL.
 type FetchError struct {
-	Description string  // Error description
-	StatusCode int      // HTTP status code, e.g. 500
+	Description string // Error description
+	StatusCode  int    // HTTP status code, e.g. 500
 }
 
 // This makes FetchError conform to the error interface.
@@ -903,7 +902,7 @@ func (c *Cocoon) FetchURL(url string, authenticateWithGithub bool) ([]byte, erro
 	if response.StatusCode != 200 {
 		return nil, &FetchError{
 			Description: fmt.Sprintf("HTTP GET %v responded with a non-200 HTTP status: %v", url, response.StatusCode),
-			StatusCode: response.StatusCode,
+			StatusCode:  response.StatusCode,
 		}
 	}
 
@@ -950,7 +949,7 @@ func SendTeamNotification(ctx context.Context, subject string, message string) e
 		Sender:  "Flutter Build Status <noreply@flutter-dashboard.appspotmail.com>",
 		To:      []string{"Flutter Build Status <flutter-build-status@google.com>"},
 		Subject: subject,
-		Body: message,
+		Body:    message,
 	}
 
 	log.Errorf(ctx, message)

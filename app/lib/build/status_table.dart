@@ -7,126 +7,31 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:cocoon/build/legend.dart';
 import 'package:cocoon/model.dart';
-import 'package:http/browser_client.dart' as http;
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+
+const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
+const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
+const Color _kUnhealthyAgentColor = const Color(0xE9, 0x80, 0x80);
+const Duration maxHealthCheckAge = const Duration(minutes: 10);
 
 @Component(
   selector: 'status-table',
-  template: '''
-<div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; background-color: #AAFFAA;">
-  Loading...
-</div>
-
-<legend></legend>
-
-<div class="agent-bar">
-  <div><b>Agents</b></div>
-  <div *ngFor="let agentStatus of agentStatuses"
-       class="agent-chip"
-       [ngStyle]="getAgentStyle(agentStatus)"
-       (click)="showAgentHealthDetails(agentStatus)">
-    {{agentStatus.agentId}}
-  </div>
-
-  <div style="width: 40px; text-align: center">
-  |
-  </div>
-
-  <div><b>Other</b></div>
-  <a href="https://github.com/flutter/website" target="_new">
-    <img src="www.png" style="height: 20px" title="Build status of flutter/website">
-  </a>
-  <a href="https://travis-ci.org/flutter/website" target="_new">
-    <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
-  </a>
-  <a href="https://github.com/flutter/plugins" target="_new">
-    <img src="plugin.png" style="height: 20px" title="Build status of flutter/plugins">
-  </a>
-  <a href="https://travis-ci.org/flutter/plugins" target="_new">
-    <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
-  </a>
-</div>
-
-<div *ngIf="displayedAgentStatus != null"
-     class="agent-health-details-card">
-  <div style="position: absolute; top: 5px; right: 5px; cursor: pointer"
-       (click)="hideAgentHealthDetails()">
-    [X]
-  </div>
-  <div>
-    {{displayedAgentStatus.agentId}}
-    {{isAgentHealthy(displayedAgentStatus) ? "☺" : "☹"}}
-  </div>
-  <div>
-    Last health check: {{displayedAgentStatus.healthCheckTimestamp}}
-    {{agentHealthCheckAge(displayedAgentStatus.healthCheckTimestamp)}}
-  </div>
-  <div>Details:</div>
-  <pre>{{displayedAgentStatus.healthDetails}}</pre>
-</div>
-
-<table class="status-table"
-       cellspacing="0"
-       cellpadding="0"
-       *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
-  <tr>
-    <td class="table-header-cell first-column">
-      &nbsp;
-    </td>
-    <td class="table-header-cell first-row"
-        *ngFor="let metaTask of headerRow.allMetaTasks">
-      <a [href]="computeLinkToTaskSourceFile(metaTask.name, metaTask.stageName)" target="_blank">
-        <img width="18px" [src]="metaTask.iconUrl" title="{{metaTask.name}}">
-      </a>
-    </td>
-  </tr>
-  <tr *ngFor="let status of headerCol">
-    <td class="table-header-cell first-column">
-      <img width="20px" [src]="status.checklist.checklist.commit.author.avatarUrl">
-      <a href="https://github.com/flutter/flutter/commit/{{status.checklist.checklist.commit.sha}}"
-         target="_blank">
-        {{shortSha(status.checklist.checklist.commit.sha)}}
-        ({{shortSha(status.checklist.checklist.commit.author.login)}})
-      </a>
-    </td>
-    <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
-      <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-           (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
-           title="{{metaTask.name}}">
-      </div>
-    </td>
-  </tr>
-</table>
-<table class="status-table"
-       style="position:fixed;bottom:0;left:0"
-       cellspacing="0"
-       cellpadding="0"
-       *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
-  <tr>
-    <td class="table-footer-first-cell">
-      &nbsp;
-    </td>
-    <td class="table-footer-cell"
-        *ngFor="let metaTask of headerRow.allMetaTasks">
-      <img width="18px" [src]="metaTask.iconUrl">
-      <div class="task-name">{{metaTask.name}}</div>
-    </td>
-  </tr>
-</table>
-''',
+  templateUrl: 'status_table.html',
   directives: const [
-    Legend,
+    LegendComponent,
     NgIf,
     NgFor,
     NgClass,
     NgStyle,
   ],
 )
-class StatusTable implements OnInit {
-  static const Duration maxHealthCheckAge = const Duration(minutes: 10);
+class StatusTableComponent implements OnInit, OnDestroy {
+  StatusTableComponent(this._httpClient);
 
-  final http.BrowserClient _httpClient = new http.BrowserClient();
+  final http.Client _httpClient;
   bool isLoading = true;
 
   /// The first row in the table that shows stage names and task names.
@@ -140,23 +45,32 @@ class StatusTable implements OnInit {
 
   List<AgentStatus> agentStatuses;
 
+  Timer _reloadData;
+
   @override
-  Future<Null> ngOnInit() async {
-    await reloadData();
-    new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
+  void ngOnInit() {
+    _handleReloadData(null);
+    _reloadData = new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
   }
 
-  Future<Null> reloadData() async {
+  @override
+  void ngOnDestroy() {
+    _reloadData?.cancel();
+  }
+
+  Future<void> _handleReloadData(Object _) async {
     isLoading = true;
-    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/public/get-status')).body);
+    final response = await _httpClient.get('/api/public/get-status');
+    if (response.statusCode != 200) {
+      return;
+    }
+    Map<String, Object> statusJson = json.decode(response.body);
     GetStatusResult statusResult = GetStatusResult.fromJson(statusJson);
     isLoading = false;
-
     agentStatuses = statusResult.agentStatuses ?? <AgentStatus>[];
     List<BuildStatus> statuses = statusResult.statuses ?? <BuildStatus>[];
     headerCol = <BuildStatus>[];
     headerRow = new HeaderRow();
-
     resultMatrix = <String, Map<String, TaskEntity>>{};
     for (BuildStatus status in statuses) {
       String sha = status.checklist.checklist.commit.sha;
@@ -236,10 +150,6 @@ class StatusTable implements OnInit {
   /// Maps from agent IDs to the latest time agent reported success.
   Map<String, DateTime> _latestAgentPassTimes = <String, DateTime>{};
 
-  static const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
-  static const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
-  static const Color _kUnhealthyAgentColor = const Color(0xE9, 0x80, 0x80);
-
   Map<String, String> getAgentStyle(AgentStatus status) {
     DateTime now = new DateTime.now();
 
@@ -315,7 +225,7 @@ class StatusTable implements OnInit {
   }
 
   bool isExternal(String taskStage) {
-    return taskStage == 'travis' || taskStage == 'appveyor' || taskStage == 'chromebot';
+    return taskStage == 'travis' || taskStage == 'appveyor' || taskStage == 'chromebot' || taskStage == 'cirrus';
   }
 
   String computeLinkToExternalBuildHistory(taskName, taskStage) {
@@ -337,6 +247,8 @@ class StatusTable implements OnInit {
         default:
           return 'https://travis-ci.org/flutter/flutter/builds';
       }
+    } else if (taskStage == 'cirrus') {
+      return 'https://cirrus-ci.com/github/flutter/flutter';
     } else {
       return '#';
     }
@@ -360,6 +272,7 @@ class HeaderRow {
     }
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
+        "cirrus",
         "travis",
         "appveyor",
         "chromebot",
@@ -412,6 +325,7 @@ class MetaTask {
 
 String _iconForStageName(String stageName) {
   const Map<String, String> iconMap = const <String, String>{
+    'cirrus': '/cirrus.svg',
     'travis': '/travis.svg',
     'appveyor': '/appveyor.png',
     'chromebot': '/chromium.svg',
@@ -440,48 +354,4 @@ class Color {
       (from.g + (to.g - from.g) * c).toInt(),
       (from.b + (to.b - from.b) * c).toInt(),
   );
-}
-
-@Component(
-  selector: 'legend',
-  template: '''
-  <div class="legend-icon" (click)="toggleVisibility()">?</div>
-  <div *ngIf="legendVisible" class="legend">
-    <div class="row">
-      <div class="task-status-circle task-new"></div><span class="description">- new task</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-in-progress"></div><span class="description">- task is running</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-succeeded"></div><span class="description">- task succeeded</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-succeeded-but-flaky"></div><span class="description">- task is flaky</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-failed"></div><span class="description">- task failed</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-underperformed"></div><span class="description">- task underperformed</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-skipped"></div><span class="description">- task was skipped</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-unknown"></div><span class="description">- task status unknown</span>
-    </div>
-    <div class="row">
-      <div class="task-status-circle task-failed task-known-to-be-flaky"></div><span class="description">- task marked flaky</span>
-    </div>
-  </div>
-  ''',
-  directives: const [NgIf, NgFor, NgClass, NgStyle],
-)
-class Legend {
-  bool legendVisible = false;
-
-  void toggleVisibility() {
-    legendVisible = !legendVisible;
-  }
 }

@@ -141,7 +141,7 @@ func createTaskList(cocoon *db.Cocoon, createTimestamp int64, checklistKey *data
 	tasks := []*db.Task{
 		makeTask("travis", "travis", []string{"can-update-travis"}, false, 0),
 		makeTask("appveyor", "appveyor", []string{"can-update-appveyor"}, false, 0),
-		makeTask("github-status", "github-status", []string{"can-update-github"}, false, 0),
+		makeTask("cirrus", "cirrus", []string{"can-update-github"}, false, 0),
 		makeTask("chromebot", "mac_bot", []string{"can-update-chromebots"}, false, 0),
 		makeTask("chromebot", "linux_bot", []string{"can-update-chromebots"}, false, 0),
 		makeTask("chromebot", "windows_bot", []string{"can-update-chromebots"}, false, 0),

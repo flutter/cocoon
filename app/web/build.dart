@@ -9,22 +9,24 @@ import 'package:http/http.dart' as http;
 import 'package:http/browser_client.dart' as browser_http;
 
 import 'package:cocoon/cli.dart';
-import 'package:cocoon/components/status_table.dart';
 import 'package:cocoon/logging.dart';
-import 'package:cocoon/components/status_table.template.dart' as ng;
+import 'package:cocoon/build/status_table.template.dart' as ng;
+import 'package:cocoon/build/status_table.dart';
 
 void main() {
-  final ComponentRef<StatusTable> componentRef = runApp(ng.StatusTableNgFactory, createInjector: ([Injector injector]) {
-    final client = new browser_http.BrowserClient();
-    return new Injector.map({
-      Logger: new HtmlLogger(),
-      http.Client: new browser_http.BrowserClient(),
-      CreateAgentCommand: new CreateAgentCommand(client),
-      AuthorizeAgentCommand: new AuthorizeAgentCommand(client),
-      RefreshGithubCommitsCommand: new RefreshGithubCommitsCommand(client),
-      ReserveTaskCommand: new ReserveTaskCommand(client),
-      RawHttpCommand: new RawHttpCommand(client),
-    }, injector);
+  final ComponentRef<StatusTableComponent> componentRef = runApp(
+    ng.StatusTableComponentNgFactory,
+    createInjector: ([Injector injector]) {
+      final client = new browser_http.BrowserClient();
+      return new Injector.map({
+        Logger: new HtmlLogger(),
+        http.Client: new browser_http.BrowserClient(),
+        CreateAgentCommand: new CreateAgentCommand(client),
+        AuthorizeAgentCommand: new AuthorizeAgentCommand(client),
+        RefreshGithubCommitsCommand: new RefreshGithubCommitsCommand(client),
+        ReserveTaskCommand: new ReserveTaskCommand(client),
+        RawHttpCommand: new RawHttpCommand(client),
+      }, injector);
   });
   Cli.install(componentRef.injector);
 }
