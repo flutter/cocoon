@@ -59,14 +59,12 @@ func RefreshCirrusStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 			log.Fatal(err)
 			return nil, err
 		}
-		// Collect cirrus runs and discard previous runs
+		// Collect cirrus runs and discard older runs by comparing timestamp
 		cirrusStatusesByName := make(map[string]githubRequestStatusInfo)
 		for _, result := range statuses {
 			if _, ok := GithubCIAgents[result.Context]; ok {
-				if existing, ok := cirrusStatusesByName[result.Context]; ok &&
-					result.UpdatedAt.Before(existing.UpdatedAt) {
-					cirrusStatusesByName[result.Context] = result
-				} else {
+				if existing, ok := cirrusStatusesByName[result.Context]; (ok &&
+					existing.UpdatedAt.Before(result.UpdatedAt)) || !ok {
 					cirrusStatusesByName[result.Context] = result
 				}
 			}
