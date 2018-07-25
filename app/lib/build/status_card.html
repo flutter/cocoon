@@ -3,7 +3,7 @@
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
 -->
-<template [ngIf]="agentStatus != null">
+<div *ngIf="agentStatus != null" class="status-card">
     <div style="position: absolute; top: 5px; right: 5px; cursor: pointer"
         (click)="hide()">
         [X]
@@ -18,4 +18,4 @@
     </div>
     <div>Details:</div>
     <pre>{{agentStatus.healthDetails}}</pre>
-</template>
+</div>

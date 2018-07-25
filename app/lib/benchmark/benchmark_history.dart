@@ -17,8 +17,8 @@ import 'package:http/http.dart' as http;
   templateUrl: 'benchmark_history.html',
   directives: const [
     NgIf,
-    NgModel,
     BenchmarkCard,
+    formDirectives,
   ],
 )
 class BenchmarkHistory {
@@ -119,8 +119,8 @@ class BenchmarkHistory {
 
     Map<String, dynamic> request = <String, dynamic>{
       'TimeSeriesKey': _key,
-      'Goal': double.parse(_goal),
-      'Baseline': double.parse(_baseline),
+      'Goal': double.tryParse(_goal),
+      'Baseline': double.tryParse(_baseline),
       'TaskName': _taskName.trim(),
       'Label': _label.trim(),
       'Unit': _unit.trim(),

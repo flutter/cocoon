@@ -20,11 +20,12 @@ class HeaderRow {
     stageHeaders.sort((StageHeader a, StageHeader b) {
       const stagePrecedence = const <String>[
         "cirrus",
-        "appveyor",
         "chromebot",
         "devicelab",
         "devicelab_win",
         "devicelab_ios",
+        "appveyor", // deprecated.
+        "travis", // deprecated.
       ];
 
       int aIdx = stagePrecedence.indexOf(a.stageName);

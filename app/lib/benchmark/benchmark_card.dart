@@ -22,7 +22,7 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   /// The total height of the chart. This value must be in sync with the height
   /// specified for benchmark-card in benchmarks.css.
   static const int _kChartHeight = 100;
-  final StreamController<Null> _onZoomIn = new StreamController<Null>();
+  final StreamController<void> _onZoomIn = new StreamController<void>();
 
   BenchmarkData _data;
   DivElement _tooltip;
@@ -41,7 +41,7 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
 
   /// Emits an event when the user clicks on the zoom in button.
   @Output()
-  Stream<Null> get onZoomIn => _onZoomIn.stream;
+  Stream<void> get onZoomIn => _onZoomIn.stream;
 
   void zoomIn() {
     _onZoomIn.add(null);
@@ -58,8 +58,11 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
     : goal;
 
   String get id => _data.timeseries.timeseries.id;
+  
   String get taskName => _data.timeseries.timeseries.taskName;
+  
   String get label => _data.timeseries.timeseries.label;
+  
   String get unit => _data.timeseries.timeseries.unit;
 
   String get latestValue {

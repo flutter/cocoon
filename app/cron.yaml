@@ -2,9 +2,6 @@ cron:
 - description: refresh commits from GitHub
   url: /api/refresh-github-commits
   schedule: every 1 minutes
-- description: refresh travis build status
-  url: /api/refresh-travis-status
-  schedule: every 3 minutes
 - description: refresh chromebot build status
   url: /api/refresh-chromebot-status
   schedule: every 3 minutes

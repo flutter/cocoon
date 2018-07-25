@@ -13,8 +13,8 @@ fi
 
 rm -rf build
 pub get
-dartanalyzer --strong bin/*.dart web/*.dart test/*.dart
-pub build
+dartanalyzer bin/*.dart web/*.dart test/*.dart
+pub run build_runner build --release --output build
 
 echo
 echo "Build succeeded! To deploy to App Engine run the following command after replacing {VERSION}:"

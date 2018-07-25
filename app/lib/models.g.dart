@@ -242,7 +242,9 @@ GetTimeseriesHistoryResult _$GetTimeseriesHistoryResultFromJson(
           ? null
           : new BenchmarkData.fromJson(
               json['BenchmarkData'] as Map<String, dynamic>),
-      lastPosition: json['LastPosition'] as String);
+      lastPosition: json['LastPosition'] == null
+          ? null
+          : fromCursor(json['LastPosition']));
 }
 
 abstract class _$GetTimeseriesHistoryResultSerializerMixin {

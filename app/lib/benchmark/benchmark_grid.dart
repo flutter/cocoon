@@ -77,7 +77,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   Future<Null> reloadData({bool initialLoad : false}) async {
     isLoading = true;
     Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/get-benchmarks')).body);
-    _benchmarks = GetBenchmarksResult.fromJson(statusJson).benchmarks;
+    _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
       Map<String, String> parameters = Uri.parse(window.location.href).queryParameters;
@@ -94,29 +94,24 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   void _applyFilters() {
     if (_benchmarks == null) {
-      visibleBenchmarks = [];
+      visibleBenchmarks = <BenchmarkData>[];
       return;
     }
 
     List<_BenchmarkPredicate> filters = <_BenchmarkPredicate>[];
-
     if (_taskTextFilter != null && _taskTextFilter.trim().isNotEmpty) {
       filters.add((BenchmarkData data) {
-        bool labelMatches = data.timeseries.timeseries.label?.toLowerCase()?.contains(_taskTextFilter) == true;
-        bool taskNameMatches = data.timeseries.timeseries.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool labelMatches = data?.timeseries?.timeseries?.label?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool taskNameMatches = data?.timeseries?.timeseries?.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
         return labelMatches || taskNameMatches;
       });
     }
-
     if (!_isShowArchived) {
-      filters.add((BenchmarkData data) => !data.timeseries.timeseries.isArchived);
+      filters.add((BenchmarkData data) => !(data?.timeseries?.timeseries?.isArchived ?? true));
     }
-
     visibleBenchmarks = _benchmarks;
     for (_BenchmarkPredicate filter in filters) {
       visibleBenchmarks = visibleBenchmarks.where(filter).toList();
     }
   }
 }
-
-

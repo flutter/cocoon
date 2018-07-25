@@ -229,7 +229,7 @@ class GetTimeseriesHistoryResult {
   @JsonKey(name: 'BenchmarkData')
   final BenchmarkData benchmarkData;
 
-  @JsonKey(name: 'LastPosition')
+  @JsonKey(name: 'LastPosition', fromJson: fromCursor)
   final String lastPosition;
 }
 
@@ -317,4 +317,9 @@ class TimeseriesValue {
 /// Used in a [JsonKey] annotation to deserialize a [DateTime] from an [int].
 DateTime fromMilliseconds(int millisecondsSinceEpoch) {
   return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+}
+
+/// Creates a string which represents a Cursor object
+String fromCursor(Object value) {
+  return value?.toString() ?? '';
 }

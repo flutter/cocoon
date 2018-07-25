@@ -42,7 +42,7 @@ class StatusCard extends ComponentState implements OnInit, OnDestroy {
   @override
   void ngOnInit() {
     _updateHealthStatus =
-        new Timer.periodic(const Duration(seconds: 30), _checkHealth);
+        new Timer.periodic(const Duration(seconds: 15), _checkHealth);
   }
 
   @override
@@ -51,7 +51,10 @@ class StatusCard extends ComponentState implements OnInit, OnDestroy {
   }
 
   /// Open the agent status card and set [value] to the current [AgentStatus].
+  ///
+  /// This also updates the current value of [lastHealthCheck].
   void show(AgentStatus value) {
+    _checkHealth();
     agentStatus = value;
     deliverStateChanges();
   }
@@ -62,7 +65,7 @@ class StatusCard extends ComponentState implements OnInit, OnDestroy {
     deliverStateChanges();
   }
 
-  void _checkHealth(Object _) {
+  void _checkHealth([Object _]) {
     _lastHealthCheck = new DateTime.now();
     deliverStateChanges();
   }
