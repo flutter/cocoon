@@ -11,6 +11,12 @@
 <task-legend></task-legend>
 
 <div class="agent-bar">
+    <div><b>Build</b></div>
+        <div class="build-chip"
+            [class.task-succeeded]="isBuildBroken == false"
+            [class.task-failed]="isBuildBroken == true">
+            Flutter
+        </div>
     <div><b>Agents</b></div>
     <div *ngFor="let agentStatus of agentStatuses"
         class="agent-chip"

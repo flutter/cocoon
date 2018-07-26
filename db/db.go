@@ -317,8 +317,7 @@ func (stages byPrecedence) Less(i, j int) bool {
 }
 
 var stagePrecedence = []string{
-	"travis",
-	"appveyor",
+	"cirrus",
 	"chromebot",
 	"devicelab",
 	"devicelab_win",

@@ -1,5 +1,10 @@
 
 .status-table {
     overflow-y: auto;
-    margin-bottom: 320px;
+}
+
+.build-chip {
+    padding: 8px;
+    width: 48px;
+    border-radius: 4px;
 }

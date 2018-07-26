@@ -45,6 +45,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
 
   final http.Client _httpClient;
   bool isLoading = true;
+  bool isBuildBroken;
 
   /// The first row in the table that shows stage names and task names.
   HeaderRow headerRow;
@@ -63,20 +64,42 @@ class StatusTableComponent implements OnInit, OnDestroy {
   List<AgentStatus> agentStatuses;
 
   Timer _reloadData;
+  Timer _reloadStatus;
 
   @override
   void ngOnInit() {
-    _handleReloadData(null);
+    _handleReloadData();
+    _handleReloadStatus();
     _reloadData =
         new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
+    _reloadStatus =
+        new Timer.periodic(const Duration(seconds: 10), _handleReloadStatus);
   }
 
   @override
   void ngOnDestroy() {
     _reloadData?.cancel();
+    _reloadStatus?.cancel();
   }
 
-  Future<void> _handleReloadData(Object _) async {
+  Future<void> _handleReloadStatus([Object _]) async {
+    final response = await _httpClient.get('api/public/build-status');
+    if (response.statusCode != 200) {
+      isBuildBroken = null;
+      return;
+    }
+    Map<String, Object> responseObject = json.decode(response.body);
+    final String status = responseObject['AnticipatedBuildStatus'];
+    if (status == 'Succeeded') {
+      isBuildBroken = false;
+    } else if (status == 'Failed') {
+      isBuildBroken = true;
+    } else {
+      isBuildBroken = null;
+    }
+  }
+
+  Future<void> _handleReloadData([Object _]) async {
     isLoading = true;
     final response = await _httpClient.get('/api/public/get-status');
     if (response.statusCode != 200) {

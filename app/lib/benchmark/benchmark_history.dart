@@ -153,7 +153,7 @@ class BenchmarkHistory {
       'TimeSeriesKey': _key,
     };
 
-    if (lastPosition != null) {
+    if (lastPosition != null && lastPosition != '{}') {
       request['StartFrom'] = lastPosition;
     }
 

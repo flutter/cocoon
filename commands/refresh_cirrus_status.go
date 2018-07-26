@@ -32,7 +32,7 @@ func RefreshCirrusStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 
 	/// The CI agents we care about on the github status page.
 	/// The name must match the value in the "context" field of the json response.
-	var GithubCIAgents = map[string]bool{
+	var githubCIAgents = map[string]bool{
 		"tool_tests-macos":   true,
 		"tool_tests-windows": true,
 		"tool_tests-linux":   true,
@@ -62,7 +62,7 @@ func RefreshCirrusStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 		// Collect cirrus runs and discard older runs by comparing timestamp
 		cirrusStatusesByName := make(map[string]githubRequestStatusInfo)
 		for _, result := range statuses {
-			if _, ok := GithubCIAgents[result.Context]; ok {
+			if _, ok := githubCIAgents[result.Context]; ok {
 				if existing, ok := cirrusStatusesByName[result.Context]; (ok &&
 					existing.UpdatedAt.Before(result.UpdatedAt)) || !ok {
 					cirrusStatusesByName[result.Context] = result
@@ -77,7 +77,9 @@ func RefreshCirrusStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 				anyFailing = true
 			}
 		}
-		if anyFailing {
+		if len(cirrusStatusesByName) == 0 {
+			task.TaskEntity.Task.Status = db.TaskNew
+		} else if anyFailing {
 			task.TaskEntity.Task.Status = db.TaskFailed
 		} else if anyPending {
 			task.TaskEntity.Task.Status = db.TaskInProgress
