@@ -13,10 +13,10 @@ import (
 
 	"golang.org/x/net/context"
 
+	"golang.org/x/oauth2/jwt"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine"
-	"golang.org/x/oauth2/jwt"
 )
 
 // ReserveTaskCommand reserves a task for an agent.
@@ -93,17 +93,17 @@ func ReserveTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 			return &ReserveTaskResult{
 				TaskEntity:      task,
 				ChecklistEntity: checklist,
-				CloudAuthToken: cloudAuthToken,
+				CloudAuthToken:  cloudAuthToken,
 			}, nil
 		}
 	}
 }
 
 type ServiceAccountInfo struct {
-	Email string `json:"client_email"`
-	PrivateKey string `json:"private_key"`
+	Email        string `json:"client_email"`
+	PrivateKey   string `json:"private_key"`
 	PrivateKeyID string `json:"private_key_id"`
-	TokenURL string `json:"token_uri"`
+	TokenURL     string `json:"token_uri"`
 }
 
 func getCloudAuthToken(cocoon *db.Cocoon) (string, error) {
@@ -111,20 +111,20 @@ func getCloudAuthToken(cocoon *db.Cocoon) (string, error) {
 		return "", nil
 	}
 
-	accountInfoJson := cocoon.GetConfigValue("DevicelabServiceAccount")
+	accountInfoJSON := cocoon.GetConfigValue("DevicelabServiceAccount")
 	var accountInfo *ServiceAccountInfo
-	err := json.Unmarshal([]byte(accountInfoJson), &accountInfo)
+	err := json.Unmarshal([]byte(accountInfoJSON), &accountInfo)
 
 	if err != nil {
 		return "", err
 	}
 
 	conf := &jwt.Config{
-		Email: accountInfo.Email,
-		PrivateKey: []byte(accountInfo.PrivateKey),
+		Email:        accountInfo.Email,
+		PrivateKey:   []byte(accountInfo.PrivateKey),
 		PrivateKeyID: accountInfo.PrivateKeyID,
-		TokenURL: accountInfo.TokenURL,
-		Scopes: []string{"https://www.googleapis.com/auth/devstorage.read_write"},
+		TokenURL:     accountInfo.TokenURL,
+		Scopes:       []string{"https://www.googleapis.com/auth/devstorage.read_write"},
 	}
 
 	token, err := conf.TokenSource(cocoon.Ctx).Token()

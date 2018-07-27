@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"cocoon/db"
-	"fmt"
-	"encoding/json"
-	"net/http"
 	"bytes"
-	"google.golang.org/appengine/urlfetch"
+	"cocoon/db"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+
+	"google.golang.org/appengine/urlfetch"
 )
 
 type PullRequest struct {
@@ -35,7 +36,7 @@ type GitHubBuildStatusInfo struct {
 }
 
 // Labels the given `commit` SHA on GitHub with the build status information.
-func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) (error) {
+func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 	url := fmt.Sprintf("%v/statuses/%v", info.gitHubRepoApiURL, info.commit)
 
 	data := make(map[string]string)
@@ -86,8 +87,8 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) (error) {
 	return nil
 }
 
-func fetchPullRequests(c *db.Cocoon, gitHubRepoApiURL string) ([]*PullRequest, error) {
-	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoApiURL), true)
+func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, error) {
+	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoAPIURL), true)
 
 	if err != nil {
 		return nil, err

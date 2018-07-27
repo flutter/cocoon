@@ -12,9 +12,6 @@ a Google product*.
 * Install Google App Engine for Go
 * Install Go SDK
 * Install Dart SDK
-* Consider installing Atom
-  * Consider installing `dartlang` for Atom
-  * Consider installing `go-plus` for Atom
 
 # Running local dev server
 

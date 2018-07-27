@@ -9,9 +9,10 @@ import (
 	"cocoon/db"
 	"compress/gzip"
 	"encoding/json"
-	"google.golang.org/appengine/memcache"
 	"io"
 	"time"
+
+	"google.golang.org/appengine/memcache"
 )
 
 const cacheKey = "cached-get-benchmarks-result-v2"
@@ -72,9 +73,8 @@ func loadFromMemcache(c *db.Cocoon) (*GetBenchmarksResult, error) {
 		}
 
 		return &result, nil
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 func loadFromDatabase(c *db.Cocoon) (*GetBenchmarksResult, error) {
@@ -135,9 +135,9 @@ func insertMissingTimeseriesValues(values []*db.TimeseriesValue, checklists []*d
 			result = append(result, timeseriesValue)
 		} else {
 			result = append(result, &db.TimeseriesValue{
-				Revision: checklist.Checklist.Commit.Sha,
+				Revision:        checklist.Checklist.Commit.Sha,
 				CreateTimestamp: checklist.Checklist.CreateTimestamp,
-				DataMissing: true,
+				DataMissing:     true,
 			})
 		}
 	}

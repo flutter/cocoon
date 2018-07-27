@@ -1,28 +1,24 @@
 name: cocoon
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/flutter/cocoon
-environment:
-  sdk: '>=1.13.0 <2.0.0'
+
 dependencies:
-  angular2: 2.0.0-beta.21
-  args: ^0.13.4
-  browser: ^0.10.0
-  charted: ^0.4.0
-  js: ^0.6.0
-  http: ^0.11.3
-  meta: ^0.12.1
+  angular: ^5.0.0-beta
+  angular_forms: 2.0.0-beta+2
+  args:
+  browser:
+  charted:
+  js:
+  http:
+  meta:
+  json_annotation:
+
 dev_dependencies:
-  test: ^0.12.14
-transformers:
-- angular2:
-    platform_directives:
-    - 'package:angular2/common.dart#COMMON_DIRECTIVES'
-    entry_points:
-      - web/benchmarks.dart
-      - web/build.dart
-      - web/index.dart
-    resolved_identifiers:
-      Client: 'package:http/http.dart'
-- $dart2js:
-    minify: true
-    sourceMaps: true
+  test:
+  build_runner:
+  build_test:
+  build_web_compilers:
+  json_serializable:
+
+environment:
+  sdk: ">=2.0.0-dev.64.2 <3.0.0"

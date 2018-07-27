@@ -23,7 +23,7 @@ func AppendLog(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !cocoon.EntityExists(ownerKey) {
-		serveError(cocoon, w, r, fmt.Errorf("Invalid owner key. Owner entity does not exist."))
+		serveError(cocoon, w, r, fmt.Errorf("Invalid owner key. Owner entity does not exist"))
 		return
 	}
 

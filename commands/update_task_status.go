@@ -36,7 +36,7 @@ func UpdateTaskStatus(c *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	err := json.Unmarshal(inputJSON, &command)
 
 	if command.NewStatus != "Succeeded" && command.NewStatus != "Failed" {
-		return nil, errors.New("NewStatus can be one of 'Succeeded', 'Failed'.")
+		return nil, errors.New("NewStatus can be one of 'Succeeded', 'Failed'")
 	}
 
 	if err != nil {

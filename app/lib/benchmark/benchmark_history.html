@@ -1,0 +1,41 @@
+<!--
+  Copyright (c) 2018 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+
+<benchmark-card *ngIf="data != null" barWidth="narrow" [data]="data">
+</benchmark-card>
+<div style="margin: 20px">
+  <div>
+    <span>Goal:</span>
+    <input type="text" [(ngModel)]="goal">
+    <span>Baseline:</span>
+    <input type="text" [(ngModel)]="baseline">
+    <button (click)="autoUpdateTargets()">{{autoUpdateTitle}}</button>
+  </div>
+  <div>
+    <label>
+      <span>TaskName:</span>
+      <input type="text" [(ngModel)]="taskName">
+    </label>
+    <label>
+      <span>Label:</span>
+      <input type="text" [(ngModel)]="label">
+    </label>
+  </div>
+  <div>
+    <label>
+      <span>Unit:</span>
+      <input type="text" [(ngModel)]="unit">
+    </label>
+    <label>
+      <span>Archived:</span>
+      <input type="checkbox" [(ngModel)]="archived">
+    </label>
+  </div>
+  <div>
+    <button [disabled]="!isInputValid" (click)="update()">Update</button>
+    {{statusMessage}}
+  </div>
+</div>

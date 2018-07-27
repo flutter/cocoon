@@ -1,0 +1,15 @@
+<table class="status-table"
+    style="position:sticky;bottom:0;left:180"
+    cellspacing="0"
+    cellpadding="0"
+    *ngIf="headerRow != null && headerCol != null && headerCol.length > 0">
+    <tr>
+        <td class="table-footer-first-cell">
+            &nbsp;
+        </td>
+        <td class="table-footer-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
+            <img width="18px" [attr.src]="metaTask.iconUrl">
+            <div class="task-name">{{metaTask.name}}</div>
+        </td>
+    </tr>
+</table>

@@ -31,8 +31,6 @@ func init() {
 	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
 	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
-	registerRPC("/api/refresh-travis-status", commands.RefreshTravisStatus)
-	registerRPC("/api/refresh-appveyor-status", commands.RefreshAppVeyorStatus)
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
 	registerRPC("/api/update-agent-health", commands.UpdateAgentHealth)
@@ -43,6 +41,7 @@ func init() {
 	registerRPC("/api/update-timeseries", commands.UpdateTimeseries)
 	registerRPC("/api/push-build-status-to-github", commands.PushBuildStatusToGithubHandler)
 	registerRPC("/api/push-engine-build-status-to-github", commands.PushEngineBuildStatusToGithubHandler)
+	registerRPC("/api/refresh-cirrus-status", commands.RefreshCirrusStatus)
 
 	registerRawHandler("/api/append-log", commands.AppendLog)
 	registerRawHandler("/api/get-log", commands.GetLog)
@@ -250,4 +249,8 @@ func whitelistAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte("OK"))
+}
+
+func main() {
+	appengine.Main()
 }

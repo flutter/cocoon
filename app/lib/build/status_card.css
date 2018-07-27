@@ -1,0 +1,9 @@
+
+.status-card {
+    position: relative;
+    background-color: #DDD;
+    border-radius: 2px;
+    padding: 15px;
+    margin-bottom: 10px;
+    max-width: 700px;
+  }

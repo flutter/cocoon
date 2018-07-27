@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js';
 
-import 'package:angular2/core.dart';
+import 'package:angular/angular.dart';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 
@@ -59,7 +59,6 @@ abstract class CliCommand {
   Future<Null> run(ArgResults args);
 }
 
-@Injectable()
 class AuthorizeAgentCommand extends CliCommand {
   AuthorizeAgentCommand(this.httpClient) : super('authAgent');
 
@@ -78,14 +77,13 @@ class AuthorizeAgentCommand extends CliCommand {
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/authorize-agent', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/authorize-agent', body: json.encode({
       'AgentID': agentId
     }));
     print(resp.body);
   }
 }
 
-@Injectable()
 class CreateAgentCommand extends CliCommand {
   CreateAgentCommand(this.httpClient) : super('createAgent');
 
@@ -112,7 +110,7 @@ class CreateAgentCommand extends CliCommand {
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
     List<String> capabilities = args['capability'];
-    http.Response resp = await httpClient.post('/api/create-agent', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/create-agent', body: json.encode({
       'AgentID': agentId,
       'Capabilities': capabilities,
     }));
@@ -120,7 +118,6 @@ class CreateAgentCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class RefreshGithubCommitsCommand extends CliCommand {
   RefreshGithubCommitsCommand(this.httpClient) : super('refreshGithubCommits');
 
@@ -136,7 +133,6 @@ class RefreshGithubCommitsCommand extends CliCommand {
   }
 }
 
-@Injectable()
 class ReserveTaskCommand extends CliCommand {
   ReserveTaskCommand(this.httpClient) : super('reserveTask');
 
@@ -155,14 +151,13 @@ class ReserveTaskCommand extends CliCommand {
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/reserve-task', body: JSON.encode({
+    http.Response resp = await httpClient.post('/api/reserve-task', body: json.encode({
       'AgentID': agentId
     }));
     print(resp.body);
   }
 }
 
-@Injectable()
 class RawHttpCommand extends CliCommand {
   RawHttpCommand(this.httpClient) : super('http');
 

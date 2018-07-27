@@ -1,0 +1,21 @@
+<!--
+  Copyright (c) 2018 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+<div *ngIf="agentStatus != null" class="status-card">
+    <div style="position: absolute; top: 5px; right: 5px; cursor: pointer"
+        (click)="hide()">
+        [X]
+    </div>
+    <div>
+        {{agentStatus.agentId}}
+        {{isAgentHealthy ? "☺" : "☹"}}
+    </div>
+    <div>
+        Last health check: {{agentStatus.healthCheckTimestamp}}
+        {{agentStatus.healthCheckTimestamp | agent_health :lastHealthCheck}}
+    </div>
+    <div>Details:</div>
+    <pre>{{agentStatus.healthDetails}}</pre>
+</div>
