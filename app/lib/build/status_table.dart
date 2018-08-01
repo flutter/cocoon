@@ -295,7 +295,7 @@ class SourceUrlPipe extends PipeTransform {
           return 'https://travis-ci.org/flutter/flutter/builds';
       }
     } else if (taskStage == 'cirrus') {
-      return 'https://cirrus-ci.com/github/flutter/flutter';
+      return 'https://cirrus-ci.com/github/flutter/flutter/master';
     } else {
       return '#';
     }
