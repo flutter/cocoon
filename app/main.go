@@ -42,6 +42,7 @@ func init() {
 	registerRPC("/api/push-build-status-to-github", commands.PushBuildStatusToGithubHandler)
 	registerRPC("/api/push-engine-build-status-to-github", commands.PushEngineBuildStatusToGithubHandler)
 	registerRPC("/api/refresh-cirrus-status", commands.RefreshCirrusStatus)
+	registerRPC("/api/reset-devicelab-task", commands.ResetDevicelabTask)
 
 	registerRawHandler("/api/append-log", commands.AppendLog)
 	registerRawHandler("/api/get-log", commands.GetLog)

@@ -149,6 +149,24 @@ func (c *Cocoon) GetTask(key *datastore.Key) (*TaskEntity, error) {
 	}, nil
 }
 
+// GetTaskByEncodedKey retrieves a task using the url safe encoded key value.
+func (c *Cocoon) GetTaskByEncodedKey(encodedKey string) (*TaskEntity, error) {
+	key, err := datastore.DecodeKey(encodedKey)
+	if err != nil {
+		return nil, err
+	}
+	task := new(Task)
+	err = datastore.Get(c.Ctx, key, task)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TaskEntity{
+		Key:  key,
+		Task: task,
+	}, nil
+}
+
 func (c *Cocoon) runTaskQuery(query *datastore.Query) ([]*TaskEntity, error) {
 	var buffer []*TaskEntity
 	i := 0

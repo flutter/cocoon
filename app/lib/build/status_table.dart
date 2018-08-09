@@ -7,13 +7,15 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
+import 'package:angular_components/angular_components.dart';
+
 import 'package:cocoon/build/status_card.dart';
 import 'package:cocoon/build/common.dart';
 import 'package:cocoon/build/task_legend.dart';
 import 'package:cocoon/build/task_guide.dart';
 import 'package:cocoon/models.dart';
-import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
 const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
@@ -23,23 +25,31 @@ const Duration maxHealthCheckAge = const Duration(minutes: 10);
 /// A matrix of build results for each commit to the master branch of
 /// flutter/flutter.
 @Component(
-  selector: 'status-table',
-  templateUrl: 'status_table.html',
-  styleUrls: const ['status_table.css'],
-  directives: [
-    NgIf,
-    NgFor,
-    NgClass,
-    NgStyle,
-    StatusCard,
-    TaskGuideComponent,
-    TaskLegend,
-  ],
-  pipes: [
-    MaxLengthPipe,
-    SourceUrlPipe,
-  ],
-)
+    selector: 'status-table',
+    templateUrl: 'status_table.html',
+    styleUrls: const [
+      'status_table.css'
+    ],
+    directives: [
+      MaterialPaperTooltipComponent,
+      MaterialTooltipTargetDirective,
+      MaterialButtonComponent,
+      NgIf,
+      NgFor,
+      NgClass,
+      NgStyle,
+      StatusCard,
+      TaskGuideComponent,
+      TaskLegend,
+    ],
+    pipes: [
+      MaxLengthPipe,
+      SourceUrlPipe,
+    ],
+    providers: [
+      popupBindings,
+      materialTooltipBindings,
+    ])
 class StatusTableComponent implements OnInit, OnDestroy {
   StatusTableComponent(this._httpClient);
 
@@ -124,6 +134,34 @@ class StatusTableComponent implements OnInit, OnDestroy {
         }
       }
     }
+  }
+
+  Future<void> handleResetTask(String sha, String taskName) async {
+    final TaskEntity entity = _findTask(sha, taskName);
+    if (entity == null || !entity.task.stageName.contains('devicelab')) return;
+    final request = <String, String>{
+      'Key': entity.key,
+    };
+    final response =
+        await _httpClient.post('/api/reset-devicelab-task', body: request);
+    if (response.statusCode != 200) {
+      return;
+    }
+  }
+
+  bool canBeReset(String sha, String taskName) {
+    final TaskEntity entity = _findTask(sha, taskName);
+    if (entity == null ||
+        _isExternal(entity.task.name) ||
+        !entity.task.stageName.contains('devicelab')) return false;
+    return entity.task.status == 'task-failed';
+  }
+
+  String getHostFor(String sha, String taskName) {
+    final TaskEntity entity = _findTask(sha, taskName);
+    final String host = entity?.task?.host;
+    if (host == null || host.trim().isEmpty) return 'Unknown';
+    return host;
   }
 
   List<String> taskStatusToCssStyle(
@@ -237,7 +275,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
   void openLog(String sha, String taskName, String taskStage) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (SourceUrlPipe._isExternal(taskStage)) {
+    if (_isExternal(taskStage)) {
       // We cannot serve the log file from an external system directly, but we
       // can redirect the user closer to where they can find it.
       window.open(
@@ -257,6 +295,13 @@ class MaxLengthPipe extends PipeTransform {
   }
 }
 
+bool _isExternal(String taskStage) {
+  return taskStage == 'travis' ||
+      taskStage == 'appveyor' ||
+      taskStage == 'chromebot' ||
+      taskStage == 'cirrus';
+}
+
 /// A formatter to compute the source url of a task
 @Pipe('source_url')
 class SourceUrlPipe extends PipeTransform {
@@ -265,13 +310,6 @@ class SourceUrlPipe extends PipeTransform {
       return _computeLinkToExternalBuildHistory(taskName, taskStage);
     }
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
-  }
-
-  static bool _isExternal(String taskStage) {
-    return taskStage == 'travis' ||
-        taskStage == 'appveyor' ||
-        taskStage == 'chromebot' ||
-        taskStage == 'cirrus';
   }
 
   static String _computeLinkToExternalBuildHistory(
