@@ -17,22 +17,8 @@ type resetDevicelabTaskRequest struct {
 func ResetDevicelabTask(cocoon *db.Cocoon, inputJSON []byte) (interface{}, error) {
 	var command *resetDevicelabTaskRequest
 	err := json.Unmarshal(inputJSON, &command)
-
 	if err != nil {
 		return false, err
 	}
-	taskEntity, err := cocoon.GetTaskByEncodedKey(command.Key)
-	if err != nil {
-		return false, err
-	}
-	taskEntity.Task.Attempts = 0
-	taskEntity.Task.Reason = ""
-	taskEntity.Task.Status = db.TaskNew
-	taskEntity.Task.ReservedForAgentID = ""
-	_, err = cocoon.PutTask(taskEntity.Key, taskEntity.Task)
-	if err != nil {
-		return false, err
-	}
-
-	return true, err
+	return cocoon.ResetTaskWithEncodedKey(command.Key)
 }

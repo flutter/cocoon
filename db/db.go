@@ -167,6 +167,31 @@ func (c *Cocoon) GetTaskByEncodedKey(encodedKey string) (*TaskEntity, error) {
 	}, nil
 }
 
+// ResetTaskWithEncodedKey attempts to reset a device lab task using the url safe
+// encoded key value. Returns true if the transaction succedes, false otherwise.
+func (c *Cocoon) ResetTaskWithEncodedKey(encodedKey string) (bool, error) {
+	err := datastore.RunInTransaction(c.Ctx, func(ctx context.Context) error {
+		cocoon = NewCocoon(ctx);
+		taskEntity, err := cocoon.GetTaskByEncodedKey(command.Key)
+		if err != nil {
+			return false, err
+		}
+		taskEntity.Task.Attempts = 0
+		taskEntity.Task.Reason = ""
+		taskEntity.Task.Status = db.TaskNew
+		taskEntity.Task.ReservedForAgentID = ""
+		_, err = cocoon.PutTask(taskEntity.Key, taskEntity.Task)
+		if err != nil {
+			return false, err
+		}
+		return true, err
+	}, nil)
+	if err != nil {
+		false, err
+	}
+	return true, nil
+}
+
 func (c *Cocoon) runTaskQuery(query *datastore.Query) ([]*TaskEntity, error) {
 	var buffer []*TaskEntity
 	i := 0

@@ -7,6 +7,7 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:cocoon/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:angular_components/angular_components.dart';
@@ -84,6 +85,9 @@ class StatusTableComponent implements OnInit, OnDestroy {
         new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
     _reloadStatus =
         new Timer.periodic(const Duration(seconds: 10), _handleReloadStatus);
+    getAuthenticationStatus('/').then((AuthenticationStatus status) {
+      _userIsAuthenticated = status.isAuthenticated;
+    });
   }
 
   @override
@@ -136,7 +140,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  Future<void> handleResetTask(String sha, String taskName) async {
+  Future<void> resetTask(String sha, String taskName) async {
     final TaskEntity entity = _findTask(sha, taskName);
     if (entity == null || !entity.task.stageName.contains('devicelab')) return;
     final request = <String, String>{
@@ -148,6 +152,9 @@ class StatusTableComponent implements OnInit, OnDestroy {
       return;
     }
   }
+
+  bool get userIsAuthenticated => _userIsAuthenticated;
+  bool _userIsAuthenticated = false;
 
   bool canBeReset(String sha, String taskName) {
     final TaskEntity entity = _findTask(sha, taskName);

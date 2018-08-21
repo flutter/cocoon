@@ -36,8 +36,11 @@
     <a href="https://github.com/flutter/plugins" target="_new">
         <img src="assets/plugin.png" style="height: 20px" title="Build status of flutter/plugins">
     </a>
-    <a href="https://travis-ci.org/flutter/plugins" target="_new">
-        <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
+    <a href="https://cirrus-ci.com/github/flutter/packages" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/packages.svg" title="Build status of flutter/packages">
+    </a>
+    <a href="https://cirrus-ci.com/github/flutter/plugins" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/plugins.svg" title="Build status of flutter/plugins">
     </a>
 </div>
 
@@ -74,8 +77,8 @@
                 <div><b>Task:</b>&nbsp;{{metaTask.name}}</div>
                 <div><b>Host:</b>&nbsp;{{getHostFor(status.checklist.checklist.commit.sha, metaTask.name)}}</div>
                 <material-button
-                    *ngIf="canBeReset(status.checklist.checklist.commit.sha, metaTask.name)"
-                    (click)="handleResetTask(status.checklist.checklist.commit.sha, metaTask.name)">Reset Task</material-button>
+                    *ngIf="userIsAuthenticated && canBeReset(status.checklist.checklist.commit.sha, metaTask.name)"
+                    (click)="resetTask(status.checklist.checklist.commit.sha, metaTask.name)">Reset Task</material-button>
             </material-tooltip-card>
         </td>
     </tr>
