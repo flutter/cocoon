@@ -143,14 +143,19 @@ class StatusTableComponent implements OnInit, OnDestroy {
   Future<void> resetTask(String sha, String taskName) async {
     final TaskEntity entity = _findTask(sha, taskName);
     if (entity == null || !entity.task.stageName.contains('devicelab')) return;
-    final request = <String, String>{
+    final String request = json.encode(<String, String>{
       'Key': entity.key,
-    };
-    final response =
-        await _httpClient.post('/api/reset-devicelab-task', body: request);
-    if (response.statusCode != 200) {
+    });
+    final response = await HttpRequest.request('/api/reset-devicelab-task', method: 'POST', sendData: request, mimeType: 'application/json');
+    if (response.status != 200) {
+      print('Reset Failed');
       return;
     }
+    bool result = json.decode(response.response);
+    if (result)
+      print('Reset Successful');
+    else
+      print('Reset Failed');
   }
 
   bool get userIsAuthenticated => _userIsAuthenticated;
@@ -161,7 +166,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
     if (entity == null ||
         _isExternal(entity.task.name) ||
         !entity.task.stageName.contains('devicelab')) return false;
-    return entity.task.status == 'task-failed';
+    return entity.task.status == 'Failed';
   }
 
   String getHostFor(String sha, String taskName) {

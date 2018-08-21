@@ -171,23 +171,23 @@ func (c *Cocoon) GetTaskByEncodedKey(encodedKey string) (*TaskEntity, error) {
 // encoded key value. Returns true if the transaction succedes, false otherwise.
 func (c *Cocoon) ResetTaskWithEncodedKey(encodedKey string) (bool, error) {
 	err := datastore.RunInTransaction(c.Ctx, func(ctx context.Context) error {
-		cocoon = NewCocoon(ctx);
-		taskEntity, err := cocoon.GetTaskByEncodedKey(command.Key)
+		c2 := &Cocoon{Ctx: ctx}
+		taskEntity, err := c2.GetTaskByEncodedKey(encodedKey)
 		if err != nil {
-			return false, err
+			return err
 		}
 		taskEntity.Task.Attempts = 0
 		taskEntity.Task.Reason = ""
-		taskEntity.Task.Status = db.TaskNew
+		taskEntity.Task.Status = TaskNew
 		taskEntity.Task.ReservedForAgentID = ""
-		_, err = cocoon.PutTask(taskEntity.Key, taskEntity.Task)
+		_, err = c2.PutTask(taskEntity.Key, taskEntity.Task)
 		if err != nil {
-			return false, err
+			return err
 		}
-		return true, err
+		return nil
 	}, nil)
 	if err != nil {
-		false, err
+		return false, err
 	}
 	return true, nil
 }
