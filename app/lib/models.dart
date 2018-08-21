@@ -177,7 +177,7 @@ class Task {
   final String name;
 
   @JsonKey(name: 'Status')
-  final String status;
+  String status;
 
   @JsonKey(name: 'StartTimestamp', fromJson: fromMilliseconds)
   final DateTime startTimestamp;

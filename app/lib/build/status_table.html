@@ -30,20 +30,20 @@
     <a href="https://github.com/flutter/website" target="_new">
         <img src="assets/www.png" style="height: 20px" title="Build status of flutter/website">
     </a>
-    <a href="https://travis-ci.org/flutter/website" target="_new">
-        <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
+    <a href="https://cirrus-ci.com/github/flutter/website/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/website.svg?branch=master"  title="Build status of flutter/website">
     </a>
     <a href="https://github.com/flutter/plugins" target="_new">
         <img src="assets/plugin.png" style="height: 20px" title="Build status of flutter/plugins">
     </a>
-    <a href="https://cirrus-ci.com/github/flutter/plugins" target="_new">
-        <img src="https://api.cirrus-ci.com/github/flutter/plugins.svg" title="Build status of flutter/plugins">
+    <a href="https://cirrus-ci.com/github/flutter/plugins/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
     </a>
     <a href="https://github.com/flutter/packages" target="_new">
-        <img src="assets/package.svg" title="Build status of flutter/packages">
+        <img src="assets/package.svg" style="height: 24px" title="Build status of flutter/packages">
     </a>
-    <a href="https://cirrus-ci.com/github/flutter/packages" target="_new">
-        <img src="https://api.cirrus-ci.com/github/flutter/packages.svg" title="Build status of flutter/packages">
+    <a href="https://cirrus-ci.com/github/flutter/packages/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/packages.svg?branch=master" title="Build status of flutter/packages">
     </a>
 </div>
 
@@ -72,17 +72,10 @@
         </td>
         <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
             <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-                tooltipTarget
-                #ref="tooltipTarget"
+                [attr.title]="metaTask.name + '/' + getHostFor(status.checklist.checklist.commit.sha, metaTask.name)"
+                (dblclick)="tryToResetTask(status.checklist.checklist.commit.sha, metaTask.name)"
                 (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)">
             </div>
-            <material-tooltip-card [for]="ref">
-                <div><b>Task:</b>&nbsp;{{metaTask.name}}</div>
-                <div><b>Host:</b>&nbsp;{{getHostFor(status.checklist.checklist.commit.sha, metaTask.name)}}</div>
-                <material-button
-                    *ngIf="userIsAuthenticated && canBeReset(status.checklist.checklist.commit.sha, metaTask.name)"
-                    (click)="resetTask(status.checklist.checklist.commit.sha, metaTask.name)">Reset Task</material-button>
-            </material-tooltip-card>
         </td>
     </tr>
 </table>

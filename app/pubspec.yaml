@@ -6,7 +6,6 @@ dependencies:
   angular: 5.0.0
   angular_forms: 2.0.0
   args:
-  angular_components:
   js:
   http:
   meta:

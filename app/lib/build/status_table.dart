@@ -10,7 +10,6 @@ import 'package:angular/angular.dart';
 import 'package:cocoon/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:angular_components/angular_components.dart';
 
 import 'package:cocoon/build/status_card.dart';
 import 'package:cocoon/build/common.dart';
@@ -26,31 +25,23 @@ const Duration maxHealthCheckAge = const Duration(minutes: 10);
 /// A matrix of build results for each commit to the master branch of
 /// flutter/flutter.
 @Component(
-    selector: 'status-table',
-    templateUrl: 'status_table.html',
-    styleUrls: const [
-      'status_table.css'
-    ],
-    directives: [
-      MaterialPaperTooltipComponent,
-      MaterialTooltipTargetDirective,
-      MaterialButtonComponent,
-      NgIf,
-      NgFor,
-      NgClass,
-      NgStyle,
-      StatusCard,
-      TaskGuideComponent,
-      TaskLegend,
-    ],
-    pipes: [
-      MaxLengthPipe,
-      SourceUrlPipe,
-    ],
-    providers: [
-      popupBindings,
-      materialTooltipBindings,
-    ])
+  selector: 'status-table',
+  templateUrl: 'status_table.html',
+  styleUrls: const ['status_table.css'],
+  directives: [
+    NgIf,
+    NgFor,
+    NgClass,
+    NgStyle,
+    StatusCard,
+    TaskGuideComponent,
+    TaskLegend,
+  ],
+  pipes: [
+    MaxLengthPipe,
+    SourceUrlPipe,
+  ],
+)
 class StatusTableComponent implements OnInit, OnDestroy {
   StatusTableComponent(this._httpClient);
 
@@ -140,22 +131,29 @@ class StatusTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  Future<void> resetTask(String sha, String taskName) async {
+  Future<void> tryToResetTask(String sha, String taskName) async {
+    if (!userIsAuthenticated || !canBeReset(sha, taskName))
+      return;
     final TaskEntity entity = _findTask(sha, taskName);
     if (entity == null || !entity.task.stageName.contains('devicelab')) return;
     final String request = json.encode(<String, String>{
       'Key': entity.key,
     });
-    final response = await HttpRequest.request('/api/reset-devicelab-task', method: 'POST', sendData: request, mimeType: 'application/json');
+    final oldStatus = entity.task.status;
+    entity.task.status = 'New';
+    final response = await HttpRequest.request('/api/reset-devicelab-task',
+        method: 'POST', sendData: request, mimeType: 'application/json');
     if (response.status != 200) {
-      print('Reset Failed');
+      entity.task.status = oldStatus;
       return;
     }
     bool result = json.decode(response.response);
     if (result)
       print('Reset Successful');
-    else
+    else {
+      entity.task.status = oldStatus;
       print('Reset Failed');
+    }
   }
 
   bool get userIsAuthenticated => _userIsAuthenticated;
