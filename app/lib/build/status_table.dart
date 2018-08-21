@@ -131,6 +131,33 @@ class StatusTableComponent implements OnInit, OnDestroy {
     }
   }
 
+  String _pendingSha;
+  String _pendingTaskName;
+  String _pendingStageName;
+  Timer _pendingEvent;
+
+  void handleMousedown(String sha, String taskName, String stageName) {
+    _pendingEvent?.cancel();
+    _pendingSha = sha;
+    _pendingTaskName = taskName;
+    _pendingStageName = stageName;
+    _pendingEvent = new Timer(const Duration(seconds: 1, milliseconds: 500), () {
+      tryToResetTask(sha, taskName);
+      _pendingEvent = null;
+    });
+  }
+
+  void handleMouseupOrLeave() {
+    if (_pendingEvent == null)
+      return;
+    _pendingEvent.cancel();
+    if (_pendingSha != null)
+      openLog(_pendingSha, _pendingTaskName, _pendingStageName);
+    _pendingSha = null;
+    _pendingTaskName = null;
+    _pendingStageName = null;
+  }
+
   Future<void> tryToResetTask(String sha, String taskName) async {
     if (!userIsAuthenticated || !canBeReset(sha, taskName))
       return;
@@ -144,15 +171,14 @@ class StatusTableComponent implements OnInit, OnDestroy {
     final response = await HttpRequest.request('/api/reset-devicelab-task',
         method: 'POST', sendData: request, mimeType: 'application/json');
     if (response.status != 200) {
+      window.alert('Task reset failed');
       entity.task.status = oldStatus;
       return;
     }
     bool result = json.decode(response.response);
-    if (result)
-      print('Reset Successful');
-    else {
+    if (!result) {
       entity.task.status = oldStatus;
-      print('Reset Failed');
+      window.alert('Task reset failed');
     }
   }
 

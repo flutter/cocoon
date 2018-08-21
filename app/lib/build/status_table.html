@@ -72,9 +72,11 @@
         </td>
         <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
             <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
+                [style.cursor]="'pointer'"
                 [attr.title]="metaTask.name + '/' + getHostFor(status.checklist.checklist.commit.sha, metaTask.name)"
-                (dblclick)="tryToResetTask(status.checklist.checklist.commit.sha, metaTask.name)"
-                (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)">
+                (mousedown)="handleMousedown(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
+                (mouseup)="handleMouseupOrLeave()"
+                (mouseleave)="handleMouseupOrLeave()">
             </div>
         </td>
     </tr>
