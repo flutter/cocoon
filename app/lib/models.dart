@@ -162,6 +162,7 @@ class Task {
     this.endTimestamp,
     this.attempts,
     this.isFlaky,
+    this.host,
   });
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
@@ -176,7 +177,7 @@ class Task {
   final String name;
 
   @JsonKey(name: 'Status')
-  final String status;
+  String status;
 
   @JsonKey(name: 'StartTimestamp', fromJson: fromMilliseconds)
   final DateTime startTimestamp;
@@ -189,6 +190,9 @@ class Task {
 
   @JsonKey(name: 'Flaky')
   final bool isFlaky;
+
+  @JsonKey(name: 'ReservedForAgentID')
+  final String host;
 }
 
 @JsonSerializable(nullable: true)

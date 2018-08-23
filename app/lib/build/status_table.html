@@ -30,14 +30,20 @@
     <a href="https://github.com/flutter/website" target="_new">
         <img src="assets/www.png" style="height: 20px" title="Build status of flutter/website">
     </a>
-    <a href="https://travis-ci.org/flutter/website" target="_new">
-        <img src="https://travis-ci.org/flutter/website.svg?branch=master"  title="Build status of flutter/website">
+    <a href="https://cirrus-ci.com/github/flutter/website/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/website.svg?branch=master"  title="Build status of flutter/website">
     </a>
     <a href="https://github.com/flutter/plugins" target="_new">
         <img src="assets/plugin.png" style="height: 20px" title="Build status of flutter/plugins">
     </a>
-    <a href="https://travis-ci.org/flutter/plugins" target="_new">
-        <img src="https://travis-ci.org/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
+    <a href="https://cirrus-ci.com/github/flutter/plugins/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/plugins.svg?branch=master" title="Build status of flutter/plugins">
+    </a>
+    <a href="https://github.com/flutter/packages" target="_new">
+        <img src="assets/package.svg" style="height: 24px" title="Build status of flutter/packages">
+    </a>
+    <a href="https://cirrus-ci.com/github/flutter/packages/master" target="_new">
+        <img src="https://api.cirrus-ci.com/github/flutter/packages.svg?branch=master" title="Build status of flutter/packages">
     </a>
 </div>
 
@@ -66,8 +72,11 @@
         </td>
         <td class="task-status-cell" *ngFor="let metaTask of headerRow.allMetaTasks">
             <div [ngClass]="getStatusStyle(status.checklist.checklist.commit.sha, metaTask.name)"
-                (click)="openLog(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
-                title="{{metaTask.name}}">
+                [style.cursor]="'pointer'"
+                [attr.title]="metaTask.name + '/' + getHostFor(status.checklist.checklist.commit.sha, metaTask.name)"
+                (mousedown)="handleMousedown(status.checklist.checklist.commit.sha, metaTask.name, metaTask.stageName)"
+                (mouseup)="handleMouseupOrLeave()"
+                (mouseleave)="handleMouseupOrLeave()">
             </div>
         </td>
     </tr>

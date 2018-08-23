@@ -7,13 +7,15 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
+import 'package:cocoon/http.dart';
+import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
+
 import 'package:cocoon/build/status_card.dart';
 import 'package:cocoon/build/common.dart';
 import 'package:cocoon/build/task_legend.dart';
 import 'package:cocoon/build/task_guide.dart';
 import 'package:cocoon/models.dart';
-import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 const Duration _kBadHealthGracePeriod = const Duration(hours: 1);
 const Color _kHealthyAgentColor = const Color(0x8F, 0xDF, 0x5F);
@@ -74,6 +76,9 @@ class StatusTableComponent implements OnInit, OnDestroy {
         new Timer.periodic(const Duration(seconds: 30), _handleReloadData);
     _reloadStatus =
         new Timer.periodic(const Duration(seconds: 10), _handleReloadStatus);
+    getAuthenticationStatus('/').then((AuthenticationStatus status) {
+      _userIsAuthenticated = status.isAuthenticated;
+    });
   }
 
   @override
@@ -124,6 +129,75 @@ class StatusTableComponent implements OnInit, OnDestroy {
         }
       }
     }
+  }
+
+  String _pendingSha;
+  String _pendingTaskName;
+  String _pendingStageName;
+  Timer _pendingEvent;
+
+  void handleMousedown(String sha, String taskName, String stageName) {
+    _pendingEvent?.cancel();
+    _pendingSha = sha;
+    _pendingTaskName = taskName;
+    _pendingStageName = stageName;
+    _pendingEvent = new Timer(const Duration(seconds: 1, milliseconds: 500), () {
+      tryToResetTask(sha, taskName);
+      _pendingEvent = null;
+    });
+  }
+
+  void handleMouseupOrLeave() {
+    if (_pendingEvent == null)
+      return;
+    _pendingEvent.cancel();
+    if (_pendingSha != null)
+      openLog(_pendingSha, _pendingTaskName, _pendingStageName);
+    _pendingSha = null;
+    _pendingTaskName = null;
+    _pendingStageName = null;
+  }
+
+  Future<void> tryToResetTask(String sha, String taskName) async {
+    if (!userIsAuthenticated || !canBeReset(sha, taskName))
+      return;
+    final TaskEntity entity = _findTask(sha, taskName);
+    if (entity == null || !entity.task.stageName.contains('devicelab')) return;
+    final String request = json.encode(<String, String>{
+      'Key': entity.key,
+    });
+    final oldStatus = entity.task.status;
+    entity.task.status = 'New';
+    final response = await HttpRequest.request('/api/reset-devicelab-task',
+        method: 'POST', sendData: request, mimeType: 'application/json');
+    if (response.status != 200) {
+      window.alert('Task reset failed');
+      entity.task.status = oldStatus;
+      return;
+    }
+    bool result = json.decode(response.response);
+    if (!result) {
+      entity.task.status = oldStatus;
+      window.alert('Task reset failed');
+    }
+  }
+
+  bool get userIsAuthenticated => _userIsAuthenticated;
+  bool _userIsAuthenticated = false;
+
+  bool canBeReset(String sha, String taskName) {
+    final TaskEntity entity = _findTask(sha, taskName);
+    if (entity == null ||
+        _isExternal(entity.task.name) ||
+        !entity.task.stageName.contains('devicelab')) return false;
+    return entity.task.status == 'Failed';
+  }
+
+  String getHostFor(String sha, String taskName) {
+    final TaskEntity entity = _findTask(sha, taskName);
+    final String host = entity?.task?.host;
+    if (host == null || host.trim().isEmpty) return 'Unknown';
+    return host;
   }
 
   List<String> taskStatusToCssStyle(
@@ -237,7 +311,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
   void openLog(String sha, String taskName, String taskStage) {
     TaskEntity taskEntity = _findTask(sha, taskName);
 
-    if (SourceUrlPipe._isExternal(taskStage)) {
+    if (_isExternal(taskStage)) {
       // We cannot serve the log file from an external system directly, but we
       // can redirect the user closer to where they can find it.
       window.open(
@@ -257,6 +331,13 @@ class MaxLengthPipe extends PipeTransform {
   }
 }
 
+bool _isExternal(String taskStage) {
+  return taskStage == 'travis' ||
+      taskStage == 'appveyor' ||
+      taskStage == 'chromebot' ||
+      taskStage == 'cirrus';
+}
+
 /// A formatter to compute the source url of a task
 @Pipe('source_url')
 class SourceUrlPipe extends PipeTransform {
@@ -265,13 +346,6 @@ class SourceUrlPipe extends PipeTransform {
       return _computeLinkToExternalBuildHistory(taskName, taskStage);
     }
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
-  }
-
-  static bool _isExternal(String taskStage) {
-    return taskStage == 'travis' ||
-        taskStage == 'appveyor' ||
-        taskStage == 'chromebot' ||
-        taskStage == 'cirrus';
   }
 
   static String _computeLinkToExternalBuildHistory(

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+  <g stroke="#000">
+    <path stroke-linejoin="round" stroke-width="15.118" d="M299.2 204.8l74.8-44 74.8 44-74.8 43.6-74.8 44-74.8-44z" transform="matrix(.09463 0 0 .09763 2.765 1.907)"/>
+    <path fill="#f7f7f7" stroke-linejoin="round" stroke-width="22.677" d="M372 333.6v-84l-72.8 42.8-74.8-44-.8-.4v171.6z" transform="matrix(.09463 0 0 .09763 2.765 1.907)"/>
+    <path stroke-linejoin="round" stroke-width="15.118" d="M149.6 204.8l-74.8-44-74.8 44 74.8 43.6 74.8 44 74.8-44z" transform="matrix(.09463 0 0 .09763 2.765 1.907)"/>
+    <path stroke-linejoin="round" stroke-width="1.45314204" d="M16.922 4.758L24 9.015l-7.078 4.295-7.079 4.296-7.078-4.296 7.078-4.295zM31.078 4.758L24 9.015l7.078 4.295 7.079 4.296 7.078-4.296-7.078-4.295z"/>
+    <path fill="#f7f7f7" stroke-linejoin="round" stroke-width="22.677" d="M149.6 292.4l74-43.2v170.4l-148.8-86v-85.2z" transform="matrix(.09463 0 0 .09763 2.765 1.907)"/>
+    <path fill="#f7f7f7" stroke-linejoin="round" stroke-width="15.118" d="M149.6 204.8l24 14 50.8-29.6V72.8l-74.8 44-74.8 44zM275.2 218.8l24-14 74.8-44-74.8-44-74.8-44v116.4z" transform="matrix(.09463 0 0 .09763 2.765 1.907)"/>
+    <path fill="#fcfcfc" fill-rule="evenodd" stroke-width="1.45314204" d="M24 20.379l4.806 2.89L24 26.158l-4.806-2.89z"/>
+  </g>
+</svg>
