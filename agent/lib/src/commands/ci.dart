@@ -179,6 +179,7 @@ class ContinuousIntegrationCommand extends Command {
   Future<Null> _screensOff() async {
     try {
       for (Device device in await devices.discoverDevices()) {
+        await device.disableAccessibility();
         await device.sendToSleep();
       }
     } catch(error, stackTrace) {

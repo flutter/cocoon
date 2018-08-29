@@ -58,6 +58,9 @@ abstract class Device {
   /// Emulates pressing the power button, toggling the device's on/off state.
   Future<Null> togglePower();
 
+  /// Turns off TalkBack on Android devices, does nothing on iOS devices.
+  Future<Null> disableAccessibility();
+
   /// Unlocks the device.
   ///
   /// Assumes the device doesn't have a secure unlock pattern.
@@ -196,6 +199,11 @@ class AndroidDevice implements Device {
     await shellExec('input', const ['keyevent', '82']);
   }
 
+  @override
+  Future<Null> disableAccessibility() async {
+    await shellExec('settings', ['put', 'secure', 'enabled_accessibility_services', 'null']);
+  }
+
   /// Retrieves device's wakefulness state.
   ///
   /// See: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/PowerManagerInternal.java
@@ -282,4 +290,7 @@ class IosDevice implements Device {
 
   @override
   Future<Null> unlock() async {}
+
+  @override
+  Future<Null> disableAccessibility() async {}
 }
