@@ -44,10 +44,11 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 		data["state"] = "success"
 	} else {
 		/*
-		We return "pending" state because the failure of the build bot has nothing to do with
+		We return "pending" state because when Flutter build is broken it has nothing to do with
 		the current commit. The failure is caused by previous commits, and the new commit should
-		just wait (thus pending) for patches to fix the build. This is especially useful for the
-		auto-roller.
+		just wait (thus pending) for the build to go green. This is especially useful for the
+		auto-roller: if we return "failure", the auto-roller will abandon the current roll; if we
+		return "pending", it will wait and merge the roll as soon as the build turns green.
 		*/
 		data["state"] = "pending"
 		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
