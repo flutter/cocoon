@@ -10,6 +10,7 @@ import 'package:angular/angular.dart';
 import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/benchmark/benchmark_card.dart';
 import 'package:cocoon/benchmark/benchmark_history.dart';
+import 'package:cocoon/http.dart';
 import 'package:cocoon/models.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,6 +38,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   List<BenchmarkData> visibleBenchmarks;
   Timer _reloadTimer;
   bool _isShowArchived = false;
+  bool _userIsAuthenticated = false;
 
   String _taskTextFilter;
   String get taskTextFilter => _taskTextFilter;
@@ -44,6 +46,8 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     applyTextFilter(value);
   }
   bool get isShowArchived => _isShowArchived;
+
+  bool get userIsAuthenticated => _userIsAuthenticated;
 
   /// If not `null` the benchmark whose history is shown on screen.
   BenchmarkData _zoomInto;
@@ -67,6 +71,9 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   void ngOnInit() {
     reloadData(initialLoad : true);
     _reloadTimer = new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
+    getAuthenticationStatus('/').then((AuthenticationStatus status) {
+      _userIsAuthenticated = status.isAuthenticated;
+    });
   }
 
   @override

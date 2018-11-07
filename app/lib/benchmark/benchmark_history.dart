@@ -28,6 +28,9 @@ class BenchmarkHistory {
 
   String _key;
 
+  @Input()
+  bool userIsAuthenticated = false;
+
   String _autoUpdateGoal;
   String _autoUpdateBaseline;
   String _autoUpdateTitle = 'Calculating autoupdate...';
