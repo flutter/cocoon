@@ -160,7 +160,7 @@ class BenchmarkHistory {
       request['StartFrom'] = lastPosition;
     }
 
-    http.Response response = await _httpClient.post('/api/get-timeseries-history', body: json.encode(request));
+    http.Response response = await _httpClient.post('/api/public/get-timeseries-history', body: json.encode(request));
     GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(json.decode(response.body));
 
     data = null;

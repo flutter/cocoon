@@ -83,7 +83,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   Future<Null> reloadData({bool initialLoad : false}) async {
     isLoading = true;
-    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/get-benchmarks')).body);
+    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/public/get-benchmarks')).body);
     _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
