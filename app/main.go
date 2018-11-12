@@ -50,8 +50,11 @@ func init() {
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/build-status", commands.GetPublicBuildStatus)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-status", commands.GetStatus)
-	registerRPC("/api/public/get-benchmarks", commands.GetBenchmarks)
-	registerRPC("/api/public/get-timeseries-history", commands.GetTimeseriesHistory)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-benchmarks", commands.GetBenchmarks)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-timeseries-history", commands.GetTimeseriesHistory)
+	// Remove once all old clients are removed:
+	registerRawHandler("/api/get-benchmarks", commands.GetBenchmarks)
+	registerRawHandler("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 
 	// IMPORTANT: Do not expose the handlers below in production.
 	if appengine.IsDevAppServer() {
