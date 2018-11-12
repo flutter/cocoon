@@ -1,0 +1,4 @@
+name: cocoon_backend
+
+dependencies:
+  appengine: any
