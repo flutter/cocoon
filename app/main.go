@@ -53,8 +53,8 @@ func init() {
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-benchmarks", commands.GetBenchmarks)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-timeseries-history", commands.GetTimeseriesHistory)
 	// Remove once all old clients are removed:
-	registerRawHandler("/api/get-benchmarks", commands.GetBenchmarks)
-	registerRawHandler("/api/get-timeseries-history", commands.GetTimeseriesHistory)
+	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
+	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 
 	// IMPORTANT: Do not expose the handlers below in production.
 	if appengine.IsDevAppServer() {
