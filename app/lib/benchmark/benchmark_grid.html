@@ -12,7 +12,10 @@
 </div>
 
 <div *ngIf="zoomInto != null" class="benchmark-history-container">
-  <benchmark-history [timeseriesKey]="zoomInto.timeseries.key"></benchmark-history>
+  <benchmark-history
+      [userIsAuthenticated]="userIsAuthenticated"
+      [timeseriesKey]="zoomInto.timeseries.key">
+  </benchmark-history>
   <button (click)="zoomInto = null">Close History</button>
 </div>
 

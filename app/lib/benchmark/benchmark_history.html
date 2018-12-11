@@ -6,7 +6,7 @@
 
 <benchmark-card *ngIf="data != null" barWidth="narrow" [data]="data">
 </benchmark-card>
-<div style="margin: 20px">
+<div *ngIf="userIsAuthenticated" style="margin: 20px">
   <div>
     <span>Goal:</span>
     <input type="text" [(ngModel)]="goal">

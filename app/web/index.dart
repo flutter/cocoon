@@ -9,15 +9,11 @@ import 'package:cocoon/logging.dart';
 import 'package:cocoon/http.dart';
 
 Future<Null> main() async {
-  hide('#benchmarks-link');
   hide('#logout-button');
   hide('.login-button');
 
-  logger = new HtmlLogger();
-
   final AuthenticationStatus status = await getAuthenticationStatus('/');
   if (status.isAuthenticated) {
-    show('#benchmarks-link');
     show('#logout-button');
 
     document.querySelector('#logout-button').on['click'].listen((_) {

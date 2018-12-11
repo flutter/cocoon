@@ -28,8 +28,6 @@ import (
 func init() {
 	registerRPC("/api/create-agent", commands.CreateAgent)
 	registerRPC("/api/authorize-agent", commands.AuthorizeAgent)
-	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
-	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 	registerRPC("/api/refresh-github-commits", commands.RefreshGithubCommits)
 	registerRPC("/api/refresh-chromebot-status", commands.RefreshChromebotStatus)
 	registerRPC("/api/reserve-task", commands.ReserveTask)
@@ -52,6 +50,11 @@ func init() {
 	http.HandleFunc("/api/get-authentication-status", getAuthenticationStatus)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/build-status", commands.GetPublicBuildStatus)
 	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-status", commands.GetStatus)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-benchmarks", commands.GetBenchmarks)
+	dangerouslyRegisterUnauthenticatedRPC("/api/public/get-timeseries-history", commands.GetTimeseriesHistory)
+	// Remove once all old clients are removed:
+	registerRPC("/api/get-benchmarks", commands.GetBenchmarks)
+	registerRPC("/api/get-timeseries-history", commands.GetTimeseriesHistory)
 
 	// IMPORTANT: Do not expose the handlers below in production.
 	if appengine.IsDevAppServer() {
