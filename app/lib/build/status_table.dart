@@ -190,7 +190,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
     if (entity == null ||
         _isExternal(entity.task.name) ||
         !entity.task.stageName.contains('devicelab')) return false;
-    return entity.task.status == 'Failed';
+    return true;
   }
 
   String getHostFor(String sha, String taskName) {
