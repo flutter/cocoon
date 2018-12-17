@@ -33,14 +33,18 @@ func RefreshCirrusStatus(cocoon *db.Cocoon, _ []byte) (interface{}, error) {
 	/// The CI agents we care about on the github status page.
 	/// The name must match the value in the "context" field of the json response.
 	var githubCIAgents = map[string]bool{
-		"tool_tests-macos":   true,
-		"tool_tests-windows": true,
-		"tool_tests-linux":   true,
-		"tests-linux":        true,
-		"tests-macos":        true,
-		"tests-windows":      true,
-		"analyze":            true,
-		"docs":               true,
+		"tool_tests-macos":    true,
+		"tool_tests-windows":  true,
+		"tool_tests-linux":    true,
+		"tests-linux":         true,
+		"tests-macos":         true,
+		"tests-windows":       true,
+		"analyze":             true,
+		"docs":                true,
+		"build_tests-linux":   true,
+		"build_tests-macos":   true,
+		"build_tests-windows": true,
+		"codelabs-build-test": true,
 	}
 
 	for _, task := range tasks {

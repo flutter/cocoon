@@ -176,8 +176,8 @@ func (c *Cocoon) ResetTaskWithEncodedKey(encodedKey string) (bool, error) {
 		if err != nil {
 			return err
 		}
-		if taskEntity.Task.Status != TaskFailed {
-			return errors.New("Not allowed to restart unfailing task")
+		if taskEntity.Task.Status == TaskInProgress {
+			return errors.New("Not allowed to restart task in progress")
 		}
 		taskEntity.Task.Attempts = 1
 		taskEntity.Task.Reason = ""
