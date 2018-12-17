@@ -6,6 +6,10 @@ package db
 
 import "google.golang.org/appengine/datastore"
 
+// MaximumSignificantChecklists is the maximum number of checklists to query or return
+// as a frontend query.
+const MaximumSignificantChecklists = 100
+
 // CocoonConfig table stores global configuration parameters. It is keyed by
 // parameter name (and therefore must use named datastore keys). The values
 // can be edited using the datastore explorer in the GAE console.
@@ -208,7 +212,7 @@ type Agent struct {
 	Capabilities  []string
 	// Whether this agent is visible on the dashboard. Use this for testing without polluting the
 	// screen.
-	Hidden        bool
+	Hidden bool
 }
 
 // AgentStatus contains agent health status.

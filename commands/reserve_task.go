@@ -137,8 +137,7 @@ func getCloudAuthToken(cocoon *db.Cocoon) (string, error) {
 }
 
 func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.ChecklistEntity, error) {
-	const maxChecklistsToScan = 20
-	checklists, err := cocoon.QueryLatestChecklists(maxChecklistsToScan)
+	checklists, err := cocoon.QueryLatestChecklists(db.MaximumSignificantChecklists)
 
 	if err != nil {
 		return nil, nil, err
