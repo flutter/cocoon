@@ -1,0 +1,31 @@
+name: mobile
+description: A new Flutter project.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  json_serializable:
+  shared_preferences:
+  url_launcher:
+  flutter_secure_storage:
+  path_provider:
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  test: 1.5.1
+  build_runner:
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: OpenSans
+      fonts:
+        - asset: fonts/Open_Sans/OpenSans-Regular.ttf
