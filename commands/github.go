@@ -88,17 +88,24 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 }
 
 func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, error) {
-	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoAPIURL), true)
-
-	if err != nil {
-		return nil, err
-	}
-
+	lastPrCount := 100
 	var pullRequests []*PullRequest
-	err = json.Unmarshal(prData, &pullRequests)
+	for i := 1; lastPrCount == 100; i++ {
+		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls&state=open&per_page=100&page=%i&sort=created", gitHubRepoAPIURL, i), true)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		var tmpPullRequests []*PullRequest
+		err = json.Unmarshal(prData, &tmpPullRequests)
+
+		if err != nil {
+			return nil, err
+		}
+
+		lastPrCount = len(tmpPullRequests)
+		append(pullRequests, tmpPullRequests...)
 	}
 
 	return pullRequests, nil
