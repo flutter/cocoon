@@ -105,7 +105,7 @@ func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, e
 		}
 
 		lastPrCount = len(tmpPullRequests)
-		append(pullRequests, tmpPullRequests...)
+		pullRequests = append(pullRequests, tmpPullRequests...)
 	}
 
 	return pullRequests, nil
