@@ -91,7 +91,7 @@ func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, e
 	lastPrCount := 100
 	var pullRequests []*PullRequest
 	for i := 1; lastPrCount == 100; i++ {
-		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls&state=open&per_page=100&page=%i&sort=created", gitHubRepoAPIURL, i), true)
+		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls&state=open&per_page=100&page=%d&sort=created", gitHubRepoAPIURL, i), true)
 
 		if err != nil {
 			return nil, err
