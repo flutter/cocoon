@@ -160,10 +160,11 @@ func getBuildProperty(buildJSON map[string]interface{}, propertyName string) str
 //    "text": []
 //
 func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
-	text := buildJSON["text"].([]interface{})
-	if text == nil || len(text) < 2 {
+	if buildJSON["finished"] != true {
 		return db.TaskInProgress
-	} else if text[1].(string) == "successful" {
+	}
+	text := buildJSON["text"].([]interface{})
+	if text[0].(string) == "Build successful" || text[1].(string) == "successful" {
 		return db.TaskSucceeded
 	} else {
 		return db.TaskFailed
