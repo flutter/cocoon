@@ -136,6 +136,10 @@ func getBuildProperty(buildJSON map[string]interface{}, propertyName string) str
 //       "build",
 //       "successful"
 //     ]
+// or:
+//     "text": [
+//       "Build successful"
+//     ]
 //
 // Exceptions are encoded like this:
 //
