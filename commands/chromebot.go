@@ -161,7 +161,7 @@ func getBuildProperty(buildJSON map[string]interface{}, propertyName string) str
 //
 // In-progress builds are encoded like this:
 //
-//    "text": []
+//    "finished": true
 //
 func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
 	if buildJSON["finished"] != true {
