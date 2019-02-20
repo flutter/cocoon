@@ -136,6 +136,10 @@ func getBuildProperty(buildJSON map[string]interface{}, propertyName string) str
 //       "build",
 //       "successful"
 //     ]
+// or:
+//     "text": [
+//       "Build successful"
+//     ]
 //
 // Exceptions are encoded like this:
 //
@@ -157,15 +161,15 @@ func getBuildProperty(buildJSON map[string]interface{}, propertyName string) str
 //
 // In-progress builds are encoded like this:
 //
-//    "text": []
+//    "finished": true
 //
 func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
-	text := buildJSON["text"].([]interface{})
-	if text == nil || len(text) < 2 {
+	if buildJSON["finished"] != true {
 		return db.TaskInProgress
-	} else if text[1].(string) == "successful" {
-		return db.TaskSucceeded
-	} else {
-		return db.TaskFailed
 	}
+	text := buildJSON["text"].([]interface{})
+	if text[0].(string) == "Build successful" || text[1].(string) == "successful" {
+		return db.TaskSucceeded
+	}
+	return db.TaskFailed
 }

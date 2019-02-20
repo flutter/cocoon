@@ -18,4 +18,4 @@ pub run build_runner build --release --output build
 
 echo
 echo "Build succeeded! To deploy to App Engine run the following command after replacing {VERSION}:"
-echo "gcloud app deploy --no-promote --no-stop-previous-version -v {VERSION}"
+echo "gcloud app deploy --project flutter-dashboard --no-promote --no-stop-previous-version -v {VERSION}"
