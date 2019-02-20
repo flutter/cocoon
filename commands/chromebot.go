@@ -166,7 +166,6 @@ func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
 	text := buildJSON["text"].([]interface{})
 	if text[0].(string) == "Build successful" || text[1].(string) == "successful" {
 		return db.TaskSucceeded
-	} else {
-		return db.TaskFailed
 	}
+	return db.TaskFailed
 }
