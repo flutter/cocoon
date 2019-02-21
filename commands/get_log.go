@@ -39,8 +39,7 @@ func GetLog(cocoon *db.Cocoon, w http.ResponseWriter, r *http.Request) {
 
 	query := datastore.NewQuery("LogChunk").
 		Filter("OwnerKey =", ownerKey).
-		Order("CreateTimestamp").
-		Limit(100)
+		Order("CreateTimestamp")
 
 	for iter := query.Run(cocoon.Ctx); ; {
 		var chunk db.LogChunk
