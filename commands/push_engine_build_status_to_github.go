@@ -7,9 +7,10 @@ package commands
 import (
 	"cocoon/db"
 	"fmt"
-	"google.golang.org/appengine/memcache"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/memcache"
 )
 
 const engineRepositoryApiUrl = "https://api.github.com/repos/flutter/engine"
@@ -78,12 +79,12 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, build
 			// Don't push GitHub status from the local dev server.
 			if !appengine.IsDevAppServer() {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
-					buildContext: buildContext,
-					buildName: builderName,
-					link: "https://build.chromium.org/p/client.flutter/waterfall",
-					commit: pr.Head.Sha,
+					buildContext:     buildContext,
+					buildName:        builderName,
+					link:             "https://ci.chromium.org/p/flutter",
+					commit:           pr.Head.Sha,
 					gitHubRepoApiURL: engineRepositoryApiUrl,
-					status: latestStatus,
+					status:           latestStatus,
 				})
 
 				if err != nil {
@@ -116,9 +117,9 @@ func fetchLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderNam
 	}
 }
 
-func cacheLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderName string, sha string, newValue db.BuildResult) (error) {
+func cacheLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderName string, sha string, newValue db.BuildResult) error {
 	return memcache.Set(ctx, &memcache.Item{
-		Key: lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName, sha),
+		Key:   lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName, sha),
 		Value: []byte(fmt.Sprintf("%v", newValue)),
 	})
 }
