@@ -13,7 +13,7 @@ fi
 
 rm -rf build
 pub get
-dartanalyzer bin/*.dart web/*.dart test/*.dart
+dartanalyzer bin/*.dart web/*.dart # test/*.dart
 pub run build_runner build --release --output build
 
 echo
