@@ -143,7 +143,7 @@ func findNextTaskToRun(cocoon *db.Cocoon, agent *db.Agent) (*db.TaskEntity, *db.
 		return nil, nil, err
 	}
 
-	for ci := len(checklists) - 1; ci >= 0; ci-- {
+	for ci := 0; ci < len(checklists); ci++ {
 		checklist := checklists[ci]
 		stages, err := cocoon.QueryTasksGroupedByStage(checklist.Key)
 
