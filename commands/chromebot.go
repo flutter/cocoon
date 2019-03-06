@@ -167,6 +167,12 @@ func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
 	if buildJSON["finished"] != true {
 		return db.TaskInProgress
 	}
+	// Can happen if there was an "Infra Failure".
+	// Doesn't appear to be reported in any other way.
+	if buildJSON["text"] == nil {
+		return db.TaskFailed
+	}
+
 	text := buildJSON["text"].([]interface{})
 	if text[0].(string) == "Build successful" || text[1].(string) == "successful" {
 		return db.TaskSucceeded
