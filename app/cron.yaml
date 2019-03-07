@@ -1,3 +1,5 @@
+# Updates to this file must be pushed with:
+#   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
 - description: refresh commits from GitHub
   url: /api/refresh-github-commits
