@@ -3,11 +3,13 @@ package commands
 import (
 	"bytes"
 	"cocoon/db"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"google.golang.org/appengine/urlfetch"
 )
@@ -31,7 +33,9 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Content-Type", "application/json")
 
-	httpClient := urlfetch.Client(cocoon.Ctx)
+	ctx, cancel := context.WithTimeout(cocoon.Ctx, 1*time.Minute)
+	defer cancel()
+	httpClient := urlfetch.Client(ctx)
 	response, err := httpClient.Do(request)
 
 	if err != nil {
@@ -174,7 +178,7 @@ func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
 	}
 
 	text := buildJSON["text"].([]interface{})
-	if text[0].(string) == "Build successful" || text[1].(string) == "successful" {
+	if text[0].(string) == "Build successful" || (len(text) > 1 && text[1].(string) == "successful") {
 		return db.TaskSucceeded
 	}
 	return db.TaskFailed
