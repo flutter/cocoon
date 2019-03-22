@@ -44,7 +44,7 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 		data["state"] = "success"
 	} else {
 		data["state"] = "failure"
-		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
+		data["target_url"] = info.link
 		data["description"] = fmt.Sprintf("%v is currently broken. Please do not merge this PR unless it contains a fix to the broken build.", info.buildName)
 	}
 	data["context"] = info.buildContext

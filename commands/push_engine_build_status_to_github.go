@@ -17,50 +17,38 @@ const engineRepositoryApiUrl = "https://api.github.com/repos/flutter/engine"
 
 // Pushes the latest build status to Github PRs and commits.
 func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
-	if err := pushLatestEngineBuildStatusToGithub(c, "Linux Engine", "linux-build"); err != nil {
+	builders := []string{"Linux Host Engine", "Linux Android Debug Engine", "Linux Android AOT Engine", "Linux Android Dynamic Engine", "Mac Host Engine", "Mac Android Debug Engine", "Mac Android AOT Engine", "Mac Android Dynamic Engine", "Mac iOS Engine", "Windows Host Engine", "Windows Android AOT Engine", "Windows Android Dynamic Engine"}
+
+	if err := pushLatestEngineBuildStatusToGithub(c, builders); err != nil {
 		return nil, err
 	}
-
-	if err := pushLatestEngineBuildStatusToGithub(c, "Mac Engine", "mac-build"); err != nil {
-		return nil, err
-	}
-
-	if err := pushLatestEngineBuildStatusToGithub(c, "Windows Engine", "windows-build"); err != nil {
-		return nil, err
-	}
-
 	return nil, nil
 }
 
 // Fetches build statuses for the given builder, then updates all PRs with the latest failed or succeeded status.
-func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, buildContext string) error {
-	statuses, err := fetchChromebotBuildStatuses(c, builderName)
+func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) error {
+	allStatuses, err := fetchChromebotBuildStatuses(c, builderNames)
 
 	if err != nil {
 		return err
 	}
 
-	if len(statuses) == 0 {
-		return nil
-	}
-
 	latestStatus := db.BuildNew
-	for i := len(statuses) - 1; i >= 0 && latestStatus == db.BuildNew; i-- {
-		status := statuses[i]
-
-		switch status.State {
-		case db.TaskFailed:
-			latestStatus = db.BuildFailed
-		case db.TaskSucceeded:
-			latestStatus = db.BuildSucceeded
+	for _, statuses := range allStatuses {
+		for _, status := range statuses {
+			switch status.State {
+			case db.TaskFailed:
+				latestStatus = db.BuildFailed
+				break
+			case db.TaskSucceeded:
+				latestStatus = db.BuildSucceeded
+				break
+			}
+		}
+		if latestStatus == db.BuildFailed {
+			break
 		}
 	}
-
-	if latestStatus == db.BuildNew {
-		// No final statuses found. Nothing to report
-		return nil
-	}
-
 	pullRequests, err := fetchPullRequests(c, engineRepositoryApiUrl)
 
 	if err != nil {
@@ -68,7 +56,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, build
 	}
 
 	for _, pr := range pullRequests {
-		lastSubmittedValue, err := fetchLastEngineBuildStatusSubmittedToGithub(c.Ctx, builderName, pr.Head.Sha)
+		lastSubmittedValue, err := fetchLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha)
 
 		if err != nil {
 			return err
@@ -79,9 +67,9 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, build
 			// Don't push GitHub status from the local dev server.
 			if !appengine.IsDevAppServer() {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
-					buildContext:     buildContext,
-					buildName:        builderName,
-					link:             "https://ci.chromium.org/p/flutter",
+					buildContext:     "luci",
+					buildName:        "luci-engine",
+					link:             "https://ci.chromium.org/p/flutter/g/engine/console",
 					commit:           pr.Head.Sha,
 					gitHubRepoApiURL: engineRepositoryApiUrl,
 					status:           latestStatus,
@@ -92,7 +80,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, build
 				}
 			}
 
-			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, builderName, pr.Head.Sha, latestStatus)
+			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, "LUCI Engine Build", pr.Head.Sha, latestStatus)
 		}
 	}
 
