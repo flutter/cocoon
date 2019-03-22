@@ -54,7 +54,7 @@ func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([
 		return make([]*ChromebotResult, 0), nil
 	}
 
-	buildStatuses, err := fetchChromebotBuildStatuses(cocoon, builderName)
+	buildStatuses, err := fetchChromebotBuildStatuses(cocoon, []string{builderName})
 
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([
 
 	for _, fullTask := range tasks {
 		for i := 0; i < len(buildStatuses); i++ {
-			status := buildStatuses[i]
+			status := buildStatuses[builderName][i]
 			if status.Commit == fullTask.ChecklistEntity.Checklist.Commit.Sha {
 				task := fullTask.TaskEntity.Task
 				task.Status = status.State
@@ -71,5 +71,5 @@ func refreshChromebot(cocoon *db.Cocoon, taskName string, builderName string) ([
 		}
 	}
 
-	return buildStatuses, nil
+	return buildStatuses[builderName], nil
 }
