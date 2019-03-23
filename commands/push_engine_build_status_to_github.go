@@ -35,16 +35,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 
 	latestStatus := db.BuildNew
 	for _, statuses := range allStatuses {
-		for _, status := range statuses {
-			switch status.State {
-			case db.TaskFailed:
-				latestStatus = db.BuildFailed
-				break
-			case db.TaskSucceeded:
-				latestStatus = db.BuildSucceeded
-				break
-			}
-		}
+		latestStatus = getLatestStatus(statuses)
 		if latestStatus == db.BuildFailed {
 			break
 		}
@@ -85,6 +76,18 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 	}
 
 	return nil
+}
+
+func getLatestStatus(statuses []*ChromebotResult) db.BuildResult {
+	for _, status := range statuses {
+		switch status.State {
+		case db.TaskFailed:
+			return db.BuildFailed
+		case db.TaskSucceeded:
+			return db.BuildSucceeded
+		}
+	}
+	return db.BuildNew
 }
 
 func lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName string, sha string) string {
