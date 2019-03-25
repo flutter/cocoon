@@ -71,7 +71,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 				}
 			}
 
-			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, "LUCI Engine Build", pr.Head.Sha, latestStatus)
+			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha, latestStatus)
 		}
 	}
 
