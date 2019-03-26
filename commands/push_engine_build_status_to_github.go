@@ -59,7 +59,7 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 			// Don't push GitHub status from the local dev server.
 			if !appengine.IsDevAppServer() {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
-					buildContext:     "luci",
+					buildContext:     "luci-engine",
 					buildName:        "luci-engine",
 					link:             "https://ci.chromium.org/p/flutter/g/engine/console",
 					commit:           pr.Head.Sha,
