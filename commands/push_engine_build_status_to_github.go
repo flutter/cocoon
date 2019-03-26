@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/memcache"
 )
 
@@ -46,13 +47,13 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 		return err
 	}
 
+	var lastError error
 	for _, pr := range pullRequests {
 		lastSubmittedValue, err := fetchLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha)
 
 		if err != nil {
 			return err
 		}
-
 		// Do not ping GitHub unnecessarily if the latest status hasn't changed. GitHub can rate limit us for this.
 		if lastSubmittedValue != latestStatus {
 			// Don't push GitHub status from the local dev server.
@@ -67,15 +68,15 @@ func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) er
 				})
 
 				if err != nil {
-					return err
+					lastError = err
+					log.Errorf(c.Ctx, "Failed to update SHA %v, %v", pr.Head.Sha, err)
 				}
 			}
 
 			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha, latestStatus)
 		}
 	}
-
-	return nil
+	return lastError
 }
 
 func getLatestStatus(statuses []*ChromebotResult) db.BuildResult {
