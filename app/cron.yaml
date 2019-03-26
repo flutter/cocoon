@@ -18,7 +18,7 @@ cron:
   schedule: every 1 minutes
 - description: sends build status to GitHub to annotate engine PRs and commits
   url: /api/push-engine-build-status-to-github
-  schedule: every 1 minutes
+  schedule: every 2 minutes
 - description: refresh github CI status (cirrus)
   url: /api/refresh-cirrus-status
   schedule: every 2 minutes

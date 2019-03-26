@@ -50,7 +50,7 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 	data["target_url"] = info.link
 	data["context"] = info.buildContext
 
-	log.Debugf(c.Ctx, "Sending %v to GitHub statuses", data)
+	log.Debugf(c.Ctx, "Sending %v to GitHub statuses for commit %v", data, info.commit)
 	dataBytes, err := json.Marshal(data)
 
 	if err != nil {
