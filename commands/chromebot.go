@@ -95,8 +95,14 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderNames []string) (map[
 			build := rawBuild.(map[string]interface{})
 			builder := build["builder"].(map[string]interface{})
 			builderName := builder["builder"].(string)
-			commit := build["input"].(map[string]interface{})["gitilesCommit"].(map[string]interface{})["id"].(string)
-
+			commit := "unknown"
+			if build["input"] != nil {
+				input := build["input"].(map[string]interface{})
+				if input["gitilesCommit"] != nil {
+					gitilesCommit := input["gitilesCommit"].(map[string]interface{})
+					commit = gitilesCommit["id"].(string)
+				}
+			}
 			switch status := build["status"].(string); status {
 			case "STATUS_UNSPECIFIED", "SCHEDULED", "STARTED":
 				statuses[builderName] = append(statuses[builderName], &ChromebotResult{
