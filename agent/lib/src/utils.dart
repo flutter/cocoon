@@ -22,9 +22,9 @@ Config _config;
 Config get config => _config;
 
 List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
-ProcessManager _processManager = new LocalProcessManager();
+ProcessManager _processManager = LocalProcessManager();
 
-final Logger logger = new PrintLogger(out: stdout, level: LogLevel.info);
+final Logger logger = PrintLogger(out: stdout, level: LogLevel.info);
 
 class LogLevel {
   const LogLevel._(this._level, this.name);
@@ -73,8 +73,8 @@ class PrintLogger implements Logger {
 }
 
 String toLogString(String message, {LogLevel level}) {
-  final StringBuffer buffer = new StringBuffer();
-  buffer.write(new DateTime.now().toIso8601String());
+  final StringBuffer buffer = StringBuffer();
+  buffer.write(DateTime.now().toIso8601String());
   buffer.write(': ');
   if (level != null) {
     buffer.write(level.name);
@@ -87,18 +87,18 @@ String toLogString(String message, {LogLevel level}) {
 class ProcessInfo {
   ProcessInfo(this.command, this.process);
 
-  final DateTime startTime = new DateTime.now();
+  final DateTime startTime = DateTime.now();
   final String command;
   final Process process;
 
   @override
   String toString() {
-    return
-'''
+    return '''
   command : $command
   started : $startTime
   pid     : ${process.pid}
-'''.trim();
+'''
+        .trim();
   }
 }
 
@@ -107,15 +107,15 @@ class HealthCheckResult {
   HealthCheckResult.success([this.details]) : succeeded = true;
   HealthCheckResult.failure(this.details) : succeeded = false;
   HealthCheckResult.error(dynamic error, dynamic stackTrace)
-    : succeeded = false,
-      details = 'ERROR: $error\n${stackTrace ?? ''}';
+      : succeeded = false,
+        details = 'ERROR: $error\n${stackTrace ?? ''}';
 
   final bool succeeded;
   final String details;
 
   @override
   String toString() {
-    StringBuffer buf = new StringBuffer(succeeded ? 'succeeded' : 'failed');
+    StringBuffer buf = StringBuffer(succeeded ? 'succeeded' : 'failed');
     if (details != null && details.trim().isNotEmpty) {
       buf.writeln();
       // Indent details by 4 spaces
@@ -137,41 +137,58 @@ class BuildFailedError extends Error {
 }
 
 void fail(String message) {
-  throw new BuildFailedError(message);
+  throw BuildFailedError(message);
 }
 
 void rm(FileSystemEntity entity) {
-  if (entity.existsSync())
-    entity.deleteSync();
+  if (entity.existsSync()) entity.deleteSync();
 }
 
 /// Remove recursively.
 void rrm(FileSystemEntity entity) {
-  if (entity.existsSync())
-    entity.deleteSync(recursive: true);
+  if (entity.existsSync()) entity.deleteSync(recursive: true);
 }
 
 List<FileSystemEntity> ls(Directory directory) => directory.listSync();
 
 /// Creates a directory from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
-Directory dir(String thePath, [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
-  return new Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+Directory dir(String thePath,
+    [String part2,
+    String part3,
+    String part4,
+    String part5,
+    String part6,
+    String part7,
+    String part8]) {
+  return Directory(
+      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
 /// Creates a file from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
-File file(String thePath, [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
-  return new File(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+File file(String thePath,
+    [String part2,
+    String part3,
+    String part4,
+    String part5,
+    String part6,
+    String part7,
+    String part8]) {
+  return File(
+      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
-void copy(File sourceFile, Directory targetDirectory, { String name }) {
-  File target = file(path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
+void copy(File sourceFile, Directory targetDirectory, {String name}) {
+  File target = file(
+      path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
   target.writeAsBytesSync(sourceFile.readAsBytesSync());
 }
 
-FileSystemEntity move(FileSystemEntity whatToMove, { Directory to, String name }) {
-  return whatToMove.renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
+FileSystemEntity move(FileSystemEntity whatToMove,
+    {Directory to, String name}) {
+  return whatToMove
+      .renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
 }
 
 /// Equivalent of `mkdir directory`.
@@ -221,15 +238,17 @@ Future<String> getCurrentFlutterRepoCommit() {
 Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
   // git show -s --format=%at 4b546df7f0b3858aaaa56c4079e5be1ba91fbb65
   return inDirectory(config.flutterDirectory, () async {
-    String unixTimestamp = await eval('git', ['show', '-s', '--format=%at', commit]);
+    String unixTimestamp =
+        await eval('git', ['show', '-s', '--format=%at', commit]);
     int secondsSinceEpoch = int.parse(unixTimestamp);
-    return new DateTime.fromMillisecondsSinceEpoch(secondsSinceEpoch * 1000);
+    return DateTime.fromMillisecondsSinceEpoch(secondsSinceEpoch * 1000);
   });
 }
 
 /// When exists, this file indicates an installation is in progress or failed
 /// to complete.
-File get _installationLock => file(config.flutterDirectory.parent.path, '.installation-lock');
+File get _installationLock =>
+    file(config.flutterDirectory.parent.path, '.installation-lock');
 
 /// Flutter repository revision that's currently installed.
 ///
@@ -259,10 +278,10 @@ Future<Null> getFlutterAt(String revision) async {
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
-  if (!silent)
-    logger.info('Executing: $command');
-  Process proc = await _processManager.start([executable]..addAll(arguments), environment: env, workingDirectory: cwd);
-  ProcessInfo procInfo = new ProcessInfo(command, proc);
+  if (!silent) logger.info('Executing: $command');
+  Process proc = await _processManager.start([executable]..addAll(arguments),
+      environment: env, workingDirectory: cwd);
+  ProcessInfo procInfo = ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
   // ignore: unawaited_futures
@@ -275,7 +294,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
 
 Future<Null> forceQuitRunningProcesses() async {
   // Give normally quitting processes a chance to report their exit code.
-  await new Future.delayed(const Duration(seconds: 1));
+  await Future.delayed(const Duration(seconds: 1));
 
   // Whatever's left, kill it.
   for (ProcessInfo p in _runningProcesses) {
@@ -301,13 +320,13 @@ Future<int> exec(String executable, List<String> arguments,
   Process proc = await startProcess(executable, arguments, env: env);
 
   proc.stdout
-    .transform(utf8.decoder)
-    .transform(const LineSplitter())
-    .listen(logger.info);
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(logger.info);
   proc.stderr
-    .transform(utf8.decoder)
-    .transform(const LineSplitter())
-    .listen(logger.warning);
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(logger.warning);
 
   int exitCode = await proc.exitCode;
 
@@ -324,7 +343,8 @@ Future<int> exec(String executable, List<String> arguments,
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
+  Process proc =
+      await startProcess(executable, arguments, env: env, silent: silent);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
@@ -337,13 +357,15 @@ Future<String> eval(String executable, List<String> arguments,
   return output.trimRight();
 }
 
-Future<int> flutter(String command, {List<String> options: const<String>[], bool canFail: false}) {
-  List<String> args = [command]
-    ..addAll(options);
-  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail);
+Future<int> flutter(String command,
+    {List<String> options: const <String>[], bool canFail: false}) {
+  List<String> args = [command]..addAll(options);
+  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args,
+      canFail: canFail);
 }
 
-String get dartBin => path.join(config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
+String get dartBin => path.join(
+    config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
 
 Future<int> dart(List<String> args) => exec(dartBin, args);
 
@@ -389,19 +411,21 @@ class Config {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    Map<String, dynamic> agentConfig = loadYaml(agentConfigFile.readAsStringSync());
-    String baseCocoonUrl = agentConfig['base_cocoon_url'] ?? 'https://flutter-dashboard.appspot.com';
+    Map<String, dynamic> agentConfig =
+        loadYaml(agentConfigFile.readAsStringSync());
+    String baseCocoonUrl = agentConfig['base_cocoon_url'] ??
+        'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
     String authToken = requireConfigProperty<String>(agentConfig, 'auth_token');
-    String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-    if (home == null)
-      throw "Unable to find \$HOME or \$USERPROFILE.";
+    String home =
+        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    if (home == null) throw "Unable to find \$HOME or \$USERPROFILE.";
 
     Directory flutterDirectory = dir(home, '.cocoon', 'flutter');
     mkdirs(flutterDirectory);
 
     DeviceOperatingSystem deviceOperatingSystem;
-    switch(agentConfig['device_os']) {
+    switch (agentConfig['device_os']) {
       case 'android':
         deviceOperatingSystem = DeviceOperatingSystem.android;
         break;
@@ -409,10 +433,11 @@ class Config {
         deviceOperatingSystem = DeviceOperatingSystem.ios;
         break;
       default:
-        throw new BuildFailedError('Unrecognized device_os value: ${agentConfig['device_os']}');
+        throw BuildFailedError(
+            'Unrecognized device_os value: ${agentConfig['device_os']}');
     }
 
-    _config = new Config(
+    _config = Config(
       baseCocoonUrl: baseCocoonUrl,
       agentId: agentId,
       authToken: authToken,
@@ -432,32 +457,30 @@ class Config {
 
     if (androidHome == null)
       throw 'ANDROID_HOME environment variable missing. This variable must '
-            'point to the Android SDK directory containing platform-tools.';
+          'point to the Android SDK directory containing platform-tools.';
 
     String adbPath = path.join(androidHome, 'platform-tools', 'adb');
 
-    if (!_processManager.canRun(adbPath))
-      throw 'adb not found at: $adbPath';
+    if (!_processManager.canRun(adbPath)) throw 'adb not found at: $adbPath';
 
     return path.absolute(adbPath);
   }
 
   @override
-  String toString() =>
-'''
+  String toString() => '''
 baseCocoonUrl: $baseCocoonUrl
 agentId: $agentId
 flutterDirectory: $flutterDirectory
 adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
 deviceOperatingSystem: $deviceOperatingSystem
-'''.trim();
+'''
+      .trim();
 }
 
 String requireEnvVar(String name) {
   String value = Platform.environment[name];
 
-  if (value == null)
-    fail('${name} environment variable is missing. Quitting.');
+  if (value == null) fail('${name} environment variable is missing. Quitting.');
 
   return value;
 }
@@ -470,7 +493,7 @@ T requireConfigProperty<T>(Map<String, T> map, String propertyName) {
 }
 
 String jsonEncode(dynamic data) {
-  return new JsonEncoder.withIndent('  ').convert(data) + '\n';
+  return JsonEncoder.withIndent('  ').convert(data) + '\n';
 }
 
 Future<Null> getFlutter(String revision) async {
@@ -501,37 +524,35 @@ Future<Null> getFlutter(String revision) async {
   rm(_installationLock);
 }
 
-void checkNotNull(Object o1, [Object o2 = 1, Object o3 = 1, Object o4 = 1,
-    Object o5 = 1, Object o6 = 1, Object o7 = 1, Object o8 = 1, Object o9 = 1, Object o10 = 1]) {
-  if (o1 == null)
-    throw 'o1 is null';
+void checkNotNull(Object o1,
+    [Object o2 = 1,
+    Object o3 = 1,
+    Object o4 = 1,
+    Object o5 = 1,
+    Object o6 = 1,
+    Object o7 = 1,
+    Object o8 = 1,
+    Object o9 = 1,
+    Object o10 = 1]) {
+  if (o1 == null) throw 'o1 is null';
 
-  if (o2 == null)
-    throw 'o2 is null';
+  if (o2 == null) throw 'o2 is null';
 
-  if (o3 == null)
-    throw 'o3 is null';
+  if (o3 == null) throw 'o3 is null';
 
-  if (o4 == null)
-    throw 'o4 is null';
+  if (o4 == null) throw 'o4 is null';
 
-  if (o5 == null)
-    throw 'o5 is null';
+  if (o5 == null) throw 'o5 is null';
 
-  if (o6 == null)
-    throw 'o6 is null';
+  if (o6 == null) throw 'o6 is null';
 
-  if (o7 == null)
-    throw 'o7 is null';
+  if (o7 == null) throw 'o7 is null';
 
-  if (o8 == null)
-    throw 'o8 is null';
+  if (o8 == null) throw 'o8 is null';
 
-  if (o9 == null)
-    throw 'o9 is null';
+  if (o9 == null) throw 'o9 is null';
 
-  if (o10 == null)
-    throw 'o10 is null';
+  if (o10 == null) throw 'o10 is null';
 }
 
 /// Add benchmark values to a JSON results file.
@@ -539,12 +560,8 @@ void checkNotNull(Object o1, [Object o2 = 1, Object o3 = 1, Object o4 = 1,
 /// If the file contains information about how long the benchmark took to run
 /// (a `time` field), then return that info.
 // TODO(yjbanov): move this data to __metadata__
-num addBuildInfo(File jsonFile, {
-  num expected,
-  String sdk,
-  String commit,
-  DateTime timestamp
-}) {
+num addBuildInfo(File jsonFile,
+    {num expected, String sdk, String commit, DateTime timestamp}) {
   Map<String, dynamic> jsonData;
 
   if (jsonFile.existsSync())
@@ -552,12 +569,9 @@ num addBuildInfo(File jsonFile, {
   else
     jsonData = <String, dynamic>{};
 
-  if (expected != null)
-    jsonData['expected'] = expected;
-  if (sdk != null)
-    jsonData['sdk'] = sdk;
-  if (commit != null)
-    jsonData['commit'] = commit;
+  if (expected != null) jsonData['expected'] = expected;
+  if (sdk != null) jsonData['sdk'] = sdk;
+  if (commit != null) jsonData['commit'] = commit;
   if (timestamp != null)
     jsonData['timestamp'] = timestamp.millisecondsSinceEpoch;
 

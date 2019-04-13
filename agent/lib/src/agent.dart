@@ -19,18 +19,19 @@ class AuthenticatedClient extends BaseClient {
   final Client _delegate = new Client();
 
   @override
-  Future<StreamedResponse> send(Request request) async {
+  Future<StreamedResponse> send(BaseRequest request) async {
     request.headers['Agent-ID'] = _agentId;
     request.headers['Agent-Auth-Token'] = _authToken;
     final StreamedResponse resp = await _delegate.send(request);
 
     if (resp.statusCode != 200) {
       throw new ClientException(
-        'AuthenticatedClientError:\n'
-        '  URI: ${request.url}\n'
-        '  HTTP Status: ${resp.statusCode}\n'
-        '  Response body:\n'
-        '${(await Response.fromStream(resp)).body}', request.url);
+          'AuthenticatedClientError:\n'
+          '  URI: ${request.url}\n'
+          '  HTTP Status: ${resp.statusCode}\n'
+          '  Response body:\n'
+          '${(await Response.fromStream(resp)).body}',
+          request.url);
     }
     return resp;
   }
@@ -65,8 +66,11 @@ class CocoonTask {
 
 /// Client to the Coocon backend.
 class Agent {
-  Agent({@required this.baseCocoonUrl, @required this.agentId, @required this.authToken})
-    : httpClient = new AuthenticatedClient(agentId, authToken);
+  Agent(
+      {@required this.baseCocoonUrl,
+      @required this.agentId,
+      @required this.authToken})
+      : httpClient = new AuthenticatedClient(agentId, authToken);
 
   final String baseCocoonUrl;
   final String agentId;
@@ -85,14 +89,13 @@ class Agent {
     return json.decode(resp.body);
   }
 
-  Future<Null> uploadLogChunk(String taskKey, String chunk) async {
-    if (taskKey == null)
-      return;
+  Future<void> uploadLogChunk(String taskKey, String chunk) async {
+    if (taskKey == null) return;
     String url = '$baseCocoonUrl/api/append-log?ownerKey=${taskKey}';
     Response resp = await httpClient.post(url, body: chunk);
     if (resp.statusCode != 200) {
       throw 'Failed uploading log chunk. Server responded with HTTP status ${resp.statusCode}\n'
-            '${resp.body}';
+          '${resp.body}';
     }
   }
 
@@ -100,9 +103,8 @@ class Agent {
   ///
   /// If not tasks are available returns `null`.
   Future<CocoonTask> reserveTask() async {
-    Map<String, dynamic> reservation = await _cocoon('reserve-task', {
-      'AgentID': agentId
-    });
+    Map<String, dynamic> reservation =
+        await _cocoon('reserve-task', {'AgentID': agentId});
 
     if (reservation['TaskEntity'] != null) {
       return new CocoonTask(
@@ -117,7 +119,8 @@ class Agent {
     return null;
   }
 
-  Future<Null> reportSuccess(String taskKey, Map<String, dynamic> resultData, List<String> benchmarkScoreKeys) async {
+  Future<void> reportSuccess(String taskKey, Map<String, dynamic> resultData,
+      List<String> benchmarkScoreKeys) async {
     var status = <String, dynamic>{
       'TaskKey': taskKey,
       'NewStatus': 'Succeeded',
@@ -126,8 +129,8 @@ class Agent {
     // Make a copy of resultData because we may alter it during score key
     // validation below.
     resultData = resultData != null
-      ? new Map<String, dynamic>.from(resultData)
-      : <String, dynamic>{};
+        ? new Map<String, dynamic>.from(resultData)
+        : <String, dynamic>{};
     status['ResultData'] = resultData;
 
     var validScoreKeys = <String>[];
@@ -141,7 +144,8 @@ class Agent {
           resultData[scoreKey] = score.toDouble();
           validScoreKeys.add(scoreKey);
         } else {
-          logger.warning('non-numeric score value $score submitted for $scoreKey');
+          logger.warning(
+              'non-numeric score value $score submitted for $scoreKey');
         }
       }
     }
@@ -150,8 +154,9 @@ class Agent {
     await _cocoon('update-task-status', status);
   }
 
-  Future<Null> reportFailure(String taskKey, String reason) async {
-    await uploadLogChunk(taskKey, '\n\nTask failed with the following reason:\n$reason\n');
+  Future<void> reportFailure(String taskKey, String reason) async {
+    await uploadLogChunk(
+        taskKey, '\n\nTask failed with the following reason:\n$reason\n');
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
       'NewStatus': 'Failed',
@@ -162,7 +167,7 @@ class Agent {
     return (await _cocoon('get-authentication-status'))['Status'];
   }
 
-  Future<Null> updateHealthStatus(AgentHealth health) async {
+  Future<void> updateHealthStatus(AgentHealth health) async {
     await _cocoon('update-agent-health', {
       'AgentID': agentId,
       'IsHealthy': health.ok,
@@ -203,7 +208,9 @@ class AgentHealth {
   final Map<String, HealthCheckResult> checks = <String, HealthCheckResult>{};
 
   /// Whether all [checks] succeeded.
-  bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
+  bool get ok =>
+      checks.isNotEmpty &&
+      checks.values.every((HealthCheckResult r) => r.succeeded);
 
   /// Sets a health check [result] for a given [parameter].
   void operator []=(String parameter, HealthCheckResult result) {

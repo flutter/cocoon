@@ -1,11 +1,5 @@
 analyzer:
-  language:
-    enableSuperMixins: true
   errors:
-    # allow overriding fields (if they use super, ideally...)
-    strong_mode_invalid_field_override: ignore
-    # allow type narrowing
-    strong_mode_invalid_method_override: ignore
     strong_mode_down_cast_composite: ignore
     # allow having TODOs in the code
     todo: ignore
@@ -41,7 +35,6 @@ linter:
     - await_only_futures
     - camel_case_types
     # - constant_identifier_names # https://github.com/dart-lang/linter/issues/204
-    - control_flow_in_finally
     - empty_constructor_bodies
     - implementation_imports
     - library_names
@@ -57,7 +50,6 @@ linter:
     - slash_for_doc_comments
     - sort_constructors_first
     - sort_unnamed_constructors_first
-    - super_goes_last
     # - type_annotate_public_apis # subset of always_specify_types
     - type_init_formals
     - unawaited_futures # https://github.com/flutter/flutter/issues/5793

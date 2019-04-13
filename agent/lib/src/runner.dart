@@ -33,10 +33,10 @@ const int _kLogChunkSize = 10000;
 class TaskResult {
   /// Parses a task result from JSON.
   TaskResult.parse(Map<String, dynamic> json)
-    : succeeded = json['success'],
-      data = json['data'],
-      benchmarkScoreKeys = json['benchmarkScoreKeys'] ?? const <String>[],
-      reason = json['reason'];
+      : succeeded = json['success'],
+        data = json['data'],
+        benchmarkScoreKeys = json['benchmarkScoreKeys'] ?? const <String>[],
+        reason = json['reason'];
 
   /// Constructs an unsuccessful result.
   TaskResult.failure(this.reason)
@@ -74,7 +74,7 @@ class TaskResult {
       'success': succeeded,
       'data': data,
       'benchmarkScoreKeys': benchmarkScoreKeys,
-      'reason' : reason,
+      'reason': reason,
     };
   }
 }
@@ -94,12 +94,15 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   int vmServicePort = await _findAvailablePort();
   Process runner;
   await inDirectory(devicelabPath, () async {
-    runner = await startProcess(dartBin, <String>[
-      '--enable-vm-service=$vmServicePort',
-      '--no-pause-isolates-on-exit',
-      taskExecutable,
-      '--cloud-auth-token=${task.cloudAuthToken}',
-    ], silent: true);
+    runner = await startProcess(
+        dartBin,
+        <String>[
+          '--enable-vm-service=$vmServicePort',
+          '--no-pause-isolates-on-exit',
+          taskExecutable,
+          '--cloud-auth-token=${task.cloudAuthToken}',
+        ],
+        silent: true);
   });
 
   bool runnerFinished = false;
@@ -109,7 +112,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     runnerFinished = true;
   });
 
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
 
   Future<Null> sendLog(String message, {bool flush: false}) async {
     buffer.write(toLogString(message));
@@ -117,15 +120,17 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     // Send a chunk at a time, or upon request.
     if (flush || buffer.length > _kLogChunkSize) {
       String chunk = buffer.toString();
-      buffer = new StringBuffer();
+      buffer = StringBuffer();
       await agent.uploadLogChunk(task.key, chunk);
     }
   }
 
-  var stdoutSub = runner.stdout.transform(utf8.decoder).listen((String message) async {
+  var stdoutSub =
+      runner.stdout.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
-  var stderrSub = runner.stderr.transform(utf8.decoder).listen((String message) async {
+  var stderrSub =
+      runner.stderr.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
 
@@ -135,12 +140,13 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     waitingFor = 'task completion';
 
     Duration taskTimeout = task.timeoutInMinutes != 0
-      ? new Duration(minutes: task.timeoutInMinutes)
-      : _kDefaultTaskTimeout;
+        ? Duration(minutes: task.timeoutInMinutes)
+        : _kDefaultTaskTimeout;
 
-    Map<String, dynamic> taskResult =
-        await isolate.invokeExtension('ext.cocoonRunTask', <String, String>{'timeoutInMinutes': '${taskTimeout.inMinutes}'})
-            .timeout(taskTimeout + _kGracePeriod);
+    Map<String, dynamic> taskResult = await isolate.invokeExtension(
+        'ext.cocoonRunTask', <String, String>{
+      'timeoutInMinutes': '${taskTimeout.inMinutes}'
+    }).timeout(taskTimeout + _kGracePeriod);
 
     waitingFor = 'task process to exit';
     final Future<dynamic> whenProcessExits = Future.wait([
@@ -149,19 +155,17 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
       stderrSub.asFuture(),
     ]);
     await whenProcessExits.timeout(const Duration(seconds: 1));
-    return new TaskResult.parse(taskResult);
+    return TaskResult.parse(taskResult);
   } on TimeoutException catch (timeout) {
     runner.kill(ProcessSignal.sigint);
-    return new TaskResult.failure(
-      'Timeout waiting for $waitingFor: ${timeout.message}'
-    );
+    return TaskResult.failure(
+        'Timeout waiting for $waitingFor: ${timeout.message}');
   } finally {
     await stdoutSub.cancel();
     await stderrSub.cancel();
     await sendLog('Task execution finished', flush: true);
     // Force-quit the task runner process.
-    if (!runnerFinished)
-      runner.kill(ProcessSignal.sigkill);
+    if (!runnerFinished) runner.kill(ProcessSignal.sigkill);
     // Force-quit dangling local processes (such as adb commands).
     await forceQuitRunningProcesses();
   }
@@ -169,14 +173,14 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
 
 Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
   String url = 'ws://localhost:$vmServicePort/ws';
-  DateTime started = new DateTime.now();
+  DateTime started = DateTime.now();
 
   // TODO(yjbanov): due to lack of imagination at the moment the handshake with
   //                the task process is very rudimentary and requires this small
   //                delay to let the task process open up the VM service port.
   //                Otherwise we almost always hit the non-ready case first and
   //                wait a whole 1 second, which is annoying.
-  await new Future<Null>.delayed(const Duration(milliseconds: 100));
+  await Future<Null>.delayed(const Duration(milliseconds: 100));
 
   while (true) {
     try {
@@ -184,17 +188,16 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
       await (await WebSocket.connect(url)).close();
 
       // Look up the isolate.
-      VMServiceClient client = new VMServiceClient.connect(url);
+      VMServiceClient client = VMServiceClient.connect(url);
       VM vm = await client.getVM();
       VMIsolate isolate = vm.isolates.single;
       String response = await isolate.invokeExtension('ext.cocoonRunnerReady');
-      if (response != 'ready')
-        throw 'not ready yet';
+      if (response != 'ready') throw 'not ready yet';
       return isolate;
     } catch (error) {
       const Duration connectionTimeout = const Duration(seconds: 10);
-      if (new DateTime.now().difference(started) > connectionTimeout) {
-        throw new TimeoutException(
+      if (DateTime.now().difference(started) > connectionTimeout) {
+        throw TimeoutException(
           'Failed to connect to the task runner process',
           connectionTimeout,
         );
@@ -202,7 +205,7 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
       logger.info('VM service not ready yet: $error');
       const Duration pauseBetweenRetries = const Duration(milliseconds: 200);
       logger.info('Will retry in $pauseBetweenRetries.');
-      await new Future<Null>.delayed(pauseBetweenRetries);
+      await Future<void>.delayed(pauseBetweenRetries);
     }
   }
 }
