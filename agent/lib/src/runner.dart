@@ -136,7 +136,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
 
   String waitingFor = 'connection';
   try {
-    VMIsolate isolate = await _connectToRunnerIsolate(vmServicePort);
+    VMIsolateRef isolate = await _connectToRunnerIsolate(vmServicePort);
     waitingFor = 'task completion';
 
     Duration taskTimeout = task.timeoutInMinutes != 0
@@ -171,7 +171,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
   }
 }
 
-Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
+Future<VMIsolateRef> _connectToRunnerIsolate(int vmServicePort) async {
   String url = 'ws://localhost:$vmServicePort/ws';
   DateTime started = DateTime.now();
 
@@ -180,7 +180,7 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
   //                delay to let the task process open up the VM service port.
   //                Otherwise we almost always hit the non-ready case first and
   //                wait a whole 1 second, which is annoying.
-  await Future<Null>.delayed(const Duration(milliseconds: 100));
+  await Future<void>.delayed(const Duration(milliseconds: 100));
 
   while (true) {
     try {
@@ -190,7 +190,7 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
       // Look up the isolate.
       VMServiceClient client = VMServiceClient.connect(url);
       VM vm = await client.getVM();
-      VMIsolate isolate = vm.isolates.single as VMIsolate;
+      VMIsolateRef isolate = vm.isolates.single;
       String response = await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
       if (response != 'ready') throw 'not ready yet';
       return isolate;
