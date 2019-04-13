@@ -1,20 +1,18 @@
 name: cocoon
-version: 0.0.3
+version: 0.0.2
 homepage: https://github.com/flutter/cocoon
 
 environment:
   sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
-  angular: ^5.0.0
-  angular_forms: ^2.0.0
+  angular: 5.0.0
+  angular_forms: 2.0.0
   args:
   js:
   http:
   meta:
   json_annotation:
-  flutter_web: any
-  flutter_web_ui: any
 
 dev_dependencies:
   test:
@@ -25,14 +23,3 @@ dev_dependencies:
   # Includes the JavaScript compilers
   build_web_compilers: ^1.0.0
 
-# flutter_web packages are not published to pub.dartlang.org
-# These overrides tell the package tools to get them from GitHub
-dependency_overrides:
-  flutter_web:
-    git:
-      url: git@github.com:flutter/flutter_web.git
-      path: packages/flutter_web
-  flutter_web_ui:
-    git:
-      url: git@github.com:flutter/flutter_web.git
-      path: packages/flutter_web_ui
