@@ -114,16 +114,18 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<Map<String, HealthCheckResult>> checkDevices() async {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    for (AndroidDevice device in await discoverDevices()) {
-      try {
-        // Just a smoke test that we can read wakefulness state
-        // TODO(yjbanov): check battery level
-        await device._getWakefulness();
-        results['android-device-${device.deviceId}'] =
-            HealthCheckResult.success();
-      } catch (e, s) {
-        results['android-device-${device.deviceId}'] =
-            HealthCheckResult.error(e, s);
+    for (Device device in await discoverDevices()) {
+      if (device is AndroidDevice) {
+        try {
+          // Just a smoke test that we can read wakefulness state
+          // TODO(yjbanov): check battery level
+          await device._getWakefulness();
+          results['android-device-${device.deviceId}'] =
+              HealthCheckResult.success();
+        } catch (e, s) {
+          results['android-device-${device.deviceId}'] =
+              HealthCheckResult.error(e, s);
+        }
       }
     }
     return results;
@@ -242,7 +244,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<List<Device>> discoverDevices() async {
     List<String> iosDeviceIds =
-        LineSplitter.split(await eval('idevice_id', ['-l']));
+        LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
     if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds
         .map((String id) => IosDevice(deviceId: id))

@@ -82,7 +82,7 @@ class ContinuousIntegrationCommand extends Command {
                 .map((String line) => line.trim())
                 .where((String line) => line.isNotEmpty)
                 .forEach(logger.warning);
-            await Future.delayed(_sleepBetweenBuilds);
+            await Future<void>.delayed(_sleepBetweenBuilds);
             // Don't bother requesting new tasks if health is bad.
             return;
           }
@@ -124,8 +124,8 @@ class ContinuousIntegrationCommand extends Command {
         }
 
         logger.info('Pausing before asking for more tasks.');
-        await Future.delayed(_sleepBetweenBuilds);
-      }, onError: (error, stackTrace) {
+        await Future<void>.delayed(_sleepBetweenBuilds);
+      }, onError: (dynamic error, StackTrace stackTrace) {
         // Catches errors from dangling futures that cannot be reported to the
         // server.
         stderr.writeln('ERROR: $error\n$stackTrace');
@@ -213,7 +213,7 @@ class ContinuousIntegrationCommand extends Command {
     }
     _streamSubscriptions.clear();
     // TODO(yjbanov): stop processes launched by tasks, if any
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     exit(0);
   }
 }

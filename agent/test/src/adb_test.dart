@@ -118,22 +118,23 @@ class CommandArgs {
 
   @override
   bool operator ==(Object other) {
-    if (other.runtimeType != CommandArgs) return false;
-
-    CommandArgs otherCmd = other;
-    return otherCmd.command == this.command &&
-        const ListEquality().equals(otherCmd.arguments, this.arguments) &&
-        const MapEquality().equals(otherCmd.env, this.env);
+    if (other is CommandArgs) {
+      return other.command == this.command &&
+          const ListEquality<String>()
+              .equals(other.arguments, this.arguments) &&
+          const MapEquality<String, String>().equals(other.env, this.env);
+    }
+    return false;
   }
 
   @override
   int get hashCode => 17 * (17 * command.hashCode + _hashArguments) + _hashEnv;
 
   int get _hashArguments =>
-      arguments != null ? const ListEquality().hash(arguments) : null.hashCode;
+      arguments != null ? const ListEquality<String>().hash(arguments) : null.hashCode;
 
   int get _hashEnv =>
-      env != null ? const MapEquality().hash(env) : null.hashCode;
+      env != null ? const MapEquality<String, String>().hash(env) : null.hashCode;
 }
 
 class FakeDevice extends AndroidDevice {

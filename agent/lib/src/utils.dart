@@ -210,8 +210,8 @@ void section(String title) {
 
 Future<String> getDartVersion() async {
   // The Dart VM returns the version text to stderr.
-  ProcessResult result = _processManager.runSync([dartBin, '--version']);
-  String version = result.stderr.trim();
+  ProcessResult result = _processManager.runSync(<String>[dartBin, '--version']);
+  String version = result.stderr.trim() as String;
 
   // Convert:
   //   Dart VM version: 1.17.0-dev.2.0 (Tue May  3 12:14:52 2016) on "macos_x64"
@@ -225,24 +225,26 @@ Future<String> getDartVersion() async {
   return version.replaceAll('"', "'");
 }
 
-Future<String> getCurrentFlutterRepoCommit() {
+Future<String> getCurrentFlutterRepoCommit() async {
   if (!dir(config.flutterDirectory.path, '.git').existsSync()) {
     return null;
   }
 
-  return inDirectory(config.flutterDirectory, () {
+  final String result = await inDirectory(config.flutterDirectory, () {
     return eval('git', ['rev-parse', 'HEAD']);
-  });
+  }) as String;
+  return result;
 }
 
-Future<DateTime> getFlutterRepoCommitTimestamp(String commit) {
+Future<DateTime> getFlutterRepoCommitTimestamp(String commit) async {
   // git show -s --format=%at 4b546df7f0b3858aaaa56c4079e5be1ba91fbb65
-  return inDirectory(config.flutterDirectory, () async {
+  final DateTime result = await inDirectory(config.flutterDirectory, () async {
     String unixTimestamp =
         await eval('git', ['show', '-s', '--format=%at', commit]);
     int secondsSinceEpoch = int.parse(unixTimestamp);
     return DateTime.fromMillisecondsSinceEpoch(secondsSinceEpoch * 1000);
-  });
+  }) as DateTime;
+  return result;
 }
 
 /// When exists, this file indicates an installation is in progress or failed
@@ -279,7 +281,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
-  Process proc = await _processManager.start([executable]..addAll(arguments),
+  Process proc = await _processManager.start(<String>[executable]..addAll(arguments),
       environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
@@ -294,7 +296,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
 
 Future<Null> forceQuitRunningProcesses() async {
   // Give normally quitting processes a chance to report their exit code.
-  await Future.delayed(const Duration(seconds: 1));
+  await Future<void>.delayed(const Duration(seconds: 1));
 
   // Whatever's left, kill it.
   for (ProcessInfo p in _runningProcesses) {
@@ -405,14 +407,14 @@ class Config {
   });
 
   static void initialize(ArgResults args) {
-    File agentConfigFile = file(args['config-file']);
+    File agentConfigFile = file(args['config-file'] as String);
 
     if (!agentConfigFile.existsSync()) {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    YamlMap agentConfig = loadYaml(agentConfigFile.readAsStringSync());
-    String baseCocoonUrl = agentConfig['base_cocoon_url'] ??
+    YamlMap agentConfig = loadYaml(agentConfigFile.readAsStringSync()) as YamlMap;
+    String baseCocoonUrl = agentConfig['base_cocoon_url'] as String ??
         'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
     String authToken = requireConfigProperty<String>(agentConfig, 'auth_token');
@@ -424,7 +426,7 @@ class Config {
     mkdirs(flutterDirectory);
 
     DeviceOperatingSystem deviceOperatingSystem;
-    switch (agentConfig['device_os']) {
+    switch (agentConfig['device_os'] as String) {
       case 'android':
         deviceOperatingSystem = DeviceOperatingSystem.android;
         break;
@@ -488,7 +490,7 @@ T requireConfigProperty<T>(YamlMap map, String propertyName) {
   if (!map.containsKey(propertyName))
     fail('Configuration property not found: $propertyName');
 
-  return map[propertyName];
+  return map[propertyName] as T;
 }
 
 String jsonEncode(dynamic data) {
@@ -563,10 +565,11 @@ num addBuildInfo(File jsonFile,
     {num expected, String sdk, String commit, DateTime timestamp}) {
   Map<String, dynamic> jsonData;
 
-  if (jsonFile.existsSync())
-    jsonData = json.decode(jsonFile.readAsStringSync());
-  else
+  if (jsonFile.existsSync()) {
+    jsonData = json.decode(jsonFile.readAsStringSync()) as Map<String, dynamic>;
+  } else {
     jsonData = <String, dynamic>{};
+  }
 
   if (expected != null) jsonData['expected'] = expected;
   if (sdk != null) jsonData['sdk'] = sdk;
@@ -577,7 +580,7 @@ num addBuildInfo(File jsonFile,
   jsonFile.writeAsStringSync(jsonEncode(jsonData));
 
   // Return the elapsed time of the benchmark (if any).
-  return jsonData['time'];
+  return jsonData['time'] as num;
 }
 
 /// Splits [from] into lines and selects those that contain [pattern].

@@ -104,15 +104,15 @@ class Agent {
   /// If not tasks are available returns `null`.
   Future<CocoonTask> reserveTask() async {
     Map<String, dynamic> reservation =
-        await _cocoon('reserve-task', {'AgentID': agentId});
+        await _cocoon('reserve-task', {'AgentID': agentId}) as Map<String,  dynamic>;
 
     if (reservation['TaskEntity'] != null) {
       return new CocoonTask(
-        name: reservation['TaskEntity']['Task']['Name'],
-        key: reservation['TaskEntity']['Key'],
-        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'],
-        timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'],
-        cloudAuthToken: reservation['CloudAuthToken'],
+        name: reservation['TaskEntity']['Task']['Name'] as String,
+        key: reservation['TaskEntity']['Key'] as String,
+        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'] as String,
+        timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'] as int,
+        cloudAuthToken: reservation['CloudAuthToken'] as String,
       );
     }
 
@@ -136,7 +136,7 @@ class Agent {
     var validScoreKeys = <String>[];
     if (benchmarkScoreKeys != null) {
       for (String scoreKey in benchmarkScoreKeys) {
-        var score = resultData[scoreKey];
+        Object score = resultData[scoreKey];
         if (score is num) {
           // Convert all metrics to double, which provide plenty of precision
           // without having to add support for multiple numeric types on the
@@ -164,7 +164,7 @@ class Agent {
   }
 
   Future<String> getAuthenticationStatus() async {
-    return (await _cocoon('get-authentication-status'))['Status'];
+    return (await _cocoon('get-authentication-status'))['Status'] as String;
   }
 
   Future<void> updateHealthStatus(AgentHealth health) async {

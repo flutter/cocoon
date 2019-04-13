@@ -33,10 +33,10 @@ const int _kLogChunkSize = 10000;
 class TaskResult {
   /// Parses a task result from JSON.
   TaskResult.parse(Map<String, dynamic> json)
-      : succeeded = json['success'],
-        data = json['data'],
-        benchmarkScoreKeys = json['benchmarkScoreKeys'] ?? const <String>[],
-        reason = json['reason'];
+      : succeeded = json['success'] as bool,
+        data = json['data'] as Map<String, dynamic>,
+        benchmarkScoreKeys = json['benchmarkScoreKeys'] as List<String> ?? const <String>[],
+        reason = json['reason'] as String;
 
   /// Constructs an unsuccessful result.
   TaskResult.failure(this.reason)
@@ -70,7 +70,7 @@ class TaskResult {
   final String reason;
 
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'success': succeeded,
       'data': data,
       'benchmarkScoreKeys': benchmarkScoreKeys,
@@ -146,10 +146,10 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     Map<String, dynamic> taskResult = await isolate.invokeExtension(
         'ext.cocoonRunTask', <String, String>{
       'timeoutInMinutes': '${taskTimeout.inMinutes}'
-    }).timeout(taskTimeout + _kGracePeriod);
+    }).timeout(taskTimeout + _kGracePeriod) as Map<String, dynamic>;
 
     waitingFor = 'task process to exit';
-    final Future<dynamic> whenProcessExits = Future.wait([
+    final Future<dynamic> whenProcessExits = Future.wait<void>([
       runner.exitCode,
       stdoutSub.asFuture(),
       stderrSub.asFuture(),
@@ -190,8 +190,8 @@ Future<VMIsolate> _connectToRunnerIsolate(int vmServicePort) async {
       // Look up the isolate.
       VMServiceClient client = VMServiceClient.connect(url);
       VM vm = await client.getVM();
-      VMIsolate isolate = vm.isolates.single;
-      String response = await isolate.invokeExtension('ext.cocoonRunnerReady');
+      VMIsolate isolate = vm.isolates.single as VMIsolate;
+      String response = await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
       if (response != 'ready') throw 'not ready yet';
       return isolate;
     } catch (error) {

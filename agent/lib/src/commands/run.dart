@@ -24,9 +24,9 @@ class RunCommand extends Command {
   @override
   Future<Null> run(ArgResults args) async {
     logger.info('Running with args: ${args.arguments}');
-    String taskName = args['task'];
+    String taskName = args['task'] as String;
     if (taskName == null) throw ArgumentError('--task is required');
-    String revision = args['revision'];
+    String revision = args['revision'] as String;
 
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');

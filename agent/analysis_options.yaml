@@ -1,6 +1,8 @@
 analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
   errors:
-    strong_mode_down_cast_composite: ignore
     # allow having TODOs in the code
     todo: ignore
 
