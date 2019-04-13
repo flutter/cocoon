@@ -411,8 +411,7 @@ class Config {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    Map<String, dynamic> agentConfig =
-        loadYaml(agentConfigFile.readAsStringSync());
+    YamlMap agentConfig = loadYaml(agentConfigFile.readAsStringSync());
     String baseCocoonUrl = agentConfig['base_cocoon_url'] ??
         'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
@@ -485,7 +484,7 @@ String requireEnvVar(String name) {
   return value;
 }
 
-T requireConfigProperty<T>(Map<String, T> map, String propertyName) {
+T requireConfigProperty<T>(YamlMap map, String propertyName) {
   if (!map.containsKey(propertyName))
     fail('Configuration property not found: $propertyName');
 
