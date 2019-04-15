@@ -35,7 +35,7 @@ class TaskResult {
   TaskResult.parse(Map<String, dynamic> json)
       : succeeded = json['success'] as bool,
         data = json['data'] as Map<String, dynamic>,
-        benchmarkScoreKeys = json['benchmarkScoreKeys'] as List<String> ?? const <String>[],
+        benchmarkScoreKeys = json['benchmarkScoreKeys'] ?? const <String>[],
         reason = json['reason'] as String;
 
   /// Constructs an unsuccessful result.
@@ -61,7 +61,7 @@ class TaskResult {
   ///
   /// This convention reduces the amount of configuration that needs to be done
   /// to submit benchmark scores to Golem.
-  final List<String> benchmarkScoreKeys;
+  final dynamic benchmarkScoreKeys;
 
   /// Whether the task failed.
   bool get failed => !succeeded;

@@ -120,7 +120,7 @@ class Agent {
   }
 
   Future<void> reportSuccess(String taskKey, Map<String, dynamic> resultData,
-      List<String> benchmarkScoreKeys) async {
+      dynamic benchmarkScoreKeys) async {
     var status = <String, dynamic>{
       'TaskKey': taskKey,
       'NewStatus': 'Succeeded',
@@ -135,7 +135,8 @@ class Agent {
 
     var validScoreKeys = <String>[];
     if (benchmarkScoreKeys != null) {
-      for (String scoreKey in benchmarkScoreKeys) {
+      for (var rawScoreKey in benchmarkScoreKeys) {
+        String scoreKey = rawScoreKey as String;
         Object score = resultData[scoreKey];
         if (score is num) {
           // Convert all metrics to double, which provide plenty of precision
