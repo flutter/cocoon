@@ -97,6 +97,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     runner = await startProcess(dartBin, <String>[
       '--enable-vm-service=$vmServicePort',
       '--no-pause-isolates-on-exit',
+      '--disable-service-auth-codes',
       taskExecutable,
       '--cloud-auth-token=${task.cloudAuthToken}',
     ], silent: true);
