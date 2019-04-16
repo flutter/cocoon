@@ -15,35 +15,35 @@ import '../utils.dart';
 
 /// Runs a single task at a specified revision.
 class RunCommand extends Command {
-
   RunCommand(Agent agent) : super('run', agent);
 
-  static ArgParser argParser = new ArgParser()
+  static ArgParser argParser = ArgParser()
     ..addOption('task', abbr: 't')
     ..addOption('revision', abbr: 'r');
 
   @override
   Future<Null> run(ArgResults args) async {
     logger.info('Running with args: ${args.arguments}');
-    String taskName = args['task'];
-    if (taskName == null)
-      throw new ArgumentError('--task is required');
-    String revision = args['revision'];
+    String taskName = args['task'] as String;
+    if (taskName == null) throw ArgumentError('--task is required');
+    String revision = args['revision'] as String;
 
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    health.toString()
-      .split('\n')
-      .map((String line) => line.trim())
-      .where((String line) => line.isNotEmpty)
-      .forEach(logger.info);
+    health
+        .toString()
+        .split('\n')
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .forEach(logger.info);
 
     if (!health.ok) {
       logger.error('Some pre-flight checks failed. Quitting.');
       exit(1);
     }
 
-    CocoonTask task = new CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
+    CocoonTask task = CocoonTask(
+        name: taskName, revision: revision, timeoutInMinutes: 30);
     TaskResult result;
     try {
       if (task.revision != null) {
@@ -51,10 +51,11 @@ class RunCommand extends Command {
         // the task timeout.
         await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
       } else {
-        logger.info('NOTE: No --revision specified. Running on current checkout.');
+        logger.info(
+            'NOTE: No --revision specified. Running on current checkout.');
       }
       result = await runTask(agent, task);
-    } catch(error, stackTrace) {
+    } catch (error, stackTrace) {
       logger.error('ERROR: $error\n$stackTrace');
     } finally {
       await forceQuitRunningProcesses();
