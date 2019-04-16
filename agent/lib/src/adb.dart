@@ -120,11 +120,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
           // Just a smoke test that we can read wakefulness state
           // TODO(yjbanov): check battery level
           await device._getWakefulness();
-          results['android-device-${device.deviceId}'] =
-              HealthCheckResult.success();
+          results['android-device-${device.deviceId}'] = HealthCheckResult.success();
         } catch (e, s) {
-          results['android-device-${device.deviceId}'] =
-              HealthCheckResult.error(e, s);
+          results['android-device-${device.deviceId}'] = HealthCheckResult.error(e, s);
         }
       }
     }
@@ -148,9 +146,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     do {
       retry++;
       await Future<void>.delayed(const Duration(seconds: 1));
-      adbOk = await exec(config.adbPath, <String>['devices', '-l'],
-              canFail: true) ==
-          0;
+      adbOk = await exec(config.adbPath, <String>['devices', '-l'], canFail: true) == 0;
     } while (!adbOk && retry < 3);
   }
 }
@@ -203,8 +199,7 @@ class AndroidDevice implements Device {
 
   @override
   Future<void> disableAccessibility() async {
-    await shellExec('settings',
-        ['put', 'secure', 'enabled_accessibility_services', 'null']);
+    await shellExec('settings', ['put', 'secure', 'enabled_accessibility_services', 'null']);
   }
 
   /// Retrieves device's wakefulness state.
@@ -212,23 +207,18 @@ class AndroidDevice implements Device {
   /// See: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/PowerManagerInternal.java
   Future<String> _getWakefulness() async {
     String powerInfo = await shellEval('dumpsys', ['power']);
-    String wakefulness =
-        grep('mWakefulness=', from: powerInfo).single.split('=')[1].trim();
+    String wakefulness = grep('mWakefulness=', from: powerInfo).single.split('=')[1].trim();
     return wakefulness;
   }
 
   /// Executes [command] on `adb shell` and returns its exit code.
-  Future<void> shellExec(String command, List<String> arguments,
-      {Map<String, String> env}) async {
-    await exec(config.adbPath, ['shell', command]..addAll(arguments),
-        env: env, canFail: false);
+  Future<void> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
+    await exec(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
-  Future<String> shellEval(String command, List<String> arguments,
-      {Map<String, String> env}) {
-    return eval(config.adbPath, ['shell', command]..addAll(arguments),
-        env: env, canFail: false);
+  Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
+    return eval(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
 }
 
@@ -243,8 +233,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<Device>> discoverDevices() async {
-    List<String> iosDeviceIds =
-        LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
+    List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
     if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds
         .map((String id) => IosDevice(deviceId: id))
@@ -256,8 +245,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
     for (Device device in await discoverDevices()) {
       // TODO: do a more meaningful connectivity check than just recording the ID
-      results['ios-device-${device.deviceId}'] =
-          HealthCheckResult.success();
+      results['ios-device-${device.deviceId}'] = HealthCheckResult.success();
     }
     return results;
   }

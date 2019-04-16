@@ -156,8 +156,7 @@ class Agent {
   }
 
   Future<void> reportFailure(String taskKey, String reason) async {
-    await uploadLogChunk(
-        taskKey, '\n\nTask failed with the following reason:\n$reason\n');
+    await uploadLogChunk(taskKey, '\n\nTask failed with the following reason:\n$reason\n');
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
       'NewStatus': 'Failed',

@@ -49,8 +49,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
 /// Catches all exceptions and turns them into [HealthCheckResult] error.
 ///
 /// Null callback results are turned into [HealthCheckResult] success.
-Future<HealthCheckResult> _captureErrors(
-    Future<dynamic> healthCheckCallback()) async {
+Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) async {
   Completer<HealthCheckResult> completer = Completer<HealthCheckResult>();
 
   // We intentionally ignore the future returned by the Chain because we're
