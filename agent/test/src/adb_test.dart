@@ -119,10 +119,9 @@ class CommandArgs {
   @override
   bool operator ==(Object other) {
     if (other is CommandArgs) {
-      return other.command == this.command &&
-          const ListEquality<String>()
-              .equals(other.arguments, this.arguments) &&
-          const MapEquality<String, String>().equals(other.env, this.env);
+      return other.command == this.command
+        && const ListEquality<String>().equals(other.arguments, this.arguments)
+        && const MapEquality<String, String>().equals(other.env, this.env);
     }
     return false;
   }
