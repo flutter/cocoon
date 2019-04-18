@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import 'utils.dart';
 
 /// The root of the API for controlling devices.
-DeviceDiscovery get devices => new DeviceDiscovery();
+DeviceDiscovery get devices => DeviceDiscovery();
 
 /// Operating system on the devices that this agent is configured to test.
 enum DeviceOperatingSystem { android, ios }
@@ -18,13 +18,14 @@ enum DeviceOperatingSystem { android, ios }
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
   factory DeviceDiscovery() {
-    switch(config.deviceOperatingSystem) {
+    switch (config.deviceOperatingSystem) {
       case DeviceOperatingSystem.android:
-        return new AndroidDeviceDiscovery();
+        return AndroidDeviceDiscovery();
       case DeviceOperatingSystem.ios:
-        return new IosDeviceDiscovery();
+        return IosDeviceDiscovery();
       default:
-        throw new StateError('Unsupported device operating system: {config.deviceOperatingSystem}');
+        throw StateError(
+            'Unsupported device operating system: {config.deviceOperatingSystem}');
     }
   }
 
@@ -35,7 +36,7 @@ abstract class DeviceDiscovery {
   Future<Map<String, HealthCheckResult>> checkDevices();
 
   /// Prepares the system to run tasks.
-  Future<Null> performPreflightTasks();
+  Future<void> performPreflightTasks();
 }
 
 /// A proxy for one specific device.
@@ -50,49 +51,48 @@ abstract class Device {
   Future<bool> isAsleep();
 
   /// Wake up the device if it is not awake.
-  Future<Null> wakeUp();
+  Future<void> wakeUp();
 
   /// Send the device to sleep mode.
-  Future<Null> sendToSleep();
+  Future<void> sendToSleep();
 
   /// Emulates pressing the power button, toggling the device's on/off state.
-  Future<Null> togglePower();
+  Future<void> togglePower();
 
   /// Turns off TalkBack on Android devices, does nothing on iOS devices.
-  Future<Null> disableAccessibility();
+  Future<void> disableAccessibility();
 
   /// Unlocks the device.
   ///
   /// Assumes the device doesn't have a secure unlock pattern.
-  Future<Null> unlock();
+  Future<void> unlock();
 }
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
+  factory AndroidDeviceDiscovery() {
+    return _instance ??= AndroidDeviceDiscovery._();
+  }
+  AndroidDeviceDiscovery._();
+
   // Parses information about a device. Example:
   //
   // 015d172c98400a03       device usb:340787200X product:nakasi model:Nexus_7 device:grouper
-  static final RegExp _kDeviceRegex = new RegExp(r'^(\S+)\s+(\S+)(.*)');
+  static final RegExp _kDeviceRegex = RegExp(r'^(\S+)\s+(\S+)(.*)');
 
   static AndroidDeviceDiscovery _instance;
 
-  factory AndroidDeviceDiscovery() {
-    return _instance ??= new AndroidDeviceDiscovery._();
-  }
-
-  AndroidDeviceDiscovery._();
-
   @override
   Future<List<Device>> discoverDevices() async {
-    List<String> output = (await eval(config.adbPath, ['devices', '-l'], canFail: false))
-        .trim().split('\n');
+    List<String> output =
+        (await eval(config.adbPath, ['devices', '-l'], canFail: false))
+            .trim()
+            .split('\n');
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
-      if (line.startsWith('* daemon '))
-        continue;
+      if (line.startsWith('* daemon ')) continue;
 
-      if (line.startsWith('List of devices'))
-        continue;
+      if (line.startsWith('List of devices')) continue;
 
       if (_kDeviceRegex.hasMatch(line)) {
         Match match = _kDeviceRegex.firstMatch(line);
@@ -108,29 +108,29 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     }
 
-    return results
-      .map((String id) => new AndroidDevice(deviceId: id))
-      .toList();
+    return results.map((String id) => AndroidDevice(deviceId: id)).toList();
   }
 
   @override
   Future<Map<String, HealthCheckResult>> checkDevices() async {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    for (AndroidDevice device in await discoverDevices()) {
-      try {
-        // Just a smoke test that we can read wakefulness state
-        // TODO(yjbanov): check battery level
-        await device._getWakefulness();
-        results['android-device-${device.deviceId}'] = new HealthCheckResult.success();
-      } catch(e, s) {
-        results['android-device-${device.deviceId}'] = new HealthCheckResult.error(e, s);
+    for (Device device in await discoverDevices()) {
+      if (device is AndroidDevice) {
+        try {
+          // Just a smoke test that we can read wakefulness state
+          // TODO(yjbanov): check battery level
+          await device._getWakefulness();
+          results['android-device-${device.deviceId}'] = HealthCheckResult.success();
+        } catch (e, s) {
+          results['android-device-${device.deviceId}'] = HealthCheckResult.error(e, s);
+        }
       }
     }
     return results;
   }
 
   @override
-  Future<Null> performPreflightTasks() async {
+  Future<void> performPreflightTasks() async {
     // Kills the `adb` server causing it to start a new instance upon next
     // command.
     //
@@ -145,7 +145,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     bool adbOk = false;
     do {
       retry++;
-      await new Future<Null>.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
       adbOk = await exec(config.adbPath, <String>['devices', '-l'], canFail: true) == 0;
     } while (!adbOk && retry < 3);
   }
@@ -171,22 +171,20 @@ class AndroidDevice implements Device {
 
   /// Wake up the device if it is not awake using [togglePower].
   @override
-  Future<Null> wakeUp() async {
-    if (!(await isAwake()))
-      await togglePower();
+  Future<void> wakeUp() async {
+    if (!(await isAwake())) await togglePower();
   }
 
   /// Send the device to sleep mode if it is not asleep using [togglePower].
   @override
-  Future<Null> sendToSleep() async {
-    if (!(await isAsleep()))
-      await togglePower();
+  Future<void> sendToSleep() async {
+    if (!(await isAsleep())) await togglePower();
   }
 
   /// Sends `KEYCODE_POWER` (26), which causes the device to toggle its mode
   /// between awake and asleep.
   @override
-  Future<Null> togglePower() async {
+  Future<void> togglePower() async {
     await shellExec('input', const ['keyevent', '26']);
   }
 
@@ -194,13 +192,13 @@ class AndroidDevice implements Device {
   ///
   /// This only works when the device doesn't have a secure unlock pattern.
   @override
-  Future<Null> unlock() async {
+  Future<void> unlock() async {
     await wakeUp();
     await shellExec('input', const ['keyevent', '82']);
   }
 
   @override
-  Future<Null> disableAccessibility() async {
+  Future<void> disableAccessibility() async {
     await shellExec('settings', ['put', 'secure', 'enabled_accessibility_services', 'null']);
   }
 
@@ -214,7 +212,7 @@ class AndroidDevice implements Device {
   }
 
   /// Executes [command] on `adb shell` and returns its exit code.
-  Future<Null> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
+  Future<void> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
     await exec(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
 
@@ -225,23 +223,21 @@ class AndroidDevice implements Device {
 }
 
 class IosDeviceDiscovery implements DeviceDiscovery {
-
-  static IosDeviceDiscovery _instance;
-
   factory IosDeviceDiscovery() {
-    return _instance ??= new IosDeviceDiscovery._();
+    return _instance ??= IosDeviceDiscovery._();
   }
 
   IosDeviceDiscovery._();
 
+  static IosDeviceDiscovery _instance;
+
   @override
   Future<List<Device>> discoverDevices() async {
-    List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l']));
-    if (iosDeviceIds.isEmpty)
-      throw 'No connected iOS devices found.';
+    List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
+    if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds
-      .map((String id) => new IosDevice(deviceId: id))
-      .toList();
+        .map((String id) => IosDevice(deviceId: id))
+        .toList();
   }
 
   @override
@@ -249,13 +245,13 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
     for (Device device in await discoverDevices()) {
       // TODO: do a more meaningful connectivity check than just recording the ID
-      results['ios-device-${device.deviceId}'] = new HealthCheckResult.success();
+      results['ios-device-${device.deviceId}'] = HealthCheckResult.success();
     }
     return results;
   }
 
   @override
-  Future<Null> performPreflightTasks() async {
+  Future<void> performPreflightTasks() async {
     // Currently we do not have preflight tasks for iOS.
     return null;
   }
@@ -263,7 +259,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
 /// iOS device.
 class IosDevice implements Device {
-  const IosDevice({ @required this.deviceId });
+  const IosDevice({@required this.deviceId});
 
   @override
   final String deviceId;
@@ -280,17 +276,17 @@ class IosDevice implements Device {
   Future<bool> isAsleep() async => false;
 
   @override
-  Future<Null> wakeUp() async {}
+  Future<void> wakeUp() async {}
 
   @override
-  Future<Null> sendToSleep() async {}
+  Future<void> sendToSleep() async {}
 
   @override
-  Future<Null> togglePower() async {}
+  Future<void> togglePower() async {}
 
   @override
-  Future<Null> unlock() async {}
+  Future<void> unlock() async {}
 
   @override
-  Future<Null> disableAccessibility() async {}
+  Future<void> disableAccessibility() async {}
 }

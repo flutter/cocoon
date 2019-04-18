@@ -39,11 +39,12 @@ class ContinuousIntegrationCommand extends Command {
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    health.toString()
-      .split('\n')
-      .map((String line) => line.trim())
-      .where((String line) => line.isNotEmpty)
-      .forEach(logger.info);
+    health
+        .toString()
+        .split('\n')
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .forEach(logger.info);
 
     if (!health.ok) {
       logger.error('Some pre-flight checks failed. Quitting.');
@@ -56,7 +57,7 @@ class ContinuousIntegrationCommand extends Command {
     // Start CI mode
     section('Started continuous integration:');
     _listenToShutdownSignals();
-    while(!_exiting) {
+    while (!_exiting) {
       await runZoned(() async {
         agent.resetHttpClient();
 
@@ -75,12 +76,13 @@ class ContinuousIntegrationCommand extends Command {
 
           if (!health.ok) {
             logger.warning('Some health checks failed:');
-            health.toString()
-              .split('\n')
-              .map((String line) => line.trim())
-              .where((String line) => line.isNotEmpty)
-              .forEach(logger.warning);
-            await new Future.delayed(_sleepBetweenBuilds);
+            health
+                .toString()
+                .split('\n')
+                .map((String line) => line.trim())
+                .where((String line) => line.isNotEmpty)
+                .forEach(logger.warning);
+            await Future<void>.delayed(_sleepBetweenBuilds);
             // Don't bother requesting new tasks if health is bad.
             return;
           }
@@ -122,8 +124,8 @@ class ContinuousIntegrationCommand extends Command {
         }
 
         logger.info('Pausing before asking for more tasks.');
-        await new Future.delayed(_sleepBetweenBuilds);
-      }, onError: (error, stackTrace) {
+        await Future<void>.delayed(_sleepBetweenBuilds);
+      }, onError: (dynamic error, StackTrace stackTrace) {
         // Catches errors from dangling futures that cannot be reported to the
         // server.
         stderr.writeln('ERROR: $error\n$stackTrace');
@@ -139,7 +141,8 @@ class ContinuousIntegrationCommand extends Command {
   Future<Null> _cleanBuildDirectories(Agent agent, CocoonTask task) async {
     Future<Null> recursivelyDeleteBuildDirectories(Directory directory) async {
       final List<FileSystemEntity> contents = directory.listSync();
-      final bool isDartPackage = contents.any((FileSystemEntity entity) => entity is File && path.basename(entity.path) == 'pubspec.yaml');
+      final bool isDartPackage = contents.any((FileSystemEntity entity) =>
+          entity is File && path.basename(entity.path) == 'pubspec.yaml');
       if (isDartPackage) {
         for (FileSystemEntity entity in contents) {
           if (entity is Directory && path.basename(entity.path) == 'build') {
@@ -156,7 +159,8 @@ class ContinuousIntegrationCommand extends Command {
       }
     }
 
-    await agent.uploadLogChunk(task.key, 'Deleting build/ directories, if any.\n');
+    await agent.uploadLogChunk(
+        task.key, 'Deleting build/ directories, if any.\n');
     try {
       await recursivelyDeleteBuildDirectories(config.flutterDirectory);
     } catch (error, stack) {
@@ -170,7 +174,8 @@ class ContinuousIntegrationCommand extends Command {
   Future<Null> _runTask(CocoonTask task) async {
     TaskResult result = await runTask(agent, task);
     if (result.succeeded) {
-      await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
+      await agent.reportSuccess(
+          task.key, result.data, result.benchmarkScoreKeys);
     } else {
       await agent.reportFailure(task.key, result.reason);
     }
@@ -182,26 +187,22 @@ class ContinuousIntegrationCommand extends Command {
         await device.disableAccessibility();
         await device.sendToSleep();
       }
-    } catch(error, stackTrace) {
+    } catch (error, stackTrace) {
       // Best effort only.
       logger.warning('Failed to turn off screen: $error\n$stackTrace');
     }
   }
 
   void _listenToShutdownSignals() {
-    _streamSubscriptions.add(
-      ProcessSignal.sigint.watch().listen((_) {
-        logger.info('\nReceived SIGINT. Shutting down.');
-        _stop(ProcessSignal.sigint);
-      })
-    );
+    _streamSubscriptions.add(ProcessSignal.sigint.watch().listen((_) {
+      logger.info('\nReceived SIGINT. Shutting down.');
+      _stop(ProcessSignal.sigint);
+    }));
     if (!Platform.isWindows) {
-      _streamSubscriptions.add(
-        ProcessSignal.sigterm.watch().listen((_) {
-          logger.info('\nReceived SIGTERM. Shutting down.');
-          _stop(ProcessSignal.sigterm);
-       })
-      );
+      _streamSubscriptions.add(ProcessSignal.sigterm.watch().listen((_) {
+        logger.info('\nReceived SIGTERM. Shutting down.');
+        _stop(ProcessSignal.sigterm);
+      }));
     }
   }
 
@@ -212,7 +213,7 @@ class ContinuousIntegrationCommand extends Command {
     }
     _streamSubscriptions.clear();
     // TODO(yjbanov): stop processes launched by tasks, if any
-    await new Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     exit(0);
   }
 }

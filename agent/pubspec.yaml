@@ -1,21 +1,20 @@
 name: cocoon_agent
-version: 0.0.1
 author: Flutter Authors <flutter-dev@googlegroups.com>
 description: Flutter continuous integration agent (Cocoon agent)
 homepage: https://github.com/flutter/cocoon
 
 environment:
-  sdk: '>=1.12.0 <2.0.0'
+  sdk: '>=2.2.0'
 
 dependencies:
-  args: ^0.13.0
-  http: ^0.11.3
-  meta: ^1.0.4
-  path: ^1.3.0
-  process: ^2.0.1
-  vm_service_client: ^0.2.0
-  yaml: ^2.1.10
+  args: 1.5.1
+  http: 0.12.0+2
+  meta: 1.1.7
+  path: 1.6.2
+  process: 3.0.9
+  vm_service_client: 0.2.6+1
+  yaml: 2.1.15
 
 dev_dependencies:
-  test: ^0.12.13
-  collection: ^1.8.0
+  test: 1.6.2
+  collection: 1.14.11

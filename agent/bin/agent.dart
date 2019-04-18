@@ -13,7 +13,7 @@ import 'package:cocoon_agent/src/commands/run.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
 Future<Null> main(List<String> rawArgs) async {
-  ArgParser argParser = new ArgParser()
+  ArgParser argParser = ArgParser()
     ..addOption(
       'config-file',
       abbr: 'c',
@@ -28,7 +28,7 @@ Future<Null> main(List<String> rawArgs) async {
 
   Agent agent;
   try {
-    agent = new Agent(
+    agent = Agent(
       baseCocoonUrl: config.baseCocoonUrl,
       agentId: config.agentId,
       authToken: config.authToken,
@@ -40,8 +40,8 @@ Future<Null> main(List<String> rawArgs) async {
       allCommands[command.name] = command;
     }
 
-    registerCommand(new ContinuousIntegrationCommand(agent));
-    registerCommand(new RunCommand(agent));
+    registerCommand(ContinuousIntegrationCommand(agent));
+    registerCommand(RunCommand(agent));
 
     if (args.command == null) {
       print('No command specified, expected one of: ${allCommands.keys.join(', ')}');
