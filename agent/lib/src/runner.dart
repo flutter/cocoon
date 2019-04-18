@@ -99,6 +99,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
         <String>[
           '--enable-vm-service=$vmServicePort',
           '--no-pause-isolates-on-exit',
+          '--disable-service-auth-codes',
           taskExecutable,
           '--cloud-auth-token=${task.cloudAuthToken}',
         ],
