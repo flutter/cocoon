@@ -78,8 +78,7 @@ class MetapodBottomNavigationBar extends StatelessWidget {
           backgroundColor: theme.primaryColor,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.people_outline),
-          activeIcon: const Icon(Icons.people),
+          icon: const Icon(Icons.desktop_windows),
           title: const Text('Agents'),
           backgroundColor: theme.primaryColor,
         ),
