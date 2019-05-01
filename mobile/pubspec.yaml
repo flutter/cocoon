@@ -13,10 +13,6 @@ dependencies:
   url_launcher:
   flutter_secure_storage:
   path_provider:
-<<<<<<< HEAD
-  google_sign_in:
-=======
->>>>>>> ad6e51d4805ac434006dd83611aeeeca9a044c67
   cupertino_icons: ^0.1.2
 
 dev_dependencies:
