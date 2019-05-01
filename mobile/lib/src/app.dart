@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'agents/agents.dart';
 import 'benchmarks/benchmarks.dart';
-import 'build/build.dart';
+import 'build_status/build_status.dart';
 import 'tasks/tasks.dart';
 
 class MetapodApp extends StatefulWidget {
