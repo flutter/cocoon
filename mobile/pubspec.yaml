@@ -20,7 +20,6 @@ dev_dependencies:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  test: 1.5.1
   build_runner:
 
 flutter:
