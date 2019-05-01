@@ -86,12 +86,12 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Text('This authorization is for flutter team accounts to allow for dashboard '
                   'maintinence. This permits viewing of certain logs and rerunning of dashboard tasks.'),
             ),
-            Center(
-              child: RaisedButton(
-                child: _signInModel.isSignedIntoCocoon ? const Text('Sign out') : const Text('Sign in'),
-                onPressed: _signInModel.signIntoGoogle,
-              ),
-            ),
+            // Center(
+            //   child: RaisedButton(
+            //     child: _signInModel.isSignedIntoCocoon ? const Text('Sign out') : const Text('Sign in'),
+            //     onPressed: _signInModel.signIntoGoogle,
+            //   ),
+            // ),
             const SizedBox(height: 18),
             const Divider(),
             const SizedBox(height: 18),

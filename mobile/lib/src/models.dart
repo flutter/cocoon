@@ -7,8 +7,8 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'entities.dart';
@@ -139,17 +139,6 @@ class BenchmarkModel extends ChangeNotifier with Memento {
     notifyListeners();
   }
 
-  bool get showFailures => _showFailures;
-  bool _showFailures = false;
-  set showFailures(bool value) {
-    if (value == _showFailures) {
-      return;
-    }
-    _showFailures = value;
-    _filterBenchmarks();
-    notifyListeners();
-  }
-
   String get nameQuery => _nameQuery;
   String _nameQuery;
   set nameQuery(String value) {
@@ -196,9 +185,6 @@ class BenchmarkModel extends ChangeNotifier with Memento {
         continue;
       }
       if (_showFavorites && !userSettingsModel.favoriteBenchmarks.contains(benchmark.timeseries.timeseries.id)) {
-        continue;
-      }
-      if (_showFailures && benchmark.values.last.value <= benchmark.timeseries.timeseries.baseline) {
         continue;
       }
       if (nameQuery != null &&
@@ -325,10 +311,6 @@ class BuildStatusModel extends ChangeNotifier with Memento {
     return agentStatuses.where((status) => !status.isHealthy).length;
   }
 
-  Future<void> resetTask(String id) async {
-    return service.resetTask(id);
-  }
-
   /// Returns the most recent commit, or null if it is not loaded.
   CommitInfo get lastCommit {
     if (!isLoaded || statuses.isEmpty) {
@@ -421,20 +403,21 @@ class CommitModel extends ChangeNotifier with Memento {
 }
 
 class SignInModel extends ChangeNotifier {
-  SignInModel({@required this.service, this.googleSignIn}) {
-    googleSignIn.signInSilently().then((account) {
-      if (account != null) {
-        _googleAccount = account;
-      }
-    });
-  }
+  SignInModel({@required this.service});
 
   final ApplicationService service;
-  final GoogleSignIn googleSignIn;
   final _storage = FlutterSecureStorage();
 
-  GoogleSignInAccount get googleAccount => _googleAccount;
-  GoogleSignInAccount _googleAccount;
+  Future<void> checkCocoonStatus() async {
+    var result = await service.fetchAuthenticationStatus();
+    _loginUrl = result.loginUrl;
+    _logoutUrl = result.logoutUrl;
+    if (result.isAuthenticated) {
+      _isSignedIntoCocoon = true;
+      notifyListeners();
+      return;
+    }
+  }
 
   Future<void> checkGithubStatus() async {
     if (_githubToken != null && _githubUsername != null) {
@@ -446,23 +429,6 @@ class SignInModel extends ChangeNotifier {
       return;
     }
     notifyListeners();
-  }
-
-  Future<void> signIntoGoogle() async {
-    try {
-      _googleAccount = await googleSignIn.signIn();
-    } finally {
-      notifyListeners();
-    }
-  }
-
-  Future<void> signOutGoogle() async {
-    try {
-      await googleSignIn.signOut();
-      _googleAccount = null;
-    } finally {
-      notifyListeners();
-    }
   }
 
   Future<void> signIntoGithub(String username, String token) async {
@@ -480,6 +446,23 @@ class SignInModel extends ChangeNotifier {
     await _storage.delete(key: 'metapod-token');
     notifyListeners();
   }
+
+  void signIntoCocoon() async {
+    if (_loginUrl == null) {
+      await checkCocoonStatus();
+    }
+    launch(_loginUrl);
+  }
+
+  void signOutCocoon() async {
+    if (_logoutUrl == null) {
+      await checkCocoonStatus();
+    }
+    launch(_logoutUrl);
+  }
+
+  String _loginUrl;
+  String _logoutUrl;
 
   String get githubToken => _githubToken;
   String _githubToken;

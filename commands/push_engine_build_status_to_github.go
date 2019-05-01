@@ -7,95 +7,88 @@ package commands
 import (
 	"cocoon/db"
 	"fmt"
-	"google.golang.org/appengine/memcache"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
 )
 
 const engineRepositoryApiUrl = "https://api.github.com/repos/flutter/engine"
 
 // Pushes the latest build status to Github PRs and commits.
 func PushEngineBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error) {
-	if err := pushLatestEngineBuildStatusToGithub(c, "Linux Engine", "linux-build"); err != nil {
+	builders := []string{"Linux Host Engine", "Linux Android Debug Engine", "Linux Android AOT Engine", "Linux Android Dynamic Engine", "Mac Host Engine", "Mac Android Debug Engine", "Mac Android AOT Engine", "Mac Android Dynamic Engine", "Mac iOS Engine", "Windows Host Engine", "Windows Android AOT Engine", "Windows Android Dynamic Engine"}
+
+	if err := pushLatestEngineBuildStatusToGithub(c, builders); err != nil {
 		return nil, err
 	}
-
-	if err := pushLatestEngineBuildStatusToGithub(c, "Mac Engine", "mac-build"); err != nil {
-		return nil, err
-	}
-
-	if err := pushLatestEngineBuildStatusToGithub(c, "Windows Engine", "windows-build"); err != nil {
-		return nil, err
-	}
-
 	return nil, nil
 }
 
 // Fetches build statuses for the given builder, then updates all PRs with the latest failed or succeeded status.
-func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderName string, buildContext string) error {
-	statuses, err := fetchChromebotBuildStatuses(c, builderName)
+func pushLatestEngineBuildStatusToGithub(c *db.Cocoon, builderNames []string) error {
+	allStatuses, err := fetchChromebotBuildStatuses(c, builderNames)
 
 	if err != nil {
 		return err
 	}
 
-	if len(statuses) == 0 {
-		return nil
-	}
-
 	latestStatus := db.BuildNew
-	for i := len(statuses) - 1; i >= 0 && latestStatus == db.BuildNew; i-- {
-		status := statuses[i]
-
-		switch status.State {
-		case db.TaskFailed:
-			latestStatus = db.BuildFailed
-		case db.TaskSucceeded:
-			latestStatus = db.BuildSucceeded
+	for _, statuses := range allStatuses {
+		latestStatus = getLatestStatus(statuses)
+		if latestStatus == db.BuildFailed {
+			break
 		}
 	}
-
-	if latestStatus == db.BuildNew {
-		// No final statuses found. Nothing to report
-		return nil
-	}
-
 	pullRequests, err := fetchPullRequests(c, engineRepositoryApiUrl)
 
 	if err != nil {
 		return err
 	}
 
+	var lastError error
 	for _, pr := range pullRequests {
-		lastSubmittedValue, err := fetchLastEngineBuildStatusSubmittedToGithub(c.Ctx, builderName, pr.Head.Sha)
+		lastSubmittedValue, err := fetchLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha)
 
 		if err != nil {
 			return err
 		}
-
 		// Do not ping GitHub unnecessarily if the latest status hasn't changed. GitHub can rate limit us for this.
 		if lastSubmittedValue != latestStatus {
 			// Don't push GitHub status from the local dev server.
 			if !appengine.IsDevAppServer() {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
-					buildContext: buildContext,
-					buildName: builderName,
-					link: "https://build.chromium.org/p/client.flutter/waterfall",
-					commit: pr.Head.Sha,
+					buildContext:     "luci-engine",
+					buildName:        "luci-engine",
+					link:             "https://ci.chromium.org/p/flutter/g/engine/console",
+					commit:           pr.Head.Sha,
 					gitHubRepoApiURL: engineRepositoryApiUrl,
-					status: latestStatus,
+					status:           latestStatus,
 				})
 
 				if err != nil {
-					return err
+					lastError = err
+					log.Errorf(c.Ctx, "Failed to update SHA %v, %v", pr.Head.Sha, err)
 				}
 			}
 
-			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, builderName, pr.Head.Sha, latestStatus)
+			cacheLastEngineBuildStatusSubmittedToGithub(c.Ctx, "luci-engine", pr.Head.Sha, latestStatus)
 		}
 	}
+	return lastError
+}
 
-	return nil
+func getLatestStatus(statuses []*ChromebotResult) db.BuildResult {
+	for _, status := range statuses {
+		switch status.State {
+		case db.TaskFailed:
+			return db.BuildFailed
+		case db.TaskSucceeded:
+			return db.BuildSucceeded
+		}
+	}
+	return db.BuildNew
 }
 
 func lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName string, sha string) string {
@@ -116,9 +109,9 @@ func fetchLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderNam
 	}
 }
 
-func cacheLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderName string, sha string, newValue db.BuildResult) (error) {
+func cacheLastEngineBuildStatusSubmittedToGithub(ctx context.Context, builderName string, sha string, newValue db.BuildResult) error {
 	return memcache.Set(ctx, &memcache.Item{
-		Key: lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName, sha),
+		Key:   lastEngineBuildStatusSubmittedToGithubMemcacheKey(builderName, sha),
 		Value: []byte(fmt.Sprintf("%v", newValue)),
 	})
 }

@@ -8,7 +8,6 @@ import '../entities.dart';
 import '../providers.dart';
 import '../utils/framework.dart';
 import '../utils/semantics.dart';
-import 'slide_actions.dart';
 
 import 'chart.dart';
 import 'details.dart';
@@ -30,11 +29,9 @@ class BenchmarksPage extends StatelessWidget {
         requestBenchmarks: benchmarkModel.requestBenchmarks,
         archived: benchmarkModel.showArchived,
         favorites: benchmarkModel.showFavorites,
-        failing: benchmarkModel.showFailures,
         updateFilter: (value) => benchmarkModel.nameQuery = value,
         toggleArchived: () => benchmarkModel.showArchived = !benchmarkModel.showArchived,
         toggleFavorites: () => benchmarkModel.showFavorites = !benchmarkModel.showFavorites,
-        toggleFailing: () => benchmarkModel.showFailures = !benchmarkModel.showFailures,
         filter: benchmarkModel.nameQuery,
       ),
     );
@@ -48,11 +45,9 @@ class BenchmarksPageBody extends StatefulWidget {
     @required this.requestBenchmarks,
     @required this.archived,
     @required this.favorites,
-    @required this.failing,
     @required this.updateFilter,
     @required this.toggleArchived,
     @required this.toggleFavorites,
-    @required this.toggleFailing,
     @required this.filter,
   });
 
@@ -60,12 +55,10 @@ class BenchmarksPageBody extends StatefulWidget {
   final bool loaded;
   final bool archived;
   final bool favorites;
-  final bool failing;
   final Future<void> Function({bool force}) requestBenchmarks;
   final void Function(String) updateFilter;
   final void Function() toggleArchived;
   final void Function() toggleFavorites;
-  final void Function() toggleFailing;
   final String filter;
 
   @override
@@ -87,6 +80,14 @@ class _BenchmarksPageBodyState extends State<BenchmarksPageBody> {
       _showSearch = false;
       widget.updateFilter('');
     });
+  }
+
+  void _onSelected(int value) {
+    if (value == 0) {
+      widget.toggleArchived();
+    } else if (value == 1) {
+      widget.toggleFavorites();
+    }
   }
 
   @override
@@ -115,33 +116,26 @@ class _BenchmarksPageBodyState extends State<BenchmarksPageBody> {
           tooltip: 'Options',
           itemBuilder: (context) {
             return [
-              CheckboxValueItem(
-                label: const Text('Archived'),
+              CheckedPopupMenuItem(
+                child: const Text('Show archived'),
                 value: 0,
-                selected: widget.archived,
-                onChanged: () {
-                  widget.toggleArchived();
-                },
+                checked: widget.archived,
               ),
-              CheckboxValueItem(
-                label: const Text('Favorites'),
+              CheckedPopupMenuItem(
+                child: const Text('Show favorites'),
                 value: 1,
-                selected: widget.favorites,
-                onChanged: () {
-                  widget.toggleFavorites();
-                },
-              ),
-              CheckboxValueItem(
-                label: const Text('Failing'),
-                value: 2,
-                selected: widget.failing,
-                onChanged: () {
-                  widget.toggleFailing();
-                },
+                checked: widget.favorites,
               ),
             ];
           },
-          onSelected: (_) {},
+          onSelected: _onSelected,
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          tooltip: 'Settings',
+          onPressed: () {
+            Navigator.of(context).pushNamed('accounts');
+          },
         ),
       ];
     } else {
@@ -161,7 +155,7 @@ class _BenchmarksPageBodyState extends State<BenchmarksPageBody> {
       SliverAppBar(
         title: title,
         actions: actions,
-        floating: true,
+        pinned: true,
       ),
     ];
     if (widget.loaded) {
@@ -185,20 +179,11 @@ class _BenchmarksPageBodyState extends State<BenchmarksPageBody> {
         child: Center(child: CircularProgressIndicator(semanticsLabel: 'Loading')),
       ));
     }
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: Theme.of(context).primaryColorDark),
-      child: SafeArea(
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: Theme.of(context).canvasColor),
-          child: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            child: CustomScrollView(
-              slivers: slivers,
-              semanticChildCount: widget.loaded ? widget.benchmarks.length : 1,
-            ),
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: CustomScrollView(
+        slivers: slivers,
+        semanticChildCount: widget.loaded ? widget.benchmarks.length : 1,
       ),
     );
   }
@@ -235,132 +220,38 @@ class _BenchmarkListTileState extends State<BenchmarkListTile> {
     var label = widget.data.timeseries.timeseries.label;
     var id = widget.data.timeseries.timeseries.id;
     var isFavorite = userSettingsModel.favoriteBenchmarks.contains(id);
-    var theme = Theme.of(context);
-    var isPassing = widget.data.values.last.value <= widget.data.timeseries.timeseries.baseline;
-    Widget trailing;
-    if (isPassing) {
-      trailing = Container(
+    return ListTile(
+      leading: SizedBox(
         width: 36,
         height: 36,
-        child: const Center(
-          child: Text('P', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), semanticsLabel: 'Passing'),
-        ),
-        decoration: BoxDecoration(color: theme.canvasColor, border: Border.all(color: Colors.black54)),
-      );
-    } else {
-      trailing = Container(
-        width: 36,
-        height: 36,
-        child: const Center(
-          child: Text('F', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), semanticsLabel: 'Failing'),
-        ),
-        decoration: BoxDecoration(color: Colors.redAccent, border: Border.all(color: Colors.black54)),
-      );
-    }
-    return SlideActions(
-      direction: DismissDirection.endToStart,
-      key: ValueKey(id),
-      background: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColorDark,
-        ),
-        child: ListTile(
-          subtitle: Text(''),
-          isThreeLine: true,
-          trailing: IconButton(
-            iconSize: 36,
-            icon: isFavorite ? const Icon(Icons.star, color: Colors.white) : const Icon(Icons.star_border, color: Colors.white),
-            onPressed: () {
-              if (isFavorite) {
-                userSettingsModel.removeFavoriteBenchmark(id);
-              } else {
-                userSettingsModel.addFavoriteBenchmark(id);
-              }
-            },
+        child: Hero(
+          child: BenchmarkChart(
+            data: widget.data,
           ),
+          tag: widget.data,
         ),
       ),
-      child: ListTile(
-        trailing: trailing,
-        leading: SizedBox(
-          width: 36,
-          height: 36,
-          child: Hero(
-            child: BenchmarkChart(
-              data: widget.data,
-            ),
-            tag: widget.data,
-          ),
-        ),
-        isThreeLine: true,
-        title: Text(
-          '$title',
-          semanticsLabel: title.replaceAll('_', ' '),
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text('$label\n'
-            '${widget.data.values.last.value.round()} '
-            '${widget.data.timeseries.timeseries.unit}'),
-        onTap: _onPressed,
+      isThreeLine: true,
+      title: Text(
+        '$title',
+        semanticsLabel: title.replaceAll('_', ' '),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text('$label\n'
+          '${widget.data.values.last.value.round()} '
+          '${widget.data.timeseries.timeseries.unit}'),
+      onTap: _onPressed,
+      onLongPress: _onPressed,
+      trailing: IconButton(
+        icon: isFavorite ? const Icon(Icons.star) : const Icon(Icons.star_border),
+        onPressed: () {
+          if (isFavorite) {
+            userSettingsModel.removeFavoriteBenchmark(id);
+          } else {
+            userSettingsModel.addFavoriteBenchmark(id);
+          }
+        },
       ),
     );
   }
-}
-
-class CheckboxValueItem<T> extends PopupMenuItem<T> {
-  const CheckboxValueItem({
-    this.value,
-    this.label,
-    this.selected,
-    this.onChanged,
-  });
-
-  final T value;
-  final bool selected;
-  final Widget label;
-  final void Function() onChanged;
-
-  @override
-  double get height => 48;
-
-  @override
-  bool represents(T value) => value == this.value;
-
-  @override
-  PopupMenuItemState<T, PopupMenuItem<T>>  createState() {
-    return _CheckboxValueItemState();
-  }
-}
-
-
-
-class _CheckboxValueItemState<T> extends PopupMenuItemState<T, CheckboxValueItem<T>> {
-  bool _localValue;
-
-  @override
-  Widget buildChild() {
-    return Container(
-      width: 180,
-      height: 48,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Checkbox(
-            value: _localValue ?? widget.selected,
-            onChanged: (bool newValue) {
-              setState(() {
-                _localValue = newValue;
-              });
-              widget.onChanged();
-            },
-          ),
-          widget.label,
-        ],
-      ),
-    );
-  }
-
-  @override
-  void handleTap() {}
 }

@@ -3,11 +3,13 @@ package commands
 import (
 	"bytes"
 	"cocoon/db"
-	"encoding/base64"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"google.golang.org/appengine/urlfetch"
 )
@@ -18,11 +20,22 @@ type ChromebotResult struct {
 	State  db.TaskStatus
 }
 
-// Fetches Flutter chromebot build statuses for the given builder in chronological order.
-func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*ChromebotResult, error) {
-	const miloURL = "https://ci.chromium.org/prpc/milo.Buildbot/GetBuildbotBuildsJSON"
-	requestData := fmt.Sprintf("{\"master\": \"client.flutter\", \"builder\": \"%v\"}", builderName)
-	request, err := http.NewRequest("POST", miloURL, bytes.NewReader([]byte(requestData)))
+func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderNames []string) (map[string][]*ChromebotResult, error) {
+	const buildbucketV2URL = "https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds/Batch"
+	const maxResults = 40
+	statuses := make(map[string][]*ChromebotResult)
+
+	var requestData bytes.Buffer
+	requestData.WriteString("{\"requests\": [")
+	for i, builderName := range builderNames {
+		statuses[builderName] = make([]*ChromebotResult, 0, maxResults)
+		requestData.WriteString(fmt.Sprintf("{\"searchBuilds\":{\"predicate\":{\"builder\":{\"project\":\"flutter\",\"bucket\":\"prod\",\"builder\":\"%v\"}},\"pageSize\": %d}}", builderName, maxResults))
+		if i != len(builderNames)-1 {
+			requestData.WriteString(",")
+		}
+	}
+	requestData.WriteString("]}")
+	request, err := http.NewRequest("POST", buildbucketV2URL, bytes.NewReader(requestData.Bytes()))
 
 	if err != nil {
 		return nil, err
@@ -31,7 +44,9 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Content-Type", "application/json")
 
-	httpClient := urlfetch.Client(cocoon.Ctx)
+	ctx, cancel := context.WithTimeout(cocoon.Ctx, 1*time.Minute)
+	defer cancel()
+	httpClient := urlfetch.Client(ctx)
 	response, err := httpClient.Do(request)
 
 	if err != nil {
@@ -39,7 +54,7 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 	}
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("%v responded with HTTP status %v", miloURL, response.StatusCode)
+		return nil, fmt.Errorf("%v responded with HTTP status %v", buildbucketV2URL, response.StatusCode)
 	}
 
 	defer response.Body.Close()
@@ -56,7 +71,7 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 	openBraceIndex := bytes.Index(responseData, []byte("{"))
 
 	if openBraceIndex == -1 {
-		return nil, fmt.Errorf("%v returned JSON that's missing open brace", miloURL)
+		return nil, fmt.Errorf("%v returned JSON that's missing open brace", buildbucketV2URL)
 	}
 
 	responseData = responseData[openBraceIndex:]
@@ -67,105 +82,50 @@ func fetchChromebotBuildStatuses(cocoon *db.Cocoon, builderName string) ([]*Chro
 	if err != nil {
 		return nil, err
 	}
+	responses := responseJSON.(map[string]interface{})["responses"].([]interface{})
 
-	builds := responseJSON.(map[string]interface{})["builds"].([]interface{})
-
-	var results []*ChromebotResult
-
-	count := len(builds)
-	if count > 40 {
-		count = 40
+	if len(responses) != len(builderNames) {
+		return nil, errors.New("failed to get all builders")
 	}
 
-	for i := count - 1; i >= 0; i-- {
-		rawBuildJSON := builds[i].(map[string]interface{})
-		buildBase64String := rawBuildJSON["data"].(string)
-		buildBase64Bytes, err := base64.StdEncoding.DecodeString(buildBase64String)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var buildJSON map[string]interface{}
-		err = json.Unmarshal(buildBase64Bytes, &buildJSON)
-
-		if err != nil {
-			return nil, err
-		}
-
-		results = append(results, &ChromebotResult{
-			Commit: getBuildProperty(buildJSON, "got_revision"),
-			State:  getStatus(buildJSON),
-		})
-	}
-
-	return results, nil
-}
-
-// Properties are encoded as:
-//
-//     {
-//       "properties": [
-//         [
-//           "name1",
-//           value1,
-//           ... things we don't care about ...
-//         ],
-//         [
-//           "name2",
-//           value2,
-//           ... things we don't care about ...
-//         ]
-//       ]
-//     }
-func getBuildProperty(buildJSON map[string]interface{}, propertyName string) string {
-	properties := buildJSON["properties"].([]interface{})
-	for _, property := range properties {
-		if property.([]interface{})[0] == propertyName {
-			return property.([]interface{})[1].(string)
+	for _, response := range responses {
+		searchBuilds := response.(map[string]interface{})["searchBuilds"].(map[string]interface{})
+		builds := searchBuilds["builds"].([]interface{})
+		for _, rawBuild := range builds {
+			build := rawBuild.(map[string]interface{})
+			builder := build["builder"].(map[string]interface{})
+			builderName := builder["builder"].(string)
+			commit := "unknown"
+			if build["input"] != nil {
+				input := build["input"].(map[string]interface{})
+				if input["gitilesCommit"] != nil {
+					gitilesCommit := input["gitilesCommit"].(map[string]interface{})
+					commit = gitilesCommit["id"].(string)
+				}
+			}
+			switch status := build["status"].(string); status {
+			case "STATUS_UNSPECIFIED", "SCHEDULED", "STARTED":
+				statuses[builderName] = append(statuses[builderName], &ChromebotResult{
+					Commit: commit,
+					State:  db.TaskInProgress,
+				})
+			case "CANCELED":
+				statuses[builderName] = append(statuses[builderName], &ChromebotResult{
+					Commit: commit,
+					State:  db.TaskSkipped,
+				})
+			case "SUCCESS":
+				statuses[builderName] = append(statuses[builderName], &ChromebotResult{
+					Commit: commit,
+					State:  db.TaskSucceeded,
+				})
+			case "FAILURE", "INFRA_FAILURE":
+				statuses[builderName] = append(statuses[builderName], &ChromebotResult{
+					Commit: commit,
+					State:  db.TaskFailed,
+				})
+			}
 		}
 	}
-	return ""
-}
-
-// Parses out whether the build was successful.
-//
-// Successes are encoded like this:
-//
-//     "text": [
-//       "build",
-//       "successful"
-//     ]
-//
-// Exceptions are encoded like this:
-//
-//     "text": [
-//       "exception",
-//       "steps",
-//       "exception",
-//       "flutter build apk material_gallery"
-//     ]
-//
-// Errors are encoded like this:
-//
-//     "text": [
-//       "failed",
-//       "steps",
-//       "failed",
-//       "flutter build ios simulator stocks"
-//     ]
-//
-// In-progress builds are encoded like this:
-//
-//    "text": []
-//
-func getStatus(buildJSON map[string]interface{}) db.TaskStatus {
-	text := buildJSON["text"].([]interface{})
-	if text == nil || len(text) < 2 {
-		return db.TaskInProgress
-	} else if text[1].(string) == "successful" {
-		return db.TaskSucceeded
-	} else {
-		return db.TaskFailed
-	}
+	return statuses, nil
 }

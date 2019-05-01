@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
 )
 
@@ -44,11 +45,12 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 		data["state"] = "success"
 	} else {
 		data["state"] = "failure"
-		data["target_url"] = "https://flutter-dashboard.appspot.com/build.html"
 		data["description"] = fmt.Sprintf("%v is currently broken. Please do not merge this PR unless it contains a fix to the broken build.", info.buildName)
 	}
+	data["target_url"] = info.link
 	data["context"] = info.buildContext
 
+	log.Debugf(c.Ctx, "Sending %v to GitHub statuses for commit %v", data, info.commit)
 	dataBytes, err := json.Marshal(data)
 
 	if err != nil {
@@ -68,17 +70,17 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 
 	httpClient := urlfetch.Client(c.Ctx)
 	response, err := httpClient.Do(request)
-
 	if err != nil {
 		return err
 	}
 
+	defer response.Body.Close()
+	responseBytes, err := ioutil.ReadAll(response.Body)
+	log.Debugf(c.Ctx, "GitHub response: %v", string(responseBytes))
+
 	if response.StatusCode != 201 {
 		return fmt.Errorf("HTTP POST %v responded with a non-200 HTTP status: %v", url, response.StatusCode)
 	}
-
-	defer response.Body.Close()
-	_, err = ioutil.ReadAll(response.Body)
 
 	if err != nil {
 		return err
@@ -88,17 +90,24 @@ func pushToGitHub(c *db.Cocoon, info GitHubBuildStatusInfo) error {
 }
 
 func fetchPullRequests(c *db.Cocoon, gitHubRepoAPIURL string) ([]*PullRequest, error) {
-	prData, err := c.FetchURL(fmt.Sprintf("%v/pulls", gitHubRepoAPIURL), true)
-
-	if err != nil {
-		return nil, err
-	}
-
+	lastPrCount := 100
 	var pullRequests []*PullRequest
-	err = json.Unmarshal(prData, &pullRequests)
+	for i := 1; lastPrCount == 100; i++ {
+		prData, err := c.FetchURL(fmt.Sprintf("%v/pulls?state=open&per_page=100&page=%d&sort=created", gitHubRepoAPIURL, i), true)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		var tmpPullRequests []*PullRequest
+		err = json.Unmarshal(prData, &tmpPullRequests)
+
+		if err != nil {
+			return nil, err
+		}
+
+		lastPrCount = len(tmpPullRequests)
+		pullRequests = append(pullRequests, tmpPullRequests...)
 	}
 
 	return pullRequests, nil

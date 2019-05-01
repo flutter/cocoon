@@ -3,20 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-import 'src/settings/settings.dart';
+import 'src/accounts/accounts.dart';
 import 'src/app.dart';
 import 'src/models.dart';
 import 'src/providers.dart';
 import 'src/service.dart';
-
-final clientId = '308150028417-7rl94q5rmnamqavdlnnke4lee8h7htje.apps.googleusercontent.com';
-final clientSecret = 'kjZjhPq9oAycS6iZdrAqBZJQ';
-
-final googleSignIn = GoogleSignIn(
-  scopes: <String>[],
-);
 
 void main() {
   runApp(const Entrypoint());
@@ -49,7 +41,7 @@ class _EntrypointState extends State<Entrypoint> {
     buildStatusModel = BuildStatusModel(service: service);
     userSettingsModel = UserSettingsModel();
     benchmarkModel = BenchmarkModel(userSettingsModel: userSettingsModel, service: service);
-    signInModel = SignInModel(service: service, googleSignIn: googleSignIn);
+    signInModel = SignInModel(service: service);
     clockModel = ClockModel();
     commitModel = CommitModel(signInModel: signInModel, service: service);
     registry = MementoRegistry([
@@ -58,6 +50,7 @@ class _EntrypointState extends State<Entrypoint> {
       commitModel,
     ]);
     registry.init();
+    signInModel.checkCocoonStatus();
     signInModel.checkGithubStatus();
     super.initState();
   }
@@ -74,7 +67,7 @@ class _EntrypointState extends State<Entrypoint> {
       home: const MetapodApp(),
       debugShowCheckedModeBanner: false,
       routes: {
-        'settings': (BuildContext context) => const SettingsPage(),
+        'accounts': (BuildContext context) => const AccountsPage(),
       },
     );
     return ApplicationProvider(

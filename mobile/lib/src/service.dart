@@ -58,18 +58,6 @@ class ApplicationService {
     return _getUrl(url, authorization: 'Basic $authorization');
   }
 
-  Future<void> resetTask(String taskId) async {
-    var url = Uri.parse('$_root/api/reset-devicelab-task');
-    var request = await _client.postUrl(url);
-    request.write(json.encode({
-      'Key': taskId,
-    }));
-    var response = await request.close();
-    if (response.statusCode != HttpStatus.ok) {
-      throw Exception('${response.statusCode}');
-    }
-  }
-
   Future<Map<String, Object>> _getUrl(Uri url, {String authorization}) async {
     var request = await _client.getUrl(url);
     if (authorization != null) {

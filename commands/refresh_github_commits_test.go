@@ -1,16 +1,16 @@
 package commands
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestParseManifestMinimal(t *testing.T) {
 	yaml := "tasks:\n" +
-			"  test_task:\n" +
-			"    description: test_description\n" +
-			"    stage: test_stage\n" +
-			"    required_agent_capabilities: [\"a\", \"b\"]"
+		"  test_task:\n" +
+		"    description: test_description\n" +
+		"    stage: test_stage\n" +
+		"    required_agent_capabilities: [\"a\", \"b\"]"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if err != nil {
@@ -30,7 +30,7 @@ func TestParseManifestMinimal(t *testing.T) {
 			t.Errorf("Wrong task stage %v", task.Stage)
 			t.Fail()
 		}
-		if len(task.RequiredAgentCapabilities) != 2 || task.RequiredAgentCapabilities[0] != "a" ||  task.RequiredAgentCapabilities[1] != "b" {
+		if len(task.RequiredAgentCapabilities) != 2 || task.RequiredAgentCapabilities[0] != "a" || task.RequiredAgentCapabilities[1] != "b" {
 			t.Errorf("Wrong required_agent_capabilities %v", task.RequiredAgentCapabilities)
 			t.Fail()
 		}
@@ -47,12 +47,12 @@ func TestParseManifestMinimal(t *testing.T) {
 
 func TestParseManifestFull(t *testing.T) {
 	yaml := "tasks:\n" +
-			"  test_task:\n" +
-			"    description: test_description\n" +
-			"    stage: test_stage\n" +
-			"    required_agent_capabilities: [\"a\", \"b\"]\n" +
-	    "    flaky: true\n" +
-	    "    timeout_in_minutes: 24"
+		"  test_task:\n" +
+		"    description: test_description\n" +
+		"    stage: test_stage\n" +
+		"    required_agent_capabilities: [\"a\", \"b\"]\n" +
+		"    flaky: true\n" +
+		"    timeout_in_minutes: 24"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if err != nil {
@@ -72,7 +72,7 @@ func TestParseManifestFull(t *testing.T) {
 			t.Errorf("Wrong task stage %v", task.Stage)
 			t.Fail()
 		}
-		if len(task.RequiredAgentCapabilities) != 2 || task.RequiredAgentCapabilities[0] != "a" ||  task.RequiredAgentCapabilities[1] != "b" {
+		if len(task.RequiredAgentCapabilities) != 2 || task.RequiredAgentCapabilities[0] != "a" || task.RequiredAgentCapabilities[1] != "b" {
 			t.Errorf("Wrong required_agent_capabilities %v", task.RequiredAgentCapabilities)
 			t.Fail()
 		}
@@ -88,7 +88,7 @@ func TestParseManifestFull(t *testing.T) {
 }
 
 func TestParseManifestWrongKey(t *testing.T) {
-	yaml := "foo: bar";
+	yaml := "foo: bar"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if manifest != nil {
@@ -96,7 +96,7 @@ func TestParseManifestWrongKey(t *testing.T) {
 		t.Fail()
 	}
 
-	expected := "Unrecognized key 'foo' in manifest YAML."
+	expected := "Unrecognized key 'foo' in manifest YAML"
 	actual := fmt.Sprintf("%v", err)
 	if actual != expected {
 		t.Errorf("Expected error message: \"%v\"", expected)
@@ -107,9 +107,9 @@ func TestParseManifestWrongKey(t *testing.T) {
 
 func TestParseManifestMissingDescription(t *testing.T) {
 	yaml := "tasks:\n" +
-			"  test_task:\n" +
-			"    stage: test_stage\n" +
-			"    required_agent_capabilities: [\"a\"]"
+		"  test_task:\n" +
+		"    stage: test_stage\n" +
+		"    required_agent_capabilities: [\"a\"]"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if manifest != nil {
@@ -128,9 +128,9 @@ func TestParseManifestMissingDescription(t *testing.T) {
 
 func TestParseManifestMissingStage(t *testing.T) {
 	yaml := "tasks:\n" +
-			"  test_task:\n" +
-			"    description: test_description\n" +
-			"    required_agent_capabilities: [\"a\"]"
+		"  test_task:\n" +
+		"    description: test_description\n" +
+		"    required_agent_capabilities: [\"a\"]"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if manifest != nil {
@@ -149,9 +149,9 @@ func TestParseManifestMissingStage(t *testing.T) {
 
 func TestParseManifestMissingRequiredAgentCapabilities(t *testing.T) {
 	yaml := "tasks:\n" +
-			"  test_task:\n" +
-			"    description: test_description\n" +
-			"    stage: test_stage\n"
+		"  test_task:\n" +
+		"    description: test_description\n" +
+		"    stage: test_stage\n"
 	manifest, err := ParseManifest([]byte(yaml))
 
 	if manifest != nil {

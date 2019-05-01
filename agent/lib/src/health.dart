@@ -9,11 +9,12 @@ import 'adb.dart';
 import 'agent.dart';
 import 'utils.dart';
 
-final RegExp _kLinuxIpAddrExp = new RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
-final RegExp _kWindowsIpAddrExp = new RegExp(r'IPv4 Address.*: +(\d+\.\d+\.\d+.\d+)\(Preferred\)');
+final RegExp _kLinuxIpAddrExp = RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
+final RegExp _kWindowsIpAddrExp =
+    RegExp(r'IPv4 Address.*: +(\d+\.\d+\.\d+.\d+)\(Preferred\)');
 
 Future<AgentHealth> performHealthChecks(Agent agent) async {
-  AgentHealth results = new AgentHealth();
+  AgentHealth results = AgentHealth();
 
   results['able-to-perform-health-check'] = await _captureErrors(() async {
     results['ssh-connectivity'] = await _captureErrors(_scrapeRemoteAccessInfo);
@@ -26,16 +27,18 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
         .isNotEmpty;
 
     results['has-healthy-devices'] = hasHealthyDevices
-        ? new HealthCheckResult.success('Found ${deviceChecks.length} healthy devices')
-        : new HealthCheckResult.failure('No attached devices were found.');
+        ? HealthCheckResult.success(
+            'Found ${deviceChecks.length} healthy devices')
+        : HealthCheckResult.failure('No attached devices were found.');
 
     results['cocoon-connection'] = await _captureErrors(() async {
       String authStatus = await agent.getAuthenticationStatus();
 
       if (authStatus != 'OK') {
-        results['cocoon-authentication'] = new HealthCheckResult.failure('Failed to authenticate to Cocoon. Check config.yaml.');
+        results['cocoon-authentication'] = HealthCheckResult.failure(
+            'Failed to authenticate to Cocoon. Check config.yaml.');
       } else {
-        results['cocoon-authentication'] = new HealthCheckResult.success();
+        results['cocoon-authentication'] = HealthCheckResult.success();
       }
     });
   });
@@ -47,7 +50,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
 ///
 /// Null callback results are turned into [HealthCheckResult] success.
 Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) async {
-  Completer<HealthCheckResult> completer = new Completer<HealthCheckResult>();
+  Completer<HealthCheckResult> completer = Completer<HealthCheckResult>();
 
   // We intentionally ignore the future returned by the Chain because we're
   // reporting the results via the completer. Instead of reporting a Future
@@ -57,9 +60,10 @@ Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) 
   // ignore: unawaited_futures
   try {
     dynamic result = await healthCheckCallback();
-    completer.complete(result is HealthCheckResult ? result : new HealthCheckResult.success());
+    completer.complete(
+        result is HealthCheckResult ? result : HealthCheckResult.success());
   } catch (error, stackTrace) {
-    completer.complete(new HealthCheckResult.error(error, stackTrace));
+    completer.complete(HealthCheckResult.error(error, stackTrace));
   }
   return completer.future;
 }
@@ -88,8 +92,7 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
     ip = match?.group(1) ?? '';
   }
 
-  return new HealthCheckResult.success(ip.isEmpty
+  return HealthCheckResult.success(ip.isEmpty
       ? 'Unable to determine IP address. Is wired ethernet connected?'
-      : 'Last known IP address: $ip'
-  );
+      : 'Last known IP address: $ip');
 }

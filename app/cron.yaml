@@ -1,3 +1,5 @@
+# Updates to this file must be pushed with:
+#   gcloud app deploy --project flutter-dashboard cron.yaml
 cron:
 - description: refresh commits from GitHub
   url: /api/refresh-github-commits
@@ -14,6 +16,9 @@ cron:
 - description: sends build status to GitHub to annotate PRs and commits
   url: /api/push-build-status-to-github
   schedule: every 1 minutes
+- description: sends build status to GitHub to annotate engine PRs and commits
+  url: /api/push-engine-build-status-to-github
+  schedule: every 2 minutes
 - description: refresh github CI status (cirrus)
   url: /api/refresh-cirrus-status
   schedule: every 2 minutes

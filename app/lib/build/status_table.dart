@@ -357,16 +357,16 @@ class SourceUrlPipe extends PipeTransform {
     } else if (taskStage == 'chromebot') {
       switch (taskName) {
         case 'mac_bot':
-          return 'https://build.chromium.org/p/client.flutter/builders/Mac';
+          return 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac';
           break;
         case 'linux_bot':
-          return 'https://build.chromium.org/p/client.flutter/builders/Linux';
+          return 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Linux';
           break;
         case 'windows_bot':
-          return 'https://build.chromium.org/p/client.flutter/builders/Windows';
+          return 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Windows';
           break;
         default:
-          return 'https://travis-ci.org/flutter/flutter/builds';
+          return 'https://ci.chromium.org/p/flutter';
       }
     } else if (taskStage == 'cirrus') {
       return 'https://cirrus-ci.com/github/flutter/flutter/master';

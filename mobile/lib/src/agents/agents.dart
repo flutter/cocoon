@@ -42,7 +42,16 @@ class AgentsPageBody extends StatelessWidget {
     var slivers = <Widget>[
       SliverAppBar(
         title: const Text('Agents'),
-        floating: true,
+        pinned: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Accounts',
+            onPressed: () {
+              Navigator.of(context).pushNamed('accounts');
+            },
+          ),
+        ],
       ),
     ];
     if (loaded) {
@@ -73,17 +82,9 @@ class AgentsPageBody extends StatelessWidget {
         ),
       );
     }
-    return DecoratedBox(
-      decoration: BoxDecoration(color: Theme.of(context).primaryColorDark),
-      child: SafeArea(
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: Theme.of(context).canvasColor),
-          child: CustomScrollView(
-            semanticChildCount: loaded ? agentStatuses.length : 1,
-            slivers: slivers,
-          ),
-        ),
-      ),
+    return CustomScrollView(
+      semanticChildCount: loaded ? agentStatuses.length : 1,
+      slivers: slivers,
     );
   }
 }

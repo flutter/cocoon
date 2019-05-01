@@ -192,12 +192,12 @@ class TaskTile extends StatelessWidget {
                     }));
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.redo),
-                  title: const Text('Restart'),
-                  enabled: signInModel.googleAccount != null,
-                  onTap: () => BuildStatusProvider.of(context).resetTask(task.key),
-                ),
+                // ListTile(
+                //   leading: const Icon(Icons.redo),
+                //   title: const Text('Restart'),
+                //   enabled: signInModel.googleAccount != null,
+                //   onTap: () => BuildStatusProvider.of(context).resetTask(task.key),
+                // ),
                 ListTile(
                   leading: const Icon(Icons.message),
                   title: const Text('Logs'),

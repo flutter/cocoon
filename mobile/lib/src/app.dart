@@ -9,7 +9,6 @@ import 'agents/agents.dart';
 import 'benchmarks/benchmarks.dart';
 import 'build_status/build_status.dart';
 import 'tasks/tasks.dart';
-import 'accounts/accounts.dart';
 
 class MetapodApp extends StatefulWidget {
   const MetapodApp();
@@ -49,7 +48,6 @@ class _MetapodAppState extends State<MetapodApp> {
         currentIndex: _currentIndex,
         onTap: _handleTap,
       ),
-      drawer: const AccountDrawer(),
     );
   }
 }
@@ -65,28 +63,30 @@ class MetapodBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      type: BottomNavigationBarType.fixed,
-      items: const [
+      items: [
         BottomNavigationBarItem(
-          icon: const Icon(Icons.work),
-          activeIcon: const Icon(Icons.work),
+          icon: const Icon(Icons.build),
           title: const Text('Build'),
+          backgroundColor: theme.primaryColor,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.pie_chart_outlined),
-          activeIcon: const Icon(Icons.pie_chart),
+          icon: const Icon(Icons.timer),
           title: const Text('Benchmarks'),
+          backgroundColor: theme.primaryColor,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.people_outline),
           activeIcon: const Icon(Icons.people),
           title: const Text('Agents'),
+          backgroundColor: theme.primaryColor,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.receipt),
           title: const Text('Tasks'),
+          backgroundColor: theme.primaryColor,
         ),
       ],
       onTap: onTap,
