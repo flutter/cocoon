@@ -62,6 +62,7 @@ class _BenchmarkSearchState extends State<BenchmarkSearch> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           gapPadding: 0,
+          borderSide: BorderSide(width: 0),
         ),
         isDense: true,
       ),

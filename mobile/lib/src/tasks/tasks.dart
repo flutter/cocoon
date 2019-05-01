@@ -43,16 +43,7 @@ class TasksPageBody extends StatelessWidget {
     var slivers = <Widget>[
       SliverAppBar(
         title: const Text('Tasks'),
-        pinned: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.of(context).pushNamed('accounts');
-            },
-          ),
-        ],
+        floating: true,
       )
     ];
     if (loaded) {
@@ -83,9 +74,17 @@ class TasksPageBody extends StatelessWidget {
         ),
       );
     }
-    return CustomScrollView(
-      slivers: slivers,
-      semanticChildCount: loaded ? statuses.first.stages.length : 1,
+    return DecoratedBox(
+      decoration: BoxDecoration(color: Theme.of(context).primaryColorDark),
+      child: SafeArea(
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Theme.of(context).canvasColor),
+          child: CustomScrollView(
+            slivers: slivers,
+            semanticChildCount: loaded ? statuses.first.stages.length : 1,
+          ),
+        ),
+      ),
     );
   }
 }
