@@ -237,11 +237,15 @@ class BuildBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
+    var flakyFailureCount = 0;
     var failedCount = 0;
     var pendingCount = 0;
     for (var stage in data.stages) {
       for (var task in stage.tasks) {
         if (task.task.status == 'Failed') {
+          if (task.task.isFlaky) {
+            flakyFailureCount += 1;
+          }
           failedCount += 1;
         } else if (task.task.status == 'In Progress') {
           pendingCount += 1;
@@ -249,24 +253,14 @@ class BuildBox extends StatelessWidget {
       }
     }
     Widget result;
-    if (failedCount == 0) {
-      result = Container(
-        width: 36,
-        height: 36,
-        child: const Center(
-          child: Text('P', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), semanticsLabel: 'Passing'),
-        ),
-        decoration: BoxDecoration(color: theme.canvasColor, border: Border.all(color: Colors.black54)),
-      );
+    if (failedCount == 0 && (pendingCount == 0) ) {
+      result = BuildStatusBox(Icons.done, 'Passing', Colors.green);
+    } else if (failedCount == 0) {
+      result = BuildStatusBox(Icons.watch_later, 'Running', theme.accentColor);
+    } else if (flakyFailureCount == failedCount) {
+      result = BuildStatusBox(Icons.warning, 'Flaky', Colors.orange);
     } else {
-      result = Container(
-        width: 36,
-        height: 36,
-        child: const Center(
-          child: Text('F', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), semanticsLabel: 'Failing'),
-        ),
-        decoration: BoxDecoration(color: Colors.redAccent, border: Border.all(color: Colors.black54)),
-      );
+      result = BuildStatusBox(Icons.error_outline, 'Failing', Colors.redAccent);
     }
     if (pendingCount > 0) {
       return Semantics(
@@ -276,6 +270,20 @@ class BuildBox extends StatelessWidget {
     }
     return result;
   }
+}
+
+class BuildStatusBox extends Container {
+  BuildStatusBox(
+      IconData iconData, String semanticLabel, Color backgroundColor)
+      : super(
+            width: 36.0,
+            height: 36.0,
+            child: Center(
+              child: Icon(iconData, size: 24.0, color: Colors.white, semanticLabel: semanticLabel),
+            ),
+            decoration: BoxDecoration(
+                color: backgroundColor,
+                border: Border.all(color: Colors.black54)));
 }
 
 class PendingBox extends StatefulWidget {
@@ -289,15 +297,14 @@ class PendingBox extends StatefulWidget {
 
 class _PendingBoxState extends State<PendingBox> with SingleTickerProviderStateMixin {
   AnimationController _controller;
-  Animation<double> _angle;
+  Animation<double> _opacity;
 
   @override
   void initState() {
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 3));
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        _controller.reset();
-        _controller.forward();
+        _controller.reverse();
       } else if (status == AnimationStatus.dismissed) {
         _controller.forward();
       }
@@ -305,7 +312,7 @@ class _PendingBoxState extends State<PendingBox> with SingleTickerProviderStateM
     _controller.addListener(() {
       setState(() {});
     });
-    _angle = Tween<double>(begin: 0, end: 6.18).animate(_controller);
+    _opacity = Tween<double>(begin: 0.8, end: 0.1).animate(_controller);
     _controller.forward();
     super.initState();
   }
@@ -318,8 +325,8 @@ class _PendingBoxState extends State<PendingBox> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: _angle.value,
+    return FadeTransition(
+      opacity: _opacity,
       child: widget.child,
     );
   }
