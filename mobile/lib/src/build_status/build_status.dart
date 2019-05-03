@@ -59,6 +59,15 @@ class BuildPageBody extends StatelessWidget {
     var slivers = <Widget>[
       SliverAppBar(
         title: const Text('Build History'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Accounts',
+            onPressed: () {
+              Navigator.of(context).pushNamed('accounts');
+            },
+          ),
+        ],
         elevation: 0,
         floating: true,
       ),
