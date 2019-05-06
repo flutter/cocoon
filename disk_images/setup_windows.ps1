@@ -34,5 +34,10 @@ choco install -y vscode
 choco install -y GoogleChrome
 choco install -y tightvnc
 
+# Run Cocoon agent by on startup
+$startup_path = "C:\Users\$env:username\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+echo "cd C:\src\cocoon\agent\ ; dart .\bin\agent.dart ci" > "$startup_path\start_cocoon_agent.bat"
+echo "Saved a script in startup directory to run Coocon agent on startup"
+
 # Final words
 echo "Next you need to clone https://github.com/flutter/cocoon and run an agent"
