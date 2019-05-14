@@ -131,16 +131,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<void> performPreflightTasks() async {
-    // Kills the `adb` server causing it to start a new instance upon next
-    // command.
-    //
-    // Restarting `adb` helps with keeping device connections alive. When `adb`
-    // runs non-stop for too long it loses connections to devices. There may be
-    // a better method, but so far that's the best one I've found.
-    await exec(config.adbPath, <String>['kill-server'], canFail: false);
-
-    // Immediately after killing the `adb` server, the server may deny connections.
-    // So we wait until first successful `adb devices -l`.
+    // Retry a few times until `adb` server becomes stable and performs first 
+    // successful `adb devices -l`.
     int retry = 0;
     bool adbOk = false;
     do {
