@@ -6,6 +6,7 @@ packages
 .packages
 .pub
 app/build
+repository_dashboard/build
 pubspec.lock
 config.yaml
 
