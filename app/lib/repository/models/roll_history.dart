@@ -27,14 +27,18 @@ class RollHistory {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other.runtimeType != runtimeType) return false;
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
     final RollHistory otherHistory = other;
     return (otherHistory.lastSkiaAutoRoll == lastSkiaAutoRoll)
-        && (otherHistory.lastEngineRoll == lastEngineRoll)
-        && (otherHistory.lastDevBranchRoll == lastDevBranchRoll)
-        && (otherHistory.lastBetaBranchRoll == lastBetaBranchRoll)
-        && (otherHistory.lastStableBranchRoll == lastStableBranchRoll);
+      && (otherHistory.lastEngineRoll == lastEngineRoll)
+      && (otherHistory.lastDevBranchRoll == lastDevBranchRoll)
+      && (otherHistory.lastBetaBranchRoll == lastBetaBranchRoll)
+      && (otherHistory.lastStableBranchRoll == lastStableBranchRoll);
   }
 
   @override
@@ -58,7 +62,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   @override
   void initState() {
-    _refreshTimer = Timer.periodic(const Duration(minutes: 5), _refresh);
+    _refreshTimer = Timer.periodic(const Duration(minutes: 10), _refresh);
     super.initState();
     Timer.run(() => _refresh(null));
   }
@@ -69,79 +73,63 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
     super.dispose();
   }
 
-  void _refresh(Timer timer) {
-    _fetchLastSkiaAutoRoll(() {
-      _fetchLastEngineAutoRoll(() {
-        _fetchLastDevBranchRoll(() {
-          _fetchLastBetaBranchRoll(() {
-            _fetchLastStableBranchRoll(null);
-          });
-        });
-      });
-    });
+  Future<void> _refresh(Timer timer) async {
+    final RollHistory rollHistory = ModelBinding.of<RollHistory>(context).copy();
+    await _updateLastSkiaAutoRoll(rollHistory);
+    await _updateLastEngineAutoRoll(rollHistory);
+    await _updateLastDevBranchRoll(rollHistory);
+    await _updateLastBetaBranchRoll(rollHistory);
+    await _updateLastStableBranchRoll(rollHistory);
+
+    ModelBinding.update<RollHistory>(context, rollHistory);
   }
 
-  void _fetchLastSkiaAutoRoll(Function nextStep) {
-    GithubService.lastCommitFromAuthor('engine', 'skia-flutter-autoroll').then((fetchedDate) {
+  Future<void> _updateLastSkiaAutoRoll(RollHistory history) async {
+    await lastCommitFromAuthor('engine', 'skia-flutter-autoroll').then((DateTime fetchedDate) {
       if (fetchedDate != null) {
-        RollHistory skiaAutoRollHistory = ModelBinding.of<RollHistory>(context).copy();
-        skiaAutoRollHistory.lastSkiaAutoRoll = fetchedDate;
-        ModelBinding.update<RollHistory>(context, skiaAutoRollHistory);
+        history.lastSkiaAutoRoll = fetchedDate;
       }
-      if (nextStep != null) nextStep();
-    }, onError: (skiaRollError) {
+    }, onError: (Error skiaRollError) {
       print('Error refreshing last Skia auto-roll $skiaRollError');
     });
   }
 
-  void _fetchLastEngineAutoRoll(Function nextStep) {
-    GithubService.lastCommitFromAuthor('flutter', 'engine-flutter-autoroll').then((fetchedDate) {
+  Future<void> _updateLastEngineAutoRoll(RollHistory history) async {
+    await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll').then((DateTime fetchedDate) {
       if (fetchedDate != null) {
-        RollHistory history = ModelBinding.of<RollHistory>(context).copy();
         history.lastEngineRoll = fetchedDate;
-        ModelBinding.update<RollHistory>(context, history);
       }
-      if (nextStep != null) nextStep();
-    }, onError: (engineRollError) {
+    }, onError: (Error engineRollError) {
       print('Error refreshing last engine auto-roll $engineRollError');
     });
   }
 
-  void _fetchLastDevBranchRoll(Function nextStep) {
-    GithubService.fetchFlutterBranchLastCommitDate('dev').then((fetchedDate) {
+  Future<void> _updateLastDevBranchRoll(RollHistory history) async {
+    await fetchFlutterBranchLastCommitDate('dev').then((DateTime fetchedDate) {
       if (fetchedDate != null) {
-        RollHistory history = ModelBinding.of<RollHistory>(context).copy();
         history.lastDevBranchRoll = fetchedDate;
-        ModelBinding.update<RollHistory>(context, history);
       }
-      if (nextStep != null) nextStep();
-    }, onError: (detailsError) {
+    }, onError: (Error detailsError) {
       print('Error refreshing last dev commit date: $detailsError');
     });
   }
 
-  void _fetchLastBetaBranchRoll(Function nextStep) {
-    GithubService.fetchFlutterBranchLastCommitDate('beta').then((fetchedDate) {
+  Future<void> _updateLastBetaBranchRoll(RollHistory history) async {
+    await fetchFlutterBranchLastCommitDate('beta').then((DateTime fetchedDate) {
       if (fetchedDate != null) {
-        RollHistory history = ModelBinding.of<RollHistory>(context).copy();
         history.lastBetaBranchRoll = fetchedDate;
-        ModelBinding.update<RollHistory>(context, history);
       }
-      if (nextStep != null) nextStep();
-    }, onError: (detailsError) {
+    }, onError: (Error detailsError) {
       print('Error refreshing last beta commit date: $detailsError');
     });
   }
 
-  void _fetchLastStableBranchRoll(Function nextStep) {
-    GithubService.fetchFlutterBranchLastCommitDate('stable').then((fetchedDate) {
+  Future<void> _updateLastStableBranchRoll(RollHistory history) async {
+    await fetchFlutterBranchLastCommitDate('stable').then((DateTime fetchedDate) {
       if (fetchedDate != null) {
-        RollHistory history = ModelBinding.of<RollHistory>(context).copy();
         history.lastStableBranchRoll = fetchedDate;
-        ModelBinding.update<RollHistory>(context, history);
       }
-      if (nextStep != null) nextStep();
-    }, onError: (detailsError) {
+    }, onError: (Error detailsError) {
       print('Error refreshing last stable commit date: $detailsError');
     });
   }

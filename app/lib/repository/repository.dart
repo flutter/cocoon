@@ -19,25 +19,7 @@ class RepositoryDashboardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: kTitle,
-      home: ModelBinding<FlutterRepositoryStatus>(
-        initialModel: FlutterRepositoryStatus(),
-        child: ModelBinding<FlutterEngineRepositoryStatus>(
-          initialModel: FlutterEngineRepositoryStatus(),
-          child: ModelBinding<FlutterPluginsRepositoryStatus>(
-            initialModel: FlutterPluginsRepositoryStatus(),
-            child: ModelBinding<FlutterWebsiteRepositoryStatus>(
-              initialModel: FlutterWebsiteRepositoryStatus(),
-              child: ModelBinding<FlutterPackagesRepositoryStatus>(
-                  initialModel: FlutterPackagesRepositoryStatus(),
-                  child: ModelBinding<RollHistory>(
-                      initialModel: RollHistory(),
-                      child: _RepositoryDashboardWidget()
-                  )
-              ),
-            ),
-          ),
-        ),
-      ),
+      home: const _RepositoryDashboardWidget(),
       debugShowCheckedModeBanner: false,
       routes: <String, WidgetBuilder> {
         '/settings': (BuildContext context) => const SettingsPage()
@@ -55,7 +37,7 @@ class _RepositoryDashboardWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(kTitle),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
@@ -66,35 +48,46 @@ class _RepositoryDashboardWidget extends StatelessWidget {
         ],
       ),
       body: Theme(
-          data: ThemeData.light(),
+        data: ThemeData.light(),
+
+        // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository. Rebuild all grid widgets when that model changes.
+        child: ModelBinding<FlutterRepositoryStatus>(
+          initialModel: FlutterRepositoryStatus(),
           child: GridView.extent(
             padding: const EdgeInsets.all(10.0),
             maxCrossAxisExtent: 450.0,
             childAspectRatio: .55,
             children: <Widget>[
               RepositoryDetails<FlutterRepositoryStatus>(
-                  icon: FlutterLogo(),
-                  labelEvaluation: (labelName) => (labelName == 'waiting for tree to go green' || labelName == '⚠ TODAY' || labelName.startsWith('severe: customer'))
+                icon: const FlutterLogo(),
+                labelEvaluation: (String labelName) => labelName == 'waiting for tree to go green' || labelName == '⚠ TODAY' || labelName.startsWith('severe: customer')
               ),
-              RepositoryDetails<FlutterPluginsRepositoryStatus>(
+              ModelBinding<FlutterPluginsRepositoryStatus>(
+                initialModel: FlutterPluginsRepositoryStatus(),
+                child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
                   icon: Icon(Icons.extension),
-                  labelEvaluation: (labelName) => labelName.startsWith('p:')
+                  labelEvaluation: (String labelName) => labelName.startsWith('p:')
+                ),
               ),
-              RepositoryDetails<FlutterEngineRepositoryStatus>(
+              ModelBinding<FlutterEngineRepositoryStatus>(
+                initialModel: FlutterEngineRepositoryStatus(),
+                child: RepositoryDetails<FlutterEngineRepositoryStatus>(
                   icon: Icon(Icons.layers),
-                  labelEvaluation: (labelName) => (labelName == 'engine' || labelName.startsWith('e:'))
+                  labelEvaluation: (String labelName) => labelName == 'engine' || labelName.startsWith('e:')
+                ),
               ),
-              RepositoryDetails<FlutterPackagesRepositoryStatus>(
+              ModelBinding<FlutterPackagesRepositoryStatus>(
+                initialModel: FlutterPackagesRepositoryStatus(),
+                child:
+                RepositoryDetails<FlutterPackagesRepositoryStatus>(
                   icon: Icon(Icons.unarchive),
-                  labelEvaluation: (labelName) => (labelName == 'package')
-              ),
-              RepositoryDetails<FlutterWebsiteRepositoryStatus>(
-                  icon: Icon(Icons.web),
-                  labelEvaluation: (labelName) => labelName.startsWith('d: website')
+                  labelEvaluation: (String labelName) => labelName == 'package'
+                ),
               ),
               RollDetails()
             ],
           )
+        ),
       ),
     );
   }

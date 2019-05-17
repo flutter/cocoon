@@ -7,7 +7,7 @@ import 'package:flutter_web_ui/ui.dart' as ui;
 
 import 'package:cocoon/repository/repository.dart' show RepositoryDashboardApp;
 
-void main() async {
+Future<void> main() async {
   await ui.webOnlyInitializePlatform();
   runApp(RepositoryDashboardApp());
 }

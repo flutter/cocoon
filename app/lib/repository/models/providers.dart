@@ -14,11 +14,11 @@ class _ModelBindingScope<T> extends InheritedWidget {
   final _ModelBindingState<T> modelBindingState;
 
   @override
-  bool updateShouldNotify(_ModelBindingScope oldWidget) => true;
+  bool updateShouldNotify(_ModelBindingScope<T> oldWidget) => true;
 }
 
 class ModelBinding<T> extends StatefulWidget {
-  ModelBinding({
+  const ModelBinding({
     Key key,
     @required this.initialModel,
     this.child,
@@ -27,6 +27,7 @@ class ModelBinding<T> extends StatefulWidget {
   final T initialModel;
   final Widget child;
 
+  @override
   _ModelBindingState<T> createState() => _ModelBindingState<T>();
 
   static Type _typeOf<T>() => T;  // https://github.com/dart-lang/sdk/issues/33297

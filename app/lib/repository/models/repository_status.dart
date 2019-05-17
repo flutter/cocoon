@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection' show SplayTreeMap;
 
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
@@ -39,12 +40,21 @@ abstract class RepositoryStatus {
   int stalePullRequestCount = 0;
   /// Total age in days. Used to find average age: [totalAgeOfAllPullRequests] / [pullRequestCount].
   int totalAgeOfAllPullRequests = 0;
-  Map<String, int> issueCountByLabelName = {};
+
+  /// Primary sort is count descending, secondary sort is label ascending alphabetically.
+  ///
+  /// Sorted example where engine, framework, and tool are sorted alphabetically with the same count, followed by bug with a smaller count:
+  /// - engine: 10
+  /// - framework: 10
+  /// - tool: 10
+  /// - bug: 9
+  SplayTreeMap<String, int> issueCountByLabelName = SplayTreeMap<String, int>();
 
   /// Pull requests titles are sometimes prefixed by topics between square brackets.
+  /// Primary sort is count descending, secondary sort is topic ascending alphabetically.
   ///
-  /// Example: "[firebase_auth] Fix onMethodCall missing for updatePhoneNumberCredential"
-  Map<String, int> pullRequestCountByTitleTopic = {};
+  /// See [issueCountByLabelName] sorted example.
+  SplayTreeMap<String, int> pullRequestCountByTitleTopic = SplayTreeMap<String, int>();
 
   RepositoryStatus copy() {
     return statusFactory()
@@ -69,44 +79,49 @@ abstract class RepositoryStatus {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other.runtimeType != runtimeType) return false;
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
     final RepositoryStatus typedOther = other;
     return (typedOther.name == name)
-        && (typedOther.watchersCount == watchersCount)
-        && (typedOther.subscribersCount == subscribersCount)
-        && (typedOther.todoCount == todoCount)
-        && (typedOther.issueCount == issueCount)
-        && (typedOther.missingMilestoneIssuesCount == missingMilestoneIssuesCount)
-        && (typedOther.staleIssueCount == staleIssueCount)
-        && (typedOther.totalAgeOfAllIssues == totalAgeOfAllIssues)
-        && (typedOther.pullRequestCount == pullRequestCount)
-        && (typedOther.stalePullRequestCount == stalePullRequestCount)
-        && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
-        && (typedOther.issueCountByLabelName == issueCountByLabelName)
-        && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic);
+      && (typedOther.watchersCount == watchersCount)
+      && (typedOther.subscribersCount == subscribersCount)
+      && (typedOther.todoCount == todoCount)
+      && (typedOther.issueCount == issueCount)
+      && (typedOther.missingMilestoneIssuesCount == missingMilestoneIssuesCount)
+      && (typedOther.staleIssueCount == staleIssueCount)
+      && (typedOther.totalAgeOfAllIssues == totalAgeOfAllIssues)
+      && (typedOther.pullRequestCount == pullRequestCount)
+      && (typedOther.stalePullRequestCount == stalePullRequestCount)
+      && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
+      && (typedOther.issueCountByLabelName == issueCountByLabelName)
+      && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic);
   }
 
   @override
   int get hashCode => hashValues(
-      name,
-      issueCountByLabelName,
-      pullRequestCountByTitleTopic,
-      watchersCount,
-      subscribersCount,
-      todoCount,
-      issueCount,
-      missingMilestoneIssuesCount,
-      staleIssueCount,
-      totalAgeOfAllIssues,
-      pullRequestCount,
-      stalePullRequestCount,
-      totalAgeOfAllPullRequests);
+    name,
+    issueCountByLabelName,
+    pullRequestCountByTitleTopic,
+    watchersCount,
+    subscribersCount,
+    todoCount,
+    issueCount,
+    missingMilestoneIssuesCount,
+    staleIssueCount,
+    totalAgeOfAllIssues,
+    pullRequestCount,
+    stalePullRequestCount,
+    totalAgeOfAllPullRequests);
 }
 
 class FlutterRepositoryStatus extends RepositoryStatus {
   FlutterRepositoryStatus() : super(name: 'flutter');
 
+  @override
   FlutterRepositoryStatus statusFactory() {
     return FlutterRepositoryStatus();
   }
@@ -115,6 +130,7 @@ class FlutterRepositoryStatus extends RepositoryStatus {
 class FlutterEngineRepositoryStatus extends RepositoryStatus {
   FlutterEngineRepositoryStatus() : super(name: 'engine');
 
+  @override
   FlutterEngineRepositoryStatus statusFactory() {
     return FlutterEngineRepositoryStatus();
   }
@@ -123,6 +139,7 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
 class FlutterPluginsRepositoryStatus extends RepositoryStatus {
   FlutterPluginsRepositoryStatus() : super(name: 'plugins');
 
+  @override
   FlutterPluginsRepositoryStatus statusFactory() {
     return FlutterPluginsRepositoryStatus();
   }
@@ -131,16 +148,9 @@ class FlutterPluginsRepositoryStatus extends RepositoryStatus {
 class FlutterPackagesRepositoryStatus extends RepositoryStatus {
   FlutterPackagesRepositoryStatus() : super(name: 'packages');
 
+  @override
   FlutterPackagesRepositoryStatus statusFactory() {
     return FlutterPackagesRepositoryStatus();
-  }
-}
-
-class FlutterWebsiteRepositoryStatus extends RepositoryStatus {
-  FlutterWebsiteRepositoryStatus() : super(name: 'website');
-
-  FlutterWebsiteRepositoryStatus statusFactory() {
-    return FlutterWebsiteRepositoryStatus();
   }
 }
 
@@ -155,7 +165,7 @@ class RefreshRepository<T extends RepositoryStatus> extends StatefulWidget {
   }
 }
 
-class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository> {
+class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository<T>> {
   Timer _refreshTimer;
   bool _isLoaded = false;
 
@@ -171,58 +181,52 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     _refreshTimer?.cancel();
     super.dispose();
   }
-
-  void _refresh(Timer timer) {
+  void _refresh(Timer timer) async {
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
-    _fetchRepositoryDetails(() {
-      // Then fetch update with the more expensive issues query value.
-      _fetchRepositoryIssues(() {
-        // Then fetch the less important t_do count.
-        _fetchToDoCount(null);
-      });
-    });
+    await _fetchRepositoryDetails();
+    // Then fetch update with the more expensive issues query value.
+    await _fetchRepositoryIssues();
+    // Then fetch the less important t_do count.
+    await _fetchToDoCount();
   }
 
-  void _fetchRepositoryDetails(Function nextStep) {
-    T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
+  Future<void> _fetchRepositoryDetails() async {
+    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
 
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
-    GithubService.fetchRepositoryDetails(refreshedRepositoryStatus).then((_) {
+    await fetchRepositoryDetails(refreshedRepositoryStatus).then((_) {
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
 
       // Then fetch update with the more expensive issues query value.
       ModelBinding.of<T>(context).copy();
-      if (nextStep != null) nextStep();
-    }, onError: (error) {
+    }, onError: (Error error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" repository details: $error');
     });
   }
 
-  void _fetchRepositoryIssues(Function nextStep) {
-    T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-    GithubService.fetchRepositoryIssues(refreshedRepositoryStatus).then((_) {
+  Future<void> _fetchRepositoryIssues() async {
+    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
+    await fetchRepositoryIssues(refreshedRepositoryStatus).then((_) {
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
 
       // Show the UI once critical pieces are fetched.
       _isLoaded = true;
-      if (nextStep != null) nextStep();
-    }, onError: (error) {
+    }, onError: (Error error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" repository issues: $error');
     });
   }
 
-  void _fetchToDoCount(Function nextStep) {
-    T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-    GithubService.fetchToDoCount(refreshedRepositoryStatus).then((_) {
+  Future<void> _fetchToDoCount() async {
+    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
+    await fetchToDoCount(refreshedRepositoryStatus).then((_) {
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
-      if (nextStep != null) nextStep();
-    }, onError: (error) {
+    }, onError: (Error error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" todo count: $error');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return _isLoaded ? widget.child : Center(child: CircularProgressIndicator());
+    return _isLoaded ? widget.child : const Center(child: CircularProgressIndicator());
   }
 }

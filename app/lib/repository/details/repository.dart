@@ -7,8 +7,8 @@ import 'dart:collection' show SplayTreeMap;
 import 'package:intl/intl.dart';
 import 'package:flutter_web/material.dart';
 
-import '../models/repository_status.dart';
 import '../models/providers.dart';
+import '../models/repository_status.dart';
 
 typedef LabelEvaluator = bool Function(String labelName);
 
@@ -21,32 +21,34 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final T repositoryStatus = ModelBinding.of<T>(context);
+    final FlutterRepositoryStatus flutterStatus = ModelBinding.of<FlutterRepositoryStatus>(context);
     final NumberFormat numberFormat = NumberFormat('#,###');
+    final Widget refreshWidget = RefreshRepository<T>(
+      child: Column(
+        children: <Widget>[
+          _PullRequestWidget<T>(),
+          _IssueWidget<T>(),
+          // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc.
+          _TopicListWidget(title: 'Relevant Issue and PR Labels', countByTopic: flutterStatus.issueCountByLabelName, labelEvaluation: labelEvaluation),
+          _TopicListWidget(title: 'Pull Requests by Topic', countByTopic: repositoryStatus.pullRequestCountByTitleTopic)
+        ]
+      )
+    );
     return Card(
       child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-              children: <Widget>[
-                ListTile(
-                  leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 36.0), child: icon),
-                  title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
-                  subtitle: Text('Watchers: ${numberFormat.format(repositoryStatus.watchersCount)}\nSubscribers: ${numberFormat.format(repositoryStatus.subscribersCount)}\nTODOs: ${numberFormat.format(repositoryStatus.todoCount)}'),
-                  trailing: Image.network('https://api.cirrus-ci.com/github/flutter/${repositoryStatus.name}.svg?branch=master', semanticLabel: 'Cirrus CI status'), // TODO: Refresh CI image periodically.
-                  isThreeLine: true,
-                ),
-                RefreshRepository<T>(
-                    child: Column(
-                        children: <Widget>[
-                          _PullRequestWidget<T>(),
-                          _IssueWidget<T>(),
-                          if (labelEvaluation != null)
-                            _LabelWidget(labelEvaluation: labelEvaluation),
-                          _PullRequestTopicWidget<T>()
-                        ]
-                    )
-                )
-              ]
-          )
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 36.0), child: icon),
+              title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
+              subtitle: Text('Watchers: ${numberFormat.format(repositoryStatus.watchersCount)}\nSubscribers: ${numberFormat.format(repositoryStatus.subscribersCount)}\nTODOs: ${numberFormat.format(repositoryStatus.todoCount)}'),
+              trailing: Image.network('https://api.cirrus-ci.com/github/flutter/${repositoryStatus.name}.svg?branch=master', semanticLabel: 'Cirrus CI status'), // TODO: Refresh CI image periodically.
+              isThreeLine: true,
+            ),
+            refreshWidget
+          ]
+        )
       ),
     );
   }
@@ -61,10 +63,10 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
 
     List<Widget> issueWidgets;
     if (repositoryStatus.issueCount > 0) {
-      int issueCount = repositoryStatus.issueCount;
+      final int issueCount = repositoryStatus.issueCount;
 
-      int ageDays = (repositoryStatus.totalAgeOfAllIssues / issueCount).round();
-      String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
+      final int ageDays = (repositoryStatus.totalAgeOfAllIssues / issueCount).round();
+      final String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
       issueWidgets = <Widget>[
         const Divider(),
         const _DetailTitle(title: 'Issues'),
@@ -75,10 +77,10 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
       ];
     }
     return Semantics(
-        label: 'Issues',
-        child: Column(
-            children: issueWidgets ?? []
-        )
+      label: 'Issues',
+      child: Column(
+        children: issueWidgets ?? const <Widget>[]
+      )
     );
   }
 }
@@ -92,10 +94,10 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
 
     List<Widget> pullRequestsWidgets;
     if (repositoryStatus.pullRequestCount > 0) {
-      int pullRequestCount = repositoryStatus.pullRequestCount;
+      final int pullRequestCount = repositoryStatus.pullRequestCount;
 
-      int ageDays = (repositoryStatus.totalAgeOfAllPullRequests / pullRequestCount).round();
-      String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
+      final int ageDays = (repositoryStatus.totalAgeOfAllPullRequests / pullRequestCount).round();
+      final String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
 
       pullRequestsWidgets = <Widget>[
         const _DetailTitle(title: 'Pull Requests'),
@@ -105,91 +107,44 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
       ];
     }
     return Semantics(
-        label: 'Pull Requests',
-        child: Column(
-            children: pullRequestsWidgets ?? []
-        )
+      label: 'Pull Requests',
+      child: Column(
+        children: pullRequestsWidgets ?? const <Widget>[]
+      )
     );
   }
 }
 
-class _PullRequestTopicWidget<T extends RepositoryStatus> extends StatelessWidget {
-  const _PullRequestTopicWidget();
+class _TopicListWidget extends StatelessWidget {
+  const _TopicListWidget({@required this.title, @required this.countByTopic, this.labelEvaluation});
 
-  @override
-  Widget build(BuildContext context) {
-    final NumberFormat numberFormat = NumberFormat('#,###');
-
-    final T repositoryStatus = ModelBinding.of<T>(context);
-    Map<String, int> pullRequestCountByTitleTopic = repositoryStatus.pullRequestCountByTitleTopic;
-    if (pullRequestCountByTitleTopic.isEmpty) {
-      return Container();
-    }
-
-    List<Widget> topicWidgets = [];
-    SplayTreeMap<String, int> sortedFetchedPRCountByTopic = SplayTreeMap.from(pullRequestCountByTitleTopic, (a, b) {
-      // Sort PRs map by number, descending. If equal, compare topic name.
-      int aValue = pullRequestCountByTitleTopic[a];
-      int bValue = pullRequestCountByTitleTopic[b];
-      if (bValue > aValue) return 1;
-      if (bValue < aValue) return -1;
-      return a.compareTo(b);
-    });
-    sortedFetchedPRCountByTopic.forEach((topic, count) {
-      if (topicWidgets.length < 5) {
-        topicWidgets.add(_DetailItem(title: topic, value: numberFormat.format(count)));
-      }
-    });
-    if (topicWidgets.isNotEmpty) {
-      topicWidgets.insert(0, const Divider());
-      topicWidgets.insert(1, const _DetailTitle(title: 'Pull Requests by Topic'));
-    }
-    return Semantics(
-        label: 'Pull Requests by Topic',
-        child: Column(
-            children: topicWidgets
-        )
-    );
-  }
-}
-
-class _LabelWidget extends StatelessWidget {
-  const _LabelWidget({@required this.labelEvaluation});
-
+  final String title;
   final LabelEvaluator labelEvaluation;
+  final SplayTreeMap<String, int> countByTopic;
 
   @override
   Widget build(BuildContext context) {
     final NumberFormat numberFormat = NumberFormat('#,###');
 
     // The Flutter repository contains labels relevant to plugins, engine, etc.
-    final FlutterRepositoryStatus flutterStatus = ModelBinding.of<FlutterRepositoryStatus>(context);
-    List<Widget> labelWidgets = [];
-    Map<String, int> fetchedIssueCountByLabelName = flutterStatus.issueCountByLabelName;
-    if (fetchedIssueCountByLabelName.isNotEmpty) {
-      SplayTreeMap<String, int> sortedFetchedIssueCountByLabel = SplayTreeMap.from(fetchedIssueCountByLabelName, (a, b) {
-        // Sort issues map by number of issues, descending. If equal, compare label name.
-        int aValue = fetchedIssueCountByLabelName[a];
-        int bValue = fetchedIssueCountByLabelName[b];
-        if (bValue > aValue) return 1;
-        if (bValue < aValue) return -1;
-        return a.compareTo(b);
-      });
-      sortedFetchedIssueCountByLabel.forEach((labelName, count) {
-        if (labelEvaluation(labelName) && labelWidgets.length < 5) {
-          labelWidgets.add(_DetailItem(title: labelName, value: numberFormat.format(count)));
-        }
-      });
-      if (labelWidgets.isNotEmpty) {
-        labelWidgets.insert(0, const Divider());
-        labelWidgets.insert(1, const _DetailTitle(title: 'Labels on Flutter Issues and PRs'));
+    final List<Widget> labelWidgets = <Widget>[];
+
+    countByTopic.forEach((String labelName, int count) {
+      if ((labelEvaluation == null || labelEvaluation(labelName)) && labelWidgets.length < 5) {
+        labelWidgets.add(_DetailItem(title: labelName, value: numberFormat.format(count)));
       }
+    });
+    if (labelWidgets.isNotEmpty) {
+      labelWidgets.insert(0, const Divider());
+      labelWidgets.insert(1, _DetailTitle(title: title));
+    } else {
+      return const SizedBox();
     }
     return Semantics(
-        label: 'Relevant Issue and PR Labels',
-        child: Column(
-            children: labelWidgets
-        )
+      label: title,
+      child: Column(
+        children: labelWidgets
+      )
     );
   }
 }
@@ -202,12 +157,12 @@ class _DetailTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Semantics(
-        header: true,
-        label: title,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
-          child: Text(title, style: textTheme.subhead),
-        )
+      header: true,
+      label: title,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
+        child: Text(title, style: textTheme.subhead),
+      )
     );
   }
 }
@@ -221,14 +176,14 @@ class _DetailItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text('${title}: ', style: textTheme.subtitle.copyWith(fontSize: textTheme.subhead.fontSize)),
-            Text(value, style: textTheme.subhead),
-          ],
-        )
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text('$title: ', style: textTheme.subtitle.copyWith(fontSize: textTheme.subhead.fontSize)),
+          Text(value, style: textTheme.subhead),
+        ],
+      )
     );
   }
 }
