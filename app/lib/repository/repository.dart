@@ -10,7 +10,6 @@ import 'details/infrastructure.dart';
 import 'details/repository.dart';
 import 'details/roll.dart';
 import 'details/settings.dart';
-import 'models/github_status.dart';
 import 'models/providers.dart';
 import 'models/repository_status.dart';
 

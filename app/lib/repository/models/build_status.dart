@@ -8,13 +8,13 @@ import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 
 import 'providers.dart';
-import '../services/github_status_service.dart';
+import '../services/build_status_service.dart';
 
-class GithubStatus {
-  const GithubStatus({this.status, this.indicator});
+class BuildStatus {
+  const BuildStatus({this.anticipatedBuildStatus, this.failingAgents = const <String>[]});
 
-  final String status;
-  final String indicator;
+  final String anticipatedBuildStatus;
+  final List<String> failingAgents;
 
   @override
   bool operator ==(Object other) {
@@ -24,32 +24,32 @@ class GithubStatus {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    final GithubStatus otherStatus = other;
-    return (otherStatus.status == status)
-      && (otherStatus.indicator == indicator);
+    final BuildStatus otherStatus = other;
+    return (otherStatus.anticipatedBuildStatus == anticipatedBuildStatus)
+      && (otherStatus.failingAgents == failingAgents);
   }
 
   @override
-  int get hashCode => hashValues(status, indicator);
+  int get hashCode => hashValues(anticipatedBuildStatus, failingAgents);
 }
 
-class RefreshGithubStatus extends StatefulWidget {
-  const RefreshGithubStatus({@required this.child});
+class RefreshBuildStatus extends StatefulWidget {
+  const RefreshBuildStatus({@required this.child});
 
   final Widget child;
 
   @override
   State<StatefulWidget> createState() {
-    return _RefreshGithubStatusState();
+    return _RefreshRefreshBuildStatusState();
   }
 }
 
-class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
+class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> {
   Timer _refreshTimer;
 
   @override
   void initState() {
-    _refreshTimer = Timer.periodic(const Duration(minutes: 10), _refresh);
+    _refreshTimer = Timer.periodic(const Duration(minutes: 5), _refresh);
     super.initState();
     Timer.run(() => _refresh(null));
   }
@@ -62,12 +62,12 @@ class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
 
   Future<void> _refresh(Timer timer) async {
     try {
-      GithubStatus status = await fetchGithubStatus();
+      BuildStatus status = await fetchBuildStatus();
       if (status != null) {
-        ModelBinding.update<GithubStatus>(context, status);
+        ModelBinding.update<BuildStatus>(context, status);
       }
     } catch (error) {
-      print('Error refreshing Github status $error');
+      print('Error refreshing build status $error');
     }
   }
 

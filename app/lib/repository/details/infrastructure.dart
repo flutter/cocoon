@@ -4,6 +4,7 @@
 
 import 'package:flutter_web/material.dart';
 
+import '../models/build_status.dart';
 import '../models/providers.dart';
 import '../models/github_status.dart';
 
@@ -24,6 +25,10 @@ class InfrastructureDetails extends StatelessWidget {
             ListTile(
               leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 28.0), child: Icon(Icons.build)),
               title: const Text('Infrastructure'),
+            ),
+            const ModelBinding<BuildStatus>(
+              initialModel: BuildStatus(),
+              child: _BuildStatusWidget()
             ),
             ListTile(
               leading: cirrusLogo,
@@ -62,7 +67,7 @@ class _GithubStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    GithubStatus githubStatus = ModelBinding.of<GithubStatus>(context);
+    final GithubStatus githubStatus = ModelBinding.of<GithubStatus>(context);
     IconData icon;
     Color backgroundColor;
     switch (githubStatus.indicator) {
@@ -96,6 +101,74 @@ class _GithubStatusIndicator extends StatelessWidget {
         ),
       ),
       hint: 'Github Status',
+    );
+  }
+}
+
+class _BuildStatusWidget extends StatelessWidget {
+  const _BuildStatusWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final BuildStatus status = ModelBinding.of<BuildStatus>(context);
+
+    return RefreshBuildStatus(
+      child: Column(
+        children: <Widget>[
+          _buildStatusWidget(status),
+          if (status.failingAgents.isNotEmpty)
+            const Divider(),
+          for (String agent in status.failingAgents)
+            _failingAgentWidget(agent),
+          if (status.failingAgents.isNotEmpty)
+            const Divider(),
+        ]
+      )
+    );
+  }
+
+  Widget _buildStatusWidget(BuildStatus status) {
+    IconData icon;
+    Color backgroundColor;
+    switch (status.anticipatedBuildStatus) {
+      case 'Succeeded':
+        icon = Icons.check;
+        backgroundColor = Colors.greenAccent;
+        break;
+      case 'Build Will Fail':
+        icon = Icons.error;
+        backgroundColor = Colors.redAccent;
+        break;
+      default:
+        icon = Icons.help_outline;
+        backgroundColor = Colors.grey;
+    }
+
+    return ListTile(
+      leading: CircleAvatar(
+        child: Icon(Icons.devices),
+      ),
+      title: const Text('Last Flutter Commit'),
+      trailing: Semantics(
+        child: Chip(
+          avatar: Icon(icon, size: 18.0),
+          backgroundColor: backgroundColor,
+          labelPadding: const EdgeInsets.fromLTRB(3.0, 3.0, 8.0, 3.0),
+          label: Text(status.anticipatedBuildStatus ?? 'Unknown')
+        ),
+        hint: 'Build Status',
+      ),
+    );
+  }
+
+  Widget _failingAgentWidget(String agentName) {
+    return ListTile(
+      leading: CircleAvatar(
+        child: Icon(Icons.desktop_windows),
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.redAccent,
+      ),
+      title: Text('Agent $agentName Failing')
     );
   }
 }
