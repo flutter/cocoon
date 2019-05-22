@@ -7,9 +7,11 @@ package commands
 import (
 	"cocoon/db"
 	"fmt"
+	"log"
+
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/memcache"
-	"golang.org/x/net/context"
 )
 
 const flutterRepositoryApiUrl = "https://api.github.com/repos/flutter/flutter"
@@ -19,7 +21,7 @@ func PushBuildStatusToGithubHandler(c *db.Cocoon, _ []byte) (interface{}, error)
 }
 
 // PushBuildStatusToGithub pushes the latest build status to Github PRs and commits.
-func PushBuildStatusToGithub(c *db.Cocoon) (error) {
+func PushBuildStatusToGithub(c *db.Cocoon) error {
 	if appengine.IsDevAppServer() {
 		// Don't push GitHub status from the local dev server.
 		return nil
@@ -49,16 +51,17 @@ func PushBuildStatusToGithub(c *db.Cocoon) (error) {
 
 			if lastSubmittedValue != trend {
 				err := pushToGitHub(c, GitHubBuildStatusInfo{
-					buildName: "Flutter build",
-					buildContext: "flutter-build",
-					link: "https://flutter-dashboard.appspot.com/build.html",
-					commit: pr.Head.Sha,
+					buildName:        "Flutter build",
+					buildContext:     "flutter-build",
+					link:             "https://flutter-dashboard.appspot.com/build.html",
+					commit:           pr.Head.Sha,
 					gitHubRepoApiURL: flutterRepositoryApiUrl,
-					status: trend,
+					status:           trend,
 				})
 
 				if err != nil {
-					return err
+					log.Print(err)
+					continue
 				}
 
 				cacheLastFrameworkBuildStatusSubmittedToGithub(c.Ctx, pr.Head.Sha, trend)
@@ -87,9 +90,9 @@ func fetchLastFrameworkBuildStatusSubmittedToGihub(ctx context.Context, sha stri
 	}
 }
 
-func cacheLastFrameworkBuildStatusSubmittedToGithub(ctx context.Context, sha string, newValue db.BuildResult) (error) {
+func cacheLastFrameworkBuildStatusSubmittedToGithub(ctx context.Context, sha string, newValue db.BuildResult) error {
 	return memcache.Set(ctx, &memcache.Item{
-		Key: lastBuildStatusSubmittedToGithubMemcacheKey(sha),
+		Key:   lastBuildStatusSubmittedToGithubMemcacheKey(sha),
 		Value: []byte(fmt.Sprintf("%v", newValue)),
 	})
 }
