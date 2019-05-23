@@ -10,9 +10,9 @@ handlers:
   static_files: build/web/index.html
   upload: build/web/index.html
   secure: always
-- url: /(.*\.(html|css|js|ico|svg|png|jpg|map|dart))$
+- url: /(.*\.(html|css|js|ico|svg|png|jpg|map|dart|json))$
   static_files: build/web/\1
-  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart)$
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart|json)$
   secure: always
 - url: /api/.*
   script: _go_app
