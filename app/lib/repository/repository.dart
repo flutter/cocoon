@@ -83,10 +83,7 @@ class _RepositoryDashboardWidget extends StatelessWidget {
                   labelEvaluation: (String labelName) => labelName.startsWith('p:')
                 ),
               ),
-              ModelBinding<GithubStatus>(
-                initialModel: GithubStatus(),
-                child: const InfrastructureDetails(),
-              ),
+              const InfrastructureDetails(),
               const RollDetails()
             ],
           )

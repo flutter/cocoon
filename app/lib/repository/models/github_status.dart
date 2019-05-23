@@ -11,15 +11,13 @@ import 'providers.dart';
 import '../services/github_status_service.dart';
 
 class GithubStatus {
-  GithubStatus();
+  const GithubStatus({this.status, this.indicator});
 
-  String status;
-  String indicator;
+  final String status;
+  final String indicator;
 
   GithubStatus copy() {
-    return GithubStatus()
-      ..status = status
-      ..indicator = indicator;
+    return GithubStatus(status: status, indicator: indicator);
   }
 
   @override

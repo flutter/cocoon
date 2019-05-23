@@ -14,16 +14,16 @@ Future<GithubStatus> fetchGithubStatus() async {
     return null;
   }
   Map<String, dynamic> status = fetchedStatus['status'];
-  return GithubStatus()
-    ..status = status['description']
-    ..indicator = status['indicator'];
+  return GithubStatus(status: status['description'], indicator: status['indicator']);
 }
 
 Future<dynamic> _getStatusBody() async {
-  final HttpRequest response = await HttpRequest.request('https://kctbh9vrtdwd.statuspage.io/api/v2/status.json').catchError((Error error) {
+  try {
+    final HttpRequest response = await HttpRequest.request('https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
+    final String body = response?.response;
+    return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
+  } catch (error) {
     print('Error fetching Github status: $error');
-  });
-
-  final String body = response?.response;
-  return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
+    return null;
+  }
 }
