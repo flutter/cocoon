@@ -11,6 +11,8 @@ import '../models/roll_history.dart';
 enum RollUnits { hour, day }
 
 class RollDetails extends StatelessWidget {
+  const RollDetails();
+
   @override
   Widget build(BuildContext context) {
     return Card(

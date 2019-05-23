@@ -45,7 +45,6 @@ class RollHistory {
   int get hashCode => hashValues(lastSkiaAutoRoll, lastEngineRoll, lastDevBranchRoll, lastBetaBranchRoll, lastStableBranchRoll);
 }
 
-
 class RefreshRollHistory extends StatefulWidget {
   const RefreshRollHistory({@required this.child});
 
@@ -85,53 +84,58 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
   }
 
   Future<void> _updateLastSkiaAutoRoll(RollHistory history) async {
-    await lastCommitFromAuthor('engine', 'skia-flutter-autoroll').then((DateTime fetchedDate) {
+    try {
+      DateTime fetchedDate = await lastCommitFromAuthor('engine', 'skia-flutter-autoroll');
       if (fetchedDate != null) {
         history.lastSkiaAutoRoll = fetchedDate;
       }
-    }, onError: (Error skiaRollError) {
-      print('Error refreshing last Skia auto-roll $skiaRollError');
-    });
+    } catch (error) {
+      print('Error refreshing last Skia auto-roll $error');
+    }
   }
 
   Future<void> _updateLastEngineAutoRoll(RollHistory history) async {
-    await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll').then((DateTime fetchedDate) {
+    try {
+      DateTime fetchedDate = await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll');
       if (fetchedDate != null) {
         history.lastEngineRoll = fetchedDate;
       }
-    }, onError: (Error engineRollError) {
-      print('Error refreshing last engine auto-roll $engineRollError');
-    });
+    } catch (error) {
+      print('Error refreshing last engine auto-roll $error');
+    }
   }
 
   Future<void> _updateLastDevBranchRoll(RollHistory history) async {
-    await fetchFlutterBranchLastCommitDate('dev').then((DateTime fetchedDate) {
+    try {
+      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('dev');
       if (fetchedDate != null) {
         history.lastDevBranchRoll = fetchedDate;
       }
-    }, onError: (Error detailsError) {
-      print('Error refreshing last dev commit date: $detailsError');
-    });
+    } catch (error) {
+      print('Error refreshing last dev commit date: $error');
+    }
   }
 
   Future<void> _updateLastBetaBranchRoll(RollHistory history) async {
-    await fetchFlutterBranchLastCommitDate('beta').then((DateTime fetchedDate) {
+    try {
+      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('beta');
       if (fetchedDate != null) {
         history.lastBetaBranchRoll = fetchedDate;
       }
-    }, onError: (Error detailsError) {
-      print('Error refreshing last beta commit date: $detailsError');
-    });
+    } catch (error) {
+      print('Error refreshing last beta commit date: $error');
+    }
   }
 
   Future<void> _updateLastStableBranchRoll(RollHistory history) async {
-    await fetchFlutterBranchLastCommitDate('stable').then((DateTime fetchedDate) {
+    try {
+      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('stable');
       if (fetchedDate != null) {
         history.lastStableBranchRoll = fetchedDate;
       }
-    }, onError: (Error detailsError) {
-      print('Error refreshing last stable commit date: $detailsError');
-    });
+    } catch (error) {
+      print('Error refreshing last stable commit date: $error');
+    }
   }
 
   @override

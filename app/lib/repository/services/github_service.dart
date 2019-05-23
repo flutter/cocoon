@@ -167,9 +167,8 @@ void _processLabels(Map<String, dynamic> issue, Map<String, int> issueCountByLab
 Future<HttpRequest> _getResponse(Uri url) async {
   final Map<String, String> headers = <String, String>{};
 
-  const GithubAuthentication githubAuthentication = GithubAuthentication();
-  if (githubAuthentication.isSignedIntoGithub) {
-    headers['Authorization'] = 'token ${githubAuthentication.token}';
+  if (GithubAuthentication.isSignedIntoGithub) {
+    headers['Authorization'] = 'token ${GithubAuthentication.token}';
   }
 
   final String requestETag = _eTagByURL[url];

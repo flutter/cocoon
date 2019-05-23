@@ -181,6 +181,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     _refreshTimer?.cancel();
     super.dispose();
   }
+
   void _refresh(Timer timer) async {
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
     await _fetchRepositoryDetails();
@@ -194,35 +195,39 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
 
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
-    await fetchRepositoryDetails(refreshedRepositoryStatus).then((_) {
+    try {
+      await fetchRepositoryDetails(refreshedRepositoryStatus);
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
 
       // Then fetch update with the more expensive issues query value.
       ModelBinding.of<T>(context).copy();
-    }, onError: (Error error) {
+    } catch (error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" repository details: $error');
-    });
+    }
   }
 
   Future<void> _fetchRepositoryIssues() async {
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-    await fetchRepositoryIssues(refreshedRepositoryStatus).then((_) {
+    try {
+      await fetchRepositoryIssues(refreshedRepositoryStatus);
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
 
       // Show the UI once critical pieces are fetched.
       _isLoaded = true;
-    }, onError: (Error error) {
+    } catch (error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" repository issues: $error');
-    });
+    }
   }
 
   Future<void> _fetchToDoCount() async {
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-    await fetchToDoCount(refreshedRepositoryStatus).then((_) {
+
+    try {
+      await fetchToDoCount(refreshedRepositoryStatus);
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
-    }, onError: (Error error) {
+    } catch (error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" todo count: $error');
-    });
+    }
   }
 
   @override

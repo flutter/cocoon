@@ -9,7 +9,6 @@ import 'details/roll.dart';
 import 'details/settings.dart';
 import 'models/providers.dart';
 import 'models/repository_status.dart';
-import 'models/roll_history.dart';
 
 const String kTitle = 'Flutter Dashboard';
 
@@ -84,7 +83,7 @@ class _RepositoryDashboardWidget extends StatelessWidget {
                   labelEvaluation: (String labelName) => labelName == 'package'
                 ),
               ),
-              RollDetails()
+              const RollDetails()
             ],
           )
         ),

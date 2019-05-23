@@ -29,7 +29,6 @@ class SettingsForm extends StatefulWidget {
 
 class _SettingsFormState extends State<SettingsForm> {
   TextEditingController _githubToken;
-  final GithubAuthentication _githubAuthentication = const GithubAuthentication();
   final SnackBar _signInSnackBar = const SnackBar(content: Text('Signed in'));
   final SnackBar _signOutSnackBar = const SnackBar(content: Text('Signed out'));
   final GlobalKey<FormState> _githubFormKey = GlobalKey<FormState>();
@@ -48,7 +47,7 @@ class _SettingsFormState extends State<SettingsForm> {
 
   @override
   void didChangeDependencies() {
-    _githubToken.text = _githubAuthentication.token;
+    _githubToken.text = GithubAuthentication.token;
     super.didChangeDependencies();
   }
 
@@ -73,21 +72,18 @@ class _SettingsFormState extends State<SettingsForm> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: TextFormField(
-                enabled: !_githubAuthentication.isSignedIntoGithub,
+                enabled: !GithubAuthentication.isSignedIntoGithub,
                 decoration: const InputDecoration(hasFloatingPlaceholder: true, labelText: 'Access token'),
                 autocorrect: false,
                 obscureText: true,
                 controller: _githubToken,
                 validator:  (String value) => value.isEmpty ? 'Required': null,
-                onEditingComplete: () {
-                  setState(() {});
-                },
               ),
             ),
             Center(
               child: RaisedButton(
-                child: _githubAuthentication.isSignedIntoGithub ? const Text('Clear') : const Text('Update'),
-                onPressed: _githubAuthentication.isSignedIntoGithub ? _handleSignOut: _handleSignIn,
+                child: GithubAuthentication.isSignedIntoGithub ? const Text('Clear') : const Text('Update'),
+                onPressed: GithubAuthentication.isSignedIntoGithub ? _handleSignOut: _handleSignIn,
               ),
             ),
           ],
@@ -98,16 +94,18 @@ class _SettingsFormState extends State<SettingsForm> {
 
   void _handleSignIn() {
     if (_githubFormKey.currentState.validate()) {
-      _githubAuthentication.token = _githubToken.value.text;
-      Scaffold.of(context).showSnackBar(_signInSnackBar);
-      setState(() {});
+      setState(() {
+        GithubAuthentication.token = _githubToken.value.text;
+        Scaffold.of(context).showSnackBar(_signInSnackBar);
+      });
     }
   }
 
   void _handleSignOut() {
-    _githubToken.clear();
-    _githubAuthentication.signOut();
-    Scaffold.of(context).showSnackBar(_signOutSnackBar);
-    setState(() {});
+    setState(() {
+      _githubToken.clear();
+      GithubAuthentication.signOut();
+      Scaffold.of(context).showSnackBar(_signOutSnackBar);
+    });
   }
 }

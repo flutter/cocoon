@@ -9,14 +9,14 @@ class GithubAuthentication {
 
   static const String _tokenStorageKey = 'github-token';
 
-  String get token => window.localStorage[_tokenStorageKey];
-  set token(String value) => window.localStorage[_tokenStorageKey] = value;
+  static String get token => window.localStorage[_tokenStorageKey];
+  static set token(String value) => window.localStorage[_tokenStorageKey] = value;
 
-  bool get isSignedIntoGithub {
+  static bool get isSignedIntoGithub {
     return window.localStorage.containsKey(_tokenStorageKey);
   }
 
-  void signOut() {
+  static void signOut() {
     window.localStorage.remove(_tokenStorageKey);
   }
 }
