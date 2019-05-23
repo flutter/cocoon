@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:flutter_web/material.dart';
 
 import 'details/repository.dart';
@@ -45,6 +47,10 @@ class _RepositoryDashboardWidget extends StatelessWidget {
             },
           ),
         ],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => window.location.href = '/'
+        ),
       ),
       body: Theme(
         data: ThemeData.light(),
