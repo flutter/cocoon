@@ -3,7 +3,7 @@ version: 0.0.2
 homepage: https://github.com/flutter/cocoon
 
 environment:
-  sdk: '>=2.2.0 <3.0.0'
+  sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
   angular: 5.3.0
@@ -13,6 +13,8 @@ dependencies:
   http:
   meta:
   json_annotation:
+  flutter_web: any
+  flutter_web_ui: any
 
 dev_dependencies:
   test:
@@ -22,4 +24,18 @@ dev_dependencies:
   build_runner: ^1.1.2
   # Includes the JavaScript compilers
   build_web_compilers: ^1.0.0
+  flutter_web_test: any
 
+dependency_overrides:
+  flutter_web:
+    git:
+      url: git@github.com:flutter/flutter_web.git
+      path: packages/flutter_web
+  flutter_web_ui:
+    git:
+      url: git@github.com:flutter/flutter_web.git
+      path: packages/flutter_web_ui
+  flutter_web_test:
+    git:
+      url: git@github.com:flutter/flutter_web.git
+      path: packages/flutter_web_test

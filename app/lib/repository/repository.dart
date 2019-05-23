@@ -1,0 +1,93 @@
+// Copyright (c) 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:flutter_web/material.dart';
+
+import 'details/repository.dart';
+import 'details/roll.dart';
+import 'details/settings.dart';
+import 'models/providers.dart';
+import 'models/repository_status.dart';
+
+const String kTitle = 'Flutter Dashboard';
+
+class RepositoryDashboardApp extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: kTitle,
+      home: const _RepositoryDashboardWidget(),
+      debugShowCheckedModeBanner: false,
+      routes: <String, WidgetBuilder> {
+        '/settings': (BuildContext context) => const SettingsPage()
+      },
+      theme: ThemeData.dark(),
+    );
+  }
+}
+
+class _RepositoryDashboardWidget extends StatelessWidget {
+  const _RepositoryDashboardWidget({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(kTitle),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/settings');
+            },
+          ),
+        ],
+      ),
+      body: Theme(
+        data: ThemeData.light(),
+
+        // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository. Rebuild all grid widgets when that model changes.
+        child: ModelBinding<FlutterRepositoryStatus>(
+          initialModel: FlutterRepositoryStatus(),
+          child: GridView.extent(
+            padding: const EdgeInsets.all(10.0),
+            maxCrossAxisExtent: 450.0,
+            childAspectRatio: .55,
+            children: <Widget>[
+              RepositoryDetails<FlutterRepositoryStatus>(
+                icon: const FlutterLogo(),
+                labelEvaluation: (String labelName) => labelName == 'waiting for tree to go green' || labelName == '⚠ TODAY' || labelName.startsWith('severe: customer')
+              ),
+              ModelBinding<FlutterPluginsRepositoryStatus>(
+                initialModel: FlutterPluginsRepositoryStatus(),
+                child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
+                  icon: Icon(Icons.extension),
+                  labelEvaluation: (String labelName) => labelName.startsWith('p:')
+                ),
+              ),
+              ModelBinding<FlutterEngineRepositoryStatus>(
+                initialModel: FlutterEngineRepositoryStatus(),
+                child: RepositoryDetails<FlutterEngineRepositoryStatus>(
+                  icon: Icon(Icons.layers),
+                  labelEvaluation: (String labelName) => labelName == 'engine' || labelName.startsWith('e:')
+                ),
+              ),
+              ModelBinding<FlutterPackagesRepositoryStatus>(
+                initialModel: FlutterPackagesRepositoryStatus(),
+                child:
+                RepositoryDetails<FlutterPackagesRepositoryStatus>(
+                  icon: Icon(Icons.unarchive),
+                  labelEvaluation: (String labelName) => labelName == 'package'
+                ),
+              ),
+              const RollDetails()
+            ],
+          )
+        ),
+      ),
+    );
+  }
+}
