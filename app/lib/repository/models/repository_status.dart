@@ -145,15 +145,6 @@ class FlutterPluginsRepositoryStatus extends RepositoryStatus {
   }
 }
 
-class FlutterPackagesRepositoryStatus extends RepositoryStatus {
-  FlutterPackagesRepositoryStatus() : super(name: 'packages');
-
-  @override
-  FlutterPackagesRepositoryStatus statusFactory() {
-    return FlutterPackagesRepositoryStatus();
-  }
-}
-
 class RefreshRepository<T extends RepositoryStatus> extends StatefulWidget {
   const RefreshRepository({@required this.child});
 

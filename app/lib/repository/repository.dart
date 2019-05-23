@@ -6,9 +6,11 @@ import 'dart:html';
 
 import 'package:flutter_web/material.dart';
 
+import 'details/infrastructure.dart';
 import 'details/repository.dart';
 import 'details/roll.dart';
 import 'details/settings.dart';
+import 'models/github_status.dart';
 import 'models/providers.dart';
 import 'models/repository_status.dart';
 
@@ -67,13 +69,6 @@ class _RepositoryDashboardWidget extends StatelessWidget {
                 icon: const FlutterLogo(),
                 labelEvaluation: (String labelName) => labelName == 'waiting for tree to go green' || labelName == '⚠ TODAY' || labelName.startsWith('severe: customer')
               ),
-              ModelBinding<FlutterPluginsRepositoryStatus>(
-                initialModel: FlutterPluginsRepositoryStatus(),
-                child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
-                  icon: Icon(Icons.extension),
-                  labelEvaluation: (String labelName) => labelName.startsWith('p:')
-                ),
-              ),
               ModelBinding<FlutterEngineRepositoryStatus>(
                 initialModel: FlutterEngineRepositoryStatus(),
                 child: RepositoryDetails<FlutterEngineRepositoryStatus>(
@@ -81,14 +76,14 @@ class _RepositoryDashboardWidget extends StatelessWidget {
                   labelEvaluation: (String labelName) => labelName == 'engine' || labelName.startsWith('e:')
                 ),
               ),
-              ModelBinding<FlutterPackagesRepositoryStatus>(
-                initialModel: FlutterPackagesRepositoryStatus(),
-                child:
-                RepositoryDetails<FlutterPackagesRepositoryStatus>(
-                  icon: Icon(Icons.unarchive),
-                  labelEvaluation: (String labelName) => labelName == 'package'
+              ModelBinding<FlutterPluginsRepositoryStatus>(
+                initialModel: FlutterPluginsRepositoryStatus(),
+                child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
+                  icon: Icon(Icons.extension),
+                  labelEvaluation: (String labelName) => labelName.startsWith('p:')
                 ),
               ),
+              const InfrastructureDetails(),
               const RollDetails()
             ],
           )

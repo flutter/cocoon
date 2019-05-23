@@ -23,9 +23,9 @@ class RollDetails extends StatelessWidget {
           child: RefreshRollHistory(
             child: Column(
               children: <Widget>[
-                const ListTile(
-                  leading: Icon(Icons.merge_type),
-                  title: Text('Roll History'),
+                ListTile(
+                  leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 28.0), child: Icon(Icons.merge_type)),
+                  title: const Text('Roll History'),
                 ),
                 const _DetailTitle(title: 'Skia → Engine'),
                 _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
