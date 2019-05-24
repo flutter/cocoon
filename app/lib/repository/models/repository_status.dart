@@ -183,21 +183,24 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
   }
 
   Future<void> _fetchRepositoryDetails() async {
+    if (!mounted) {
+      return;
+    }
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
 
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
     try {
       await fetchRepositoryDetails(refreshedRepositoryStatus);
       ModelBinding.update<T>(context, refreshedRepositoryStatus);
-
-      // Then fetch update with the more expensive issues query value.
-      ModelBinding.of<T>(context).copy();
     } catch (error) {
       print('Error refreshing "${refreshedRepositoryStatus.name}" repository details: $error');
     }
   }
 
   Future<void> _fetchRepositoryIssues() async {
+    if (!mounted) {
+      return;
+    }
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
     try {
       await fetchRepositoryIssues(refreshedRepositoryStatus);
@@ -211,6 +214,9 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
   }
 
   Future<void> _fetchToDoCount() async {
+    if (!mounted) {
+      return;
+    }
     final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
 
     try {
