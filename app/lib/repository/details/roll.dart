@@ -37,6 +37,8 @@ class RollDetails extends StatelessWidget {
                 _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
                 const _DetailTitle(title: 'beta → stable channel'),
                 _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
+                const _DetailTitle(title: 'flutter_web'),
+                _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
               ]
             ),
           )
