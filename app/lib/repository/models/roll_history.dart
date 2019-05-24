@@ -15,6 +15,7 @@ class RollHistory {
   DateTime lastDevBranchRoll;
   DateTime lastBetaBranchRoll;
   DateTime lastStableBranchRoll;
+  DateTime lastFlutterWebCommit;
 
   RollHistory copy() {
     return RollHistory()
@@ -22,7 +23,8 @@ class RollHistory {
       ..lastEngineRoll = lastEngineRoll
       ..lastDevBranchRoll = lastDevBranchRoll
       ..lastBetaBranchRoll = lastBetaBranchRoll
-      ..lastStableBranchRoll = lastStableBranchRoll;
+      ..lastStableBranchRoll = lastStableBranchRoll
+      ..lastFlutterWebCommit = lastFlutterWebCommit;
   }
 
   @override
@@ -38,11 +40,12 @@ class RollHistory {
       && (otherHistory.lastEngineRoll == lastEngineRoll)
       && (otherHistory.lastDevBranchRoll == lastDevBranchRoll)
       && (otherHistory.lastBetaBranchRoll == lastBetaBranchRoll)
-      && (otherHistory.lastStableBranchRoll == lastStableBranchRoll);
+      && (otherHistory.lastStableBranchRoll == lastStableBranchRoll)
+      && (otherHistory.lastFlutterWebCommit == lastFlutterWebCommit);
   }
 
   @override
-  int get hashCode => hashValues(lastSkiaAutoRoll, lastEngineRoll, lastDevBranchRoll, lastBetaBranchRoll, lastStableBranchRoll);
+  int get hashCode => hashValues(lastSkiaAutoRoll, lastEngineRoll, lastDevBranchRoll, lastBetaBranchRoll, lastStableBranchRoll, lastFlutterWebCommit);
 }
 
 class RefreshRollHistory extends StatefulWidget {
@@ -79,6 +82,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
     await _updateLastDevBranchRoll(rollHistory);
     await _updateLastBetaBranchRoll(rollHistory);
     await _updateLastStableBranchRoll(rollHistory);
+    await _updateLastFlutterWebRoll(rollHistory);
 
     ModelBinding.update<RollHistory>(context, rollHistory);
   }
@@ -107,7 +111,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   Future<void> _updateLastDevBranchRoll(RollHistory history) async {
     try {
-      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('dev');
+      DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'dev');
       if (fetchedDate != null) {
         history.lastDevBranchRoll = fetchedDate;
       }
@@ -118,7 +122,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   Future<void> _updateLastBetaBranchRoll(RollHistory history) async {
     try {
-      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('beta');
+      DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'beta');
       if (fetchedDate != null) {
         history.lastBetaBranchRoll = fetchedDate;
       }
@@ -129,12 +133,27 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   Future<void> _updateLastStableBranchRoll(RollHistory history) async {
     try {
-      DateTime fetchedDate = await fetchFlutterBranchLastCommitDate('stable');
+      DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'stable');
       if (fetchedDate != null) {
         history.lastStableBranchRoll = fetchedDate;
       }
     } catch (error) {
       print('Error refreshing last stable commit date: $error');
+    }
+  }
+
+  Future<void> _updateLastFlutterWebRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
+
+    try {
+      DateTime fetchedDate = await fetchBranchLastCommitDate('flutter_web', 'master');
+      if (fetchedDate != null) {
+        history.lastFlutterWebCommit = fetchedDate;
+      }
+    } catch (error) {
+      print('Error refreshing flutter_web commit date: $error');
     }
   }
 

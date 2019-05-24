@@ -29,8 +29,8 @@ Future<void> fetchToDoCount(RepositoryStatus repositoryStatus) async {
   }
 }
 
-Future<DateTime> fetchFlutterBranchLastCommitDate(String branchName) async {
-  final Map<String, dynamic> body = await _getBody('repos/flutter/flutter/branches/$branchName');
+Future<DateTime> fetchBranchLastCommitDate(String repositoryName, String branchName) async {
+  final Map<String, dynamic> body = await _getBody('repos/flutter/$repositoryName/branches/$branchName');
   return (body == null) ? null : DateTime.tryParse(body['commit']['commit']['committer']['date']);
 }
 
