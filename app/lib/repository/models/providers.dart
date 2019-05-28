@@ -33,12 +33,21 @@ class ModelBinding<T> extends StatefulWidget {
   static Type _typeOf<T>() => T;  // https://github.com/dart-lang/sdk/issues/33297
 
   static T of<T>(BuildContext context) {
+    if (context == null) {
+      // The widget is not in the tree.
+      return null;
+    }
+
     final Type scopeType = _typeOf<_ModelBindingScope<T>>();
     final _ModelBindingScope<T> scope = context.inheritFromWidgetOfExactType(scopeType);
     return scope.modelBindingState.currentModel;
   }
 
   static void update<T>(BuildContext context, T newModel) {
+    if (context == null) {
+      // The widget is not in the tree.
+      return;
+    }
     final Type scopeType = _typeOf<_ModelBindingScope<T>>();
     final _ModelBindingScope<dynamic> scope = context.inheritFromWidgetOfExactType(scopeType);
     scope.modelBindingState.updateModel(newModel);

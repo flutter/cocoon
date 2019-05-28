@@ -77,17 +77,22 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   Future<void> _refresh(Timer timer) async {
     final RollHistory rollHistory = ModelBinding.of<RollHistory>(context).copy();
-    await _updateLastSkiaAutoRoll(rollHistory);
-    await _updateLastEngineAutoRoll(rollHistory);
-    await _updateLastDevBranchRoll(rollHistory);
-    await _updateLastBetaBranchRoll(rollHistory);
-    await _updateLastStableBranchRoll(rollHistory);
-    await _updateLastFlutterWebRoll(rollHistory);
+    await Future.wait([
+      _updateLastSkiaAutoRoll(rollHistory),
+      _updateLastEngineAutoRoll(rollHistory),
+      _updateLastDevBranchRoll(rollHistory),
+      _updateLastBetaBranchRoll(rollHistory),
+      _updateLastStableBranchRoll(rollHistory),
+      _updateLastFlutterWebRoll(rollHistory)
+    ]);
 
     ModelBinding.update<RollHistory>(context, rollHistory);
   }
 
   Future<void> _updateLastSkiaAutoRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
     try {
       DateTime fetchedDate = await lastCommitFromAuthor('engine', 'skia-flutter-autoroll');
       if (fetchedDate != null) {
@@ -99,6 +104,9 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
   }
 
   Future<void> _updateLastEngineAutoRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
     try {
       DateTime fetchedDate = await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll');
       if (fetchedDate != null) {
@@ -110,6 +118,9 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
   }
 
   Future<void> _updateLastDevBranchRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
     try {
       DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'dev');
       if (fetchedDate != null) {
@@ -121,6 +132,9 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
   }
 
   Future<void> _updateLastBetaBranchRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
     try {
       DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'beta');
       if (fetchedDate != null) {
@@ -132,6 +146,9 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
   }
 
   Future<void> _updateLastStableBranchRoll(RollHistory history) async {
+    if (!mounted) {
+      return;
+    }
     try {
       DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'stable');
       if (fetchedDate != null) {
