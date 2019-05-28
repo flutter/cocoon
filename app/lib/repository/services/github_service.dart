@@ -45,6 +45,16 @@ Future<void> fetchRepositoryIssues(RepositoryStatus repositoryStatus) async {
 
   Map<String, int> pullRequestCountByTopicAggregator = {};
   Map<String, int> issueCountByLabelAggregator = {};
+
+  // Reset counters to be aggregated in _fetchRepositoryIssuesByPage.
+  repositoryStatus.issueCount = 0;
+  repositoryStatus.missingMilestoneIssuesCount = 0;
+  repositoryStatus.staleIssueCount = 0;
+  repositoryStatus.totalAgeOfAllIssues = 0;
+  repositoryStatus.pullRequestCount = 0;
+  repositoryStatus.stalePullRequestCount = 0;
+  repositoryStatus.totalAgeOfAllPullRequests = 0;
+
   await _fetchRepositoryIssuesByPage(url, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
 
   // SplayTreeMap doesn't allow sorting by value (count) on insert. Sort at the end once all search page fetches are complete.
