@@ -85,6 +85,7 @@ class _RepositoryDashboardWidget extends StatelessWidget {
               const InfrastructureDetails(),
               const RollDetails()
             ],
+            addAutomaticKeepAlives: true,
           )
         ),
       ),

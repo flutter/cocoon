@@ -44,7 +44,7 @@ class RefreshBuildStatus extends StatefulWidget {
   }
 }
 
-class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> {
+class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> with AutomaticKeepAliveClientMixin<RefreshBuildStatus> {
   Timer _refreshTimer;
 
   @override
@@ -60,6 +60,9 @@ class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> {
     super.dispose();
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   Future<void> _refresh(Timer timer) async {
     try {
       BuildStatus status = await fetchBuildStatus();
@@ -73,6 +76,7 @@ class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return widget.child;
   }
 }

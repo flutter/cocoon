@@ -59,7 +59,7 @@ class RefreshRollHistory extends StatefulWidget {
   }
 }
 
-class _RefreshRollHistoryState extends State<RefreshRollHistory> {
+class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticKeepAliveClientMixin<RefreshRollHistory> {
   Timer _refreshTimer;
 
   @override
@@ -74,6 +74,9 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
     _refreshTimer?.cancel();
     super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   Future<void> _refresh(Timer timer) async {
     final RollHistory rollHistory = ModelBinding.of<RollHistory>(context).copy();
@@ -176,6 +179,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return widget.child;
   }
 }
