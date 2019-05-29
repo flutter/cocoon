@@ -13,7 +13,7 @@ Future<GithubStatus> fetchGithubStatus() async {
   if (fetchedStatus == null) {
     return null;
   }
-  Map<String, dynamic> status = fetchedStatus['status'];
+  final Map<String, dynamic> status = fetchedStatus['status'];
   return GithubStatus(status: status['description'], indicator: status['indicator']);
 }
 
