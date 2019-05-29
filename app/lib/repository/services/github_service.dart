@@ -40,17 +40,17 @@ Future<DateTime> lastCommitFromAuthor(String repositoryName, String author) asyn
 }
 
 Future<int> fetchIssueCount(String repositoryName) async {
-  return await _searchIssuesTotalCount(repositoryName);
+  return _searchIssuesTotalCount(repositoryName);
 }
 
 Future<int> fetchStaleIssueCount(String repositoryName) async {
   final DateTime staleDate = DateTime.now().subtract(Duration(days: RepositoryStatus.staleIssueThresholdInDays));
   final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
-  return await _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
+  return _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
 }
 
 Future<int> fetchIssuesWithoutMilestone(String repositoryName) async {
-  return await _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:milestone');
+  return _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:milestone');
 }
 
 Future<int>_searchIssuesTotalCount(String repositoryName, {String additionalQuery = ''}) async {
