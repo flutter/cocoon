@@ -60,7 +60,7 @@ Future<int>_searchIssuesTotalCount(String repositoryName, {String additionalQuer
 
 Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
   final Map<String, int> pullRequestCountByTopicAggregator = {};
-  final Map<String, int> issueCountByLabelAggregator = {};
+  final Map<String, int> pullRequestCountByLabelAggregator = {};
 
   // Reset counters to be aggregated in _fetchRepositoryPullRequestsByPage.
   repositoryStatus.pullRequestCount = 0;
@@ -68,14 +68,14 @@ Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
 
   // Use spaces instead of pluses in Github query parameters. Dart encodes spaces as +, but + is encoded as %2B which Github cannot parse and will think is malformed.
   final Uri pullRequestUrl = Uri.https('api.github.com', 'search/issues', <String, String>{'q': 'repo:flutter/${repositoryStatus.name} is:open is:pr', 'per_page': '100'});
-  await _fetchRepositoryPullRequestsByPage(pullRequestUrl, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
+  await _fetchRepositoryPullRequestsByPage(pullRequestUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
 
   // SplayTreeMap doesn't allow sorting by value (count) on insert. Sort at the end once all search page fetches are complete.
-  repositoryStatus.issueCountByLabelName = _sortTopics(issueCountByLabelAggregator);
+  repositoryStatus.pullRequestCountByLabelName = _sortTopics(pullRequestCountByLabelAggregator);
   repositoryStatus.pullRequestCountByTitleTopic = _sortTopics(pullRequestCountByTopicAggregator);
 }
 
-Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus repositoryStatus, Map<String, int> issueCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
+Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus repositoryStatus, Map<String, int> pullRequestCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
   final HttpRequest response = await _getResponse(url);
   if (response == null) {
     return;
@@ -89,13 +89,12 @@ Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus reposi
 
   for (Map<String, dynamic> issue in issues) {
     _processPullRequest(issue, repositoryStatus, pullRequestCountByTopicAggregator);
-    // Include labels from both PRs and issues.
-    _processLabels(issue, issueCountByLabelAggregator);
+    _processLabels(issue, pullRequestCountByLabelAggregator);
   }
 
   final Uri nextPageUrl = _nextSearchPageURLFromHeaders(response.responseHeaders);
   if (nextPageUrl != null) {
-    await _fetchRepositoryPullRequestsByPage(nextPageUrl, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
+    await _fetchRepositoryPullRequestsByPage(nextPageUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
   }
 }
 

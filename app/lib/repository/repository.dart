@@ -66,13 +66,27 @@ class _RepositoryDashboardWidget extends StatelessWidget {
             children: <Widget>[
               RepositoryDetails<FlutterRepositoryStatus>(
                 icon: const FlutterLogo(),
-                labelEvaluation: (String labelName) => labelName == 'waiting for tree to go green' || labelName == '⚠ TODAY' || labelName.startsWith('severe: customer')
+                labelEvaluation: (String labelName) => <String>[
+                  'waiting for tree to go green',
+                  '⚠ TODAY',
+                  'severe: customer blocker',
+                  'severe: customer critical',
+                  'framework',
+                  'f: cupertino',
+                  'f: material design',
+                  'tool',
+                  'will need additional triage',
+                  'customer: crowd',
+                ].contains(labelName)
               ),
               ModelBinding<FlutterEngineRepositoryStatus>(
                 initialModel: FlutterEngineRepositoryStatus(),
                 child: RepositoryDetails<FlutterEngineRepositoryStatus>(
                   icon: Icon(Icons.layers),
-                  labelEvaluation: (String labelName) => labelName == 'engine' || labelName.startsWith('e:')
+                  labelEvaluation: (String labelName) => labelName == 'engine'
+                    || labelName == 'needs love'
+                    || labelName.startsWith('e:')
+                    || labelName.startsWith('affects:')
                 ),
               ),
               ModelBinding<FlutterPluginsRepositoryStatus>(
@@ -80,6 +94,8 @@ class _RepositoryDashboardWidget extends StatelessWidget {
                 child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
                   icon: Icon(Icons.extension),
                   labelEvaluation: (String labelName) => labelName.startsWith('p:')
+                    || labelName == 'flutterfire'
+                    || labelName == 'needs love'
                 ),
               ),
               const InfrastructureDetails(),

@@ -47,12 +47,12 @@ abstract class RepositoryStatus {
   /// - framework: 10
   /// - tool: 10
   /// - bug: 9
-  SplayTreeMap<String, int> issueCountByLabelName = SplayTreeMap<String, int>();
+  SplayTreeMap<String, int> pullRequestCountByLabelName = SplayTreeMap<String, int>();
 
   /// Pull requests titles are sometimes prefixed by topics between square brackets.
   /// Primary sort is count descending, secondary sort is topic ascending alphabetically.
   ///
-  /// See [issueCountByLabelName] sorted example.
+  /// See [pullRequestCountByLabelName] sorted example.
   SplayTreeMap<String, int> pullRequestCountByTitleTopic = SplayTreeMap<String, int>();
 
   RepositoryStatus copy() {
@@ -67,7 +67,7 @@ abstract class RepositoryStatus {
       ..staleIssueCount = staleIssueCount
       ..stalePullRequestCount = stalePullRequestCount
       ..totalAgeOfAllPullRequests = totalAgeOfAllPullRequests
-      ..issueCountByLabelName = issueCountByLabelName
+      ..pullRequestCountByLabelName = pullRequestCountByLabelName
       ..pullRequestCountByTitleTopic = pullRequestCountByTitleTopic;
   }
 
@@ -96,14 +96,14 @@ abstract class RepositoryStatus {
       && (typedOther.pullRequestCount == pullRequestCount)
       && (typedOther.stalePullRequestCount == stalePullRequestCount)
       && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
-      && (typedOther.issueCountByLabelName == issueCountByLabelName)
+      && (typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName)
       && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic);
   }
 
   @override
   int get hashCode => hashValues(
     name,
-    issueCountByLabelName,
+    pullRequestCountByLabelName,
     pullRequestCountByTitleTopic,
     watchersCount,
     subscribersCount,
