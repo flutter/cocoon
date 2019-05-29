@@ -83,7 +83,7 @@ class _DetailItem extends StatelessWidget {
     DateFormat dateFormat;
     String parenthesis;
     DateTime valueDate;
-    RollHistory history = ModelBinding.of<RollHistory>(context);
+    final RollHistory history = ModelBinding.of<RollHistory>(context);
     if (value != null) {
       valueDate = value(history);
       if (valueDate != null) {

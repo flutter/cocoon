@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 
-import 'providers.dart';
 import '../services/github_status_service.dart';
+import 'providers.dart';
 
 class GithubStatus {
   const GithubStatus({this.status, this.indicator});
@@ -62,7 +62,7 @@ class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
 
   Future<void> _refresh(Timer timer) async {
     try {
-      GithubStatus status = await fetchGithubStatus();
+      final GithubStatus status = await fetchGithubStatus();
       if (status != null) {
         ModelBinding.update<GithubStatus>(context, status);
       }

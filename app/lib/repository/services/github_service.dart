@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter_web/foundation.dart';
+import 'package:intl/intl.dart';
 
 import '../models/github_authentication.dart';
 import '../models/repository_status.dart';
@@ -18,15 +19,14 @@ Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
   if (fetchedDetails != null) {
     repositoryStatus
       ..watchersCount = fetchedDetails['watchers']
-      ..subscribersCount = fetchedDetails['subscribers_count'];
+      ..subscribersCount = fetchedDetails['subscribers_count']
+      ..issuesEnabled = fetchedDetails['has_issues'];
   }
 }
 
-Future<void> fetchToDoCount(RepositoryStatus repositoryStatus) async {
-  final Map<String, dynamic> body = await _getBody('search/code', queryParameters: <String, String>{'q': 'repo:flutter/${repositoryStatus.name} TODO', 'per_page': '1', 'page': '0'});
-  if (body != null) {
-    repositoryStatus.todoCount = body['total_count'];
-  }
+Future<int> fetchToDoCount(String repositoryName) async {
+  final Map<String, dynamic> body = await _getBody('search/code', queryParameters: <String, String>{'q': 'repo:flutter/${repositoryName} TODO', 'per_page': '1', 'page': '0'});
+  return (body == null) ? null : body['total_count'];
 }
 
 Future<DateTime> fetchBranchLastCommitDate(String repositoryName, String branchName) async {
@@ -39,30 +39,43 @@ Future<DateTime> lastCommitFromAuthor(String repositoryName, String author) asyn
   return (body == null) ? null : DateTime.tryParse(body[0]['commit']['committer']['date']);
 }
 
-Future<void> fetchRepositoryIssues(RepositoryStatus repositoryStatus) async {
-  // Use spaces instead of pluses in Github query parameters. Dart encodes spaces as +, but + is encoded as %2B which Github cannot parse and will think is malformed.
-  final Uri url = Uri.https('api.github.com', 'search/issues', <String, String>{'q': 'repo:flutter/${repositoryStatus.name} is:open', 'per_page': '100'});
+Future<int> fetchIssueCount(String repositoryName) async {
+  return await _searchIssuesTotalCount(repositoryName);
+}
 
-  Map<String, int> pullRequestCountByTopicAggregator = {};
-  Map<String, int> issueCountByLabelAggregator = {};
+Future<int> fetchStaleIssueCount(String repositoryName) async {
+  final DateTime staleDate = DateTime.now().subtract(Duration(days: RepositoryStatus.staleIssueThresholdInDays));
+  final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
+  return await _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
+}
 
-  // Reset counters to be aggregated in _fetchRepositoryIssuesByPage.
-  repositoryStatus.issueCount = 0;
-  repositoryStatus.missingMilestoneIssuesCount = 0;
-  repositoryStatus.staleIssueCount = 0;
-  repositoryStatus.totalAgeOfAllIssues = 0;
+Future<int> fetchIssuesWithoutMilestone(String repositoryName) async {
+  return await _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:milestone');
+}
+
+Future<int>_searchIssuesTotalCount(String repositoryName, {String additionalQuery = ''}) async {
+  final Map<String, dynamic> body = await _getBody('search/issues', queryParameters: <String, String>{'q': 'repo:flutter/${repositoryName} is:open is:issue $additionalQuery', 'page': '0', 'per_page': '1'});
+  return (body == null) ? null : body['total_count'];
+}
+
+Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
+  final Map<String, int> pullRequestCountByTopicAggregator = {};
+  final Map<String, int> issueCountByLabelAggregator = {};
+
+  // Reset counters to be aggregated in _fetchRepositoryPullRequestsByPage.
   repositoryStatus.pullRequestCount = 0;
-  repositoryStatus.stalePullRequestCount = 0;
   repositoryStatus.totalAgeOfAllPullRequests = 0;
 
-  await _fetchRepositoryIssuesByPage(url, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
+  // Use spaces instead of pluses in Github query parameters. Dart encodes spaces as +, but + is encoded as %2B which Github cannot parse and will think is malformed.
+  final Uri pullRequestUrl = Uri.https('api.github.com', 'search/issues', <String, String>{'q': 'repo:flutter/${repositoryStatus.name} is:open is:pr', 'per_page': '100'});
+  await _fetchRepositoryPullRequestsByPage(pullRequestUrl, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
 
   // SplayTreeMap doesn't allow sorting by value (count) on insert. Sort at the end once all search page fetches are complete.
   repositoryStatus.issueCountByLabelName = _sortTopics(issueCountByLabelAggregator);
   repositoryStatus.pullRequestCountByTitleTopic = _sortTopics(pullRequestCountByTopicAggregator);
 }
 
-Future<void> _fetchRepositoryIssuesByPage(Uri url, RepositoryStatus repositoryStatus, Map<String, int> issueCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
+Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus repositoryStatus, Map<String, int> issueCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
   final HttpRequest response = await _getResponse(url);
   if (response == null) {
     return;
@@ -75,18 +88,14 @@ Future<void> _fetchRepositoryIssuesByPage(Uri url, RepositoryStatus repositorySt
   final List<dynamic> issues = fetchedDetails['items'];
 
   for (Map<String, dynamic> issue in issues) {
-    if (issue['pull_request'] != null) {
-      _processPullRequest(issue, repositoryStatus, pullRequestCountByTopicAggregator);
-    } else {
-      _processIssue(issue, repositoryStatus);
-    }
+    _processPullRequest(issue, repositoryStatus, pullRequestCountByTopicAggregator);
     // Include labels from both PRs and issues.
     _processLabels(issue, issueCountByLabelAggregator);
   }
 
   final Uri nextPageUrl = _nextSearchPageURLFromHeaders(response.responseHeaders);
   if (nextPageUrl != null) {
-    await _fetchRepositoryIssuesByPage(nextPageUrl, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
+    await _fetchRepositoryPullRequestsByPage(nextPageUrl, repositoryStatus, issueCountByLabelAggregator, pullRequestCountByTopicAggregator);
   }
 }
 
@@ -144,24 +153,6 @@ void _processPullRequest(Map<String, dynamic> pullRequest, RepositoryStatus repo
         pullRequestCountByTopicAggregator[titleTopic] += 1;
       }
     }
-  }
-}
-
-void _processIssue(Map<String, dynamic> issue, RepositoryStatus repositoryStatus) {
-  repositoryStatus.issueCount += 1;
-
-  final Map<String, dynamic> milestone = issue['milestone'];
-  if (milestone == null) {
-    repositoryStatus.missingMilestoneIssuesCount += 1;
-  }
-  final DateTime createdAt = DateTime.tryParse(issue['created_at']);
-  if (createdAt != null) {
-    repositoryStatus.totalAgeOfAllIssues += DateTime.now().difference(createdAt).inDays;
-  }
-
-  final DateTime updatedAt = DateTime.tryParse(issue['updated_at']);
-  if (updatedAt != null && DateTime.now().difference(updatedAt).inDays >= RepositoryStatus.staleIssueThresholdInDays) {
-    repositoryStatus.staleIssueCount += 1;
   }
 }
 

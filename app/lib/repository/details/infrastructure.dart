@@ -5,15 +5,15 @@
 import 'package:flutter_web/material.dart';
 
 import '../models/build_status.dart';
-import '../models/providers.dart';
 import '../models/github_status.dart';
+import '../models/providers.dart';
 
 class InfrastructureDetails extends StatelessWidget {
   const InfrastructureDetails();
 
   @override
   Widget build(BuildContext context) {
-    CircleAvatar cirrusLogo = CircleAvatar(
+    final CircleAvatar cirrusLogo = CircleAvatar(
       child: Image.network('https://avatars2.githubusercontent.com/ml/953?s=28'),
       backgroundColor: const Color(0xFF212121),
     );

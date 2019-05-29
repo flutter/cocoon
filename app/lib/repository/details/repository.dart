@@ -62,17 +62,13 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
     final T repositoryStatus = ModelBinding.of<T>(context);
 
     List<Widget> issueWidgets;
-    if (repositoryStatus.issueCount > 0) {
-      final int issueCount = repositoryStatus.issueCount;
-
-      final int ageDays = (repositoryStatus.totalAgeOfAllIssues / issueCount).round();
-      final String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
+    final int issueCount = repositoryStatus.issueCount;
+    if (issueCount > 0) {
       issueWidgets = <Widget>[
         const Divider(),
         const _DetailTitle(title: 'Issues'),
         _DetailItem(title: 'Open', value: numberFormat.format(issueCount)),
         _DetailItem(title: 'No Milestone', value: '${numberFormat.format(repositoryStatus.missingMilestoneIssuesCount)} (${percentFormat.format(repositoryStatus.missingMilestoneIssuesCount / issueCount)})'),
-        _DetailItem(title: 'Average Age', value: age),
         _DetailItem(title: 'Unmodified in month', value: '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
       ];
     }

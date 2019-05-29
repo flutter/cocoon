@@ -25,14 +25,13 @@ abstract class RepositoryStatus {
 
   int watchersCount = 0;
   int subscribersCount = 0;
+  bool issuesEnabled = false;
   int todoCount = 0;
 
   int issueCount = 0;
   int missingMilestoneIssuesCount = 0;
   /// Number of issues that have been unmodified in [staleIssueThresholdInDays] days.
   int staleIssueCount = 0;
-  /// Total age in days. Used to find average age: [totalAgeOfAllIssues] / [issueCount].
-  int totalAgeOfAllIssues = 0;
 
   int pullRequestCount = 0;
 
@@ -60,12 +59,12 @@ abstract class RepositoryStatus {
     return statusFactory()
       ..watchersCount = watchersCount
       ..subscribersCount = subscribersCount
+      ..issuesEnabled = issuesEnabled
       ..todoCount = todoCount
       ..issueCount = issueCount
       ..pullRequestCount = pullRequestCount
       ..missingMilestoneIssuesCount = missingMilestoneIssuesCount
       ..staleIssueCount = staleIssueCount
-      ..totalAgeOfAllIssues = totalAgeOfAllIssues
       ..stalePullRequestCount = stalePullRequestCount
       ..totalAgeOfAllPullRequests = totalAgeOfAllPullRequests
       ..issueCountByLabelName = issueCountByLabelName
@@ -89,11 +88,11 @@ abstract class RepositoryStatus {
     return (typedOther.name == name)
       && (typedOther.watchersCount == watchersCount)
       && (typedOther.subscribersCount == subscribersCount)
+      && (typedOther.issuesEnabled == issuesEnabled)
       && (typedOther.todoCount == todoCount)
       && (typedOther.issueCount == issueCount)
       && (typedOther.missingMilestoneIssuesCount == missingMilestoneIssuesCount)
       && (typedOther.staleIssueCount == staleIssueCount)
-      && (typedOther.totalAgeOfAllIssues == totalAgeOfAllIssues)
       && (typedOther.pullRequestCount == pullRequestCount)
       && (typedOther.stalePullRequestCount == stalePullRequestCount)
       && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
@@ -108,11 +107,11 @@ abstract class RepositoryStatus {
     pullRequestCountByTitleTopic,
     watchersCount,
     subscribersCount,
+    issuesEnabled,
     todoCount,
     issueCount,
     missingMilestoneIssuesCount,
     staleIssueCount,
-    totalAgeOfAllIssues,
     pullRequestCount,
     stalePullRequestCount,
     totalAgeOfAllPullRequests);
@@ -173,57 +172,86 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     super.dispose();
   }
 
-  void _refresh(Timer timer) async {
+  Future<void> _refresh(Timer timer) async {
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
-    await _fetchRepositoryDetails();
-    // Then fetch update with the more expensive issues query value.
-    await _fetchRepositoryIssues();
-    // Then fetch the less important t_do count.
-    await _fetchToDoCount();
+    await _updateRepositoryDetails();
+    final T repositoryStatus = ModelBinding.of<T>(context).copy();
+
+    try {
+      final List<Future<void>> futuresToFetch = <Future<void>>[
+        _updatePullRequests(repositoryStatus),
+        _updateToDoCount(repositoryStatus)];
+
+      // Not every repository has issues enabled. Avoid unnecessary traffic.
+      if (repositoryStatus.issuesEnabled) {
+        // Github limits searches to 1000 results. Since there may be more issues than that, explicitly query for the counts instead of iterating over all issues.
+        futuresToFetch.addAll(<Future<void>>[
+          _updateIssueCount(repositoryStatus),
+          _updateStaleIssueCount(repositoryStatus),
+          _updateIssuesWithoutMilestone(repositoryStatus)]);
+      }
+      await Future.wait(futuresToFetch, eagerError: true);
+    } catch (error) {
+      print('Error refreshing repository');
+    }
+    _isLoaded = true;
+    ModelBinding.update<T>(context, repositoryStatus);
   }
 
-  Future<void> _fetchRepositoryDetails() async {
+  Future<void> _updateRepositoryDetails() async {
     if (!mounted) {
       return;
     }
-    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-
-    // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
-    try {
-      await fetchRepositoryDetails(refreshedRepositoryStatus);
-      ModelBinding.update<T>(context, refreshedRepositoryStatus);
-    } catch (error) {
-      print('Error refreshing "${refreshedRepositoryStatus.name}" repository details: $error');
-    }
+    final T repositoryStatus = ModelBinding.of<T>(context).copy();
+    await fetchRepositoryDetails(repositoryStatus);
+    ModelBinding.update<T>(context, repositoryStatus);
   }
 
-  Future<void> _fetchRepositoryIssues() async {
+  Future<void> _updateIssueCount(T repositoryStatus) async {
     if (!mounted) {
       return;
     }
-    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
-    try {
-      await fetchRepositoryIssues(refreshedRepositoryStatus);
-      ModelBinding.update<T>(context, refreshedRepositoryStatus);
-
-      // Show the UI once critical pieces are fetched.
-      _isLoaded = true;
-    } catch (error) {
-      print('Error refreshing "${refreshedRepositoryStatus.name}" repository issues: $error');
+    final int issueCount = await fetchIssueCount(repositoryStatus.name);
+    if (issueCount != null) {
+      repositoryStatus.issueCount = issueCount;
     }
   }
 
-  Future<void> _fetchToDoCount() async {
+  Future<void> _updateStaleIssueCount(T repositoryStatus) async {
     if (!mounted) {
       return;
     }
-    final T refreshedRepositoryStatus = ModelBinding.of<T>(context).copy();
+    final int staleIssueCount = await fetchStaleIssueCount(repositoryStatus.name);
+    if (staleIssueCount != null) {
+      repositoryStatus.staleIssueCount = staleIssueCount;
+    }
+  }
 
-    try {
-      await fetchToDoCount(refreshedRepositoryStatus);
-      ModelBinding.update<T>(context, refreshedRepositoryStatus);
-    } catch (error) {
-      print('Error refreshing "${refreshedRepositoryStatus.name}" todo count: $error');
+  Future<void> _updateIssuesWithoutMilestone(T repositoryStatus) async {
+    if (!mounted) {
+      return;
+    }
+    final int missingMilestoneIssuesCount = await fetchIssuesWithoutMilestone(repositoryStatus.name);
+    if (missingMilestoneIssuesCount != null) {
+      repositoryStatus.missingMilestoneIssuesCount = missingMilestoneIssuesCount;
+    }
+  }
+
+  Future<void> _updatePullRequests(T repositoryStatus) async {
+    if (!mounted) {
+      return;
+    }
+    await fetchPullRequests(repositoryStatus);
+  }
+
+  Future<void> _updateToDoCount(T repositoryStatus) async {
+    if (!mounted) {
+      return;
+    }
+
+    final int todoCount = await fetchToDoCount(repositoryStatus.name);
+    if (todoCount != null) {
+      repositoryStatus.todoCount = todoCount;
     }
   }
 
