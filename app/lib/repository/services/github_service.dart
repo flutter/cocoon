@@ -44,7 +44,7 @@ Future<int> fetchIssueCount(String repositoryName) async {
 }
 
 Future<int> fetchStaleIssueCount(String repositoryName) async {
-  final DateTime staleDate = DateTime.now().subtract(Duration(days: RepositoryStatus.staleIssueThresholdInDays));
+  final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
   final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
   return _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
 }

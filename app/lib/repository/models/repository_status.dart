@@ -12,13 +12,19 @@ import 'package:flutter_web/widgets.dart';
 import '../services/github_service.dart';
 import 'providers.dart';
 
+typedef LabelEvaluator = bool Function(String labelName);
+
 /// Repository properties and status fetched from Github.
 ///
 /// [name] is the Github ":repo" parameter in Github APIs. See <https://developer.github.com/v3/repos>
 abstract class RepositoryStatus {
-  RepositoryStatus({@required this.name});
+  RepositoryStatus({@required this.name, @required this.labelEvaluation});
 
   final String name;
+
+  /// Should true if the pull request has a PR triage label, or other label interesting to the maintainers.
+  /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
+  final LabelEvaluator labelEvaluation;
 
   static const int staleIssueThresholdInDays = 30;
   static const int stalePullRequestThresholdInDays = 7;
@@ -86,6 +92,7 @@ abstract class RepositoryStatus {
     }
     final RepositoryStatus typedOther = other;
     return (typedOther.name == name)
+      && (typedOther.labelEvaluation == labelEvaluation)
       && (typedOther.watchersCount == watchersCount)
       && (typedOther.subscribersCount == subscribersCount)
       && (typedOther.issuesEnabled == issuesEnabled)
@@ -103,6 +110,7 @@ abstract class RepositoryStatus {
   @override
   int get hashCode => hashValues(
     name,
+    labelEvaluation,
     pullRequestCountByLabelName,
     pullRequestCountByTitleTopic,
     watchersCount,
@@ -118,7 +126,16 @@ abstract class RepositoryStatus {
 }
 
 class FlutterRepositoryStatus extends RepositoryStatus {
-  FlutterRepositoryStatus() : super(name: 'flutter');
+  FlutterRepositoryStatus() : super(name: 'flutter', labelEvaluation: (String labelName) => const <String>[
+    'waiting for tree to go green',
+    '⚠ TODAY',
+    'severe: customer blocker',
+    'severe: customer critical',
+    'f: cupertino',
+    'f: material design',
+    'tool',
+    'will need additional triage',
+  ].contains(labelName));
 
   @override
   FlutterRepositoryStatus statusFactory() {
@@ -127,7 +144,12 @@ class FlutterRepositoryStatus extends RepositoryStatus {
 }
 
 class FlutterEngineRepositoryStatus extends RepositoryStatus {
-  FlutterEngineRepositoryStatus() : super(name: 'engine');
+  FlutterEngineRepositoryStatus() : super(
+    name: 'engine',
+    labelEvaluation: (String labelName) => labelName == 'engine'
+      || labelName == 'needs love'
+      || labelName.startsWith('e:')
+      || labelName.startsWith('affects:'));
 
   @override
   FlutterEngineRepositoryStatus statusFactory() {
@@ -136,7 +158,12 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
 }
 
 class FlutterPluginsRepositoryStatus extends RepositoryStatus {
-  FlutterPluginsRepositoryStatus() : super(name: 'plugins');
+  FlutterPluginsRepositoryStatus() : super(
+    name: 'plugins',
+    labelEvaluation: (String labelName) => labelName.startsWith('p:')
+      || labelName == 'waiting for test harness'
+      || labelName == 'flutterfire'
+      || labelName == 'needs love');
 
   @override
   FlutterPluginsRepositoryStatus statusFactory() {

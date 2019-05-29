@@ -64,38 +64,19 @@ class _RepositoryDashboardWidget extends StatelessWidget {
             maxCrossAxisExtent: 450.0,
             childAspectRatio: .55,
             children: <Widget>[
-              RepositoryDetails<FlutterRepositoryStatus>(
-                icon: const FlutterLogo(),
-                labelEvaluation: (String labelName) => <String>[
-                  'waiting for tree to go green',
-                  '⚠ TODAY',
-                  'severe: customer blocker',
-                  'severe: customer critical',
-                  'framework',
-                  'f: cupertino',
-                  'f: material design',
-                  'tool',
-                  'will need additional triage',
-                  'customer: crowd',
-                ].contains(labelName)
+              const RepositoryDetails<FlutterRepositoryStatus>(
+                icon: FlutterLogo(),
               ),
               ModelBinding<FlutterEngineRepositoryStatus>(
                 initialModel: FlutterEngineRepositoryStatus(),
                 child: RepositoryDetails<FlutterEngineRepositoryStatus>(
                   icon: Icon(Icons.layers),
-                  labelEvaluation: (String labelName) => labelName == 'engine'
-                    || labelName == 'needs love'
-                    || labelName.startsWith('e:')
-                    || labelName.startsWith('affects:')
                 ),
               ),
               ModelBinding<FlutterPluginsRepositoryStatus>(
                 initialModel: FlutterPluginsRepositoryStatus(),
                 child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
                   icon: Icon(Icons.extension),
-                  labelEvaluation: (String labelName) => labelName.startsWith('p:')
-                    || labelName == 'flutterfire'
-                    || labelName == 'needs love'
                 ),
               ),
               const InfrastructureDetails(),
