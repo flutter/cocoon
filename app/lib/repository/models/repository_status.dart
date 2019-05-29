@@ -155,7 +155,7 @@ class RefreshRepository<T extends RepositoryStatus> extends StatefulWidget {
   }
 }
 
-class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository<T>> {
+class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository<T>> with AutomaticKeepAliveClientMixin<RefreshRepository<T>> {
   Timer _refreshTimer;
   bool _isLoaded = false;
 
@@ -171,6 +171,9 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     _refreshTimer?.cancel();
     super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   Future<void> _refresh(Timer timer) async {
     // Update with the fast, cheap, possibly cached repository details to show UI ASAP.
@@ -257,6 +260,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return _isLoaded ? widget.child : const Center(child: CircularProgressIndicator());
   }
 }

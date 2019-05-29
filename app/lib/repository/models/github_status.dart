@@ -44,7 +44,7 @@ class RefreshGithubStatus extends StatefulWidget {
   }
 }
 
-class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
+class _RefreshGithubStatusState extends State<RefreshGithubStatus> with AutomaticKeepAliveClientMixin<RefreshGithubStatus> {
   Timer _refreshTimer;
 
   @override
@@ -60,6 +60,9 @@ class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
     super.dispose();
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   Future<void> _refresh(Timer timer) async {
     try {
       final GithubStatus status = await fetchGithubStatus();
@@ -73,6 +76,7 @@ class _RefreshGithubStatusState extends State<RefreshGithubStatus> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return widget.child;
   }
 }
