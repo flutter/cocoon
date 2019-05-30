@@ -10,13 +10,10 @@ import 'package:flutter_web/material.dart';
 import '../models/providers.dart';
 import '../models/repository_status.dart';
 
-typedef LabelEvaluator = bool Function(String labelName);
-
 class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
-  const RepositoryDetails({@required this.icon, this.labelEvaluation});
+  const RepositoryDetails({@required this.icon});
 
   final Widget icon;
-  final LabelEvaluator labelEvaluation;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +25,10 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
         children: <Widget>[
           _PullRequestWidget<T>(),
           _IssueWidget<T>(),
-          // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc.
-          _TopicListWidget(title: 'Relevant Issue and PR Labels', countByTopic: flutterStatus.issueCountByLabelName, labelEvaluation: labelEvaluation),
+          // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc. Avoiding displaying twice in the Flutter repository widget.
+          if (repositoryStatus.runtimeType != flutterStatus.runtimeType)
+            _TopicListWidget(title: 'Flutter Pull Request Labels', countByTopic: flutterStatus.pullRequestCountByLabelName, labelEvaluation: repositoryStatus.labelEvaluation),
+          _TopicListWidget(title: 'Pull Request Labels', countByTopic: repositoryStatus.pullRequestCountByLabelName, labelEvaluation: repositoryStatus.labelEvaluation),
           _TopicListWidget(title: 'Pull Requests by Topic', countByTopic: repositoryStatus.pullRequestCountByTitleTopic)
         ]
       )
