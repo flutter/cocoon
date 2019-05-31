@@ -168,7 +168,7 @@ class _BuildStatusWidget extends StatelessWidget {
         foregroundColor: Colors.white,
         backgroundColor: Colors.redAccent,
       ),
-      title: Text('Agent $agentName Failing')
+      title: Text('$agentName Unhealthy')
     );
   }
 }
