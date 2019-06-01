@@ -64,6 +64,7 @@ Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
 
   // Reset counters to be aggregated in _fetchRepositoryPullRequestsByPage.
   repositoryStatus.pullRequestCount = 0;
+  repositoryStatus.stalePullRequestCount = 0;
   repositoryStatus.totalAgeOfAllPullRequests = 0;
 
   // Use spaces instead of pluses in Github query parameters. Dart encodes spaces as +, but + is encoded as %2B which Github cannot parse and will think is malformed.
