@@ -20,12 +20,11 @@ GetStatusResult _$GetStatusResultFromJson(Map<String, dynamic> json) {
           ?.toList());
 }
 
-abstract class _$GetStatusResultSerializerMixin {
-  List<BuildStatus> get statuses;
-  List<AgentStatus> get agentStatuses;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Statuses': statuses, 'AgentStatuses': agentStatuses};
-}
+Map<String, dynamic> _$GetStatusResultToJson(GetStatusResult instance) =>
+    <String, dynamic>{
+      'Statuses': instance.statuses,
+      'AgentStatuses': instance.agentStatuses
+    };
 
 BuildStatus _$BuildStatusFromJson(Map<String, dynamic> json) {
   return BuildStatus(
@@ -39,35 +38,28 @@ BuildStatus _$BuildStatusFromJson(Map<String, dynamic> json) {
               json['Checklist'] as Map<String, dynamic>));
 }
 
-abstract class _$BuildStatusSerializerMixin {
-  List<Stage> get stages;
-  ChecklistEntity get checklist;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Stages': stages, 'Checklist': checklist};
-}
+Map<String, dynamic> _$BuildStatusToJson(BuildStatus instance) =>
+    <String, dynamic>{
+      'Stages': instance.stages,
+      'Checklist': instance.checklist
+    };
 
 AgentStatus _$AgentStatusFromJson(Map<String, dynamic> json) {
   return AgentStatus(
       agentId: json['AgentID'] as String,
       isHealthy: json['IsHealthy'] as bool ?? true,
-      healthCheckTimestamp: json['HealthCheckTimestamp'] == null
-          ? null
-          : fromMilliseconds(json['HealthCheckTimestamp'] as int),
+      healthCheckTimestamp:
+          fromMilliseconds(json['HealthCheckTimestamp'] as int),
       healthDetails: json['HealthDetails'] as String);
 }
 
-abstract class _$AgentStatusSerializerMixin {
-  String get agentId;
-  bool get isHealthy;
-  DateTime get healthCheckTimestamp;
-  String get healthDetails;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'AgentID': agentId,
-        'IsHealthy': isHealthy,
-        'HealthCheckTimestamp': healthCheckTimestamp?.toIso8601String(),
-        'HealthDetails': healthDetails
-      };
-}
+Map<String, dynamic> _$AgentStatusToJson(AgentStatus instance) =>
+    <String, dynamic>{
+      'AgentID': instance.agentId,
+      'IsHealthy': instance.isHealthy,
+      'HealthCheckTimestamp': instance.healthCheckTimestamp?.toIso8601String(),
+      'HealthDetails': instance.healthDetails
+    };
 
 CommitInfo _$CommitInfoFromJson(Map<String, dynamic> json) {
   return CommitInfo(
@@ -77,24 +69,19 @@ CommitInfo _$CommitInfoFromJson(Map<String, dynamic> json) {
           : AuthorInfo.fromJson(json['Author'] as Map<String, dynamic>));
 }
 
-abstract class _$CommitInfoSerializerMixin {
-  String get sha;
-  AuthorInfo get author;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Sha': sha, 'Author': author};
-}
+Map<String, dynamic> _$CommitInfoToJson(CommitInfo instance) =>
+    <String, dynamic>{'Sha': instance.sha, 'Author': instance.author};
 
 AuthorInfo _$AuthorInfoFromJson(Map<String, dynamic> json) {
   return AuthorInfo(
       login: json['Login'] as String, avatarUrl: json['avatar_url'] as String);
 }
 
-abstract class _$AuthorInfoSerializerMixin {
-  String get login;
-  String get avatarUrl;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Login': login, 'avatar_url': avatarUrl};
-}
+Map<String, dynamic> _$AuthorInfoToJson(AuthorInfo instance) =>
+    <String, dynamic>{
+      'Login': instance.login,
+      'avatar_url': instance.avatarUrl
+    };
 
 ChecklistEntity _$ChecklistEntityFromJson(Map<String, dynamic> json) {
   return ChecklistEntity(
@@ -104,12 +91,8 @@ ChecklistEntity _$ChecklistEntityFromJson(Map<String, dynamic> json) {
           : Checklist.fromJson(json['Checklist'] as Map<String, dynamic>));
 }
 
-abstract class _$ChecklistEntitySerializerMixin {
-  String get key;
-  Checklist get checklist;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Key': key, 'Checklist': checklist};
-}
+Map<String, dynamic> _$ChecklistEntityToJson(ChecklistEntity instance) =>
+    <String, dynamic>{'Key': instance.key, 'Checklist': instance.checklist};
 
 Checklist _$ChecklistFromJson(Map<String, dynamic> json) {
   return Checklist(
@@ -117,21 +100,14 @@ Checklist _$ChecklistFromJson(Map<String, dynamic> json) {
       commit: json['Commit'] == null
           ? null
           : CommitInfo.fromJson(json['Commit'] as Map<String, dynamic>),
-      createTimestamp: json['CreateTimestamp'] == null
-          ? null
-          : fromMilliseconds(json['CreateTimestamp'] as int));
+      createTimestamp: fromMilliseconds(json['CreateTimestamp'] as int));
 }
 
-abstract class _$ChecklistSerializerMixin {
-  String get flutterRepositoryPath;
-  CommitInfo get commit;
-  DateTime get createTimestamp;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'FlutterRepositoryPath': flutterRepositoryPath,
-        'Commit': commit,
-        'CreateTimestamp': createTimestamp?.toIso8601String()
-      };
-}
+Map<String, dynamic> _$ChecklistToJson(Checklist instance) => <String, dynamic>{
+      'FlutterRepositoryPath': instance.flutterRepositoryPath,
+      'Commit': instance.commit,
+      'CreateTimestamp': instance.createTimestamp?.toIso8601String()
+    };
 
 Stage _$StageFromJson(Map<String, dynamic> json) {
   return Stage(
@@ -142,12 +118,8 @@ Stage _$StageFromJson(Map<String, dynamic> json) {
           ?.toList());
 }
 
-abstract class _$StageSerializerMixin {
-  String get name;
-  List<TaskEntity> get tasks;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Name': name, 'Tasks': tasks};
-}
+Map<String, dynamic> _$StageToJson(Stage instance) =>
+    <String, dynamic>{'Name': instance.name, 'Tasks': instance.tasks};
 
 TaskEntity _$TaskEntityFromJson(Map<String, dynamic> json) {
   return TaskEntity(
@@ -157,11 +129,8 @@ TaskEntity _$TaskEntityFromJson(Map<String, dynamic> json) {
           : Task.fromJson(json['Task'] as Map<String, dynamic>));
 }
 
-abstract class _$TaskEntitySerializerMixin {
-  String get key;
-  Task get task;
-  Map<String, dynamic> toJson() => <String, dynamic>{'Key': key, 'Task': task};
-}
+Map<String, dynamic> _$TaskEntityToJson(TaskEntity instance) =>
+    <String, dynamic>{'Key': instance.key, 'Task': instance.task};
 
 Task _$TaskFromJson(Map<String, dynamic> json) {
   return Task(
@@ -169,39 +138,24 @@ Task _$TaskFromJson(Map<String, dynamic> json) {
       stageName: json['StageName'] as String,
       name: json['Name'] as String,
       status: json['Status'] as String,
-      startTimestamp: json['StartTimestamp'] == null
-          ? null
-          : fromMilliseconds(json['StartTimestamp'] as int),
-      endTimestamp: json['EndTimestamp'] == null
-          ? null
-          : fromMilliseconds(json['EndTimestamp'] as int),
+      startTimestamp: fromMilliseconds(json['StartTimestamp'] as int),
+      endTimestamp: fromMilliseconds(json['EndTimestamp'] as int),
       attempts: json['Attempts'] as int,
       isFlaky: json['Flaky'] as bool,
       host: json['ReservedForAgentID'] as String);
 }
 
-abstract class _$TaskSerializerMixin {
-  String get checklistKey;
-  String get stageName;
-  String get name;
-  String get status;
-  DateTime get startTimestamp;
-  DateTime get endTimestamp;
-  int get attempts;
-  bool get isFlaky;
-  String get host;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'ChecklistKey': checklistKey,
-        'StageName': stageName,
-        'Name': name,
-        'Status': status,
-        'StartTimestamp': startTimestamp?.toIso8601String(),
-        'EndTimestamp': endTimestamp?.toIso8601String(),
-        'Attempts': attempts,
-        'Flaky': isFlaky,
-        'ReservedForAgentID': host
-      };
-}
+Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
+      'ChecklistKey': instance.checklistKey,
+      'StageName': instance.stageName,
+      'Name': instance.name,
+      'Status': instance.status,
+      'StartTimestamp': instance.startTimestamp?.toIso8601String(),
+      'EndTimestamp': instance.endTimestamp?.toIso8601String(),
+      'Attempts': instance.attempts,
+      'Flaky': instance.isFlaky,
+      'ReservedForAgentID': instance.host
+    };
 
 GetBenchmarksResult _$GetBenchmarksResultFromJson(Map<String, dynamic> json) {
   return GetBenchmarksResult(
@@ -212,10 +166,9 @@ GetBenchmarksResult _$GetBenchmarksResultFromJson(Map<String, dynamic> json) {
           ?.toList());
 }
 
-abstract class _$GetBenchmarksResultSerializerMixin {
-  List<BenchmarkData> get benchmarks;
-  Map<String, dynamic> toJson() => <String, dynamic>{'Benchmarks': benchmarks};
-}
+Map<String, dynamic> _$GetBenchmarksResultToJson(
+        GetBenchmarksResult instance) =>
+    <String, dynamic>{'Benchmarks': instance.benchmarks};
 
 BenchmarkData _$BenchmarkDataFromJson(Map<String, dynamic> json) {
   return BenchmarkData(
@@ -230,12 +183,11 @@ BenchmarkData _$BenchmarkDataFromJson(Map<String, dynamic> json) {
           ?.toList());
 }
 
-abstract class _$BenchmarkDataSerializerMixin {
-  TimeseriesEntity get timeseries;
-  List<TimeseriesValue> get values;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Timeseries': timeseries, 'Values': values};
-}
+Map<String, dynamic> _$BenchmarkDataToJson(BenchmarkData instance) =>
+    <String, dynamic>{
+      'Timeseries': instance.timeseries,
+      'Values': instance.values
+    };
 
 GetTimeseriesHistoryResult _$GetTimeseriesHistoryResultFromJson(
     Map<String, dynamic> json) {
@@ -244,19 +196,15 @@ GetTimeseriesHistoryResult _$GetTimeseriesHistoryResultFromJson(
           ? null
           : BenchmarkData.fromJson(
               json['BenchmarkData'] as Map<String, dynamic>),
-      lastPosition: json['LastPosition'] == null
-          ? null
-          : fromCursor(json['LastPosition']));
+      lastPosition: fromCursor(json['LastPosition']));
 }
 
-abstract class _$GetTimeseriesHistoryResultSerializerMixin {
-  BenchmarkData get benchmarkData;
-  String get lastPosition;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'BenchmarkData': benchmarkData,
-        'LastPosition': lastPosition
-      };
-}
+Map<String, dynamic> _$GetTimeseriesHistoryResultToJson(
+        GetTimeseriesHistoryResult instance) =>
+    <String, dynamic>{
+      'BenchmarkData': instance.benchmarkData,
+      'LastPosition': instance.lastPosition
+    };
 
 TimeseriesEntity _$TimeseriesEntityFromJson(Map<String, dynamic> json) {
   return TimeseriesEntity(
@@ -266,12 +214,8 @@ TimeseriesEntity _$TimeseriesEntityFromJson(Map<String, dynamic> json) {
           : Timeseries.fromJson(json['Timeseries'] as Map<String, dynamic>));
 }
 
-abstract class _$TimeseriesEntitySerializerMixin {
-  String get key;
-  Timeseries get timeseries;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'Key': key, 'Timeseries': timeseries};
-}
+Map<String, dynamic> _$TimeseriesEntityToJson(TimeseriesEntity instance) =>
+    <String, dynamic>{'Key': instance.key, 'Timeseries': instance.timeseries};
 
 Timeseries _$TimeseriesFromJson(Map<String, dynamic> json) {
   return Timeseries(
@@ -284,24 +228,16 @@ Timeseries _$TimeseriesFromJson(Map<String, dynamic> json) {
       isArchived: json['Archived'] as bool);
 }
 
-abstract class _$TimeseriesSerializerMixin {
-  String get id;
-  String get taskName;
-  String get label;
-  String get unit;
-  double get goal;
-  double get baseline;
-  bool get isArchived;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'ID': id,
-        'TaskName': taskName,
-        'Label': label,
-        'Unit': unit,
-        'Goal': goal,
-        'Baseline': baseline,
-        'Archived': isArchived
-      };
-}
+Map<String, dynamic> _$TimeseriesToJson(Timeseries instance) =>
+    <String, dynamic>{
+      'ID': instance.id,
+      'TaskName': instance.taskName,
+      'Label': instance.label,
+      'Unit': instance.unit,
+      'Goal': instance.goal,
+      'Baseline': instance.baseline,
+      'Archived': instance.isArchived
+    };
 
 TimeseriesValue _$TimeseriesValueFromJson(Map<String, dynamic> json) {
   return TimeseriesValue(
@@ -311,15 +247,10 @@ TimeseriesValue _$TimeseriesValueFromJson(Map<String, dynamic> json) {
       isDataMissing: json['DataMissing'] as bool ?? false);
 }
 
-abstract class _$TimeseriesValueSerializerMixin {
-  int get createTimestamp;
-  String get revision;
-  double get value;
-  bool get isDataMissing;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'CreateTimestamp': createTimestamp,
-        'Revision': revision,
-        'Value': value,
-        'DataMissing': isDataMissing
-      };
-}
+Map<String, dynamic> _$TimeseriesValueToJson(TimeseriesValue instance) =>
+    <String, dynamic>{
+      'CreateTimestamp': instance.createTimestamp,
+      'Revision': instance.revision,
+      'Value': instance.value,
+      'DataMissing': instance.isDataMissing
+    };

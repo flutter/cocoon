@@ -74,7 +74,7 @@ class CommitInfo {
 }
 
 @JsonSerializable(nullable: true)
-class AuthorInfo extends _$AuthorInfoSerializerMixin {
+class AuthorInfo {
   AuthorInfo({this.login, this.avatarUrl});
 
   factory AuthorInfo.fromJson(Map<String, dynamic> json) =>
