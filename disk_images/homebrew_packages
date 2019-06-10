@@ -1,3 +1,4 @@
+usbmuxd:--HEAD
 libimobiledevice:--HEAD
 ideviceinstaller
 ios-deploy
