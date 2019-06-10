@@ -17,7 +17,13 @@ Future<BuildStatus> fetchBuildStatus() async {
     final List<dynamic> agentStatuses = fetchAgentStatus['AgentStatuses'];
     for (Map<String, dynamic> agentStatus in agentStatuses) {
       final String agentID = agentStatus['AgentID'];
-      if (agentID != null && agentStatus['IsHealthy'] == false) {
+      if (agentID == null) {
+        continue;
+      }
+      final bool isHealthy = agentStatus['IsHealthy'];
+      final int healthCheckTimeStamp = agentStatus['HealthCheckTimestamp'];
+      final int minutesSinceHealthCheck = DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(healthCheckTimeStamp)).inMinutes;
+      if (!isHealthy || minutesSinceHealthCheck > 10) {
         failingAgents.add(agentID);
       }
     }
