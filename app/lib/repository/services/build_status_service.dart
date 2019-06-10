@@ -22,8 +22,8 @@ Future<BuildStatus> fetchBuildStatus() async {
       }
       final bool isHealthy = agentStatus['IsHealthy'];
       final int healthCheckTimeStamp = agentStatus['HealthCheckTimestamp'];
-
-      if (!isHealthy || DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(healthCheckTimeStamp)).inMinutes > 10) {
+      final int minutesSinceHealthCheck = DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(healthCheckTimeStamp)).inMinutes;
+      if (!isHealthy || minutesSinceHealthCheck > 10) {
         failingAgents.add(agentID);
       }
     }
