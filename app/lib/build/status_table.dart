@@ -315,7 +315,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
       // We cannot serve the log file from an external system directly, but we
       // can redirect the user closer to where they can find it.
       window.open(
-          SourceUrlPipe._computeLinkToExternalBuildHistory(taskName, taskStage),
+          SourceUrlPipe._computeLinkToExternalBuildHistory(taskName, taskStage, sha),
           '_blank');
     } else if (taskEntity != null) {
       window.open('/api/get-log?ownerKey=${taskEntity.key}', '_blank');
@@ -343,13 +343,12 @@ bool _isExternal(String taskStage) {
 class SourceUrlPipe extends PipeTransform {
   String transform(String taskName, String taskStage) {
     if (_isExternal(taskStage)) {
-      return _computeLinkToExternalBuildHistory(taskName, taskStage);
+      return _computeLinkToExternalBuildHistory(taskName, taskStage, null);
     }
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
   }
 
-  static String _computeLinkToExternalBuildHistory(
-      String taskName, String taskStage) {
+  static String _computeLinkToExternalBuildHistory(String taskName, String taskStage, String sha) {
     if (taskStage == 'travis') {
       return 'https://travis-ci.org/flutter/flutter/builds';
     } else if (taskStage == 'appveyor') {
@@ -369,7 +368,11 @@ class SourceUrlPipe extends PipeTransform {
           return 'https://ci.chromium.org/p/flutter';
       }
     } else if (taskStage == 'cirrus') {
-      return 'https://cirrus-ci.com/github/flutter/flutter/master';
+      if (sha == null) {
+        return 'https://cirrus-ci.com/github/flutter/flutter/master';
+      } else {
+        return 'https://cirrus-ci.com/build/flutter/flutter/$sha';
+      }
     } else {
       return '#';
     }
