@@ -31,14 +31,72 @@ class RepositoryDashboardApp extends StatelessWidget {
   }
 }
 
-class _RepositoryDashboardWidget extends StatelessWidget {
-  const _RepositoryDashboardWidget({Key key}) : super(key: key);
+class _RepositoryDashboardWidget extends StatefulWidget {
+  const _RepositoryDashboardWidget();
+  @override
+  _RepositoryDashboardWidgetState createState() => _RepositoryDashboardWidgetState();
+}
+
+class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> with SingleTickerProviderStateMixin {
+  List<_RepositoryTabMapper> get _dashboardTabs {
+    const double tabIconSize = 36.0;
+    final RepositoryDetails flutterRepositoryDetails = const RepositoryDetails<FlutterRepositoryStatus>(
+      icon: FlutterLogo(),
+    );
+    final RepositoryDetails engineRepositoryDetails = const RepositoryDetails<FlutterEngineRepositoryStatus>(
+      icon: Icon(Icons.layers),
+    );
+    final RepositoryDetails pluginsRepositoryDetails = const RepositoryDetails<FlutterPluginsRepositoryStatus>(
+      icon: Icon(Icons.extension),
+    );
+    return <_RepositoryTabMapper>[
+      _RepositoryTabMapper(
+        tab: const Tab(text: 'Flutter', icon: FlutterLogo(size: tabIconSize)),
+        tabContents: flutterRepositoryDetails
+      ),
+      _RepositoryTabMapper(
+        tab: const Tab(text: 'Engine', icon: Icon(Icons.layers, size: tabIconSize)),
+        tabContents: ModelBinding<FlutterEngineRepositoryStatus>(
+          initialModel: FlutterEngineRepositoryStatus(),
+          child: engineRepositoryDetails,
+        ),
+      ),
+      _RepositoryTabMapper(
+        tab: const Tab(text: 'Plugins', icon: Icon(Icons.extension, size: tabIconSize)),
+        tabContents: ModelBinding<FlutterPluginsRepositoryStatus>(
+          initialModel: FlutterPluginsRepositoryStatus(),
+          child: pluginsRepositoryDetails
+        ),
+      ),
+      _RepositoryTabMapper(
+        tab: Tab(text: 'Infrastructure', icon: Icon(Icons.build, size: tabIconSize)),
+        tabContents: const InfrastructureDetails()
+      ),
+      _RepositoryTabMapper(
+        tab: Tab(text: 'Roll History', icon: Icon(Icons.merge_type, size: tabIconSize)),
+        tabContents: const RollDetails()
+      ),
+    ];
+  }
+
+  TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: _dashboardTabs.length);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(kTitle),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings),
@@ -52,40 +110,37 @@ class _RepositoryDashboardWidget extends StatelessWidget {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => window.location.href = '/'
         ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelStyle: Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
+          indicatorWeight: 4.0,
+          tabs: <Tab>[
+            for (_RepositoryTabMapper tabMapper in _dashboardTabs)
+              tabMapper.tab
+          ]
+        ),
       ),
-      body: Theme(
-        data: ThemeData.light(),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 50.0),
 
         // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository. Rebuild all grid widgets when that model changes.
         child: ModelBinding<FlutterRepositoryStatus>(
           initialModel: FlutterRepositoryStatus(),
-          child: GridView.extent(
-            padding: const EdgeInsets.all(10.0),
-            maxCrossAxisExtent: 450.0,
-            childAspectRatio: .55,
+          child: TabBarView(
+            controller: _tabController,
             children: <Widget>[
-              const RepositoryDetails<FlutterRepositoryStatus>(
-                icon: FlutterLogo(),
-              ),
-              ModelBinding<FlutterEngineRepositoryStatus>(
-                initialModel: FlutterEngineRepositoryStatus(),
-                child: RepositoryDetails<FlutterEngineRepositoryStatus>(
-                  icon: Icon(Icons.layers),
-                ),
-              ),
-              ModelBinding<FlutterPluginsRepositoryStatus>(
-                initialModel: FlutterPluginsRepositoryStatus(),
-                child: RepositoryDetails<FlutterPluginsRepositoryStatus>(
-                  icon: Icon(Icons.extension),
-                ),
-              ),
-              const InfrastructureDetails(),
-              const RollDetails()
-            ],
-            addAutomaticKeepAlives: true,
-          )
+              for (_RepositoryTabMapper tabMapper in _dashboardTabs)
+                tabMapper.tabContents
+            ]
+          ),
         ),
       ),
     );
   }
+}
+
+class _RepositoryTabMapper {
+  const _RepositoryTabMapper({@required this.tab, @required this.tabContents});
+  final Tab tab;
+  final Widget tabContents;
 }

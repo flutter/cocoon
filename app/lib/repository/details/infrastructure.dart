@@ -13,31 +13,25 @@ class InfrastructureDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Column(
-          children: <Widget>[
-            ListTile(
-              leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 28.0), child: Icon(Icons.build)),
-              title: const Text('Infrastructure'),
-            ),
-            const ModelBinding<BuildStatus>(
-              initialModel: BuildStatus(),
-              child: _BuildStatusWidget()
-            ),
-            ModelBinding<GithubStatus>(
-              initialModel: const GithubStatus(),
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Image.network('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'),
-                ),
-                title: const Text('Github'),
-                trailing: const _GithubStatusIndicator(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: <Widget>[
+          const ModelBinding<BuildStatus>(
+            initialModel: BuildStatus(),
+            child: _BuildStatusWidget()
+          ),
+          ModelBinding<GithubStatus>(
+            initialModel: const GithubStatus(),
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Image.network('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'),
               ),
+              title: const Text('Github'),
+              trailing: const _GithubStatusIndicator(),
             ),
-          ]
-        ),
+          ),
+        ]
       ),
     );
   }
