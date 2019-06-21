@@ -8,31 +8,40 @@ import '../models/build_status.dart';
 import '../models/github_status.dart';
 import '../models/providers.dart';
 
+const double kAvatarRadius = 36.0;
+
 class InfrastructureDetails extends StatelessWidget {
   const InfrastructureDetails();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        children: <Widget>[
-          const ModelBinding<BuildStatus>(
-            initialModel: BuildStatus(),
-            child: _BuildStatusWidget()
-          ),
-          ModelBinding<GithubStatus>(
-            initialModel: const GithubStatus(),
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Image.network('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'),
-              ),
-              title: const Text('Github'),
-              trailing: const _GithubStatusIndicator(),
-            ),
-          ),
-        ]
+    return Theme(
+      data: Theme.of(context).copyWith(
+        textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.8),
+        chipTheme: ChipTheme.of(context).copyWith(
+          labelPadding: const EdgeInsets.fromLTRB(10.0, 3.0, 20.0, 3.0),
+          labelStyle: ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)
+        ),
       ),
+      child: Column(
+          children: <Widget>[
+            const ModelBinding<BuildStatus>(
+              initialModel: BuildStatus(),
+              child: _BuildStatusWidget()
+            ),
+            ModelBinding<GithubStatus>(
+              initialModel: const GithubStatus(),
+              child: ListTile(
+                leading: CircleAvatar(
+                  child: Icon(Icons.code),
+                  radius: kAvatarRadius,
+                ),
+                title: const Text('Github'),
+                subtitle: const _GithubStatusIndicator(),
+              ),
+            ),
+          ]
+        ),
     );
   }
 }
@@ -48,7 +57,7 @@ class _GithubStatusIndicator extends StatelessWidget {
     switch (githubStatus.indicator) {
       case 'none':
         icon = Icons.check;
-        backgroundColor = Colors.greenAccent;
+        backgroundColor = Colors.green;
         break;
       case 'minor':
         icon = Icons.warning;
@@ -68,11 +77,13 @@ class _GithubStatusIndicator extends StatelessWidget {
     }
     return Semantics(
       child: RefreshGithubStatus(
-        child: Chip(
-          avatar: Icon(icon, size: 18.0),
-          backgroundColor: backgroundColor,
-          labelPadding: const EdgeInsets.fromLTRB(3.0, 3.0, 8.0, 3.0),
-          label: Text(githubStatus.status ?? 'Unknown')
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Chip(
+            avatar: Icon(icon),
+            backgroundColor: backgroundColor,
+            label: Text(githubStatus.status ?? 'Unknown')
+          ),
         ),
       ),
       hint: 'Github Status',
@@ -92,11 +103,11 @@ class _BuildStatusWidget extends StatelessWidget {
         children: <Widget>[
           _buildStatusWidget(status),
           if (status.failingAgents.isNotEmpty)
-            const Divider(),
+            const Divider(height: 40.0),
           for (String agent in status.failingAgents)
             _failingAgentWidget(agent),
           if (status.failingAgents.isNotEmpty)
-            const Divider(),
+            const Divider(height: 40.0),
         ]
       )
     );
@@ -108,7 +119,7 @@ class _BuildStatusWidget extends StatelessWidget {
     switch (status.anticipatedBuildStatus) {
       case 'Succeeded':
         icon = Icons.check;
-        backgroundColor = Colors.greenAccent;
+        backgroundColor = Colors.green;
         break;
       case 'Build Will Fail':
         icon = Icons.error;
@@ -122,14 +133,17 @@ class _BuildStatusWidget extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         child: Icon(Icons.devices),
+        radius: kAvatarRadius,
       ),
       title: const Text('Last Flutter Commit'),
-      trailing: Semantics(
-        child: Chip(
-          avatar: Icon(icon, size: 18.0),
-          backgroundColor: backgroundColor,
-          labelPadding: const EdgeInsets.fromLTRB(3.0, 3.0, 8.0, 3.0),
-          label: Text(status.anticipatedBuildStatus ?? 'Unknown')
+      subtitle: Semantics(
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Chip(
+            avatar: Icon(icon),
+            backgroundColor: backgroundColor,
+            label: Text(status.anticipatedBuildStatus ?? 'Unknown')
+          ),
         ),
         hint: 'Build Status',
       ),
@@ -140,6 +154,7 @@ class _BuildStatusWidget extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         child: Icon(Icons.desktop_windows),
+        radius: kAvatarRadius,
         foregroundColor: Colors.white,
         backgroundColor: Colors.redAccent,
       ),

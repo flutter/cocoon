@@ -110,55 +110,72 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
 
   @override
   Widget build(BuildContext context) {
+    TextStyle currentHeadline = Theme.of(context).textTheme.headline;
+    TextStyle headline = currentHeadline.copyWith(fontWeight: FontWeight.bold);
     return Scaffold(
-      appBar: AppBar(
-        actions: <Widget>[
-          IconButton(
-            icon: (_tabsPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
-            tooltip: (_tabsPaused ? 'Switch tabs' : 'Stop switching tabs'),
-            onPressed: () {
-              setState(() {
-                _tabsPaused = !_tabsPaused;
-              });
-            },
+        appBar: AppBar(
+          actions: <Widget>[
+            IconButton(
+              icon: (_tabsPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
+              tooltip: (_tabsPaused ? 'Switch tabs' : 'Stop switching tabs'),
+              onPressed: () {
+                setState(() {
+                  _tabsPaused = !_tabsPaused;
+                });
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'Settings',
+              onPressed: () {
+                Navigator.of(context).pushNamed('/settings');
+              },
+            ),
+          ],
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => window.location.href = '/'
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.of(context).pushNamed('/settings');
-            },
-          ),
-        ],
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => window.location.href = '/'
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelStyle: Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
-          indicatorWeight: 4.0,
-          tabs: <Tab>[
-            for (_RepositoryTabMapper tabMapper in _dashboardTabs)
-              tabMapper.tab
-          ]
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 50.0),
-
-        // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository. Rebuild all grid widgets when that model changes.
-        child: ModelBinding<FlutterRepositoryStatus>(
-          initialModel: FlutterRepositoryStatus(),
-          child: TabBarView(
+          bottom: TabBar(
             controller: _tabController,
-            children: <Widget>[
+            labelStyle: Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
+            indicatorWeight: 4.0,
+            tabs: <Tab>[
               for (_RepositoryTabMapper tabMapper in _dashboardTabs)
-                tabMapper.tabContents
+                tabMapper.tab
             ]
           ),
         ),
-      ),
+        body: Theme(
+          data: ThemeData(
+            textTheme: Theme.of(context).textTheme.copyWith(
+              body1: currentHeadline,
+              subhead: headline.copyWith(fontWeight: FontWeight.normal),
+              headline: headline,
+            ).apply(fontSizeFactor: 1.5),
+            dividerColor: Theme.of(context).accentColor,
+            iconTheme: IconTheme.of(context).copyWith(size: 40.0)
+          ),
+          child: ListTileTheme(
+            contentPadding: const EdgeInsets.only(bottom: 46.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 50.0),
+
+              // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository.
+              // Rebuild all widgets when that model changes.
+              child: ModelBinding<FlutterRepositoryStatus>(
+                initialModel: FlutterRepositoryStatus(),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: <Widget>[
+                    for (_RepositoryTabMapper tabMapper in _dashboardTabs)
+                      tabMapper.tabContents
+                  ]
+                ),
+              ),
+            ),
+          ),
+        ),
     );
   }
 }
