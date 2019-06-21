@@ -67,7 +67,7 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
         const Divider(),
         const _DetailTitle(title: 'Issues'),
         _DetailItem(title: 'Open', value: numberFormat.format(issueCount)),
-        _DetailItem(title: 'No Milestone', value: '${numberFormat.format(repositoryStatus.missingMilestoneIssuesCount)} (${percentFormat.format(repositoryStatus.missingMilestoneIssuesCount / issueCount)})'),
+        _DetailItem(title: 'No Labels', value: '${numberFormat.format(repositoryStatus.missingLabelsIssuesCount)} (${percentFormat.format(repositoryStatus.missingLabelsIssuesCount / issueCount)})'),
         _DetailItem(title: 'Unmodified in month', value: '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
       ];
     }
