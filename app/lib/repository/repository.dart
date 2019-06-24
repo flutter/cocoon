@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:flutter_web/material.dart';
@@ -80,17 +81,31 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
   }
 
   TabController _tabController;
+  Timer _changeTabsTimer;
+  bool _tabsPaused = false;
 
   @override
   void initState() {
     super.initState();
+    _changeTabsTimer = Timer.periodic(const Duration(minutes: 1), _changeTabs);
     _tabController = TabController(vsync: this, length: _dashboardTabs.length);
   }
 
   @override
   void dispose() {
+    _changeTabsTimer.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _changeTabs(Timer timer) async {
+    if (_tabsPaused) return;
+
+    int nextIndex = _tabController.index + 1;
+    if (nextIndex > _dashboardTabs.length - 1) {
+      nextIndex = 0;
+    }
+    _tabController.animateTo(nextIndex);
   }
 
   @override
@@ -98,6 +113,15 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
+          IconButton(
+            icon: (_tabsPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
+            tooltip: (_tabsPaused ? 'Switch tabs' : 'Stop switching tabs'),
+            onPressed: () {
+              setState(() {
+                _tabsPaused = !_tabsPaused;
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
