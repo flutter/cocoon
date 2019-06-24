@@ -15,33 +15,27 @@ class RollDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: ModelBinding<RollHistory>(
-          initialModel: RollHistory(),
-          child: RefreshRollHistory(
-            child: Column(
-              children: <Widget>[
-                ListTile(
-                  leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 28.0), child: Icon(Icons.merge_type)),
-                  title: const Text('Roll History'),
-                ),
-                const _DetailTitle(title: 'Skia → Engine'),
-                _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
-                const _DetailTitle(title: 'Engine → Framework'),
-                _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
-                const _DetailTitle(title: 'master → dev channel'),
-                _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
-                const _DetailTitle(title: 'dev → beta channel'),
-                _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
-                const _DetailTitle(title: 'beta → stable channel'),
-                _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
-                const _DetailTitle(title: 'flutter_web'),
-                _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
-              ]
-            ),
-          )
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: ModelBinding<RollHistory>(
+        initialModel: RollHistory(),
+        child: RefreshRollHistory(
+          child: Column(
+            children: <Widget>[
+              const _DetailTitle(title: 'Skia → Engine'),
+              _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
+              const _DetailTitle(title: 'Engine → Framework'),
+              _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
+              const _DetailTitle(title: 'master → dev channel'),
+              _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
+              const _DetailTitle(title: 'dev → beta channel'),
+              _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
+              const _DetailTitle(title: 'beta → stable channel'),
+              _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
+              const _DetailTitle(title: 'flutter_web'),
+              _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
+            ]
+          ),
         )
       )
     );

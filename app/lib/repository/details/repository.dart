@@ -33,21 +33,19 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
         ]
       )
     );
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Column(
-          children: <Widget>[
-            ListTile(
-              leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 36.0), child: icon),
-              title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
-              subtitle: Text('Watchers: ${numberFormat.format(repositoryStatus.watchersCount)}\nSubscribers: ${numberFormat.format(repositoryStatus.subscribersCount)}\nTODOs: ${numberFormat.format(repositoryStatus.todoCount)}'),
-              isThreeLine: true,
-            ),
-            refreshWidget
-          ]
-        )
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: <Widget>[
+          ListTile(
+            leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 36.0), child: icon),
+            title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
+            subtitle: Text('Watchers: ${numberFormat.format(repositoryStatus.watchersCount)}\nSubscribers: ${numberFormat.format(repositoryStatus.subscribersCount)}\nTODOs: ${numberFormat.format(repositoryStatus.todoCount)}'),
+            isThreeLine: true,
+          ),
+          refreshWidget
+        ]
+      )
     );
   }
 }
