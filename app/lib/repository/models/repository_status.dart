@@ -35,7 +35,7 @@ abstract class RepositoryStatus {
   int todoCount = 0;
 
   int issueCount = 0;
-  int missingMilestoneIssuesCount = 0;
+  int missingLabelsIssuesCount = 0;
   /// Number of issues that have been unmodified in [staleIssueThresholdInDays] days.
   int staleIssueCount = 0;
 
@@ -69,7 +69,7 @@ abstract class RepositoryStatus {
       ..todoCount = todoCount
       ..issueCount = issueCount
       ..pullRequestCount = pullRequestCount
-      ..missingMilestoneIssuesCount = missingMilestoneIssuesCount
+      ..missingLabelsIssuesCount = missingLabelsIssuesCount
       ..staleIssueCount = staleIssueCount
       ..stalePullRequestCount = stalePullRequestCount
       ..totalAgeOfAllPullRequests = totalAgeOfAllPullRequests
@@ -98,7 +98,7 @@ abstract class RepositoryStatus {
       && (typedOther.issuesEnabled == issuesEnabled)
       && (typedOther.todoCount == todoCount)
       && (typedOther.issueCount == issueCount)
-      && (typedOther.missingMilestoneIssuesCount == missingMilestoneIssuesCount)
+      && (typedOther.missingLabelsIssuesCount == missingLabelsIssuesCount)
       && (typedOther.staleIssueCount == staleIssueCount)
       && (typedOther.pullRequestCount == pullRequestCount)
       && (typedOther.stalePullRequestCount == stalePullRequestCount)
@@ -118,7 +118,7 @@ abstract class RepositoryStatus {
     issuesEnabled,
     todoCount,
     issueCount,
-    missingMilestoneIssuesCount,
+    missingLabelsIssuesCount,
     staleIssueCount,
     pullRequestCount,
     stalePullRequestCount,
@@ -218,7 +218,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
         futuresToFetch.addAll(<Future<void>>[
           _updateIssueCount(repositoryStatus),
           _updateStaleIssueCount(repositoryStatus),
-          _updateIssuesWithoutMilestone(repositoryStatus)]);
+          _updateIssuesWithoutLabels(repositoryStatus)]);
       }
       await Future.wait(futuresToFetch, eagerError: true);
     } catch (error) {
@@ -257,13 +257,13 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     }
   }
 
-  Future<void> _updateIssuesWithoutMilestone(T repositoryStatus) async {
+  Future<void> _updateIssuesWithoutLabels(T repositoryStatus) async {
     if (!mounted) {
       return;
     }
-    final int missingMilestoneIssuesCount = await fetchIssuesWithoutMilestone(repositoryStatus.name);
-    if (missingMilestoneIssuesCount != null) {
-      repositoryStatus.missingMilestoneIssuesCount = missingMilestoneIssuesCount;
+    final int missingLabelsIssuesCount = await fetchIssuesWithoutLabels(repositoryStatus.name);
+    if (missingLabelsIssuesCount != null) {
+      repositoryStatus.missingLabelsIssuesCount = missingLabelsIssuesCount;
     }
   }
 

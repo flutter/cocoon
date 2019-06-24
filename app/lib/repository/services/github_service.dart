@@ -49,8 +49,8 @@ Future<int> fetchStaleIssueCount(String repositoryName) async {
   return _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
 }
 
-Future<int> fetchIssuesWithoutMilestone(String repositoryName) async {
-  return _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:milestone');
+Future<int> fetchIssuesWithoutLabels(String repositoryName) async {
+  return _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:label');
 }
 
 Future<int>_searchIssuesTotalCount(String repositoryName, {String additionalQuery = ''}) async {
