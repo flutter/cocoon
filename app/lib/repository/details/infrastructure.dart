@@ -13,10 +13,6 @@ class InfrastructureDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CircleAvatar cirrusLogo = CircleAvatar(
-      child: Image.network('https://avatars2.githubusercontent.com/ml/953?s=28'),
-      backgroundColor: const Color(0xFF212121),
-    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -29,21 +25,6 @@ class InfrastructureDetails extends StatelessWidget {
             const ModelBinding<BuildStatus>(
               initialModel: BuildStatus(),
               child: _BuildStatusWidget()
-            ),
-            ListTile(
-              leading: cirrusLogo,
-              title: const Text('packages'),
-              trailing: Image.network('https://api.cirrus-ci.com/github/flutter/packages.svg?branch=master', semanticLabel: 'Packages Cirrus CI Status'),
-            ),
-            ListTile(
-              leading: cirrusLogo,
-              title: const Text('website'),
-              trailing: Image.network('https://api.cirrus-ci.com/github/flutter/website.svg?branch=master', semanticLabel: 'Website Cirrus CI Status'),
-            ),
-            ListTile(
-              leading: cirrusLogo,
-              title: const Text('flutter_markdown'),
-              trailing: Image.network('https://api.cirrus-ci.com/github/flutter/flutter_markdown.svg?branch=master', semanticLabel: 'Flutter Markdown Cirrus CI Status'),
             ),
             ModelBinding<GithubStatus>(
               initialModel: const GithubStatus(),
