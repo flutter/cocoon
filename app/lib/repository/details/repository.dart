@@ -42,7 +42,6 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
               leading: IconTheme(data: Theme.of(context).iconTheme.copyWith(size: 36.0), child: icon),
               title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
               subtitle: Text('Watchers: ${numberFormat.format(repositoryStatus.watchersCount)}\nSubscribers: ${numberFormat.format(repositoryStatus.subscribersCount)}\nTODOs: ${numberFormat.format(repositoryStatus.todoCount)}'),
-              trailing: Image.network('https://api.cirrus-ci.com/github/flutter/${repositoryStatus.name}.svg?branch=master', semanticLabel: 'Cirrus CI status'), // TODO: Refresh CI image periodically.
               isThreeLine: true,
             ),
             refreshWidget
