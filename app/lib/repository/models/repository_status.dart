@@ -139,6 +139,7 @@ class FlutterRepositoryStatus extends RepositoryStatus {
   /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
   FlutterRepositoryStatus() : super(name: 'flutter', triageLabels: <String>[
     '⚠ TODAY',
+    'severe: customer critical',
     'severe: customer blocker',
     'will need additional triage',
   ]);
@@ -153,6 +154,7 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
   FlutterEngineRepositoryStatus() : super(
     name: 'engine',
     labelEvaluation: (String labelName) => labelName == 'engine'
+      || labelName == 'severe: rendering'
       || labelName.startsWith('e:'));
 
   @override

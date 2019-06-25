@@ -152,7 +152,7 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
               body1: currentHeadline,
               subhead: headline.copyWith(fontWeight: FontWeight.normal),
               headline: headline,
-            ).apply(fontSizeFactor: 1.5),
+            ).apply(fontSizeFactor: 1.4),
             dividerColor: Theme.of(context).accentColor,
             iconTheme: IconTheme.of(context).copyWith(size: 40.0)
           ),
