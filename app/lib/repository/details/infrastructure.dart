@@ -23,19 +23,16 @@ class InfrastructureDetails extends StatelessWidget {
           labelStyle: ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)
         ),
       ),
-      child: RefreshBuildStatus(
-        child: ModelBinding<BuildStatus>(
-          initialModel: const BuildStatus(),
+      child: ModelBinding<BuildStatus>(
+        initialModel: const BuildStatus(),
+        child: RefreshBuildStatus(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Expanded(
                 child: Column(
                   children: <Widget>[
-                    const ModelBinding<BuildStatus>(
-                      initialModel: BuildStatus(),
-                      child: _BuildStatusWidget()
-                    ),
+                    const _BuildStatusWidget(),
                     ModelBinding<GithubStatus>(
                       initialModel: const GithubStatus(),
                       child: ListTile(
