@@ -9,7 +9,7 @@ import 'dart:html';
 import 'package:flutter_web/foundation.dart';
 import 'package:intl/intl.dart';
 
-import '../models/github_authentication.dart';
+import '../models/github_authentication.dart' as github;
 import '../models/repository_status.dart';
 
 Map<Uri, String> _eTagByURL = <Uri, String>{}; // Github change token (eTag) by URL.
@@ -183,8 +183,8 @@ void _processLabels(Map<String, dynamic> issue, Map<String, int> issueCountByLab
 Future<HttpRequest> _getResponse(Uri url) async {
   final Map<String, String> headers = <String, String>{};
 
-  if (GithubAuthentication.isSignedIntoGithub) {
-    headers['Authorization'] = 'token ${GithubAuthentication.token}';
+  if (github.isSignedIn) {
+    headers['Authorization'] = 'token ${github.token}';
   }
 
   final String requestETag = _eTagByURL[url];
