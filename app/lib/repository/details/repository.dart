@@ -54,7 +54,7 @@ class _RepositoryInfoWidget<T extends RepositoryStatus> extends StatelessWidget 
               _IssueWidget<T>(),
             if (repositoryStatus.issuesByTriageLabelName.length > 0)
               const Divider(height: 40.0),
-              _TopicListWidget(title: 'Triage Issues', countByTopic: repositoryStatus.issuesByTriageLabelName, severe: true),
+            _TopicListWidget(title: 'Triage Issues', countByTopic: repositoryStatus.issuesByTriageLabelName, severe: true),
           ]
         )
       )
