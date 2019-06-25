@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:collection' show SplayTreeMap;
+import 'dart:collection';
 
 import 'package:intl/intl.dart';
 import 'package:flutter_web/material.dart';
@@ -27,7 +27,7 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
           // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc. Avoiding displaying twice in the Flutter repository widget.
           if (repositoryStatus.runtimeType != flutterStatus.runtimeType)
             _TopicListWidget(title: 'Flutter Pull Request Labels', countByTopic: flutterStatus.pullRequestCountByLabelName, labelEvaluation: repositoryStatus.labelEvaluation),
-          _TopicListWidget(title: 'Pull Request Labels', countByTopic: repositoryStatus.pullRequestCountByLabelName, labelEvaluation: repositoryStatus.labelEvaluation),
+          _TopicListWidget(title: 'Pull Request Labels', countByTopic: repositoryStatus.pullRequestCountByLabelName, labelEvaluation: (String label) => !label.startsWith('cla:')),
           _TopicListWidget(title: 'Pull Requests by Topic', countByTopic: repositoryStatus.pullRequestCountByTitleTopic)
         ]
       ),
@@ -52,6 +52,9 @@ class _RepositoryInfoWidget<T extends RepositoryStatus> extends StatelessWidget 
               _PullRequestWidget<T>(),
             if (repositoryStatus.issueCount > 0)
               _IssueWidget<T>(),
+            if (repositoryStatus.issuesByTriageLabelName.length > 0)
+              const Divider(height: 40.0),
+              _TopicListWidget(title: 'Triage Issues', countByTopic: repositoryStatus.issuesByTriageLabelName, severe: true),
           ]
         )
       )
@@ -133,17 +136,17 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
 }
 
 class _TopicListWidget extends StatelessWidget {
-  const _TopicListWidget({@required this.title, @required this.countByTopic, this.labelEvaluation});
+  const _TopicListWidget({@required this.title, @required this.countByTopic, this.labelEvaluation, this.severe = false});
 
   final String title;
   final LabelEvaluator labelEvaluation;
-  final SplayTreeMap<String, int> countByTopic;
+  final MapMixin<String, int> countByTopic;
+  final bool severe;
 
   @override
   Widget build(BuildContext context) {
     final NumberFormat numberFormat = NumberFormat('#,###');
 
-    // The Flutter repository contains labels relevant to plugins, engine, etc.
     final List<Widget> labelWidgets = <Widget>[];
 
     countByTopic.forEach((String labelName, int count) {
@@ -152,7 +155,7 @@ class _TopicListWidget extends StatelessWidget {
       }
     });
     if (labelWidgets.isNotEmpty) {
-      labelWidgets.insert(0, _DetailTitle(title: title));
+      labelWidgets.insert(0, _DetailTitle(title: title, severe: severe));
     } else {
       return const SizedBox();
     }
@@ -168,21 +171,22 @@ class _TopicListWidget extends StatelessWidget {
 }
 
 class _DetailTitle extends StatelessWidget {
-  const _DetailTitle({@required this.title});
+  const _DetailTitle({@required this.title, this.severe = false});
   final String title;
+  final bool severe;
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.headline.copyWith(
-          color: Theme.of(context).primaryColor,
+        padding: const EdgeInsets.only(bottom: 10.0),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.headline.copyWith(
+            color: severe ? Colors.redAccent : Theme.of(context).primaryColor,
+          )
         )
-      )
       )
     );
   }

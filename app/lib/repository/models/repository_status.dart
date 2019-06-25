@@ -18,13 +18,17 @@ typedef LabelEvaluator = bool Function(String labelName);
 ///
 /// [name] is the Github ":repo" parameter in Github APIs. See <https://developer.github.com/v3/repos>
 abstract class RepositoryStatus {
-  RepositoryStatus({@required this.name, @required this.labelEvaluation});
+  RepositoryStatus({@required this.name, this.labelEvaluation, this.triageLabels});
 
   final String name;
 
-  /// Should true if the pull request has a PR triage label, or other label interesting to the maintainers.
-  /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
+  /// Should return true for issues in the flutter/flutter repository with labels interesting to the maintainers of this repository.
+  /// For example, issues with the "engine" or "e:" labels in the Flutter repository should be shown on the Engine widget.
   final LabelEvaluator labelEvaluation;
+
+  /// Should return true for triage labels.
+  /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
+  final List<String> triageLabels;
 
   static const int staleIssueThresholdInDays = 30;
   static const int stalePullRequestThresholdInDays = 7;
@@ -61,6 +65,9 @@ abstract class RepositoryStatus {
   /// See [pullRequestCountByLabelName] sorted example.
   SplayTreeMap<String, int> pullRequestCountByTitleTopic = SplayTreeMap<String, int>();
 
+  /// Number of issues labels with [triageLabels].
+  Map<String, int> issuesByTriageLabelName = <String, int>{};
+
   RepositoryStatus copy() {
     return statusFactory()
       ..watchersCount = watchersCount
@@ -74,7 +81,8 @@ abstract class RepositoryStatus {
       ..stalePullRequestCount = stalePullRequestCount
       ..totalAgeOfAllPullRequests = totalAgeOfAllPullRequests
       ..pullRequestCountByLabelName = pullRequestCountByLabelName
-      ..pullRequestCountByTitleTopic = pullRequestCountByTitleTopic;
+      ..pullRequestCountByTitleTopic = pullRequestCountByTitleTopic
+      ..issuesByTriageLabelName = issuesByTriageLabelName;
   }
 
   /// This abstract class is used as a generic in some places. This factory method allows it to be instantiated as a generic.
@@ -104,7 +112,8 @@ abstract class RepositoryStatus {
       && (typedOther.stalePullRequestCount == stalePullRequestCount)
       && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
       && (typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName)
-      && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic);
+      && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic)
+      && (typedOther.issuesByTriageLabelName == issuesByTriageLabelName);
   }
 
   @override
@@ -113,6 +122,7 @@ abstract class RepositoryStatus {
     labelEvaluation,
     pullRequestCountByLabelName,
     pullRequestCountByTitleTopic,
+    issuesByTriageLabelName,
     watchersCount,
     subscribersCount,
     issuesEnabled,
@@ -126,16 +136,12 @@ abstract class RepositoryStatus {
 }
 
 class FlutterRepositoryStatus extends RepositoryStatus {
-  FlutterRepositoryStatus() : super(name: 'flutter', labelEvaluation: (String labelName) => const <String>[
-    'waiting for tree to go green',
+  /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
+  FlutterRepositoryStatus() : super(name: 'flutter', triageLabels: <String>[
     '⚠ TODAY',
     'severe: customer blocker',
-    'severe: customer critical',
-    'f: cupertino',
-    'f: material design',
-    'tool',
     'will need additional triage',
-  ].contains(labelName));
+  ]);
 
   @override
   FlutterRepositoryStatus statusFactory() {
@@ -147,9 +153,7 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
   FlutterEngineRepositoryStatus() : super(
     name: 'engine',
     labelEvaluation: (String labelName) => labelName == 'engine'
-      || labelName == 'needs love'
-      || labelName.startsWith('e:')
-      || labelName.startsWith('affects:'));
+      || labelName.startsWith('e:'));
 
   @override
   FlutterEngineRepositoryStatus statusFactory() {
@@ -160,10 +164,9 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
 class FlutterPluginsRepositoryStatus extends RepositoryStatus {
   FlutterPluginsRepositoryStatus() : super(
     name: 'plugins',
-    labelEvaluation: (String labelName) => labelName.startsWith('p:')
-      || labelName == 'waiting for test harness'
-      || labelName == 'flutterfire'
-      || labelName == 'needs love');
+    labelEvaluation: (String labelName) => labelName == 'plugin'
+      || labelName == 'package'
+      || labelName.startsWith('p:'));
 
   @override
   FlutterPluginsRepositoryStatus statusFactory() {
@@ -218,7 +221,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
         futuresToFetch.addAll(<Future<void>>[
           _updateIssueCount(repositoryStatus),
           _updateStaleIssueCount(repositoryStatus),
-          _updateIssuesWithoutLabels(repositoryStatus)]);
+          _updateIssuesWithoutLabels(repositoryStatus),
+          _updateTriageIssues(repositoryStatus)]);
       }
       await Future.wait(futuresToFetch, eagerError: true);
     } catch (error) {
@@ -264,6 +268,16 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     final int missingLabelsIssuesCount = await fetchIssuesWithoutLabels(repositoryStatus.name);
     if (missingLabelsIssuesCount != null) {
       repositoryStatus.missingLabelsIssuesCount = missingLabelsIssuesCount;
+    }
+  }
+
+  Future<void> _updateTriageIssues(T repositoryStatus) async {
+    if (!mounted) {
+      return;
+    }
+    final Map<String, int> issuesByTriageLabelName = await fetchTriageIssues(repositoryStatus.name, repositoryStatus.triageLabels);
+    if (issuesByTriageLabelName != null) {
+      repositoryStatus.issuesByTriageLabelName = issuesByTriageLabelName;
     }
   }
 
