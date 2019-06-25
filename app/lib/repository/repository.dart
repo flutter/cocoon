@@ -82,23 +82,29 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
 
   TabController _tabController;
   Timer _changeTabsTimer;
+
+  /// This dashboard is made to be displayed on a TV.
+  /// Refresh this page every day to pick up new versions so no one needs to get on a ladder and pair a keyboard to the TV.
+  Timer _reloadPageTimer;
   bool _tabsPaused = false;
 
   @override
   void initState() {
     super.initState();
     _changeTabsTimer = Timer.periodic(const Duration(minutes: 1), _changeTabs);
+    _reloadPageTimer = Timer.periodic(const Duration(days: 1), _reloadPage);
     _tabController = TabController(vsync: this, length: _dashboardTabs.length);
   }
 
   @override
   void dispose() {
     _changeTabsTimer.cancel();
+    _reloadPageTimer.cancel();
     _tabController.dispose();
     super.dispose();
   }
 
-  Future<void> _changeTabs(Timer timer) async {
+  void _changeTabs(Timer timer) {
     if (_tabsPaused) return;
 
     int nextIndex = _tabController.index + 1;
@@ -106,6 +112,10 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
       nextIndex = 0;
     }
     _tabController.animateTo(nextIndex);
+  }
+
+  void _reloadPage(Timer timer) {
+    window.location.reload();
   }
 
   @override
