@@ -8,7 +8,7 @@ import '../models/build_status.dart';
 import '../models/github_status.dart';
 import '../models/providers.dart';
 
-const double kAvatarRadius = 36.0;
+const double _kAvatarRadius = 36.0;
 
 class InfrastructureDetails extends StatelessWidget {
   const InfrastructureDetails();
@@ -23,25 +23,38 @@ class InfrastructureDetails extends StatelessWidget {
           labelStyle: ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)
         ),
       ),
-      child: Column(
-          children: <Widget>[
-            const ModelBinding<BuildStatus>(
-              initialModel: BuildStatus(),
-              child: _BuildStatusWidget()
-            ),
-            ModelBinding<GithubStatus>(
-              initialModel: const GithubStatus(),
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Icon(Icons.code),
-                  radius: kAvatarRadius,
+      child: RefreshBuildStatus(
+        child: ModelBinding<BuildStatus>(
+          initialModel: const BuildStatus(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    const ModelBinding<BuildStatus>(
+                      initialModel: BuildStatus(),
+                      child: _BuildStatusWidget()
+                    ),
+                    ModelBinding<GithubStatus>(
+                      initialModel: const GithubStatus(),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Icon(Icons.code),
+                          radius: _kAvatarRadius,
+                        ),
+                        title: const Text('Github'),
+                        subtitle: const _GithubStatusIndicator(),
+                      ),
+                    ),
+                  ]
                 ),
-                title: const Text('Github'),
-                subtitle: const _GithubStatusIndicator(),
               ),
-            ),
-          ]
+              const _FailingAgentWidget()
+            ]
+          ),
         ),
+      ),
     );
   }
 }
@@ -97,23 +110,6 @@ class _BuildStatusWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BuildStatus status = ModelBinding.of<BuildStatus>(context);
-
-    return RefreshBuildStatus(
-      child: Column(
-        children: <Widget>[
-          _buildStatusWidget(status),
-          if (status.failingAgents.isNotEmpty)
-            const Divider(height: 40.0),
-          for (String agent in status.failingAgents)
-            _failingAgentWidget(agent),
-          if (status.failingAgents.isNotEmpty)
-            const Divider(height: 40.0),
-        ]
-      )
-    );
-  }
-
-  Widget _buildStatusWidget(BuildStatus status) {
     IconData icon;
     Color backgroundColor;
     switch (status.anticipatedBuildStatus) {
@@ -133,7 +129,7 @@ class _BuildStatusWidget extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         child: Icon(Icons.devices),
-        radius: kAvatarRadius,
+        radius: _kAvatarRadius,
       ),
       title: const Text('Last Flutter Commit'),
       subtitle: Semantics(
@@ -149,16 +145,40 @@ class _BuildStatusWidget extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _failingAgentWidget(String agentName) {
-    return ListTile(
-      leading: CircleAvatar(
-        child: Icon(Icons.desktop_windows),
-        radius: kAvatarRadius,
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.redAccent,
-      ),
-      title: Text('$agentName Unhealthy')
+class _FailingAgentWidget extends StatelessWidget {
+  const _FailingAgentWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final BuildStatus status = ModelBinding.of<BuildStatus>(context);
+    final List<String> failingAgents = status.failingAgents;
+    if (failingAgents.isEmpty) {
+      return const SizedBox();
+    }
+
+    return Expanded(
+      child: Column(
+        children: <Widget>[
+          ListTile(
+            title: Text('Failing Agents',
+              style: Theme.of(context).textTheme.headline.copyWith(
+                color: Theme.of(context).primaryColor,
+              )),
+          ),
+          for (String agentName in failingAgents)
+            ListTile(
+              leading: CircleAvatar(
+                child: Icon(Icons.desktop_windows),
+                radius: _kAvatarRadius,
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.redAccent,
+              ),
+              title: Text('$agentName Unhealthy')
+            )
+        ]
+      )
     );
   }
 }

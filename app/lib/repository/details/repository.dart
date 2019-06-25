@@ -74,7 +74,7 @@ class _MetadataWidget<T extends RepositoryStatus> extends StatelessWidget {
 
     List<Widget> issueWidgets = <Widget>[
       ListTile(
-        leading: IconTheme(data: IconTheme.of(context).copyWith(size: 60.0, color: Theme.of(context).primaryColorLight), child: icon),
+        leading: IconTheme(data: IconTheme.of(context).copyWith(size: 56.0, color: Theme.of(context).primaryColorLight), child: icon),
         title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
       ),
       _DetailItem(title: 'Watchers', value: numberFormat.format(repositoryStatus.watchersCount)),
