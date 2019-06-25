@@ -15,53 +15,43 @@ class RollDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.3),
+      ),
       child: ModelBinding<RollHistory>(
         initialModel: RollHistory(),
         child: RefreshRollHistory(
           child: Column(
             children: <Widget>[
-              const _DetailTitle(title: 'Skia → Engine'),
-              _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
-              const _DetailTitle(title: 'Engine → Framework'),
-              _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
-              const _DetailTitle(title: 'master → dev channel'),
-              _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
-              const _DetailTitle(title: 'dev → beta channel'),
-              _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
-              const _DetailTitle(title: 'beta → stable channel'),
-              _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
-              const _DetailTitle(title: 'flutter_web'),
-              _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
+              ListTile(
+                title: const Text('Skia → Engine'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
+              ),
+              ListTile(
+                title: const Text('Engine → Framework'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
+              ),
+              ListTile(
+                title: const Text('master → dev channel'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
+              ),
+              ListTile(
+                title: const Text('dev → beta channel'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
+              ),
+              ListTile(
+                title: const Text('beta → stable channel'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll)
+              ),
+              ListTile(
+                title: const Text('flutter_web'),
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
+              ),
             ]
           ),
-        )
-      )
-    );
-  }
-}
-
-class _DetailTitle extends StatelessWidget {
-  const _DetailTitle({@required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    return Semantics(
-      header: true,
-      label: title,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 3.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(title, style: textTheme.subtitle.copyWith(fontSize: textTheme.subhead.fontSize)),
-          ],
-        )
-      )
+        ),
+      ),
     );
   }
 }
@@ -94,14 +84,9 @@ class _DetailItem extends StatelessWidget {
         }
       }
     }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5.0, 0.0, 5.0, 15.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          Text((valueDate != null) ? '${dateFormat.format(valueDate.toLocal())} ($parenthesis)' : 'Unknown', style: Theme.of(context).textTheme.subhead),
-        ],
-      )
+    return Text(
+      (valueDate != null) ? '${dateFormat.format(valueDate.toLocal())} ($parenthesis)' : 'Unknown',
+      style: Theme.of(context).textTheme.body1
     );
   }
 }
