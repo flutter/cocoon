@@ -58,6 +58,21 @@ Future<int>_searchIssuesTotalCount(String repositoryName, {String additionalQuer
   return (body == null) ? null : body['total_count'];
 }
 
+Future<Map<String, int>> fetchTriageIssues(String repositoryName, List<String> triageLabels) async {
+  final Map<String, int> issueCountByLabelAggregator = {};
+
+  for (String triageLabel in triageLabels) {
+    // There is no way to OR labels, fetch each one individually.
+     int count = await _searchIssuesTotalCount(repositoryName, additionalQuery: 'label:"$triageLabel"');
+     if (count > 0) {
+       issueCountByLabelAggregator[triageLabel] = count;
+     }
+  }
+
+  // SplayTreeMap doesn't allow sorting by value (count) on insert. Sort at the end once all search page fetches are complete.
+  return issueCountByLabelAggregator;
+}
+
 Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
   final Map<String, int> pullRequestCountByTopicAggregator = {};
   final Map<String, int> pullRequestCountByLabelAggregator = {};
