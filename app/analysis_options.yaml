@@ -31,8 +31,8 @@ linter:
 
     # === style rules ===
     - always_declare_return_types
-    - avoid_classes_with_only_static_members
     - annotate_overrides
+    - avoid_classes_with_only_static_members
     - avoid_init_to_null
     - avoid_return_types_on_setters
     - await_only_futures
