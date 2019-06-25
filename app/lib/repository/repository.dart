@@ -13,6 +13,7 @@ import 'details/roll.dart';
 import 'details/settings.dart';
 import 'models/providers.dart';
 import 'models/repository_status.dart';
+import 'models/tab_state.dart' as tab;
 
 const String kTitle = 'Flutter Dashboard';
 
@@ -86,14 +87,13 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
   /// This dashboard is made to be displayed on a TV.
   /// Refresh this page every day to pick up new versions so no one needs to get on a ladder and pair a keyboard to the TV.
   Timer _reloadPageTimer;
-  bool _tabsPaused = false;
 
   @override
   void initState() {
     super.initState();
     _changeTabsTimer = Timer.periodic(const Duration(minutes: 1), _changeTabs);
     _reloadPageTimer = Timer.periodic(const Duration(days: 1), _reloadPage);
-    _tabController = TabController(vsync: this, length: _dashboardTabs.length);
+    _tabController = TabController(initialIndex: tab.pausedTabIndex ?? 0, vsync: this, length: _dashboardTabs.length);
   }
 
   @override
@@ -105,7 +105,7 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
   }
 
   void _changeTabs(Timer timer) {
-    if (_tabsPaused) return;
+    if (tab.isPaused) return;
 
     int nextIndex = _tabController.index + 1;
     if (nextIndex > _dashboardTabs.length - 1) {
@@ -126,11 +126,16 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
         appBar: AppBar(
           actions: <Widget>[
             IconButton(
-              icon: (_tabsPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
-              tooltip: (_tabsPaused ? 'Switch tabs' : 'Stop switching tabs'),
+              icon: (tab.isPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
+              tooltip: (tab.isPaused ? 'Switch tabs' : 'Stop switching tabs'),
               onPressed: () {
                 setState(() {
-                  _tabsPaused = !_tabsPaused;
+                  bool isPaused = !tab.isPaused;
+                  if (isPaused) {
+                    tab.pause(_tabController.index);
+                  } else {
+                    tab.play();
+                  }
                 });
               },
             ),

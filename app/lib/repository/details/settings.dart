@@ -4,7 +4,7 @@
 
 import 'package:flutter_web/material.dart';
 
-import '../models/github_authentication.dart';
+import '../models/github_authentication.dart' as github;
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage();
@@ -47,7 +47,7 @@ class _SettingsFormState extends State<SettingsForm> {
 
   @override
   void didChangeDependencies() {
-    _githubToken.text = GithubAuthentication.token;
+    _githubToken.text = github.token;
     super.didChangeDependencies();
   }
 
@@ -71,7 +71,7 @@ class _SettingsFormState extends State<SettingsForm> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: TextFormField(
-                enabled: !GithubAuthentication.isSignedIntoGithub,
+                enabled: !github.isSignedIn,
                 decoration: const InputDecoration(hasFloatingPlaceholder: true, labelText: 'Access token'),
                 autocorrect: false,
                 obscureText: true,
@@ -81,8 +81,8 @@ class _SettingsFormState extends State<SettingsForm> {
             ),
             Center(
               child: RaisedButton(
-                child: GithubAuthentication.isSignedIntoGithub ? const Text('Clear') : const Text('Update'),
-                onPressed: GithubAuthentication.isSignedIntoGithub ? _handleSignOut: _handleSignIn,
+                child: github.isSignedIn ? const Text('Clear') : const Text('Update'),
+                onPressed: github.isSignedIn ? _handleSignOut: _handleSignIn,
               ),
             ),
           ],
@@ -94,7 +94,7 @@ class _SettingsFormState extends State<SettingsForm> {
   void _handleSignIn() {
     if (_githubFormKey.currentState.validate()) {
       setState(() {
-        GithubAuthentication.token = _githubToken.value.text;
+        github.token = _githubToken.value.text;
         Scaffold.of(context).showSnackBar(_signInSnackBar);
       });
     }
@@ -103,7 +103,7 @@ class _SettingsFormState extends State<SettingsForm> {
   void _handleSignOut() {
     setState(() {
       _githubToken.clear();
-      GithubAuthentication.signOut();
+      github.signOut();
       Scaffold.of(context).showSnackBar(_signOutSnackBar);
     });
   }

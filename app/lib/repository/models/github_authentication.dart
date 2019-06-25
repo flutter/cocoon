@@ -4,19 +4,15 @@
 
 import 'dart:html';
 
-class GithubAuthentication {
-  const GithubAuthentication();
+const String kTokenStorageKey = 'github-token';
 
-  static const String _tokenStorageKey = 'github-token';
+String get token => window.localStorage[kTokenStorageKey];
+set token(String value) => window.localStorage[kTokenStorageKey] = value;
 
-  static String get token => window.localStorage[_tokenStorageKey];
-  static set token(String value) => window.localStorage[_tokenStorageKey] = value;
+bool get isSignedIn {
+  return window.localStorage.containsKey(kTokenStorageKey);
+}
 
-  static bool get isSignedIntoGithub {
-    return window.localStorage.containsKey(_tokenStorageKey);
-  }
-
-  static void signOut() {
-    window.localStorage.remove(_tokenStorageKey);
-  }
+void signOut() {
+  window.localStorage.remove(kTokenStorageKey);
 }
