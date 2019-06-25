@@ -12,7 +12,8 @@ agent_id: agent-with-ios-devices-#5
 
 # Agent attached this token to its HTTP requests to authenticate itself.
 #
-# To acquire a token, open `base_cocoon_url` in Chrome, open Chrome Dev Tools,
+# To acquire a token, open `base_cocoon_url/build.html` in Chrome (e.g.,
+# https://flutter-dashboard.appspot.com/build.html), open Chrome Dev Tools,
 # select Console tab, then:
 #
 # If `agent_id` is not yet registered with Cocoon, enter:
@@ -20,7 +21,8 @@ agent_id: agent-with-ios-devices-#5
 # cocoon.createAgent(['-a', 'AGENT_ID', '-c', 'CAPABILITY#1', ...])
 #
 # Replace AGENT_ID with the value of `agent_id`, and enter the capabilities
-# offered by the agent. The `auth_token` value will be printed to the console.
+# offered by the agent (see https://github.com/flutter/cocoon for more details).
+# The `auth_token` value will be printed to the console.
 #
 # If `agent_id` is already registered with Cocoon, enter:
 #
