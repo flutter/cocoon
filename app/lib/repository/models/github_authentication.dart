@@ -4,15 +4,15 @@
 
 import 'dart:html';
 
-const String kTokenStorageKey = 'github-token';
+const String _kTokenStorageKey = 'github-token';
 
-String get token => window.localStorage[kTokenStorageKey];
-set token(String value) => window.localStorage[kTokenStorageKey] = value;
+String get token => window.localStorage[_kTokenStorageKey];
+set token(String value) => window.localStorage[_kTokenStorageKey] = value;
 
 bool get isSignedIn {
-  return window.localStorage.containsKey(kTokenStorageKey);
+  return window.localStorage.containsKey(_kTokenStorageKey);
 }
 
 void signOut() {
-  window.localStorage.remove(kTokenStorageKey);
+  window.localStorage.remove(_kTokenStorageKey);
 }

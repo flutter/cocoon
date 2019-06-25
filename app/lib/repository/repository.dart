@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as math;
 
 import 'package:flutter_web/material.dart';
 
@@ -93,7 +94,12 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
     super.initState();
     _changeTabsTimer = Timer.periodic(const Duration(minutes: 1), _changeTabs);
     _reloadPageTimer = Timer.periodic(const Duration(days: 1), _reloadPage);
-    _tabController = TabController(initialIndex: tab.pausedTabIndex ?? 0, vsync: this, length: _dashboardTabs.length);
+    final int tabCount = _dashboardTabs.length;
+
+    int pausedTabIndex = tab.pausedTabIndex ?? 0;
+    pausedTabIndex = math.min<int>(pausedTabIndex, tabCount - 1);
+    _tabController = TabController(initialIndex: pausedTabIndex, vsync: this, length: tabCount);
+    _tabController.addListener(_storeTabSelection);
   }
 
   @override
@@ -112,6 +118,12 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
       nextIndex = 0;
     }
     _tabController.animateTo(nextIndex);
+  }
+
+  /// Handle user manually changing tabs while paused.
+  void _storeTabSelection() {
+    if (!tab.isPaused) return;
+    tab.pausedTabIndex = _tabController.index;
   }
 
   void _reloadPage(Timer timer) {
