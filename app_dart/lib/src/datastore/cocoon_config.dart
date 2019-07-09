@@ -1,8 +1,10 @@
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class Config {
-  Config(this._db) : assert(_db != null);
+  const Config(this._db) : assert(_db != null);
 
   final DatastoreDB _db;
 

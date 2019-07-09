@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 
 name: cocoon_service
-version: 0.3.0
 homepage: https://github.com/flutter/cocoon
+publish_to: none
 
 environment:
   sdk: '>=2.4.0 <3.0.0'
@@ -14,6 +14,7 @@ dependencies:
   crypto: ^2.0.6
   gcloud: ^0.6.0
   github: ^4.1.0
+  meta: ^1.1.7
 
 dev_dependencies:
   test: ^1.6.5

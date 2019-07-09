@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cocoon_service/cocoon.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
@@ -14,7 +14,7 @@ Config config;
 Future<void> requestHandler(HttpRequest request) async {
   final HttpRequestHandler handler = _handlers[request.uri.path];
   if (handler != null) {
-    return handler(config, request);
+    return await handler(config, request);
   } else {
     await request.response
       ..statusCode = HttpStatus.notFound
@@ -25,7 +25,7 @@ Future<void> requestHandler(HttpRequest request) async {
 
 Future<void> main() async {
   print('Serving requests');
-  withAppEngineServices(() {
+  await withAppEngineServices(() {
     config = Config(dbService);
     return runAppEngine(requestHandler);
   });
