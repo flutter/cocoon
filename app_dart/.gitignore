@@ -1,0 +1,5 @@
+key*.json
+
+pubspec.lock
+.packages
+.dart_tool/
