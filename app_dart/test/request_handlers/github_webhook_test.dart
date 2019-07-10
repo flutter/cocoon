@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/datastore/cocoon_config.dart';
-import 'package:cocoon_service/request_handlers/github_webhook.dart';
+import 'package:cocoon_service/cocoon_service.dart';
+
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
@@ -17,6 +17,8 @@ void main() {
     MockConfig config;
     MockGitHubClient gitHubClient;
     MockIssuesService issuesService;
+    MockPullRequestsService pullRequestsService;
+
     const String keyString = 'not_a_real_key';
 
     String getHmac(Uint8List list, Uint8List key) {
@@ -32,8 +34,10 @@ void main() {
       config = MockConfig();
       gitHubClient = MockGitHubClient();
       issuesService = MockIssuesService();
+      pullRequestsService = MockPullRequestsService();
 
       when(gitHubClient.issues).thenReturn(issuesService);
+      when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
       when(config.nonMasterPullRequestMessage).thenAnswer((_) => Future<String>.value('nonMasterPullRequestMessage'));
       when(config.githubOAuthToken).thenAnswer((_) => Future<String>.value('githubOAuthKey'));
@@ -122,13 +126,15 @@ void main() {
       when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       await githubWebhookPullRequest(config, request);
-      verify(gitHubClient.request(
-        'POST',
-        '/repos/flutter/flutter/pulls/$issueNumber',
-        body: argThat(contains('"base":"master"'), named: 'body'),
-      )).called(1);
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      verify(pullRequestsService.edit(
+        slug,
+        issueNumber,
+        base: 'master',
+      )).called(1);
+
       final String message = await config.nonMasterPullRequestMessage;
       verify(issuesService.createComment(
         slug,
@@ -157,6 +163,8 @@ class MockConfig extends Mock implements Config {}
 class MockGitHubClient extends Mock implements GitHub {}
 
 class MockIssuesService extends Mock implements IssuesService {}
+
+class MockPullRequestsService extends Mock implements PullRequestsService {}
 
 String jsonTemplate(String action, int number, String baseRef) => '''{
   "action": "$action",

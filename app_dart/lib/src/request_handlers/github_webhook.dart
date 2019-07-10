@@ -52,18 +52,9 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
       final String body = await _getWrongBaseComment(config, event.pullRequest.base.ref);
       final RepositorySlug slug = event.repository.slug();
       final GitHub githubClient = await config.gitHubClient;
-      // TODO(https://github.com/DirectMyFile/github.dart/pull/145): Use githubClient.pullRequests.edit
-      await githubClient.request(
-        'POST',
-        '/repos/${slug.fullName}/pulls/${event.number}',
-        body: jsonEncode(<String, String>{'base': 'master'}),
-      );
 
-      await githubClient.issues.createComment(
-        slug,
-        event.number,
-        body,
-      );
+      await githubClient.pullRequests.edit(slug, event.number, base: 'master');
+      await githubClient.issues.createComment(slug, event.number, body);
       githubClient.dispose();
     }
     await request.response
