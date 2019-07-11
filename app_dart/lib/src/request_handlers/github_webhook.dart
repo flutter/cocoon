@@ -87,14 +87,18 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
     if (file.filename.startsWith('dev/')) {
       labels.add('team');
     }
-    if (file.filename.startsWith('packages/flutter_tools/')) {
+    if (file.filename.startsWith('packages/flutter_tools/') ||
+        file.filename.startsWith('packages/flutter_driver') ||
+        file.filename.startsWith('packages/fuchsia_remote_debug_protocol')) {
       labels.add('tool');
     }
     if (file.filename == 'bin/internal/engine.version') {
       labels.add('engine');
     }
 
-    labels.add('framework');
+    if (file.filename.startsWith('packages/flutter/') || file.filename.startsWith('packages/flutter_test/')) {
+      labels.add('framework');
+    }
     if (file.filename.contains('material')) {
       labels.add('f: material design');
     }
