@@ -23,8 +23,7 @@ void main() {
 
     String getHmac(Uint8List list, Uint8List key) {
       final Hmac hmac = Hmac(sha1, key);
-      final List<int> bytes = hmac.convert(list).bytes;
-      return hexEncodeHmac(bytes);
+      return hmac.convert(list).toString();
     }
 
     setUp(() {
