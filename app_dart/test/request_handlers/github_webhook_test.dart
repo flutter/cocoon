@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -127,9 +126,16 @@ void main() {
       final String hmac = getHmac(body, key);
       when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
-      await githubWebhookPullRequest(config, request);
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(any, convert: anyNamed('convert'))).thenAnswer(
+        (_) => Future.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ]),
+      );
+
+      await githubWebhookPullRequest(config, request);
 
       verify(pullRequestsService.edit(
         slug,
@@ -216,23 +222,25 @@ void main() {
 
       final String message = await config.missingTestsPullRequestMessage;
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        argThat(unorderedEquals([
-          'framework',
-          'engine',
-          'tool',
-          'f: material design',
-          'f: cupertino',
-          'team',
-          'a: internationalization',
-          'a: accessibility',
-          'd: examples',
-          'team: gallery',
-          'a: tests',
-        ])),
-      )).called(1);
+      expect(
+          verify(issuesService.addLabelsToIssue(
+            slug,
+            issueNumber,
+            captureAny,
+          )).captured.first.toSet().containsAll(<String>{
+            'framework',
+            'engine',
+            'tool',
+            'f: material design',
+            'f: cupertino',
+            'team',
+            'a: internationalization',
+            'a: accessibility',
+            'd: examples',
+            'team: gallery',
+            'a: tests',
+          }),
+          true);
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
