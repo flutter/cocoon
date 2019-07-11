@@ -71,7 +71,7 @@ void main() {
     test('Rejects invalid hmac', () async {
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('foo');
-      when(headers.value('X-GitHub-Signature')).thenReturn('bar');
+      when(headers.value('X-Hub-Signature')).thenReturn('bar');
       request.data = Stream<Uint8List>.fromIterable([utf8.encode('Hello, World!')]);
       await githubWebhookPullRequest(config, request);
 
@@ -84,7 +84,7 @@ void main() {
       final Uint8List body = Uint8List.fromList([0xc3, 0x28]);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       await githubWebhookPullRequest(config, request);
 
@@ -97,7 +97,7 @@ void main() {
       final Uint8List body = utf8.encode('Hello, World!');
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       await githubWebhookPullRequest(config, request);
 
@@ -110,7 +110,7 @@ void main() {
       final Uint8List body = utf8.encode(jsonTemplate('closed', 123, 'dev'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       await githubWebhookPullRequest(config, request);
       verifyNever(gitHubClient.request(any, any, body: anyNamed('body')));
@@ -124,7 +124,7 @@ void main() {
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'dev'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -160,7 +160,7 @@ void main() {
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
@@ -197,7 +197,7 @@ void main() {
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
@@ -261,7 +261,7 @@ void main() {
       ));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
 
       await githubWebhookPullRequest(config, request);

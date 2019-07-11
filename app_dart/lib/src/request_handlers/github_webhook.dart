@@ -16,7 +16,7 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
     return;
   }
 
-  if (request.headers.value('X-GitHub-Event') == null || request.headers.value('X-GitHub-Signature') == null) {
+  if (request.headers.value('X-GitHub-Event') != 'pull_request' || request.headers.value('X-Hub-Signature') == null) {
     await request.response
       ..statusCode = HttpStatus.badRequest
       ..write('Missing required headers.')
@@ -25,7 +25,7 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
   }
 
   final List<int> requestBytes = await request.expand((_) => _).toList();
-  final String hmacSignature = request.headers.value('X-GitHub-Signature');
+  final String hmacSignature = request.headers.value('X-Hub-Signature');
   if (!await _validateRequest(config, hmacSignature, requestBytes)) {
     await request.response
       ..statusCode = HttpStatus.forbidden
@@ -58,7 +58,7 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
     await request.response
       ..statusCode = HttpStatus.ok
       ..close();
-  } on FormatException {
+  } on FormatException catch (e) {
     request.response
       ..statusCode = HttpStatus.badRequest
       ..close();
@@ -88,7 +88,6 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
       labels.add('team');
     }
     if (file.filename.startsWith('packages/flutter_tools/') ||
-        file.filename.startsWith('packages/flutter_driver') ||
         file.filename.startsWith('packages/fuchsia_remote_debug_protocol')) {
       labels.add('tool');
     }
@@ -96,7 +95,9 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
       labels.add('engine');
     }
 
-    if (file.filename.startsWith('packages/flutter/') || file.filename.startsWith('packages/flutter_test/')) {
+    if (file.filename.startsWith('packages/flutter/') ||
+        file.filename.startsWith('packages/flutter_test/') ||
+        file.filename.startsWith('packages/flutter_driver/')) {
       labels.add('framework');
     }
     if (file.filename.contains('material')) {
