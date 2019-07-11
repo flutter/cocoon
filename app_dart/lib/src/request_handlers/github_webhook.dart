@@ -81,16 +81,7 @@ Future<bool> _validateRequest(
   final String rawKey = await config.webhookKey;
   final List<int> key = utf8.encode(rawKey);
   final Hmac hmac = Hmac(sha1, key);
-  final List<int> decodedRequestBytes = hmac.convert(requestBody).bytes;
-  final String bodySignature = 'sha1=${hexEncodeHmac(decodedRequestBytes)}';
+  final Digest digest = hmac.convert(requestBody);
+  final String bodySignature = 'sha1=$digest';
   return bodySignature == signature;
-}
-
-/// Converts an HMAC signature to the format that GitHub uses in headers.
-String hexEncodeHmac(List<int> bytes) {
-  final StringBuffer hexString = StringBuffer();
-  for (int byte in bytes) {
-    hexString.write(byte.toRadixString(16));
-  }
-  return hexString.toString();
 }
