@@ -1,5 +1,6 @@
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
+import 'package:github/server.dart' hide createGitHubClient;
+import 'package:github/server.dart' as gh show createGitHubClient;
 import 'package:meta/meta.dart';
 
 @immutable
@@ -22,9 +23,11 @@ class Config {
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
-  Future<GitHub> get gitHubClient async {
+  Future<String> get missingTestsPullRequestMessage => _getSingleValue('MissingTestsPullRequestMessage');
+
+  Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
-    return createGitHubClient(
+    return gh.createGitHubClient(
       auth: Authentication.withToken(githubToken),
     );
   }
