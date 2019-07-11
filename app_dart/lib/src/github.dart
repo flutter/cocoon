@@ -14,7 +14,7 @@ Future<PullRequestEvent> getPullRequest(String request) async {
     }
 
     return event;
-  } on FormatException catch (e) {
+  } on FormatException {
     return null;
   }
 }

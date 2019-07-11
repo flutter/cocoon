@@ -58,7 +58,7 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
     await request.response
       ..statusCode = HttpStatus.ok
       ..close();
-  } on FormatException catch (e) {
+  } on FormatException {
     request.response
       ..statusCode = HttpStatus.badRequest
       ..close();
