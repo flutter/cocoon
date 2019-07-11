@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:intl/intl.dart';
 import 'package:flutter_web/material.dart';
 
@@ -27,26 +29,32 @@ class RollDetails extends StatelessWidget {
               ListTile(
                 title: const Text('Skia → Engine'),
                 subtitle: _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
+                onTap: () => window.open('https://autoroll.skia.org/r/skia-flutter-autoroll', '_blank')
               ),
               ListTile(
                 title: const Text('Engine → Framework'),
                 subtitle: _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
+                onTap: () => window.open('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll', '_blank')
               ),
               ListTile(
                 title: const Text('master → dev channel'),
                 subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
+                onTap: () => window.open('https://github.com/flutter/flutter/commits/dev', '_blank')
               ),
               ListTile(
                 title: const Text('dev → beta channel'),
                 subtitle: _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
+                onTap: () => window.open('https://github.com/flutter/flutter/commits/beta', '_blank')
               ),
               ListTile(
                 title: const Text('beta → stable channel'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll)
+                subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
+                onTap: () => window.open('https://github.com/flutter/flutter/commits/stable', '_blank')
               ),
               ListTile(
                 title: const Text('flutter_web'),
                 subtitle: _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
+                onTap: () => window.open('https://github.com/flutter/flutter_web/commits/master', '_blank')
               ),
             ]
           ),

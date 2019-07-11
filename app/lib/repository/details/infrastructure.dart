@@ -105,6 +105,7 @@ class GitHubStatusWidget extends StatelessWidget {
         ),
         hint: 'Github Status',
       ),
+      onTap: () => window.open('https://www.githubstatus.com', '_blank')
     );
   }
 }
@@ -148,6 +149,7 @@ class BuildStatusWidget extends StatelessWidget {
         ),
         hint: 'Build Status',
       ),
+      onTap: () => window.open('/build.html', '_blank')
     );
   }
 }
@@ -179,7 +181,8 @@ class FailingAgentWidget extends StatelessWidget {
               foregroundColor: Colors.white,
               backgroundColor: Colors.redAccent,
             ),
-            title: Text(agentName)
+            title: Text(agentName),
+            onTap: () => window.open('/build.html', '_blank')
           )
       ]
     );
@@ -256,7 +259,8 @@ class _CommitResultWidget extends StatelessWidget {
         child: Image.network(commitTestResult.avatarImageURL),
         radius: _kAvatarRadius,
       ),
-      isThreeLine: true
+      isThreeLine: true,
+      onTap: () => window.open('/build.html', '_blank')
     );
   }
 }
