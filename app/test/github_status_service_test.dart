@@ -8,8 +8,8 @@ import 'package:test/test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 
-import '../lib/repository/models/github_status.dart';
-import '../lib/repository/services/github_status_service.dart';
+import 'package:cocoon/repository/models/github_status.dart';
+import 'package:cocoon/repository/services/github_status_service.dart';
 
 void main() {
   group('GitHub status fetch', () {
