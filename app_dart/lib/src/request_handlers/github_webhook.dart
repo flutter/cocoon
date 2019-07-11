@@ -49,9 +49,12 @@ Future<void> githubWebhookPullRequest(Config config, HttpRequest request) async 
       return;
     }
     final GitHub gitHubClient = await config.createGitHubClient();
-    await _checkBaseRef(config, gitHubClient, event);
-    await _applyLabels(config, gitHubClient, event);
-    gitHubClient.dispose();
+    try {
+      await _checkBaseRef(config, gitHubClient, event);
+      await _applyLabels(config, gitHubClient, event);
+    } finally {
+      gitHubClient.dispose();
+    }
     await request.response
       ..statusCode = HttpStatus.ok
       ..close();
@@ -83,15 +86,12 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
 
     if (file.filename.startsWith('dev/')) {
       labels.add('team');
-      continue;
     }
-    if (file.filename.startsWith('packages/flutter_tool')) {
+    if (file.filename.startsWith('packages/flutter_tools/')) {
       labels.add('tool');
-      continue;
     }
     if (file.filename == 'bin/internal/engine.version') {
       labels.add('engine');
-      continue;
     }
 
     labels.add('framework');
@@ -124,11 +124,11 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
   }
 
   if (labels.isNotEmpty) {
-    gitHubClient.issues.addLabelsToIssue(slug, event.number, labels.toList());
+    await gitHubClient.issues.addLabelsToIssue(slug, event.number, labels.toList());
   }
   if (!hasTests) {
     final String body = await config.missingTestsPullRequestMessage;
-    gitHubClient.issues.createComment(slug, event.number, body);
+    await gitHubClient.issues.createComment(slug, event.number, body);
   }
 }
 
