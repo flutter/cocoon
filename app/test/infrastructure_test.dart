@@ -5,10 +5,7 @@
 import 'package:flutter_web_test/flutter_web_test.dart';
 import 'package:flutter_web/material.dart';
 
-import '../lib/repository/details/infrastructure.dart';
-import '../lib/repository/models/build_status.dart';
-import '../lib/repository/models/github_status.dart';
-import '../lib/repository/models/providers.dart';
+import 'package:cocoon/cocoon.dart';
 
 void main() {
   group('GitHub status', () {
