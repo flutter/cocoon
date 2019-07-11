@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -39,9 +40,11 @@ void main() {
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
       when(config.nonMasterPullRequestMessage).thenAnswer((_) => Future<String>.value('nonMasterPullRequestMessage'));
+      when(config.missingTestsPullRequestMessage)
+          .thenAnswer((_) => Future<String>.value('missingTestPullRequestMessage'));
       when(config.githubOAuthToken).thenAnswer((_) => Future<String>.value('githubOAuthKey'));
       when(config.webhookKey).thenAnswer((_) => Future.value(keyString));
-      when(config.gitHubClient).thenAnswer((_) => Future.value(gitHubClient));
+      when(config.createGitHubClient()).thenAnswer((_) => Future.value(gitHubClient));
 
       when(request.response).thenReturn(response);
       when(request.headers).thenReturn(headers);
@@ -143,6 +146,132 @@ void main() {
 
       verify(response.statusCode = HttpStatus.ok);
     });
+
+    test('Labels PRs, comment if no tests', () async {
+      const int issueNumber = 123;
+      when(request.method).thenReturn('POST');
+      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      request.data = Stream<Uint8List>.fromIterable([body]);
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
+        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        convert: anyNamed('convert'),
+      )).thenAnswer(
+        (_) => Future.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ]),
+      );
+
+      await githubWebhookPullRequest(config, request);
+
+      final String message = await config.missingTestsPullRequestMessage;
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        ['framework'],
+      )).called(1);
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(message)),
+      )).called(1);
+      verify(response.statusCode = HttpStatus.ok);
+    });
+
+    test('Labels PRs, no comment if tests', () async {
+      const int issueNumber = 123;
+      when(request.method).thenReturn('POST');
+      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      request.data = Stream<Uint8List>.fromIterable([body]);
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
+        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        convert: anyNamed('convert'),
+      )).thenAnswer(
+        (_) => Future.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/semantics_test.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
+          PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
+          PullRequestFile()..filename = 'dev/blah.dart',
+          PullRequestFile()..filename = 'bin/internal/engine.version',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
+        ]),
+      );
+
+      await githubWebhookPullRequest(config, request);
+
+      final String message = await config.missingTestsPullRequestMessage;
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        argThat(unorderedEquals([
+          'framework',
+          'engine',
+          'tool',
+          'f: material design',
+          'f: cupertino',
+          'team',
+          'a: internationalization',
+          'a: accessibility',
+          'd: examples',
+          'team: gallery',
+          'a: tests',
+        ])),
+      )).called(1);
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(message)),
+      ));
+      verify(response.statusCode = HttpStatus.ok);
+    });
+
+    test('Skips labeling or commenting on autorolls', () async {
+      const int issueNumber = 123;
+      when(request.method).thenReturn('POST');
+      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      final Uint8List body = utf8.encode(jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        login: 'engine-flutter-autoroll',
+      ));
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      when(headers.value('X-GitHub-Signature')).thenReturn('sha1=$hmac');
+      request.data = Stream<Uint8List>.fromIterable([body]);
+
+      await githubWebhookPullRequest(config, request);
+
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        any,
+      ));
+      verify(response.statusCode = HttpStatus.ok);
+    });
   });
 }
 
@@ -165,7 +294,7 @@ class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}
 
-String jsonTemplate(String action, int number, String baseRef) => '''{
+String jsonTemplate(String action, int number, String baseRef, {String login = 'flutter'}) => '''{
   "action": "$action",
   "number": $number,
   "pull_request": {
@@ -181,7 +310,7 @@ String jsonTemplate(String action, int number, String baseRef) => '''{
     "locked": false,
     "title": "Defer reassemble until reload is finished",
     "user": {
-      "login": "flutter",
+      "login": "$login",
       "id": 862741,
       "node_id": "MDQ6VXNlcjg2MjA3NDE=",
       "avatar_url": "https://avatars3.githubusercontent.com/u/8620741?v=4",
@@ -243,11 +372,11 @@ String jsonTemplate(String action, int number, String baseRef) => '''{
     "comments_url": "https://api.github.com/repos/flutter/flutter/issues/$number/comments",
     "statuses_url": "https://api.github.com/repos/flutter/flutter/statuses/be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
     "head": {
-      "label": "flutter:wait_for_reassemble",
+      "label": "$login:wait_for_reassemble",
       "ref": "wait_for_reassemble",
       "sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
       "user": {
-        "login": "flutter",
+        "login": "$login",
         "id": 8620741,
         "node_id": "MDQ6VXNlcjg2MjA3NDE=",
         "avatar_url": "https://avatars3.githubusercontent.com/u/8620741?v=4",
@@ -627,7 +756,7 @@ String jsonTemplate(String action, int number, String baseRef) => '''{
     "default_branch": "master"
   },
   "sender": {
-    "login": "flutter",
+    "login": "$login",
     "id": 21031067,
     "node_id": "MDQ6VXNlcjIxMDMxMDY3",
     "avatar_url": "https://avatars1.githubusercontent.com/u/21031067?v=4",
