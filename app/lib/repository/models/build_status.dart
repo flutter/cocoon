@@ -7,14 +7,15 @@ import 'dart:async';
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 
-import 'providers.dart';
 import '../services/build_status_service.dart';
+import 'providers.dart';
 
 class BuildStatus {
-  const BuildStatus({this.anticipatedBuildStatus, this.failingAgents = const <String>[]});
+  const BuildStatus({this.anticipatedBuildStatus, this.failingAgents = const <String>[], this.commitTestResults = const <CommitTestResult>[]});
 
   final String anticipatedBuildStatus;
   final List<String> failingAgents;
+  final List<CommitTestResult> commitTestResults;
 
   @override
   bool operator ==(Object other) {
@@ -26,11 +27,48 @@ class BuildStatus {
     }
     final BuildStatus otherStatus = other;
     return (otherStatus.anticipatedBuildStatus == anticipatedBuildStatus)
-      && (otherStatus.failingAgents == failingAgents);
+      && (otherStatus.failingAgents == failingAgents)
+      && (otherStatus.commitTestResults == commitTestResults);
   }
 
   @override
   int get hashCode => hashValues(anticipatedBuildStatus, failingAgents);
+}
+
+class CommitTestResult {
+  const CommitTestResult({this.sha, this.authorName, this.avatarImageURL, this.createDateTime, this.inProgressTestCount, this.succeededTestCount, this.failedFlakyTestCount, this.failedTestCount, this.failingTests = const <String>[]});
+  final String sha;
+  final String authorName;
+  final String avatarImageURL;
+  final DateTime createDateTime;
+  final int inProgressTestCount;
+  final int succeededTestCount;
+  final int failedFlakyTestCount;
+  final int failedTestCount;
+  final List<String> failingTests;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    final CommitTestResult otherResult = other;
+    return (otherResult.sha == sha)
+      && (otherResult.authorName == authorName)
+      && (otherResult.avatarImageURL == avatarImageURL)
+      && (otherResult.createDateTime == createDateTime)
+      && (otherResult.inProgressTestCount == inProgressTestCount)
+      && (otherResult.succeededTestCount == succeededTestCount)
+      && (otherResult.failedFlakyTestCount == failedFlakyTestCount)
+      && (otherResult.failedTestCount == failedTestCount)
+      && (otherResult.failingTests == failingTests);
+  }
+
+  @override
+  int get hashCode => hashValues(sha, authorName, avatarImageURL, createDateTime, inProgressTestCount, succeededTestCount, failedFlakyTestCount, failedTestCount, failingTests);
 }
 
 class RefreshBuildStatus extends StatefulWidget {
@@ -65,7 +103,7 @@ class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> with Aut
 
   Future<void> _refresh(Timer timer) async {
     try {
-      BuildStatus status = await fetchBuildStatus();
+      final BuildStatus status = await fetchBuildStatus();
       if (status != null) {
         ModelBinding.update<BuildStatus>(context, status);
       }
