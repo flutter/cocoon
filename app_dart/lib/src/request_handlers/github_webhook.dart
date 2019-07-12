@@ -78,8 +78,12 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
         jsonFileList.cast<Map<String, dynamic>>().map(PullRequestFile.fromJSON).toList(),
   );
   bool hasTests = false;
+  bool needsTests = false;
   Set<String> labels = <String>{};
   for (PullRequestFile file in files) {
+    if (file.filename.endsWith('.dart')) {
+      needsTests = true;
+    }
     if (file.filename.endsWith('_test.dart')) {
       hasTests = true;
     }
@@ -135,7 +139,7 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
       convert: (List<dynamic> input) => input.cast<Map<String, dynamic>>().map(IssueLabel.fromJSON).toList(),
     );
   }
-  if (!hasTests) {
+  if (!hasTests && needsTests) {
     final String body = await config.missingTestsPullRequestMessage;
     await gitHubClient.issues.createComment(slug, event.number, body);
   }
