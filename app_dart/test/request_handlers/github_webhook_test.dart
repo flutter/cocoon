@@ -190,6 +190,41 @@ void main() {
       verify(response.statusCode = HttpStatus.ok);
     });
 
+    test('Labels PRs, no dart files', () async {
+      const int issueNumber = 123;
+      when(request.method).thenReturn('POST');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
+      request.data = Stream<Uint8List>.fromIterable([body]);
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
+        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        convert: anyNamed('convert'),
+      )).thenAnswer(
+        (_) => Future.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/blah.md',
+        ]),
+      );
+
+      await githubWebhookPullRequest(config, request);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>['framework']),
+        convert: anyNamed('convert'),
+      )).called(1);
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        any,
+      ));
+      verify(response.statusCode = HttpStatus.ok);
+    });
+
     test('Labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
