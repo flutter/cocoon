@@ -3,29 +3,24 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'dart:html';
 
 import '../models/github_status.dart';
 
 /// See https://www.githubstatus.com/api
-Future<GithubStatus> fetchGithubStatus({http.Client client}) async {
-  client ??= http.Client();
-  final Map<String, dynamic> fetchedStatus = await _getStatusBody(client);
+Future<GithubStatus> fetchGithubStatus() async {
+  final Map<String, dynamic> fetchedStatus = await _getStatusBody();
   if (fetchedStatus == null) {
     return null;
   }
   final Map<String, dynamic> status = fetchedStatus['status'];
-  if (status == null) {
-    return null;
-  }
   return GithubStatus(status: status['description'], indicator: status['indicator']);
 }
 
-Future<dynamic> _getStatusBody(http.Client client) async {
+Future<dynamic> _getStatusBody() async {
   try {
-    final http.Response response = await client.get('https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
-    final String body = response?.body;
+    final HttpRequest response = await HttpRequest.request('https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
+    final String body = response?.response;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {
     print('Error fetching Github status: $error');

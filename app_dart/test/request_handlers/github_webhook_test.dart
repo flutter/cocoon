@@ -70,7 +70,7 @@ void main() {
 
     test('Rejects invalid hmac', () async {
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       when(headers.value('X-Hub-Signature')).thenReturn('bar');
       request.data = Stream<Uint8List>.fromIterable([utf8.encode('Hello, World!')]);
       await githubWebhookPullRequest(config, request);
@@ -80,7 +80,7 @@ void main() {
 
     test('Rejects malformed unicode', () async {
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = Uint8List.fromList([0xc3, 0x28]);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -93,7 +93,7 @@ void main() {
 
     test('Rejects non-json', () async {
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode('Hello, World!');
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -106,7 +106,7 @@ void main() {
 
     test('Ignores actions other than open/reopened', () async {
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode(jsonTemplate('closed', 123, 'dev'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -120,7 +120,7 @@ void main() {
     test('Acts on opened against dev', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'dev'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -156,7 +156,7 @@ void main() {
     test('Labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -177,10 +177,10 @@ void main() {
 
       final String message = await config.missingTestsPullRequestMessage;
 
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        ['framework'],
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>['framework']),
+        convert: anyNamed('convert'),
       )).called(1);
       verify(issuesService.createComment(
         slug,
@@ -193,7 +193,7 @@ void main() {
     test('Labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
@@ -222,25 +222,23 @@ void main() {
 
       final String message = await config.missingTestsPullRequestMessage;
 
-      expect(
-          verify(issuesService.addLabelsToIssue(
-            slug,
-            issueNumber,
-            captureAny,
-          )).captured.first.toSet().containsAll(<String>{
-            'framework',
-            'engine',
-            'tool',
-            'f: material design',
-            'f: cupertino',
-            'team',
-            'a: internationalization',
-            'a: accessibility',
-            'd: examples',
-            'team: gallery',
-            'a: tests',
-          }),
-          true);
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>[
+          'framework',
+          'a: accessibility',
+          'tool',
+          'a: tests',
+          'd: examples',
+          'team',
+          'team: gallery',
+          'engine',
+          'f: cupertino',
+          'f: material design',
+          'a: internationalization',
+        ]),
+        convert: anyNamed('convert'),
+      )).called(1);
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -252,7 +250,7 @@ void main() {
     test('Skips labeling or commenting on autorolls', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('foo');
+      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       final Uint8List body = utf8.encode(jsonTemplate(
         'opened',
         issueNumber,
@@ -268,10 +266,10 @@ void main() {
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      verifyNever(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        any,
+      verifyNever(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: anyNamed('body'),
+        convert: anyNamed('convert'),
       ));
       verifyNever(issuesService.createComment(
         slug,
