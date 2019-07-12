@@ -36,9 +36,9 @@ class InfrastructureDetails extends StatelessWidget {
                 child: Column(
                   children: const <Widget>[
                     BuildStatusWidget(),
-                    ModelBinding<GithubStatus>(
-                      initialModel: GithubStatus(),
-                      child: RefreshGithubStatus(
+                    ModelBinding<GitHubStatus>(
+                      initialModel: GitHubStatus(),
+                      child: RefreshGitHubStatus(
                         child: GitHubStatusWidget()
                       )
                     )
@@ -64,7 +64,7 @@ class GitHubStatusWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GithubStatus githubStatus = ModelBinding.of<GithubStatus>(context);
+    final GitHubStatus githubStatus = ModelBinding.of<GitHubStatus>(context);
     IconData icon;
     Color backgroundColor;
     switch (githubStatus.indicator) {
@@ -93,7 +93,7 @@ class GitHubStatusWidget extends StatelessWidget {
         child: Icon(Icons.code),
         radius: _kAvatarRadius,
       ),
-      title: const Text('Github'),
+      title: const Text('GitHub'),
       subtitle: Semantics(
         child: Align(
           alignment: AlignmentDirectional.centerStart,
@@ -103,8 +103,9 @@ class GitHubStatusWidget extends StatelessWidget {
             label: Text(githubStatus.status ?? 'Unknown')
           ),
         ),
-        hint: 'Github Status',
+        hint: 'GitHub Status',
       ),
+      onTap: () => window.open('https://www.githubstatus.com', '_blank')
     );
   }
 }
@@ -148,6 +149,7 @@ class BuildStatusWidget extends StatelessWidget {
         ),
         hint: 'Build Status',
       ),
+      onTap: () => window.open('/build.html', '_blank')
     );
   }
 }
@@ -179,7 +181,8 @@ class FailingAgentWidget extends StatelessWidget {
               foregroundColor: Colors.white,
               backgroundColor: Colors.redAccent,
             ),
-            title: Text(agentName)
+            title: Text(agentName),
+            onTap: () => window.open('/build.html', '_blank')
           )
       ]
     );
@@ -256,7 +259,8 @@ class _CommitResultWidget extends StatelessWidget {
         child: Image.network(commitTestResult.avatarImageURL),
         radius: _kAvatarRadius,
       ),
-      isThreeLine: true
+      isThreeLine: true,
+      onTap: () => window.open('/build.html', '_blank')
     );
   }
 }

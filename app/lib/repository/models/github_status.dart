@@ -10,8 +10,8 @@ import 'package:flutter_web/material.dart';
 import '../services/github_status_service.dart';
 import 'providers.dart';
 
-class GithubStatus {
-  const GithubStatus({this.status, this.indicator});
+class GitHubStatus {
+  const GitHubStatus({this.status, this.indicator});
 
   final String status;
   final String indicator;
@@ -24,7 +24,7 @@ class GithubStatus {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    final GithubStatus otherStatus = other;
+    final GitHubStatus otherStatus = other;
     return (otherStatus.status == status)
       && (otherStatus.indicator == indicator);
   }
@@ -33,18 +33,18 @@ class GithubStatus {
   int get hashCode => hashValues(status, indicator);
 }
 
-class RefreshGithubStatus extends StatefulWidget {
-  const RefreshGithubStatus({@required this.child});
+class RefreshGitHubStatus extends StatefulWidget {
+  const RefreshGitHubStatus({@required this.child});
 
   final Widget child;
 
   @override
   State<StatefulWidget> createState() {
-    return _RefreshGithubStatusState();
+    return _RefreshGitHubStatusState();
   }
 }
 
-class _RefreshGithubStatusState extends State<RefreshGithubStatus> with AutomaticKeepAliveClientMixin<RefreshGithubStatus> {
+class _RefreshGitHubStatusState extends State<RefreshGitHubStatus> with AutomaticKeepAliveClientMixin<RefreshGitHubStatus> {
   Timer _refreshTimer;
 
   @override
@@ -65,12 +65,12 @@ class _RefreshGithubStatusState extends State<RefreshGithubStatus> with Automati
 
   Future<void> _refresh(Timer timer) async {
     try {
-      final GithubStatus status = await fetchGithubStatus();
+      final GitHubStatus status = await fetchGitHubStatus();
       if (status != null) {
-        ModelBinding.update<GithubStatus>(context, status);
+        ModelBinding.update<GitHubStatus>(context, status);
       }
     } catch (error) {
-      print('Error refreshing Github status $error');
+      print('Error refreshing GitHub status $error');
     }
   }
 

@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import '../models/github_status.dart';
 
 /// See https://www.githubstatus.com/api
-Future<GithubStatus> fetchGithubStatus({http.Client client}) async {
+Future<GitHubStatus> fetchGitHubStatus({http.Client client}) async {
   client ??= http.Client();
   final Map<String, dynamic> fetchedStatus = await _getStatusBody(client);
   if (fetchedStatus == null) {
@@ -19,7 +19,7 @@ Future<GithubStatus> fetchGithubStatus({http.Client client}) async {
   if (status == null) {
     return null;
   }
-  return GithubStatus(status: status['description'], indicator: status['indicator']);
+  return GitHubStatus(status: status['description'], indicator: status['indicator']);
 }
 
 Future<dynamic> _getStatusBody(http.Client client) async {
@@ -28,7 +28,7 @@ Future<dynamic> _getStatusBody(http.Client client) async {
     final String body = response?.body;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {
-    print('Error fetching Github status: $error');
+    print('Error fetching GitHub status: $error');
     return null;
   }
 }

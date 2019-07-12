@@ -15,9 +15,9 @@ import 'providers.dart';
 
 typedef LabelEvaluator = bool Function(String labelName);
 
-/// Repository properties and status fetched from Github.
+/// Repository properties and status fetched from GitHub.
 ///
-/// [name] is the Github ":repo" parameter in Github APIs. See <https://developer.github.com/v3/repos>
+/// [name] is the GitHub ":repo" parameter in GitHub APIs. See <https://developer.github.com/v3/repos>
 abstract class RepositoryStatus {
   RepositoryStatus({@required this.name, this.labelEvaluation, this.triageLabels});
 
@@ -220,7 +220,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
 
       // Not every repository has issues enabled. Avoid unnecessary traffic.
       if (repositoryStatus.issuesEnabled) {
-        // Github limits searches to 1000 results. Since there may be more issues than that, explicitly query for the counts instead of iterating over all issues.
+        // GitHub limits searches to 1000 results. Since there may be more issues than that, explicitly query for the counts instead of iterating over all issues.
         futuresToFetch.addAll(<Future<void>>[
           _updateIssueCount(repositoryStatus),
           _updateStaleIssueCount(repositoryStatus),
