@@ -13,128 +13,128 @@ import 'package:cocoon/repository/models/providers.dart';
 void main() {
   group('GitHub status', () {
     testWidgets('Operational', (WidgetTester tester) async {
-      final String gitHubStatusText = 'Status provided by GitHub'; // Status text is provided by GitHub, so there's no logic needed in the dashboard to handle different variants.
-      final GithubStatus githubStatus = GithubStatus(status: gitHubStatusText, indicator: 'none');
+      const String gitHubStatusText = 'Status provided by GitHub'; // Status text is provided by GitHub, so there's no logic needed in the dashboard to handle different variants.
+      const GithubStatus githubStatus = GithubStatus(status: gitHubStatusText, indicator: 'none');
       await _pumpGitHubStatusWidget(tester, githubStatus);
 
-      final statusFinder = find.text(gitHubStatusText);
+      final Finder statusFinder = find.text(gitHubStatusText);
       expect(statusFinder, findsOneWidget);
 
-      final iconFinder = find.byIcon(Icons.check);
+      final Finder iconFinder = find.byIcon(Icons.check);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Minor', (WidgetTester tester) async {
-      final GithubStatus githubStatus = const GithubStatus(status: 'Failure', indicator: 'minor');
+      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'minor');
       await _pumpGitHubStatusWidget(tester, githubStatus);
-      final iconFinder = find.byIcon(Icons.warning);
+      final Finder iconFinder = find.byIcon(Icons.warning);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Major', (WidgetTester tester) async {
-      final GithubStatus githubStatus = const GithubStatus(status: 'Failure', indicator: 'major');
+      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'major');
       await _pumpGitHubStatusWidget(tester, githubStatus);
-      final iconFinder = find.byIcon(Icons.error);
+      final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Critical', (WidgetTester tester) async {
-      final GithubStatus githubStatus = const GithubStatus(status: 'Failure', indicator: 'critical');
+      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'critical');
       await _pumpGitHubStatusWidget(tester, githubStatus);
-      final iconFinder = find.byIcon(Icons.error);
+      final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      final GithubStatus githubStatus = const GithubStatus(indicator: 'bogus unknown indicator');
+      const GithubStatus githubStatus = GithubStatus(indicator: 'bogus unknown indicator');
       await _pumpGitHubStatusWidget(tester, githubStatus);
-      final iconFinder = find.byIcon(Icons.help_outline);
+      final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Unknown', (WidgetTester tester) async {
-      final GithubStatus githubStatus = const GithubStatus();
+      const GithubStatus githubStatus = GithubStatus();
       await _pumpGitHubStatusWidget(tester, githubStatus);
 
-      final iconFinder = find.byIcon(Icons.help_outline);
+      final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
 
-      final statusFinder = find.text('Unknown');
+      final Finder statusFinder = find.text('Unknown');
       expect(statusFinder, findsOneWidget);
     });
   });
 
   group('Build status', () {
     testWidgets('Succeeded', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus(anticipatedBuildStatus: 'Succeeded');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Succeeded');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
-      final iconFinder = find.byIcon(Icons.check);
+      final Finder iconFinder = find.byIcon(Icons.check);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Will fail', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus(anticipatedBuildStatus: 'Build Will Fail');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Build Will Fail');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
-      final iconFinder = find.byIcon(Icons.error);
+      final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus(anticipatedBuildStatus: 'Bogus unknown status');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Bogus unknown status');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
-      final iconFinder = find.byIcon(Icons.help_outline);
+      final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Unknown', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus();
+      const BuildStatus buildStatus = BuildStatus();
       await _pumpBuildStatusWidget(tester, buildStatus);
 
-      final iconFinder = find.byIcon(Icons.help_outline);
+      final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
     });
   });
 
   group('Failing agents', () {
     testWidgets('None', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus();
+      const BuildStatus buildStatus = BuildStatus();
       await _pumpFailingAgentsWidget(tester, buildStatus);
 
-      final titleFinder = find.text('Failing Agents');
+      final Finder titleFinder = find.text('Failing Agents');
       expect(titleFinder, findsNothing);
     });
 
     testWidgets('One', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus(failingAgents: <String>['mac1']);
+      const BuildStatus buildStatus = BuildStatus(failingAgents: <String>['mac1']);
       await _pumpFailingAgentsWidget(tester, buildStatus);
 
-      final titleFinder = find.text('Failing Agents');
+      final Finder titleFinder = find.text('Failing Agents');
       expect(titleFinder, findsOneWidget);
 
-      final iconFinder = find.byIcon(Icons.desktop_windows);
+      final Finder iconFinder = find.byIcon(Icons.desktop_windows);
       expect(iconFinder, findsOneWidget);
 
-      final agentFinder = find.text('mac1');
+      final Finder agentFinder = find.text('mac1');
       expect(agentFinder, findsOneWidget);
     });
 
     testWidgets('Two', (WidgetTester tester) async {
-      final BuildStatus buildStatus = const BuildStatus(failingAgents: <String>['mac1', 'windows1']);
+      const BuildStatus buildStatus = BuildStatus(failingAgents: <String>['mac1', 'windows1']);
       await _pumpFailingAgentsWidget(tester, buildStatus);
 
-      final titleFinder = find.text('Failing Agents');
+      final Finder titleFinder = find.text('Failing Agents');
       expect(titleFinder, findsOneWidget);
 
-      final iconFinder = find.byIcon(Icons.desktop_windows);
+      final Finder iconFinder = find.byIcon(Icons.desktop_windows);
       expect(iconFinder, findsNWidgets(2));
 
-      final agentFinder1 = find.text('mac1');
+      final Finder agentFinder1 = find.text('mac1');
       expect(agentFinder1, findsOneWidget);
 
-      final agentFinder2 = find.text('windows1');
+      final Finder agentFinder2 = find.text('windows1');
       expect(agentFinder2, findsOneWidget);
     });
   });
