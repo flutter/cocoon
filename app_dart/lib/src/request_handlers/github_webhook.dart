@@ -79,6 +79,7 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
   );
   bool hasTests = false;
   bool needsTests = false;
+  bool touchedProductionCode = false;
   Set<String> labels = <String>{};
   for (PullRequestFile file in files) {
     if (file.filename.endsWith('.dart')) {
@@ -87,7 +88,9 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
     if (file.filename.endsWith('_test.dart')) {
       hasTests = true;
     }
-
+    if (file.filename.startsWith('packages/') {
+      touchedProductionCode = true; 
+    }
     if (file.filename.startsWith('dev/')) {
       labels.add('team');
     }
@@ -139,7 +142,7 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
       convert: (List<dynamic> input) => input.cast<Map<String, dynamic>>().map(IssueLabel.fromJSON).toList(),
     );
   }
-  if (!hasTests && needsTests) {
+  if (!hasTests && needsTests && touchedProductionCode) {
     final String body = await config.missingTestsPullRequestMessage;
     await gitHubClient.issues.createComment(slug, event.number, body);
   }
