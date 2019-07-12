@@ -277,18 +277,8 @@ class _PendingIconState extends State<_PendingIcon> with SingleTickerProviderSta
   @override
   void initState() {
     _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    _controller.addStatusListener((AnimationStatus status) {
-      if (status == AnimationStatus.completed) {
-        _controller.reverse();
-      } else if (status == AnimationStatus.dismissed) {
-        _controller.forward();
-      }
-    });
-    _controller.addListener(() {
-      setState(() {});
-    });
     _opacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
-    _controller.forward();
+    _controller.repeat(reverse: true);
     super.initState();
   }
 

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 
@@ -27,8 +28,8 @@ class BuildStatus {
     }
     final BuildStatus otherStatus = other;
     return (otherStatus.anticipatedBuildStatus == anticipatedBuildStatus)
-      && (otherStatus.failingAgents == failingAgents)
-      && (otherStatus.commitTestResults == commitTestResults);
+      && const ListEquality().equals(otherStatus.failingAgents, failingAgents)
+      && const DeepCollectionEquality().equals(otherStatus.commitTestResults, commitTestResults);
   }
 
   @override
@@ -64,7 +65,7 @@ class CommitTestResult {
       && (otherResult.succeededTestCount == succeededTestCount)
       && (otherResult.failedFlakyTestCount == failedFlakyTestCount)
       && (otherResult.failedTestCount == failedTestCount)
-      && (otherResult.failingTests == failingTests);
+      && const ListEquality().equals(otherResult.failingTests, failingTests);
   }
 
   @override

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection' show SplayTreeMap;
 
+import 'package:collection/collection.dart';
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web/widgets.dart';
@@ -113,7 +114,7 @@ abstract class RepositoryStatus {
       && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
       && (typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName)
       && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic)
-      && (typedOther.issuesByTriageLabelName == issuesByTriageLabelName);
+      && const MapEquality().equals(typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
   }
 
   @override
