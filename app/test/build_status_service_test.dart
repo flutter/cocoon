@@ -37,6 +37,63 @@ void main() {
                 'IsHealthy': false,
                 'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
               },
+            ],
+            'Statuses': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'Checklist': <String, dynamic> {
+                  'Checklist': <String, dynamic> {
+                    'Commit': <String, dynamic> {
+                      'Sha': '1234567890',
+                      'Author': <String, dynamic> {
+                        'Login': 'smith',
+                        'avatar_url': 'https://www.google.com'
+                      }
+                    },
+                    'CreateTimestamp': DateTime.now().millisecondsSinceEpoch
+                  }
+                },
+                'Stages': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'Tasks': <Map<String, dynamic>>[
+                      <String, dynamic>{
+                        'Task': <String, dynamic>{
+                          'Flaky': false,
+                          'Status': 'Succeeded',
+                          'Name': 'test1'
+                        }
+                      },
+                      <String, dynamic>{
+                        'Task': <String, dynamic>{
+                          'Flaky': false,
+                          'Status': 'Failed',
+                          'Name': 'test2'
+                        }
+                      },
+                      <String, dynamic>{
+                        'Task': <String, dynamic>{
+                          'Flaky': true,
+                          'Status': 'Failed',
+                          'Name': 'test3'
+                        }
+                      },
+                      <String, dynamic>{
+                        'Task': <String, dynamic>{
+                          'Flaky': false,
+                          'Status': 'In Progress',
+                          'Name': 'test4'
+                        }
+                      },
+                      <String, dynamic>{
+                        'Task': <String, dynamic>{
+                          'Flaky': false,
+                          'Status': 'New',
+                          'Name': 'test5'
+                        }
+                      },
+                    ]
+                  }
+                ]
+              }
             ]
           };
           return http.Response(json.encode(mapJson), 200);
@@ -51,6 +108,18 @@ void main() {
 
       expect(status.failingAgents, <String>['linux2', 'win1', 'win2']);
       expect(status.anticipatedBuildStatus, 'Succeeded');
+
+      final List<CommitTestResult> commitTestResults = status.commitTestResults;
+      CommitTestResult commitTestResult1 = commitTestResults.first;
+      expect(commitTestResult1.sha, '1234567890');
+      expect(commitTestResult1.authorName, 'smith');
+      expect(commitTestResult1.avatarImageURL, 'https://www.google.com');
+      expect(commitTestResult1.createDateTime.runtimeType, DateTime);
+      expect(commitTestResult1.inProgressTestCount, 2);
+      expect(commitTestResult1.succeededTestCount, 1);
+      expect(commitTestResult1.failedFlakyTestCount, 1);
+      expect(commitTestResult1.failedTestCount, 1);
+      expect(commitTestResult1.failingTests, ['test2']);
     });
 
     test('Unexpected fetch', () async {

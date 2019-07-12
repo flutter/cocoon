@@ -44,15 +44,15 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
           int failedFlakyTestCount = 0;
           int failedTestCount = 0;
           final List<String> failingTests = <String>[];
-          for (Map<String, dynamic> status in status['Stages']) {
-            for (Map<String, dynamic> taskInfo in status['Tasks']) {
+          for (Map<String, dynamic> stage in status['Stages']) {
+            for (Map<String, dynamic> taskInfo in stage['Tasks']) {
               final Map<String, dynamic> task = taskInfo['Task'];
-              final String status = task['Status'];
-              if (status == 'Succeeded') {
+              final String testResult = task['Status'];
+              if (testResult == 'Succeeded') {
                 succeededTestCount++;
-              } else if (status == 'In Progress') {
+              } else if (testResult == 'In Progress' || testResult == 'New') {
                 inProgressTestCount++;
-              } else if (status == 'Failed') {
+              } else if (testResult == 'Failed') {
                 if (task['Flaky']) {
                   failedFlakyTestCount++;
                 } else {
@@ -77,7 +77,7 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
             )
           );
 
-          if (commitTestResults.length >= 5) {
+          if (commitTestResults.length >= 6) {
             break;
           }
         }
