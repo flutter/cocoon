@@ -127,9 +127,13 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
       }
     }
   }
-
   if (labels.isNotEmpty) {
-    await gitHubClient.issues.addLabelsToIssue(slug, event.number, labels.toList());
+    // TODO(DirectMyFile/github.dart#152): This should be addLabelsToIssue when that is fixed.
+    await gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+      '/repos/${slug.fullName}/issues/${event.number}/labels',
+      body: jsonEncode(labels.toList()),
+      convert: (List<dynamic> input) => input.cast<Map<String, dynamic>>().map(IssueLabel.fromJSON).toList(),
+    );
   }
   if (!hasTests) {
     final String body = await config.missingTestsPullRequestMessage;
