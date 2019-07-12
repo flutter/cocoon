@@ -4,6 +4,7 @@
 
 import 'dart:html';
 
+import 'package:intl/intl.dart';
 import 'package:flutter_web/material.dart';
 
 import '../models/build_status.dart';
@@ -47,6 +48,9 @@ class InfrastructureDetails extends StatelessWidget {
               const Expanded(
                 child: FailingAgentWidget(),
               ),
+              const Expanded(
+                child: CommitResultsWidget(),
+              )
             ]
           ),
         ),
@@ -178,6 +182,117 @@ class FailingAgentWidget extends StatelessWidget {
             title: Text(agentName)
           )
       ]
+    );
+  }
+}
+
+class CommitResultsWidget extends StatelessWidget {
+  const CommitResultsWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final BuildStatus status = ModelBinding.of<BuildStatus>(context);
+    final List<CommitTestResult> commitTestResults = status.commitTestResults;
+    if (commitTestResults.isEmpty) {
+      return const SizedBox();
+    }
+
+    return Column(
+      children: <Widget>[
+        for (CommitTestResult commitTestResult in commitTestResults)
+          _CommitResultWidget(commitTestResult: commitTestResult)
+      ]
+    );
+  }
+}
+
+class _CommitResultWidget extends StatelessWidget {
+  const _CommitResultWidget({this.commitTestResult});
+
+  final CommitTestResult commitTestResult;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget icon;
+    Color backgroundColor;
+    if (commitTestResult.failedTestCount > 0) {
+      icon = Icon(Icons.error);
+      backgroundColor = Colors.redAccent;
+    } else if (commitTestResult.inProgressTestCount > 0) {
+      icon = _PendingIcon(child: Icon(Icons.sync));
+      backgroundColor = Colors.grey[600];
+    } else {
+      icon = Icon(Icons.check);
+      backgroundColor = Colors.green;
+    }
+
+    String displaySha = commitTestResult.sha;
+    if (displaySha != null && displaySha.length >= 6) {
+      displaySha = displaySha.substring(0, 6);
+    }
+
+    return ListTile(
+      leading: CircleAvatar(
+        child: icon,
+        radius: _kAvatarRadius,
+        foregroundColor: Colors.white,
+        backgroundColor: backgroundColor,
+      ),
+      title: Text('[$displaySha] ${DateFormat.jm().format(commitTestResult.createDateTime)}'),
+      subtitle: RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            if (commitTestResult.failedTestCount > 0)
+              TextSpan(text: 'Fail: ${commitTestResult.failingTests.length == 1 ? commitTestResult.failingTests.first : commitTestResult.failedTestCount}\n', style: TextStyle(color: Colors.redAccent)),
+            if (commitTestResult.failedFlakyTestCount > 0)
+              TextSpan(text: 'Flake: ${commitTestResult.failedFlakyTestCount}\n', style: TextStyle(color: Colors.orange)),
+            if (commitTestResult.inProgressTestCount > 0)
+              TextSpan(text: 'In progress: ${commitTestResult.inProgressTestCount}', style: TextStyle(color: Colors.grey)),
+          ],
+          style: Theme.of(context).textTheme.subtitle
+        ),
+      ),
+      trailing: CircleAvatar(
+        child: Image.network(commitTestResult.avatarImageURL),
+        radius: _kAvatarRadius,
+      ),
+      isThreeLine: true
+    );
+  }
+}
+
+class _PendingIcon extends StatefulWidget {
+  const _PendingIcon({@required this.child});
+
+  final Widget child;
+
+  @override
+  _PendingIconState createState() => _PendingIconState();
+}
+
+class _PendingIconState extends State<_PendingIcon> with SingleTickerProviderStateMixin {
+  AnimationController _controller;
+  Animation<double> _opacity;
+
+  @override
+  void initState() {
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _opacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
+    _controller.repeat(reverse: true);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: widget.child,
     );
   }
 }

@@ -13,10 +13,11 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
   final Map<String, dynamic> fetchedStatus = await _getStatusBody(client, 'api/public/build-status');
   final String anticipatedBuildStatus = fetchedStatus != null ? fetchedStatus['AnticipatedBuildStatus'] : null;
 
-  final Map<String, dynamic> fetchAgentStatus = await _getStatusBody(client, 'api/public/get-status');
+  final Map<String, dynamic> fetchBuildStatus = await _getStatusBody(client, 'api/public/get-status');
   final List<String> failingAgents = <String>[];
-  if (fetchAgentStatus != null) {
-    final List<dynamic> agentStatuses = fetchAgentStatus['AgentStatuses'];
+  final List<CommitTestResult> commitTestResults = <CommitTestResult>[];
+  if (fetchBuildStatus != null) {
+    final List<dynamic> agentStatuses = fetchBuildStatus['AgentStatuses'];
     if (agentStatuses != null) {
       for (Map<String, dynamic> agentStatus in agentStatuses) {
         final String agentID = agentStatus['AgentID'];
@@ -30,9 +31,60 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
           failingAgents.add(agentID);
         }
       }
+
+      final List<dynamic> statuses = fetchBuildStatus['Statuses'];
+      if (statuses != null) {
+        for (Map<String, dynamic> status in statuses) {
+          final Map<String, dynamic> checklist = status['Checklist']['Checklist'];
+          final Map<String, dynamic> commitInfo = checklist['Commit'];
+          final Map<String, dynamic> authorInfo = commitInfo['Author'];
+
+          int inProgressTestCount = 0;
+          int succeededTestCount = 0;
+          int failedFlakyTestCount = 0;
+          int failedTestCount = 0;
+          final List<String> failingTests = <String>[];
+          for (Map<String, dynamic> status in status['Stages']) {
+            for (Map<String, dynamic> taskInfo in status['Tasks']) {
+              final Map<String, dynamic> task = taskInfo['Task'];
+              final String status = task['Status'];
+              if (status == 'Succeeded') {
+                succeededTestCount++;
+              } else if (status == 'In Progress') {
+                inProgressTestCount++;
+              } else if (status == 'Failed') {
+                if (task['Flaky']) {
+                  failedFlakyTestCount++;
+                } else {
+                  failedTestCount++;
+                  failingTests.add(task['Name']);
+                }
+              }
+            }
+          }
+          final DateTime createDateTime = DateTime.fromMillisecondsSinceEpoch(checklist['CreateTimestamp']).toLocal();
+          commitTestResults.add(
+            CommitTestResult(
+              sha: commitInfo['Sha'],
+              authorName: authorInfo['Login'],
+              avatarImageURL: authorInfo['avatar_url'],
+              createDateTime: createDateTime,
+              inProgressTestCount: inProgressTestCount,
+              succeededTestCount: succeededTestCount,
+              failedFlakyTestCount: failedFlakyTestCount,
+              failedTestCount: failedTestCount,
+              failingTests: failingTests,
+            )
+          );
+
+          if (commitTestResults.length >= 5) {
+            break;
+          }
+        }
+      }
     }
   }
-  return BuildStatus(anticipatedBuildStatus: anticipatedBuildStatus, failingAgents: failingAgents);
+  return BuildStatus(anticipatedBuildStatus: anticipatedBuildStatus, failingAgents: failingAgents, commitTestResults: commitTestResults);
 }
 
 Future<dynamic> _getStatusBody(http.Client client, String url) async {
