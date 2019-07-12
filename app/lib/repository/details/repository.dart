@@ -117,7 +117,7 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
     final T repositoryStatus = ModelBinding.of<T>(context);
 
     final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
-    final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
+    final String staleDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
 
     final int issueCount = repositoryStatus.issueCount;
     return Column(
@@ -134,7 +134,7 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
         ),
         InkWell(
           child: _DetailItem(title: 'Unmodified in month', value: '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$stateDateQuery', '_blank')
+          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$staleDateQuery', '_blank')
         ),
       ]
     );
@@ -154,7 +154,7 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
     final String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
 
     final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.stalePullRequestThresholdInDays));
-    final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
+    final String staleDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
 
     return Semantics(
       label: 'Pull Requests',
@@ -172,7 +172,7 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
           ),
           InkWell(
             child: _DetailItem(title: 'Unmodified in week', value: '${numberFormat.format(repositoryStatus.stalePullRequestCount)} (${percentFormat.format(repositoryStatus.stalePullRequestCount / pullRequestCount)})'),
-            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$stateDateQuery', '_blank')
+            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$staleDateQuery', '_blank')
           ),
         ]
       ),

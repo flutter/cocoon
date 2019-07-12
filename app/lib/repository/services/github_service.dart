@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import '../models/github_authentication.dart' as github;
 import '../models/repository_status.dart';
 
-Map<Uri, String> _eTagByURL = <Uri, String>{}; // Github change token (eTag) by URL.
+Map<Uri, String> _eTagByURL = <Uri, String>{}; // GitHub change token (eTag) by URL.
 
 Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
   final Map<String, dynamic> fetchedDetails = await _getBody('repos/flutter/${repositoryStatus.name}');
@@ -82,7 +82,7 @@ Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
   repositoryStatus.stalePullRequestCount = 0;
   repositoryStatus.totalAgeOfAllPullRequests = 0;
 
-  // Use spaces instead of pluses in Github query parameters. Dart encodes spaces as +, but + is encoded as %2B which Github cannot parse and will think is malformed.
+  // Use spaces instead of pluses in GitHub query parameters. Dart encodes spaces as +, but + is encoded as %2B which GitHub cannot parse and will think is malformed.
   final Uri pullRequestUrl = Uri.https('api.github.com', 'search/issues', <String, String>{'q': 'repo:flutter/${repositoryStatus.name} is:open is:pr', 'per_page': '100'});
   await _fetchRepositoryPullRequestsByPage(pullRequestUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
 
@@ -197,7 +197,7 @@ Future<HttpRequest> _getResponse(Uri url) async {
   });
 
   if (response?.status == HttpStatus.notModified) {
-    debugPrint('Github reports query results have not been updated since last check of "$url", skipping.');
+    debugPrint('GitHub reports query results have not been updated since last check of "$url", skipping.');
   }
 
   final String responseETag = response?.responseHeaders['etag'];

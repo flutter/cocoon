@@ -14,7 +14,7 @@ void main() {
   group('GitHub status widget', () {
     testWidgets('Operational', (WidgetTester tester) async {
       const String gitHubStatusText = 'Status provided by GitHub'; // Status text is provided by GitHub, so there's no logic needed in the dashboard to handle different variants.
-      const GithubStatus githubStatus = GithubStatus(status: gitHubStatusText, indicator: 'none');
+      const GitHubStatus githubStatus = GitHubStatus(status: gitHubStatusText, indicator: 'none');
       await _pumpGitHubStatusWidget(tester, githubStatus);
 
       final Finder statusFinder = find.text(gitHubStatusText);
@@ -25,35 +25,35 @@ void main() {
     });
 
     testWidgets('Minor', (WidgetTester tester) async {
-      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'minor');
+      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'minor');
       await _pumpGitHubStatusWidget(tester, githubStatus);
       final Finder iconFinder = find.byIcon(Icons.warning);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Major', (WidgetTester tester) async {
-      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'major');
+      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'major');
       await _pumpGitHubStatusWidget(tester, githubStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Critical', (WidgetTester tester) async {
-      const GithubStatus githubStatus = GithubStatus(status: 'Failure', indicator: 'critical');
+      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'critical');
       await _pumpGitHubStatusWidget(tester, githubStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      const GithubStatus githubStatus = GithubStatus(indicator: 'bogus unknown indicator');
+      const GitHubStatus githubStatus = GitHubStatus(indicator: 'bogus unknown indicator');
       await _pumpGitHubStatusWidget(tester, githubStatus);
       final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Unknown', (WidgetTester tester) async {
-      const GithubStatus githubStatus = GithubStatus();
+      const GitHubStatus githubStatus = GitHubStatus();
       await _pumpGitHubStatusWidget(tester, githubStatus);
 
       final Finder iconFinder = find.byIcon(Icons.help_outline);
@@ -221,11 +221,11 @@ void main() {
   });
 }
 
-Future<void> _pumpGitHubStatusWidget(WidgetTester tester, GithubStatus status) async {
+Future<void> _pumpGitHubStatusWidget(WidgetTester tester, GitHubStatus status) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: ModelBinding<GithubStatus>(
+        body: ModelBinding<GitHubStatus>(
           initialModel: status,
           child: const GitHubStatusWidget()
         )
