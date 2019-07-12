@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:flutter_web/material.dart';
 
 import '../models/build_status.dart';
@@ -31,23 +33,20 @@ class InfrastructureDetails extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Column(
-                  children: <Widget>[
-                    const _BuildStatusWidget(),
+                  children: const <Widget>[
+                    BuildStatusWidget(),
                     ModelBinding<GithubStatus>(
-                      initialModel: const GithubStatus(),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Icon(Icons.code),
-                          radius: _kAvatarRadius,
-                        ),
-                        title: const Text('Github'),
-                        subtitle: const _GithubStatusIndicator(),
-                      ),
-                    ),
+                      initialModel: GithubStatus(),
+                      child: RefreshGithubStatus(
+                        child: GitHubStatusWidget()
+                      )
+                    )
                   ]
                 ),
               ),
-              const _FailingAgentWidget()
+              const Expanded(
+                child: FailingAgentWidget(),
+              ),
             ]
           ),
         ),
@@ -56,8 +55,8 @@ class InfrastructureDetails extends StatelessWidget {
   }
 }
 
-class _GithubStatusIndicator extends StatelessWidget {
-  const _GithubStatusIndicator();
+class GitHubStatusWidget extends StatelessWidget {
+  const GitHubStatusWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +84,13 @@ class _GithubStatusIndicator extends StatelessWidget {
         icon = Icons.help_outline;
         backgroundColor = Colors.grey;
     }
-    return Semantics(
-      child: RefreshGithubStatus(
+    return ListTile(
+      leading: CircleAvatar(
+        child: Icon(Icons.code),
+        radius: _kAvatarRadius,
+      ),
+      title: const Text('Github'),
+      subtitle: Semantics(
         child: Align(
           alignment: AlignmentDirectional.centerStart,
           child: Chip(
@@ -95,14 +99,14 @@ class _GithubStatusIndicator extends StatelessWidget {
             label: Text(githubStatus.status ?? 'Unknown')
           ),
         ),
+        hint: 'Github Status',
       ),
-      hint: 'Github Status',
     );
   }
 }
 
-class _BuildStatusWidget extends StatelessWidget {
-  const _BuildStatusWidget();
+class BuildStatusWidget extends StatelessWidget {
+  const BuildStatusWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +148,8 @@ class _BuildStatusWidget extends StatelessWidget {
   }
 }
 
-class _FailingAgentWidget extends StatelessWidget {
-  const _FailingAgentWidget();
+class FailingAgentWidget extends StatelessWidget {
+  const FailingAgentWidget();
 
   @override
   Widget build(BuildContext context) {
@@ -155,27 +159,25 @@ class _FailingAgentWidget extends StatelessWidget {
       return const SizedBox();
     }
 
-    return Expanded(
-      child: Column(
-        children: <Widget>[
+    return Column(
+      children: <Widget>[
+        ListTile(
+          title: Text('Failing Agents',
+            style: Theme.of(context).textTheme.headline.copyWith(
+              color: Theme.of(context).primaryColor,
+            )),
+        ),
+        for (String agentName in failingAgents)
           ListTile(
-            title: Text('Failing Agents',
-              style: Theme.of(context).textTheme.headline.copyWith(
-                color: Theme.of(context).primaryColor,
-              )),
-          ),
-          for (String agentName in failingAgents)
-            ListTile(
-              leading: CircleAvatar(
-                child: Icon(Icons.desktop_windows),
-                radius: _kAvatarRadius,
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.redAccent,
-              ),
-              title: Text('$agentName Unhealthy')
-            )
-        ]
-      )
+            leading: CircleAvatar(
+              child: Icon(Icons.desktop_windows),
+              radius: _kAvatarRadius,
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.redAccent,
+            ),
+            title: Text(agentName)
+          )
+      ]
     );
   }
 }
