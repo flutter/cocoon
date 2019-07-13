@@ -88,7 +88,7 @@ Future<void> _applyLabels(Config config, GitHub gitHubClient, PullRequestEvent e
     if (file.filename.endsWith('_test.dart')) {
       hasTests = true;
     }
-    if (file.filename.startsWith('packages/') {
+    if (!file.filename.startsWith('dev/') {
       touchedProductionCode = true; 
     }
     if (file.filename.startsWith('dev/')) {
