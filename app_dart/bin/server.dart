@@ -1,3 +1,7 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -5,28 +9,25 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 
-const Map<String, HttpRequestHandler> _handlers = <String, HttpRequestHandler>{
-  '/api/github-webhook-pullrequest': githubWebhookPullRequest,
-};
-
-Config config;
-
-Future<void> requestHandler(HttpRequest request) async {
-  final HttpRequestHandler handler = _handlers[request.uri.path];
-  if (handler != null) {
-    return await handler(config, request);
-  } else {
-    await request.response
-      ..statusCode = HttpStatus.notFound
-      ..close();
-    return null;
-  }
-}
-
 Future<void> main() async {
-  print('Serving requests');
   await withAppEngineServices(() {
-    config = Config(dbService);
-    return runAppEngine(requestHandler);
+    final Config config = Config(dbService);
+    final Map<String, RequestHandler> handlers = <String, RequestHandler>{
+      '/api/github-webhook-pullrequest': GithubWebhook(config),
+      '/api/reserve-task': ReserveTask(config),
+    };
+
+    return runAppEngine((HttpRequest request) async {
+      final RequestHandler handler = handlers[request.uri.path];
+      if (handler != null) {
+        await handler.service(request);
+      } else {
+        await request.response
+          ..statusCode = HttpStatus.notFound
+          ..close();
+      }
+    }, onAcceptingConnections: () {
+      print('Serving requests');
+    });
   });
 }

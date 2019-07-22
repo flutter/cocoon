@@ -11,11 +11,29 @@ environment:
 
 dependencies:
   appengine: ^0.7.1
+  dbcrypt: ^1.0.0
   crypto: ^2.0.6
   gcloud: ^0.6.0
   github: ^5.0.1
+  googleapis_auth: ^0.2.10
+  http: ^0.12.0
   meta: ^1.1.7
 
 dev_dependencies:
-  test: ^1.6.5
+  build_runner: ^1.0.0
+  json_serializable: ^2.0.0
   mockito: ^4.1.0
+  test: ^1.6.5
+
+builders:
+  json_serializable: ^2.0.0
+
+dependency_overrides:
+  appengine:
+    git:
+      url: git://github.com/tvolkert/appengine.git
+      ref: 6e67ce524bc7e4df7c430bc2b1e0d830508d07c1
+  gcloud:
+    git:
+      url: git://github.com/tvolkert/gcloud.git
+      ref: 0adf6a315e6b43e7711b94484758447f91b7b3bc

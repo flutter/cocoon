@@ -723,7 +723,7 @@ func (agent *Agent) CapableOfPerforming(task *Task) bool {
 // external piece of infrastructure, such as Travis and Chrome Infra.
 func (stage *Stage) IsExternal() bool {
 	name := stage.Name
-	return name == "travis" || name == "appveyor" || name == "chromebot"
+	return name == "cirrus" || name == "chromebot"
 }
 
 // PutLogChunk creates a new log chunk record in the datastore.
