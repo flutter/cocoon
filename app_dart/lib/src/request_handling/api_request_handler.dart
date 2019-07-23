@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:appengine/appengine.dart' as gae;
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
@@ -76,21 +77,27 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   }
 
   Future<RequestContext> _getRequestContext(HttpRequest request) async {
-    String agentAuthToken = request.headers.value('Agent-Auth-Token');
+    String agentId = request.headers.value('Agent-ID');
     bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    if (agentAuthToken != null) {
+
+    if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      String agentId = request.headers.value('Agent-ID');
-      if (agentId == null) {
-        throw Unauthorized('Missing required HTTP header: Agent-ID');
-      }
-
       Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
       List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
-      Agent agent = results.single;
-      if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
+      if (results.isEmpty) {
         throw Unauthorized('Invalid agent: $agentId');
+      }
+      Agent agent = results.single;
+
+      if (!gae.context.isDevelopmentEnvironment) {
+        String agentAuthToken = request.headers.value('Agent-Auth-Token');
+        if (agentAuthToken == null) {
+          throw Unauthorized('Missing required HTTP header: Agent-Auth-Token');
+        }
+        if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
+          throw Unauthorized('Invalid agent: $agentId');
+        }
       }
 
       return RequestContext(agent: agent);
