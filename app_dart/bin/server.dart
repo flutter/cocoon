@@ -26,8 +26,9 @@ Future<void> main() async {
           ..statusCode = HttpStatus.notFound
           ..close();
       }
-    }, onAcceptingConnections: () {
-      print('Serving requests');
+    }, onAcceptingConnections: (InternetAddress address, int port) {
+      String host = address.isLoopback ? 'localhost' : address.host;
+      print('Serving requests at $host:$port');
     });
   });
 }

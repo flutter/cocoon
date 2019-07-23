@@ -6,9 +6,9 @@ import 'dart:io';
 
 /// An exception that may be thrown by a [RequestHandler] to trigger an error
 /// HTTP response.
-class HttpException implements Exception {
-  /// Creates a new [HttpException].
-  const HttpException(this.statusCode, this.message)
+class HttpStatusException implements Exception {
+  /// Creates a new [HttpStatusException].
+  const HttpStatusException(this.statusCode, this.message)
       : assert(statusCode != null),
         assert(message != null);
 
@@ -20,24 +20,24 @@ class HttpException implements Exception {
 }
 
 /// Exception that will trigger an HTTP 400 bad request.
-class BadRequestException extends HttpException {
+class BadRequestException extends HttpStatusException {
   const BadRequestException([String message = 'Bad request'])
       : super(HttpStatus.badRequest, message);
 }
 
 /// Exception that will trigger an HTTP 405 method not allowed.
-class MethodNotAllowed extends HttpException {
+class MethodNotAllowed extends HttpStatusException {
   const MethodNotAllowed(String method)
       : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
 }
 
 /// Exception that will trigger an HTTP 500 internal server error.
-class InternalServerError extends HttpException {
+class InternalServerError extends HttpStatusException {
   const InternalServerError([String message = 'Internal server error'])
       : super(HttpStatus.internalServerError, message);
 }
 
 /// Exception that will trigger an HTTP 401 not authorized.
-class Unauthorized extends HttpException {
+class Unauthorized extends HttpStatusException {
   const Unauthorized([String message = 'Unauthorized']) : super(HttpStatus.unauthorized, message);
 }

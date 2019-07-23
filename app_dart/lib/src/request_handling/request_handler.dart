@@ -40,13 +40,13 @@ abstract class RequestHandler {
           default:
             throw MethodNotAllowed(request.method);
         }
-      } on HttpException {
+      } on HttpStatusException {
         rethrow;
       } catch (error, stackTrace) {
         print('$error\n$stackTrace');
         throw InternalServerError('$error\n$stackTrace');
       }
-    } on HttpException catch (error) {
+    } on HttpStatusException catch (error) {
       response
         ..statusCode = error.statusCode
         ..write(error.message);

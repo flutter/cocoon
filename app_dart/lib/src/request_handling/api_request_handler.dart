@@ -23,14 +23,19 @@ import 'request_handler.dart';
 ///
 /// API requests adhere to a specific contract, as follows:
 ///
-///  * They support  HTTP POST only.
+///  * They support HTTP POST only.
 ///  * If any request body is specified, it must be specified as a JSON-encoded
 ///    map.
 ///  * All requests must be authenticated, either as:
 ///    * An agent
-///    * An  AppEngine cronjob
+///    * An AppEngine cronjob
 ///    * A user with a "@google.com" email address or a whitelisted email
 ///      address (see [WhitelistedAccount]).
+///
+/// [ApiRequestHandler] instances are special-case [RequestHandler]s. Subclasses
+/// should not override [get] or [post], but instead implement the
+/// [handleApiRequest] method, which codifies the API request handler contract
+/// defined above.
 ///
 /// `T` is the type of response that is returned in [handleApiRequest].
 @immutable
@@ -97,7 +102,7 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
       String email = request.headers.value('X-AppEngine-User-Email');
 
       if (email == null) {
-        throw Unauthorized('User  is not signed in');
+        throw Unauthorized('User is not signed in');
       }
 
       if (!email.endsWith('@google.com')) {

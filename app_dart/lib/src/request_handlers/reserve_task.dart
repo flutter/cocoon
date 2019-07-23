@@ -188,7 +188,7 @@ class ReserveTaskResponse extends ApiResponse {
   Future<ReserveTaskResponse> withAccessToken(Config config) async {
     if (gae.context.isDevelopmentEnvironment) {
       // No auth token needed.
-      //return this;
+      return this;
     }
 
     Map<String, dynamic> json = await config.deviceLabServiceAccount;

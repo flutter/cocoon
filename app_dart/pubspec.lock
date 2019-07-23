@@ -18,12 +18,10 @@ packages:
   appengine:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "6e67ce524bc7e4df7c430bc2b1e0d830508d07c1"
-      resolved-ref: "6e67ce524bc7e4df7c430bc2b1e0d830508d07c1"
-      url: "git://github.com/tvolkert/appengine.git"
-    source: git
-    version: "0.7.2"
+      name: appengine
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.3"
   args:
     dependency: transitive
     description:
@@ -174,12 +172,10 @@ packages:
   gcloud:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "0adf6a315e6b43e7711b94484758447f91b7b3bc"
-      resolved-ref: "0adf6a315e6b43e7711b94484758447f91b7b3bc"
-      url: "git://github.com/tvolkert/gcloud.git"
-    source: git
-    version: "0.6.1-dev"
+      name: gcloud
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.1"
   github:
     dependency: "direct main"
     description:

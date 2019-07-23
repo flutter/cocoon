@@ -23,8 +23,24 @@ class Task extends Model {
     this.requiredCapabilities,
     this.reservedForAgentId,
     this.stageName,
-    this.status,
-  });
+    String status,
+  })  : assert(_status == null || legalStatusValues.contains(_status)),
+        _status = status;
+
+  /// The list of legal values for the [status] property.
+  static const List<String> legalStatusValues = <String>[
+    /// The task is yet to be run.
+    'New',
+
+    /// The task is currently running.
+    'In Progress',
+
+    /// The task was run successfully.
+    'Succeeded',
+
+    /// The task failed to run successfully.
+    'Failed',
+  ];
 
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
@@ -103,14 +119,16 @@ class Task extends Model {
 
   /// The status of the task.
   ///
-  /// Legal values are:
-  ///
-  ///  * 'New':  the  task is yet to be run
-  ///  * 'In Progress': the task is currently running
-  ///  * 'Succeeded': the task was run successfully
-  ///  * 'Failed': the task failed to run successfully
+  /// Legal values and their meanings are defined in [legalStatusValues].
   @StringProperty(propertyName: 'Status', required: true)
-  String status;
+  String get status => _status;
+  String _status;
+  set status(String value) {
+    if (!legalStatusValues.contains(value)) {
+      throw ArgumentError('Invalid state: "$value"');
+    }
+    _status = value;
+  }
 
   /// Comparator that sorts tasks by fewest attempts first.
   static int byAttempts(Task a, Task b) => a.attempts.compareTo(b.attempts);
