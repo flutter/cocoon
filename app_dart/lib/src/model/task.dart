@@ -24,7 +24,7 @@ class Task extends Model {
     this.reservedForAgentId,
     this.stageName,
     String status,
-  })  : assert(_status == null || legalStatusValues.contains(_status)),
+  })  : assert(status == null || legalStatusValues.contains(status)),
         _status = status;
 
   /// The list of legal values for the [status] property.
