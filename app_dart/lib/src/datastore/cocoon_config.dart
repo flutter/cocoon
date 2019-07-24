@@ -1,3 +1,9 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:convert';
+
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
@@ -17,6 +23,8 @@ class Config {
     return result.single.value;
   }
 
+  DatastoreDB get db => _db;
+
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
   Future<String> get nonMasterPullRequestMessage => _getSingleValue('NonMasterPullRequestMessage');
@@ -24,6 +32,12 @@ class Config {
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
   Future<String> get missingTestsPullRequestMessage => _getSingleValue('MissingTestsPullRequestMessage');
+
+  Future<Map<String, dynamic>> get deviceLabServiceAccount async {
+    String rawValue = await _getSingleValue('DevicelabServiceAccount');
+    Map decodedValue = json.decode(rawValue);
+    return decodedValue.cast<String, dynamic>();
+  }
 
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;

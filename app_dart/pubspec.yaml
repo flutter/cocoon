@@ -10,12 +10,20 @@ environment:
   sdk: '>=2.4.0 <3.0.0'
 
 dependencies:
-  appengine: ^0.7.1
+  appengine: ^0.7.3
+  dbcrypt: ^1.0.0
   crypto: ^2.0.6
-  gcloud: ^0.6.0
+  gcloud: ^0.6.1
   github: ^5.0.1
+  googleapis_auth: ^0.2.10
+  http: ^0.12.0
   meta: ^1.1.7
 
 dev_dependencies:
-  test: ^1.6.5
+  build_runner: ^1.0.0
+  json_serializable: ^2.0.0
   mockito: ^4.1.0
+  test: ^1.6.5
+
+builders:
+  json_serializable: ^2.0.0

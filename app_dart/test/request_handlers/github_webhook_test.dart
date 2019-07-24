@@ -1,3 +1,7 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -11,6 +15,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('githubWebhookPullRequest', () {
+    GithubWebhook webhook;
+
     MockHttpRequest request;
     MockHttpResponse response;
     MockHttpHeaders headers;
@@ -35,6 +41,8 @@ void main() {
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
 
+      webhook = GithubWebhook(config);
+
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
@@ -56,14 +64,14 @@ void main() {
     test('Rejects non-POST methods with methodNotAllowed', () async {
       when(request.method).thenReturn('GET');
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.methodNotAllowed);
     });
 
     test('Rejects missing headers', () async {
       when(request.method).thenReturn('POST');
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.badRequest);
     });
@@ -73,7 +81,7 @@ void main() {
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       when(headers.value('X-Hub-Signature')).thenReturn('bar');
       request.data = Stream<Uint8List>.fromIterable([utf8.encode('Hello, World!')]);
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.forbidden);
     });
@@ -86,7 +94,7 @@ void main() {
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.badRequest);
     });
@@ -99,7 +107,7 @@ void main() {
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.badRequest);
     });
@@ -112,7 +120,7 @@ void main() {
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
       verifyNever(gitHubClient.request(any, any, body: anyNamed('body')));
       verify(response.statusCode = HttpStatus.ok);
     });
@@ -135,7 +143,7 @@ void main() {
         ]),
       );
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(pullRequestsService.edit(
         slug,
@@ -173,7 +181,7 @@ void main() {
         ]),
       );
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       final String message = await config.missingTestsPullRequestMessage;
 
@@ -210,7 +218,7 @@ void main() {
         ]),
       );
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/$issueNumber/labels',
@@ -253,7 +261,7 @@ void main() {
         ]),
       );
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       final String message = await config.missingTestsPullRequestMessage;
 
@@ -297,7 +305,7 @@ void main() {
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
       request.data = Stream<Uint8List>.fromIterable([body]);
 
-      await githubWebhookPullRequest(config, request);
+      await webhook.service(request);
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
@@ -327,6 +335,7 @@ class MockHttpResponse extends Mock implements HttpResponse {}
 
 class MockHttpHeaders extends Mock implements HttpHeaders {}
 
+// ignore: must_be_immutable
 class MockConfig extends Mock implements Config {}
 
 class MockGitHubClient extends Mock implements GitHub {}
