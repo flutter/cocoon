@@ -26,8 +26,8 @@ class WhitelistedAccount extends Model {
     buf
       ..write('$runtimeType(')
       ..write('id: $id')
-      ..write(', parentKey: ${parentKey.id}')
-      ..write(', key: ${key.id}')
+      ..write(', parentKey: ${parentKey?.id}')
+      ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', email: $email')
       ..write(')');
     return buf.toString();

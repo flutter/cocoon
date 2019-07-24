@@ -9,6 +9,17 @@ import 'task.dart';
 /// Class that represents a worker capable of running tasks.
 @Kind(name: 'Agent', idType: IdType.String)
 class Agent extends Model {
+  /// Creates a new [Agent].
+  Agent({
+    this.agentId,
+    this.healthCheckTimestamp,
+    this.isHealthy,
+    this.isHidden,
+    this.capabilities,
+    this.healthDetails,
+    this.authToken,
+  });
+
   /// The human-readable ID of the agent (e.g. 'linux1').
   @StringProperty(propertyName: 'AgentID', required: true)
   String agentId;
@@ -74,12 +85,12 @@ class Agent extends Model {
     buf
       ..write('$runtimeType(')
       ..write('id: $id')
-      ..write(', parentKey: ${parentKey.id}')
-      ..write(', key: ${key.id}')
+      ..write(', parentKey: ${parentKey?.id}')
+      ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', agentId: $agentId')
       ..write(', healthCheckTimestamp: $healthCheckTimestamp')
-      ..write(', ${isHealthy ? 'healthy' : 'unhealthy'}')
-      ..write(', ${isHidden ? 'hidden' : 'visible'}')
+      ..write(', ${(isHealthy ?? false) ? 'healthy' : 'unhealthy'}')
+      ..write(', ${(isHidden ?? false) ? 'hidden' : 'visible'}')
       ..write(', capabilities: $capabilities')
       ..write(')');
     return buf.toString();

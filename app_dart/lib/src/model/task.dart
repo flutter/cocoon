@@ -24,22 +24,30 @@ class Task extends Model {
     this.reservedForAgentId,
     this.stageName,
     String status,
-  })  : assert(status == null || legalStatusValues.contains(status)),
-        _status = status;
+  }) : _status = status {
+    if (status != null && !legalStatusValues.contains(status)) {
+      throw ArgumentError('Invalid state: "$status"');
+    }
+  }
+
+  /// The task is yet to be run.
+  static const String statusNew = 'New';
+
+  /// The task is currently running.
+  static const String statusInProgress = 'In Progress';
+
+  /// The task was run successfully.
+  static const String statusSucceeded = 'Succeeded';
+
+  /// The task failed to run successfully.
+  static const String statusFailed = 'Failed';
 
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
-    /// The task is yet to be run.
-    'New',
-
-    /// The task is currently running.
-    'In Progress',
-
-    /// The task was run successfully.
-    'Succeeded',
-
-    /// The task failed to run successfully.
-    'Failed',
+    statusNew,
+    statusInProgress,
+    statusSucceeded,
+    statusFailed,
   ];
 
   /// The key of the commit that owns this task.
@@ -139,9 +147,9 @@ class Task extends Model {
     buf
       ..write('$runtimeType(')
       ..write('id: $id')
-      ..write(', parentKey: ${parentKey.id}')
-      ..write(', key: ${key.id}')
-      ..write(', commitKey: ${commitKey.id}')
+      ..write(', parentKey: ${parentKey?.id}')
+      ..write(', key: ${parentKey == null ? null : key.id}')
+      ..write(', commitKey: ${commitKey?.id}')
       ..write(', createTimestamp: $createTimestamp')
       ..write(', startTimestamp: $startTimestamp')
       ..write(', endTimestamp: $endTimestamp')

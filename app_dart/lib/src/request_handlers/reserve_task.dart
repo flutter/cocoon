@@ -24,7 +24,19 @@ import '../request_handling/request_context.dart';
 /// Reserves a pending task so that an agent may run the task.
 @immutable
 class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
-  const ReserveTask(Config config) : super(config: config);
+  ReserveTask(
+    Config config, {
+    @visibleForTesting TaskProvider taskProvider,
+    @visibleForTesting ReservationProvider reservationProvider,
+    @visibleForTesting AccessTokenProvider accessTokenProvider,
+  })  : this.taskProvider = taskProvider ?? TaskProvider(config),
+        this.reservationProvider = reservationProvider ?? ReservationProvider(config),
+        this.accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
+        super(config: config);
+
+  final TaskProvider taskProvider;
+  final ReservationProvider reservationProvider;
+  final AccessTokenProvider accessTokenProvider;
 
   @override
   Future<ReserveTaskResponse> handleApiRequest(
@@ -42,103 +54,44 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       }
     } else {
       String agentId = request['AgentID'];
+      if (agentId == null) {
+        throw BadRequestException('AgentID not specified in request');
+      }
       Key key = config.db.emptyKey.append(Agent, id: agentId);
       List<Agent> results = await config.db.lookup<Agent>([key]);
       agent = results.single;
     }
 
     while (true) {
-      ReserveTaskResponse response = await _findNextTaskToRun(agent);
+      TaskAndCommit task = await taskProvider.findNextTask(agent);
 
-      if (response.task == null) {
-        return response;
+      if (task == null) {
+        return ReserveTaskResponse.empty();
       }
 
       try {
-        await secureReservation(response.task, agent.id);
-        return await response.withAccessToken(config);
+        await reservationProvider.secureReservation(task.task, agent.id);
+        AccessToken accessToken = await accessTokenProvider.createAccessToken();
+        return ReserveTaskResponse(task.task, task.commit, accessToken);
       } on ReservationLostException {
         // Keep looking for another task.
         continue;
       }
     }
   }
-
-  Future<ReserveTaskResponse> _findNextTaskToRun(Agent agent) async {
-    Query<Commit> query = config.db.query<Commit>()
-      ..limit(100)
-      ..order('-timestamp');
-
-    await for (Commit commit in query.run()) {
-      List<Stage> stages = await _queryTasksGroupedByStage(commit);
-      for (Stage stage in stages) {
-        if (!stage.isManagedByDeviceLab) {
-          continue;
-        }
-        for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
-          if (task.requiredCapabilities.isEmpty) {
-            print('Task ${task.name} has no required capabilities');
-            continue;
-          }
-          if (task.status == 'New' && agent.isCapableOfPerformingTask(task)) {
-            return ReserveTaskResponse(task: task, commit: commit);
-          }
-        }
-      }
-    }
-
-    return ReserveTaskResponse();
-  }
-
-  /// Finds all tasks owned by the specified [commit] and partitions them into
-  /// stages.
-  ///
-  /// The returned list of stages will be ordered by the natural ordering of
-  /// [Stage].
-  Future<List<Stage>> _queryTasksGroupedByStage(Commit commit) async {
-    Query<Task> query = config.db.query<Task>(ancestorKey: commit.key)..order('-stageName');
-    Map<String, StageBuilder> stages = <String, StageBuilder>{};
-    await for (Task task in query.run()) {
-      if (!stages.containsKey(task.stageName)) {
-        stages[task.stageName] = StageBuilder()
-          ..commit = commit
-          ..name = task.stageName;
-      }
-      stages[task.stageName].tasks.add(task);
-    }
-    List<Stage> result = stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
-    return result..sort();
-  }
-
-  Future<void> secureReservation(Task task, String agentId) {
-    assert(task != null);
-    assert(agentId != null);
-    return config.db.withTransaction<void>((Transaction transaction) async {
-      try {
-        List<Task> lookup = await transaction.lookup<Task>(<Key>[task.key]);
-        Task lockedTask = lookup.single;
-
-        if (lockedTask.status != 'New') {
-          // Another reservation beat us in a race.
-          throw ReservationLostException();
-        }
-
-        lockedTask.status = 'In Progress';
-        lockedTask.attempts += 1;
-        lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
-        lockedTask.reservedForAgentId = agentId;
-        transaction.queueMutations(inserts: <Model>[lockedTask]);
-        await transaction.commit();
-      } catch (error) {
-        await transaction.rollback();
-      }
-    });
-  }
 }
 
 @immutable
 class ReserveTaskResponse extends ApiResponse {
-  const ReserveTaskResponse({this.task, this.commit, this.accessToken});
+  const ReserveTaskResponse(this.task, this.commit, this.accessToken)
+      : assert(task != null),
+        assert(commit != null),
+        assert(accessToken != null);
+
+  const ReserveTaskResponse.empty()
+      : task = null,
+        commit = null,
+        accessToken = null;
 
   /// The task that was reserved.
   ///
@@ -176,36 +129,6 @@ class ReserveTaskResponse extends ApiResponse {
   ///    that otherwise did not have an access token.
   final AccessToken accessToken;
 
-  /// Returns a copy of this response with an OAuth 2.0 [accessToken] added.
-  ///
-  /// Callers are advised to call this after a [task] reservation has been
-  /// successfully secured in the cloud datastore, so that the response they
-  /// return to the client will contain a valid access token.
-  ///
-  /// Conversely, if a [task] reservation was not available, callers may skip
-  /// this step and return a response with no access token, since the client
-  /// has no work to do anyway.
-  Future<ReserveTaskResponse> withAccessToken(Config config) async {
-    if (gae.context.isDevelopmentEnvironment) {
-      // No auth token needed.
-      return this;
-    }
-
-    Map<String, dynamic> json = await config.deviceLabServiceAccount;
-    ServiceAccountInfo accountInfo = ServiceAccountInfo.fromJson(json);
-    http.Client httpClient = http.Client();
-    try {
-      AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
-        accountInfo.asServiceAccountCredentials(),
-        <String>['https://www.googleapis.com/auth/devstorage.read_write'],
-        httpClient,
-      );
-      return ReserveTaskResponse(task: task, commit: commit, accessToken: credentials.accessToken);
-    } finally {
-      httpClient.close();
-    }
-  }
-
   @override
   Map<String, dynamic> toJson() {
     // package:json_serializable would work here, but only if we adjust the
@@ -237,9 +160,146 @@ class ReserveTaskResponse extends ApiResponse {
   }
 }
 
+@visibleForTesting
+class TaskAndCommit {
+  const TaskAndCommit(this.task, this.commit)
+      : assert(task != null),
+        assert(commit != null);
+
+  final Task task;
+  final Commit commit;
+}
+
+@visibleForTesting
+class TaskProvider {
+  const TaskProvider(this.config);
+
+  final Config config;
+
+  Future<TaskAndCommit> findNextTask(Agent agent) async {
+    Query<Commit> query = config.db.query<Commit>()
+      ..limit(100)
+      ..order('-timestamp');
+
+    await for (Commit commit in query.run()) {
+      List<Stage> stages = await _queryTasksGroupedByStage(commit);
+      for (Stage stage in stages) {
+        if (!stage.isManagedByDeviceLab) {
+          continue;
+        }
+        for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
+          if (task.requiredCapabilities.isEmpty) {
+            throw InvalidTaskException('Task ${task.name} has no required capabilities');
+          }
+          if (task.status == Task.statusNew && agent.isCapableOfPerformingTask(task)) {
+            return TaskAndCommit(task, commit);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// Finds all tasks owned by the specified [commit] and partitions them into
+  /// stages.
+  ///
+  /// The returned list of stages will be ordered by the natural ordering of
+  /// [Stage].
+  Future<List<Stage>> _queryTasksGroupedByStage(Commit commit) async {
+    Query<Task> query = config.db.query<Task>(ancestorKey: commit.key)..order('-stageName');
+    Map<String, StageBuilder> stages = <String, StageBuilder>{};
+    await for (Task task in query.run()) {
+      if (!stages.containsKey(task.stageName)) {
+        stages[task.stageName] = StageBuilder()
+          ..commit = commit
+          ..name = task.stageName;
+      }
+      stages[task.stageName].tasks.add(task);
+    }
+    List<Stage> result = stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
+    return result..sort();
+  }
+}
+
+@visibleForTesting
+class InvalidTaskException implements Exception {
+  const InvalidTaskException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+@visibleForTesting
+class ReservationProvider {
+  const ReservationProvider(this.config);
+
+  final Config config;
+
+  /// If another agent has obtained the reservation on the task before we've
+  /// been able to secure our reservation, ths will throw a
+  /// [ReservationLostException]
+  Future<void> secureReservation(Task task, String agentId) async {
+    assert(task != null);
+    assert(agentId != null);
+    return config.db.withTransaction<void>((Transaction transaction) async {
+      try {
+        List<Task> lookup = await transaction.lookup<Task>(<Key>[task.key]);
+        Task lockedTask = lookup.single;
+
+        if (lockedTask.status != Task.statusNew) {
+          // Another reservation beat us in a race.
+          throw ReservationLostException();
+        }
+
+        lockedTask.status = Task.statusInProgress;
+        lockedTask.attempts += 1;
+        lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
+        lockedTask.reservedForAgentId = agentId;
+        transaction.queueMutations(inserts: <Model>[lockedTask]);
+        await transaction.commit();
+      } catch (error) {
+        await transaction.rollback();
+      }
+    });
+  }
+}
+
 /// Exception representing an attempt to secure a task reservation that was
 /// preempted by another reservation holder.
+@visibleForTesting
 class ReservationLostException implements Exception {
   /// Creates a new [ReservationLostException].
   const ReservationLostException();
+}
+
+@visibleForTesting
+class AccessTokenProvider {
+  const AccessTokenProvider(this.config);
+
+  final Config config;
+
+  /// Returns an OAuth 2.0 access token for the device lab service account.
+  Future<AccessToken> createAccessToken() async {
+    if (gae.context.isDevelopmentEnvironment) {
+      // No auth token needed.
+      return null;
+    }
+
+    Map<String, dynamic> json = await config.deviceLabServiceAccount;
+    ServiceAccountInfo accountInfo = ServiceAccountInfo.fromJson(json);
+    http.Client httpClient = http.Client();
+    try {
+      AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
+        accountInfo.asServiceAccountCredentials(),
+        <String>['https://www.googleapis.com/auth/devstorage.read_write'],
+        httpClient,
+      );
+      return credentials.accessToken;
+    } finally {
+      httpClient.close();
+    }
+  }
 }

@@ -31,13 +31,6 @@ class Stage implements Comparable<Stage> {
     "devicelab_ios",
   ];
 
-  /// List of stage names that constitute those stages that aren't managed by
-  /// the Flutter device lab.
-  static const List<String> _external = <String>[
-    "cirrus",
-    "chromebot",
-  ];
-
   /// Arbitrarily large index to represent the "end of the ordering".
   static const int _endOfList = 1000000;
 
@@ -61,19 +54,17 @@ class Stage implements Comparable<Stage> {
   ///
   /// The status is defined as follows:
   ///
-  ///  * If all tasks in this stage succeeded, then 'Succeeded', else...
-  ///  * If at least one task in this stage failed, then 'Failed', else...
-  ///  * If at least one task is in progress and others are new, then
-  ///    'In Progress', else...
-  ///  * If all tasks have the same status, then that status, else...
-  ///  * 'Failed'
+  ///  * If all tasks in this stage succeeded, then [Task.statusSucceeded]
+  ///  * If at least one task in this stage failed, then [Task.statusFailed]
+  ///  * If all tasks have the same status, then that status
+  ///  * Else [Task.statusInProgress]
   final String taskStatus;
 
   /// Whether this stage is managed by the Flutter device lab.
   ///
   /// Stages such as 'cirrus' and 'chromebot' are not managed by the Flutter
   /// device lab.
-  bool get isManagedByDeviceLab => !_external.contains(name);
+  bool get isManagedByDeviceLab => name.startsWith('devicelab');
 
   @override
   int compareTo(Stage other) => _orderIndex(this).compareTo(_orderIndex(other));
@@ -93,8 +84,8 @@ class Stage implements Comparable<Stage> {
     buf
       ..write('$runtimeType(')
       ..write('name: $name')
-      ..write(', commit: ${commit.sha}')
-      ..write(', tasks: ${tasks.length}')
+      ..write(', commit: ${commit?.sha}')
+      ..write(', tasks: ${tasks?.length}')
       ..write(', taskStatus: $taskStatus')
       ..write(')');
     return buf.toString();
@@ -127,40 +118,33 @@ class StageBuilder {
   /// empty.
   Stage build() {
     if (name == null) {
-      throw StateError('name must not be null');
+      throw StateError('Cannot build a stage with no name');
     }
     if (commit == null) {
-      throw StateError('commit must not be null');
+      throw StateError('Cannot build a stage with no commit ($name)');
     }
     if (tasks.isEmpty) {
-      throw StateError('There are tasks in this stage ($name)');
+      throw StateError('Cannot build a stage with no tasks ($name)');
     }
     return Stage._(name, commit, List<Task>.unmodifiable(tasks), _taskStatus);
   }
 
   String get _taskStatus {
     assert(tasks.isNotEmpty);
-    bool isSucceeded(Task task) => task.status == 'Succeeded';
-    bool isFailed(Task task) => task.status == 'Failed';
-    bool isInProgress(Task task) => task.status == 'In Progress';
-    bool isNew(Task task) => task.status == 'New';
-    bool isNewOrInProgress(Task task) => isNew(task) || isInProgress(task);
+    bool isSucceeded(Task task) => task.status == Task.statusSucceeded;
+    bool isFailed(Task task) => task.status == Task.statusFailed;
 
     if (tasks.every(isSucceeded)) {
-      return 'Succeeded';
+      return Task.statusSucceeded;
     }
 
     if (tasks.any(isFailed)) {
-      return 'Failed';
-    }
-
-    if (tasks.any(isInProgress) && tasks.every(isNewOrInProgress)) {
-      return 'In Progress';
+      return Task.statusFailed;
     }
 
     String commonStatus = tasks
         .map<String>((Task task) => task.status)
         .reduce((String a, String b) => a == b ? a : null);
-    return commonStatus ?? 'Failed';
+    return commonStatus ?? Task.statusInProgress;
   }
 }
