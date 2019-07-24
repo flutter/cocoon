@@ -153,6 +153,7 @@ class GithubWebhook extends RequestHandler {
       );
     }
     if (!hasTests && needsTests) {
+      // Googlers can edit this at http://shortn/_GjZ5AgUqV2
       final String body = await config.missingTestsPullRequestMessage;
       await gitHubClient.issues.createComment(slug, event.number, body);
     }
