@@ -33,6 +33,12 @@ class Config {
 
   Future<String> get missingTestsPullRequestMessage => _getSingleValue('MissingTestsPullRequestMessage');
 
+  Future<String> get forwardHost => _getSingleValue('ForwardHost');
+
+  Future<int> get forwardPort => _getSingleValue('ForwardPort').then(int.tryParse);
+
+  Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
+
   Future<Map<String, dynamic>> get deviceLabServiceAccount async {
     String rawValue = await _getSingleValue('DevicelabServiceAccount');
     Map decodedValue = json.decode(rawValue);
