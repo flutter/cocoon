@@ -10,6 +10,6 @@ FROM google/dart-runtime
 #
 # Once that's done, and you have a `key.json` file located at
 # `/path/to/key.json`, then un-comment the following lines:
-ADD key.json /Users/tvolkert/project/flutter/cocoon/app_dart/key.json
-ENV GCLOUD_KEY /Users/tvolkert/project/flutter/cocoon/app_dart/key.json
-ENV GCLOUD_PROJECT tvolkert-test
+#ADD key.json /path/to/key.json
+#ENV GCLOUD_KEY /path/to/key.json
+#ENV GCLOUD_PROJECT tvolkert-test
