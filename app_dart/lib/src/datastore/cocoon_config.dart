@@ -35,7 +35,7 @@ class Config {
 
   Future<String> get forwardHost => _getSingleValue('ForwardHost');
 
-  Future<int> get forwardPort => _getSingleValue('ForwardPort').then(int.tryParse);
+  Future<int> get forwardPort => _getSingleValue('ForwardPort').then(int.parse);
 
   Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
 

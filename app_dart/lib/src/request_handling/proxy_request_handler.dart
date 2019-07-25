@@ -44,6 +44,7 @@ class ProxyRequestHandler extends RequestHandler {
     HttpClientRequest clientRequest = await httpClient.openUrl(request.method, forwardUri);
     clientRequest.followRedirects = false;
     _transferHttpHeaders(from: request.headers, to: clientRequest.headers);
+    clientRequest.headers.set(HttpHeaders.hostHeader, '$host:$port');
     await request.cast<List<int>>().pipe(clientRequest);
     await clientRequest.flush();
     HttpClientResponse clientResponse = await clientRequest.close();
