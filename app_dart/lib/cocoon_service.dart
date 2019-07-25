@@ -5,4 +5,5 @@
 export 'src/request_handlers/github_webhook.dart';
 export 'src/request_handlers/reserve_task.dart';
 export 'src/datastore/cocoon_config.dart';
+export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
