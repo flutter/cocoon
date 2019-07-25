@@ -38,6 +38,13 @@ void main() {
           await response.flush();
           await response.close();
           return;
+        case '/gzipped':
+          String body = List<String>.generate(1024, (int index) => '$index').join();
+          response.headers.add(HttpHeaders.contentEncodingHeader, 'gzip');
+          response.add(gzip.encode(utf8.encode(body)));
+          await response.flush();
+          await response.close();
+          return;
         default:
           response.statusCode = HttpStatus.methodNotAllowed;
       }
@@ -170,6 +177,13 @@ void main() {
       request = await client.getUrl(url.replace(path: '/rawBody'));
       response = await request.close();
       expect(await utf8.decoder.bind(response).join(), 'hello world');
+    });
+
+    test('Handles gzipped responses from the dest server', () async {
+      String expectedBody = List<String>.generate(1024, (int index) => '$index').join();
+      request = await client.getUrl(url.replace(path: '/gzipped'));
+      response = await request.close();
+      expect(await utf8.decoder.bind(response).join(), expectedBody);
     });
   });
 }

@@ -39,7 +39,7 @@ class ProxyRequestHandler extends RequestHandler {
 
   @override
   Future<void> service(HttpRequest request) async {
-    HttpClient httpClient = HttpClient();
+    HttpClient httpClient = HttpClient()..autoUncompress = false;
     Uri forwardUri = request.uri.replace(scheme: scheme, host: host, port: port);
     HttpClientRequest clientRequest = await httpClient.openUrl(request.method, forwardUri);
     clientRequest.followRedirects = false;
