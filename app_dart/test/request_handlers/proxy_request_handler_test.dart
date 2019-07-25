@@ -95,7 +95,9 @@ void main() {
       request.headers.clear();
       response = await request.close();
       Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
-      expect(data['headers'], isEmpty);
+      expect(data['headers'], <String, dynamic>{
+        HttpHeaders.hostHeader: 'localhost:${destServer.port}',
+      });
       expect(data['path'], '/ok');
       expect(data['query'], isEmpty);
       expect(data['fragment'], isEmpty);
@@ -115,6 +117,7 @@ void main() {
         'foo': 'bar',
         'baz': 'qux',
         'multi': 'value1, value2',
+        HttpHeaders.hostHeader: 'localhost:${destServer.port}',
       });
     });
 
