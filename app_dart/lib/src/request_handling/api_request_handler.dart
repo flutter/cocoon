@@ -58,6 +58,16 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   @protected
   Future<T> handleApiRequest(RequestContext context, Map<String, dynamic> request);
 
+  /// Throws a [BadRequestException] if any of [requiredParameters] is missing
+  /// from  [request].
+  @protected
+  void checkRequiredParameters(Map<String, dynamic> request, List<String> requiredParameters) {
+    Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
+    if (missingParams.isNotEmpty) {
+      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+    }
+  }
+
   /// Services an API request.
   ///
   /// This first authenticates the request and JSON deserializes the request

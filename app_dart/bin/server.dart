@@ -15,6 +15,8 @@ Future<void> main() async {
     final Map<String, RequestHandler> handlers = <String, RequestHandler>{
       '/api/github-webhook-pullrequest': GithubWebhook(config),
       '/api/reserve-task': ReserveTask(config),
+      '/api/debug/get-task-by-id': DebugGetTaskById(config),
+      '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config),
     };
 
     RequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
