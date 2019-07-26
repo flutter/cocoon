@@ -94,7 +94,7 @@ class Task extends Model {
   /// See also:
   ///
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/manifest.yaml>
-  @BoolProperty(propertyName: 'Flaky', required: true)
+  @BoolProperty(propertyName: 'Flaky')
   bool isFlaky;
 
   /// The timeout of the task, or zero if the task has no timeout.
