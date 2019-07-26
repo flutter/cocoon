@@ -85,7 +85,7 @@ void main() {
       when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
       });
-      when(accessTokenProvider.createAccessToken()).thenAnswer((Invocation invocation) {
+      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
         return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
       });
       ReserveTaskResponse response = await handler.handleApiRequest(context, request);
@@ -94,7 +94,7 @@ void main() {
       expect(response.accessToken.data, 'data');
       verify(taskProvider.findNextTask(agent)).called(1);
       verify(reservationProvider.secureReservation(task, 'aid')).called(1);
-      verify(accessTokenProvider.createAccessToken()).called(1);
+      verify(accessTokenProvider.createAccessToken(any)).called(1);
     });
 
     test('retries until reservation can be secured', () async {
@@ -114,7 +114,7 @@ void main() {
           return Future<void>.value();
         }
       });
-      when(accessTokenProvider.createAccessToken()).thenAnswer((Invocation invocation) {
+      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
         return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
       });
       ReserveTaskResponse response = await handler.handleApiRequest(context, request);
@@ -123,7 +123,7 @@ void main() {
       expect(response.accessToken.data, 'data');
       verify(taskProvider.findNextTask(agent)).called(2);
       verify(reservationProvider.secureReservation(task, 'aid')).called(2);
-      verify(accessTokenProvider.createAccessToken()).called(1);
+      verify(accessTokenProvider.createAccessToken(any)).called(1);
     });
 
     test('Looks up agent if not provided in the context', () async {
