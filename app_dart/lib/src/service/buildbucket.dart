@@ -25,8 +25,9 @@ class BuildBucketClient {
     TRequest request,
     TResponse Function(Map<String, dynamic>) responseFromJson,
   ) async {
+    final HttpClient client = httpClient ?? HttpClient();
     final Uri url = Uri.parse('$buildBucketUri/$path');
-    final HttpClientRequest httpRequest = await httpClient.postUrl(url);
+    final HttpClientRequest httpRequest = await client.postUrl(url);
     httpRequest.headers.contentType = ContentType.json;
 
     httpRequest.write(json.encode(request.toJson()));
