@@ -3,8 +3,45 @@
 # found in the LICENSE file.
 
 indexes:
+- kind: Checklist
+  ancestor: yes
+  properties:
+  - name: CreateTimestamp
+    direction: desc
 - kind: Task
   ancestor: yes
   properties:
     - name: StageName
       direction: desc
+- kind: Task
+  properties:
+  - name: Status
+  - name: CreateTimestamp
+    direction: desc
+- kind: Task
+  properties:
+  - name: ReservedForAgentID
+  - name: CreateTimestamp
+    direction: desc
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: Name
+  - name: CreateTimestamp
+    direction: desc
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: CreateTimestamp
+    direction: desc
+- kind: LogChunk
+  ancestor: no
+  properties:
+  - name: OwnerKey
+  - name: CreateTimestamp
+    direction: asc
+- kind: TimeseriesValue
+  ancestor: yes
+  properties:
+  - name: CreateTimestamp
+    direction: desc
