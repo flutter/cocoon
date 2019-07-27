@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/src/model/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 
 void main() {
   const String tagsJson = '['

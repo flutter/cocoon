@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
-import 'package:cocoon_service/src/model/agent.dart';
-import 'package:cocoon_service/src/model/commit.dart';
-import 'package:cocoon_service/src/model/task.dart';
+import 'package:cocoon_service/src/model/appengine/agent.dart';
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/reserve_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/request_context.dart';

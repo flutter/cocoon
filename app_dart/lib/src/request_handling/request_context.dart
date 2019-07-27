@@ -4,7 +4,7 @@
 
 import 'package:meta/meta.dart';
 
-import '../model/agent.dart';
+import '../model/appengine/agent.dart';
 
 /// Class that represents an authenticated request having been made, and any
 /// attached metadata to that request.

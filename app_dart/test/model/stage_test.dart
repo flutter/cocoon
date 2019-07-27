@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/commit.dart';
-import 'package:cocoon_service/src/model/stage.dart';
-import 'package:cocoon_service/src/model/task.dart';
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/stage.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:test/test.dart';
 
 Stage buildStage({

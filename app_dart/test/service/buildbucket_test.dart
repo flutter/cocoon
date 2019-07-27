@@ -7,11 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/request_handling/api_response.dart';
+import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/src/service/buildbucket.dart';
 
 void main() {
   group('Client tests', () {
@@ -26,11 +27,11 @@ void main() {
       mockHttpClient = MockHttpClient();
     });
 
-    Future<TResult> _httpTest<TRequest extends Jsonable, TResult>(
-      TRequest request,
+    Future<T> _httpTest<R extends ApiResponse, T>(
+      R request,
       String response,
       String expectedPath,
-      Future<TResult> Function(BuildBucketClient) requestCallback,
+      Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
       final BuildBucketClient client = BuildBucketClient(
         buildBucketUri: 'https://localhost',
@@ -41,7 +42,7 @@ void main() {
       when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
           .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
       when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
-      final TResult result = await requestCallback(client);
+      final T result = await requestCallback(client);
 
       expect(mockHttpRequest.headers.contentType, ContentType.json);
       verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);

@@ -5,6 +5,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../../request_handling/api_response.dart';
+
 part 'buildbucket.g.dart';
 
 @visibleForTesting
@@ -36,12 +38,8 @@ Map<String, String> tagsFromJson(List<dynamic> tags) {
 /// Used for Json serialization of a 64 bit int to a string.
 String _intToString(int i) => i.toString();
 
-abstract class Jsonable {
-  Map<String, dynamic> toJson();
-}
-
 @JsonSerializable()
-class BatchRequest implements Jsonable {
+class BatchRequest implements ApiResponse {
   const BatchRequest({
     this.requests,
   });
@@ -54,7 +52,7 @@ class BatchRequest implements Jsonable {
 }
 
 @JsonSerializable()
-class Request implements Jsonable {
+class Request implements ApiResponse {
   /// Only one of these should be set.
   const Request({
     this.getBuild,
@@ -65,37 +63,32 @@ class Request implements Jsonable {
 
   static Request fromJson(Map<String, dynamic> json) => _$RequestFromJson(json);
 
-  @JsonKey(name: 'getBuild')
   final GetBuildRequest getBuild;
 
-  @JsonKey(name: 'searchBuilds')
   final SearchBuildsRequest searchBuilds;
 
-  @JsonKey(name: 'scheduleBuild')
   final ScheduleBuildRequest scheduleBuild;
 
-  @JsonKey(name: 'cancelBuild')
   final CancelBuildRequest cancelBuild;
 
   Map<String, dynamic> toJson() => _$RequestToJson(this);
 }
 
 @JsonSerializable()
-class BatchResponse implements Jsonable {
+class BatchResponse implements ApiResponse {
   const BatchResponse({
     this.responses,
   });
 
   static BatchResponse fromJson(Map<String, dynamic> json) => _$BatchResponseFromJson(json);
 
-  @JsonKey(name: 'responses')
   final List<Response> responses;
 
   Map<String, dynamic> toJson() => _$BatchResponseToJson(this);
 }
 
 @JsonSerializable()
-class Response implements Jsonable {
+class Response implements ApiResponse {
   /// Only one of these should be set.
   const Response({
     this.getBuild,
@@ -106,23 +99,19 @@ class Response implements Jsonable {
 
   static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
 
-  @JsonKey(name: 'getBuild')
   final Build getBuild;
 
-  @JsonKey(name: 'searchBuilds')
   final SearchBuildsResponse searchBuilds;
 
-  @JsonKey(name: 'scheduleBuild')
   final Build scheduleBuild;
 
-  @JsonKey(name: 'cancelBuild')
   final Build cancelBuild;
 
   Map<String, dynamic> toJson() => _$ResponseToJson(this);
 }
 
 @JsonSerializable()
-class GetBuildRequest implements Jsonable {
+class GetBuildRequest implements ApiResponse {
   const GetBuildRequest({
     this.id,
     this.builderId,
@@ -131,20 +120,19 @@ class GetBuildRequest implements Jsonable {
 
   static GetBuildRequest fromJson(Map<String, dynamic> json) => _$GetBuildRequestFromJson(json);
 
-  @JsonKey(name: 'id', fromJson: int.parse, toJson: _intToString)
+  @JsonKey(fromJson: int.parse, toJson: _intToString)
   final int id;
 
   @JsonKey(name: 'builder')
   final BuilderId builderId;
 
-  @JsonKey(name: 'buildNumber')
   final int buildNumber;
 
   Map<String, dynamic> toJson() => _$GetBuildRequestToJson(this);
 }
 
 @JsonSerializable()
-class CancelBuildRequest implements Jsonable {
+class CancelBuildRequest implements ApiResponse {
   const CancelBuildRequest({
     @required this.id,
     @required this.summaryMarkdown,
@@ -153,17 +141,17 @@ class CancelBuildRequest implements Jsonable {
 
   static CancelBuildRequest fromJson(Map<String, dynamic> json) => _$CancelBuildRequestFromJson(json);
 
-  @JsonKey(name: 'id', fromJson: int.parse, toJson: _intToString, nullable: false, required: true)
+  @JsonKey(fromJson: int.parse, toJson: _intToString, nullable: false, required: true)
   final int id;
 
-  @JsonKey(name: 'summaryMarkdown', nullable: false, required: true)
+  @JsonKey(nullable: false, required: true)
   final String summaryMarkdown;
 
   Map<String, dynamic> toJson() => _$CancelBuildRequestToJson(this);
 }
 
 @JsonSerializable()
-class SearchBuildsRequest implements Jsonable {
+class SearchBuildsRequest implements ApiResponse {
   const SearchBuildsRequest({
     this.predicate,
     this.pageSize,
@@ -172,20 +160,17 @@ class SearchBuildsRequest implements Jsonable {
 
   static SearchBuildsRequest fromJson(Map<String, dynamic> json) => _$SearchBuildsRequestFromJson(json);
 
-  @JsonKey(name: 'predicate')
   final BuildPredicate predicate;
 
-  @JsonKey(name: 'pageSize')
   final int pageSize;
 
-  @JsonKey(name: 'pageToken')
   final String pageToken;
 
   Map<String, dynamic> toJson() => _$SearchBuildsRequestToJson(this);
 }
 
 @JsonSerializable()
-class BuildPredicate implements Jsonable {
+class BuildPredicate implements ApiResponse {
   const BuildPredicate({
     this.builderId,
     this.status,
@@ -198,20 +183,18 @@ class BuildPredicate implements Jsonable {
   @JsonKey(name: 'builder')
   final BuilderId builderId;
 
-  @JsonKey(name: 'status')
   final Status status;
 
-  @JsonKey(name: 'createdBy')
   final String createdBy;
 
-  @JsonKey(name: 'tags')
+  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
   final Map<String, String> tags;
 
   Map<String, dynamic> toJson() => _$BuildPredicateToJson(this);
 }
 
 @JsonSerializable()
-class SearchBuildsResponse implements Jsonable {
+class SearchBuildsResponse implements ApiResponse {
   const SearchBuildsResponse({
     this.builds,
     this.nextPageToken,
@@ -219,17 +202,15 @@ class SearchBuildsResponse implements Jsonable {
 
   static SearchBuildsResponse fromJson(Map<String, dynamic> json) => _$SearchBuildsResponseFromJson(json);
 
-  @JsonKey(name: 'builds')
   final List<Build> builds;
 
-  @JsonKey(name: 'nextPageToken')
   final String nextPageToken;
 
   Map<String, dynamic> toJson() => _$SearchBuildsResponseToJson(this);
 }
 
 @JsonSerializable()
-class ScheduleBuildRequest implements Jsonable {
+class ScheduleBuildRequest implements ApiResponse {
   const ScheduleBuildRequest({
     this.requestId,
     this.builderId,
@@ -241,29 +222,25 @@ class ScheduleBuildRequest implements Jsonable {
 
   static ScheduleBuildRequest fromJson(Map<String, dynamic> json) => _$ScheduleBuildRequestFromJson(json);
 
-  @JsonKey(name: 'requestId')
   final String requestId;
 
   @JsonKey(name: 'builder')
   final BuilderId builderId;
 
-  @JsonKey(name: 'canary')
   final Trinary canary;
 
-  @JsonKey(name: 'experimental')
   final Trinary experimental;
 
-  @JsonKey(name: 'properties')
   final Map<String, String> properties;
 
-  @JsonKey(name: 'tags', toJson: tagsToJson, fromJson: tagsFromJson)
+  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
   final Map<String, String> tags;
 
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
 }
 
 @JsonSerializable()
-class Build implements Jsonable {
+class Build implements ApiResponse {
   const Build({
     this.id,
     this.builderId,
@@ -279,41 +256,34 @@ class Build implements Jsonable {
 
   static Build fromJson(Map<String, dynamic> json) => _$BuildFromJson(json);
 
-  @JsonKey(name: 'id', fromJson: int.parse, toJson: _intToString)
+  @JsonKey(fromJson: int.parse, toJson: _intToString)
   final int id;
 
   @JsonKey(name: 'builder')
   final BuilderId builderId;
 
-  @JsonKey(name: 'number')
   final int number;
 
-  @JsonKey(name: 'createdBy')
   final String createdBy;
 
-  @JsonKey(name: 'canceledBy')
   final String canceledBy;
 
-  @JsonKey(name: 'startTime')
   final DateTime startTime;
 
-  @JsonKey(name: 'endTime')
   final DateTime endTime;
 
-  @JsonKey(name: 'status')
   final Status status;
 
-  @JsonKey(name: 'tags', toJson: tagsToJson, fromJson: tagsFromJson)
+  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
   final Map<String, String> tags;
 
-  @JsonKey(name: 'input')
   final Input input;
 
   Map<String, dynamic> toJson() => _$BuildToJson(this);
 }
 
 @JsonSerializable()
-class BuilderId implements Jsonable {
+class BuilderId implements ApiResponse {
   const BuilderId({
     this.project,
     this.bucket,
@@ -322,20 +292,17 @@ class BuilderId implements Jsonable {
 
   static BuilderId fromJson(Map<String, dynamic> json) => _$BuilderIdFromJson(json);
 
-  @JsonKey(name: 'project')
   final String project;
 
-  @JsonKey(name: 'bucket')
   final String bucket;
 
-  @JsonKey(name: 'builder')
   final String builder;
 
   Map<String, dynamic> toJson() => _$BuilderIdToJson(this);
 }
 
 @JsonSerializable()
-class Input implements Jsonable {
+class Input implements ApiResponse {
   const Input({
     this.properties,
     this.gitilesCommit,
@@ -344,20 +311,17 @@ class Input implements Jsonable {
 
   static Input fromJson(Map<String, dynamic> json) => _$InputFromJson(json);
 
-  @JsonKey(name: 'properties')
   final Map<String, String> properties;
 
-  @JsonKey(name: 'gitilesCommit')
   final GitilesCommit gitilesCommit;
 
-  @JsonKey(name: 'experimental')
   final Trinary experimental;
 
   Map<String, dynamic> toJson() => _$InputToJson(this);
 }
 
 @JsonSerializable()
-class GitilesCommit implements Jsonable {
+class GitilesCommit implements ApiResponse {
   const GitilesCommit({
     this.host,
     this.project,
@@ -367,16 +331,13 @@ class GitilesCommit implements Jsonable {
 
   static GitilesCommit fromJson(Map<String, dynamic> json) => _$GitilesCommitFromJson(json);
 
-  @JsonKey(name: 'host')
   final String host;
 
-  @JsonKey(name: 'project')
   final String project;
 
   @JsonKey(name: 'id')
   final String hash;
 
-  @JsonKey(name: 'ref')
   final String ref;
 
   Map<String, dynamic> toJson() => _$GitilesCommitToJson(this);
