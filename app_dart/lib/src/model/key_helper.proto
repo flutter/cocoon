@@ -1,5 +1,15 @@
 syntax = "proto2";
 
+// Message used in the serialization of [Key] objects.
+//
+// These are serialized to protocol buffers to match the behavior of the Go
+// AppEngine datastore library. This parity is required while Cocoon operates
+// with two backends, because the serialized values vended by one backend must
+// be deserializable by the other backend.
+//
+// See also:
+//
+//  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/internal/datastore/datastore_v3.proto#L89>
 message Path {
     repeated group Element = 1 {
         required string type = 2;
@@ -8,6 +18,16 @@ message Path {
     }
 }
 
+// Message used in the serialization of [Key] objects.
+//
+// These are serialized to protocol buffers to match the behavior of the Go
+// AppEngine datastore library. This parity is required while Cocoon operates
+// with two backends, because the serialized values vended by one backend must
+// be deserializable by the other backend.
+//
+// See also:
+//
+//  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/internal/datastore/datastore_v3.proto#L97>
 message Reference {
     required string app = 13;
     optional string name_space = 20;
