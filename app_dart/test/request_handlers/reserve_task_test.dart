@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -47,7 +48,7 @@ void main() {
     });
 
     test('throws 400 if no agent in context or request', () {
-      const RequestContext context = RequestContext();
+      final FakeRequestContext context = FakeRequestContext();
       final Map<String, dynamic> request = <String, dynamic>{};
       expect(() => handler.handleApiRequest(context, request),
           throwsA(isA<BadRequestException>()));
@@ -68,7 +69,7 @@ void main() {
     });
 
     test('returns empty response if no task available', () async {
-      final RequestContext context = RequestContext(agent: agent);
+      final FakeRequestContext context = FakeRequestContext(agent: agent);
       final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
       when(taskProvider.findNextTask(agent))
           .thenAnswer((Invocation invocation) {
@@ -83,7 +84,7 @@ void main() {
     });
 
     test('returns full response if task is available', () async {
-      final RequestContext context = RequestContext(agent: agent);
+      final FakeRequestContext context = FakeRequestContext(agent: agent);
       final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
       final Task task = Task(name: 'foo_test');
       final Commit commit = Commit(sha: 'abc');
@@ -107,7 +108,7 @@ void main() {
     });
 
     test('retries until reservation can be secured', () async {
-      final RequestContext context = RequestContext(agent: agent);
+      final FakeRequestContext context = FakeRequestContext(agent: agent);
       final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
       final Task task = Task(name: 'foo_test');
       final Commit commit = Commit(sha: 'abc');
@@ -141,7 +142,7 @@ void main() {
     });
 
     test('Looks up agent if not provided in the context', () async {
-      const RequestContext context = RequestContext();
+      final FakeRequestContext context = FakeRequestContext();
       final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
       when(db.lookup<Agent>(any)).thenAnswer((Invocation invocation) {
         return Future<List<Agent>>.value(<Agent>[agent]);
@@ -295,3 +296,31 @@ class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
 class MockDatastoreDB extends Mock implements DatastoreDB {}
 
 class MockQuery<T extends Model> extends Mock implements Query<T> {}
+
+// ignore: must_be_immutable
+class FakeRequestContext implements RequestContext {
+  FakeRequestContext({this.agent});
+
+  @override
+  Agent agent;
+
+  @override
+  ClientContext get clientContext => FakeClientContext();
+}
+
+class FakeClientContext implements ClientContext {
+  @override
+  AppEngineContext applicationContext;
+
+  @override
+  bool isDevelopmentEnvironment = false;
+
+  @override
+  bool isProductionEnvironment = true;
+
+  @override
+  Services services;
+
+  @override
+  String traceId;
+}
