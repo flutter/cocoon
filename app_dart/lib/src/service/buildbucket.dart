@@ -73,7 +73,7 @@ class BuildBucketClient {
 
   Future<Build> getBuild(GetBuildRequest request) {
     return _postRequest<GetBuildRequest, Build>(
-      'GetBuild',
+      '/GetBuild',
       request,
       Build.fromJson,
     );

@@ -10,23 +10,24 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 
 void main() {
   const String tagsJson = '['
-      '{"key":"scheduler_job_id","value":"chrome/win32-builder-perf"},'
-      '{"key":"scheduler_invocation_id","value":"9083774268329986752"}'
+      '{"key":"tag_a","value":"chrome/win32-builder-perf"},'
+      '{"key":"tag_b","value":"true"},'
+      '{"key":"tag_b","value":"9083774268329986752"}'
       ']';
 
-  const Map<String, String> tags = <String, String>{
-    'scheduler_job_id': 'chrome/win32-builder-perf',
-    'scheduler_invocation_id': '9083774268329986752',
+  const Map<String, List<String>> tags = <String, List<String>>{
+    'tag_a': <String>['chrome/win32-builder-perf'],
+    'tag_b': <String>['true', '9083774268329986752'],
   };
 
   test('Deserializes tags', () {
     final List<dynamic> decodedTags = json.decode(tagsJson) as List<dynamic>;
-    expect(tagsFromJson(decodedTags), tags);
+    expect(const TagsConverter().fromJson(decodedTags), tags);
   });
 
   test('Serializes tags', () {
-    final List<Map<String, String>> encodedTags = tagsToJson(tags);
-    expect(encodedTags.length, 2);
+    final List<Map<String, String>> encodedTags = const TagsConverter().toJson(tags);
+    expect(encodedTags.length, 3);
     expect(json.encode(encodedTags), tagsJson);
   });
 

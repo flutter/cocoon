@@ -142,7 +142,7 @@ BuildPredicate _$BuildPredicateFromJson(Map<String, dynamic> json) {
         : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
     status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
     createdBy: json['createdBy'] as String,
-    tags: const _TagsConverter().fromJson(json['tags'] as List),
+    tags: const TagsConverter().fromJson(json['tags'] as List),
   );
 }
 
@@ -151,7 +151,7 @@ Map<String, dynamic> _$BuildPredicateToJson(BuildPredicate instance) =>
       'builder': instance.builderId,
       'status': _$StatusEnumMap[instance.status],
       'createdBy': instance.createdBy,
-      'tags': const _TagsConverter().toJson(instance.tags),
+      'tags': const TagsConverter().toJson(instance.tags),
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
@@ -209,10 +209,13 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) {
         : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
     canary: _$enumDecodeNullable(_$TrinaryEnumMap, json['canary']),
     experimental: _$enumDecodeNullable(_$TrinaryEnumMap, json['experimental']),
+    gitilesCommit: json['gitilesCommit'] == null
+        ? null
+        : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
     properties: (json['properties'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
-    tags: const _TagsConverter().fromJson(json['tags'] as List),
+    tags: const TagsConverter().fromJson(json['tags'] as List),
   );
 }
 
@@ -224,7 +227,8 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(
       'canary': _$TrinaryEnumMap[instance.canary],
       'experimental': _$TrinaryEnumMap[instance.experimental],
       'properties': instance.properties,
-      'tags': const _TagsConverter().toJson(instance.tags),
+      'gitilesCommit': instance.gitilesCommit,
+      'tags': const TagsConverter().toJson(instance.tags),
     };
 
 const _$TrinaryEnumMap = <Trinary, dynamic>{
@@ -249,10 +253,12 @@ Build _$BuildFromJson(Map<String, dynamic> json) {
         ? null
         : DateTime.parse(json['endTime'] as String),
     status: _$enumDecodeNullable(_$StatusEnumMap, json['status']),
-    tags: const _TagsConverter().fromJson(json['tags'] as List),
+    tags: const TagsConverter().fromJson(json['tags'] as List),
     input: json['input'] == null
         ? null
         : Input.fromJson(json['input'] as Map<String, dynamic>),
+    summaryMarkdown: json['summaryMarkdown'] as String,
+    critical: _$enumDecodeNullable(_$TrinaryEnumMap, json['critical']),
   );
 }
 
@@ -265,7 +271,9 @@ Map<String, dynamic> _$BuildToJson(Build instance) => <String, dynamic>{
       'startTime': instance.startTime?.toIso8601String(),
       'endTime': instance.endTime?.toIso8601String(),
       'status': _$StatusEnumMap[instance.status],
-      'tags': const _TagsConverter().toJson(instance.tags),
+      'summaryMarkdown': instance.summaryMarkdown,
+      'tags': const TagsConverter().toJson(instance.tags),
+      'critical': _$TrinaryEnumMap[instance.critical],
       'input': instance.input,
     };
 

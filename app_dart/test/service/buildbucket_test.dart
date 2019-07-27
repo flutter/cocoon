@@ -53,7 +53,7 @@ void main() {
       const ScheduleBuildRequest request = ScheduleBuildRequest(
         builderId: builderId,
         experimental: Trinary.yes,
-        tags: <String, String>{'user_agent': 'flutter_cocoon', 'flutter_pr': '1'},
+        tags: <String, List<String>>{'user_agent': <String>['flutter_cocoon'], 'flutter_pr': <String>['true', '1']},
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
           'git_ref': 'pull/1/head',
@@ -122,8 +122,8 @@ void main() {
     test('SearchBuilds', () async {
       const SearchBuildsRequest request = SearchBuildsRequest(
         predicate: BuildPredicate(
-          tags: <String, String>{
-            'flutter_pr': '1',
+          tags: <String, List<String>>{
+            'flutter_pr': <String>['1'],
           },
         ),
       );
