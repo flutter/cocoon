@@ -16,19 +16,19 @@ class Stage implements Comparable<Stage> {
   const Stage._(this.name, this.commit, this.tasks, this.taskStatus)
       : assert(name != null),
         assert(commit != null),
-        assert(tasks != null),
-        assert(tasks.length > 0),
+        assert(tasks !=
+            null), // We can't assert tasks.length/isNotEmpty. The VM allows this but it is considered a bug, and will not work soon.
         assert(taskStatus != null);
 
   /// The fixed ordering of the stages (by name).
   ///
   /// Unknown stages will be placed at the end of any ordering.
   static const List<String> _order = <String>[
-    "cirrus",
-    "chromebot",
-    "devicelab",
-    "devicelab_win",
-    "devicelab_ios",
+    'cirrus',
+    'chromebot',
+    'devicelab',
+    'devicelab_win',
+    'devicelab_ios',
   ];
 
   /// Arbitrarily large index to represent the "end of the ordering".
@@ -80,7 +80,7 @@ class Stage implements Comparable<Stage> {
 
   @override
   String toString() {
-    StringBuffer buf = StringBuffer();
+    final StringBuffer buf = StringBuffer();
     buf
       ..write('$runtimeType(')
       ..write('name: $name')
@@ -142,7 +142,7 @@ class StageBuilder {
       return Task.statusFailed;
     }
 
-    String commonStatus = tasks
+    final String commonStatus = tasks
         .map<String>((Task task) => task.status)
         .reduce((String a, String b) => a == b ? a : null);
     return commonStatus ?? Task.statusInProgress;

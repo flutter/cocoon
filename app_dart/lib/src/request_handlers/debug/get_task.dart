@@ -29,20 +29,23 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
   ) async {
     checkRequiredParameters(request, <String>[commitParam, taskIdParam]);
 
-    Query<Commit> query = config.db.query()..filter('sha =', request[commitParam]);
-    List<Commit> commits = await query.run().toList();
+    final Query<Commit> query = config.db.query()
+      ..filter('sha =', request[commitParam]);
+    final List<Commit> commits = await query.run().toList();
     assert(commits.length <= 1);
     if (commits.isEmpty) {
       return null;
     }
 
-    Key taskKey = commits.single.key.append(Task, id: int.parse(request[taskIdParam]));
-    List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
+    final Key taskKey =
+        commits.single.key.append(Task, id: int.parse(request[taskIdParam]));
+    final List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
     if (tasks.isEmpty) {
       return null;
     }
 
-    KeyHelper keyHelper = KeyHelper(applicationContext: context.clientContext.applicationContext);
+    final KeyHelper keyHelper =
+        KeyHelper(applicationContext: context.clientContext.applicationContext);
     return GetTaskByIdResponse(tasks.single, commits.single, keyHelper);
   }
 }

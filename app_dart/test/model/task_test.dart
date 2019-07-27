@@ -8,7 +8,11 @@ import 'package:test/test.dart';
 void main() {
   group('Task', () {
     test('byAttempts comparator', () {
-      List<Task> tasks = <Task>[Task(attempts: 5), Task(attempts: 9), Task(attempts: 3)];
+      final List<Task> tasks = <Task>[
+        Task(attempts: 5),
+        Task(attempts: 9),
+        Task(attempts: 3)
+      ];
       tasks.sort(Task.byAttempts);
       expect(tasks.map<int>((Task task) => task.attempts), <int>[3, 5, 9]);
     });

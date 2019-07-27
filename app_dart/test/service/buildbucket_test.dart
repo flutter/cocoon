@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
@@ -37,15 +36,21 @@ void main() {
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
       );
-      MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
-      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
-          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(response));
+      when(mockHttpClient.postUrl(
+              argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
+          .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
       expect(mockHttpRequest.headers.contentType, ContentType.json);
-      verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
+      verify(mockHttpRequest
+              .write(argThat(equals(json.encode(request.toJson())))))
+          .called(1);
       return result;
     }
 
@@ -53,7 +58,10 @@ void main() {
       const ScheduleBuildRequest request = ScheduleBuildRequest(
         builderId: builderId,
         experimental: Trinary.yes,
-        tags: <String, List<String>>{'user_agent': <String>['flutter_cocoon'], 'flutter_pr': <String>['true', '1']},
+        tags: <String, List<String>>{
+          'user_agent': <String>['flutter_cocoon'],
+          'flutter_pr': <String>['true', '1']
+        },
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
           'git_ref': 'pull/1/head',
@@ -89,10 +97,12 @@ void main() {
 
     test('Batch', () async {
       const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
+        Request(
+            getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
       ]);
 
-      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
+      final BatchResponse response =
+          await _httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
         'Batch',
@@ -128,7 +138,8 @@ void main() {
         ),
       );
 
-      final SearchBuildsResponse response = await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
+      final SearchBuildsResponse response =
+          await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
         request,
         searchJson,
         'SearchBuilds',
@@ -226,7 +237,7 @@ const String buildJson = '''{
 class MockHttpClient extends Mock implements HttpClient {}
 
 class MockHttpClientRequest extends Mock implements HttpClientRequest {
-  FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
+  final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
   @override
   HttpHeaders get headers => _fakeHeaders;
 }
@@ -277,6 +288,7 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
     bool cancelOnError,
   }) {
     return Stream<Uint8List>.fromFuture(Future<Uint8List>.value(response))
-        .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        .listen(onData,
+            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }

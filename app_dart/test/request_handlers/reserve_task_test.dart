@@ -47,30 +47,35 @@ void main() {
     });
 
     test('throws 400 if no agent in context or request', () {
-      RequestContext context = RequestContext();
-      Map<String, dynamic> request = <String, dynamic>{};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      const RequestContext context = RequestContext();
+      final Map<String, dynamic> request = <String, dynamic>{};
+      expect(() => handler.handleApiRequest(context, request),
+          throwsA(isA<BadRequestException>()));
     });
 
     test('throws 400 if context and request disagree on agent id', () {
-      RequestContext context = RequestContext(agent: agent);
-      Map<String, dynamic> request = <String, dynamic>{'AgentID': 'bar'};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      final RequestContext context = RequestContext(agent: agent);
+      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'bar'};
+      expect(() => handler.handleApiRequest(context, request),
+          throwsA(isA<BadRequestException>()));
     });
 
     test('throws 400 if context has agent but request does not', () {
-      RequestContext context = RequestContext(agent: agent);
-      Map<String, dynamic> request = <String, dynamic>{};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      final RequestContext context = RequestContext(agent: agent);
+      final Map<String, dynamic> request = <String, dynamic>{};
+      expect(() => handler.handleApiRequest(context, request),
+          throwsA(isA<BadRequestException>()));
     });
 
     test('returns empty response if no task available', () async {
-      RequestContext context = RequestContext(agent: agent);
-      Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+      final RequestContext context = RequestContext(agent: agent);
+      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
+      when(taskProvider.findNextTask(agent))
+          .thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(null);
       });
-      ReserveTaskResponse response = await handler.handleApiRequest(context, request);
+      final ReserveTaskResponse response =
+          await handler.handleApiRequest(context, request);
       expect(response.task, isNull);
       expect(response.commit, isNull);
       expect(response.accessToken, isNull);
@@ -78,17 +83,21 @@ void main() {
     });
 
     test('returns full response if task is available', () async {
-      RequestContext context = RequestContext(agent: agent);
-      Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      Task task = Task(name: 'foo_test');
-      Commit commit = Commit(sha: 'abc');
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+      final RequestContext context = RequestContext(agent: agent);
+      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
+      final Task task = Task(name: 'foo_test');
+      final Commit commit = Commit(sha: 'abc');
+      when(taskProvider.findNextTask(agent))
+          .thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
       });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
-        return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
+      when(accessTokenProvider.createAccessToken(any))
+          .thenAnswer((Invocation invocation) {
+        return Future<AccessToken>.value(
+            AccessToken('type', 'data', DateTime.utc(2019)));
       });
-      ReserveTaskResponse response = await handler.handleApiRequest(context, request);
+      final ReserveTaskResponse response =
+          await handler.handleApiRequest(context, request);
       expect(response.task.name, 'foo_test');
       expect(response.commit.sha, 'abc');
       expect(response.accessToken.data, 'data');
@@ -98,26 +107,31 @@ void main() {
     });
 
     test('retries until reservation can be secured', () async {
-      RequestContext context = RequestContext(agent: agent);
-      Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      Task task = Task(name: 'foo_test');
-      Commit commit = Commit(sha: 'abc');
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+      final RequestContext context = RequestContext(agent: agent);
+      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
+      final Task task = Task(name: 'foo_test');
+      final Commit commit = Commit(sha: 'abc');
+      when(taskProvider.findNextTask(agent))
+          .thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
       });
       int reservationAttempt = 0;
-      when(reservationProvider.secureReservation(task, 'aid')).thenAnswer((Invocation invocation) {
+      when(reservationProvider.secureReservation(task, 'aid'))
+          .thenAnswer((Invocation invocation) {
         if (reservationAttempt == 0) {
           reservationAttempt += 1;
-          throw ReservationLostException();
+          throw const ReservationLostException();
         } else {
           return Future<void>.value();
         }
       });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
-        return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
+      when(accessTokenProvider.createAccessToken(any))
+          .thenAnswer((Invocation invocation) {
+        return Future<AccessToken>.value(
+            AccessToken('type', 'data', DateTime.utc(2019)));
       });
-      ReserveTaskResponse response = await handler.handleApiRequest(context, request);
+      final ReserveTaskResponse response =
+          await handler.handleApiRequest(context, request);
       expect(response.task.name, 'foo_test');
       expect(response.commit.sha, 'abc');
       expect(response.accessToken.data, 'data');
@@ -127,15 +141,17 @@ void main() {
     });
 
     test('Looks up agent if not provided in the context', () async {
-      RequestContext context = RequestContext();
-      Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
+      const RequestContext context = RequestContext();
+      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
       when(db.lookup<Agent>(any)).thenAnswer((Invocation invocation) {
         return Future<List<Agent>>.value(<Agent>[agent]);
       });
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+      when(taskProvider.findNextTask(agent))
+          .thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(null);
       });
-      ReserveTaskResponse response = await handler.handleApiRequest(context, request);
+      final ReserveTaskResponse response =
+          await handler.handleApiRequest(context, request);
       expect(response.task, isNull);
       expect(response.commit, isNull);
       expect(response.accessToken, isNull);
@@ -172,7 +188,7 @@ void main() {
       taskProvider = TaskProvider(config);
 
       MockQuery<Model> marshallQuery(Invocation invocation) {
-        Type typeArgument = invocation.typeArguments.single;
+        final Type typeArgument = invocation.typeArguments.single;
         switch (typeArgument) {
           case Commit:
             return commitQuery;
@@ -184,7 +200,8 @@ void main() {
       }
 
       when(db.query()).thenAnswer(marshallQuery);
-      when(db.query(ancestorKey: anyNamed('ancestorKey'))).thenAnswer(marshallQuery);
+      when(db.query(ancestorKey: anyNamed('ancestorKey')))
+          .thenAnswer(marshallQuery);
     });
 
     test('if no commits in query returns null', () async {
@@ -211,14 +228,15 @@ void main() {
         setTaskResults(<Task>[
           newTask()..requiredCapabilities.clear(),
         ]);
-        expect(taskProvider.findNextTask(agent), throwsA(isA<InvalidTaskException>()));
+        expect(taskProvider.findNextTask(agent),
+            throwsA(isA<InvalidTaskException>()));
       });
 
       test('returns available task', () async {
         setTaskResults(<Task>[
           newTask()..name = 'a',
         ]);
-        TaskAndCommit result = await taskProvider.findNextTask(agent);
+        final TaskAndCommit result = await taskProvider.findNextTask(agent);
         expect(result.task.name, 'a');
         expect(result.commit, commit);
       });
@@ -248,11 +266,17 @@ void main() {
 
       test('picks the task with fewest attempts first', () async {
         setTaskResults(<Task>[
-          newTask()..name = 'c'..attempts = 3,
-          newTask()..name = 'a'..attempts = 1,
-          newTask()..name = 'b'..attempts = 2,
+          newTask()
+            ..name = 'c'
+            ..attempts = 3,
+          newTask()
+            ..name = 'a'
+            ..attempts = 1,
+          newTask()
+            ..name = 'b'
+            ..attempts = 2,
         ]);
-        TaskAndCommit result = await taskProvider.findNextTask(agent);
+        final TaskAndCommit result = await taskProvider.findNextTask(agent);
         expect(result.task.name, 'a');
       });
     });

@@ -39,7 +39,8 @@ void main() {
           await response.close();
           return;
         case '/gzipped':
-          String body = List<String>.generate(1024, (int index) => '$index').join();
+          final String body =
+              List<String>.generate(1024, (int index) => '$index').join();
           response.headers.add(HttpHeaders.contentEncodingHeader, 'gzip');
           response.add(gzip.encode(utf8.encode(body)));
           await response.flush();
@@ -50,11 +51,13 @@ void main() {
       }
 
       bool isIgnoredHeader(String key, String value) {
-        return key.toLowerCase() == HttpHeaders.contentLengthHeader.toLowerCase();
+        return key.toLowerCase() ==
+            HttpHeaders.contentLengthHeader.toLowerCase();
       }
 
-      Map<String, String> headers = <String, String>{};
-      request.headers.forEach((String name, List<String> values) => headers[name] = values.single);
+      final Map<String, String> headers = <String, String>{};
+      request.headers.forEach(
+          (String name, List<String> values) => headers[name] = values.single);
       response.write(json.encode(<String, dynamic>{
         'headers': headers..removeWhere(isIgnoredHeader),
         'path': request.uri.path,
@@ -101,7 +104,8 @@ void main() {
       request = await client.getUrl(url.replace(path: '/ok'));
       request.headers.clear();
       response = await request.close();
-      Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data =
+          await utf8.decoder.bind(response).transform(json.decoder).single;
       expect(data['headers'], <String, dynamic>{
         HttpHeaders.hostHeader: 'localhost:${destServer.port}',
       });
@@ -119,7 +123,8 @@ void main() {
       request.headers.add('multi', 'value1');
       request.headers.add('multi', 'value2');
       response = await request.close();
-      Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data =
+          await utf8.decoder.bind(response).transform(json.decoder).single;
       expect(data['headers'], <String, dynamic>{
         'foo': 'bar',
         'baz': 'qux',
@@ -134,21 +139,26 @@ void main() {
       request.write('request body');
       await request.flush();
       response = await request.close();
-      Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data =
+          await utf8.decoder.bind(response).transform(json.decoder).single;
       expect(data['body'], 'request body');
     });
 
     test('forwards HTTP request query parameters', () async {
-      request = await client.getUrl(url.replace(path: '/ok', query: 'foo=bar&baz=qux%26quz%3Dquw'));
+      request = await client.getUrl(
+          url.replace(path: '/ok', query: 'foo=bar&baz=qux%26quz%3Dquw'));
       response = await request.close();
-      Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data =
+          await utf8.decoder.bind(response).transform(json.decoder).single;
       expect(data['query'], 'foo=bar&baz=qux%26quz%3Dquw');
     });
 
     test('URL fragment is dropped', () async {
-      request = await client.getUrl(url.replace(path: '/ok', fragment: 'foo&bar=baz'));
+      request = await client
+          .getUrl(url.replace(path: '/ok', fragment: 'foo&bar=baz'));
       response = await request.close();
-      Map<String, dynamic> data = await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data =
+          await utf8.decoder.bind(response).transform(json.decoder).single;
       expect(data['fragment'], isEmpty);
     });
 
@@ -180,7 +190,8 @@ void main() {
     });
 
     test('Handles gzipped responses from the dest server', () async {
-      String expectedBody = List<String>.generate(1024, (int index) => '$index').join();
+      final String expectedBody =
+          List<String>.generate(1024, (int index) => '$index').join();
       request = await client.getUrl(url.replace(path: '/gzipped'));
       response = await request.close();
       expect(await utf8.decoder.bind(response).join(), expectedBody);

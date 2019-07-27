@@ -22,7 +22,7 @@ class WhitelistedAccount extends Model {
 
   @override
   String toString() {
-    StringBuffer buf = StringBuffer();
+    final StringBuffer buf = StringBuffer();
     buf
       ..write('$runtimeType(')
       ..write('id: $id')

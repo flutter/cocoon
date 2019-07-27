@@ -8,7 +8,14 @@
 const Path$json = const {
   '1': 'Path',
   '2': const [
-    const {'1': 'element', '3': 1, '4': 3, '5': 10, '6': '.Path.Element', '10': 'element'},
+    const {
+      '1': 'element',
+      '3': 1,
+      '4': 3,
+      '5': 10,
+      '6': '.Path.Element',
+      '10': 'element'
+    },
   ],
   '3': const [Path_Element$json],
 };
@@ -30,4 +37,3 @@ const Reference$json = const {
     const {'1': 'path', '3': 14, '4': 2, '5': 11, '6': '.Path', '10': 'path'},
   ],
 };
-

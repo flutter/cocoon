@@ -81,8 +81,7 @@ class Agent extends Model {
 
   @override
   String toString() {
-    StringBuffer buf = StringBuffer();
-    buf
+    final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')

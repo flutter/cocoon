@@ -21,32 +21,35 @@ void main() {
   };
 
   test('Deserializes tags', () {
-    final List<dynamic> decodedTags = json.decode(tagsJson) as List<dynamic>;
+    final List<dynamic> decodedTags = json.decode(tagsJson);
     expect(const TagsConverter().fromJson(decodedTags), tags);
   });
 
   test('Serializes tags', () {
-    final List<Map<String, String>> encodedTags = const TagsConverter().toJson(tags);
+    final List<Map<String, String>> encodedTags =
+        const TagsConverter().toJson(tags);
     expect(encodedTags.length, 3);
     expect(json.encode(encodedTags), tagsJson);
   });
 
   test('Handles Build id correctly', () {
-    int id = 0xFFFFFFFFFFFFFFFF; // would overflow a 32 bit int
-    final Build build = Build(id: id, builderId: const BuilderId());
+    const int id = 0xFFFFFFFFFFFFFFFF; // would overflow a 32 bit int
+    const Build build = Build(id: id, builderId: BuilderId());
     final Map<String, dynamic> buildJson = build.toJson();
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)));
+    final Build deserializedBuild =
+        Build.fromJson(json.decode(json.encode(buildJson)));
     expect(deserializedBuild.id, id);
 
-    final GetBuildRequest request = GetBuildRequest(id: id);
+    const GetBuildRequest request = GetBuildRequest(id: id);
     final Map<String, dynamic> requestBuildJson = request.toJson();
     expect(requestBuildJson['id'], id.toString());
     expect(requestBuildJson['id'].runtimeType, String);
 
-    final GetBuildRequest deserializedRequest = GetBuildRequest.fromJson(requestBuildJson);
+    final GetBuildRequest deserializedRequest =
+        GetBuildRequest.fromJson(requestBuildJson);
     expect(deserializedRequest.id, id);
   });
 }

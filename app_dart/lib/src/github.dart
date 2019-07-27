@@ -11,7 +11,8 @@ Future<PullRequestEvent> getPullRequest(String request) async {
     return null;
   }
   try {
-    final PullRequestEvent event = PullRequestEvent.fromJSON(json.decode(request));
+    final PullRequestEvent event =
+        PullRequestEvent.fromJSON(json.decode(request));
 
     if (event == null) {
       return null;
