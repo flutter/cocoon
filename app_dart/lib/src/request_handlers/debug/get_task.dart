@@ -36,8 +36,6 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
       return null;
     }
 
-    Key foo = commits.single.key;
-    print('namespace is ${foo.partition.namespace}');
     Key taskKey = commits.single.key.append(Task, id: int.parse(request[taskIdParam]));
     List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
     if (tasks.isEmpty) {
