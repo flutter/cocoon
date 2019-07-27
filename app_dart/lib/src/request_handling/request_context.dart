@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:appengine/appengine.dart' as gae;
 import 'package:meta/meta.dart';
 
 import '../model/appengine/agent.dart';
@@ -19,4 +20,7 @@ class RequestContext {
   /// this property is null, the request has been authenticated (by virtue of
   /// the request context having been created).
   final Agent agent;
+
+  /// The App Engine [ClientContext] of the current request.
+  gae.ClientContext get clientContext => gae.context;
 }

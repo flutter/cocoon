@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart' as gae;
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
+import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
@@ -71,8 +72,9 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
       try {
         await reservationProvider.secureReservation(task.task, agent.id);
-        AccessToken accessToken = await accessTokenProvider.createAccessToken();
-        return ReserveTaskResponse(task.task, task.commit, accessToken);
+        AccessToken token = await accessTokenProvider.createAccessToken(context.clientContext);
+        KeyHelper keyHelper = KeyHelper(applicationContext: context.clientContext.applicationContext);
+        return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
         continue;
@@ -83,15 +85,17 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
 @immutable
 class ReserveTaskResponse extends ApiResponse {
-  const ReserveTaskResponse(this.task, this.commit, this.accessToken)
+  const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
-        assert(accessToken != null);
+        assert(accessToken != null),
+        assert(keyHelper != null);
 
   const ReserveTaskResponse.empty()
       : task = null,
         commit = null,
-        accessToken = null;
+        accessToken = null,
+        keyHelper = null;
 
   /// The task that was reserved.
   ///
@@ -129,6 +133,9 @@ class ReserveTaskResponse extends ApiResponse {
   ///    that otherwise did not have an access token.
   final AccessToken accessToken;
 
+  /// Used to serialize keys in the response.
+  final KeyHelper keyHelper;
+
   @override
   Map<String, dynamic> toJson() {
     // package:json_serializable would work here, but only if we adjust the
@@ -141,7 +148,7 @@ class ReserveTaskResponse extends ApiResponse {
               'TimeoutInMinutes': task.timeoutInMinutes,
               'Name': task.name,
             },
-            'Key': task.key.id,
+            'Key': keyHelper.encode(task.key),
           };
     Map<String, dynamic> commitMap = commit == null
         ? null
@@ -258,10 +265,11 @@ class ReservationProvider {
         lockedTask.attempts += 1;
         lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
         lockedTask.reservedForAgentId = agentId;
-        transaction.queueMutations(inserts: <Model>[lockedTask]);
+        transaction.queueMutations(inserts: <Task>[lockedTask]);
         await transaction.commit();
       } catch (error) {
         await transaction.rollback();
+        rethrow;
       }
     });
   }
@@ -282,8 +290,8 @@ class AccessTokenProvider {
   final Config config;
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
-  Future<AccessToken> createAccessToken() async {
-    if (gae.context.isDevelopmentEnvironment) {
+  Future<AccessToken> createAccessToken(ClientContext context) async {
+    if (context.isDevelopmentEnvironment) {
       // No auth token needed.
       return null;
     }
