@@ -9,34 +9,54 @@ import '../../request_handling/api_response.dart';
 
 part 'buildbucket.g.dart';
 
-@visibleForTesting
-List<Map<String, String>> tagsToJson(Map<String, String> tags) {
-  assert(tags != null);
-  if (tags.isEmpty) {
-    return const <Map<String, String>>[];
+class _TagsConverter implements JsonConverter<Map<String, String>, List<dynamic>> {
+  const _TagsConverter();
+
+  @override
+  Map<String, String> fromJson(List<dynamic> json) {
+    if (json == null) {
+      return null;
+    }
+    Map<String, String> result = <String, String>{};
+    for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
+      result[tag['key']] = tag['value'] as String;
+    }
+    return result;
   }
-  List<Map<String, String>> result = List<Map<String, String>>(tags.length);
-  int i = 0;
-  for (String key in tags.keys) {
-    result[i++] = <String, String>{
-      'key': key,
-      'value': tags[key],
-    };
+
+  @override
+  List toJson(Map<String, String> object) {
+    if (object == null) {
+      return null;
+    }
+    if (object.isEmpty) {
+      return const <Map<String, String>>[];
+    }
+    List<Map<String, String>> result = List<Map<String, String>>(object.length);
+    int i = 0;
+    for (String key in object.keys) {
+      result[i++] = <String, String>{
+        'key': key,
+        'value': object[key],
+      };
+    }
+    return result;
   }
-  return result;
 }
 
-@visibleForTesting
-Map<String, String> tagsFromJson(List<dynamic> tags) {
-  Map<String, String> result = <String, String>{};
-  for (Map<String, dynamic> tag in tags.cast<Map<String, dynamic>>()) {
-    result[tag['key']] = tag['value'] as String;
-  }
-  return result;
-}
+class _Int64Converter implements JsonConverter<int, String> {
+  const _Int64Converter();
 
-/// Used for Json serialization of a 64 bit int to a string.
-String _intToString(int i) => i.toString();
+  @override
+  int fromJson(String json) {
+    return int.parse(json);
+  }
+
+  @override
+  String toJson(int object) {
+    return object.toString();
+  }
+}
 
 @JsonSerializable()
 class BatchRequest implements ApiResponse {
@@ -120,7 +140,7 @@ class GetBuildRequest implements ApiResponse {
 
   static GetBuildRequest fromJson(Map<String, dynamic> json) => _$GetBuildRequestFromJson(json);
 
-  @JsonKey(fromJson: int.parse, toJson: _intToString)
+  @_Int64Converter()
   final int id;
 
   @JsonKey(name: 'builder')
@@ -141,7 +161,8 @@ class CancelBuildRequest implements ApiResponse {
 
   static CancelBuildRequest fromJson(Map<String, dynamic> json) => _$CancelBuildRequestFromJson(json);
 
-  @JsonKey(fromJson: int.parse, toJson: _intToString, nullable: false, required: true)
+  @JsonKey(nullable: false, required: true)
+  @_Int64Converter()
   final int id;
 
   @JsonKey(nullable: false, required: true)
@@ -187,7 +208,7 @@ class BuildPredicate implements ApiResponse {
 
   final String createdBy;
 
-  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
+  @_TagsConverter()
   final Map<String, String> tags;
 
   Map<String, dynamic> toJson() => _$BuildPredicateToJson(this);
@@ -233,7 +254,7 @@ class ScheduleBuildRequest implements ApiResponse {
 
   final Map<String, String> properties;
 
-  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
+  @_TagsConverter()
   final Map<String, String> tags;
 
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
@@ -256,7 +277,7 @@ class Build implements ApiResponse {
 
   static Build fromJson(Map<String, dynamic> json) => _$BuildFromJson(json);
 
-  @JsonKey(fromJson: int.parse, toJson: _intToString)
+  @_Int64Converter()
   final int id;
 
   @JsonKey(name: 'builder')
@@ -274,7 +295,7 @@ class Build implements ApiResponse {
 
   final Status status;
 
-  @JsonKey(toJson: tagsToJson, fromJson: tagsFromJson)
+  @_TagsConverter()
   final Map<String, String> tags;
 
   final Input input;
