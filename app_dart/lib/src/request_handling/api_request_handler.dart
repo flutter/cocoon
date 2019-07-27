@@ -12,8 +12,8 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/agent.dart';
-import '../model/whitelisted_account.dart';
+import '../model/appengine/agent.dart';
+import '../model/appengine/whitelisted_account.dart';
 
 import 'api_response.dart';
 import 'exceptions.dart';

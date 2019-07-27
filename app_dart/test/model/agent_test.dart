@@ -4,8 +4,8 @@
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/src/model/agent.dart';
-import 'package:cocoon_service/src/model/task.dart';
+import 'package:cocoon_service/src/model/appengine/agent.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 
 void main() {
   group('Agent', () {

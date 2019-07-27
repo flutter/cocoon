@@ -9,7 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../../datastore/cocoon_config.dart';
-import '../../model/task.dart';
+import '../../model/appengine/task.dart';
 import '../../request_handling/api_request_handler.dart';
 import '../../request_handling/api_response.dart';
 import '../../request_handling/request_context.dart';

@@ -8,9 +8,9 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../../datastore/cocoon_config.dart';
-import '../../model/commit.dart';
-import '../../model/key_helper.dart';
-import '../../model/task.dart';
+import '../../model/appengine/commit.dart';
+import '../../model/appengine/key_helper.dart';
+import '../../model/appengine/task.dart';
 import '../../request_handling/api_request_handler.dart';
 import '../../request_handling/api_response.dart';
 import '../../request_handling/request_context.dart';

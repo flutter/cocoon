@@ -11,12 +11,12 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/agent.dart';
-import '../model/commit.dart';
-import '../model/key_helper.dart';
-import '../model/service_account_info.dart';
-import '../model/stage.dart';
-import '../model/task.dart';
+import '../model/appengine/agent.dart';
+import '../model/appengine/commit.dart';
+import '../model/appengine/key_helper.dart';
+import '../model/appengine/service_account_info.dart';
+import '../model/appengine/stage.dart';
+import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/api_response.dart';
 import '../request_handling/exceptions.dart';
