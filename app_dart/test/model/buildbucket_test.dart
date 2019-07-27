@@ -33,12 +33,12 @@ void main() {
 
   test('Handles Build id correctly', () {
     int id = 0xFFFFFFFFFFFFFFFF; // would overflow a 32 bit int
-    final Build build = Build(id: id);
+    final Build build = Build(id: id, builderId: const BuilderId());
     final Map<String, dynamic> buildJson = build.toJson();
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild = Build.fromJson(buildJson);
+    final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)));
     expect(deserializedBuild.id, id);
 
     final GetBuildRequest request = GetBuildRequest(id: id);
