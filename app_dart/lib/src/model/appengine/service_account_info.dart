@@ -72,7 +72,6 @@ class ServiceAccountInfo {
 
   /// Returns this object in its [ServiceAccountCredentials] form.
   ServiceAccountCredentials asServiceAccountCredentials() {
-    return ServiceAccountCredentials(
-        email, ClientId(clientId, null), privateKey);
+    return ServiceAccountCredentials(email, ClientId(clientId, null), privateKey);
   }
 }

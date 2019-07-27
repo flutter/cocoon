@@ -5,8 +5,7 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-import 'dart:core' as $core
-    show bool, Deprecated, double, int, List, Map, override, pragma, String;
+import 'dart:core' as $core show bool, Deprecated, double, int, List, Map, override, pragma, String;
 
 import 'package:fixnum/fixnum.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
@@ -32,8 +31,7 @@ class Path_Element extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Path_Element create() => Path_Element._();
   Path_Element createEmptyInstance() => create();
-  static $pb.PbList<Path_Element> createRepeated() =>
-      $pb.PbList<Path_Element>();
+  static $pb.PbList<Path_Element> createRepeated() => $pb.PbList<Path_Element>();
   static Path_Element getDefault() => _defaultInstance ??= create()..freeze();
   static Path_Element _defaultInstance;
 
@@ -72,8 +70,7 @@ class Path extends $pb.GeneratedMessage {
   factory Path.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Path.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Path.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Path clone() => Path()..mergeFromMessage(this);
   Path copyWith(void Function(Path) updates) =>

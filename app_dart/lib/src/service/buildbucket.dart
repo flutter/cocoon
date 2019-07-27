@@ -14,8 +14,7 @@ import '../request_handling/api_response.dart';
 @immutable
 class BuildBucketClient {
   BuildBucketClient({
-    this.buildBucketUri =
-        'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
+    this.buildBucketUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
     HttpClient httpClient,
   }) : httpClient = httpClient ?? HttpClient();
 

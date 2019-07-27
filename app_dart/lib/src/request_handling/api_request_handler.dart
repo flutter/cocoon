@@ -56,19 +56,15 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   /// contain extra authentication information, such as which [Agent] is making
   /// the request.
   @protected
-  Future<T> handleApiRequest(
-      RequestContext context, Map<String, dynamic> request);
+  Future<T> handleApiRequest(RequestContext context, Map<String, dynamic> request);
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
   /// from  [request].
   @protected
-  void checkRequiredParameters(
-      Map<String, dynamic> request, List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters
-      ..removeWhere(request.containsKey);
+  void checkRequiredParameters(Map<String, dynamic> request, List<String> requiredParameters) {
+    final Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException(
-          'Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
   }
 
@@ -80,14 +76,10 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   @override
   Future<void> post(HttpRequest request, HttpResponse response) async {
     final RequestContext context = await _getRequestContext(request);
-    final Map<String, dynamic> body = await utf8.decoder
-        .bind(request)
-        .transform(json.decoder)
-        .cast<Map<String, dynamic>>()
-        .first;
+    final Map<String, dynamic> body =
+        await utf8.decoder.bind(request).transform(json.decoder).cast<Map<String, dynamic>>().first;
 
-    final T apiResponse =
-        await handleApiRequest(context, body.cast<String, dynamic>());
+    final T apiResponse = await handleApiRequest(context, body.cast<String, dynamic>());
     response
       ..statusCode = HttpStatus.ok
       ..write(json.encode(apiResponse));
@@ -103,8 +95,7 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
       final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
-      final List<Agent> results =
-          await config.db.lookup<Agent>(<Key>[agentKey]);
+      final List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
       if (results.isEmpty) {
         throw Unauthorized('Invalid agent: $agentId');
       }
@@ -133,14 +124,12 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
       }
 
       if (!email.endsWith('@google.com')) {
-        final Query<WhitelistedAccount> query =
-            config.db.query<WhitelistedAccount>()
-              ..filter('Email =', email)
-              ..limit(20);
+        final Query<WhitelistedAccount> query = config.db.query<WhitelistedAccount>()
+          ..filter('Email =', email)
+          ..limit(20);
 
         if (await query.run().isEmpty) {
-          throw Unauthorized(
-              '$email is not authorized to access the dashboard');
+          throw Unauthorized('$email is not authorized to access the dashboard');
         }
       }
 
@@ -151,8 +140,7 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   // This method is expensive (run time of ~1,500ms!). If the server starts
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(
-      List<int> serverAuthTokenHash, String clientAuthToken) {
+  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
     return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);

@@ -19,8 +19,7 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final List<CocoonConfig> result =
-        await _db.lookup<CocoonConfig>(<Key>[cocoonConfig.key]);
+    final List<CocoonConfig> result = await _db.lookup<CocoonConfig>(<Key>[cocoonConfig.key]);
     return result.single.value;
   }
 
@@ -28,8 +27,7 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  Future<String> get nonMasterPullRequestMessage =>
-      _getSingleValue('NonMasterPullRequestMessage');
+  Future<String> get nonMasterPullRequestMessage => _getSingleValue('NonMasterPullRequestMessage');
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 

@@ -15,13 +15,11 @@ import '../../request_handling/api_response.dart';
 import '../../request_handling/request_context.dart';
 
 @immutable
-class DebugResetPendingTasks
-    extends ApiRequestHandler<ResetPendingTasksResponse> {
+class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse> {
   const DebugResetPendingTasks(Config config) : super(config: config);
 
   static const String fromStatusParam = 'from-status';
-  static const String fromReservedForAgentIdParam =
-      'from-reserved-for-agent-id';
+  static const String fromReservedForAgentIdParam = 'from-reserved-for-agent-id';
   static const String limitParam = 'limit';
   static const String toStatusParam = 'to-status';
 
@@ -30,12 +28,10 @@ class DebugResetPendingTasks
     RequestContext context,
     Map<String, dynamic> request,
   ) {
-    return config.db.withTransaction<ResetPendingTasksResponse>(
-        (Transaction transaction) async {
+    return config.db.withTransaction<ResetPendingTasksResponse>((Transaction transaction) async {
       final Query<Task> query = config.db.query<Task>()
         ..filter('status =', request[fromStatusParam] ?? Task.statusInProgress)
-        ..filter(
-            'reservedForAgentId =', request[fromReservedForAgentIdParam] ?? '')
+        ..filter('reservedForAgentId =', request[fromReservedForAgentIdParam] ?? '')
         ..order('-createTimestamp')
         ..limit(request[limitParam] ?? 50);
       final List<Task> tasks = await query.run().toList();

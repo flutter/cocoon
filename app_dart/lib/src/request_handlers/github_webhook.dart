@@ -75,10 +75,8 @@ class GithubWebhook extends RequestHandler {
     final List<PullRequestFile> files =
         await gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
       '/repos/${slug.fullName}/pulls/${event.number}/files',
-      convert: (List<dynamic> jsonFileList) => jsonFileList
-          .cast<Map<String, dynamic>>()
-          .map(PullRequestFile.fromJSON)
-          .toList(),
+      convert: (List<dynamic> jsonFileList) =>
+          jsonFileList.cast<Map<String, dynamic>>().map(PullRequestFile.fromJSON).toList(),
     );
     bool hasTests = false;
     bool needsTests = false;
@@ -123,8 +121,7 @@ class GithubWebhook extends RequestHandler {
         labels.add('a: tests');
       }
 
-      if (file.filename.contains('semantics') ||
-          file.filename.contains('accessibilty')) {
+      if (file.filename.contains('semantics') || file.filename.contains('accessibilty')) {
         labels.add('a: accessibility');
       }
 
@@ -141,10 +138,8 @@ class GithubWebhook extends RequestHandler {
       await gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/${event.number}/labels',
         body: jsonEncode(labels.toList()),
-        convert: (List<dynamic> input) => input
-            .cast<Map<String, dynamic>>()
-            .map(IssueLabel.fromJSON)
-            .toList(),
+        convert: (List<dynamic> input) =>
+            input.cast<Map<String, dynamic>>().map(IssueLabel.fromJSON).toList(),
       );
     }
     if (!hasTests && needsTests) {
@@ -159,8 +154,7 @@ class GithubWebhook extends RequestHandler {
     PullRequestEvent event,
   ) async {
     if (event.pullRequest.base.ref != 'master') {
-      final String body =
-          await _getWrongBaseComment(event.pullRequest.base.ref);
+      final String body = await _getWrongBaseComment(event.pullRequest.base.ref);
       final RepositorySlug slug = event.repository.slug();
 
       await gitHubClient.pullRequests.edit(slug, event.number, base: 'master');

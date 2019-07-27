@@ -46,16 +46,13 @@ void main() {
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      when(config.nonMasterPullRequestMessage).thenAnswer(
-          (_) => Future<String>.value('nonMasterPullRequestMessage'));
-      when(config.missingTestsPullRequestMessage).thenAnswer(
-          (_) => Future<String>.value('missingTestPullRequestMessage'));
-      when(config.githubOAuthToken)
-          .thenAnswer((_) => Future<String>.value('githubOAuthKey'));
-      when(config.webhookKey)
-          .thenAnswer((_) => Future<String>.value(keyString));
-      when(config.createGitHubClient())
-          .thenAnswer((_) => Future<GitHub>.value(gitHubClient));
+      when(config.nonMasterPullRequestMessage)
+          .thenAnswer((_) => Future<String>.value('nonMasterPullRequestMessage'));
+      when(config.missingTestsPullRequestMessage)
+          .thenAnswer((_) => Future<String>.value('missingTestPullRequestMessage'));
+      when(config.githubOAuthToken).thenAnswer((_) => Future<String>.value('githubOAuthKey'));
+      when(config.webhookKey).thenAnswer((_) => Future<String>.value(keyString));
+      when(config.createGitHubClient()).thenAnswer((_) => Future<GitHub>.value(gitHubClient));
 
       when(request.response).thenReturn(response);
       when(request.headers).thenReturn(headers);
@@ -84,8 +81,7 @@ void main() {
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
       when(headers.value('X-Hub-Signature')).thenReturn('bar');
-      request.data = Stream<Uint8List>.fromIterable(
-          <Uint8List>[utf8.encode('Hello, World!')]);
+      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[utf8.encode('Hello, World!')]);
       await webhook.service(request);
 
       verify(response.statusCode = HttpStatus.forbidden);
@@ -134,8 +130,7 @@ void main() {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
-      final Uint8List body =
-          utf8.encode(jsonTemplate('opened', issueNumber, 'dev'));
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'dev'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
@@ -173,8 +168,7 @@ void main() {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
-      final Uint8List body =
-          utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
@@ -211,8 +205,7 @@ void main() {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
-      final Uint8List body =
-          utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
@@ -247,8 +240,7 @@ void main() {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
       when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
-      final Uint8List body =
-          utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
@@ -266,12 +258,9 @@ void main() {
           PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
           PullRequestFile()..filename = 'dev/blah.dart',
           PullRequestFile()..filename = 'bin/internal/engine.version',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/material/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter_localizations/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
         ]),
       );
 
@@ -342,8 +331,7 @@ class MockHttpRequest extends Mock implements HttpRequest {
   Stream<Uint8List> data;
 
   @override
-  Stream<S> expand<S>(Iterable<S> convert(Uint8List element)) =>
-      data.expand(convert);
+  Stream<S> expand<S>(Iterable<S> convert(Uint8List element)) => data.expand(convert);
 }
 
 class MockHttpResponse extends Mock implements HttpResponse {}
@@ -359,9 +347,7 @@ class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}
 
-String jsonTemplate(String action, int number, String baseRef,
-        {String login = 'flutter'}) =>
-    '''{
+String jsonTemplate(String action, int number, String baseRef, {String login = 'flutter'}) => '''{
   "action": "$action",
   "number": $number,
   "pull_request": {

@@ -31,10 +31,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting ReservationProvider reservationProvider,
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ?? TaskProvider(config),
-        reservationProvider =
-            reservationProvider ?? ReservationProvider(config),
-        accessTokenProvider =
-            accessTokenProvider ?? AccessTokenProvider(config),
+        reservationProvider = reservationProvider ?? ReservationProvider(config),
+        accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
         super(config: config);
 
   final TaskProvider taskProvider;
@@ -76,8 +74,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         await reservationProvider.secureReservation(task.task, agent.id);
         final AccessToken token =
             await accessTokenProvider.createAccessToken(context.clientContext);
-        final KeyHelper keyHelper = KeyHelper(
-            applicationContext: context.clientContext.applicationContext);
+        final KeyHelper keyHelper =
+            KeyHelper(applicationContext: context.clientContext.applicationContext);
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
@@ -89,8 +87,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
 @immutable
 class ReserveTaskResponse extends ApiResponse {
-  const ReserveTaskResponse(
-      this.task, this.commit, this.accessToken, this.keyHelper)
+  const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
         assert(accessToken != null),
@@ -201,11 +198,9 @@ class TaskProvider {
         }
         for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
           if (task.requiredCapabilities.isEmpty) {
-            throw InvalidTaskException(
-                'Task ${task.name} has no required capabilities');
+            throw InvalidTaskException('Task ${task.name} has no required capabilities');
           }
-          if (task.status == Task.statusNew &&
-              agent.isCapableOfPerformingTask(task)) {
+          if (task.status == Task.statusNew && agent.isCapableOfPerformingTask(task)) {
             return TaskAndCommit(task, commit);
           }
         }
@@ -221,8 +216,7 @@ class TaskProvider {
   /// The returned list of stages will be ordered by the natural ordering of
   /// [Stage].
   Future<List<Stage>> _queryTasksGroupedByStage(Commit commit) async {
-    final Query<Task> query = config.db.query<Task>(ancestorKey: commit.key)
-      ..order('-stageName');
+    final Query<Task> query = config.db.query<Task>(ancestorKey: commit.key)..order('-stageName');
     final Map<String, StageBuilder> stages = <String, StageBuilder>{};
     await for (Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
@@ -232,9 +226,8 @@ class TaskProvider {
       }
       stages[task.stageName].tasks.add(task);
     }
-    final List<Stage> result = stages.values
-        .map<Stage>((StageBuilder stage) => stage.build())
-        .toList();
+    final List<Stage> result =
+        stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
     return result..sort();
   }
 }
@@ -263,8 +256,7 @@ class ReservationProvider {
     assert(agentId != null);
     return config.db.withTransaction<void>((Transaction transaction) async {
       try {
-        final List<Task> lookup =
-            await transaction.lookup<Task>(<Key>[task.key]);
+        final List<Task> lookup = await transaction.lookup<Task>(<Key>[task.key]);
         final Task lockedTask = lookup.single;
 
         if (lockedTask.status != Task.statusNew) {
@@ -311,8 +303,7 @@ class AccessTokenProvider {
     final ServiceAccountInfo accountInfo = ServiceAccountInfo.fromJson(json);
     final http.Client httpClient = http.Client();
     try {
-      final AccessCredentials credentials =
-          await obtainAccessCredentialsViaServiceAccount(
+      final AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
         accountInfo.asServiceAccountCredentials(),
         <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         httpClient,

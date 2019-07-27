@@ -13,8 +13,7 @@ import 'package:test/test.dart';
 // the library).
 const Type libraryReference = Config;
 
-bool isKind(InstanceMirror annotation) =>
-    annotation.reflectee.runtimeType == Kind;
+bool isKind(InstanceMirror annotation) => annotation.reflectee.runtimeType == Kind;
 bool isProperty(InstanceMirror annotation) =>
     SymbolName(annotation.type.simpleName).toString().endsWith('Property');
 
@@ -34,8 +33,7 @@ void main() {
   final Iterable<LibraryMirror> libraries = currentMirrorSystem()
       .libraries
       .entries
-      .where((MapEntry<Uri, LibraryMirror> entry) =>
-          entry.key.path.contains('cocoon_service'))
+      .where((MapEntry<Uri, LibraryMirror> entry) => entry.key.path.contains('cocoon_service'))
       .map((MapEntry<Uri, LibraryMirror> entry) => entry.value);
   for (LibraryMirror library in libraries) {
     final Iterable<ClassMirror> classes = library.declarations.values
@@ -48,15 +46,12 @@ void main() {
           expect(modelClass.superclass.reflectedType, Model);
         });
 
-        final Iterable<VariableMirror> propertyVariables = modelClass
-            .declarations.values
+        final Iterable<VariableMirror> propertyVariables = modelClass.declarations.values
             .whereType<VariableMirror>()
-            .where((DeclarationMirror declaration) =>
-                declaration.metadata.any(isProperty));
+            .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
 
         for (VariableMirror variable in propertyVariables) {
-          final Iterable<InstanceMirror> propertyAnnotations =
-              variable.metadata.where(isProperty);
+          final Iterable<InstanceMirror> propertyAnnotations = variable.metadata.where(isProperty);
 
           group(SymbolName(variable.simpleName), () {
             test('contains only one property annotation', () {
@@ -65,9 +60,7 @@ void main() {
 
             test('type matches property annotation type', () {
               final Symbol propertyType = variable.type.simpleName;
-              expect(
-                  propertyAnnotationsTypeToFieldType[
-                      propertyAnnotations.single.type.simpleName],
+              expect(propertyAnnotationsTypeToFieldType[propertyAnnotations.single.type.simpleName],
                   propertyType);
             });
 
@@ -81,16 +74,13 @@ void main() {
           });
         }
 
-        final Iterable<MethodMirror> propertyGetters = modelClass
-            .declarations.values
+        final Iterable<MethodMirror> propertyGetters = modelClass.declarations.values
             .whereType<MethodMirror>()
             .where((MethodMirror method) => method.isGetter)
-            .where((DeclarationMirror declaration) =>
-                declaration.metadata.any(isProperty));
+            .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
 
         for (MethodMirror getter in propertyGetters) {
-          final Iterable<InstanceMirror> propertyAnnotations =
-              getter.metadata.where(isProperty);
+          final Iterable<InstanceMirror> propertyAnnotations = getter.metadata.where(isProperty);
 
           group(SymbolName(getter.simpleName), () {
             test('contains only one property annotation', () {
@@ -99,9 +89,7 @@ void main() {
 
             test('type matches property annotation type', () {
               final Symbol propertyType = getter.returnType.simpleName;
-              expect(
-                  propertyAnnotationsTypeToFieldType[
-                      propertyAnnotations.single.type.simpleName],
+              expect(propertyAnnotationsTypeToFieldType[propertyAnnotations.single.type.simpleName],
                   propertyType);
             });
 
@@ -110,13 +98,11 @@ void main() {
             });
 
             test('has corresponding setter', () {
-              final Iterable<MethodMirror> setter = modelClass
-                  .declarations.values
+              final Iterable<MethodMirror> setter = modelClass.declarations.values
                   .whereType<MethodMirror>()
                   .where((MethodMirror method) => method.isSetter)
                   .where((MethodMirror setter) =>
-                      setter.simpleName ==
-                      SymbolName(getter.simpleName).asSetter);
+                      setter.simpleName == SymbolName(getter.simpleName).asSetter);
               expect(setter, hasLength(1));
             });
           });

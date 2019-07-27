@@ -31,8 +31,7 @@ part 'buildbucket.g.dart';
 /// ```
 ///
 /// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter
-    implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
+class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
   const TagsConverter();
 
   @override
@@ -100,8 +99,7 @@ class BatchRequest implements ApiResponse {
   });
 
   /// Creates a [BatchRequest] from JSON.
-  static BatchRequest fromJson(Map<String, dynamic> json) =>
-      _$BatchRequestFromJson(json);
+  static BatchRequest fromJson(Map<String, dynamic> json) => _$BatchRequestFromJson(json);
 
   /// The batch of [Request]s to make.
   final List<Request> requests;
@@ -170,8 +168,7 @@ class BatchResponse implements ApiResponse {
   });
 
   /// Creates a [BatchResponse] from JSON.
-  static BatchResponse fromJson(Map<String, dynamic> json) =>
-      _$BatchResponseFromJson(json);
+  static BatchResponse fromJson(Map<String, dynamic> json) => _$BatchResponseFromJson(json);
 
   /// The collected responses from the Batch request.
   final List<Response> responses;
@@ -209,8 +206,7 @@ class Response implements ApiResponse {
                 cancelBuild != null));
 
   /// Creates a [Response] from JSON.
-  static Response fromJson(Map<String, dynamic> json) =>
-      _$ResponseFromJson(json);
+  static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
 
   /// The [Build] response corresponding to a getBuild request.
   final Build getBuild;
@@ -240,8 +236,7 @@ class GetBuildRequest implements ApiResponse {
             (id != null && builderId == null && buildNumber == null));
 
   /// Creates a [GetBuildRequest] from JSON.
-  static GetBuildRequest fromJson(Map<String, dynamic> json) =>
-      _$GetBuildRequestFromJson(json);
+  static GetBuildRequest fromJson(Map<String, dynamic> json) => _$GetBuildRequestFromJson(json);
 
   /// The BuildBucket build ID.
   ///
@@ -348,8 +343,7 @@ class BuildPredicate implements ApiResponse {
   });
 
   /// Creates a [BuildPredicate] from JSON.
-  static BuildPredicate fromJson(Map<String, dynamic> json) =>
-      _$BuildPredicateFromJson(json);
+  static BuildPredicate fromJson(Map<String, dynamic> json) => _$BuildPredicateFromJson(json);
 
   /// The [BuilderId] to search for.
   @JsonKey(name: 'builder')
@@ -581,8 +575,7 @@ class BuilderId implements ApiResponse {
   });
 
   /// Creates a [BuilderId] object from JSON.
-  static BuilderId fromJson(Map<String, dynamic> json) =>
-      _$BuilderIdFromJson(json);
+  static BuilderId fromJson(Map<String, dynamic> json) => _$BuilderIdFromJson(json);
 
   /// The project, e.g. "flutter", for the builder.
   final String project;
@@ -639,8 +632,7 @@ class GitilesCommit implements ApiResponse {
   });
 
   /// Creates a [GitilesCommit] object from JSON.
-  static GitilesCommit fromJson(Map<String, dynamic> json) =>
-      _$GitilesCommitFromJson(json);
+  static GitilesCommit fromJson(Map<String, dynamic> json) => _$GitilesCommitFromJson(json);
 
   /// The Gitiles host name, e.g. "chromium.googlesource.com"
   final String host;

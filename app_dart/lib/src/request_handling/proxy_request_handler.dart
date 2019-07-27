@@ -40,10 +40,8 @@ class ProxyRequestHandler extends RequestHandler {
   @override
   Future<void> service(HttpRequest request) async {
     final HttpClient httpClient = HttpClient()..autoUncompress = false;
-    final Uri forwardUri =
-        request.uri.replace(scheme: scheme, host: host, port: port);
-    final HttpClientRequest clientRequest =
-        await httpClient.openUrl(request.method, forwardUri);
+    final Uri forwardUri = request.uri.replace(scheme: scheme, host: host, port: port);
+    final HttpClientRequest clientRequest = await httpClient.openUrl(request.method, forwardUri);
     clientRequest.followRedirects = false;
     _transferHttpHeaders(from: request.headers, to: clientRequest.headers);
     clientRequest.headers.set(HttpHeaders.hostHeader, '$host:$port');
@@ -58,8 +56,7 @@ class ProxyRequestHandler extends RequestHandler {
     await response.close();
   }
 
-  void _transferHttpHeaders(
-      {@required HttpHeaders from, @required HttpHeaders to}) {
+  void _transferHttpHeaders({@required HttpHeaders from, @required HttpHeaders to}) {
     to.clear();
     from.forEach((String name, List<String> values) {
       for (String value in values) {

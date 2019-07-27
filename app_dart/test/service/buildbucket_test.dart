@@ -37,20 +37,15 @@ void main() {
         httpClient: mockHttpClient,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(response));
-      when(mockHttpClient.postUrl(
-              argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
+      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
       expect(mockHttpRequest.headers.contentType, ContentType.json);
-      verify(mockHttpRequest
-              .write(argThat(equals(json.encode(request.toJson())))))
-          .called(1);
+      verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
       return result;
     }
 
@@ -97,12 +92,10 @@ void main() {
 
     test('Batch', () async {
       const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(
-            getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
+        Request(getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
       ]);
 
-      final BatchResponse response =
-          await _httpTest<BatchRequest, BatchResponse>(
+      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
         'Batch',
@@ -288,7 +281,6 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
     bool cancelOnError,
   }) {
     return Stream<Uint8List>.fromFuture(Future<Uint8List>.value(response))
-        .listen(onData,
-            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
