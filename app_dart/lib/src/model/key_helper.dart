@@ -7,10 +7,8 @@ import 'dart:typed_data';
 import 'dart:mirrors';
 
 import 'package:appengine/appengine.dart';
-import 'package:appengine/appengine.dart' as gae show context;
 import 'package:gcloud/db.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import 'agent.dart';
@@ -26,6 +24,15 @@ const Set<Type> _defaultTypes = <Type>{
   WhitelistedAccount,
 };
 
+/// Class used to encode and decode [Key] objects.
+///
+/// The encoding uses binary-encoded protocol buffers that are then base-64 URL
+/// encoded (and the decoding reverses that process).
+///
+/// This encoding scheme is necessary to match the behavior of the Go AppEngine
+/// datastore library. This parity is required while Cocoon operates with
+/// two backends, because the serialized values vended by one backend must
+/// be deserializable by the other backend.
 @immutable
 class KeyHelper {
   KeyHelper({
@@ -33,9 +40,23 @@ class KeyHelper {
     Set<Type> types = _defaultTypes,
   }) : this.types = _populateTypes(types);
 
+  /// Metadata about the App Engine application.
   final AppEngineContext applicationContext;
+
+  /// Maps Dart [Model] classes to their corresponding App Engine datastore
+  /// type names.
+  ///
+  /// This is initialized when the [KeyHelper] is created by iterating over
+  /// the `types` argument to the [new KeyHelper] constructor and looking for
+  /// `@`[Kind] annotations on those classes.
   final Map<Type, Kind> types;
 
+  /// Encodes the specified [key] as a base-64 encoded protocol buffer
+  /// representation of the key.
+  ///
+  /// See also:
+  ///
+  ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L231>
   String encode(Key key) {
     Reference reference = Reference()
       ..app = applicationContext.applicationID
@@ -48,6 +69,12 @@ class KeyHelper {
     return base64Encoded.split('=').first;
   }
 
+  /// Decodes the specified [encoded] string into its [Key] representation.
+  ///
+  /// See also:
+  ///
+  ///  * [encode], which is the complement to this method.
+  ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L244>
   Key decode(String encoded) {
     // Re-add padding.
     int remainder = encoded.length % 4;
@@ -58,16 +85,19 @@ class KeyHelper {
 
     Uint8List decoded = base64Url.decode(encoded);
     Reference reference = Reference.fromBuffer(decoded);
-    String namespace = reference.nameSpace?.isEmpty ?? true ? null : reference.nameSpace;
     return reference.path.element.fold<Key>(
-      Key.emptyKey(Partition(namespace)),
+      Key.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
       (Key previous, Path_Element element) {
         Iterable<MapEntry<Type, Kind>> entries =
             types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
         if (entries.isEmpty) {
           throw StateError('Unknown type: ${element.type}');
         }
-        return previous.append(entries.single.key, id: element.name);
+        MapEntry<Type, Kind> entry = entries.single;
+        return previous.append(
+          entry.key,
+          id: entry.value.idType == IdType.String ? element.name : element.id.toInt(),
+        );
       },
     );
   }
@@ -114,23 +144,5 @@ class KeyHelper {
         }
         return element;
       }));
-  }
-}
-
-const KeyConverter convertedByKeyHelper = const KeyConverter();
-
-class KeyConverter implements JsonConverter<Key, String> {
-  const KeyConverter();
-
-  @override
-  Key fromJson(String json) {
-    KeyHelper helper = KeyHelper(applicationContext: gae.context.applicationContext);
-    return helper.decode(json);
-  }
-
-  @override
-  String toJson(Key key) {
-    KeyHelper helper = KeyHelper(applicationContext: gae.context.applicationContext);
-    return helper.encode(key);
   }
 }
