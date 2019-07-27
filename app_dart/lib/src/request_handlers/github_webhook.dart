@@ -25,6 +25,7 @@ class GithubWebhook extends RequestHandler {
       response
         ..statusCode = HttpStatus.badRequest
         ..write('Missing required headers.');
+      await response.flush();
       await response.close();
       return;
     }
@@ -33,6 +34,7 @@ class GithubWebhook extends RequestHandler {
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
       response.statusCode = HttpStatus.forbidden;
+      await response.flush();
       await response.close();
       return;
     }
@@ -42,11 +44,13 @@ class GithubWebhook extends RequestHandler {
       final PullRequestEvent event = await getPullRequest(stringRequest);
       if (event == null) {
         response.statusCode = HttpStatus.badRequest;
+        await response.flush();
         await response.close();
         return;
       }
       if (event.action != 'opened' && event.action != 'reopened') {
         response.statusCode = HttpStatus.ok;
+        await response.flush();
         await response.close();
         return;
       }
@@ -58,9 +62,11 @@ class GithubWebhook extends RequestHandler {
         gitHubClient.dispose();
       }
       response.statusCode = HttpStatus.ok;
+      await response.flush();
       await response.close();
     } on FormatException {
       response.statusCode = HttpStatus.badRequest;
+      await response.flush();
       await response.close();
       return;
     }
