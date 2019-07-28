@@ -44,10 +44,33 @@ void main() {
           .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
-      expect(mockHttpRequest.headers.contentType, ContentType.json);
+      expect(mockHttpRequest.headers.value('content-type'), 'application/json');
+      expect(mockHttpRequest.headers.value('accept'), 'application/json');
       verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
       return result;
     }
+
+    test('Throws the right exception',  () async {
+      final BuildBucketClient client = BuildBucketClient(
+        buildBucketUri: 'https://localhost',
+        httpClient: mockHttpClient,
+      );
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode('Error'));
+      when(mockHttpResponse.statusCode).thenReturn(403);
+      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      try {
+        await client.batch(const BatchRequest());
+      } on BuildBucketException catch (ex) {
+        expect(ex.statusCode, 403);
+        expect(ex.message, 'Error');
+        return;
+      }
+      fail('Did not throw expected exception');
+    });
 
     test('ScheduleBuild', () async {
       const ScheduleBuildRequest request = ScheduleBuildRequest(
@@ -145,7 +168,8 @@ void main() {
   });
 }
 
-const String searchJson = '''{
+const String searchJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "builds": [
     {
       "status": "SUCCESS",
@@ -172,7 +196,8 @@ const String searchJson = '''{
     }
   ]
 }''';
-const String batchJson = '''{
+const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "responses": [
     {
       "getBuild": {
@@ -202,7 +227,8 @@ const String batchJson = '''{
   ]
 }''';
 
-const String buildJson = '''{
+const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "id": "123",
   "builder": {
     "project": "flutter",
@@ -236,13 +262,17 @@ class MockHttpClientRequest extends Mock implements HttpClientRequest {
 }
 
 class FakeHttpHeaders extends HttpHeaders {
+  final Map<String, String> _headers = <String, String>{};
+
   @override
   List<String> operator [](String name) {
     return null;
   }
 
   @override
-  void add(String name, Object value) {}
+  void add(String name, Object value) {
+    _headers[name] = value;
+  }
 
   @override
   void clear() {}
@@ -264,7 +294,7 @@ class FakeHttpHeaders extends HttpHeaders {
 
   @override
   String value(String name) {
-    return null;
+    return _headers[name];
   }
 }
 
