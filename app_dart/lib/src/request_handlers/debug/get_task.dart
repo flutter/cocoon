@@ -34,13 +34,13 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
     final List<Commit> commits = await query.run().toList();
     assert(commits.length <= 1);
     if (commits.isEmpty) {
-      return null;
+      return Body.empty;
     }
 
     final Key taskKey = commits.single.key.append(Task, id: int.parse(params[taskIdParam]));
     final List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
     if (tasks.isEmpty) {
-      return null;
+      return Body.empty;
     }
 
     final KeyHelper keyHelper =

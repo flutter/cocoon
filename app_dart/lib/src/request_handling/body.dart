@@ -10,6 +10,16 @@ abstract class Body {
   /// Creates a new [Body].
   const Body();
 
+  /// Value indicating that the HTTP response body should be empty.
+  static const Body empty = _EmptyBody();
+
   /// Serializes this response body to a JSON-primitive map.
   Map<String, dynamic> toJson();
+}
+
+class _EmptyBody extends Body {
+  const _EmptyBody();
+
+  @override
+  Map<String, dynamic> toJson() => throw StateError('Unreachable');
 }

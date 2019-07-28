@@ -39,7 +39,7 @@ class GithubWebhook extends RequestHandler<Body> {
         throw BadRequestException();
       }
       if (event.action != 'opened' && event.action != 'reopened') {
-        return null;
+        return Body.empty;
       }
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
@@ -48,7 +48,7 @@ class GithubWebhook extends RequestHandler<Body> {
       } finally {
         gitHubClient.dispose();
       }
-      return null;
+      return Body.empty;
     } on FormatException {
       throw BadRequestException();
     }

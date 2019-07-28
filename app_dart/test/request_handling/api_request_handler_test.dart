@@ -126,7 +126,7 @@ class Auth extends ApiRequestHandler<Body> {
   Auth() : super(config: FakeConfig(), authenticationProvider: FakeAuthenticationProvider());
 
   @override
-  Future<Body> get() async => null;
+  Future<Body> get() async => Body.empty;
 }
 
 class ReadParams extends ApiRequestHandler<Body> {
@@ -135,7 +135,7 @@ class ReadParams extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     response.headers.add('X-Test-Params', requestData.toString());
-    return null;
+    return Body.empty;
   }
 }
 
@@ -145,7 +145,7 @@ class NeedsParams extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     checkRequiredParameters(<String>['param1', 'param2']);
-    return null;
+    return Body.empty;
   }
 }
 
@@ -156,6 +156,6 @@ class AccessAuth extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     response.headers.add('X-Test-IsAgent', authContext.agent != null);
     response.headers.add('X-Test-IsDev', authContext.clientContext.isDevelopmentEnvironment);
-    return null;
+    return Body.empty;
   }
 }

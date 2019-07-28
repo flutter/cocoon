@@ -59,15 +59,15 @@ void main() {
       expect(serverOutput.toString(), isEmpty);
     });
 
-    test('null body yields empty HTTP response body', () async {
-      handler = NullBody();
+    test('empty body yields empty HTTP response body', () async {
+      handler = EmptyBody();
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
       expect(serverOutput.toString(), isEmpty);
     });
 
-    test('non-null body yields JSON HTTP response body', () async {
+    test('non-empty body yields JSON HTTP response body', () async {
       handler = NonNullBody();
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
@@ -131,11 +131,11 @@ class MethodNotAllowed extends RequestHandler<Body> {
   MethodNotAllowed() : super(config: FakeConfig());
 }
 
-class NullBody extends RequestHandler<Body> {
-  NullBody() : super(config: FakeConfig());
+class EmptyBody extends RequestHandler<Body> {
+  EmptyBody() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => null;
+  Future<Body> get() async => Body.empty;
 }
 
 class NonNullBody extends RequestHandler<TestBody> {
@@ -165,7 +165,7 @@ class AccessesRequestAndResponseDirectly extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     response.headers.add('X-Test-Path', request.uri.path);
-    return null;
+    return Body.empty;
   }
 }
 
@@ -175,13 +175,13 @@ class ImplementsBothGetAndPost extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     response.headers.add('X-Test-Get', 'true');
-    return null;
+    return Body.empty;
   }
 
   @override
   Future<Body> post() async {
     response.headers.add('X-Test-Post', 'true');
-    return null;
+    return Body.empty;
   }
 }
 
@@ -189,5 +189,5 @@ class ImplementsOnlyPost extends RequestHandler<Body> {
   ImplementsOnlyPost() : super(config: FakeConfig());
 
   @override
-  Future<Body> post() async => null;
+  Future<Body> post() async => Body.empty;
 }
