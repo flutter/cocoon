@@ -16,8 +16,7 @@ class Stage implements Comparable<Stage> {
   const Stage._(this.name, this.commit, this.tasks, this.taskStatus)
       : assert(name != null),
         assert(commit != null),
-        assert(tasks !=
-            null), // We can't assert tasks.length/isNotEmpty. The VM allows this but it is considered a bug, and will not work soon.
+        assert(tasks != null),
         assert(taskStatus != null);
 
   /// The fixed ordering of the stages (by name).
