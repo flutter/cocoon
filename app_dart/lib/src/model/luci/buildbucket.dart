@@ -5,7 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import '../../request_handling/api_response.dart';
+import '../../request_handling/body.dart';
 
 part 'buildbucket.g.dart';
 
@@ -92,7 +92,7 @@ class _Int64Converter implements JsonConverter<int, String> {
 ///
 /// This message can be used to find, get, schedule, or cancle multiple builds.
 @JsonSerializable()
-class BatchRequest implements ApiResponse {
+class BatchRequest implements Body {
   /// Creates a request for the Batch RPC.
   const BatchRequest({
     this.requests,
@@ -112,7 +112,7 @@ class BatchRequest implements ApiResponse {
 ///
 /// A single request must contain only one object.
 @JsonSerializable()
-class Request implements ApiResponse {
+class Request implements Body {
   /// Creates a requst for the Batch RPC.
   ///
   /// One and only one argument should be set.
@@ -161,7 +161,7 @@ class Request implements ApiResponse {
 
 /// A response from the Batch RPC.
 @JsonSerializable()
-class BatchResponse implements ApiResponse {
+class BatchResponse implements Body {
   /// Creates a response for the Batch RPC.
   const BatchResponse({
     this.responses,
@@ -179,7 +179,7 @@ class BatchResponse implements ApiResponse {
 
 /// An individual response from a batch request.
 @JsonSerializable()
-class Response implements ApiResponse {
+class Response implements Body {
   /// Creates a response for the response from the Batch RPC.
   ///
   /// One and only one of these should be set.
@@ -226,7 +226,7 @@ class Response implements ApiResponse {
 
 /// A request for the GetBuild RPC.
 @JsonSerializable()
-class GetBuildRequest implements ApiResponse {
+class GetBuildRequest implements Body {
   /// Creates a request for the GetBuild RPC.
   const GetBuildRequest({
     this.id,
@@ -261,7 +261,7 @@ class GetBuildRequest implements ApiResponse {
 
 /// A request for the CancelBuild RPC.
 @JsonSerializable()
-class CancelBuildRequest implements ApiResponse {
+class CancelBuildRequest implements Body {
   /// Creates a request object for the CancelBuild RPC.
   ///
   /// Both [id] and [summaryMarkdown] are required.
@@ -290,7 +290,7 @@ class CancelBuildRequest implements ApiResponse {
 
 /// A request object for the SearchBuilds RPC.
 @JsonSerializable()
-class SearchBuildsRequest implements ApiResponse {
+class SearchBuildsRequest implements Body {
   /// Creates a request object for the SearchBuilds RPC.
   ///
   /// The [predicate] is required.
@@ -330,7 +330,7 @@ class SearchBuildsRequest implements ApiResponse {
 
 /// A predicate to apply when searching for builds in the SearchBuilds RPC.
 @JsonSerializable()
-class BuildPredicate implements ApiResponse {
+class BuildPredicate implements Body {
   /// Creates a predicate to apply when searching for builds in the SearchBuilds
   /// RPC.
   ///
@@ -365,7 +365,7 @@ class BuildPredicate implements ApiResponse {
 
 /// The response object from a SearchBuilds RPC.
 @JsonSerializable()
-class SearchBuildsResponse implements ApiResponse {
+class SearchBuildsResponse implements Body {
   /// Creates a new response object from the SearchBuilds RPC.
   ///
   /// The [nextPageToken] can be used to coninue searching if there are more
@@ -395,7 +395,7 @@ class SearchBuildsResponse implements ApiResponse {
 
 /// A request object for the ScheduleBuild RPC.
 @JsonSerializable()
-class ScheduleBuildRequest implements ApiResponse {
+class ScheduleBuildRequest implements Body {
   /// Creates a new request object for the ScheduleBuild RPC.
   ///
   /// The [requestId] is "strongly recommended", and is used by the back end to
@@ -479,7 +479,7 @@ class ScheduleBuildRequest implements ApiResponse {
 ///   * [BuilderId]
 ///   * [GetBuildRequest]
 @JsonSerializable()
-class Build implements ApiResponse {
+class Build implements Body {
   /// Creates a build object.
   ///
   /// The [id] and [builderId] parameter is required.
@@ -563,7 +563,7 @@ class Build implements ApiResponse {
 
 /// A unique handle to a builder on BuildBucket.
 @JsonSerializable()
-class BuilderId implements ApiResponse {
+class BuilderId implements Body {
   /// Creates a unique handle to a builder on BuildBucket.
   ///
   /// The bucket and builder control what ACLs for the infra, as specified in
@@ -595,7 +595,7 @@ class BuilderId implements ApiResponse {
 
 /// The build inputs for a build.
 @JsonSerializable()
-class Input implements ApiResponse {
+class Input implements Body {
   /// Creates a set of build inputs for a build.
   const Input({
     this.properties,
@@ -622,7 +622,7 @@ class Input implements ApiResponse {
 
 /// A landed Git commit hosted on Gitiles.
 @JsonSerializable()
-class GitilesCommit implements ApiResponse {
+class GitilesCommit implements Body {
   /// Creates a object corresponding to a landed Git commit hosted on Gitiles.
   const GitilesCommit({
     this.host,

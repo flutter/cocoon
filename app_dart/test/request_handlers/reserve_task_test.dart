@@ -2,18 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/reserve_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/request_handling/request_context.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+
+import '../src/request_handling/api_request_handler_tester.dart';
+import '../src/request_handling/fake_authentication.dart';
 
 void main() {
   MockConfig config;
@@ -36,11 +37,14 @@ void main() {
   });
 
   group('ReserveTask', () {
+    ApiRequestHandlerTester tester;
     ReserveTask handler;
 
     setUp(() {
+      tester = ApiRequestHandlerTester();
       handler = ReserveTask(
         config,
+        FakeAuthenticationProvider(),
         taskProvider: taskProvider,
         reservationProvider: reservationProvider,
         accessTokenProvider: accessTokenProvider,
@@ -48,99 +52,101 @@ void main() {
     });
 
     test('throws 400 if no agent in context or request', () {
-      final FakeRequestContext context = FakeRequestContext();
-      final Map<String, dynamic> request = <String, dynamic>{};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      tester.requestData = <String, dynamic>{};
+      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('throws 400 if context and request disagree on agent id', () {
-      final RequestContext context = RequestContext(agent: agent);
-      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'bar'};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      tester
+        ..context = FakeAuthenticatedContext(agent: agent)
+        ..requestData = <String, dynamic>{'AgentID': 'bar'};
+      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('throws 400 if context has agent but request does not', () {
-      final RequestContext context = RequestContext(agent: agent);
-      final Map<String, dynamic> request = <String, dynamic>{};
-      expect(() => handler.handleApiRequest(context, request), throwsA(isA<BadRequestException>()));
+      tester
+        ..context = FakeAuthenticatedContext(agent: agent)
+        ..requestData = <String, dynamic>{};
+      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
-    test('returns empty response if no task available', () async {
-      final FakeRequestContext context = FakeRequestContext(agent: agent);
-      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
-        return Future<TaskAndCommit>.value(null);
+    group('when request is well-formed', () {
+      setUp(() {
+        tester
+          ..context = FakeAuthenticatedContext(agent: agent)
+          ..requestData = <String, dynamic>{'AgentID': 'aid'};
       });
-      final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
-      expect(response.task, isNull);
-      expect(response.commit, isNull);
-      expect(response.accessToken, isNull);
-      verify(taskProvider.findNextTask(agent)).called(1);
-    });
 
-    test('returns full response if task is available', () async {
-      final FakeRequestContext context = FakeRequestContext(agent: agent);
-      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      final Task task = Task(name: 'foo_test');
-      final Commit commit = Commit(sha: 'abc');
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
-        return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
+      test('returns empty response if no task available', () async {
+        when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+          return Future<TaskAndCommit>.value(null);
+        });
+        final ReserveTaskResponse response = await tester.post(handler);
+        expect(response.task, isNull);
+        expect(response.commit, isNull);
+        expect(response.accessToken, isNull);
+        verify(taskProvider.findNextTask(agent)).called(1);
       });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
-        return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
-      });
-      final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
-      expect(response.task.name, 'foo_test');
-      expect(response.commit.sha, 'abc');
-      expect(response.accessToken.data, 'data');
-      verify(taskProvider.findNextTask(agent)).called(1);
-      verify(reservationProvider.secureReservation(task, 'aid')).called(1);
-      verify(accessTokenProvider.createAccessToken(any)).called(1);
-    });
 
-    test('retries until reservation can be secured', () async {
-      final FakeRequestContext context = FakeRequestContext(agent: agent);
-      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      final Task task = Task(name: 'foo_test');
-      final Commit commit = Commit(sha: 'abc');
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
-        return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
+      test('returns full response if task is available', () async {
+        final Task task = Task(name: 'foo_test');
+        final Commit commit = Commit(sha: 'abc');
+        when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+          return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
+        });
+        when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
+          return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
+        });
+        final ReserveTaskResponse response = await tester.post(handler);
+        expect(response.task.name, 'foo_test');
+        expect(response.commit.sha, 'abc');
+        expect(response.accessToken.data, 'data');
+        verify(taskProvider.findNextTask(agent)).called(1);
+        verify(reservationProvider.secureReservation(task, 'aid')).called(1);
+        verify(accessTokenProvider.createAccessToken(any)).called(1);
       });
-      int reservationAttempt = 0;
-      when(reservationProvider.secureReservation(task, 'aid')).thenAnswer((Invocation invocation) {
-        if (reservationAttempt == 0) {
-          reservationAttempt += 1;
-          throw const ReservationLostException();
-        } else {
-          return Future<void>.value();
-        }
-      });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
-        return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
-      });
-      final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
-      expect(response.task.name, 'foo_test');
-      expect(response.commit.sha, 'abc');
-      expect(response.accessToken.data, 'data');
-      verify(taskProvider.findNextTask(agent)).called(2);
-      verify(reservationProvider.secureReservation(task, 'aid')).called(2);
-      verify(accessTokenProvider.createAccessToken(any)).called(1);
-    });
 
-    test('Looks up agent if not provided in the context', () async {
-      final FakeRequestContext context = FakeRequestContext();
-      final Map<String, dynamic> request = <String, dynamic>{'AgentID': 'aid'};
-      when(db.lookup<Agent>(any)).thenAnswer((Invocation invocation) {
-        return Future<List<Agent>>.value(<Agent>[agent]);
+      test('retries until reservation can be secured', () async {
+        final Task task = Task(name: 'foo_test');
+        final Commit commit = Commit(sha: 'abc');
+        when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+          return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
+        });
+        int reservationAttempt = 0;
+        when(reservationProvider.secureReservation(task, 'aid'))
+            .thenAnswer((Invocation invocation) {
+          if (reservationAttempt == 0) {
+            reservationAttempt += 1;
+            throw const ReservationLostException();
+          } else {
+            return Future<void>.value();
+          }
+        });
+        when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
+          return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
+        });
+        final ReserveTaskResponse response = await tester.post(handler);
+        expect(response.task.name, 'foo_test');
+        expect(response.commit.sha, 'abc');
+        expect(response.accessToken.data, 'data');
+        verify(taskProvider.findNextTask(agent)).called(2);
+        verify(reservationProvider.secureReservation(task, 'aid')).called(2);
+        verify(accessTokenProvider.createAccessToken(any)).called(1);
       });
-      when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
-        return Future<TaskAndCommit>.value(null);
+
+      test('Looks up agent if not provided in the context', () async {
+        when(db.lookup<Agent>(any)).thenAnswer((Invocation invocation) {
+          return Future<List<Agent>>.value(<Agent>[agent]);
+        });
+        when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
+          return Future<TaskAndCommit>.value(null);
+        });
+        final ReserveTaskResponse response = await tester.post(handler);
+        expect(response.task, isNull);
+        expect(response.commit, isNull);
+        expect(response.accessToken, isNull);
+        verify(taskProvider.findNextTask(agent)).called(1);
       });
-      final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
-      expect(response.task, isNull);
-      expect(response.commit, isNull);
-      expect(response.accessToken, isNull);
-      verify(taskProvider.findNextTask(agent)).called(1);
     });
   });
 
@@ -278,31 +284,3 @@ class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
 class MockDatastoreDB extends Mock implements DatastoreDB {}
 
 class MockQuery<T extends Model> extends Mock implements Query<T> {}
-
-// ignore: must_be_immutable
-class FakeRequestContext implements RequestContext {
-  FakeRequestContext({this.agent});
-
-  @override
-  Agent agent;
-
-  @override
-  ClientContext get clientContext => FakeClientContext();
-}
-
-class FakeClientContext implements ClientContext {
-  @override
-  AppEngineContext applicationContext;
-
-  @override
-  bool isDevelopmentEnvironment = false;
-
-  @override
-  bool isProductionEnvironment = true;
-
-  @override
-  Services services;
-
-  @override
-  String traceId;
-}

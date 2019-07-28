@@ -11,12 +11,15 @@ import 'package:meta/meta.dart';
 import '../../datastore/cocoon_config.dart';
 import '../../model/appengine/task.dart';
 import '../../request_handling/api_request_handler.dart';
-import '../../request_handling/api_response.dart';
-import '../../request_handling/request_context.dart';
+import '../../request_handling/authentication.dart';
+import '../../request_handling/body.dart';
 
 @immutable
 class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse> {
-  const DebugResetPendingTasks(Config config) : super(config: config);
+  const DebugResetPendingTasks(
+    Config config,
+    AuthenticationProvider authenticationProvider,
+  ) : super(config: config, authenticationProvider: authenticationProvider);
 
   static const String fromStatusParam = 'from-status';
   static const String fromReservedForAgentIdParam = 'from-reserved-for-agent-id';
@@ -24,22 +27,20 @@ class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse
   static const String toStatusParam = 'to-status';
 
   @override
-  Future<ResetPendingTasksResponse> handleApiRequest(
-    RequestContext context,
-    Map<String, dynamic> request,
-  ) {
+  Future<ResetPendingTasksResponse> post() async {
     return config.db.withTransaction<ResetPendingTasksResponse>((Transaction transaction) async {
+      final Map<String, dynamic> params = requestData;
       final Query<Task> query = config.db.query<Task>()
-        ..filter('status =', request[fromStatusParam] ?? Task.statusInProgress)
-        ..filter('reservedForAgentId =', request[fromReservedForAgentIdParam] ?? '')
+        ..filter('status =', params[fromStatusParam] ?? Task.statusInProgress)
+        ..filter('reservedForAgentId =', params[fromReservedForAgentIdParam] ?? '')
         ..order('-createTimestamp')
-        ..limit(request[limitParam] ?? 50);
+        ..limit(params[limitParam] ?? 50);
       final List<Task> tasks = await query.run().toList();
 
       try {
         for (Task task in tasks) {
           task
-            ..status = request[toStatusParam] ?? Task.statusNew
+            ..status = params[toStatusParam] ?? Task.statusNew
             ..reservedForAgentId = ''
             ..startTimestamp = 0
             ..attempts = math.max(task.attempts - 1, 0);
@@ -57,7 +58,7 @@ class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse
 }
 
 @immutable
-class ResetPendingTasksResponse extends ApiResponse {
+class ResetPendingTasksResponse extends Body {
   const ResetPendingTasksResponse(this.count) : assert(count != null);
 
   final int count;

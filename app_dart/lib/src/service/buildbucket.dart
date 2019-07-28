@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../model/luci/buildbucket.dart';
-import '../request_handling/api_response.dart';
+import '../request_handling/body.dart';
 
 /// A client interface to LUCI BuildBucket
 @immutable
@@ -21,7 +21,7 @@ class BuildBucketClient {
   final String buildBucketUri;
   final HttpClient httpClient;
 
-  Future<T> _postRequest<S extends ApiResponse, T>(
+  Future<T> _postRequest<S extends Body, T>(
     String path,
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),
