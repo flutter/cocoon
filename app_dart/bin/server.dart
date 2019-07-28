@@ -19,7 +19,7 @@ Future<void> main() async {
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config),
     };
 
-    RequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
+    final RequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
       config: config,
       scheme: await config.forwardScheme,
       host: await config.forwardHost,
@@ -34,7 +34,7 @@ Future<void> main() async {
         await legacyBackendProxyHandler.service(request);
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {
-      String host = address.isLoopback ? 'localhost' : address.host;
+      final String host = address.isLoopback ? 'localhost' : address.host;
       print('Serving requests at $host:$port');
     });
   });

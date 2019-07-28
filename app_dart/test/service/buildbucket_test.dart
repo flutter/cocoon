@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
@@ -37,11 +36,12 @@ void main() {
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
       );
-      MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
       when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
           .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockHttpRequest.close())
+          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
       expect(mockHttpRequest.headers.contentType, ContentType.json);
@@ -53,7 +53,10 @@ void main() {
       const ScheduleBuildRequest request = ScheduleBuildRequest(
         builderId: builderId,
         experimental: Trinary.yes,
-        tags: <String, List<String>>{'user_agent': <String>['flutter_cocoon'], 'flutter_pr': <String>['true', '1']},
+        tags: <String, List<String>>{
+          'user_agent': <String>['flutter_cocoon'],
+          'flutter_pr': <String>['true', '1']
+        },
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
           'git_ref': 'pull/1/head',
@@ -128,7 +131,8 @@ void main() {
         ),
       );
 
-      final SearchBuildsResponse response = await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
+      final SearchBuildsResponse response =
+          await _httpTest<SearchBuildsRequest, SearchBuildsResponse>(
         request,
         searchJson,
         'SearchBuilds',
@@ -226,7 +230,7 @@ const String buildJson = '''{
 class MockHttpClient extends Mock implements HttpClient {}
 
 class MockHttpClientRequest extends Mock implements HttpClientRequest {
-  FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
+  final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
   @override
   HttpHeaders get headers => _fakeHeaders;
 }

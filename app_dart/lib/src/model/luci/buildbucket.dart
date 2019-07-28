@@ -39,23 +39,23 @@ class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dyn
     if (json == null) {
       return null;
     }
-    Map<String, List<String>> result = <String, List<String>>{};
+    final Map<String, List<String>> result = <String, List<String>>{};
     for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
       result[tag['key']] ??= <String>[];
-      result[tag['key']].add(tag['value'] as String);
+      result[tag['key']].add(tag['value']);
     }
     return result;
   }
 
   @override
-  List toJson(Map<String, List<String>> object) {
+  List<Map<String, dynamic>> toJson(Map<String, List<String>> object) {
     if (object == null) {
       return null;
     }
     if (object.isEmpty) {
       return const <Map<String, List<String>>>[];
     }
-    List<Map<String, String>> result = <Map<String, String>>[];
+    final List<Map<String, String>> result = <Map<String, String>>[];
     for (String key in object.keys) {
       for (String value in object[key]) {
         result.add(<String, String>{
@@ -121,10 +121,22 @@ class Request implements ApiResponse {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
-  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
+  }) : assert((getBuild != null &&
+                searchBuilds == null &&
+                scheduleBuild == null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds != null &&
+                scheduleBuild == null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds == null &&
+                scheduleBuild != null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds == null &&
+                scheduleBuild == null &&
+                cancelBuild != null));
 
   /// Creates a [Request] object from JSON.
   static Request fromJson(Map<String, dynamic> json) => _$RequestFromJson(json);
@@ -176,10 +188,22 @@ class Response implements ApiResponse {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
-  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
-            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
+  }) : assert((getBuild != null &&
+                searchBuilds == null &&
+                scheduleBuild == null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds != null &&
+                scheduleBuild == null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds == null &&
+                scheduleBuild != null &&
+                cancelBuild == null) ||
+            (getBuild == null &&
+                searchBuilds == null &&
+                scheduleBuild == null &&
+                cancelBuild != null));
 
   /// Creates a [Response] from JSON.
   static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
@@ -248,7 +272,8 @@ class CancelBuildRequest implements ApiResponse {
         assert(summaryMarkdown != null);
 
   /// Creates a [CancelBuildRequest] from JSON.
-  static CancelBuildRequest fromJson(Map<String, dynamic> json) => _$CancelBuildRequestFromJson(json);
+  static CancelBuildRequest fromJson(Map<String, dynamic> json) =>
+      _$CancelBuildRequestFromJson(json);
 
   /// The BuildBucket ID for the build to cancel.
   @JsonKey(nullable: false, required: true)
@@ -281,7 +306,8 @@ class SearchBuildsRequest implements ApiResponse {
   }) : assert(predicate != null);
 
   /// Creates a [SearchBuildsReqeuest] object from JSON.
-  static SearchBuildsRequest fromJson(Map<String, dynamic> json) => _$SearchBuildsRequestFromJson(json);
+  static SearchBuildsRequest fromJson(Map<String, dynamic> json) =>
+      _$SearchBuildsRequestFromJson(json);
 
   /// The predicate for searching.
   final BuildPredicate predicate;
@@ -351,7 +377,8 @@ class SearchBuildsResponse implements ApiResponse {
   });
 
   /// Creates a [SearchBuildsResponse] from JSON.
-  static SearchBuildsResponse fromJson(Map<String, dynamic> json) => _$SearchBuildsResponseFromJson(json);
+  static SearchBuildsResponse fromJson(Map<String, dynamic> json) =>
+      _$SearchBuildsResponseFromJson(json);
 
   /// The [Build]s returned by the search.
   final List<Build> builds;
@@ -386,7 +413,8 @@ class ScheduleBuildRequest implements ApiResponse {
   }) : assert(builderId != null);
 
   /// Creates a [ScheduleBuildRequest] from JSON.
-  static ScheduleBuildRequest fromJson(Map<String, dynamic> json) => _$ScheduleBuildRequestFromJson(json);
+  static ScheduleBuildRequest fromJson(Map<String, dynamic> json) =>
+      _$ScheduleBuildRequestFromJson(json);
 
   /// A unique identifier per request that is used by the backend to deduplicate
   /// requests.
@@ -457,7 +485,7 @@ class Build implements ApiResponse {
   /// The [id] and [builderId] parameter is required.
   const Build({
     @required this.id,
-    this.builderId,
+    @required this.builderId,
     this.number,
     this.createdBy,
     this.canceledBy,

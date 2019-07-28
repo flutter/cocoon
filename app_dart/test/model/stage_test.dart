@@ -11,8 +11,8 @@ Stage buildStage({
   String name = 'stage',
   List<String> statuses = const <String>[Task.statusNew],
 }) {
-  Iterable<Task> tasks = statuses.map<Task>((String status) => Task(status: status));
-  StageBuilder builder = StageBuilder()
+  final Iterable<Task> tasks = statuses.map<Task>((String status) => Task(status: status));
+  final StageBuilder builder = StageBuilder()
     ..name = name
     ..commit = Commit()
     ..tasks.addAll(tasks);
@@ -22,7 +22,7 @@ Stage buildStage({
 void main() {
   group('Stage', () {
     test('ordering', () {
-      List<Stage> stages = <Stage>[
+      final List<Stage> stages = <Stage>[
         buildStage(name: 'devicelab'),
         buildStage(name: 'unknown'),
         buildStage(name: 'cirrus'),
@@ -139,7 +139,12 @@ void main() {
       expect(() => StageBuilder().build(), throwsStateError);
       expect(() => (StageBuilder()..name = 'name').build(), throwsStateError);
       expect(() => (StageBuilder()..commit = Commit()).build(), throwsStateError);
-      expect(() => (StageBuilder()..name = 'name'..commit = Commit()).build(), throwsStateError);
+      expect(
+          () => (StageBuilder()
+                ..name = 'name'
+                ..commit = Commit())
+              .build(),
+          throwsStateError);
     });
   });
 }

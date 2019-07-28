@@ -19,7 +19,7 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final result = await _db.lookup<CocoonConfig>([cocoonConfig.key]);
+    final List<CocoonConfig> result = await _db.lookup<CocoonConfig>(<Key>[cocoonConfig.key]);
     return result.single.value;
   }
 
@@ -31,7 +31,8 @@ class Config {
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
-  Future<String> get missingTestsPullRequestMessage => _getSingleValue('MissingTestsPullRequestMessage');
+  Future<String> get missingTestsPullRequestMessage =>
+      _getSingleValue('MissingTestsPullRequestMessage');
 
   Future<String> get forwardHost => _getSingleValue('ForwardHost');
 
@@ -40,9 +41,8 @@ class Config {
   Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
 
   Future<Map<String, dynamic>> get deviceLabServiceAccount async {
-    String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    Map decodedValue = json.decode(rawValue);
-    return decodedValue.cast<String, dynamic>();
+    final String rawValue = await _getSingleValue('DevicelabServiceAccount');
+    return json.decode(rawValue);
   }
 
   Future<GitHub> createGitHubClient() async {

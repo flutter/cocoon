@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:mirrors';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
@@ -38,7 +38,7 @@ class KeyHelper {
   KeyHelper({
     @required this.applicationContext,
     Set<Type> types = _defaultTypes,
-  }) : this.types = _populateTypes(types);
+  }) : types = _populateTypes(types);
 
   /// Metadata about the App Engine application.
   final AppEngineContext applicationContext;
@@ -58,14 +58,14 @@ class KeyHelper {
   ///
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L231>
   String encode(Key key) {
-    Reference reference = Reference()
+    final Reference reference = Reference()
       ..app = applicationContext.applicationID
       ..path = _asPath(key);
     if (applicationContext.partition != null && applicationContext.partition.isNotEmpty) {
       reference.nameSpace = applicationContext.partition;
     }
-    Uint8List buffer = reference.writeToBuffer();
-    String base64Encoded = base64Url.encode(buffer);
+    final Uint8List buffer = reference.writeToBuffer();
+    final String base64Encoded = base64Url.encode(buffer);
     return base64Encoded.split('=').first;
   }
 
@@ -77,23 +77,23 @@ class KeyHelper {
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L244>
   Key decode(String encoded) {
     // Re-add padding.
-    int remainder = encoded.length % 4;
+    final int remainder = encoded.length % 4;
     if (remainder != 0) {
-      String padding = '=' * (4 - remainder);
+      final String padding = '=' * (4 - remainder);
       encoded += padding;
     }
 
-    Uint8List decoded = base64Url.decode(encoded);
-    Reference reference = Reference.fromBuffer(decoded);
+    final Uint8List decoded = base64Url.decode(encoded);
+    final Reference reference = Reference.fromBuffer(decoded);
     return reference.path.element.fold<Key>(
       Key.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
       (Key previous, Path_Element element) {
-        Iterable<MapEntry<Type, Kind>> entries =
+        final Iterable<MapEntry<Type, Kind>> entries =
             types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
         if (entries.isEmpty) {
           throw StateError('Unknown type: ${element.type}');
         }
-        MapEntry<Type, Kind> entry = entries.single;
+        final MapEntry<Type, Kind> entry = entries.single;
         return previous.append(
           entry.key,
           id: entry.value.idType == IdType.String ? element.name : element.id.toInt(),
@@ -103,18 +103,18 @@ class KeyHelper {
   }
 
   static Map<Type, Kind> _populateTypes(Set<Type> types) {
-    Map<Type, Kind> result = <Type, Kind>{};
+    final Map<Type, Kind> result = <Type, Kind>{};
 
     for (Type type in types) {
-      ClassMirror classMirror = reflectClass(type);
-      List<InstanceMirror> kindAnnotations = classMirror.metadata
+      final ClassMirror classMirror = reflectClass(type);
+      final List<InstanceMirror> kindAnnotations = classMirror.metadata
           .where((InstanceMirror annotation) => annotation.hasReflectee)
           .where((InstanceMirror annotation) => annotation.reflectee.runtimeType == Kind)
           .toList();
       if (kindAnnotations.isEmpty) {
         throw StateError('Class $type has no @Kind annotation');
       }
-      Kind annotation = kindAnnotations.single.reflectee;
+      final Kind annotation = kindAnnotations.single.reflectee;
       result[type] = Kind(
         name: annotation.name ?? type.toString(),
         idType: annotation.idType ?? IdType.Integer,
@@ -125,13 +125,13 @@ class KeyHelper {
   }
 
   Path _asPath(Key key) {
-    List<Key> path = <Key>[];
+    final List<Key> path = <Key>[];
     for (Key current = key; current != null && !current.isEmpty; current = current.parent) {
       path.insert(0, current);
     }
     return Path()
       ..element.addAll(path.map<Path_Element>((Key key) {
-        Path_Element element = Path_Element();
+        final Path_Element element = Path_Element();
         if (key.type != null) {
           element.type = types.containsKey(key.type) ? types[key.type].name : key.type.toString();
         }

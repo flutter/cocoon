@@ -39,16 +39,16 @@ class ProxyRequestHandler extends RequestHandler {
 
   @override
   Future<void> service(HttpRequest request) async {
-    HttpClient httpClient = HttpClient()..autoUncompress = false;
-    Uri forwardUri = request.uri.replace(scheme: scheme, host: host, port: port);
-    HttpClientRequest clientRequest = await httpClient.openUrl(request.method, forwardUri);
+    final HttpClient httpClient = HttpClient()..autoUncompress = false;
+    final Uri forwardUri = request.uri.replace(scheme: scheme, host: host, port: port);
+    final HttpClientRequest clientRequest = await httpClient.openUrl(request.method, forwardUri);
     clientRequest.followRedirects = false;
     _transferHttpHeaders(from: request.headers, to: clientRequest.headers);
     clientRequest.headers.set(HttpHeaders.hostHeader, '$host:$port');
     await request.cast<List<int>>().pipe(clientRequest);
     await clientRequest.flush();
-    HttpClientResponse clientResponse = await clientRequest.close();
-    HttpResponse response = request.response;
+    final HttpClientResponse clientResponse = await clientRequest.close();
+    final HttpResponse response = request.response;
     response.statusCode = clientResponse.statusCode;
     _transferHttpHeaders(from: clientResponse.headers, to: response.headers);
     await clientResponse.pipe(response);

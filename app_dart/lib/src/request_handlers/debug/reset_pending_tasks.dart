@@ -29,12 +29,12 @@ class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse
     Map<String, dynamic> request,
   ) {
     return config.db.withTransaction<ResetPendingTasksResponse>((Transaction transaction) async {
-      Query<Task> query = config.db.query<Task>()
+      final Query<Task> query = config.db.query<Task>()
         ..filter('status =', request[fromStatusParam] ?? Task.statusInProgress)
         ..filter('reservedForAgentId =', request[fromReservedForAgentIdParam] ?? '')
         ..order('-createTimestamp')
         ..limit(request[limitParam] ?? 50);
-      List<Task> tasks = await query.run().toList();
+      final List<Task> tasks = await query.run().toList();
 
       try {
         for (Task task in tasks) {

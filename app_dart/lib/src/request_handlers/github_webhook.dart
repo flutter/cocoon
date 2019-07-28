@@ -22,35 +22,36 @@ class GithubWebhook extends RequestHandler {
   Future<void> post(HttpRequest request, HttpResponse response) async {
     if (request.headers.value('X-GitHub-Event') != 'pull_request' ||
         request.headers.value('X-Hub-Signature') == null) {
-      await response
+      response
         ..statusCode = HttpStatus.badRequest
-        ..write('Missing required headers.')
-        ..close();
+        ..write('Missing required headers.');
+      await response.flush();
+      await response.close();
       return;
     }
 
     final List<int> requestBytes = await request.expand((_) => _).toList();
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
-      await response
-        ..statusCode = HttpStatus.forbidden
-        ..close();
+      response.statusCode = HttpStatus.forbidden;
+      await response.flush();
+      await response.close();
       return;
     }
 
     try {
-      final String stringRequest = await utf8.decode(requestBytes);
+      final String stringRequest = utf8.decode(requestBytes);
       final PullRequestEvent event = await getPullRequest(stringRequest);
       if (event == null) {
-        await response
-          ..statusCode = HttpStatus.badRequest
-          ..close();
+        response.statusCode = HttpStatus.badRequest;
+        await response.flush();
+        await response.close();
         return;
       }
       if (event.action != 'opened' && event.action != 'reopened') {
-        await response
-          ..statusCode = HttpStatus.ok
-          ..close();
+        response.statusCode = HttpStatus.ok;
+        await response.flush();
+        await response.close();
         return;
       }
       final GitHub gitHubClient = await config.createGitHubClient();
@@ -60,13 +61,13 @@ class GithubWebhook extends RequestHandler {
       } finally {
         gitHubClient.dispose();
       }
-      await response
-        ..statusCode = HttpStatus.ok
-        ..close();
+      response.statusCode = HttpStatus.ok;
+      await response.flush();
+      await response.close();
     } on FormatException {
-      response
-        ..statusCode = HttpStatus.badRequest
-        ..close();
+      response.statusCode = HttpStatus.badRequest;
+      await response.flush();
+      await response.close();
       return;
     }
   }
@@ -76,18 +77,16 @@ class GithubWebhook extends RequestHandler {
       return;
     }
     final RepositorySlug slug = event.repository.slug();
-    // TODO(DirectMyFile/github.dart#151): Use event.pullRequests.listFiles API when it's fixed
-    List<PullRequestFile> files =
+    // TODO(dnfield): Use event.pullRequests.listFiles API when it's fixed: DirectMyFile/github.dart#151
+    final List<PullRequestFile> files =
         await gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
       '/repos/${slug.fullName}/pulls/${event.number}/files',
-      convert: (List<dynamic> jsonFileList) => jsonFileList
-          .cast<Map<String, dynamic>>()
-          .map(PullRequestFile.fromJSON)
-          .toList(),
+      convert: (List<dynamic> jsonFileList) =>
+          jsonFileList.cast<Map<String, dynamic>>().map(PullRequestFile.fromJSON).toList(),
     );
     bool hasTests = false;
     bool needsTests = false;
-    Set<String> labels = <String>{};
+    final Set<String> labels = <String>{};
     for (PullRequestFile file in files) {
       if (file.filename.endsWith('.dart')) {
         needsTests = true;
@@ -128,8 +127,7 @@ class GithubWebhook extends RequestHandler {
         labels.add('a: tests');
       }
 
-      if (file.filename.contains('semantics') ||
-          file.filename.contains('accessibilty')) {
+      if (file.filename.contains('semantics') || file.filename.contains('accessibilty')) {
         labels.add('a: accessibility');
       }
 
@@ -142,14 +140,12 @@ class GithubWebhook extends RequestHandler {
       }
     }
     if (labels.isNotEmpty) {
-      // TODO(DirectMyFile/github.dart#152): This should be addLabelsToIssue when that is fixed.
+      // TODO(dnfield): This should be addLabelsToIssue when that is fixed. DirectMyFile/github.dart#152
       await gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/${event.number}/labels',
         body: jsonEncode(labels.toList()),
-        convert: (List<dynamic> input) => input
-            .cast<Map<String, dynamic>>()
-            .map(IssueLabel.fromJSON)
-            .toList(),
+        convert: (List<dynamic> input) =>
+            input.cast<Map<String, dynamic>>().map(IssueLabel.fromJSON).toList(),
       );
     }
     if (!hasTests && needsTests) {
@@ -164,8 +160,7 @@ class GithubWebhook extends RequestHandler {
     PullRequestEvent event,
   ) async {
     if (event.pullRequest.base.ref != 'master') {
-      final String body =
-          await _getWrongBaseComment(event.pullRequest.base.ref);
+      final String body = await _getWrongBaseComment(event.pullRequest.base.ref);
       final RepositorySlug slug = event.repository.slug();
 
       await gitHubClient.pullRequests.edit(slug, event.number, base: 'master');

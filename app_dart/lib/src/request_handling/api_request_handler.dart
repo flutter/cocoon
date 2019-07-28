@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:appengine/appengine.dart' as gae;
 import 'package:dbcrypt/dbcrypt.dart';
@@ -62,7 +62,7 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   /// from  [request].
   @protected
   void checkRequiredParameters(Map<String, dynamic> request, List<String> requiredParameters) {
-    Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
+    final Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
@@ -75,10 +75,11 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   /// handler, which subclasses are responsible for implementing.
   @override
   Future<void> post(HttpRequest request, HttpResponse response) async {
-    RequestContext context = await _getRequestContext(request);
-    Map body = await utf8.decoder.bind(request).transform(json.decoder).cast<Map>().first;
+    final RequestContext context = await _getRequestContext(request);
+    final Map<String, dynamic> body =
+        await utf8.decoder.bind(request).transform(json.decoder).cast<Map<String, dynamic>>().first;
 
-    T apiResponse = await handleApiRequest(context, body.cast<String, dynamic>());
+    final T apiResponse = await handleApiRequest(context, body.cast<String, dynamic>());
     response
       ..statusCode = HttpStatus.ok
       ..write(json.encode(apiResponse));
@@ -87,21 +88,21 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   }
 
   Future<RequestContext> _getRequestContext(HttpRequest request) async {
-    String agentId = request.headers.value('Agent-ID');
-    bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
+    final String agentId = request.headers.value('Agent-ID');
+    final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
 
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
-      List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
+      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
       if (results.isEmpty) {
         throw Unauthorized('Invalid agent: $agentId');
       }
-      Agent agent = results.single;
+      final Agent agent = results.single;
 
       if (!gae.context.isDevelopmentEnvironment) {
-        String agentAuthToken = request.headers.value('Agent-Auth-Token');
+        final String agentAuthToken = request.headers.value('Agent-Auth-Token');
         if (agentAuthToken == null) {
           throw Unauthorized('Missing required HTTP header: Agent-Auth-Token');
         }
@@ -113,17 +114,17 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
       return RequestContext(agent: agent);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
-      return RequestContext();
+      return const RequestContext();
     } else {
       // Authenticate as a signed-in Google account.
-      String email = request.headers.value('X-AppEngine-User-Email');
+      final String email = request.headers.value('X-AppEngine-User-Email');
 
       if (email == null) {
         throw Unauthorized('User is not signed in');
       }
 
       if (!email.endsWith('@google.com')) {
-        Query<WhitelistedAccount> query = config.db.query<WhitelistedAccount>()
+        final Query<WhitelistedAccount> query = config.db.query<WhitelistedAccount>()
           ..filter('Email =', email)
           ..limit(20);
 
@@ -132,7 +133,7 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
         }
       }
 
-      return RequestContext();
+      return const RequestContext();
     }
   }
 
@@ -140,8 +141,8 @@ abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
   static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
-    String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
-    DBCrypt crypt = DBCrypt();
+    final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
+    final DBCrypt crypt = DBCrypt();
     return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
   }
 }
