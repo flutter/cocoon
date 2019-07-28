@@ -27,8 +27,8 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
 
   @override
   Future<GetTaskByIdResponse> post() async {
+    checkRequiredParameters(<String>[commitParam, taskIdParam]);
     final Map<String, dynamic> params = requestData;
-    checkRequiredParameters(params, <String>[commitParam, taskIdParam]);
 
     final Query<Commit> query = config.db.query()..filter('sha =', params[commitParam]);
     final List<Commit> commits = await query.run().toList();

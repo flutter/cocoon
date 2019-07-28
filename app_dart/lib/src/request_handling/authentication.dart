@@ -65,15 +65,15 @@ typedef ClientContextProvider = ClientContext Function();
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 class AuthenticationProvider {
-  const AuthenticationProvider(this.config, this.clientContextProvider)
-      : assert(config != null),
-        assert(clientContextProvider != null);
+  const AuthenticationProvider(this._config, this._clientContextProvider)
+      : assert(_config != null),
+        assert(_clientContextProvider != null);
 
   /// The Cocoon config, guaranteed to be non-null.
-  final Config config;
+  final Config _config;
 
   /// The App Engine context, guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
+  final ClientContextProvider _clientContextProvider;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -86,13 +86,13 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final ClientContext clientContext = clientContextProvider();
+    final ClientContext clientContext = _clientContextProvider();
 
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
-      final List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
+      final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
+      final List<Agent> results = await _config.db.lookup<Agent>(<Key>[agentKey]);
       if (results.isEmpty) {
         throw Unauthenticated('Invalid agent: $agentId');
       }
@@ -121,7 +121,7 @@ class AuthenticationProvider {
       }
 
       if (!email.endsWith('@google.com')) {
-        final Query<WhitelistedAccount> query = config.db.query<WhitelistedAccount>()
+        final Query<WhitelistedAccount> query = _config.db.query<WhitelistedAccount>()
           ..filter('Email =', email)
           ..limit(20);
 

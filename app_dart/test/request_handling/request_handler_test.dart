@@ -95,6 +95,7 @@ void main() {
       handler = AccessesRequestAndResponseDirectly();
       final HttpClientResponse response = await issueGet();
       expect(response.headers.value('X-Test-Path'), '/path');
+      expect(serverOutput.toString(), isEmpty);
     });
 
     test('may implement both GET and POST', () async {
@@ -105,6 +106,7 @@ void main() {
       response = await issuePost();
       expect(response.headers.value('X-Test-Get'), isNull);
       expect(response.headers.value('X-Test-Post'), 'true');
+      expect(serverOutput.toString(), isEmpty);
     });
 
     test('may implement only POST', () async {
@@ -113,6 +115,7 @@ void main() {
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.ok);
+      expect(serverOutput.toString(), isEmpty);
     });
   });
 }

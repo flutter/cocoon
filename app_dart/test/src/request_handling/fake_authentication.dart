@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:appengine/appengine.dart';
 
 // ignore: must_be_immutable
@@ -14,22 +14,22 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   FakeAuthenticationProvider({
     this.agent,
     ClientContext clientContext,
-    this.config,
-  }) : clientContext = clientContext ?? FakeClientContext();
+    this.authenticated = true,
+  })  : assert(authenticated != null),
+        clientContext = clientContext ?? FakeClientContext();
 
+  bool authenticated;
   Agent agent;
   ClientContext clientContext;
 
   @override
-  Config config;
-
-  @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+    if (authenticated) {
+      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+    } else {
+      throw const Unauthenticated('Not authenticated');
+    }
   }
-
-  @override
-  ClientContextProvider get clientContextProvider => () => clientContext;
 }
 
 // ignore: must_be_immutable
@@ -51,10 +51,10 @@ class FakeClientContext implements ClientContext {
   AppEngineContext applicationContext;
 
   @override
-  bool isDevelopmentEnvironment = false;
+  bool isDevelopmentEnvironment = true;
 
   @override
-  bool isProductionEnvironment = true;
+  bool isProductionEnvironment = false;
 
   @override
   Services services;

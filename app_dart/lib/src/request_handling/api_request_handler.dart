@@ -40,18 +40,26 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   final AuthenticationProvider authenticationProvider;
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
-  /// from  [request].
+  /// from [requestData].
   @protected
-  void checkRequiredParameters(Map<String, dynamic> request, List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
+  void checkRequiredParameters(List<String> requiredParameters) {
+    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
   }
 
+  /// The authentication context associated with the HTTP request.
+  ///
+  /// This is guaranteed to be non-null. If the request was unauthenticated,
+  /// the request will be denied.
   @protected
   AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext);
 
+  /// The JSON data specified in the HTTP request body.
+  ///
+  /// This is guaranteed to be non-null. If the request body was empty, this
+  /// will be an empty map.
   @protected
   Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
 
@@ -70,8 +78,19 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
       return;
     }
 
-    final String body = await utf8.decoder.bind(request).join();
-    final Map<String, dynamic> requestData = body == null ? null : json.decode(body);
+    Map<String, dynamic> requestData;
+    try {
+      final String body = await utf8.decoder.bind(request).join();
+      requestData = body.isEmpty ? const <String, dynamic>{} : json.decode(body);
+    } catch (error) {
+      final HttpResponse response = request.response;
+      response
+        ..statusCode = HttpStatus.badRequest
+        ..write('$error');
+      await response.flush();
+      await response.close();
+      return;
+    }
 
     await runZoned<Future<void>>(() async {
       await super.service(request);
