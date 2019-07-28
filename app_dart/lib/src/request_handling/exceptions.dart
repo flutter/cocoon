@@ -41,3 +41,19 @@ class InternalServerError extends HttpStatusException {
 class Unauthorized extends HttpStatusException {
   const Unauthorized([String message = 'Unauthorized']) : super(HttpStatus.unauthorized, message);
 }
+
+/// Exception that will trigger an HTTP 403 forbidden.
+class Forbidden extends HttpStatusException {
+  const Forbidden([String message = 'Forbidden']) : super(HttpStatus.forbidden, message);
+}
+
+/// Exception thrown when attempting to authenticate a request that cannot be
+/// authenticated.
+class Unauthenticated implements Exception {
+  const Unauthenticated(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'Unauthenticated: $message';
+}

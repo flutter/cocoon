@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handling/api_response.dart';
+import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -26,7 +26,7 @@ void main() {
       mockHttpClient = MockHttpClient();
     });
 
-    Future<T> _httpTest<R extends ApiResponse, T>(
+    Future<T> _httpTest<R extends Body, T>(
       R request,
       String response,
       String expectedPath,

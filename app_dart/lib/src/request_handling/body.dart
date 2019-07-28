@@ -4,12 +4,12 @@
 
 import 'package:meta/meta.dart';
 
-/// Class that serves as the return value of [ApiRequestHandler.handleApiRequest].
+/// Class that represents an HTTP response body before it has been serialized.
 @immutable
-abstract class ApiResponse {
-  /// Creates a new [ApiResponse].
-  const ApiResponse();
+abstract class Body {
+  /// Creates a new [Body].
+  const Body();
 
-  /// Serializes this response to a JSON-primitive map.
+  /// Serializes this response body to a JSON-primitive map.
   Map<String, dynamic> toJson();
 }
