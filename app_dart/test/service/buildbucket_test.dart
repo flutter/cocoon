@@ -7,15 +7,23 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+
+import '../src/request_handling/fake_authentication.dart';
 
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
+    MockAccessTokenProvider mockAccessTokenProvider;
+    MockConfig mockConfig;
+
     const BuilderId builderId = BuilderId(
       bucket: 'prod',
       builder: 'Linux',
@@ -24,6 +32,8 @@ void main() {
 
     setUp(() {
       mockHttpClient = MockHttpClient();
+      mockAccessTokenProvider = MockAccessTokenProvider();
+      mockConfig = MockConfig();
     });
 
     Future<T> _httpTest<R extends Body, T>(
@@ -32,22 +42,57 @@ void main() {
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
+      when(mockAccessTokenProvider.createAccessToken(any,
+              serviceAccountJson: anyNamed('serviceAccountJson'), scopes: anyNamed('scopes')))
+          .thenAnswer((_) async {
+        return AccessToken('Bearer', 'data', DateTime.utc(2119));
+      });
       final BuildBucketClient client = BuildBucketClient(
+        FakeClientContext(isDevelopmentEnvironment: false),
+        mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
+        accessTokenProvider: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
+      when(mockHttpResponse.statusCode).thenReturn(202);
       when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
           .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
       when(mockHttpRequest.close())
           .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
-      expect(mockHttpRequest.headers.contentType, ContentType.json);
+      expect(mockHttpRequest.headers.value('content-type'), 'application/json');
+      expect(mockHttpRequest.headers.value('accept'), 'application/json');
+      expect(mockHttpRequest.headers.value('authorization'), 'Bearer data');
       verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
       return result;
     }
+
+    test('Throws the right exception', () async {
+      final BuildBucketClient client = BuildBucketClient(
+        FakeClientContext(isDevelopmentEnvironment: false),
+        mockConfig,
+        buildBucketUri: 'https://localhost',
+        httpClient: mockHttpClient,
+      );
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode('Error'));
+      when(mockHttpResponse.statusCode).thenReturn(403);
+      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      try {
+        await client.batch(const BatchRequest());
+      } on BuildBucketException catch (ex) {
+        expect(ex.statusCode, 403);
+        expect(ex.message, 'Error');
+        return;
+      }
+      fail('Did not throw expected exception');
+    });
 
     test('ScheduleBuild', () async {
       const ScheduleBuildRequest request = ScheduleBuildRequest(
@@ -145,7 +190,8 @@ void main() {
   });
 }
 
-const String searchJson = '''{
+const String searchJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "builds": [
     {
       "status": "SUCCESS",
@@ -172,7 +218,8 @@ const String searchJson = '''{
     }
   ]
 }''';
-const String batchJson = '''{
+const String batchJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "responses": [
     {
       "getBuild": {
@@ -202,7 +249,8 @@ const String batchJson = '''{
   ]
 }''';
 
-const String buildJson = '''{
+const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
+{
   "id": "123",
   "builder": {
     "project": "flutter",
@@ -236,13 +284,17 @@ class MockHttpClientRequest extends Mock implements HttpClientRequest {
 }
 
 class FakeHttpHeaders extends HttpHeaders {
+  final Map<String, String> _headers = <String, String>{};
+
   @override
   List<String> operator [](String name) {
     return null;
   }
 
   @override
-  void add(String name, Object value) {}
+  void add(String name, Object value) {
+    _headers[name] = value;
+  }
 
   @override
   void clear() {}
@@ -264,7 +316,7 @@ class FakeHttpHeaders extends HttpHeaders {
 
   @override
   String value(String name) {
-    return null;
+    return _headers[name];
   }
 }
 
@@ -284,3 +336,8 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
         .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
+
+class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
+
+// ignore: must_be_immutable
+class MockConfig extends Mock implements Config {}

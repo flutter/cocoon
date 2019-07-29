@@ -5,21 +5,58 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
+import 'access_token_provider.dart';
 
 /// A client interface to LUCI BuildBucket
 @immutable
 class BuildBucketClient {
-  BuildBucketClient({
-    this.buildBucketUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds',
+  /// Creats a new buildbucket Client.
+  ///
+  /// The [buildBucketUri] parameter must not be null, and will be defaulted to
+  /// [kDefaultBuildBucketUri] if not specified.
+  ///
+  /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
+  /// specified or null.
+  BuildBucketClient(
+    this.context,
+    this.config, {
+    this.buildBucketUri = kDefaultBuildBucketUri,
     HttpClient httpClient,
-  }) : httpClient = httpClient ?? HttpClient();
+    AccessTokenProvider accessTokenProvider,
+  })  : assert(buildBucketUri != null),
+        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
+        httpClient = httpClient ?? HttpClient();
 
+  /// Garbage to prevent browser/JSON parsing exploits.
+  static const String kRpcResponseGarbage = ")]}'";
+
+  /// The default endpoint for BuildBucket requests.
+  static const String kDefaultBuildBucketUri =
+      'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+
+  final ClientContext context;
+
+  final Config config;
+
+  /// The base URI for build bucket requests.
+  ///
+  /// Defaults to [kDefaultBuildBucketUri].
   final String buildBucketUri;
+
+  /// The [HttpClient] to use for requests.
+  ///
+  /// Defaults to `HttpClient()`.
   final HttpClient httpClient;
+
+  /// The token provider for oauth2 requests.
+  final AccessTokenProvider accessTokenProvider;
 
   Future<T> _postRequest<S extends Body, T>(
     String path,
@@ -29,16 +66,30 @@ class BuildBucketClient {
     final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
     final HttpClientRequest httpRequest = await client.postUrl(url);
-    httpRequest.headers.contentType = ContentType.json;
-
+    httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
+    httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
+    final AccessToken token = await accessTokenProvider.createAccessToken(
+      context,
+      serviceAccountJson: await config.deviceLabServiceAccount,
+      scopes: <String>[
+        'openid',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
+    );
+    httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
     httpRequest.write(json.encode(request.toJson()));
     await httpRequest.flush();
     final HttpClientResponse response = await httpRequest.close();
 
     final String rawResponse = await utf8.decodeStream(response);
-    return responseFromJson(json.decode(rawResponse));
+    if (response.statusCode < 300) {
+      return responseFromJson(json.decode(rawResponse.substring(kRpcResponseGarbage.length)));
+    }
+    throw BuildBucketException(response.statusCode, rawResponse);
   }
 
+  /// The RPC request to schedule a build.
   Future<Build> scheduleBuild(ScheduleBuildRequest request) {
     return _postRequest<ScheduleBuildRequest, Build>(
       '/ScheduleBuild',
@@ -47,6 +98,7 @@ class BuildBucketClient {
     );
   }
 
+  /// The RPC request to search for builds.
   Future<SearchBuildsResponse> searchBuilds(SearchBuildsRequest request) {
     return _postRequest<SearchBuildsRequest, SearchBuildsResponse>(
       '/SearchBuilds',
@@ -55,6 +107,7 @@ class BuildBucketClient {
     );
   }
 
+  /// The RPC method to batch multiple RPC methods in a single HTTP request.
   Future<BatchResponse> batch(BatchRequest request) {
     return _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
@@ -63,6 +116,7 @@ class BuildBucketClient {
     );
   }
 
+  /// The RPC request to cancel a build.
   Future<Build> cancelBuild(CancelBuildRequest request) {
     return _postRequest<CancelBuildRequest, Build>(
       '/CancelBuild',
@@ -71,6 +125,7 @@ class BuildBucketClient {
     );
   }
 
+  /// The RPC request to get details about a build.
   Future<Build> getBuild(GetBuildRequest request) {
     return _postRequest<GetBuildRequest, Build>(
       '/GetBuild',
@@ -78,4 +133,28 @@ class BuildBucketClient {
       Build.fromJson,
     );
   }
+
+  /// Closes the underlying [HttpClient].
+  ///
+  /// If `force` is true, it will close immediately and cause outstanding
+  /// requests to end with an error. Otherwise, it will wait for outstanding
+  /// requests to finish before closing.
+  ///
+  /// Once this call completes, additional RPC requests will throw an exception.
+  void close({bool force = false}) {
+    httpClient.close(force: force);
+  }
+}
+
+class BuildBucketException implements Exception {
+  const BuildBucketException(this.statusCode, this.message);
+
+  /// The HTTP status code of the error.
+  final int statusCode;
+
+  /// The message from the server.
+  final String message;
+
+  @override
+  String toString() => '$runtimeType: [$statusCode]: $message';
 }

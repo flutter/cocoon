@@ -7,20 +7,19 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth_io.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
-import '../model/appengine/service_account_info.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/access_token_provider.dart';
 
 /// Reserves a pending task so that an agent may run the task.
 @immutable
@@ -33,7 +32,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ?? TaskProvider(config),
         reservationProvider = reservationProvider ?? ReservationProvider(config),
-        accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
+        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskProvider taskProvider;
@@ -54,7 +53,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     } else {
       final String agentId = params['AgentID'];
       if (agentId == null) {
-        throw BadRequestException('AgentID not specified in request');
+        throw const BadRequestException('AgentID not specified in request');
       }
       final Key key = config.db.emptyKey.append(Agent, id: agentId);
       final List<Agent> results = await config.db.lookup<Agent>(<Key>[key]);
@@ -71,7 +70,11 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       try {
         await reservationProvider.secureReservation(task.task, agent.id);
         final ClientContext clientContext = authContext.clientContext;
-        final AccessToken token = await accessTokenProvider.createAccessToken(clientContext);
+        final AccessToken token = await accessTokenProvider.createAccessToken(
+          clientContext,
+          serviceAccountJson: await config.deviceLabServiceAccount,
+          scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
+        );
         final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
@@ -281,33 +284,4 @@ class ReservationProvider {
 class ReservationLostException implements Exception {
   /// Creates a new [ReservationLostException].
   const ReservationLostException();
-}
-
-@visibleForTesting
-class AccessTokenProvider {
-  const AccessTokenProvider(this.config);
-
-  final Config config;
-
-  /// Returns an OAuth 2.0 access token for the device lab service account.
-  Future<AccessToken> createAccessToken(ClientContext context) async {
-    if (context.isDevelopmentEnvironment) {
-      // No auth token needed.
-      return null;
-    }
-
-    final Map<String, dynamic> json = await config.deviceLabServiceAccount;
-    final ServiceAccountInfo accountInfo = ServiceAccountInfo.fromJson(json);
-    final http.Client httpClient = http.Client();
-    try {
-      final AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
-        accountInfo.asServiceAccountCredentials(),
-        <String>['https://www.googleapis.com/auth/devstorage.read_write'],
-        httpClient,
-      );
-      return credentials.accessToken;
-    } finally {
-      httpClient.close();
-    }
-  }
 }
