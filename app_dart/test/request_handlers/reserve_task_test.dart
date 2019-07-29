@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/reserve_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/request_context.dart';
+import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:mockito/mockito.dart';
@@ -86,7 +87,11 @@ void main() {
       when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
         return Future<TaskAndCommit>.value(TaskAndCommit(task, commit));
       });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
+      when(accessTokenProvider.createAccessToken(
+        any,
+        serviceAccountJson: anyNamed('serviceAccountJson'),
+        scopes: anyNamed('scopes'),
+      )).thenAnswer((Invocation invocation) {
         return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
       });
       final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
@@ -95,7 +100,11 @@ void main() {
       expect(response.accessToken.data, 'data');
       verify(taskProvider.findNextTask(agent)).called(1);
       verify(reservationProvider.secureReservation(task, 'aid')).called(1);
-      verify(accessTokenProvider.createAccessToken(any)).called(1);
+      verify(accessTokenProvider.createAccessToken(
+        any,
+        serviceAccountJson: anyNamed('serviceAccountJson'),
+        scopes: anyNamed('scopes'),
+      )).called(1);
     });
 
     test('retries until reservation can be secured', () async {
@@ -115,7 +124,11 @@ void main() {
           return Future<void>.value();
         }
       });
-      when(accessTokenProvider.createAccessToken(any)).thenAnswer((Invocation invocation) {
+      when(accessTokenProvider.createAccessToken(
+        any,
+        serviceAccountJson: anyNamed('serviceAccountJson'),
+        scopes: anyNamed('scopes'),
+      )).thenAnswer((Invocation invocation) {
         return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
       });
       final ReserveTaskResponse response = await handler.handleApiRequest(context, request);
@@ -124,7 +137,11 @@ void main() {
       expect(response.accessToken.data, 'data');
       verify(taskProvider.findNextTask(agent)).called(2);
       verify(reservationProvider.secureReservation(task, 'aid')).called(2);
-      verify(accessTokenProvider.createAccessToken(any)).called(1);
+      verify(accessTokenProvider.createAccessToken(
+        any,
+        serviceAccountJson: anyNamed('serviceAccountJson'),
+        scopes: anyNamed('scopes'),
+      )).called(1);
     });
 
     test('Looks up agent if not provided in the context', () async {

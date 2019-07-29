@@ -5,10 +5,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_response.dart';
+import 'access_token_provider.dart';
 
 /// A client interface to LUCI BuildBucket
 @immutable
@@ -20,9 +24,12 @@ class BuildBucketClient {
   ///
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
-  BuildBucketClient({
+  BuildBucketClient(
+    this.context,
+    this.config, {
     this.buildBucketUri = kDefaultBuildBucketUri,
     HttpClient httpClient,
+    this.accessTokenProvider,
   })  : assert(buildBucketUri != null),
         httpClient = httpClient ?? HttpClient();
 
@@ -30,7 +37,12 @@ class BuildBucketClient {
   static const String kRpcResponseGarbage = ")]}'";
 
   /// The default endpoint for BuildBucket requests.
-  static const String kDefaultBuildBucketUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+  static const String kDefaultBuildBucketUri =
+      'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+
+  final ClientContext context;
+
+  final Config config;
 
   /// The base URI for build bucket requests.
   ///
@@ -42,17 +54,33 @@ class BuildBucketClient {
   /// Defaults to `HttpClient()`.
   final HttpClient httpClient;
 
+  /// The token provider for oauth2 requests.
+  final AccessTokenProvider accessTokenProvider;
+
   Future<T> _postRequest<S extends ApiResponse, T>(
     String path,
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),
   ) async {
+
     final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
     final HttpClientRequest httpRequest = await client.postUrl(url);
     httpRequest.headers.add('content-type', 'application/json');
     httpRequest.headers.add('accept', 'application/json');
-
+    if (accessTokenProvider != null) {
+      final AccessToken token = await accessTokenProvider.createAccessToken(
+        context,
+        serviceAccountJson: config.deviceLabServiceAccount,
+        scopes: <String>[
+          'openid',
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/userinfo.email',
+        ]
+      );
+      print(token);
+      httpRequest.headers.add('authorization', '${token.type} ${token.data}');
+    }
     httpRequest.write(json.encode(request.toJson()));
     await httpRequest.flush();
     final HttpClientResponse response = await httpRequest.close();
@@ -123,6 +151,7 @@ class BuildBucketClient {
 
 class BuildBucketException implements Exception {
   const BuildBucketException(this.statusCode, this.message);
+
   /// The HTTP status code of the error.
   final int statusCode;
 
