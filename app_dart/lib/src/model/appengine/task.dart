@@ -12,6 +12,7 @@ import 'package:gcloud/db.dart';
 class Task extends Model {
   /// Creates a new [Task].
   Task({
+    Key key,
     this.commitKey,
     this.createTimestamp,
     this.startTimestamp,
@@ -28,6 +29,8 @@ class Task extends Model {
     if (status != null && !legalStatusValues.contains(status)) {
       throw ArgumentError('Invalid state: "$status"');
     }
+    parentKey = key?.parent;
+    id = key?.id;
   }
 
   /// The task is yet to be run.
@@ -143,8 +146,7 @@ class Task extends Model {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer();
-    buf
+    final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')

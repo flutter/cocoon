@@ -18,6 +18,7 @@ Future<void> main() async {
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/github-webhook-pullrequest': GithubWebhook(config),
       '/api/reserve-task': ReserveTask(config, authProvider),
+      '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
     };

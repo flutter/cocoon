@@ -11,6 +11,7 @@ import 'task.dart';
 class Agent extends Model {
   /// Creates a new [Agent].
   Agent({
+    Key key,
     this.agentId,
     this.healthCheckTimestamp,
     this.isHealthy,
@@ -18,7 +19,10 @@ class Agent extends Model {
     this.capabilities,
     this.healthDetails,
     this.authToken,
-  });
+  }) {
+    parentKey = key?.parent;
+    id = key?.id;
+  }
 
   /// The human-readable ID of the agent (e.g. 'linux1').
   @StringProperty(propertyName: 'AgentID', required: true)
