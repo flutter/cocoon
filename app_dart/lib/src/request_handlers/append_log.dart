@@ -29,7 +29,7 @@ class AppendLog extends ApiRequestHandler<Body> {
   Future<Body> post() async {
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
-      throw BadRequestException('Missing required query parameter: $ownerKeyParam');
+      throw const BadRequestException('Missing required query parameter: $ownerKeyParam');
     }
 
     final ClientContext clientContext = authContext.clientContext;

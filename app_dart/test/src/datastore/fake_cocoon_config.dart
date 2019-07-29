@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/src/common.dart';
 
@@ -22,7 +23,7 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
   });
 
-  Map<String, dynamic> deviceLabServiceAccountValue;
+  ServiceAccountInfo deviceLabServiceAccountValue;
   String forwardHostValue;
   int forwardPortValue;
   String forwardSchemeValue;
@@ -39,7 +40,7 @@ class FakeConfig implements Config {
   DatastoreDB get db => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
 
   @override
   Future<String> get forwardHost async => forwardHostValue;

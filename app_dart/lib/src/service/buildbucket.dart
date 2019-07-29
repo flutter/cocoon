@@ -9,7 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import 'access_token_provider.dart';
@@ -25,12 +25,14 @@ class BuildBucketClient {
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
   BuildBucketClient(
-    this.context,
-    this.config, {
+    this.context, {
     this.buildBucketUri = kDefaultBuildBucketUri,
     HttpClient httpClient,
+    @required this.serviceAccount,
     AccessTokenProvider accessTokenProvider,
-  })  : assert(buildBucketUri != null),
+  })  : assert(context != null),
+        assert(buildBucketUri != null),
+        assert(serviceAccount != null),
         accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
         httpClient = httpClient ?? HttpClient();
 
@@ -41,9 +43,11 @@ class BuildBucketClient {
   static const String kDefaultBuildBucketUri =
       'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
 
+  /// The AppEngine context to use for requests. Must not be null.
   final ClientContext context;
 
-  final Config config;
+  /// The service account to use for requests.  Must not be null.
+  final ServiceAccountInfo serviceAccount;
 
   /// The base URI for build bucket requests.
   ///
@@ -72,7 +76,7 @@ class BuildBucketClient {
 
     final AccessToken token = await accessTokenProvider.createAccessToken(
       context,
-      serviceAccountJson: await config.deviceLabServiceAccount,
+      serviceAccount: serviceAccount,
       scopes: <String>[
         'openid',
         'https://www.googleapis.com/auth/userinfo.profile',

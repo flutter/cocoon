@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../github.dart';
+import '../model/appengine/service_account_info.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -88,7 +89,11 @@ class GithubWebhook extends RequestHandler<Body> {
       final String cqLabelName = await config.cqLabelName;
       await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, event.number)) {
         if (label.name == cqLabelName) {
-          _maybeScheduleLuci(event.number, event.pullRequest.mergeCommitSha);
+          _maybeScheduleLuci(
+            event.number,
+            event.pullRequest.mergeCommitSha,
+            event.repository.name,
+          );
           break;
         }
       }
@@ -98,10 +103,24 @@ class GithubWebhook extends RequestHandler<Body> {
     return Body.empty;
   }
 
-  Future<void> _maybeScheduleLuci(int number, String sha) {
-    final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext, config);
+  Future<void> _maybeScheduleLuci(int number, String sha, String repositoryName) async {
+    if (repositoryName != 'engine' && repositoryName != 'flutter') {
+      throw BadRequestException('$repositoryName not supported by this backend.');
+    }
+    final ServiceAccountInfo serviceAccountInfo = await config.deviceLabServiceAccount;
+    final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext, serviceAccount: serviceAccountInfo,);
 
-    final SearchBuildsResponse builds = buildBucketClient.searchBuilds(SearchBuildsRequest(predicate: BuildPredicate(builderId: )))
+    final SearchBuildsResponse builds = await buildBucketClient.searchBuilds(
+      SearchBuildsRequest(
+        predicate: BuildPredicate(
+          builderId: BuilderId(
+            bucket: 'prod',
+            project: repositoryName,
+          ),
+          createdBy: serviceAccountInfo.email,
+        ),
+      ),
+    );
   }
 
   Future<bool> _checkForCQLabel(int issueNumber) async {}

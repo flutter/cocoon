@@ -73,7 +73,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
           clientContext,
-          serviceAccountJson: await config.deviceLabServiceAccount,
+          serviceAccount: await config.deviceLabServiceAccount,
           scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         );
         final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
