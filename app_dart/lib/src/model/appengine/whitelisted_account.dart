@@ -28,8 +28,7 @@ class WhitelistedAccount extends Model {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer();
-    buf
+    final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')

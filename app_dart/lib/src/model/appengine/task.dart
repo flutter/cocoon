@@ -33,9 +33,6 @@ class Task extends Model {
     id = key?.id;
   }
 
-  /// The number of failed attempts before we give up.
-  static const int maxAttempts = 2;
-
   /// The task is yet to be run.
   static const String statusNew = 'New';
 
@@ -149,8 +146,7 @@ class Task extends Model {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer();
-    buf
+    final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('id: $id')
       ..write(', parentKey: ${parentKey?.id}')

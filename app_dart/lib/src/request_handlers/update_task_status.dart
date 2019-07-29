@@ -63,7 +63,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (newStatus == Task.statusFailed) {
       // Attempt to de-flake the test.
-      if (task.attempts >= Task.maxAttempts) {
+      final int maxRetries = await config.maxTaskRetries;
+      if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;
         task.reason = 'Task failed on agent';
       } else {
