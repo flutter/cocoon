@@ -47,6 +47,11 @@ class FakeAuthenticatedContext implements AuthenticatedContext {
 }
 
 class FakeClientContext implements ClientContext {
+  FakeClientContext({
+    this.isDevelopmentEnvironment = true,
+    this.isProductionEnvironment = false,
+  });
+
   @override
   AppEngineContext applicationContext;
 

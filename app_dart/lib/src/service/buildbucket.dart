@@ -66,20 +66,18 @@ class BuildBucketClient {
     final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
     final HttpClientRequest httpRequest = await client.postUrl(url);
-    httpRequest.headers.add('content-type', 'application/json');
-    httpRequest.headers.add('accept', 'application/json');
-    if (accessTokenProvider != null) {
-      final AccessToken token = await accessTokenProvider.createAccessToken(
-        context,
-        serviceAccountJson: config.deviceLabServiceAccount,
-        scopes: <String>[
-          'openid',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          'https://www.googleapis.com/auth/userinfo.email',
-        ],
-      );
-      httpRequest.headers.add('authorization', '${token.type} ${token.data}');
-    }
+    httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
+    httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
+    final AccessToken token = await accessTokenProvider.createAccessToken(
+      context,
+      serviceAccountJson: await config.deviceLabServiceAccount,
+      scopes: <String>[
+        'openid',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
+    );
+    httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
     httpRequest.write(json.encode(request.toJson()));
     await httpRequest.flush();
     final HttpClientResponse response = await httpRequest.close();

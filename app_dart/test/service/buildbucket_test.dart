@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -16,6 +15,8 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+
+import '../src/request_handling/fake_authentication.dart';
 
 void main() {
   group('Client tests', () {
@@ -47,7 +48,7 @@ void main() {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
-        FakeClientContext(),
+        FakeClientContext(isDevelopmentEnvironment: false),
         mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
@@ -71,7 +72,7 @@ void main() {
 
     test('Throws the right exception', () async {
       final BuildBucketClient client = BuildBucketClient(
-        FakeClientContext(),
+        FakeClientContext(isDevelopmentEnvironment: false),
         mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
@@ -337,23 +338,6 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
 }
 
 class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
-
-class FakeClientContext implements ClientContext {
-  @override
-  AppEngineContext get applicationContext => null;
-
-  @override
-  bool get isDevelopmentEnvironment => false;
-
-  @override
-  bool get isProductionEnvironment => false;
-
-  @override
-  Services get services => null;
-
-  @override
-  String get traceId => null;
-}
 
 // ignore: must_be_immutable
 class MockConfig extends Mock implements Config {}
