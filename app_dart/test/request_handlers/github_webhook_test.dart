@@ -13,6 +13,8 @@ import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../src/request_handling/fake_authentication.dart';
+
 void main() {
   group('githubWebhookPullRequest', () {
     GithubWebhook webhook;
@@ -41,7 +43,7 @@ void main() {
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
 
-      webhook = GithubWebhook(config);
+      webhook = GithubWebhook(config, FakeClientContext());
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
