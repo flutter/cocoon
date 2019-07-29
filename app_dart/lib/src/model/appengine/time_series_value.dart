@@ -17,8 +17,8 @@ class TimeSeriesValue extends Model {
     this.taskKey,
     this.revision,
   }) {
-    parentKey = key.parent;
-    id = key.id;
+    parentKey = key?.parent;
+    id = key?.id;
   }
 
   /// Whether data is missing for this measurement.

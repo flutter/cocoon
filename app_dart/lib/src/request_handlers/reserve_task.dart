@@ -56,8 +56,9 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         throw const BadRequestException('AgentID not specified in request');
       }
       final Key key = config.db.emptyKey.append(Agent, id: agentId);
-      final List<Agent> results = await config.db.lookup<Agent>(<Key>[key]);
-      agent = results.single;
+      agent = await config.db.lookupValue<Agent>(key, orElse: () {
+        throw BadRequestException('Invalid agent ID: $agentId');
+      });
     }
 
     while (true) {
@@ -256,8 +257,7 @@ class ReservationProvider {
     assert(agentId != null);
     return config.db.withTransaction<void>((Transaction transaction) async {
       try {
-        final List<Task> lookup = await transaction.lookup<Task>(<Key>[task.key]);
-        final Task lockedTask = lookup.single;
+        final Task lockedTask = await transaction.lookupValue<Task>(task.key);
 
         if (lockedTask.status != Task.statusNew) {
           // Another reservation beat us in a race.

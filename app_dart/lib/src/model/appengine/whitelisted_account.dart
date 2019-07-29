@@ -18,8 +18,8 @@ class WhitelistedAccount extends Model {
     Key key,
     this.email,
   }) {
-    parentKey = key.parent;
-    id = key.id;
+    parentKey = key?.parent;
+    id = key?.id;
   }
 
   /// The email address of the account that has been whitelisted.

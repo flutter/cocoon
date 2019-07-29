@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
@@ -19,7 +20,6 @@ import 'request_handler.dart';
 ///
 /// API requests adhere to a specific contract, as follows:
 ///
-///  * If a request body is specified, it must be encoded as a JSON map.
 ///  * All requests must be authenticated per [AuthenticationProvider].
 ///
 /// `T` is the type of object that is returned as the body of the HTTP response
@@ -56,10 +56,27 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   @protected
   AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext);
 
+  /// The raw byte contents of the HTTP request body.
+  ///
+  /// If the request did not specify any content in the body, this will be an
+  /// empty list. It will never be null.
+  ///
+  /// See also:
+  ///
+  ///  * [requestData], which contains the JSON-decoded [Map] of the request
+  ///    body content (if applicable).
+  @protected
+  Uint8List get requestBody => getValue<Uint8List>(ApiKey.requestBody);
+
   /// The JSON data specified in the HTTP request body.
   ///
-  /// This is guaranteed to be non-null. If the request body was empty, this
-  /// will be an empty map.
+  /// This is guaranteed to be non-null. If the request body was empty, or if
+  /// it contained non-JSON or binary (non-UTF-8) data, this will be an empty
+  /// map.
+  ///
+  /// See also:
+  ///
+  ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
   Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
 
@@ -78,24 +95,42 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
       return;
     }
 
-    Map<String, dynamic> requestData;
+    List<int> body;
     try {
-      final String body = await utf8.decoder.bind(request).join();
-      requestData = body.isEmpty ? const <String, dynamic>{} : json.decode(body);
+      body = await request.expand<int>((List<int> chunk) => chunk).toList();
     } catch (error) {
       final HttpResponse response = request.response;
       response
-        ..statusCode = HttpStatus.badRequest
+        ..statusCode = HttpStatus.internalServerError
         ..write('$error');
       await response.flush();
       await response.close();
       return;
     }
 
+    Map<String, dynamic> requestData = const <String, dynamic>{};
+    if (body.isNotEmpty) {
+      try {
+        requestData = json.decode(utf8.decode(body));
+      } on FormatException {
+        // The HTTP request body is not valid UTF-8 encoded JSON. This is
+        // allowed; just let [requestData] be null.
+      } catch (error) {
+        final HttpResponse response = request.response;
+        response
+          ..statusCode = HttpStatus.internalServerError
+          ..write('$error');
+        await response.flush();
+        await response.close();
+        return;
+      }
+    }
+
     await runZoned<Future<void>>(() async {
       await super.service(request);
     }, zoneValues: <ApiKey<dynamic>, Object>{
       ApiKey.authContext: context,
+      ApiKey.requestBody: Uint8List.fromList(body),
       ApiKey.requestData: requestData,
     });
   }
@@ -105,6 +140,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(String name) : super(name);
 
+  static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._('requestBody');
   static const ApiKey<AuthenticatedContext> authContext =
       ApiKey<AuthenticatedContext>._('authenticatedContext');
   static const ApiKey<Map<String, dynamic>> requestData =

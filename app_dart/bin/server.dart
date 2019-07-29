@@ -16,6 +16,7 @@ Future<void> main() async {
     final AuthenticationProvider authProvider = AuthenticationProvider(config, () => gae.context);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+      '/api/append-log': AppendLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(config),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),

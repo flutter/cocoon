@@ -22,8 +22,8 @@ class TimeSeries extends Model {
     this.taskName,
     this.unit,
   }) {
-    parentKey = key.parent;
-    id = key.id;
+    parentKey = key?.parent;
+    id = key?.id;
   }
 
   /// Whether the series has been archived and is no longer active.
