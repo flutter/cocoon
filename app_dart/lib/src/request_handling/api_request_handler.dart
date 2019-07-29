@@ -97,7 +97,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 
     List<int> body;
     try {
-      body = await request.expand<int>((Uint8List chunk) => chunk).toList();
+      body = await request.expand<int>((List<int> chunk) => chunk).toList();
     } catch (error) {
       final HttpResponse response = request.response;
       response

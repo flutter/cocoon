@@ -15,8 +15,8 @@ class LogChunk extends Model {
     this.createTimestamp,
     this.ownerKey,
   }) {
-    parentKey = key.parent;
-    id = key.id;
+    parentKey = key?.parent;
+    id = key?.id;
   }
 
   /// The binary data of the log chunk.

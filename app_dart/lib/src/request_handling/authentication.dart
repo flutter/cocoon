@@ -92,11 +92,9 @@ class AuthenticationProvider {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
       final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final List<Agent> results = await _config.db.lookup<Agent>(<Key>[agentKey]);
-      if (results.isEmpty) {
+      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
-      }
-      final Agent agent = results.single;
+      });
 
       if (!clientContext.isDevelopmentEnvironment) {
         final String agentAuthToken = request.headers.value('Agent-Auth-Token');

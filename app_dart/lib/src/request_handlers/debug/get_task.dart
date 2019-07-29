@@ -16,7 +16,7 @@ import '../../request_handling/authentication.dart';
 import '../../request_handling/body.dart';
 
 @immutable
-class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
+class DebugGetTaskById extends ApiRequestHandler<Body> {
   const DebugGetTaskById(
     Config config,
     AuthenticationProvider authenticationProvider,
@@ -26,7 +26,7 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
   static const String taskIdParam = 'task-id';
 
   @override
-  Future<GetTaskByIdResponse> post() async {
+  Future<Body> post() async {
     checkRequiredParameters(<String>[commitParam, taskIdParam]);
     final Map<String, dynamic> params = requestData;
 
@@ -38,14 +38,14 @@ class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
     }
 
     final Key taskKey = commits.single.key.append(Task, id: int.parse(params[taskIdParam]));
-    final List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
-    if (tasks.isEmpty) {
+    final Task task = await config.db.lookupValue<Task>(taskKey, orElse: () => null);
+    if (task == null) {
       return Body.empty;
     }
 
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: authContext.clientContext.applicationContext);
-    return GetTaskByIdResponse(tasks.single, commits.single, keyHelper);
+    return GetTaskByIdResponse(task, commits.single, keyHelper);
   }
 }
 

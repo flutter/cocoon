@@ -19,8 +19,8 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final List<CocoonConfig> result = await _db.lookup<CocoonConfig>(<Key>[cocoonConfig.key]);
-    return result.single.value;
+    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    return result.value;
   }
 
   DatastoreDB get db => _db;

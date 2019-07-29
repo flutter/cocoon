@@ -36,9 +36,9 @@ class AppendLog extends ApiRequestHandler<Body> {
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
-    if ((await config.db.lookup<Model>(<Key>[ownerKey])).isEmpty) {
+    await config.db.lookupValue<Model>(ownerKey, orElse: () {
       throw InternalServerError('Invalid owner key. Owner entity does not exist');
-    }
+    });
 
     final LogChunk logChunk = LogChunk(
       ownerKey: ownerKey,

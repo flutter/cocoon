@@ -152,8 +152,9 @@ void main() {
       });
 
       test('Looks up agent if not provided in the context', () async {
-        when(db.lookup<Agent>(any)).thenAnswer((Invocation invocation) {
-          return Future<List<Agent>>.value(<Agent>[agent]);
+        tester.context = FakeAuthenticatedContext();
+        when(db.lookupValue<Agent>(any, orElse: anyNamed('orElse'))).thenAnswer((Invocation _) {
+          return Future<Agent>.value(agent);
         });
         when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
           return Future<TaskAndCommit>.value(null);

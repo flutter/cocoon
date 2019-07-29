@@ -28,8 +28,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   static const String taskKeyParam = 'TaskKey';
   static const String newStatusParam = 'NewStatus';
-  static const String resultDataParam = 'ResultData';
-  static const String benchmarkScoreKeysParam = 'BenchmarkScoreKeys';
+  static const String resultsParam = 'ResultData';
+  static const String scoreKeysParam = 'BenchmarkScoreKeys';
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
@@ -38,8 +38,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
-    final Map<String, dynamic> resultData = requestData[resultDataParam];
-    final List<String> benchmarkScoreKeys = requestData[benchmarkScoreKeysParam];
+    final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
+    final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
 
     Key taskKey;
     try {
@@ -49,17 +49,14 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
+      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
-    final List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
-    if (tasks.isEmpty) {
+    final Task task = await config.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
-    }
+    });
 
-    final Task task = tasks.single;
-    final List<Commit> commits = await config.db.lookup<Commit>(<Key>[task.commitKey]);
-    final Commit commit = commits.single;
+    final Commit commit = await config.db.lookupValue<Commit>(task.commitKey);
 
     if (newStatus == Task.statusFailed) {
       // Attempt to de-flake the test.
@@ -83,10 +80,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     // TODO(tvolkert): PushBuildStatusToGithub
 
-    if (newStatus == Task.statusSucceeded && benchmarkScoreKeys.isNotEmpty) {
+    if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
       await config.db.withTransaction<void>((Transaction transaction) async {
         try {
-          for (String scoreKey in benchmarkScoreKeys) {
+          for (String scoreKey in scoreKeys) {
             final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey);
             final num value = resultData[scoreKey];
 
@@ -117,10 +114,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<TimeSeries> _getOrCreateTimeSeries(Task task, String scoreKey) async {
     final String id = '${task.name}.$scoreKey';
     final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    final List<TimeSeries> results = await config.db.lookup<TimeSeries>(<Key>[timeSeriesKey]);
+    TimeSeries series = (await config.db.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
 
-    TimeSeries series;
-    if (results.isEmpty) {
+    if (series == null) {
       series = TimeSeries(
         key: timeSeriesKey,
         timeSeriesId: id,
@@ -132,9 +128,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         transaction.queueMutations(inserts: <TimeSeries>[series]);
         transaction.commit();
       });
-    } else {
-      assert(results.length == 1);
-      series = results.single;
     }
 
     return series;
