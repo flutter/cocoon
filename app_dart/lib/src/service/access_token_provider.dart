@@ -3,13 +3,12 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
 
+/// A provider for Oauth2 tokens from Service Account JSON.
 class AccessTokenProvider {
-  const AccessTokenProvider(this.config);
-
-  final Config config;
+  /// Creates a new Access Token provider.
+  const AccessTokenProvider();
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
   Future<AccessToken> createAccessToken(
@@ -17,10 +16,10 @@ class AccessTokenProvider {
     @required Future<Map<String, dynamic>> serviceAccountJson,
     List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
   }) async {
-    // if (context.isDevelopmentEnvironment) {
-    //   // No auth token needed.
-    //   return null;
-    // }
+    if (context.isDevelopmentEnvironment) {
+      // No auth token needed.
+      return null;
+    }
 
     final Map<String, dynamic> json = await serviceAccountJson;
     final ServiceAccountInfo accountInfo = ServiceAccountInfo.fromJson(json);

@@ -32,7 +32,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ?? TaskProvider(config),
         reservationProvider = reservationProvider ?? ReservationProvider(config),
-        accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
+        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskProvider taskProvider;

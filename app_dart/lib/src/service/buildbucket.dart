@@ -29,8 +29,9 @@ class BuildBucketClient {
     this.config, {
     this.buildBucketUri = kDefaultBuildBucketUri,
     HttpClient httpClient,
-    this.accessTokenProvider,
+    AccessTokenProvider accessTokenProvider,
   })  : assert(buildBucketUri != null),
+        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
         httpClient = httpClient ?? HttpClient();
 
   /// Garbage to prevent browser/JSON parsing exploits.
