@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-abstract class _ContentLengthProvider {
-  int get contentLength;
-}
+typedef ContentLengthProvider = int Function();
 
-class FakeHttpResponse implements HttpResponse, _ContentLengthProvider {
+class FakeHttpResponse implements HttpResponse {
   final StringBuffer _buffer = StringBuffer();
 
   String get body => _buffer.toString();
@@ -99,7 +98,7 @@ class FakeHttpResponse implements HttpResponse, _ContentLengthProvider {
   HttpConnectionInfo get connectionInfo => throw UnsupportedError('Unsupported');
 
   @override
-  FakeHttpHeaders get headers => FakeHttpHeaders(this);
+  FakeHttpHeaders get headers => FakeHttpHeaders(contentLengthProvider: () => contentLength);
 
   @override
   List<Cookie> get cookies => throw UnimplementedError();
@@ -125,9 +124,9 @@ class FakeHttpResponse implements HttpResponse, _ContentLengthProvider {
 }
 
 class FakeHttpHeaders implements HttpHeaders {
-  FakeHttpHeaders(this._contentLengthProvider);
+  FakeHttpHeaders({this.contentLengthProvider});
 
-  final _ContentLengthProvider _contentLengthProvider;
+  final ContentLengthProvider contentLengthProvider;
   final Map<String, List<String>> _values = <String, List<String>>{};
   bool _sealed = false;
 
@@ -144,7 +143,7 @@ class FakeHttpHeaders implements HttpHeaders {
   set chunkedTransferEncoding(bool value) => throw UnsupportedError('Unsupported');
 
   @override
-  int get contentLength => _contentLengthProvider.contentLength;
+  int get contentLength => contentLengthProvider != null ? contentLengthProvider() : -1;
 
   @override
   set contentLength(int value) => throw UnsupportedError('Unsupported');
