@@ -62,7 +62,8 @@ void main() {
     test('empty request body yields empty requestData', () async {
       handler = ReadParams();
       final HttpClientResponse response = await issueRequest();
-      expect(response.headers.value('X-Test-Params'), '{}');
+      expect(response.headers.value('X-Test-RequestBody'), '[]');
+      expect(response.headers.value('X-Test-RequestData'), '{}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
       expect(serverOutput.toString(), isEmpty);
@@ -71,17 +72,20 @@ void main() {
     test('JSON request body yields valid requestData', () async {
       handler = ReadParams();
       final HttpClientResponse response = await issueRequest(body: '{"param1":"value1"}');
-      expect(response.headers.value('X-Test-Params'), '{param1: value1}');
+      expect(response.headers.value('X-Test-RequestBody'), isNotEmpty);
+      expect(response.headers.value('X-Test-RequestData'), '{param1: value1}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
       expect(serverOutput.toString(), isEmpty);
     });
 
-    test('non-JSON request body yields HTTP bad request', () async {
+    test('non-JSON request body yields HTTP ok', () async {
       handler = ReadParams();
-      final HttpClientResponse response = await issueRequest(body: 'malformed content');
-      expect(response.statusCode, HttpStatus.badRequest);
-      expect(await utf8.decoder.bind(response).join(), contains('FormatException'));
+      final HttpClientResponse response = await issueRequest(body: 'abc');
+      expect(response.statusCode, HttpStatus.ok);
+      expect(response.headers.value('X-Test-RequestBody'), '[97, 98, 99]');
+      expect(response.headers.value('X-Test-RequestData'), '{}');
+      expect(await response.toList(), isEmpty);
       expect(serverOutput.toString(), isEmpty);
     });
 
@@ -134,7 +138,8 @@ class ReadParams extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-Params', requestData.toString());
+    response.headers.add('X-Test-RequestBody', requestBody.toString());
+    response.headers.add('X-Test-RequestData', requestData.toString());
     return Body.empty;
   }
 }

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 export 'src/datastore/cocoon_config.dart';
+export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/debug/get_task.dart';
 export 'src/request_handlers/debug/reset_pending_tasks.dart';
 export 'src/request_handlers/github_webhook.dart';
