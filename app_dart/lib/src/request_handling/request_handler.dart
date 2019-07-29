@@ -135,7 +135,7 @@ abstract class RequestHandler<T extends Body> {
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
   Future<T> post() {
-    throw MethodNotAllowed('POST');
+    throw const MethodNotAllowed('POST');
   }
 }
 

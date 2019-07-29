@@ -53,7 +53,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     } else {
       final String agentId = params['AgentID'];
       if (agentId == null) {
-        throw BadRequestException('AgentID not specified in request');
+        throw const BadRequestException('AgentID not specified in request');
       }
       final Key key = config.db.emptyKey.append(Agent, id: agentId);
       final List<Agent> results = await config.db.lookup<Agent>(<Key>[key]);

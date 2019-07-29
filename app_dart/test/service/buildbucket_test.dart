@@ -64,6 +64,7 @@ void main() {
 
       expect(mockHttpRequest.headers.value('content-type'), 'application/json');
       expect(mockHttpRequest.headers.value('accept'), 'application/json');
+      expect(mockHttpRequest.headers.value('authorization'), 'Bearer data');
       verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
       return result;
     }
