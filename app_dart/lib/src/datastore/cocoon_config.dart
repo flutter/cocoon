@@ -42,6 +42,8 @@ class Config {
 
   Future<int> get maxTaskRetries => _getSingleValue('MaxTaskRetries').then(int.parse);
 
+  Future<String> get cqLabelName => _getSingleValue('CqLabelName');
+
   Future<Map<String, dynamic>> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return json.decode(rawValue);

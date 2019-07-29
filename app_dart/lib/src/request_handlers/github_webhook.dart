@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -14,16 +16,19 @@ import '../github.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config) : super(config: config);
+  const GithubWebhook(Config config, this.clientContext) : super(config: config);
+
+  final ClientContext clientContext;
 
   @override
   Future<Body> post() async {
-    if (request.headers.value('X-GitHub-Event') != 'pull_request' ||
-        request.headers.value('X-Hub-Signature') == null) {
-      throw BadRequestException('Missing required headers.');
+    final String gitHubEvent = request.headers.value('X-GitHub-Event');
+    if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
+      throw const BadRequestException('Missing required headers.');
     }
 
     final List<int> requestBytes = await request.expand((_) => _).toList();
@@ -34,13 +39,77 @@ class GithubWebhook extends RequestHandler<Body> {
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
-      final PullRequestEvent event = await getPullRequest(stringRequest);
-      if (event == null) {
-        throw BadRequestException();
+
+      switch (gitHubEvent) {
+        case 'pull_request':
+          return _handlePullRequest(await getPullRequest(stringRequest));
+        case 'push':
+        default:
+          return Body.empty;
       }
-      if (event.action != 'opened' && event.action != 'reopened') {
+    } on FormatException {
+      throw const BadRequestException();
+    }
+  }
+
+  Future<Body> _handlePullRequest(PullRequestEvent event) async {
+    if (event == null) {
+      throw const BadRequestException();
+    }
+    switch (event.action) {
+      case 'opened':
+      case 'reopened':
+        return await _checkForLabelsAndTests(event);
+      case 'labeled':
+        if (event.pullRequest.mergeable == true) {
+          return await _onLabeledPullRequest(event);
+        }
         return Body.empty;
+      case 'closed':
+      case 'unlabeled':
+        return await _maybeStopLUCI(event);
+      case 'assigned':
+      case 'unassigned':
+      case 'review_requested':
+      case 'review_request_removed':
+      case 'edited':
+      case 'ready_for_review':
+      case 'locked':
+      case 'unlocked':
+      default:
+        return Body.empty;
+    }
+  }
+
+  Future<Body> _onLabeledPullRequest(PullRequestEvent event) async {
+    final GitHub gitHubClient = await config.createGitHubClient();
+    try {
+      final RepositorySlug slug = event.repository.slug();
+      final String cqLabelName = await config.cqLabelName;
+      await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, event.number)) {
+        if (label.name == cqLabelName) {
+          _maybeScheduleLuci(event.number, event.pullRequest.mergeCommitSha);
+          break;
+        }
       }
+    } finally {
+      gitHubClient.dispose();
+    }
+    return Body.empty;
+  }
+
+  Future<void> _maybeScheduleLuci(int number, String sha) {
+    final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext, config);
+
+    final SearchBuildsResponse builds = buildBucketClient.searchBuilds(SearchBuildsRequest(predicate: BuildPredicate(builderId: )))
+  }
+
+  Future<bool> _checkForCQLabel(int issueNumber) async {}
+
+  Future<Body> _maybeStopLUCI(PullRequestEvent event) async {}
+
+  Future<Body> _checkForLabelsAndTests(PullRequestEvent event) async {
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _checkBaseRef(gitHubClient, event);
@@ -48,10 +117,8 @@ class GithubWebhook extends RequestHandler<Body> {
       } finally {
         gitHubClient.dispose();
       }
-      return Body.empty;
-    } on FormatException {
-      throw BadRequestException();
     }
+    return Body.empty;
   }
 
   Future<void> _applyLabels(GitHub gitHubClient, PullRequestEvent event) async {

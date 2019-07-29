@@ -64,4 +64,7 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get webhookKey async => webhookKeyValue;
+
+  @override
+  Future<String> get cqLabelName => throw UnimplementedError();
 }
