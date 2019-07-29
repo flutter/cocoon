@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 
+import 'body.dart';
 import 'request_handler.dart';
 
 /// A [RequestHandler] that acts as a proxy for another backend.
@@ -16,7 +17,7 @@ import 'request_handler.dart';
 /// All requests handled by this request handler will be forwarded (unmodified)
 /// to the specified backend.
 @immutable
-class ProxyRequestHandler extends RequestHandler {
+class ProxyRequestHandler extends RequestHandler<Body> {
   /// Creates a new [ProxyRequestHandler].
   const ProxyRequestHandler({
     @required Config config,

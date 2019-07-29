@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
@@ -12,47 +11,35 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../github.dart';
+import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 
 @immutable
-class GithubWebhook extends RequestHandler {
+class GithubWebhook extends RequestHandler<Body> {
   const GithubWebhook(Config config) : super(config: config);
 
   @override
-  Future<void> post(HttpRequest request, HttpResponse response) async {
+  Future<Body> post() async {
     if (request.headers.value('X-GitHub-Event') != 'pull_request' ||
         request.headers.value('X-Hub-Signature') == null) {
-      response
-        ..statusCode = HttpStatus.badRequest
-        ..write('Missing required headers.');
-      await response.flush();
-      await response.close();
-      return;
+      throw BadRequestException('Missing required headers.');
     }
 
     final List<int> requestBytes = await request.expand((_) => _).toList();
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
-      response.statusCode = HttpStatus.forbidden;
-      await response.flush();
-      await response.close();
-      return;
+      throw Forbidden();
     }
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
       final PullRequestEvent event = await getPullRequest(stringRequest);
       if (event == null) {
-        response.statusCode = HttpStatus.badRequest;
-        await response.flush();
-        await response.close();
-        return;
+        throw BadRequestException();
       }
       if (event.action != 'opened' && event.action != 'reopened') {
-        response.statusCode = HttpStatus.ok;
-        await response.flush();
-        await response.close();
-        return;
+        return Body.empty;
       }
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
@@ -61,14 +48,9 @@ class GithubWebhook extends RequestHandler {
       } finally {
         gitHubClient.dispose();
       }
-      response.statusCode = HttpStatus.ok;
-      await response.flush();
-      await response.close();
+      return Body.empty;
     } on FormatException {
-      response.statusCode = HttpStatus.badRequest;
-      await response.flush();
-      await response.close();
-      return;
+      throw BadRequestException();
     }
   }
 

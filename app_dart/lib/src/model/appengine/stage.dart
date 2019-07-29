@@ -79,8 +79,7 @@ class Stage implements Comparable<Stage> {
 
   @override
   String toString() {
-    final StringBuffer buf = StringBuffer();
-    buf
+    final StringBuffer buf = StringBuffer()
       ..write('$runtimeType(')
       ..write('name: $name')
       ..write(', commit: ${commit?.sha}')

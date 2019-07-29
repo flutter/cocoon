@@ -7,15 +7,22 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handling/api_response.dart';
+import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
+    MockAccessTokenProvider mockAccessTokenProvider;
+    MockConfig mockConfig;
+
     const BuilderId builderId = BuilderId(
       bucket: 'prod',
       builder: 'Linux',
@@ -24,17 +31,27 @@ void main() {
 
     setUp(() {
       mockHttpClient = MockHttpClient();
+      mockAccessTokenProvider = MockAccessTokenProvider();
+      mockConfig = MockConfig();
     });
 
-    Future<T> _httpTest<R extends ApiResponse, T>(
+    Future<T> _httpTest<R extends Body, T>(
       R request,
       String response,
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
+      when(mockAccessTokenProvider.createAccessToken(any,
+              serviceAccountJson: anyNamed('serviceAccountJson'), scopes: anyNamed('scopes')))
+          .thenAnswer((_) async {
+        return AccessToken('Bearer', 'data', DateTime.utc(2119));
+      });
       final BuildBucketClient client = BuildBucketClient(
+        FakeClientContext(),
+        mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
+        accessTokenProvider: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
@@ -51,8 +68,10 @@ void main() {
       return result;
     }
 
-    test('Throws the right exception',  () async {
+    test('Throws the right exception', () async {
       final BuildBucketClient client = BuildBucketClient(
+        FakeClientContext(),
+        mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
       );
@@ -315,3 +334,25 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
         .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
+
+class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
+
+class FakeClientContext implements ClientContext {
+  @override
+  AppEngineContext get applicationContext => null;
+
+  @override
+  bool get isDevelopmentEnvironment => false;
+
+  @override
+  bool get isProductionEnvironment => false;
+
+  @override
+  Services get services => null;
+
+  @override
+  String get traceId => null;
+}
+
+// ignore: must_be_immutable
+class MockConfig extends Mock implements Config {}

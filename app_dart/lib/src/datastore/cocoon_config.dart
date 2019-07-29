@@ -40,6 +40,8 @@ class Config {
 
   Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
 
+  Future<int> get maxTaskRetries => _getSingleValue('MaxTaskRetries').then(int.parse);
+
   Future<Map<String, dynamic>> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return json.decode(rawValue);

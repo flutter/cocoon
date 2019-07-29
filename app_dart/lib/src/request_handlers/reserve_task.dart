@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
@@ -15,44 +16,42 @@ import '../model/appengine/key_helper.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/api_response.dart';
+import '../request_handling/authentication.dart';
+import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/request_context.dart';
 import '../service/access_token_provider.dart';
 
 /// Reserves a pending task so that an agent may run the task.
 @immutable
 class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
   ReserveTask(
-    Config config, {
+    Config config,
+    AuthenticationProvider authenticationProvider, {
     @visibleForTesting TaskProvider taskProvider,
     @visibleForTesting ReservationProvider reservationProvider,
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ?? TaskProvider(config),
         reservationProvider = reservationProvider ?? ReservationProvider(config),
         accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
-        super(config: config);
+        super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskProvider taskProvider;
   final ReservationProvider reservationProvider;
   final AccessTokenProvider accessTokenProvider;
 
   @override
-  Future<ReserveTaskResponse> handleApiRequest(
-    RequestContext context,
-    Map<String, dynamic> request,
-  ) async {
-    Agent agent;
-    if (context.agent != null) {
-      agent = context.agent;
-      if (agent.agentId != request['AgentID']) {
+  Future<ReserveTaskResponse> post() async {
+    final Map<String, dynamic> params = requestData;
+    Agent agent = authContext.agent;
+    if (agent != null) {
+      if (agent.agentId != params['AgentID']) {
         throw BadRequestException(
           'Authenticated agent (${agent.agentId}) does not match agent '
-          'supplied in the request (${request['AgentID']})',
+          'supplied in the request (${params['AgentID']})',
         );
       }
     } else {
-      final String agentId = request['AgentID'];
+      final String agentId = params['AgentID'];
       if (agentId == null) {
         throw BadRequestException('AgentID not specified in request');
       }
@@ -70,13 +69,13 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
       try {
         await reservationProvider.secureReservation(task.task, agent.id);
+        final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
-          context.clientContext,
+          clientContext,
           serviceAccountJson: config.deviceLabServiceAccount,
           scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         );
-        final KeyHelper keyHelper =
-            KeyHelper(applicationContext: context.clientContext.applicationContext);
+        final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
@@ -87,7 +86,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 }
 
 @immutable
-class ReserveTaskResponse extends ApiResponse {
+class ReserveTaskResponse extends Body {
   const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),

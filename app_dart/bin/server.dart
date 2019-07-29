@@ -7,19 +7,23 @@ import 'dart:io';
 import 'package:cocoon_service/cocoon_service.dart';
 
 import 'package:appengine/appengine.dart';
+import 'package:appengine/appengine.dart' as gae show context;
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
     final Config config = Config(dbService);
-    final Map<String, RequestHandler> handlers = <String, RequestHandler>{
+    final AuthenticationProvider authProvider = AuthenticationProvider(config, () => gae.context);
+
+    final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/github-webhook-pullrequest': GithubWebhook(config),
-      '/api/reserve-task': ReserveTask(config),
-      '/api/debug/get-task-by-id': DebugGetTaskById(config),
-      '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config),
+      '/api/reserve-task': ReserveTask(config, authProvider),
+      '/api/update-task-status': UpdateTaskStatus(config, authProvider),
+      '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
+      '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
     };
 
-    final RequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
+    final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
       config: config,
       scheme: await config.forwardScheme,
       host: await config.forwardHost,
@@ -27,7 +31,7 @@ Future<void> main() async {
     );
 
     return await runAppEngine((HttpRequest request) async {
-      final RequestHandler handler = handlers[request.uri.path];
+      final RequestHandler<dynamic> handler = handlers[request.uri.path];
       if (handler != null) {
         await handler.service(request);
       } else {

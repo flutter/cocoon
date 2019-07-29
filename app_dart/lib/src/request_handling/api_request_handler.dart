@@ -6,143 +6,107 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart' as gae;
-import 'package:dbcrypt/dbcrypt.dart';
-import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/agent.dart';
-import '../model/appengine/whitelisted_account.dart';
 
-import 'api_response.dart';
+import 'authentication.dart';
+import 'body.dart';
 import 'exceptions.dart';
-import 'request_context.dart';
 import 'request_handler.dart';
 
 /// A [RequestHandler] that handles API requests.
 ///
 /// API requests adhere to a specific contract, as follows:
 ///
-///  * They support HTTP POST only.
-///  * If any request body is specified, it must be specified as a JSON-encoded
-///    map.
-///  * All requests must be authenticated, either as:
-///    * An agent
-///    * An AppEngine cronjob
-///    * A user with a "@google.com" email address or a whitelisted email
-///      address (see [WhitelistedAccount]).
+///  * If a request body is specified, it must be encoded as a JSON map.
+///  * All requests must be authenticated per [AuthenticationProvider].
 ///
-/// [ApiRequestHandler] instances are special-case [RequestHandler]s. Subclasses
-/// should not override [get] or [post], but instead implement the
-/// [handleApiRequest] method, which codifies the API request handler contract
-/// defined above.
-///
-/// `T` is the type of response that is returned in [handleApiRequest].
+/// `T` is the type of object that is returned as the body of the HTTP response
+/// (before serialization). Subclasses whose HTTP responses don't include a
+/// body should extend `RequestHandler<Body>` and return null in their service
+/// handlers ([get] and [post]).
 @immutable
-abstract class ApiRequestHandler<T extends ApiResponse> extends RequestHandler {
+abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [ApiRequestHandler].
   const ApiRequestHandler({
     @required Config config,
-  }) : super(config: config);
+    @required this.authenticationProvider,
+  })  : assert(authenticationProvider != null),
+        super(config: config);
 
-  /// Handles an API request, and returns the corresponding API response.
-  ///
-  /// The [request] argument is the JSON deserialized body of the HTTP request,
-  /// if such a body was specified.
-  ///
-  /// The [context] argument contains information such as the authentication
-  /// credentials of the request. All API requests are authenticated, but some
-  /// contain extra authentication information, such as which [Agent] is making
-  /// the request.
-  @protected
-  Future<T> handleApiRequest(RequestContext context, Map<String, dynamic> request);
+  /// The object responsible for authenticating requests, guaranteed to be
+  /// non-null.
+  final AuthenticationProvider authenticationProvider;
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing
-  /// from  [request].
+  /// from [requestData].
   @protected
-  void checkRequiredParameters(Map<String, dynamic> request, List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(request.containsKey);
+  void checkRequiredParameters(List<String> requiredParameters) {
+    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
   }
 
-  /// Services an API request.
+  /// The authentication context associated with the HTTP request.
   ///
-  /// This first authenticates the request and JSON deserializes the request
-  /// body (as a [Map<String, dynamic>]), then it calls the [handleApiRequest]
-  /// handler, which subclasses are responsible for implementing.
+  /// This is guaranteed to be non-null. If the request was unauthenticated,
+  /// the request will be denied.
+  @protected
+  AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext);
+
+  /// The JSON data specified in the HTTP request body.
+  ///
+  /// This is guaranteed to be non-null. If the request body was empty, this
+  /// will be an empty map.
+  @protected
+  Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
+
   @override
-  Future<void> post(HttpRequest request, HttpResponse response) async {
-    final RequestContext context = await _getRequestContext(request);
-    final Map<String, dynamic> body =
-        await utf8.decoder.bind(request).transform(json.decoder).cast<Map<String, dynamic>>().first;
-
-    final T apiResponse = await handleApiRequest(context, body.cast<String, dynamic>());
-    response
-      ..statusCode = HttpStatus.ok
-      ..write(json.encode(apiResponse));
-    await response.flush();
-    await response.close();
-  }
-
-  Future<RequestContext> _getRequestContext(HttpRequest request) async {
-    final String agentId = request.headers.value('Agent-ID');
-    final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-
-    if (agentId != null) {
-      // Authenticate as an agent. Note that it could simultaneously be cron
-      // and agent, or Google account and agent.
-      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
-      final List<Agent> results = await config.db.lookup<Agent>(<Key>[agentKey]);
-      if (results.isEmpty) {
-        throw Unauthorized('Invalid agent: $agentId');
-      }
-      final Agent agent = results.single;
-
-      if (!gae.context.isDevelopmentEnvironment) {
-        final String agentAuthToken = request.headers.value('Agent-Auth-Token');
-        if (agentAuthToken == null) {
-          throw Unauthorized('Missing required HTTP header: Agent-Auth-Token');
-        }
-        if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
-          throw Unauthorized('Invalid agent: $agentId');
-        }
-      }
-
-      return RequestContext(agent: agent);
-    } else if (isCron) {
-      // Authenticate cron requests that are not agents.
-      return const RequestContext();
-    } else {
-      // Authenticate as a signed-in Google account.
-      final String email = request.headers.value('X-AppEngine-User-Email');
-
-      if (email == null) {
-        throw Unauthorized('User is not signed in');
-      }
-
-      if (!email.endsWith('@google.com')) {
-        final Query<WhitelistedAccount> query = config.db.query<WhitelistedAccount>()
-          ..filter('Email =', email)
-          ..limit(20);
-
-        if (await query.run().isEmpty) {
-          throw Unauthorized('$email is not authorized to access the dashboard');
-        }
-      }
-
-      return const RequestContext();
+  Future<void> service(HttpRequest request) async {
+    AuthenticatedContext context;
+    try {
+      context = await authenticationProvider.authenticate(request);
+    } on Unauthenticated catch (error) {
+      final HttpResponse response = request.response;
+      response
+        ..statusCode = HttpStatus.unauthorized
+        ..write(error.message);
+      await response.flush();
+      await response.close();
+      return;
     }
-  }
 
-  // This method is expensive (run time of ~1,500ms!). If the server starts
-  // handling any meaningful API traffic, we should move request processing
-  // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
-    final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
-    final DBCrypt crypt = DBCrypt();
-    return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
+    Map<String, dynamic> requestData;
+    try {
+      final String body = await utf8.decoder.bind(request).join();
+      requestData = body.isEmpty ? const <String, dynamic>{} : json.decode(body);
+    } catch (error) {
+      final HttpResponse response = request.response;
+      response
+        ..statusCode = HttpStatus.badRequest
+        ..write('$error');
+      await response.flush();
+      await response.close();
+      return;
+    }
+
+    await runZoned<Future<void>>(() async {
+      await super.service(request);
+    }, zoneValues: <ApiKey<dynamic>, Object>{
+      ApiKey.authContext: context,
+      ApiKey.requestData: requestData,
+    });
   }
+}
+
+@visibleForTesting
+class ApiKey<T> extends RequestKey<T> {
+  const ApiKey._(String name) : super(name);
+
+  static const ApiKey<AuthenticatedContext> authContext =
+      ApiKey<AuthenticatedContext>._('authenticatedContext');
+  static const ApiKey<Map<String, dynamic>> requestData =
+      ApiKey<Map<String, dynamic>>._('requestData');
 }

@@ -11,7 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/luci/buildbucket.dart';
-import '../request_handling/api_response.dart';
+import '../request_handling/body.dart';
 import 'access_token_provider.dart';
 
 /// A client interface to LUCI BuildBucket
@@ -57,7 +57,7 @@ class BuildBucketClient {
   /// The token provider for oauth2 requests.
   final AccessTokenProvider accessTokenProvider;
 
-  Future<T> _postRequest<S extends ApiResponse, T>(
+  Future<T> _postRequest<S extends Body, T>(
     String path,
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),
@@ -78,7 +78,6 @@ class BuildBucketClient {
           'https://www.googleapis.com/auth/userinfo.email',
         ]
       );
-      print(token);
       httpRequest.headers.add('authorization', '${token.type} ${token.data}');
     }
     httpRequest.write(json.encode(request.toJson()));

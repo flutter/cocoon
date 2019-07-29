@@ -12,44 +12,45 @@ import '../../model/appengine/commit.dart';
 import '../../model/appengine/key_helper.dart';
 import '../../model/appengine/task.dart';
 import '../../request_handling/api_request_handler.dart';
-import '../../request_handling/api_response.dart';
-import '../../request_handling/request_context.dart';
+import '../../request_handling/authentication.dart';
+import '../../request_handling/body.dart';
 
 @immutable
 class DebugGetTaskById extends ApiRequestHandler<GetTaskByIdResponse> {
-  const DebugGetTaskById(Config config) : super(config: config);
+  const DebugGetTaskById(
+    Config config,
+    AuthenticationProvider authenticationProvider,
+  ) : super(config: config, authenticationProvider: authenticationProvider);
 
   static const String commitParam = 'commit';
   static const String taskIdParam = 'task-id';
 
   @override
-  Future<GetTaskByIdResponse> handleApiRequest(
-    RequestContext context,
-    Map<String, dynamic> request,
-  ) async {
-    checkRequiredParameters(request, <String>[commitParam, taskIdParam]);
+  Future<GetTaskByIdResponse> post() async {
+    checkRequiredParameters(<String>[commitParam, taskIdParam]);
+    final Map<String, dynamic> params = requestData;
 
-    final Query<Commit> query = config.db.query()..filter('sha =', request[commitParam]);
+    final Query<Commit> query = config.db.query()..filter('sha =', params[commitParam]);
     final List<Commit> commits = await query.run().toList();
     assert(commits.length <= 1);
     if (commits.isEmpty) {
-      return null;
+      return Body.empty;
     }
 
-    final Key taskKey = commits.single.key.append(Task, id: int.parse(request[taskIdParam]));
+    final Key taskKey = commits.single.key.append(Task, id: int.parse(params[taskIdParam]));
     final List<Task> tasks = await config.db.lookup<Task>(<Key>[taskKey]);
     if (tasks.isEmpty) {
-      return null;
+      return Body.empty;
     }
 
     final KeyHelper keyHelper =
-        KeyHelper(applicationContext: context.clientContext.applicationContext);
+        KeyHelper(applicationContext: authContext.clientContext.applicationContext);
     return GetTaskByIdResponse(tasks.single, commits.single, keyHelper);
   }
 }
 
 @immutable
-class GetTaskByIdResponse extends ApiResponse {
+class GetTaskByIdResponse extends Body {
   const GetTaskByIdResponse(this.task, this.commit, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
