@@ -14,7 +14,13 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'WhitelistedAccount')
 class WhitelistedAccount extends Model {
   /// Creates a new [WhitelistedAccount].
-  WhitelistedAccount({this.email});
+  WhitelistedAccount({
+    Key key,
+    this.email,
+  }) {
+    parentKey = key.parent;
+    id = key.id;
+  }
 
   /// The email address of the account that has been whitelisted.
   @StringProperty(propertyName: 'Email', required: true)

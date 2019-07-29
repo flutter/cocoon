@@ -9,12 +9,16 @@ import 'package:gcloud/db.dart';
 @Kind(name: 'Checklist', idType: IdType.String)
 class Commit extends Model {
   Commit({
+    Key key,
     this.timestamp,
     this.sha,
     this.author,
     this.authorAvatarUrl,
     this.repository,
-  });
+  }) {
+    parentKey = key?.parent;
+    id = key?.id;
+  }
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.

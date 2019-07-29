@@ -12,6 +12,7 @@ import 'package:gcloud/db.dart';
 class Task extends Model {
   /// Creates a new [Task].
   Task({
+    Key key,
     this.commitKey,
     this.createTimestamp,
     this.startTimestamp,
@@ -28,7 +29,12 @@ class Task extends Model {
     if (status != null && !legalStatusValues.contains(status)) {
       throw ArgumentError('Invalid state: "$status"');
     }
+    parentKey = key?.parent;
+    id = key?.id;
   }
+
+  /// The number of failed attempts before we give up.
+  static const int maxAttempts = 2;
 
   /// The task is yet to be run.
   static const String statusNew = 'New';
