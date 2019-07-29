@@ -66,8 +66,10 @@ class BuildBucketClient {
     final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
     final HttpClientRequest httpRequest = await client.postUrl(url);
+
     httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
     httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
+
     final AccessToken token = await accessTokenProvider.createAccessToken(
       context,
       serviceAccountJson: await config.deviceLabServiceAccount,
@@ -77,7 +79,10 @@ class BuildBucketClient {
         'https://www.googleapis.com/auth/userinfo.email',
       ],
     );
-    httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+    if (token != null) {
+      httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+    }
+
     httpRequest.write(json.encode(request.toJson()));
     await httpRequest.flush();
     final HttpClientResponse response = await httpRequest.close();
