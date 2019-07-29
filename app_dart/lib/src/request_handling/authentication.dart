@@ -138,7 +138,12 @@ class AuthenticationProvider {
   static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
-    return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
+    try {
+      return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
+    } on String catch (error) {
+      // The bcrypt password hash in the cloud datastore is invalid.
+      throw InternalServerError(error);
+    }
   }
 }
 

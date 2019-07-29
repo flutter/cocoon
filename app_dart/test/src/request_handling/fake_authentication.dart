@@ -56,10 +56,10 @@ class FakeClientContext implements ClientContext {
   AppEngineContext applicationContext;
 
   @override
-  bool isDevelopmentEnvironment = true;
+  bool isDevelopmentEnvironment;
 
   @override
-  bool isProductionEnvironment = false;
+  bool isProductionEnvironment;
 
   @override
   Services services;

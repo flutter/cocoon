@@ -23,7 +23,7 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<Body> post() async {
     if (request.headers.value('X-GitHub-Event') != 'pull_request' ||
         request.headers.value('X-Hub-Signature') == null) {
-      throw BadRequestException('Missing required headers.');
+      throw const BadRequestException('Missing required headers.');
     }
 
     final List<int> requestBytes = await request.expand((_) => _).toList();
@@ -36,7 +36,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final String stringRequest = utf8.decode(requestBytes);
       final PullRequestEvent event = await getPullRequest(stringRequest);
       if (event == null) {
-        throw BadRequestException();
+        throw const BadRequestException();
       }
       if (event.action != 'opened' && event.action != 'reopened') {
         return Body.empty;
@@ -50,7 +50,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       return Body.empty;
     } on FormatException {
-      throw BadRequestException();
+      throw const BadRequestException();
     }
   }
 
