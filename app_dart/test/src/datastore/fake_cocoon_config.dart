@@ -6,12 +6,15 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/src/common.dart';
+
+import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
 class FakeConfig implements Config {
   FakeConfig({
+    this.githubClient,
+    this.dbValue,
     this.deviceLabServiceAccountValue,
     this.forwardHostValue,
     this.forwardPortValue,
@@ -21,9 +24,13 @@ class FakeConfig implements Config {
     this.missingTestsPullRequestMessageValue,
     this.nonMasterPullRequestMessageValue,
     this.webhookKeyValue,
-  });
+  }) {
+    dbValue ??= FakeDatastoreDB();
+  }
 
   ServiceAccountInfo deviceLabServiceAccountValue;
+  GitHub githubClient;
+  FakeDatastoreDB dbValue;
   String forwardHostValue;
   int forwardPortValue;
   String forwardSchemeValue;
@@ -34,10 +41,10 @@ class FakeConfig implements Config {
   String webhookKeyValue;
 
   @override
-  Future<GitHub> createGitHubClient() => throw UnimplementedError();
+  Future<GitHub> createGitHubClient() async => githubClient;
 
   @override
-  DatastoreDB get db => throw UnimplementedError();
+  FakeDatastoreDB get db => dbValue;
 
   @override
   Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
