@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:github/src/common.dart';
 
 import 'fake_datastore.dart';
@@ -27,9 +28,9 @@ class FakeConfig implements Config {
     dbValue ??= FakeDatastoreDB();
   }
 
+  ServiceAccountInfo deviceLabServiceAccountValue;
   GitHub githubClient;
   FakeDatastoreDB dbValue;
-  Map<String, dynamic> deviceLabServiceAccountValue;
   String forwardHostValue;
   int forwardPortValue;
   String forwardSchemeValue;
@@ -46,7 +47,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB get db => dbValue;
 
   @override
-  Future<Map<String, dynamic>> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
 
   @override
   Future<String> get forwardHost async => forwardHostValue;
@@ -71,4 +72,7 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get webhookKey async => webhookKeyValue;
+
+  @override
+  Future<String> get cqLabelName => throw UnimplementedError();
 }

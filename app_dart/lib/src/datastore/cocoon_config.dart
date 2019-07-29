@@ -9,6 +9,8 @@ import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
 import 'package:meta/meta.dart';
 
+import '../model/appengine/service_account_info.dart';
+
 @immutable
 class Config {
   const Config(this._db) : assert(_db != null);
@@ -42,9 +44,11 @@ class Config {
 
   Future<int> get maxTaskRetries => _getSingleValue('MaxTaskRetries').then(int.parse);
 
-  Future<Map<String, dynamic>> get deviceLabServiceAccount async {
+  Future<String> get cqLabelName => _getSingleValue('CqLabelName');
+
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return json.decode(rawValue);
+    return ServiceAccountInfo.fromJson(json.decode(rawValue));
   }
 
   Future<GitHub> createGitHubClient() async {
