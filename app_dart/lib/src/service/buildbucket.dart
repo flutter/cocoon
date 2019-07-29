@@ -62,7 +62,6 @@ class BuildBucketClient {
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),
   ) async {
-
     final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
     final HttpClientRequest httpRequest = await client.postUrl(url);
@@ -76,7 +75,7 @@ class BuildBucketClient {
           'openid',
           'https://www.googleapis.com/auth/userinfo.profile',
           'https://www.googleapis.com/auth/userinfo.email',
-        ]
+        ],
       );
       httpRequest.headers.add('authorization', '${token.type} ${token.data}');
     }

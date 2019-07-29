@@ -149,7 +149,7 @@ class ThrowsHttpException extends RequestHandler<Body> {
   ThrowsHttpException() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => throw BadRequestException();
+  Future<Body> get() async => throw const BadRequestException();
 }
 
 class ThrowsStateError extends RequestHandler<Body> {
