@@ -71,11 +71,17 @@ void main() {
     }
 
     test('Throws the right exception', () async {
+      when(mockAccessTokenProvider.createAccessToken(any,
+              serviceAccountJson: anyNamed('serviceAccountJson'), scopes: anyNamed('scopes')))
+          .thenAnswer((_) async {
+        return AccessToken('Bearer', 'data', DateTime.utc(2119));
+      });
       final BuildBucketClient client = BuildBucketClient(
         FakeClientContext(isDevelopmentEnvironment: false),
         mockConfig,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
+        accessTokenProvider: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode('Error'));
