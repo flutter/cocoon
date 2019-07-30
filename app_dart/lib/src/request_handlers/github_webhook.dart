@@ -63,12 +63,17 @@ class GithubWebhook extends RequestHandler<Body> {
         return await _checkForLabelsAndTests(event);
       case 'labeled':
         if (event.pullRequest.mergeable == true) {
-          return await _onLabeledPullRequest(event);
+          await _onLabeledPullRequest(event);
         }
-        return Body.empty;
+        break;
       case 'closed':
+        await _cancelLuci(event.repository.name, event.number);
+        break;
       case 'unlabeled':
-        return await _maybeStopLUCI(event);
+        if (!await _checkForCqLabel(event.repository.slug(), event.number)) {
+          await _cancelLuci(event.repository.name, event.number);
+        }
+        break;
       case 'assigned':
       case 'unassigned':
       case 'review_requested':
@@ -77,39 +82,26 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'ready_for_review':
       case 'locked':
       case 'unlocked':
-      default:
-        return Body.empty;
-    }
-  }
-
-  Future<Body> _onLabeledPullRequest(PullRequestEvent event) async {
-    final GitHub gitHubClient = await config.createGitHubClient();
-    try {
-      final RepositorySlug slug = event.repository.slug();
-      final String cqLabelName = await config.cqLabelName;
-      await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, event.number)) {
-        if (label.name == cqLabelName) {
-          _maybeScheduleLuci(event.number, event.pullRequest.mergeCommitSha, event.repository.name);
-          break;
-        }
-      }
-    } finally {
-      gitHubClient.dispose();
     }
     return Body.empty;
   }
 
-  Future<void> _maybeScheduleLuci(int number, String sha, String repositoryName) async {
-    if (repositoryName != 'flutter' || repositoryName != 'engine') {
-      throw BadRequestException('Repository $repositoryName is not supported by this service.');
+  Future<void> _onLabeledPullRequest(PullRequestEvent event) async {
+    if (await _checkForCqLabel(event.repository.slug(), event.number)) {
+      _scheduleLuci(
+        number: event.number,
+        repositoryName: event.repository.name,
+      );
     }
-    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
-    final BuildBucketClient buildBucketClient = BuildBucketClient(
-      clientContext,
-      serviceAccount: serviceAccount,
-    );
+  }
 
-    final SearchBuildsResponse builds = await buildBucketClient.searchBuilds(
+  Future<List<Build>> _buildsForRepositoryAndPr(
+    String repositoryName,
+    int number,
+    BuildBucketClient buildBucketClient,
+    ServiceAccountInfo serviceAccount,
+  ) async {
+    final SearchBuildsResponse response = await buildBucketClient.searchBuilds(
       SearchBuildsRequest(
         predicate: BuildPredicate(
           builderId: BuilderId(
@@ -118,16 +110,110 @@ class GithubWebhook extends RequestHandler<Body> {
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
-            'pr': <String>['asdf'],
+            'pr': <String>[number.toString()],
           },
         ),
       ),
     );
+    buildBucketClient.close();
+    return response.builds;
   }
 
-  Future<bool> _checkForCQLabel(int issueNumber) async {}
+  Future<bool> _scheduleLuci({
+    int number,
+    String repositoryName,
+    bool force = false,
+  }) async {
+    assert(force != null);
+    if (repositoryName != 'flutter' || repositoryName != 'engine') {
+      throw BadRequestException('Repository $repositoryName is not supported by this service.');
+    }
+    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final BuildBucketClient buildBucketClient = BuildBucketClient(
+      clientContext,
+      serviceAccount: serviceAccount,
+    );
+    bool shouldScheduleBuilds = force;
+    if (!shouldScheduleBuilds) {
+      final List<Build> builds = await _buildsForRepositoryAndPr(
+        repositoryName,
+        number,
+        buildBucketClient,
+        serviceAccount,
+      );
+      shouldScheduleBuilds = builds != null && builds.isNotEmpty;
+    }
 
-  Future<Body> _maybeStopLUCI(PullRequestEvent event) async {}
+    if (shouldScheduleBuilds) {
+      final Map<String, List<String>> builders = await config.luciBuilders;
+      for (String builder in builders[repositoryName]) {
+        final BuilderId builderId = BuilderId(
+          project: repositoryName,
+          bucket: 'prod',
+          builder: builder,
+        );
+        await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
+          builderId: builderId,
+          experimental: Trinary.yes,
+          tags: <String, List<String>>{
+            'pr': <String>[number.toString()],
+            'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
+          },
+          properties: <String, String>{
+            'git_url': 'https://github.com/flutter/$repositoryName',
+            'git_ref': 'pulls/$number/head',
+          },
+        ));
+      }
+    }
+    buildBucketClient.close();
+    return shouldScheduleBuilds;
+  }
+
+  /// Checks the issue in the given repository for `config.cqLabelName`.
+  Future<bool> _checkForCqLabel(RepositorySlug slug, int issueNumber) async {
+    final GitHub gitHubClient = await config.createGitHubClient();
+    try {
+      final String cqLabelName = await config.cqLabelName;
+      await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, issueNumber)) {
+        if (label.name == cqLabelName) {
+          return true;
+        }
+      }
+    } finally {
+      gitHubClient.dispose();
+    }
+    return false;
+  }
+
+  Future<void> _cancelLuci(String repositoryName, int number) async {
+    if (repositoryName != 'flutter' && repositoryName != 'engine') {
+      throw BadRequestException('This service does not support repository $repositoryName');
+    }
+    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final BuildBucketClient buildBucketClient = BuildBucketClient(
+      clientContext,
+      serviceAccount: serviceAccount,
+    );
+    final List<Build> builds = await _buildsForRepositoryAndPr(
+      repositoryName,
+      number,
+      buildBucketClient,
+      serviceAccount,
+    );
+    if (builds == null) {
+      return;
+    }
+    final List<Request> requests = <Request>[];
+    for (Build build in builds) {
+      requests.add(
+        Request(
+          cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: 'No longer needed.'),
+        ),
+      );
+    }
+    await buildBucketClient.batch(BatchRequest(requests: requests));
+  }
 
   Future<Body> _checkForLabelsAndTests(PullRequestEvent event) async {
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {

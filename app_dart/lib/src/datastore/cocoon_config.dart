@@ -46,6 +46,13 @@ class Config {
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
+  /// A map keyed by repository name (i.e. `'flutter'` and `'engine'`), with
+  /// the values being a list of the LUCI builder names for that repository.
+  Future<Map<String, List<String>>> get luciBuilders async {
+    final String rawMap = await _getSingleValue('LuciBuilders');
+    return json.decode(rawMap);
+  }
+
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return ServiceAccountInfo.fromJson(json.decode(rawValue));
