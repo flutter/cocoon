@@ -58,6 +58,11 @@ class Config {
     return ServiceAccountInfo.fromJson(json.decode(rawValue));
   }
 
+  Future<List<dynamic>> get luciBuilders async {
+    final String rawValue = await _getSingleValue('LuciBuilders');
+    return json.decode(rawValue);
+  }
+
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
     return gh.createGitHubClient(

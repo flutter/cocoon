@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
@@ -22,7 +21,6 @@ void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
     MockAccessTokenProvider mockAccessTokenProvider;
-    ServiceAccountInfo fakeServiceAccount;
 
     const BuilderId builderId = BuilderId(
       bucket: 'prod',
@@ -33,7 +31,6 @@ void main() {
     setUp(() {
       mockHttpClient = MockHttpClient();
       mockAccessTokenProvider = MockAccessTokenProvider();
-      fakeServiceAccount = const ServiceAccountInfo(email: 'test@test');
     });
 
     Future<T> _httpTest<R extends Body, T>(
@@ -42,14 +39,12 @@ void main() {
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
-      when(mockAccessTokenProvider.createAccessToken(any,
-              serviceAccount: anyNamed('serviceAccount'), scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(any, scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
         FakeClientContext(isDevelopmentEnvironment: false),
-        serviceAccount: fakeServiceAccount,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
         accessTokenProvider: mockAccessTokenProvider,
@@ -71,14 +66,12 @@ void main() {
     }
 
     test('Throws the right exception', () async {
-      when(mockAccessTokenProvider.createAccessToken(any,
-              serviceAccount: anyNamed('serviceAccount'), scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(any, scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
         FakeClientContext(isDevelopmentEnvironment: false),
-        serviceAccount: fakeServiceAccount,
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
         accessTokenProvider: mockAccessTokenProvider,

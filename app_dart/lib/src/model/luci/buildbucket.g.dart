@@ -162,6 +162,7 @@ T _$enumDecodeNullable<T>(Map<T, dynamic> enumValues, dynamic source) {
 const _$StatusEnumMap = <Status, dynamic>{
   Status.unspecified: 'STATUS_UNSPECIFIED',
   Status.scheduled: 'SCHEDULED',
+  Status.started: 'STARTED',
   Status.ended: 'ENDED_MASK',
   Status.success: 'SUCCESS',
   Status.failure: 'FAILURE',

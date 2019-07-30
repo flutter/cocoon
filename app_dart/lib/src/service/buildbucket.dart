@@ -9,7 +9,6 @@ import 'package:appengine/appengine.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import 'access_token_provider.dart';
@@ -17,7 +16,7 @@ import 'access_token_provider.dart';
 /// A client interface to LUCI BuildBucket
 @immutable
 class BuildBucketClient {
-  /// Creats a new buildbucket Client.
+  /// Creates a new build bucket Client.
   ///
   /// The [buildBucketUri] parameter must not be null, and will be defaulted to
   /// [kDefaultBuildBucketUri] if not specified.
@@ -25,15 +24,12 @@ class BuildBucketClient {
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
   BuildBucketClient(
-    this.context, {
+    this.clientContext, {
     this.buildBucketUri = kDefaultBuildBucketUri,
+    this.accessTokenProvider,
     HttpClient httpClient,
-    @required this.serviceAccount,
-    AccessTokenProvider accessTokenProvider,
-  })  : assert(context != null),
+  })  : assert(clientContext != null),
         assert(buildBucketUri != null),
-        assert(serviceAccount != null),
-        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
         httpClient = httpClient ?? HttpClient();
 
   /// Garbage to prevent browser/JSON parsing exploits.
@@ -44,23 +40,23 @@ class BuildBucketClient {
       'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
 
   /// The AppEngine context to use for requests. Must not be null.
-  final ClientContext context;
-
-  /// The service account to use for requests.  Must not be null.
-  final ServiceAccountInfo serviceAccount;
+  final ClientContext clientContext;
 
   /// The base URI for build bucket requests.
   ///
   /// Defaults to [kDefaultBuildBucketUri].
   final String buildBucketUri;
 
+  /// The token provider for OAuth2 requests.
+  ///
+  /// If this is non-null, an access token will be attached to any outbound
+  /// HTTP requests issued by this client.
+  final AccessTokenProvider accessTokenProvider;
+
   /// The [HttpClient] to use for requests.
   ///
   /// Defaults to `HttpClient()`.
   final HttpClient httpClient;
-
-  /// The token provider for oauth2 requests.
-  final AccessTokenProvider accessTokenProvider;
 
   Future<T> _postRequest<S extends Body, T>(
     String path,
@@ -74,17 +70,18 @@ class BuildBucketClient {
     httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
     httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
 
-    final AccessToken token = await accessTokenProvider.createAccessToken(
-      context,
-      serviceAccount: serviceAccount,
-      scopes: <String>[
-        'openid',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/userinfo.email',
-      ],
-    );
-    if (token != null) {
-      httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+    if (accessTokenProvider != null) {
+      final AccessToken token = await accessTokenProvider.createAccessToken(
+        clientContext,
+        scopes: <String>[
+          'openid',
+          'https://www.googleapis.com/auth/userinfo.profile',
+          'https://www.googleapis.com/auth/userinfo.email',
+        ],
+      );
+      if (token != null) {
+        httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+      }
     }
 
     httpRequest.write(json.encode(request.toJson()));
@@ -117,12 +114,20 @@ class BuildBucketClient {
   }
 
   /// The RPC method to batch multiple RPC methods in a single HTTP request.
-  Future<BatchResponse> batch(BatchRequest request) {
-    return _postRequest<BatchRequest, BatchResponse>(
+  ///
+  /// The response is guaranteed to contain line-item responses for all
+  /// line-item requests that were issued in [request]. If only a subset of
+  /// responses were retrieved, a [BatchRequestException] will be thrown.
+  Future<BatchResponse> batch(BatchRequest request) async {
+    final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
       BatchResponse.fromJson,
     );
+    if (response.responses.length != request.requests.length) {
+      throw BatchRequestException('Failed to execute all requests');
+    }
+    return response;
   }
 
   /// The RPC request to cancel a build.
@@ -166,4 +171,13 @@ class BuildBucketException implements Exception {
 
   @override
   String toString() => '$runtimeType: [$statusCode]: $message';
+}
+
+class BatchRequestException implements Exception {
+  BatchRequestException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
