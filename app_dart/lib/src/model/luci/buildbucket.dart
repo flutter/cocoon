@@ -113,7 +113,7 @@ class BatchRequest implements Body {
 /// A single request must contain only one object.
 @JsonSerializable()
 class Request implements Body {
-  /// Creates a requst for the Batch RPC.
+  /// Creates a request for the Batch RPC.
   ///
   /// One and only one argument should be set.
   const Request({
@@ -660,6 +660,10 @@ enum Status {
   /// The status of a scheduled or pending build.
   @JsonValue('SCHEDULED')
   scheduled,
+
+  /// The status of a started (running) build.
+  @JsonValue('STARTED')
+  started,
 
   /// A mask of `succes | failure | infraFailure | canceled`.
   @JsonValue('ENDED_MASK')

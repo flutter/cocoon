@@ -4,6 +4,8 @@
 
 import 'package:gcloud/db.dart';
 
+import 'commit.dart';
+
 /// Class that represents the intersection of a test at a particular [Commit].
 ///
 /// Tasks are tests that have been run N (possibly zero) times against a
@@ -45,12 +47,16 @@ class Task extends Model {
   /// The task failed to run successfully.
   static const String statusFailed = 'Failed';
 
+  /// The task was skipped or canceled while running.
+  static const String statusSkipped = 'Skipped';
+
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
     statusNew,
     statusInProgress,
     statusSucceeded,
     statusFailed,
+    statusSkipped,
   ];
 
   /// The key of the commit that owns this task.
@@ -167,4 +173,24 @@ class Task extends Model {
       ..write(')');
     return buf.toString();
   }
+}
+
+/// A [Task], paired with its associated parent [Commit].
+///
+/// The [Task] model object references its parent [Commit] through the
+/// [Task.commitKey] field, but it does not hold a reference to the associated
+/// [Commit] object (just the relational mapping). This class exists for those
+/// times when the caller has loaded the associated commit from the datastore
+/// and would like to pass both the task its commit around.
+class FullTask {
+  /// Creates a new [FullTask].
+  const FullTask(this.task, this.commit)
+      : assert(task != null),
+        assert(commit != null);
+
+  /// The [Task] object.
+  final Task task;
+
+  ///  The [Commit] object references by this [task]'s [Task.commitKey].
+  final Commit commit;
 }
