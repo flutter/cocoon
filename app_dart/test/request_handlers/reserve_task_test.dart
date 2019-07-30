@@ -91,7 +91,6 @@ void main() {
         });
         when(accessTokenProvider.createAccessToken(
           any,
-          serviceAccount: anyNamed('serviceAccount'),
           scopes: anyNamed('scopes'),
         )).thenAnswer((Invocation invocation) {
           return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
@@ -104,7 +103,6 @@ void main() {
         verify(reservationProvider.secureReservation(task, 'aid')).called(1);
         verify(accessTokenProvider.createAccessToken(
           any,
-          serviceAccount: anyNamed('serviceAccount'),
           scopes: anyNamed('scopes'),
         )).called(1);
       });
@@ -127,7 +125,6 @@ void main() {
         });
         when(accessTokenProvider.createAccessToken(
           any,
-          serviceAccount: anyNamed('serviceAccount'),
           scopes: anyNamed('scopes'),
         )).thenAnswer((Invocation invocation) {
           return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
@@ -140,7 +137,6 @@ void main() {
         verify(reservationProvider.secureReservation(task, 'aid')).called(2);
         verify(accessTokenProvider.createAccessToken(
           any,
-          serviceAccount: anyNamed('serviceAccount'),
           scopes: anyNamed('scopes'),
         )).called(1);
       });

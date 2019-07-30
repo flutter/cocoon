@@ -9,7 +9,6 @@ import 'package:appengine/appengine.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import 'access_token_provider.dart';
@@ -27,11 +26,9 @@ class BuildBucketClient {
   BuildBucketClient(
     this.clientContext, {
     this.buildBucketUri = kDefaultBuildBucketUri,
-    this.serviceAccount,
     this.accessTokenProvider,
     HttpClient httpClient,
   })  : assert(clientContext != null),
-        assert((serviceAccount == null) == (accessTokenProvider == null)),
         assert(buildBucketUri != null),
         httpClient = httpClient ?? HttpClient();
 
@@ -50,16 +47,10 @@ class BuildBucketClient {
   /// Defaults to [kDefaultBuildBucketUri].
   final String buildBucketUri;
 
-  /// The service account to use for requests.
-  ///
-  /// This must be non-null when [accessTokenProvider] is non-null.
-  final ServiceAccountInfo serviceAccount;
-
   /// The token provider for OAuth2 requests.
   ///
   /// If this is non-null, an access token will be attached to any outbound
-  /// HTTP requests issued by this client. When this is non-null,
-  /// [serviceAccount] must also be non-null.
+  /// HTTP requests issued by this client.
   final AccessTokenProvider accessTokenProvider;
 
   /// The [HttpClient] to use for requests.
@@ -82,7 +73,6 @@ class BuildBucketClient {
     if (accessTokenProvider != null) {
       final AccessToken token = await accessTokenProvider.createAccessToken(
         clientContext,
-        serviceAccount: serviceAccount,
         scopes: <String>[
           'openid',
           'https://www.googleapis.com/auth/userinfo.profile',

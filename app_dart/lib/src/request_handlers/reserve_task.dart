@@ -32,7 +32,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ?? TaskProvider(config),
         reservationProvider = reservationProvider ?? ReservationProvider(config),
-        accessTokenProvider = accessTokenProvider ?? const AccessTokenProvider(),
+        accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskProvider taskProvider;
@@ -73,7 +73,6 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
           clientContext,
-          serviceAccount: await config.deviceLabServiceAccount,
           scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         );
         final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);

@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/service/fake_luci_builder.dart';
 
 void main() {
   group('RefreshChromebotStatus', () {
