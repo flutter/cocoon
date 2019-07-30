@@ -62,7 +62,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     }
 
     while (true) {
-      final TaskAndCommit task = await taskProvider.findNextTask(agent);
+      final FullTask task = await taskProvider.findNextTask(agent);
 
       if (task == null) {
         return const ReserveTaskResponse.empty();
@@ -171,22 +171,12 @@ class ReserveTaskResponse extends Body {
 }
 
 @visibleForTesting
-class TaskAndCommit {
-  const TaskAndCommit(this.task, this.commit)
-      : assert(task != null),
-        assert(commit != null);
-
-  final Task task;
-  final Commit commit;
-}
-
-@visibleForTesting
 class TaskProvider {
   const TaskProvider(this.config);
 
   final Config config;
 
-  Future<TaskAndCommit> findNextTask(Agent agent) async {
+  Future<FullTask> findNextTask(Agent agent) async {
     final Query<Commit> query = config.db.query<Commit>()
       ..limit(100)
       ..order('-timestamp');
@@ -202,7 +192,7 @@ class TaskProvider {
             throw InvalidTaskException('Task ${task.name} has no required capabilities');
           }
           if (task.status == Task.statusNew && agent.isCapableOfPerformingTask(task)) {
-            return TaskAndCommit(task, commit);
+            return FullTask(task, commit);
           }
         }
       }
