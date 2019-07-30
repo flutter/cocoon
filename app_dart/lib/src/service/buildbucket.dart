@@ -26,12 +26,12 @@ class BuildBucketClient {
   /// specified or null.
   BuildBucketClient(
     this.clientContext, {
-    @required this.serviceAccount,
     this.buildBucketUri = kDefaultBuildBucketUri,
+    this.serviceAccount,
     this.accessTokenProvider,
     HttpClient httpClient,
   })  : assert(clientContext != null),
-        assert(serviceAccount != null),
+        assert((serviceAccount == null) == (accessTokenProvider == null)),
         assert(buildBucketUri != null),
         httpClient = httpClient ?? HttpClient();
 
@@ -45,18 +45,21 @@ class BuildBucketClient {
   /// The AppEngine context to use for requests. Must not be null.
   final ClientContext clientContext;
 
-  /// The service account to use for requests.  Must not be null.
-  final ServiceAccountInfo serviceAccount;
-
   /// The base URI for build bucket requests.
   ///
   /// Defaults to [kDefaultBuildBucketUri].
   final String buildBucketUri;
 
+  /// The service account to use for requests.
+  ///
+  /// This must be non-null when [accessTokenProvider] is non-null.
+  final ServiceAccountInfo serviceAccount;
+
   /// The token provider for OAuth2 requests.
   ///
   /// If this is non-null, an access token will be attached to any outbound
-  /// HTTP requests issued by this client.
+  /// HTTP requests issued by this client. When this is non-null,
+  /// [serviceAccount] must also be non-null.
   final AccessTokenProvider accessTokenProvider;
 
   /// The [HttpClient] to use for requests.

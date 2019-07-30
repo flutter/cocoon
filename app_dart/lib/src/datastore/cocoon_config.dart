@@ -51,6 +51,12 @@ class Config {
     return ServiceAccountInfo.fromJson(json.decode(rawValue));
   }
 
+  Future<Map<String, String>> get luciBuilderTaskNames async {
+    final String rawTasksMap = await _getSingleValue('LuciBuilderTaskNames');
+    final Map<String, dynamic> tasksMap = json.decode(rawTasksMap);
+    return tasksMap.cast<String, String>();
+  }
+
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
     return gh.createGitHubClient(

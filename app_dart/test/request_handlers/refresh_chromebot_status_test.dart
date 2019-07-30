@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/service/fake_luci_builder.dart';
 
 void main() {
   group('RefreshChromebotStatus', () {
@@ -21,7 +22,12 @@ void main() {
     RefreshChromebotStatus handler;
 
     setUp(() {
-      config = FakeConfig();
+      config = FakeConfig(
+        luciBuilderTaskNamesValue: const <String, String>{
+          'Builder1': 'task_1',
+          'Builder2': 'task_2',
+        },
+      );
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
       handler = RefreshChromebotStatus(
@@ -39,7 +45,7 @@ void main() {
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        LuciBuilder.all,
+        await LuciBuilder.getBuilders(config),
         key: (dynamic builder) => builder,
         value: (dynamic builder) => <LuciTask>[LuciTask(commitSha: 'abc', status: Task.statusNew)],
       );

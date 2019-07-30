@@ -47,12 +47,10 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks() async {
-    final BuildBucketClient buildBucketClient = BuildBucketClient(
-      clientContext,
-      serviceAccount: await config.deviceLabServiceAccount,
-    );
+    final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext);
 
-    final List<Request> searchRequests = LuciBuilder.all.map<Request>((LuciBuilder builder) {
+    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
+    final List<Request> searchRequests = builders.map<Request>((LuciBuilder builder) {
       return Request(
         searchBuilds: SearchBuildsRequest(
           pageSize: _maxResults,
@@ -75,7 +73,9 @@ class LuciService {
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
-      final LuciBuilder builder = LuciBuilder.byName(build.builderId.builder);
+      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+        return builder.name == build.builderId.builder;
+      });
       results[builder] ??= <LuciTask>[];
       results[builder].add(LuciTask(
         commitSha: commit,
@@ -90,25 +90,20 @@ class LuciService {
 class LuciBuilder {
   const LuciBuilder._(this.name, this.taskName);
 
-  static const LuciBuilder linux = LuciBuilder._('Linux', 'linux_bot');
-  static const LuciBuilder mac = LuciBuilder._('Mac', 'mac_bot');
-  static const LuciBuilder windows = LuciBuilder._('Windows', 'windows_bot');
-
-  /// The list of all known LUCI builders.
-  static const List<LuciBuilder> all = <LuciBuilder>[linux, mac, windows];
-
   /// The name of this builder.
   final String name;
 
   /// The name of the devicelab task associated with this builder.
   final String taskName;
 
-  /// Looks up a [LuciBuilder] by its [name].
-  ///
-  /// If no such builder exists with the specified name, then a [StateError]
-  /// is thrown.
-  static LuciBuilder byName(String name) {
-    return all.singleWhere((LuciBuilder builder) => builder.name == name);
+  /// Loads and returns the list of known builders from the Cocoon [config].
+  static Future<List<LuciBuilder>> getBuilders(Config config) async {
+    final Map<String, String> configValues = await config.luciBuilderTaskNames;
+    final List<LuciBuilder> builders = <LuciBuilder>[];
+    for (MapEntry<String, String> entry in configValues.entries) {
+      builders.add(LuciBuilder._(entry.key, entry.value));
+    }
+    return List<LuciBuilder>.unmodifiable(builders);
   }
 }
 
