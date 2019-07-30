@@ -22,10 +22,13 @@ void main() {
 
     setUp(() {
       config = FakeConfig(
-        luciBuilderTaskNamesValue: const <String, String>{
-          'Builder1': 'task_1',
-          'Builder2': 'task_2',
-        },
+        luciBuildersValue: const <Map<String, String>>[
+          <String, String>{
+            'name': 'Builder1',
+            'repo': 'flutter',
+            'taskName': 'foo',
+          },
+        ],
       );
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();

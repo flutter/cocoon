@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -12,6 +13,8 @@ import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 
 import 'buildbucket.dart';
+
+part 'luci.g.dart';
 
 const int _maxResults = 40;
 const Map<Status, String> _luciStatusToTaskStatus = <Status, String>{
@@ -50,7 +53,9 @@ class LuciService {
     final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext);
 
     final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
-    final List<Request> searchRequests = builders.map<Request>((LuciBuilder builder) {
+    final List<Request> searchRequests = builders
+        .where((LuciBuilder builder) => builder.repo == 'flutter' && builder.taskName != null)
+        .map<Request>((LuciBuilder builder) {
       return Request(
         searchBuilds: SearchBuildsRequest(
           pageSize: _maxResults,
@@ -87,23 +92,36 @@ class LuciService {
 }
 
 @immutable
+@JsonSerializable()
 class LuciBuilder {
-  const LuciBuilder._(this.name, this.taskName);
+  const LuciBuilder({
+    @required this.name,
+    @required this.repo,
+    this.taskName,
+  }) : assert(name != null);
+
+  /// Create a new [LuciBuilder] object from its JSON representation.
+  factory LuciBuilder.fromJson(Map<String, dynamic> json) => _$LuciBuilderFromJson(json);
 
   /// The name of this builder.
+  @JsonKey(required: true, disallowNullValue: true)
   final String name;
 
+  /// The name of the repository for which this builder runs.
+  @JsonKey(required: true, disallowNullValue: true)
+  final String repo;
+
   /// The name of the devicelab task associated with this builder.
+  @JsonKey()
   final String taskName;
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
   static Future<List<LuciBuilder>> getBuilders(Config config) async {
-    final Map<String, String> configValues = await config.luciBuilderTaskNames;
-    final List<LuciBuilder> builders = <LuciBuilder>[];
-    for (MapEntry<String, String> entry in configValues.entries) {
-      builders.add(LuciBuilder._(entry.key, entry.value));
-    }
-    return List<LuciBuilder>.unmodifiable(builders);
+    final List<dynamic> builders = await config.luciBuilders;
+    return builders.map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json)).toList();
   }
 }
 
