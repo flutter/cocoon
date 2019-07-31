@@ -63,9 +63,8 @@ class BuildBucketClient {
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),
   ) async {
-    final HttpClient client = httpClient;
     final Uri url = Uri.parse('$buildBucketUri$path');
-    final HttpClientRequest httpRequest = await client.postUrl(url);
+    final HttpClientRequest httpRequest = await httpClient.postUrl(url);
 
     httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
     httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');

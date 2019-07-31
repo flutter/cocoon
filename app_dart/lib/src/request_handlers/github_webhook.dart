@@ -44,7 +44,6 @@ class GithubWebhook extends RequestHandler<Body> {
       switch (gitHubEvent) {
         case 'pull_request':
           return _handlePullRequest(await getPullRequest(stringRequest));
-        case 'push':
         default:
           return Body.empty;
       }
@@ -57,6 +56,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (event == null) {
       throw const BadRequestException();
     }
+    final RepositorySlug slug = event.repository.slug();
     switch (event.action) {
       case 'opened':
       case 'reopened':
@@ -69,8 +69,14 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'closed':
         await _cancelLuci(event.repository.name, event.number);
         break;
+      case 'synchronize':
+        await _cancelLuci(event.repository.name, event.number);
+        if (event.pullRequest.mergeable == true && await _checkForCqLabel(slug, event.number)) {
+          _scheduleLuci(number: event.number, repositoryName: event.repository.name, skipRunningCheck: true);
+        }
+        break;
       case 'unlabeled':
-        if (!await _checkForCqLabel(event.repository.slug(), event.number)) {
+        if (!await _checkForCqLabel(slug, event.number)) {
           await _cancelLuci(event.repository.name, event.number);
         }
         break;
@@ -122,52 +128,51 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<bool> _scheduleLuci({
     int number,
     String repositoryName,
-    bool force = false,
+    bool skipRunningCheck = false,
   }) async {
-    assert(force != null);
+    assert(skipRunningCheck != null);
     if (repositoryName != 'flutter' || repositoryName != 'engine') {
       throw BadRequestException('Repository $repositoryName is not supported by this service.');
     }
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       clientContext,
-      serviceAccount: serviceAccount,
     );
-    bool shouldScheduleBuilds = force;
-    if (!shouldScheduleBuilds) {
+
+    if (!skipRunningCheck) {
       final List<Build> builds = await _buildsForRepositoryAndPr(
         repositoryName,
         number,
         buildBucketClient,
         serviceAccount,
       );
-      shouldScheduleBuilds = builds != null && builds.isNotEmpty;
-    }
-
-    if (shouldScheduleBuilds) {
-      final Map<String, List<String>> builders = await config.luciBuilders;
-      for (String builder in builders[repositoryName]) {
-        final BuilderId builderId = BuilderId(
-          project: repositoryName,
-          bucket: 'prod',
-          builder: builder,
-        );
-        await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-          builderId: builderId,
-          experimental: Trinary.yes,
-          tags: <String, List<String>>{
-            'pr': <String>[number.toString()],
-            'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
-          },
-          properties: <String, String>{
-            'git_url': 'https://github.com/flutter/$repositoryName',
-            'git_ref': 'pulls/$number/head',
-          },
-        ));
+      if (builds != null && builds.isNotEmpty) {
+        return false;
       }
     }
+
+    final Map<String, List<String>> builders = await config.luciBuilders;
+    for (String builder in builders[repositoryName]) {
+      final BuilderId builderId = BuilderId(
+        project: repositoryName,
+        bucket: 'prod',
+        builder: builder,
+      );
+      await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
+        builderId: builderId,
+        experimental: Trinary.yes,
+        tags: <String, List<String>>{
+          'pr': <String>[number.toString()],
+          'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
+        },
+        properties: <String, String>{
+          'git_url': 'https://github.com/flutter/$repositoryName',
+          'git_ref': 'pulls/$number/head',
+        },
+      ));
+    }
     buildBucketClient.close();
-    return shouldScheduleBuilds;
+    return true;
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
@@ -193,7 +198,6 @@ class GithubWebhook extends RequestHandler<Body> {
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       clientContext,
-      serviceAccount: serviceAccount,
     );
     final List<Build> builds = await _buildsForRepositoryAndPr(
       repositoryName,
