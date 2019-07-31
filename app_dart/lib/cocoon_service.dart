@@ -8,6 +8,7 @@ export 'src/request_handlers/debug/get_task.dart';
 export 'src/request_handlers/debug/reset_pending_tasks.dart';
 export 'src/request_handlers/github_webhook.dart';
 export 'src/request_handlers/refresh_chromebot_status.dart';
+export 'src/request_handlers/refresh_github_commits.dart';
 export 'src/request_handlers/reserve_task.dart';
 export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handling/authentication.dart';

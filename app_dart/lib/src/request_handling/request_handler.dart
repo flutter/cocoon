@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -70,6 +71,7 @@ abstract class RequestHandler<T extends Body> {
     }, zoneValues: <RequestKey<dynamic>, Object>{
       RequestKey.request: request,
       RequestKey.response: request.response,
+      RequestKey.log: loggingService,
     });
   }
 
@@ -120,6 +122,13 @@ abstract class RequestHandler<T extends Body> {
   @protected
   HttpResponse get response => getValue<HttpResponse>(RequestKey.response);
 
+  /// Gets the current [Logging] instance.
+  ///
+  /// If this is called outside the context of an HTTP request, this will
+  /// throw a [StateError].
+  @protected
+  Logging get log => getValue<Logging>(RequestKey.log);
+
   /// Services an HTTP GET.
   ///
   /// Subclasses should override this method if they support GET requests.
@@ -151,6 +160,7 @@ class RequestKey<T> {
 
   static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>('request');
   static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>('response');
+  static const RequestKey<Logging> log = RequestKey<Logging>('log');
 
   @override
   String toString() => '$runtimeType($name)';

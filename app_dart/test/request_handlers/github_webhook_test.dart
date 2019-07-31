@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
-import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 

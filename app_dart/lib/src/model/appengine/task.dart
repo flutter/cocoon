@@ -18,6 +18,7 @@ class Task extends Model {
     this.commitKey,
     this.createTimestamp,
     this.startTimestamp,
+    this.endTimestamp,
     this.name,
     this.attempts,
     this.isFlaky,
