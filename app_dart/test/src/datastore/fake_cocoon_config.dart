@@ -79,5 +79,5 @@ class FakeConfig implements Config {
   Future<String> get cqLabelName => throw UnimplementedError();
 
   @override
-  Future<List<dynamic>> get luciBuilders async => luciBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciBuilders async => luciBuildersValue;
 }

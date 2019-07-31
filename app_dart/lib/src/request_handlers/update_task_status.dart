@@ -126,7 +126,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       );
       await config.db.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <TimeSeries>[series]);
-        transaction.commit();
+        await transaction.commit();
       });
     }
 

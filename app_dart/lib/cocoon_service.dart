@@ -13,3 +13,4 @@ export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handling/authentication.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
+export 'src/service/buildbucket.dart';

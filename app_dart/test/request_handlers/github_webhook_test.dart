@@ -7,9 +7,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/service/buildbucket.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
+import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -20,10 +24,11 @@ void main() {
     MockHttpRequest request;
     MockHttpResponse response;
     MockHttpHeaders headers;
-    MockConfig config;
+    MockConfig mockConfig;
     MockGitHubClient gitHubClient;
     MockIssuesService issuesService;
     MockPullRequestsService pullRequestsService;
+    MockBuildBucketClient mockBuildBucketClient;
 
     const String keyString = 'not_a_real_key';
 
@@ -36,23 +41,24 @@ void main() {
       request = MockHttpRequest();
       response = MockHttpResponse();
       headers = MockHttpHeaders();
-      config = MockConfig();
+      mockConfig = MockConfig();
       gitHubClient = MockGitHubClient();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
+      mockBuildBucketClient = MockBuildBucketClient();
 
-      webhook = GithubWebhook(config);
+      webhook = GithubWebhook(mockConfig, mockBuildBucketClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      when(config.nonMasterPullRequestMessage)
+      when(mockConfig.nonMasterPullRequestMessage)
           .thenAnswer((_) => Future<String>.value('nonMasterPullRequestMessage'));
-      when(config.missingTestsPullRequestMessage)
+      when(mockConfig.missingTestsPullRequestMessage)
           .thenAnswer((_) => Future<String>.value('missingTestPullRequestMessage'));
-      when(config.githubOAuthToken).thenAnswer((_) => Future<String>.value('githubOAuthKey'));
-      when(config.webhookKey).thenAnswer((_) => Future<String>.value(keyString));
-      when(config.createGitHubClient()).thenAnswer((_) => Future<GitHub>.value(gitHubClient));
+      when(mockConfig.githubOAuthToken).thenAnswer((_) => Future<String>.value('githubOAuthKey'));
+      when(mockConfig.webhookKey).thenAnswer((_) => Future<String>.value(keyString));
+      when(mockConfig.createGitHubClient()).thenAnswer((_) => Future<GitHub>.value(gitHubClient));
 
       when(request.response).thenReturn(response);
       when(request.headers).thenReturn(headers);
@@ -113,19 +119,6 @@ void main() {
       verify(response.statusCode = HttpStatus.badRequest);
     });
 
-    test('Ignores actions other than open/reopened', () async {
-      when(request.method).thenReturn('POST');
-      when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate('closed', 123, 'dev'));
-      final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
-      await webhook.service(request);
-      verifyNever(gitHubClient.request(any, any, body: anyNamed('body')));
-      verify(response.statusCode = HttpStatus.ok);
-    });
-
     test('Acts on opened against dev', () async {
       const int issueNumber = 123;
       when(request.method).thenReturn('POST');
@@ -154,7 +147,7 @@ void main() {
         base: 'master',
       )).called(1);
 
-      final String message = await config.nonMasterPullRequestMessage;
+      final String message = await mockConfig.nonMasterPullRequestMessage;
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -186,7 +179,7 @@ void main() {
 
       await webhook.service(request);
 
-      final String message = await config.missingTestsPullRequestMessage;
+      final String message = await mockConfig.missingTestsPullRequestMessage;
 
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/$issueNumber/labels',
@@ -266,7 +259,7 @@ void main() {
 
       await webhook.service(request);
 
-      final String message = await config.missingTestsPullRequestMessage;
+      final String message = await mockConfig.missingTestsPullRequestMessage;
 
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/$issueNumber/labels',
@@ -324,6 +317,182 @@ void main() {
       ));
       verify(response.statusCode = HttpStatus.ok);
     });
+
+    group('BuildBucket', () {
+      const int issueNumber = 123;
+      const String serviceAccountEmail = 'test@test';
+      const String cqLabelName = 'CQ+1';
+
+      setUp(() {
+        clearInteractions(mockBuildBucketClient);
+        when(mockConfig.deviceLabServiceAccount).thenAnswer(
+          (_) => Future<ServiceAccountInfo>.value(
+            const ServiceAccountInfo(email: serviceAccountEmail),
+          ),
+        );
+        when(mockConfig.luciBuilders).thenAnswer((_) async {
+          return json.decode('''[
+    {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
+    {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
+    {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
+    {"name": "Linux Coverage", "repo": "flutter"},
+    {"name": "Linux Host Engine", "repo": "engine"},
+    {"name": "Linux Android AOT Engine", "repo": "engine"},
+    {"name": "Linux Android Debug Engine", "repo": "engine"},
+    {"name": "Mac Host Engine", "repo": "engine"},
+    {"name": "Mac Android AOT Engine", "repo": "engine"},
+    {"name": "Mac Android Debug Engine", "repo": "engine"},
+    {"name": "Mac iOS Engine", "repo": "engine"},
+    {"name": "Windows Host Engine", "repo": "engine"},
+    {"name": "Windows Android AOT Engine", "repo": "engine"}
+  ]''').cast<Map<String, dynamic>>();
+        });
+        when(mockConfig.cqLabelName).thenAnswer(
+          (_) => Future<String>.value(cqLabelName),
+        );
+        when(request.method).thenReturn('POST');
+        when(headers.value('X-GitHub-Event')).thenReturn('pull_request');
+      });
+
+      test('Not schedule build when lableed without CQ', () async {
+        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+            IssueLabel()..name = 'Random Label',
+          ]);
+        });
+
+        final Uint8List body = utf8.encode(jsonTemplate(
+          'labeled',
+          issueNumber,
+          'master',
+        ));
+        final Uint8List key = utf8.encode(keyString);
+        final String hmac = getHmac(body, key);
+        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
+        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+
+        await webhook.service(request);
+        verifyNever(mockBuildBucketClient.searchBuilds(any));
+        verifyNever(mockBuildBucketClient.scheduleBuild(any));
+        verifyNever(mockBuildBucketClient.batch(any));
+      });
+
+      test('Schedules builds when labeled', () async {
+        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+            IssueLabel()..name = cqLabelName,
+          ]);
+        });
+        when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
+          return const SearchBuildsResponse(
+            builds: <Build>[],
+          );
+        });
+        final Uint8List body = utf8.encode(jsonTemplate(
+          'labeled',
+          issueNumber,
+          'master',
+        ));
+        final Uint8List key = utf8.encode(keyString);
+        final String hmac = getHmac(body, key);
+        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
+        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+
+        await webhook.service(request);
+        expect(
+          json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"prod","builder":null},"status":null,"createdBy":"test@test","tags":[{"key":"pr","value":"123"}]},"pageSize":null,"pageToken":null}]',
+        );
+        expect(
+          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
+          '[{"requests":[{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Linux"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Mac"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Windows"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Linux Coverage"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null}]}]',
+        );
+      });
+
+      test('Cancels builds when unlabeled', () async {
+        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+            IssueLabel()..name = 'Random Label',
+          ]);
+        });
+        when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
+          return const SearchBuildsResponse(
+            builds: <Build>[
+              Build(
+                id: 999,
+                builderId: BuilderId(
+                  project: 'flutter',
+                  bucket: 'prod',
+                  builder: 'Linux',
+                ),
+              )
+            ],
+          );
+        });
+
+        final Uint8List body = utf8.encode(jsonTemplate(
+          'unlabeled',
+          issueNumber,
+          'master',
+        ));
+        final Uint8List key = utf8.encode(keyString);
+        final String hmac = getHmac(body, key);
+        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
+        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+
+        await webhook.service(request);
+        expect(
+          json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"prod","builder":null},"status":null,"createdBy":"test@test","tags":[{"key":"pr","value":"123"}]},"pageSize":null,"pageToken":null}]',
+        );
+        expect(
+          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
+          '[{"requests":[{"getBuild":null,"searchBuilds":null,"scheduleBuild":null,"cancelBuild":{"id":"999","summaryMarkdown":"No longer needed."}}]}]',
+        );
+      });
+
+      test('Cancels and schedules builds when synchronized', () async {
+        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+            IssueLabel()..name = 'CQ+1',
+          ]);
+        });
+        when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
+          return const SearchBuildsResponse(
+            builds: <Build>[
+              Build(
+                id: 999,
+                builderId: BuilderId(
+                  project: 'flutter',
+                  bucket: 'prod',
+                  builder: 'Linux',
+                ),
+              )
+            ],
+          );
+        });
+
+        final Uint8List body = utf8.encode(jsonTemplate(
+          'synchronize',
+          issueNumber,
+          'master',
+        ));
+        final Uint8List key = utf8.encode(keyString);
+        final String hmac = getHmac(body, key);
+        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
+        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+
+        await webhook.service(request);
+        expect(
+          json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"prod","builder":null},"status":null,"createdBy":"test@test","tags":[{"key":"pr","value":"123"}]},"pageSize":null,"pageToken":null}]',
+        );
+        expect(
+          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
+          '[{"requests":[{"getBuild":null,"searchBuilds":null,"scheduleBuild":null,"cancelBuild":{"id":"999","summaryMarkdown":"No longer needed."}}]},{"requests":[{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Linux"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Mac"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Windows"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null},{"getBuild":null,"searchBuilds":null,"scheduleBuild":{"requestId":null,"builder":{"project":"flutter","bucket":"prod","builder":"Linux Coverage"},"canary":null,"experimental":"YES","properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"pulls/123/head"},"gitilesCommit":null,"tags":[{"key":"pr","value":"123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"}]},"cancelBuild":null}]}]',
+        );
+      });
+    });
   });
 }
 
@@ -346,6 +515,9 @@ class MockGitHubClient extends Mock implements GitHub {}
 class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}
+
+// ignore: must_be_immutable
+class MockBuildBucketClient extends Mock implements BuildBucketClient {}
 
 String jsonTemplate(String action, int number, String baseRef, {String login = 'flutter'}) => '''{
   "action": "$action",

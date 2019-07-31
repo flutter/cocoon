@@ -11,36 +11,221 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../github.dart';
+import '../model/appengine/service_account_info.dart';
+import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config) : super(config: config);
+  const GithubWebhook(Config config, this.buildBucketClient) : super(config: config);
+
+  final BuildBucketClient buildBucketClient;
 
   @override
   Future<Body> post() async {
-    if (request.headers.value('X-GitHub-Event') != 'pull_request' ||
-        request.headers.value('X-Hub-Signature') == null) {
+    final String gitHubEvent = request.headers.value('X-GitHub-Event');
+    if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
 
     final List<int> requestBytes = await request.expand((_) => _).toList();
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
-      throw Forbidden();
+      throw const Forbidden();
     }
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
-      final PullRequestEvent event = await getPullRequest(stringRequest);
-      if (event == null) {
-        throw const BadRequestException();
+
+      switch (gitHubEvent) {
+        case 'pull_request':
+          await _handlePullRequest(await getPullRequest(stringRequest));
+          break;
       }
-      if (event.action != 'opened' && event.action != 'reopened') {
-        return Body.empty;
+
+      return Body.empty;
+    } on FormatException {
+      throw const BadRequestException();
+    }
+  }
+
+  Future<void> _handlePullRequest(PullRequestEvent event) async {
+    if (event == null) {
+      throw const BadRequestException();
+    }
+    final RepositorySlug slug = event.repository.slug();
+    switch (event.action) {
+      case 'opened':
+      case 'reopened':
+        await _checkForLabelsAndTests(event);
+        break;
+      case 'labeled':
+        if (event.pullRequest.mergeable == true) {
+          await _onLabeledPullRequest(event);
+        }
+        break;
+      case 'synchronize':
+        await _cancelLuci(event.repository.name, event.number);
+        if (event.pullRequest.mergeable == true && await _checkForCqLabel(slug, event.number)) {
+          await _scheduleLuci(
+            number: event.number,
+            repositoryName: event.repository.name,
+            skipRunningCheck: true,
+          );
+        }
+        break;
+      case 'unlabeled':
+        if (!await _checkForCqLabel(slug, event.number)) {
+          await _cancelLuci(event.repository.name, event.number);
+        }
+        break;
+      case 'closed':
+      case 'assigned':
+      case 'unassigned':
+      case 'review_requested':
+      case 'review_request_removed':
+      case 'edited':
+      case 'ready_for_review':
+      case 'locked':
+      case 'unlocked':
+        break;
+    }
+  }
+
+  Future<void> _onLabeledPullRequest(PullRequestEvent event) async {
+    if (await _checkForCqLabel(event.repository.slug(), event.number)) {
+      await _scheduleLuci(
+        number: event.number,
+        repositoryName: event.repository.name,
+      );
+    }
+  }
+
+  Future<List<Build>> _buildsForRepositoryAndPr(
+    String repositoryName,
+    int number,
+    BuildBucketClient buildBucketClient,
+    ServiceAccountInfo serviceAccount,
+  ) async {
+    final SearchBuildsResponse response = await buildBucketClient.searchBuilds(
+      SearchBuildsRequest(
+        predicate: BuildPredicate(
+          builderId: BuilderId(
+            project: repositoryName,
+            bucket: 'prod',
+          ),
+          createdBy: serviceAccount.email,
+          tags: <String, List<String>>{
+            'pr': <String>[number.toString()],
+          },
+        ),
+      ),
+    );
+    return response.builds;
+  }
+
+  Future<bool> _scheduleLuci({
+    int number,
+    String repositoryName,
+    bool skipRunningCheck = false,
+  }) async {
+    assert(skipRunningCheck != null);
+    if (repositoryName != 'flutter' && repositoryName != 'engine') {
+      throw BadRequestException('Repository $repositoryName is not supported by this service.');
+    }
+    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+
+    if (!skipRunningCheck) {
+      final List<Build> builds = await _buildsForRepositoryAndPr(
+        repositoryName,
+        number,
+        buildBucketClient,
+        serviceAccount,
+      );
+      if (builds != null && builds.isNotEmpty) {
+        return false;
       }
+    }
+
+    final List<Map<String, dynamic>> builders = await config.luciBuilders;
+    final List<String> builderNames = builders
+        .where((Map<String, dynamic> builder) => builder['repo'] == repositoryName)
+        .map<String>((Map<String, dynamic> builder) => builder['name'])
+        .toList();
+    final List<Request> requests = <Request>[];
+    for (String builder in builderNames) {
+      final BuilderId builderId = BuilderId(
+        project: repositoryName,
+        bucket: 'prod',
+        builder: builder,
+      );
+      requests.add(
+        Request(
+          scheduleBuild: ScheduleBuildRequest(
+            builderId: builderId,
+            experimental: Trinary.yes,
+            tags: <String, List<String>>{
+              'pr': <String>[number.toString()],
+              'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
+            },
+            properties: <String, String>{
+              'git_url': 'https://github.com/flutter/$repositoryName',
+              'git_ref': 'pulls/$number/head',
+            },
+          ),
+        ),
+      );
+    }
+    await buildBucketClient.batch(BatchRequest(requests: requests));
+    return true;
+  }
+
+  /// Checks the issue in the given repository for `config.cqLabelName`.
+  Future<bool> _checkForCqLabel(RepositorySlug slug, int issueNumber) async {
+    final GitHub gitHubClient = await config.createGitHubClient();
+    try {
+      final String cqLabelName = await config.cqLabelName;
+      await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, issueNumber)) {
+        if (label.name == cqLabelName) {
+          return true;
+        }
+      }
+    } finally {
+      gitHubClient.dispose();
+    }
+    return false;
+  }
+
+  Future<void> _cancelLuci(String repositoryName, int number) async {
+    if (repositoryName != 'flutter' && repositoryName != 'engine') {
+      throw BadRequestException('This service does not support repository $repositoryName');
+    }
+    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final List<Build> builds = await _buildsForRepositoryAndPr(
+      repositoryName,
+      number,
+      buildBucketClient,
+      serviceAccount,
+    );
+    if (builds == null || builds.isEmpty) {
+      return;
+    }
+    final List<Request> requests = <Request>[];
+    for (Build build in builds) {
+      requests.add(
+        Request(
+          cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: 'No longer needed.'),
+        ),
+      );
+    }
+    await buildBucketClient.batch(BatchRequest(requests: requests));
+  }
+
+  Future<void> _checkForLabelsAndTests(PullRequestEvent event) async {
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _checkBaseRef(gitHubClient, event);
@@ -48,9 +233,6 @@ class GithubWebhook extends RequestHandler<Body> {
       } finally {
         gitHubClient.dispose();
       }
-      return Body.empty;
-    } on FormatException {
-      throw const BadRequestException();
     }
   }
 

@@ -51,7 +51,7 @@ abstract class RequestHandler<T extends Body> {
               throw MethodNotAllowed(request.method);
           }
           assert(body != null);
-          respond(body: body == Body.empty ? null : json.encode(body.toJson()));
+          await respond(body: body == Body.empty ? null : json.encode(body.toJson()));
           return;
         } on HttpStatusException {
           rethrow;
