@@ -17,7 +17,7 @@ Future<void> main() async {
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
-      '/api/github-webhook-pullrequest': GithubWebhook(config, gae.context),
+      '/api/github-webhook-pullrequest': GithubWebhook(config, BuildBucketClient(gae.context)),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),

@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:appengine/appengine.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -21,9 +20,9 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config, this.clientContext) : super(config: config);
+  const GithubWebhook(Config config, this.buildBucketClient) : super(config: config);
 
-  final ClientContext clientContext;
+  final BuildBucketClient buildBucketClient;
 
   @override
   Future<Body> post() async {
@@ -35,7 +34,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<int> requestBytes = await request.expand((_) => _).toList();
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
-      throw Forbidden();
+      throw const Forbidden();
     }
 
     try {
@@ -43,16 +42,17 @@ class GithubWebhook extends RequestHandler<Body> {
 
       switch (gitHubEvent) {
         case 'pull_request':
-          return _handlePullRequest(await getPullRequest(stringRequest));
-        default:
-          return Body.empty;
+          await _handlePullRequest(await getPullRequest(stringRequest));
+          break;
       }
+
+      return Body.empty;
     } on FormatException {
       throw const BadRequestException();
     }
   }
 
-  Future<Body> _handlePullRequest(PullRequestEvent event) async {
+  Future<void> _handlePullRequest(PullRequestEvent event) async {
     if (event == null) {
       throw const BadRequestException();
     }
@@ -60,19 +60,21 @@ class GithubWebhook extends RequestHandler<Body> {
     switch (event.action) {
       case 'opened':
       case 'reopened':
-        return await _checkForLabelsAndTests(event);
+        await _checkForLabelsAndTests(event);
+        break;
       case 'labeled':
         if (event.pullRequest.mergeable == true) {
           await _onLabeledPullRequest(event);
         }
         break;
-      case 'closed':
-        await _cancelLuci(event.repository.name, event.number);
-        break;
       case 'synchronize':
         await _cancelLuci(event.repository.name, event.number);
         if (event.pullRequest.mergeable == true && await _checkForCqLabel(slug, event.number)) {
-          _scheduleLuci(number: event.number, repositoryName: event.repository.name, skipRunningCheck: true);
+          await _scheduleLuci(
+            number: event.number,
+            repositoryName: event.repository.name,
+            skipRunningCheck: true,
+          );
         }
         break;
       case 'unlabeled':
@@ -80,6 +82,7 @@ class GithubWebhook extends RequestHandler<Body> {
           await _cancelLuci(event.repository.name, event.number);
         }
         break;
+      case 'closed':
       case 'assigned':
       case 'unassigned':
       case 'review_requested':
@@ -88,13 +91,13 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'ready_for_review':
       case 'locked':
       case 'unlocked':
+        break;
     }
-    return Body.empty;
   }
 
   Future<void> _onLabeledPullRequest(PullRequestEvent event) async {
     if (await _checkForCqLabel(event.repository.slug(), event.number)) {
-      _scheduleLuci(
+      await _scheduleLuci(
         number: event.number,
         repositoryName: event.repository.name,
       );
@@ -121,7 +124,6 @@ class GithubWebhook extends RequestHandler<Body> {
         ),
       ),
     );
-    buildBucketClient.close();
     return response.builds;
   }
 
@@ -131,13 +133,10 @@ class GithubWebhook extends RequestHandler<Body> {
     bool skipRunningCheck = false,
   }) async {
     assert(skipRunningCheck != null);
-    if (repositoryName != 'flutter' || repositoryName != 'engine') {
+    if (repositoryName != 'flutter' && repositoryName != 'engine') {
       throw BadRequestException('Repository $repositoryName is not supported by this service.');
     }
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
-    final BuildBucketClient buildBucketClient = BuildBucketClient(
-      clientContext,
-    );
 
     if (!skipRunningCheck) {
       final List<Build> builds = await _buildsForRepositoryAndPr(
@@ -151,27 +150,36 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    final Map<String, List<String>> builders = await config.luciBuilders;
-    for (String builder in builders[repositoryName]) {
+    final List<Map<String, dynamic>> builders = await config.luciBuilders;
+    final List<String> builderNames = builders
+        .where((Map<String, dynamic> builder) => builder['repo'] == repositoryName)
+        .map<String>((Map<String, dynamic> builder) => builder['name'])
+        .toList();
+    final List<Request> requests = <Request>[];
+    for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
         project: repositoryName,
         bucket: 'prod',
         builder: builder,
       );
-      await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
-        builderId: builderId,
-        experimental: Trinary.yes,
-        tags: <String, List<String>>{
-          'pr': <String>[number.toString()],
-          'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
-        },
-        properties: <String, String>{
-          'git_url': 'https://github.com/flutter/$repositoryName',
-          'git_ref': 'pulls/$number/head',
-        },
-      ));
+      requests.add(
+        Request(
+          scheduleBuild: ScheduleBuildRequest(
+            builderId: builderId,
+            experimental: Trinary.yes,
+            tags: <String, List<String>>{
+              'pr': <String>[number.toString()],
+              'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
+            },
+            properties: <String, String>{
+              'git_url': 'https://github.com/flutter/$repositoryName',
+              'git_ref': 'pulls/$number/head',
+            },
+          ),
+        ),
+      );
     }
-    buildBucketClient.close();
+    await buildBucketClient.batch(BatchRequest(requests: requests));
     return true;
   }
 
@@ -196,16 +204,13 @@ class GithubWebhook extends RequestHandler<Body> {
       throw BadRequestException('This service does not support repository $repositoryName');
     }
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
-    final BuildBucketClient buildBucketClient = BuildBucketClient(
-      clientContext,
-    );
     final List<Build> builds = await _buildsForRepositoryAndPr(
       repositoryName,
       number,
       buildBucketClient,
       serviceAccount,
     );
-    if (builds == null) {
+    if (builds == null || builds.isEmpty) {
       return;
     }
     final List<Request> requests = <Request>[];
@@ -219,7 +224,7 @@ class GithubWebhook extends RequestHandler<Body> {
     await buildBucketClient.batch(BatchRequest(requests: requests));
   }
 
-  Future<Body> _checkForLabelsAndTests(PullRequestEvent event) async {
+  Future<void> _checkForLabelsAndTests(PullRequestEvent event) async {
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
@@ -229,7 +234,6 @@ class GithubWebhook extends RequestHandler<Body> {
         gitHubClient.dispose();
       }
     }
-    return Body.empty;
   }
 
   Future<void> _applyLabels(GitHub gitHubClient, PullRequestEvent event) async {

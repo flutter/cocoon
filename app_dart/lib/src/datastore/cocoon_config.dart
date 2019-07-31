@@ -46,21 +46,33 @@ class Config {
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
-  /// A map keyed by repository name (i.e. `'flutter'` and `'engine'`), with
-  /// the values being a list of the LUCI builder names for that repository.
-  Future<Map<String, List<String>>> get luciBuilders async {
-    final String rawMap = await _getSingleValue('LuciBuilders');
-    return json.decode(rawMap);
-  }
-
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return ServiceAccountInfo.fromJson(json.decode(rawValue));
   }
 
-  Future<List<dynamic>> get luciBuilders async {
+  /// A List of builders, i.e.:
+  ///
+  /// ```json
+  /// [
+  ///   {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
+  ///   {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
+  ///   {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
+  ///   {"name": "Linux Coverage", "repo": "flutter"},
+  ///   {"name": "Linux Host Engine", "repo": "engine"},
+  ///   {"name": "Linux Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Linux Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac Host Engine", "repo": "engine"},
+  ///   {"name": "Mac Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Mac Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac iOS Engine", "repo": "engine"},
+  ///   {"name": "Windows Host Engine", "repo": "engine"},
+  ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
+  /// ]
+  /// ```
+  Future<List<Map<String, dynamic>>> get luciBuilders async {
     final String rawValue = await _getSingleValue('LuciBuilders');
-    return json.decode(rawValue);
+    return json.decode(rawValue).cast<Map<String, dynamic>>();
   }
 
   Future<GitHub> createGitHubClient() async {
