@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
@@ -20,8 +19,6 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-
-const String _githubCommitsPath = '/repos/flutter/flutter/commits';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can be
 /// touched in any given transaction, or the backing datastore will throw an
@@ -36,19 +33,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient();
-    final http.Response response = await github.request(
-      'GET',
-      _githubCommitsPath,
-      statusCode: HttpStatus.ok,
-      headers: <String, String>{
-        HttpHeaders.acceptHeader: 'application/json; version=2',
-      },
-    );
-    final List<dynamic> rawCommits = json.decode(response.body);
-    final List<RepositoryCommit> commits = rawCommits
-        .cast<Map<String, dynamic>>()
-        .map<RepositoryCommit>((Map<String, dynamic> json) => RepositoryCommit.fromJSON(json))
-        .toList();
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final List<RepositoryCommit> commits = await github.repositories.listCommits(slug).toList();
 
     if (commits.isEmpty) {
       return Body.empty;
