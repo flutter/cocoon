@@ -72,7 +72,6 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         await reservationProvider.secureReservation(task.task, agent.id);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
-          clientContext,
           scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         );
         final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);

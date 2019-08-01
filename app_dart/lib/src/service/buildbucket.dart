@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
@@ -23,13 +22,11 @@ class BuildBucketClient {
   ///
   /// The [httpClient] parameter will be defaulted to `HttpClient()` if not
   /// specified or null.
-  BuildBucketClient(
-    this.clientContext, {
+  BuildBucketClient({
     this.buildBucketUri = kDefaultBuildBucketUri,
     this.accessTokenProvider,
     HttpClient httpClient,
-  })  : assert(clientContext != null),
-        assert(buildBucketUri != null),
+  })  : assert(buildBucketUri != null),
         httpClient = httpClient ?? HttpClient();
 
   /// Garbage to prevent browser/JSON parsing exploits.
@@ -38,9 +35,6 @@ class BuildBucketClient {
   /// The default endpoint for BuildBucket requests.
   static const String kDefaultBuildBucketUri =
       'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
-
-  /// The AppEngine context to use for requests. Must not be null.
-  final ClientContext clientContext;
 
   /// The base URI for build bucket requests.
   ///
@@ -71,7 +65,6 @@ class BuildBucketClient {
 
     if (accessTokenProvider != null) {
       final AccessToken token = await accessTokenProvider.createAccessToken(
-        clientContext,
         scopes: <String>[
           'openid',
           'https://www.googleapis.com/auth/userinfo.profile',

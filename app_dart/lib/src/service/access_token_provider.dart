@@ -1,4 +1,3 @@
-import 'package:appengine/appengine.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,15 +13,9 @@ class AccessTokenProvider {
   final Config config;
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
-  Future<AccessToken> createAccessToken(
-    ClientContext context, {
+  Future<AccessToken> createAccessToken({
     List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
   }) async {
-    if (context.isDevelopmentEnvironment) {
-      // No auth token needed.
-      return null;
-    }
-
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
     final http.Client httpClient = http.Client();
     try {

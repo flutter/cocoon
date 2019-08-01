@@ -50,7 +50,7 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks() async {
-    final BuildBucketClient buildBucketClient = BuildBucketClient(clientContext);
+    final BuildBucketClient buildBucketClient = BuildBucketClient();
 
     final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
     final List<Request> searchRequests = builders

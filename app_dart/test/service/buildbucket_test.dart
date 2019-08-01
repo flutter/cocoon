@@ -15,8 +15,6 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/request_handling/fake_authentication.dart';
-
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
@@ -39,12 +37,11 @@ void main() {
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
-      when(mockAccessTokenProvider.createAccessToken(any, scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
-        FakeClientContext(isDevelopmentEnvironment: false),
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
         accessTokenProvider: mockAccessTokenProvider,
@@ -66,12 +63,11 @@ void main() {
     }
 
     test('Throws the right exception', () async {
-      when(mockAccessTokenProvider.createAccessToken(any, scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       final BuildBucketClient client = BuildBucketClient(
-        FakeClientContext(isDevelopmentEnvironment: false),
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
         accessTokenProvider: mockAccessTokenProvider,
@@ -103,7 +99,7 @@ void main() {
         },
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
-          'git_ref': 'pull/1/head',
+          'git_ref': 'refs/pull/1/head',
         },
       );
 
@@ -263,7 +259,7 @@ const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
   "endTime": null,
   "status": "SCHEDULED",
   "input": {
-    "experimental": "YES"
+    "experimental": true
   },
   "tags": [{
     "key": "user_agent",
