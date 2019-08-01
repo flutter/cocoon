@@ -89,10 +89,8 @@ void main() {
         when(taskProvider.findNextTask(agent)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(FullTask(task, commit));
         });
-        when(accessTokenProvider.createAccessToken(
-          any,
-          scopes: anyNamed('scopes'),
-        )).thenAnswer((Invocation invocation) {
+        when(accessTokenProvider.createAccessToken(scopes: anyNamed('scopes')))
+            .thenAnswer((Invocation invocation) {
           return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
         });
         final ReserveTaskResponse response = await tester.post(handler);
@@ -101,10 +99,7 @@ void main() {
         expect(response.accessToken.data, 'data');
         verify(taskProvider.findNextTask(agent)).called(1);
         verify(reservationProvider.secureReservation(task, 'aid')).called(1);
-        verify(accessTokenProvider.createAccessToken(
-          any,
-          scopes: anyNamed('scopes'),
-        )).called(1);
+        verify(accessTokenProvider.createAccessToken(scopes: anyNamed('scopes'))).called(1);
       });
 
       test('retries until reservation can be secured', () async {
@@ -124,7 +119,6 @@ void main() {
           }
         });
         when(accessTokenProvider.createAccessToken(
-          any,
           scopes: anyNamed('scopes'),
         )).thenAnswer((Invocation invocation) {
           return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
@@ -135,10 +129,7 @@ void main() {
         expect(response.accessToken.data, 'data');
         verify(taskProvider.findNextTask(agent)).called(2);
         verify(reservationProvider.secureReservation(task, 'aid')).called(2);
-        verify(accessTokenProvider.createAccessToken(
-          any,
-          scopes: anyNamed('scopes'),
-        )).called(1);
+        verify(accessTokenProvider.createAccessToken(scopes: anyNamed('scopes'))).called(1);
       });
 
       test('Looks up agent if not provided in the context', () async {

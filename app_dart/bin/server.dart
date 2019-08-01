@@ -8,6 +8,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 
 import 'package:appengine/appengine.dart';
 import 'package:appengine/appengine.dart' as gae show context;
+import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -17,7 +18,11 @@ Future<void> main() async {
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
-      '/api/github-webhook-pullrequest': GithubWebhook(config, BuildBucketClient(gae.context)),
+      '/api/github-webhook-pullrequest': GithubWebhook(
+          config,
+          BuildBucketClient(
+            accessTokenProvider: AccessTokenProvider(config),
+          )),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),

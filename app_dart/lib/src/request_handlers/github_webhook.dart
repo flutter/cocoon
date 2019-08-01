@@ -20,7 +20,9 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config, this.buildBucketClient) : super(config: config);
+  const GithubWebhook(Config config, this.buildBucketClient)
+      : assert(buildBucketClient != null),
+        super(config: config);
 
   final BuildBucketClient buildBucketClient;
 
@@ -56,29 +58,23 @@ class GithubWebhook extends RequestHandler<Body> {
     if (event == null) {
       throw const BadRequestException();
     }
-    final RepositorySlug slug = event.repository.slug();
+    // See the API reference:
+    // https://developer.github.com/v3/activity/events/types/#pullrequestevent
+    // which unfortunately is a bit light on explanations.
     switch (event.action) {
       case 'opened':
       case 'reopened':
         await _checkForLabelsAndTests(event);
         break;
+
       case 'labeled':
-        if (event.pullRequest.mergeable == true) {
-          await _onLabeledPullRequest(event);
-        }
+        await _scheduleIfMergeable(event, cancelRunningBuilds: false);
         break;
       case 'synchronize':
-        await _cancelLuci(event.repository.name, event.number);
-        if (event.pullRequest.mergeable == true && await _checkForCqLabel(slug, event.number)) {
-          await _scheduleLuci(
-            number: event.number,
-            repositoryName: event.repository.name,
-            skipRunningCheck: true,
-          );
-        }
+        await _scheduleIfMergeable(event, cancelRunningBuilds: true);
         break;
       case 'unlabeled':
-        if (!await _checkForCqLabel(slug, event.number)) {
+        if (!await _checkForCqLabel(event.repository.slug(), event.number)) {
           await _cancelLuci(event.repository.name, event.number);
         }
         break;
@@ -95,11 +91,20 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  Future<void> _onLabeledPullRequest(PullRequestEvent event) async {
-    if (await _checkForCqLabel(event.repository.slug(), event.number)) {
+  Future<void> _scheduleIfMergeable(
+    PullRequestEvent event, {
+    @required bool cancelRunningBuilds,
+  }) async {
+    assert(cancelRunningBuilds != null);
+    if (cancelRunningBuilds) {
+      await _cancelLuci(event.repository.name, event.number);
+    }
+    if (event.pullRequest.mergeable == true &&
+        await _checkForCqLabel(event.repository.slug(), event.number)) {
       await _scheduleLuci(
         number: event.number,
         repositoryName: event.repository.name,
+        skipRunningCheck: cancelRunningBuilds,
       );
     }
   }
@@ -121,6 +126,7 @@ class GithubWebhook extends RequestHandler<Body> {
           tags: <String, List<String>>{
             'pr': <String>[number.toString()],
           },
+          includeExperimental: true,
         ),
       ),
     );
@@ -145,7 +151,10 @@ class GithubWebhook extends RequestHandler<Body> {
         buildBucketClient,
         serviceAccount,
       );
-      if (builds != null && builds.isNotEmpty) {
+      if (builds != null &&
+          builds.any((Build build) {
+            return build.status == Status.scheduled || build.status == Status.started;
+          })) {
         return false;
       }
     }
@@ -173,7 +182,7 @@ class GithubWebhook extends RequestHandler<Body> {
             },
             properties: <String, String>{
               'git_url': 'https://github.com/flutter/$repositoryName',
-              'git_ref': 'pulls/$number/head',
+              'git_ref': 'pull/$number/head',
             },
           ),
         ),
@@ -210,7 +219,10 @@ class GithubWebhook extends RequestHandler<Body> {
       buildBucketClient,
       serviceAccount,
     );
-    if (builds == null || builds.isEmpty) {
+    if (builds == null ||
+        !builds.any((Build build) {
+          return build.status == Status.scheduled || build.status == Status.started;
+        })) {
       return;
     }
     final List<Request> requests = <Request>[];

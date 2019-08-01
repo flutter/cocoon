@@ -91,7 +91,7 @@ class _Int64Converter implements JsonConverter<int, String> {
 /// A request for the Batch RPC.
 ///
 /// This message can be used to find, get, schedule, or cancle multiple builds.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class BatchRequest implements Body {
   /// Creates a request for the Batch RPC.
   const BatchRequest({
@@ -111,7 +111,7 @@ class BatchRequest implements Body {
 /// A container for one request in a batch.
 ///
 /// A single request must contain only one object.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class Request implements Body {
   /// Creates a request for the Batch RPC.
   ///
@@ -160,7 +160,7 @@ class Request implements Body {
 }
 
 /// A response from the Batch RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class BatchResponse implements Body {
   /// Creates a response for the Batch RPC.
   const BatchResponse({
@@ -178,7 +178,7 @@ class BatchResponse implements Body {
 }
 
 /// An individual response from a batch request.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class Response implements Body {
   /// Creates a response for the response from the Batch RPC.
   ///
@@ -225,7 +225,7 @@ class Response implements Body {
 }
 
 /// A request for the GetBuild RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class GetBuildRequest implements Body {
   /// Creates a request for the GetBuild RPC.
   const GetBuildRequest({
@@ -260,7 +260,7 @@ class GetBuildRequest implements Body {
 }
 
 /// A request for the CancelBuild RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class CancelBuildRequest implements Body {
   /// Creates a request object for the CancelBuild RPC.
   ///
@@ -289,7 +289,7 @@ class CancelBuildRequest implements Body {
 }
 
 /// A request object for the SearchBuilds RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class SearchBuildsRequest implements Body {
   /// Creates a request object for the SearchBuilds RPC.
   ///
@@ -329,7 +329,7 @@ class SearchBuildsRequest implements Body {
 }
 
 /// A predicate to apply when searching for builds in the SearchBuilds RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class BuildPredicate implements Body {
   /// Creates a predicate to apply when searching for builds in the SearchBuilds
   /// RPC.
@@ -340,6 +340,7 @@ class BuildPredicate implements Body {
     this.status,
     this.createdBy,
     this.tags,
+    this.includeExperimental,
   });
 
   /// Creates a [BuildPredicate] from JSON.
@@ -359,12 +360,17 @@ class BuildPredicate implements Body {
   @TagsConverter()
   final Map<String, List<String>> tags;
 
+  /// Determines whether to include experimental builds in the result.
+  ///
+  /// Defaults to false.
+  final bool includeExperimental;
+
   @override
   Map<String, dynamic> toJson() => _$BuildPredicateToJson(this);
 }
 
 /// The response object from a SearchBuilds RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class SearchBuildsResponse implements Body {
   /// Creates a new response object from the SearchBuilds RPC.
   ///
@@ -394,7 +400,7 @@ class SearchBuildsResponse implements Body {
 }
 
 /// A request object for the ScheduleBuild RPC.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class ScheduleBuildRequest implements Body {
   /// Creates a new request object for the ScheduleBuild RPC.
   ///
@@ -428,7 +434,7 @@ class ScheduleBuildRequest implements Body {
 
   /// If specified, overrides the server-defined value of
   /// Build.infra.buildbucket.canary.
-  final Trinary canary;
+  final bool canary;
 
   /// If specified, overrides the server-defined value of
   /// Build.input.experimental.
@@ -478,7 +484,7 @@ class ScheduleBuildRequest implements Body {
 /// See also:
 ///   * [BuilderId]
 ///   * [GetBuildRequest]
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class Build implements Body {
   /// Creates a build object.
   ///
@@ -562,7 +568,7 @@ class Build implements Body {
 }
 
 /// A unique handle to a builder on BuildBucket.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class BuilderId implements Body {
   /// Creates a unique handle to a builder on BuildBucket.
   ///
@@ -594,7 +600,7 @@ class BuilderId implements Body {
 }
 
 /// The build inputs for a build.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class Input implements Body {
   /// Creates a set of build inputs for a build.
   const Input({
@@ -614,14 +620,14 @@ class Input implements Body {
 
   /// Whether the build is experimental or not. Passed into the recipe as
   /// `api.runtime.is_experimental`.
-  final Trinary experimental;
+  final bool experimental;
 
   @override
   Map<String, dynamic> toJson() => _$InputToJson(this);
 }
 
 /// A landed Git commit hosted on Gitiles.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class GitilesCommit implements Body {
   /// Creates a object corresponding to a landed Git commit hosted on Gitiles.
   const GitilesCommit({
