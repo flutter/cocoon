@@ -99,7 +99,7 @@ void main() {
         },
         properties: <String, String>{
           'git_url': 'https://github.com/flutter/flutter',
-          'git_ref': 'pull/1/head',
+          'git_ref': 'refs/pull/1/head',
         },
       );
 

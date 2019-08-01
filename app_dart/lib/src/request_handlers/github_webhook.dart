@@ -126,7 +126,8 @@ class GithubWebhook extends RequestHandler<Body> {
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
-            'pr': <String>[number.toString()],
+            'buildset': <String>['pr/git/$number'],
+            'user_agent': <String>['flutter-cocoon'],
           },
           includeExperimental: true,
         ),
@@ -179,12 +180,13 @@ class GithubWebhook extends RequestHandler<Body> {
             builderId: builderId,
             experimental: Trinary.yes,
             tags: <String, List<String>>{
-              'pr': <String>[number.toString()],
+              'buildset': <String>['pr/git/$number'],
+              'user_agent': <String>['flutter-cocoon'],
               'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
             },
             properties: <String, String>{
               'git_url': 'https://github.com/flutter/$repositoryName',
-              'git_ref': 'pull/$number/head',
+              'git_ref': 'refs/pull/$number/head',
             },
           ),
         ),
