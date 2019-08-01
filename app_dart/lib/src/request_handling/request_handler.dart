@@ -134,7 +134,7 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> get() {
+  Future<T> get() async {
     throw const MethodNotAllowed('GET');
   }
 
@@ -143,7 +143,7 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> post() {
+  Future<T> post() async {
     throw const MethodNotAllowed('POST');
   }
 }

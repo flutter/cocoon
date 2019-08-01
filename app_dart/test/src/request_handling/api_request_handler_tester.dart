@@ -6,47 +6,39 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
-import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
 import 'fake_http.dart';
+import 'fake_logging.dart';
+import 'request_handler_tester.dart';
 
-class ApiRequestHandlerTester {
+class ApiRequestHandlerTester extends RequestHandlerTester {
   ApiRequestHandlerTester({
-    this.request,
-    HttpResponse response,
-    AuthenticatedContext context,
-    this.requestData = const <String, dynamic>{},
-  })  : response = response ?? FakeHttpResponse(),
-        context = context ?? FakeAuthenticatedContext();
+    HttpRequest request,
+    FakeHttpResponse response,
+    FakeLogging log,
+    FakeAuthenticatedContext context,
+    Map<String, dynamic> requestData,
+  })  : context = context ?? FakeAuthenticatedContext(),
+        requestData = requestData ?? <String, dynamic>{},
+        super(request: request, response: response, log: log);
 
-  HttpRequest request;
-  HttpResponse response;
-  AuthenticatedContext context;
+  FakeAuthenticatedContext context;
   Map<String, dynamic> requestData;
 
-  Future<T> get<T extends Body>(ApiRequestHandler<T> handler) {
-    return _run<T>(() {
-      return handler.get(); // ignore: invalid_use_of_protected_member
-    });
-  }
-
-  Future<T> post<T extends Body>(ApiRequestHandler<T> handler) {
-    return _run<T>(() {
-      return handler.post(); // ignore: invalid_use_of_protected_member
-    });
-  }
-
-  Future<T> _run<T extends Body>(Future<T> callback()) {
-    return runZoned<Future<T>>(() {
-      return callback();
-    }, zoneValues: <RequestKey<dynamic>, Object>{
-      RequestKey.request: request,
-      RequestKey.response: response,
-      ApiKey.authContext: context,
-      ApiKey.requestData: requestData,
+  @override
+  @protected
+  Future<T> run<T extends Body>(Future<T> callback()) {
+    return super.run<T>(() {
+      return runZoned<Future<T>>(() {
+        return callback();
+      }, zoneValues: <RequestKey<dynamic>, Object>{
+        ApiKey.authContext: context,
+        ApiKey.requestData: requestData,
+      });
     });
   }
 }

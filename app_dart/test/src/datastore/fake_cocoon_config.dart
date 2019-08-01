@@ -24,6 +24,7 @@ class FakeConfig implements Config {
     this.missingTestsPullRequestMessageValue,
     this.nonMasterPullRequestMessageValue,
     this.webhookKeyValue,
+    this.cqLabelNameValue,
     this.luciBuildersValue,
   }) {
     dbValue ??= FakeDatastoreDB();
@@ -40,7 +41,8 @@ class FakeConfig implements Config {
   String missingTestsPullRequestMessageValue;
   String nonMasterPullRequestMessageValue;
   String webhookKeyValue;
-  List<Map<String, String>> luciBuildersValue;
+  String cqLabelNameValue;
+  List<Map<String, dynamic>> luciBuildersValue;
 
   @override
   Future<GitHub> createGitHubClient() async => githubClient;
@@ -76,7 +78,7 @@ class FakeConfig implements Config {
   Future<String> get webhookKey async => webhookKeyValue;
 
   @override
-  Future<String> get cqLabelName => throw UnimplementedError();
+  Future<String> get cqLabelName async => cqLabelNameValue;
 
   @override
   Future<List<Map<String, dynamic>>> get luciBuilders async => luciBuildersValue;
