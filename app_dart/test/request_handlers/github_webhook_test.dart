@@ -958,7 +958,7 @@ String jsonTemplate(String action, int number, String baseRef, {String login = '
     },
     "author_association": "MEMBER",
     "merged": false,
-    "mergeable": true,
+    "mergeable": null,
     "rebaseable": true,
     "mergeable_state": "draft",
     "merged_by": null,

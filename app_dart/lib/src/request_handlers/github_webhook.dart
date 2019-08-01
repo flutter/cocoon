@@ -99,7 +99,9 @@ class GithubWebhook extends RequestHandler<Body> {
     if (cancelRunningBuilds) {
       await _cancelLuci(event.repository.name, event.number);
     }
-    if (event.pullRequest.mergeable == true &&
+    // The mergeable flag may be null. False indicates there's a merge conflict,
+    // null indicates unknown. Err on the side of allowing the job to run.
+    if (event.pullRequest.mergeable != false &&
         await _checkForCqLabel(event.repository.slug(), event.number)) {
       await _scheduleLuci(
         number: event.number,
