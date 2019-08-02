@@ -27,6 +27,7 @@ Future<void> main() async {
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
+      '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
     };
