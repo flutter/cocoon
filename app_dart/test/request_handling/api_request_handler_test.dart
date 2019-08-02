@@ -8,15 +8,17 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('ApiRequestHandler', () {
     HttpServer server;
-    StringBuffer serverOutput;
+    FakeLogging log;
     ApiRequestHandler<dynamic> handler;
 
     setUpAll(() async {
@@ -24,10 +26,15 @@ void main() {
       server.listen((HttpRequest request) {
         final ZoneSpecification spec = ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            serverOutput.write(line);
+            log.debug(line);
           },
         );
-        return runZoned<Future<void>>(() => handler.service(request), zoneSpecification: spec);
+        return runZoned<Future<void>>(() {
+          return ss.fork(() {
+            ss.register(#appengine.logging, log);
+            return handler.service(request);
+          });
+        }, zoneSpecification: spec);
       });
     });
 
@@ -36,7 +43,7 @@ void main() {
     });
 
     setUp(() {
-      serverOutput = StringBuffer();
+      log = FakeLogging();
     });
 
     Future<HttpClientResponse> issueRequest({String body}) async {
@@ -56,7 +63,7 @@ void main() {
       final HttpClientResponse response = await issueRequest();
       expect(response.statusCode, HttpStatus.unauthorized);
       expect(await utf8.decoder.bind(response).join(), 'Not authenticated');
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('empty request body yields empty requestData', () async {
@@ -66,7 +73,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestData'), '{}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('JSON request body yields valid requestData', () async {
@@ -76,7 +83,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestData'), '{param1: value1}');
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('non-JSON request body yields HTTP ok', () async {
@@ -86,7 +93,7 @@ void main() {
       expect(response.headers.value('X-Test-RequestBody'), '[97, 98, 99]');
       expect(response.headers.value('X-Test-RequestData'), '{}');
       expect(await response.toList(), isEmpty);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('can access authContext', () async {
@@ -95,7 +102,7 @@ void main() {
       expect(response.headers.value('X-Test-IsAgent'), 'false');
       expect(response.headers.value('X-Test-IsDev'), 'true');
       expect(response.statusCode, HttpStatus.ok);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('missing required request parameters yields HTTP bad request', () async {
@@ -110,7 +117,7 @@ void main() {
       expect(response.statusCode, HttpStatus.ok);
       response = await issueRequest(body: '{"param1":"value1","param2":"value2","extra":"yes"}');
       expect(response.statusCode, HttpStatus.ok);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
   });
 }

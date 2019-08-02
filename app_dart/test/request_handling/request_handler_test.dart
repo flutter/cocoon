@@ -9,14 +9,16 @@ import 'dart:io';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
+import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('RequestHandler', () {
     HttpServer server;
-    StringBuffer serverOutput;
+    FakeLogging log;
     RequestHandler<dynamic> handler;
 
     setUpAll(() async {
@@ -24,10 +26,15 @@ void main() {
       server.listen((HttpRequest request) {
         final ZoneSpecification spec = ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            serverOutput.write(line);
+            log.debug(line);
           },
         );
-        return runZoned<Future<void>>(() => handler.service(request), zoneSpecification: spec);
+        return runZoned<Future<void>>(() {
+          return ss.fork(() {
+            ss.register(#appengine.logging, log);
+            return handler.service(request);
+          });
+        }, zoneSpecification: spec);
       });
     });
 
@@ -36,7 +43,7 @@ void main() {
     });
 
     setUp(() {
-      serverOutput = StringBuffer();
+      log = FakeLogging();
     });
 
     Future<HttpClientResponse> issueRequest(String method) async {
@@ -56,7 +63,7 @@ void main() {
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('empty body yields empty HTTP response body', () async {
@@ -64,7 +71,7 @@ void main() {
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('non-empty body yields JSON HTTP response body', () async {
@@ -72,7 +79,7 @@ void main() {
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), '{"key":"value"}');
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('throwing HttpException yields corresponding HTTP status', () async {
@@ -80,7 +87,7 @@ void main() {
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.badRequest);
       expect(await utf8.decoder.bind(response).join(), 'Bad request');
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('throwing general exception yields HTTP 500 and logs to server logs', () async {
@@ -88,14 +95,14 @@ void main() {
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.internalServerError);
       expect(await utf8.decoder.bind(response).join(), contains('error message'));
-      expect(serverOutput.toString(), contains('error message'));
+      expect(log.records.single.message, contains('error message'));
     });
 
     test('may access the request and response directly', () async {
       handler = AccessesRequestAndResponseDirectly();
       final HttpClientResponse response = await issueGet();
       expect(response.headers.value('X-Test-Path'), '/path');
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('may implement both GET and POST', () async {
@@ -106,7 +113,7 @@ void main() {
       response = await issuePost();
       expect(response.headers.value('X-Test-Get'), isNull);
       expect(response.headers.value('X-Test-Post'), 'true');
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
 
     test('may implement only POST', () async {
@@ -115,7 +122,7 @@ void main() {
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
       expect(response.statusCode, HttpStatus.ok);
-      expect(serverOutput.toString(), isEmpty);
+      expect(log.records, isEmpty);
     });
   });
 }
