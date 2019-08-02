@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -25,8 +24,7 @@ void main() {
   group('githubWebhookPullRequest', () {
     GithubWebhook webhook;
 
-    MockHttpRequest request;
-    FakeHttpHeaders requestHeaders;
+    FakeHttpRequest request;
     FakeConfig config;
     MockGitHubClient gitHubClient;
     MockIssuesService issuesService;
@@ -42,8 +40,7 @@ void main() {
     }
 
     setUp(() {
-      request = MockHttpRequest();
-      requestHeaders = FakeHttpHeaders();
+      request = FakeHttpRequest();
       config = FakeConfig();
       gitHubClient = MockGitHubClient();
       issuesService = MockIssuesService();
@@ -61,8 +58,6 @@ void main() {
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
-
-      when(request.headers).thenReturn(requestHeaders);
     });
 
     test('Rejects non-POST methods with methodNotAllowed', () async {
@@ -70,48 +65,43 @@ void main() {
     });
 
     test('Rejects missing headers', () async {
-      when(request.method).thenReturn('POST');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
     });
 
     test('Rejects invalid hmac', () async {
-      when(request.method).thenReturn('POST');
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      requestHeaders.set('X-Hub-Signature', 'bar');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[utf8.encode('Hello, World!')]);
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.headers.set('X-Hub-Signature', 'bar');
+      request.body = 'Hello, World!';
       expect(tester.post(webhook), throwsA(isA<Forbidden>()));
     });
 
     test('Rejects malformed unicode', () async {
-      when(request.method).thenReturn('POST');
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = Uint8List.fromList(<int>[0xc3, 0x28]);
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.bodyBytes = Uint8List.fromList(<int>[0xc3, 0x28]);
       final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      final String hmac = getHmac(request.bodyBytes, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
     });
 
     test('Rejects non-json', () async {
-      when(request.method).thenReturn('POST');
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode('Hello, World!');
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = 'Hello, World!';
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
     });
 
     test('Acts on opened against dev', () async {
       const int issueNumber = 123;
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'dev'));
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'dev');
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
@@ -140,12 +130,12 @@ void main() {
 
     test('Labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
@@ -173,12 +163,12 @@ void main() {
 
     test('Labels PRs, no dart files', () async {
       const int issueNumber = 123;
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
@@ -206,12 +196,12 @@ void main() {
 
     test('Labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate('opened', issueNumber, 'master'));
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
@@ -259,17 +249,17 @@ void main() {
 
     test('Skips labeling or commenting on autorolls', () async {
       const int issueNumber = 123;
-      requestHeaders.set('X-GitHub-Event', 'pull_request');
-      final Uint8List body = utf8.encode(jsonTemplate(
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
         'opened',
         issueNumber,
         'master',
         login: 'engine-flutter-autoroll',
-      ));
+      );
+      final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
-      requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-      request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
       await tester.post(webhook);
 
@@ -311,7 +301,7 @@ void main() {
     {"name": "Windows Android AOT Engine", "repo": "engine"}
   ]''').cast<Map<String, dynamic>>();
         config.cqLabelNameValue = cqLabelName;
-        requestHeaders.set('X-GitHub-Event', 'pull_request');
+        request.headers.set('X-GitHub-Event', 'pull_request');
       });
 
       test('Not schedule build when lableed without CQ', () async {
@@ -321,15 +311,11 @@ void main() {
           ]);
         });
 
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'labeled',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('labeled', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
         verifyNever(mockBuildBucketClient.searchBuilds(any));
@@ -348,15 +334,11 @@ void main() {
             builds: <Build>[],
           );
         });
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'labeled',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('labeled', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
         expect(
@@ -391,15 +373,11 @@ void main() {
           );
         });
 
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'unlabeled',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('unlabeled', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
         expect(
@@ -434,17 +412,13 @@ void main() {
           );
         });
 
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'unlabeled',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('unlabeled', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
-        await webhook.service(request);
+        await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
           '[{"predicate":{"builder":{"project":"flutter","bucket":"prod"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}],"includeExperimental":true}}]',
@@ -474,17 +448,13 @@ void main() {
           );
         });
 
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'synchronize',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('synchronize', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        when(headers.value('X-Hub-Signature')).thenReturn('sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
-        await webhook.service(request);
+        await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
           '[{"predicate":{"builder":{"project":"flutter","bucket":"prod"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}],"includeExperimental":true}}]',
@@ -517,15 +487,11 @@ void main() {
           );
         });
 
-        final Uint8List body = utf8.encode(jsonTemplate(
-          'synchronize',
-          issueNumber,
-          'master',
-        ));
+        request.body = jsonTemplate('synchronize', issueNumber, 'master');
+        final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
-        requestHeaders.set('X-Hub-Signature', 'sha1=$hmac');
-        request.data = Stream<Uint8List>.fromIterable(<Uint8List>[body]);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
         await tester.post(webhook);
         expect(
@@ -539,13 +505,6 @@ void main() {
       });
     });
   });
-}
-
-class MockHttpRequest extends Mock implements HttpRequest {
-  Stream<Uint8List> data;
-
-  @override
-  Stream<S> expand<S>(Iterable<S> convert(Uint8List element)) => data.expand(convert);
 }
 
 class MockGitHubClient extends Mock implements GitHub {}

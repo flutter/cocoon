@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
@@ -14,22 +13,27 @@ import 'fake_logging.dart';
 
 class RequestHandlerTester {
   RequestHandlerTester({
-    this.request,
-    FakeHttpResponse response,
+    FakeHttpRequest request,
     FakeLogging log,
-  })  : log = log ?? FakeLogging(),
-        response = response ?? FakeHttpResponse();
+  }) {
+    this.log = log ?? FakeLogging();
+    this.request = request ?? FakeHttpRequest();
+  }
 
-  HttpRequest request;
-  FakeHttpResponse response;
+  FakeHttpRequest request;
   FakeLogging log;
 
+  /// This tester's [FakeHttpResponse], derived from [request].
+  FakeHttpResponse get response => request.response;
+
+  /// Executes [RequestHandler.get] on the specified [handler].
   Future<T> get<T extends Body>(RequestHandler<T> handler) {
     return run<T>(() {
       return handler.get(); // ignore: invalid_use_of_protected_member
     });
   }
 
+  /// Executes [RequestHandler.post] on the specified [handler].
   Future<T> post<T extends Body>(RequestHandler<T> handler) {
     return run<T>(() {
       return handler.post(); // ignore: invalid_use_of_protected_member

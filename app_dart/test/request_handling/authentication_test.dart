@@ -3,13 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/whitelisted_account.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -20,16 +18,13 @@ void main() {
   group('AuthenticationProvider', () {
     FakeConfig config;
     FakeClientContext clientContext;
-    FakeHttpHeaders headers;
-    MockHttpRequest request;
+    FakeHttpRequest request;
     AuthenticationProvider auth;
 
     setUp(() {
       config = FakeConfig();
       clientContext = FakeClientContext();
-      headers = FakeHttpHeaders();
-      request = MockHttpRequest();
-      when(request.headers).thenReturn(headers);
+      request = FakeHttpRequest();
       auth = AuthenticationProvider(config, () => clientContext);
     });
 
@@ -45,7 +40,7 @@ void main() {
           key: config.db.emptyKey.append(Agent, id: 'aid'),
           authToken: ascii.encode(r'$2a$10$4UicEmMSoqzUtWTQAR1s/.qUrmh7oQTyz1MI.f7qt6.jJ6kPipdKq'),
         );
-        headers.set('Agent-ID', agent.key.id);
+        request.headers.set('Agent-ID', agent.key.id);
       });
 
       test('throws Unauthenticated if agent lookup fails', () async {
@@ -77,13 +72,13 @@ void main() {
 
         test('fails if agent lookup succeeds but auth token is invalid', () async {
           config.db.values[agent.key] = agent;
-          headers.set('Agent-Auth-Token', 'invalid_token');
+          request.headers.set('Agent-Auth-Token', 'invalid_token');
           expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
         });
 
         test('succeeds if agent lookup succeeds and valid auth token provided', () async {
           config.db.values[agent.key] = agent;
-          headers.set('Agent-Auth-Token', 'password');
+          request.headers.set('Agent-Auth-Token', 'password');
           final AuthenticatedContext result = await auth.authenticate(request);
           expect(result.agent, same(agent));
           expect(result.clientContext, same(clientContext));
@@ -92,21 +87,21 @@ void main() {
     });
 
     test('succeeds for App Engine cronjobs', () async {
-      headers.set('X-Appengine-Cron', 'true');
+      request.headers.set('X-Appengine-Cron', 'true');
       final AuthenticatedContext result = await auth.authenticate(request);
       expect(result.agent, isNull);
       expect(result.clientContext, same(clientContext));
     });
 
     test('succeeds for google.com auth user', () async {
-      headers.set('X-AppEngine-User-Email', 'test@google.com');
+      request.headers.set('X-AppEngine-User-Email', 'test@google.com');
       final AuthenticatedContext result = await auth.authenticate(request);
       expect(result.agent, isNull);
       expect(result.clientContext, same(clientContext));
     });
 
     test('fails for non-whitelisted non-Google auth users', () async {
-      headers.set('X-AppEngine-User-Email', 'test@gmail.com');
+      request.headers.set('X-AppEngine-User-Email', 'test@gmail.com');
       expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
     });
 
@@ -115,7 +110,7 @@ void main() {
         key: config.db.emptyKey.append(WhitelistedAccount, id: 123),
         email: 'test@gmail.com',
       );
-      headers.set('X-AppEngine-User-Email', account.email);
+      request.headers.set('X-AppEngine-User-Email', account.email);
       config.db.values[account.key] = account;
       final AuthenticatedContext result = await auth.authenticate(request);
       expect(result.agent, isNull);
@@ -123,5 +118,3 @@ void main() {
     });
   });
 }
-
-class MockHttpRequest extends Mock implements HttpRequest {}

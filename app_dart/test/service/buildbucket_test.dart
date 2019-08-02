@@ -15,6 +15,8 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../src/request_handling/fake_http.dart';
+
 void main() {
   group('Client tests', () {
     MockHttpClient mockHttpClient;
@@ -276,43 +278,6 @@ class MockHttpClientRequest extends Mock implements HttpClientRequest {
   final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
   @override
   HttpHeaders get headers => _fakeHeaders;
-}
-
-class FakeHttpHeaders extends HttpHeaders {
-  final Map<String, String> _headers = <String, String>{};
-
-  @override
-  List<String> operator [](String name) {
-    return null;
-  }
-
-  @override
-  void add(String name, Object value) {
-    _headers[name] = value;
-  }
-
-  @override
-  void clear() {}
-
-  @override
-  void forEach(void Function(String name, List<String> values) f) {}
-
-  @override
-  void noFolding(String name) {}
-
-  @override
-  void remove(String name, Object value) {}
-
-  @override
-  void removeAll(String name) {}
-
-  @override
-  void set(String name, Object value) {}
-
-  @override
-  String value(String name) {
-    return _headers[name];
-  }
 }
 
 class MockHttpClientResponse extends Mock implements HttpClientResponse {
