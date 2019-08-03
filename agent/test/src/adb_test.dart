@@ -8,10 +8,11 @@ import 'package:test/test.dart';
 import 'package:collection/collection.dart';
 
 import 'package:cocoon_agent/src/adb.dart';
+import 'package:cocoon_agent/src/utils.dart';
 
 void main() {
-  group('device', () {
-    Device device;
+  group('Android device', () {
+    AndroidDevice device;
 
     setUp(() {
       FakeDevice.resetLog();
@@ -92,6 +93,64 @@ void main() {
         ]);
       });
     });
+
+    group('battery health', () {
+      test('battery health unknown', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_UNKNOWN);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isTrue);
+        expect(batteryHealth.details, contains('unknown'));
+      });
+
+      test('battery health good', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_GOOD);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isTrue);
+        expect(batteryHealth.details, isNull);
+      });
+
+      test('battery overheated', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_OVERHEAT);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isFalse);
+        expect(batteryHealth.details, contains('overheat'));
+      });
+
+      test('battery dead', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_DEAD);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isFalse);
+        expect(batteryHealth.details, contains('dead'));
+      });
+
+      test('battery over voltage', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_OVER_VOLTAGE);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isFalse);
+        expect(batteryHealth.details, contains('over voltage'));
+      });
+
+      test('battery health unspecified failure', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_UNSPECIFIED_FAILURE);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isFalse);
+        expect(batteryHealth.details, contains('Unspecified'));
+      });
+
+      test('battery cold', () async {
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_COLD);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isFalse);
+        expect(batteryHealth.details, contains('cold'));
+      });
+
+      test('battery health value not recognized', () async {
+        FakeDevice.pretendBatteryHealth(42);
+        final HealthCheckResult batteryHealth = await device.batteryHealth();
+        expect(batteryHealth.succeeded, isTrue);
+        expect(batteryHealth.details, contains('42'));
+      });
+    });
   });
 }
 
@@ -157,6 +216,12 @@ class FakeDevice extends AndroidDevice {
   static void pretendAsleep() {
     output = '''
       mWakefulness=Asleep
+    ''';
+  }
+
+  static void pretendBatteryHealth(int batteryHealth) {
+    output = '''
+  health: $batteryHealth
     ''';
   }
 
