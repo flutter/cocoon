@@ -25,6 +25,11 @@ class Config {
     return result.value;
   }
 
+  /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
+  /// be touched in any given transaction, or the backing datastore will throw
+  /// an error.
+  int get maxEntityGroups => 5;
+
   DatastoreDB get db => _db;
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');

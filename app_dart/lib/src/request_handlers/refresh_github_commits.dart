@@ -20,11 +20,6 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 
-/// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can be
-/// touched in any given transaction, or the backing datastore will throw an
-/// error.
-const int _maxEntityGroups = 5;
-
 /// Queries GitHub for the list of recent commits, and creates corresponding
 /// rows in the cloud datastore for any commits not yet in the datastore. Then
 /// creates new task rows in the datastore for any commits that were added.
@@ -43,10 +38,10 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     final int now = DateTime.now().millisecondsSinceEpoch;
     final List<Commit> newCommits = <Commit>[];
-    for (int i = 0; i < commits.length; i += _maxEntityGroups) {
+    for (int i = 0; i < commits.length; i += config.maxEntityGroups) {
       await config.db.withTransaction<void>((Transaction transaction) async {
         try {
-          for (RepositoryCommit commit in commits.skip(i).take(_maxEntityGroups)) {
+          for (RepositoryCommit commit in commits.skip(i).take(config.maxEntityGroups)) {
             final String id = 'flutter/flutter/${commit.sha}';
             final Key key = transaction.db.emptyKey.append(Commit, id: id);
             if (await transaction.lookupValue<Commit>(key, orElse: () => null) != null) {

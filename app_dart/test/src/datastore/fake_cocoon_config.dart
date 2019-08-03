@@ -13,6 +13,7 @@ import 'fake_datastore.dart';
 // ignore: must_be_immutable
 class FakeConfig implements Config {
   FakeConfig({
+    this.maxEntityGroups,
     this.githubClient,
     this.dbValue,
     this.deviceLabServiceAccountValue,
@@ -30,9 +31,9 @@ class FakeConfig implements Config {
     dbValue ??= FakeDatastoreDB();
   }
 
-  ServiceAccountInfo deviceLabServiceAccountValue;
   GitHub githubClient;
   FakeDatastoreDB dbValue;
+  ServiceAccountInfo deviceLabServiceAccountValue;
   String forwardHostValue;
   int forwardPortValue;
   String forwardSchemeValue;
@@ -43,6 +44,9 @@ class FakeConfig implements Config {
   String webhookKeyValue;
   String cqLabelNameValue;
   List<Map<String, dynamic>> luciBuildersValue;
+
+  @override
+  int maxEntityGroups;
 
   @override
   Future<GitHub> createGitHubClient() async => githubClient;

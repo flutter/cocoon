@@ -12,6 +12,7 @@ export 'src/request_handlers/refresh_cirrus_status.dart';
 export 'src/request_handlers/refresh_github_commits.dart';
 export 'src/request_handlers/reserve_task.dart';
 export 'src/request_handlers/update_task_status.dart';
+export 'src/request_handlers/vacuum-clean.dart';
 export 'src/request_handling/authentication.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
