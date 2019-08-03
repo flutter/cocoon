@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/reserve_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -171,7 +172,7 @@ void main() {
       taskIdCounter = 1;
       agent = Agent(agentId: 'aid', capabilities: <String>['linux/android']);
       commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      taskProvider = TaskProvider(config);
+      taskProvider = TaskProvider(datastore: DatastoreService(db: config.db));
     });
 
     test('if no commits in query returns null', () async {

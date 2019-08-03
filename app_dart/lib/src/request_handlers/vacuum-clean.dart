@@ -8,11 +8,11 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/datastore.dart';
 
 /// Cleans up any tasks that have been [Task.statusInProgress] for over an hour.
 ///
@@ -26,13 +26,23 @@ import '../request_handling/body.dart';
 ///    to allow an agent to pick the task up and try to run it again.
 @immutable
 class VacuumClean extends ApiRequestHandler<Body> {
-  const VacuumClean(Config config, AuthenticationProvider authenticationProvider)
-      : super(config: config, authenticationProvider: authenticationProvider);
+  const VacuumClean(
+    Config config,
+    AuthenticationProvider authenticationProvider, {
+    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        super(config: config, authenticationProvider: authenticationProvider);
+
+  final DatastoreServiceProvider datastoreProvider;
 
   @override
   Future<Body> get() async {
     final int maxRetries = await config.maxTaskRetries;
-    final List<Task> tasks = await getRecentInProgressTasks().where(isOverAnHourOld).toList();
+    final List<Task> tasks = await datastoreProvider()
+        .queryRecentTasks(taskStatus: Task.statusInProgress)
+        .map<Task>((FullTask fullTask) => fullTask.task)
+        .where(isOverAnHourOld)
+        .toList();
     log.debug('Found ${tasks.length} in progress tasks that have been stranded');
     for (Task task in tasks) {
       if (task.attempts >= maxRetries) {
@@ -81,19 +91,5 @@ class VacuumClean extends ApiRequestHandler<Body> {
     final int now = DateTime.now().millisecondsSinceEpoch;
     const Duration oneHour = Duration(hours: 1);
     return task.startTimestamp < now - oneHour.inMilliseconds;
-  }
-
-  Stream<Task> getRecentInProgressTasks() async* {
-    final Query<Commit> recentCommits = config.db.query<Commit>()
-      ..limit(20)
-      ..order('-timestamp');
-
-    await for (Commit commit in recentCommits.run()) {
-      final Query<Task> recentTasks = config.db.query<Task>(ancestorKey: commit.key)
-        ..limit(20)
-        ..order('-createTimestamp')
-        ..filter('status =', Task.statusInProgress);
-      yield* recentTasks.run();
-    }
   }
 }
