@@ -30,7 +30,7 @@ class DebugGetTaskById extends ApiRequestHandler<Body> {
     checkRequiredParameters(<String>[commitParam, taskIdParam]);
     final Map<String, dynamic> params = requestData;
 
-    final Query<Commit> query = config.db.query()..filter('sha =', params[commitParam]);
+    final Query<Commit> query = config.db.query<Commit>()..filter('sha =', params[commitParam]);
     final List<Commit> commits = await query.run().toList();
     assert(commits.length <= 1);
     if (commits.isEmpty) {

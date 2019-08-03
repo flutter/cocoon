@@ -29,6 +29,10 @@ class DatastoreService {
   /// The backing [DatastoreDB] object. Guaranteed to be non-null.
   final DatastoreDB db;
 
+  static DatastoreService defaultProvider() {
+    return DatastoreService(db: dbService);
+  }
+
   /// Queries for recent commits.
   ///
   /// The [limit] argument specifies the maximum number of commits to retrieve.

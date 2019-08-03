@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -36,6 +37,7 @@ void main() {
         config,
         FakeAuthenticationProvider(),
         luciServiceProvider: (_) => mockLuciService,
+        datastoreProvider: () => DatastoreService(db: config.db),
       );
     });
 

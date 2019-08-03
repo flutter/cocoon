@@ -27,7 +27,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
-        datastoreProvider = datastoreProvider ?? _createDatastoreService,
+        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciServiceProvider luciServiceProvider;
@@ -38,10 +38,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       config: handler.config,
       clientContext: handler.authContext.clientContext,
     );
-  }
-
-  static DatastoreService _createDatastoreService() {
-    return DatastoreService(db: dbService);
   }
 
   @override

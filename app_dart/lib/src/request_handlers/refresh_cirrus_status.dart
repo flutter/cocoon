@@ -24,14 +24,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider = datastoreProvider ?? _createDatastoreService,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-
-  static DatastoreService _createDatastoreService() {
-    return DatastoreService(db: dbService);
-  }
 
   @override
   Future<Body> get() async {
