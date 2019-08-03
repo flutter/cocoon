@@ -39,10 +39,10 @@ class LuciService {
   })  : assert(config != null),
         assert(clientContext != null);
 
-  /// The Cocoon configuration. Guaranteed to bne non-null.
+  /// The Cocoon configuration. Guaranteed to be non-null.
   final Config config;
 
-  /// The AppEngine context to use for requests. Guaranteed to bne non-null.
+  /// The AppEngine context to use for requests. Guaranteed to be non-null.
   final ClientContext clientContext;
 
   /// Gets the list of recent LUCI tasks, broken out by the [LuciBuilder] that

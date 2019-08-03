@@ -20,6 +20,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/access_token_provider.dart';
+import '../service/datastore.dart';
 
 /// Reserves a pending task so that an agent may run the task.
 @immutable
@@ -30,7 +31,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting TaskProvider taskProvider,
     @visibleForTesting ReservationProvider reservationProvider,
     @visibleForTesting AccessTokenProvider accessTokenProvider,
-  })  : taskProvider = taskProvider ?? TaskProvider(config),
+  })  : taskProvider = taskProvider ?? TaskProvider(datastore: DatastoreService(db: config.db)),
         reservationProvider = reservationProvider ?? ReservationProvider(config),
         accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
         super(config: config, authenticationProvider: authenticationProvider);
@@ -170,17 +171,16 @@ class ReserveTaskResponse extends Body {
 
 @visibleForTesting
 class TaskProvider {
-  const TaskProvider(this.config);
+  TaskProvider({
+    @required this.datastore,
+  })  : assert(datastore != null);
 
-  final Config config;
+  /// The backing datastore. Guaranteed to be non-null.
+  final DatastoreService datastore;
 
   Future<FullTask> findNextTask(Agent agent) async {
-    final Query<Commit> query = config.db.query<Commit>()
-      ..limit(100)
-      ..order('-timestamp');
-
-    await for (Commit commit in query.run()) {
-      final List<Stage> stages = await _queryTasksGroupedByStage(commit);
+    await for (Commit commit in datastore.queryRecentCommits()) {
+      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
       for (Stage stage in stages) {
         if (!stage.isManagedByDeviceLab) {
           continue;
@@ -197,27 +197,6 @@ class TaskProvider {
     }
 
     return null;
-  }
-
-  /// Finds all tasks owned by the specified [commit] and partitions them into
-  /// stages.
-  ///
-  /// The returned list of stages will be ordered by the natural ordering of
-  /// [Stage].
-  Future<List<Stage>> _queryTasksGroupedByStage(Commit commit) async {
-    final Query<Task> query = config.db.query<Task>(ancestorKey: commit.key)..order('-stageName');
-    final Map<String, StageBuilder> stages = <String, StageBuilder>{};
-    await for (Task task in query.run()) {
-      if (!stages.containsKey(task.stageName)) {
-        stages[task.stageName] = StageBuilder()
-          ..commit = commit
-          ..name = task.stageName;
-      }
-      stages[task.stageName].tasks.add(task);
-    }
-    final List<Stage> result =
-        stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
-    return result..sort();
   }
 }
 
