@@ -23,6 +23,7 @@ Future<void> main() async {
           BuildBucketClient(
             accessTokenProvider: AccessTokenProvider(config),
           )),
+      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
