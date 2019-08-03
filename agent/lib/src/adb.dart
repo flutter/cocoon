@@ -68,6 +68,20 @@ abstract class Device {
   Future<void> unlock();
 }
 
+/// Constant battery health values returned from Android Battery Manager.
+///
+/// https://developer.android.com/reference/android/os/BatteryManager.html
+class AndroidBatteryHealth {
+  // Match SCREAMING_CAPS to Android constants.
+  static const BATTERY_HEALTH_UNKNOWN = 1;
+  static const BATTERY_HEALTH_GOOD = 2;
+  static const BATTERY_HEALTH_OVERHEAT = 3;
+  static const BATTERY_HEALTH_DEAD = 4;
+  static const BATTERY_HEALTH_OVER_VOLTAGE = 5;
+  static const BATTERY_HEALTH_UNSPECIFIED_FAILURE = 6;
+  static const BATTERY_HEALTH_COLD = 7;
+}
+
 class AndroidDeviceDiscovery implements DeviceDiscovery {
   factory AndroidDeviceDiscovery() {
     return _instance ??= AndroidDeviceDiscovery._();
@@ -115,14 +129,14 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<Map<String, HealthCheckResult>> checkDevices() async {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
     for (Device device in await discoverDevices()) {
+      final String deviceResultKey = 'android-device-${device.deviceId}';
       if (device is AndroidDevice) {
         try {
           // Just a smoke test that we can read wakefulness state
-          // TODO(yjbanov): check battery level
           await device._getWakefulness();
-          results['android-device-${device.deviceId}'] = HealthCheckResult.success();
+          results[deviceResultKey] = await device.batteryHealth();
         } catch (e, s) {
-          results['android-device-${device.deviceId}'] = HealthCheckResult.error(e, s);
+          results[deviceResultKey] = HealthCheckResult.error(e, s);
         }
       }
     }
@@ -209,6 +223,37 @@ class AndroidDevice implements Device {
     String powerInfo = await shellEval('dumpsys', ['power']);
     String wakefulness = grep('mWakefulness=', from: powerInfo).single.split('=')[1].trim();
     return wakefulness;
+  }
+
+  /// Retrieves battery health reported from dumpsys battery.
+  Future<HealthCheckResult> batteryHealth() async {
+    try {
+      String batteryInfo = await shellEval('dumpsys', ['battery']);
+      String batteryTemperatureString = grep('health: ', from: batteryInfo).single.split(': ')[1].trim();
+      int batteryHeath = int.parse(batteryTemperatureString);
+      switch(batteryHeath) {
+        case AndroidBatteryHealth.BATTERY_HEALTH_OVERHEAT:
+          return HealthCheckResult.failure('Battery overheated');
+        case AndroidBatteryHealth.BATTERY_HEALTH_DEAD:
+          return HealthCheckResult.failure('Battery dead');
+        case AndroidBatteryHealth.BATTERY_HEALTH_OVER_VOLTAGE:
+          return HealthCheckResult.failure('Battery over voltage');
+        case AndroidBatteryHealth.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
+          return HealthCheckResult.failure('Unspecified battery failure');
+        case AndroidBatteryHealth.BATTERY_HEALTH_COLD:
+          return HealthCheckResult.failure('Battery cold');
+        case AndroidBatteryHealth.BATTERY_HEALTH_UNKNOWN:
+          return HealthCheckResult.success('Battery health unknown');
+        case AndroidBatteryHealth.BATTERY_HEALTH_GOOD:
+          return HealthCheckResult.success();
+        default:
+          // Unknown code.
+          return HealthCheckResult.success('Unknown battery health value $batteryHeath');
+      }
+    } catch (e) {
+      // dumpsys battery not supported.
+      return HealthCheckResult.success('Unknown battery health');
+    }
   }
 
   /// Executes [command] on `adb shell` and returns its exit code.
