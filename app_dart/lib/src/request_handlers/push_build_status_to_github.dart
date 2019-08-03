@@ -39,12 +39,16 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Result trend = await _computeTrend(datastore);
+    log.debug('Computed build result of ${trend.githubStatus}');
     if (trend == Result.buildWillFail || trend == Result.succeeded || trend == Result.failed) {
       final GitHub github = await config.createGitHubClient();
+      final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
+
       await for (PullRequest pr in github.pullRequests.list(slug)) {
         final GithubBuildStatusUpdate update = await queryLastStatusUpdate(datastore, slug, pr);
 
         if (update.status != trend.githubStatus) {
+          log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
           final CreateStatus request = CreateStatus(trend.githubStatus);
           request.targetUrl = 'https://flutter-dashboard.appspot.com/build.html';
           request.context = 'flutter-build';
@@ -52,21 +56,26 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
             request.description = 'Flutter build is currently broken. Please do not merge this '
                 'PR unless it contains a fix to the broken build.';
           }
-          await github.repositories.createStatus(slug, pr.head.sha, request);
 
-          await datastore.db.withTransaction<void>((Transaction transaction) async {
-            try {
-              update.status = trend.githubStatus;
-              update.updates += 1;
-              transaction.queueMutations(inserts: <GithubBuildStatusUpdate>[update]);
-              await transaction.commit();
-            } catch (error) {
-              await transaction.rollback();
-              rethrow;
-            }
-          });
+          try {
+            await github.repositories.createStatus(slug, pr.head.sha, request);
+            update.status = trend.githubStatus;
+            update.updates += 1;
+            updates.add(update);
+          } catch (error) {
+            log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          }
         }
       }
+
+      final int maxEntityGroups = config.maxEntityGroups;
+      for (int i = 0; i < updates.length; i += maxEntityGroups) {
+        await datastore.db.withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(inserts: updates.skip(i).take(maxEntityGroups).toList());
+          await transaction.commit();
+        });
+      }
+      log.debug('Committed all updates');
     }
 
     return Body.empty;
@@ -79,13 +88,13 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     final Query<GithubBuildStatusUpdate> query = datastore.db.query<GithubBuildStatusUpdate>()
       ..filter('repository =', slug.fullName)
-      ..filter('pr =', pr.id);
+      ..filter('pr =', pr.number);
     final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
         repository: slug.fullName,
-        pr: pr.id,
+        pr: pr.number,
         status: null,
         updates: 0,
       );
