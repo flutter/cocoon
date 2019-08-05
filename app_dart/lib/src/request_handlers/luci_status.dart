@@ -30,19 +30,26 @@ class LuciStatusListener extends RequestHandler<Body> {
   @override
   Future<Body> post() async {
     final String requestString = await utf8.decodeStream(request);
-    final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(json.decode(requestString));
+    final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
+      json.decode(requestString),
+    );
     final BuildPushMessage buildMessage =
         BuildPushMessage.fromJson(json.decode(envelope.message.data));
+    final Build build = buildMessage.build;
     switch (buildMessage.build.status) {
       case Status.completed:
         await _setCompletedStatus(
-          buildMessage.build.buildParameters.builderName,
-          buildMessage.build.result,
+          context: build.buildParameters.builderName,
+          builderUrl: build.url,
+          result: build.result,
         );
         break;
       case Status.scheduled:
       case Status.started:
-        await _setPendingStatus(buildMessage.build.buildParameters.builderName);
+        await _setPendingStatus(
+          context: build.buildParameters.builderName,
+          builderUrl: build.url,
+        );
         break;
     }
     return Body.empty;
@@ -61,25 +68,32 @@ class LuciStatusListener extends RequestHandler<Body> {
     throw StateError('unreachable');
   }
 
-  Future<void> _setCompletedStatus(String context, Result result) async {
+  Future<void> _setCompletedStatus({
+    @required String context,
+    @required String builderUrl,
+    @required Result result,
+  }) async {
     final GitHub gitHubClient = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     const String ref = '';
     final CreateStatus status = _statusForResult(result)
       ..context = context
       ..description = 'Flutter LUCI Build: $context'
-      ..targetUrl = 'https://ci.chromium.org/p/flutter';
+      ..targetUrl = builderUrl;
     await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 
-  Future<void> _setPendingStatus(String context) async {
+  Future<void> _setPendingStatus({
+    @required String context,
+    @required String builderUrl,
+  }) async {
     final GitHub gitHubClient = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     const String ref = '';
     final CreateStatus status = CreateStatus('pending')
       ..context = context
       ..description = 'Flutter LUCI Build: $context'
-      ..targetUrl = 'https://ci.chromium.org/p/flutter';
+      ..targetUrl = builderUrl;
     await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 }
