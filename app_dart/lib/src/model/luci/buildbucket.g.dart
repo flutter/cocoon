@@ -122,7 +122,7 @@ Map<String, dynamic> _$ResponseToJson(Response instance) {
 
 GetBuildRequest _$GetBuildRequestFromJson(Map<String, dynamic> json) {
   return GetBuildRequest(
-    id: const _Int64Converter().fromJson(json['id'] as String),
+    id: const Int64Converter().fromJson(json['id'] as String),
     builderId: json['builder'] == null
         ? null
         : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
@@ -139,7 +139,7 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
     }
   }
 
-  writeNotNull('id', const _Int64Converter().toJson(instance.id));
+  writeNotNull('id', const Int64Converter().toJson(instance.id));
   writeNotNull('builder', instance.builderId);
   writeNotNull('buildNumber', instance.buildNumber);
   return val;
@@ -148,7 +148,7 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
 CancelBuildRequest _$CancelBuildRequestFromJson(Map<String, dynamic> json) {
   $checkKeys(json, requiredKeys: const ['id', 'summaryMarkdown']);
   return CancelBuildRequest(
-    id: const _Int64Converter().fromJson(json['id'] as String),
+    id: const Int64Converter().fromJson(json['id'] as String),
     summaryMarkdown: json['summaryMarkdown'] as String,
   );
 }
@@ -162,7 +162,7 @@ Map<String, dynamic> _$CancelBuildRequestToJson(CancelBuildRequest instance) {
     }
   }
 
-  writeNotNull('id', const _Int64Converter().toJson(instance.id));
+  writeNotNull('id', const Int64Converter().toJson(instance.id));
   val['summaryMarkdown'] = instance.summaryMarkdown;
   return val;
 }
@@ -292,6 +292,9 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) {
       (k, e) => MapEntry(k, e as String),
     ),
     tags: const TagsConverter().fromJson(json['tags'] as List),
+    notify: json['notify'] == null
+        ? null
+        : NotificationConfig.fromJson(json['notify'] as Map<String, dynamic>),
   );
 }
 
@@ -312,6 +315,7 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(
   writeNotNull('properties', instance.properties);
   writeNotNull('gitilesCommit', instance.gitilesCommit);
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
+  writeNotNull('notify', instance.notify);
   return val;
 }
 
@@ -323,7 +327,7 @@ const _$TrinaryEnumMap = <Trinary, dynamic>{
 
 Build _$BuildFromJson(Map<String, dynamic> json) {
   return Build(
-    id: const _Int64Converter().fromJson(json['id'] as String),
+    id: const Int64Converter().fromJson(json['id'] as String),
     builderId: json['builder'] == null
         ? null
         : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
@@ -355,7 +359,7 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
     }
   }
 
-  writeNotNull('id', const _Int64Converter().toJson(instance.id));
+  writeNotNull('id', const Int64Converter().toJson(instance.id));
   writeNotNull('builder', instance.builderId);
   writeNotNull('number', instance.number);
   writeNotNull('createdBy', instance.createdBy);
@@ -390,6 +394,27 @@ Map<String, dynamic> _$BuilderIdToJson(BuilderId instance) {
   writeNotNull('project', instance.project);
   writeNotNull('bucket', instance.bucket);
   writeNotNull('builder', instance.builder);
+  return val;
+}
+
+NotificationConfig _$NotificationConfigFromJson(Map<String, dynamic> json) {
+  return NotificationConfig(
+    pubsubTopic: json['pubsubTopic'] as String,
+    userData: const Base64Converter().fromJson(json['userData'] as String),
+  );
+}
+
+Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('pubsubTopic', instance.pubsubTopic);
+  writeNotNull('userData', const Base64Converter().toJson(instance.userData));
   return val;
 }
 

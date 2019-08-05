@@ -24,6 +24,7 @@ class GithubWebhook extends RequestHandler<Body> {
       : assert(buildBucketClient != null),
         super(config: config);
 
+  /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
 
   @override
@@ -188,6 +189,12 @@ class GithubWebhook extends RequestHandler<Body> {
               'git_url': 'https://github.com/flutter/$repositoryName',
               'git_ref': 'refs/pull/$number/head',
             },
+            notify: NotificationConfig(
+              pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+              userData: json.encode(const <String, dynamic>{
+                'retries': 0,
+              }),
+            ),
           ),
         ),
       );
