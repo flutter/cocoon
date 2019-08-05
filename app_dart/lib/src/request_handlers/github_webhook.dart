@@ -76,7 +76,11 @@ class GithubWebhook extends RequestHandler<Body> {
         break;
       case 'unlabeled':
         if (!await _checkForCqLabel(event.repository.slug(), event.number)) {
-          await _cancelLuci(event.repository.name, event.number);
+          await _cancelLuci(
+            event.repository.name,
+            event.number,
+            event.pullRequest.head.sha,
+          );
         }
         break;
       case 'closed':
@@ -98,7 +102,11 @@ class GithubWebhook extends RequestHandler<Body> {
   }) async {
     assert(cancelRunningBuilds != null);
     if (cancelRunningBuilds) {
-      await _cancelLuci(event.repository.name, event.number);
+      await _cancelLuci(
+        event.repository.name,
+        event.number,
+        event.pullRequest.head.sha,
+      );
     }
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
@@ -106,6 +114,7 @@ class GithubWebhook extends RequestHandler<Body> {
         await _checkForCqLabel(event.repository.slug(), event.number)) {
       await _scheduleLuci(
         number: event.number,
+        sha: event.pullRequest.head.sha,
         repositoryName: event.repository.name,
         skipRunningCheck: cancelRunningBuilds,
       );
@@ -115,6 +124,7 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<List<Build>> _buildsForRepositoryAndPr(
     String repositoryName,
     int number,
+    String sha,
     BuildBucketClient buildBucketClient,
     ServiceAccountInfo serviceAccount,
   ) async {
@@ -127,7 +137,7 @@ class GithubWebhook extends RequestHandler<Body> {
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
-            'buildset': <String>['pr/git/$number'],
+            'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
             'user_agent': <String>['flutter-cocoon'],
           },
           includeExperimental: true,
@@ -138,10 +148,14 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<bool> _scheduleLuci({
-    int number,
-    String repositoryName,
+    @required int number,
+    @required String sha,
+    @required String repositoryName,
     bool skipRunningCheck = false,
   }) async {
+    assert(number != null);
+    assert(sha != null);
+    assert(repositoryName != null);
     assert(skipRunningCheck != null);
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
       throw BadRequestException('Repository $repositoryName is not supported by this service.');
@@ -152,6 +166,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final List<Build> builds = await _buildsForRepositoryAndPr(
         repositoryName,
         number,
+        sha,
         buildBucketClient,
         serviceAccount,
       );
@@ -181,7 +196,7 @@ class GithubWebhook extends RequestHandler<Body> {
             builderId: builderId,
             experimental: Trinary.yes,
             tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$number'],
+              'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
               'user_agent': <String>['flutter-cocoon'],
               'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
             },
@@ -219,7 +234,7 @@ class GithubWebhook extends RequestHandler<Body> {
     return false;
   }
 
-  Future<void> _cancelLuci(String repositoryName, int number) async {
+  Future<void> _cancelLuci(String repositoryName, int number, String sha) async {
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
       throw BadRequestException('This service does not support repository $repositoryName');
     }
@@ -227,6 +242,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<Build> builds = await _buildsForRepositoryAndPr(
       repositoryName,
       number,
+      sha,
       buildBucketClient,
       serviceAccount,
     );
