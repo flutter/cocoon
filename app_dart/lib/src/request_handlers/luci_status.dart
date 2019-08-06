@@ -19,11 +19,16 @@ import '../request_handling/request_handler.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
-/// This endpoing is responsible for retrying a failed build if it has not been
-/// retried, and for updating GitHub with the status of completed builds.
+/// The [ScheduleBuildRequest.notify] property is set to tell LUCI to use our
+/// PubSub topic. LUCI then publishes updates about build status to that topic,
+/// which we listen to on the github-updater subscription. When new messages
+/// arrive, they are posted to this web service.
 ///
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
+///
+/// This endpoing is responsible for updating GitHub with the status of
+/// completed builds.
 ///
 /// This currently uses the GitHub Status API, but could be refactored at some
 /// point to use the Checks API, which may offer some more knobs to turn
