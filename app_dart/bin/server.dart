@@ -27,11 +27,7 @@ Future<void> main() async {
       '/api/get-authentication-status': null,
       '/api/get-log': null,
       '/api/github-webhook-pullrequest': GithubWebhook(config, buildBucketClient),
-      '/api/public/build-status': null,
-      '/api/public/get-benchmarks': null,
-      '/api/public/get-status': null,
-      '/api/public/get-timeseries-history': null,
-      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
+      '/api/luci-status-handler': LuciStatusHandler(config),
       '/api/push-engine-build-status-to-github': null,
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
@@ -43,8 +39,15 @@ Future<void> main() async {
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': null,
       '/api/vacuum-clean': VacuumClean(config, authProvider),
+      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
+
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
+
+      '/api/public/build-status': null,
+      '/api/public/get-benchmarks': null,
+      '/api/public/get-status': null,
+      '/api/public/get-timeseries-history': null,
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(

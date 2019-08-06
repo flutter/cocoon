@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:http/testing.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'fake_http.dart';
@@ -15,6 +16,7 @@ class RequestHandlerTester {
   RequestHandlerTester({
     FakeHttpRequest request,
     FakeLogging log,
+    this.httpClient,
   }) {
     this.log = log ?? FakeLogging();
     this.request = request ?? FakeHttpRequest();
@@ -22,6 +24,7 @@ class RequestHandlerTester {
 
   FakeHttpRequest request;
   FakeLogging log;
+  http.MockClient httpClient;
 
   /// This tester's [FakeHttpResponse], derived from [request].
   FakeHttpResponse get response => request.response;
@@ -48,6 +51,7 @@ class RequestHandlerTester {
       RequestKey.request: request,
       RequestKey.response: response,
       RequestKey.log: log,
+      RequestKey.httpClient: httpClient,
     });
   }
 }

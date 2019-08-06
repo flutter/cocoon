@@ -6,6 +6,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../request_handling/body.dart';
+import 'json_converters.dart';
 
 part 'buildbucket.g.dart';
 
@@ -17,80 +18,9 @@ part 'buildbucket.g.dart';
 // The `fromJson` methods in this class are static rather than factories so that
 // they can be passed as arguments to other functions looking for a parser.
 
-/// A converter for tags.
-///
-/// The JSON format is:
-///
-/// ```json
-/// [
-///   {
-///     "key": "tag_key",
-///     "value": "tag_value"
-///   }
-/// ]
-/// ```
-///
-/// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
-  const TagsConverter();
-
-  @override
-  Map<String, List<String>> fromJson(List<dynamic> json) {
-    if (json == null) {
-      return null;
-    }
-    final Map<String, List<String>> result = <String, List<String>>{};
-    for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
-      result[tag['key']] ??= <String>[];
-      result[tag['key']].add(tag['value']);
-    }
-    return result;
-  }
-
-  @override
-  List<Map<String, dynamic>> toJson(Map<String, List<String>> object) {
-    if (object == null) {
-      return null;
-    }
-    if (object.isEmpty) {
-      return const <Map<String, List<String>>>[];
-    }
-    final List<Map<String, String>> result = <Map<String, String>>[];
-    for (String key in object.keys) {
-      for (String value in object[key]) {
-        result.add(<String, String>{
-          'key': key,
-          'value': value,
-        });
-      }
-    }
-    return result;
-  }
-}
-
-/// A convert for BuildBucket IDs.
-///
-/// These are int64s, which are not safely representable as JSON numbers.
-///
-/// In JSON format, they're converted to Strings, but they're always int64s,
-/// which are safe to use in the Dart VM.
-class _Int64Converter implements JsonConverter<int, String> {
-  const _Int64Converter();
-
-  @override
-  int fromJson(String json) {
-    return int.parse(json);
-  }
-
-  @override
-  String toJson(int object) {
-    return object.toString();
-  }
-}
-
 /// A request for the Batch RPC.
 ///
-/// This message can be used to find, get, schedule, or cancle multiple builds.
+/// This message can be used to find, get, schedule, or cancel multiple builds.
 @JsonSerializable(includeIfNull: false)
 class BatchRequest implements Body {
   /// Creates a request for the Batch RPC.
@@ -241,7 +171,7 @@ class GetBuildRequest implements Body {
   /// The BuildBucket build ID.
   ///
   /// If specified, [builderId] and [buildNumber] must be null.
-  @_Int64Converter()
+  @Int64Converter()
   final int id;
 
   /// The BuildBucket [BuilderId].
@@ -277,7 +207,7 @@ class CancelBuildRequest implements Body {
 
   /// The BuildBucket ID for the build to cancel.
   @JsonKey(nullable: false, required: true)
-  @_Int64Converter()
+  @Int64Converter()
   final int id;
 
   /// A summary of the reason for canceling.
@@ -416,6 +346,7 @@ class ScheduleBuildRequest implements Body {
     this.gitilesCommit,
     this.properties,
     this.tags,
+    this.notify,
   }) : assert(builderId != null);
 
   /// Creates a [ScheduleBuildRequest] from JSON.
@@ -475,6 +406,9 @@ class ScheduleBuildRequest implements Body {
   @TagsConverter()
   final Map<String, List<String>> tags;
 
+  /// The topic and user data to send build status updates to.
+  final NotificationConfig notify;
+
   @override
   Map<String, dynamic> toJson() => _$ScheduleBuildRequestToJson(this);
 }
@@ -509,7 +443,7 @@ class Build implements Body {
   static Build fromJson(Map<String, dynamic> json) => _$BuildFromJson(json);
 
   /// The BuildBucket ID for the build. Required.
-  @_Int64Converter()
+  @Int64Converter()
   final int id;
 
   /// The [BuilderId] for the build.  Required.
@@ -597,6 +531,28 @@ class BuilderId implements Body {
 
   @override
   Map<String, dynamic> toJson() => _$BuilderIdToJson(this);
+}
+
+/// Specifies a Cloud PubSub topic to send notification updates to from a
+/// [ScheduleBuildRequest].
+@JsonSerializable(includeIfNull: false)
+class NotificationConfig extends Body {
+  const NotificationConfig({this.pubsubTopic, this.userData});
+
+  static NotificationConfig fromJson(Map<String, dynamic> json) => _$NotificationConfigFromJson(json);
+
+  /// The Cloud PubSub topic to use, e.g.
+  /// `projects/flutter-dashboard/topics/luci-builds`.
+  final String pubsubTopic;
+
+  /// An optional user data field that will be delivered with the message.
+  ///
+  /// May be omitted.
+  @Base64Converter()
+  final String userData;
+
+  @override
+  Map<String, dynamic> toJson() => _$NotificationConfigToJson(this);
 }
 
 /// The build inputs for a build.
