@@ -39,6 +39,7 @@ Future<void> main() async {
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': null,
       '/api/vacuum-clean': VacuumClean(config, authProvider),
+      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
 
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
@@ -47,7 +48,6 @@ Future<void> main() async {
       '/api/public/get-benchmarks': null,
       '/api/public/get-status': null,
       '/api/public/get-timeseries-history': null,
-      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(

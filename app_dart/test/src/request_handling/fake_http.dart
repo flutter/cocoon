@@ -569,6 +569,7 @@ class FakeHttpHeaders implements HttpHeaders {
   @override
   void add(String name, Object value) {
     _checkSealed();
+    name = name.toLowerCase();
     _values[name] ??= <String>[];
     _values[name].add('$value');
   }
@@ -590,6 +591,7 @@ class FakeHttpHeaders implements HttpHeaders {
   @override
   void remove(String name, Object value) {
     _checkSealed();
+    name = name.toLowerCase();
     if (_values.containsKey('$value')) {
       _values[name].remove('$value');
     }
@@ -598,18 +600,20 @@ class FakeHttpHeaders implements HttpHeaders {
   @override
   void removeAll(String name) {
     _checkSealed();
+    name = name.toLowerCase();
     _values.remove(name);
   }
 
   @override
   void set(String name, Object value) {
     _checkSealed();
+    name = name.toLowerCase();
     _values[name] = <String>['$value'];
   }
 
   @override
   String value(String name) {
-    final List<String> value = _values[name];
+    final List<String> value = _values[name.toLowerCase()];
     return value == null ? null : value.single;
   }
 }

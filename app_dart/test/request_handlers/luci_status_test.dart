@@ -3,8 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:http/testing.dart' as http_test;
+import 'package:http/http.dart' as http;
 import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 
@@ -14,9 +19,13 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
-const String ref = '0d78fc94f890a64af140ce0a2671ac5fc636f59b';
+const String ref = 'deadbeef';
 
 void main() {
+  const String authToken = '123';
+  const String authHeader = 'Bearer $authToken';
+  const String deviceLabEmail = 'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
+
   LuciStatusHandler handler;
   FakeConfig config;
   MockGitHubClient mockGitHubClient;
@@ -28,7 +37,33 @@ void main() {
     config = FakeConfig();
     handler = LuciStatusHandler(config);
     request = FakeHttpRequest();
-    tester = RequestHandlerTester(request: request);
+
+    tester = RequestHandlerTester(
+      request: request,
+      httpClient: http_test.MockClient((http.BaseRequest request) async {
+        expect(
+          request.url.toString(),
+          'https://www.googleapis.com/oauth2/v2/tokeninfo?id_token=$authToken&alt=json',
+        );
+        return http.Response(
+          '''{
+            "issued_to": "456",
+            "audience": "https://flutter-dashboard.appspot.com/api/luci-status-handler",
+            "user_id": "789",
+            "expires_in": 123,
+            "email": "$deviceLabEmail",
+            "verified_email": true,
+            "issuer": "https://accounts.google.com",
+            "issued_at": 412321
+          }''',
+          200,
+          headers: <String, String>{
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        );
+      }),
+    );
+
     config.luciBuildersValue = json.decode('''[
       {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
       {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
@@ -44,10 +79,22 @@ void main() {
       {"name": "Windows Host Engine", "repo": "engine"},
       {"name": "Windows Android AOT Engine", "repo": "engine"}
     ]''').cast<Map<String, dynamic>>();
+
     mockGitHubClient = MockGitHubClient();
     mockRepositoriesService = MockRepositoriesService();
     when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
     config.githubClient = mockGitHubClient;
+    config.deviceLabServiceAccountValue = const ServiceAccountInfo(
+      email: deviceLabEmail,
+    );
+  });
+
+  test('Rejects unauthorized requests', () async {
+    request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+    await expectLater(
+      () => tester.post(handler),
+      throwsA(const TypeMatcher<Unauthorized>()),
+    );
   });
 
   group('pending', () {
@@ -72,6 +119,8 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
@@ -90,6 +139,8 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
       await tester.post(handler);
       verifyNever(mockRepositoriesService.createStatus(
         RepositorySlug('flutter', 'flutter'),
@@ -108,6 +159,8 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
@@ -126,6 +179,8 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
       await tester.post(handler);
       verifyNever(
           mockRepositoriesService.createStatus(RepositorySlug('flutter', 'flutter'), ref, any));
@@ -134,6 +189,8 @@ void main() {
 
   test('Handles a completed/failure status/result as failure', () async {
     request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE'));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
@@ -147,6 +204,8 @@ void main() {
 
   test('Handles a completed/canceled status/result as failure', () async {
     request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED'));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
@@ -160,6 +219,8 @@ void main() {
 
   test('Handles a completed/success status/result as sucess', () async {
     request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS'));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
@@ -177,6 +238,8 @@ void main() {
       result: 'SUCCESS',
       builderName: 'Linux Host Engine',
     ));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(

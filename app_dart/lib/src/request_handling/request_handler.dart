@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -53,6 +54,7 @@ abstract class RequestHandler<T extends Body> {
           }
           assert(body != null);
           await respond(body: body == Body.empty ? null : json.encode(body.toJson()));
+          httpClient?.close();
           return;
         } on HttpStatusException {
           rethrow;
@@ -72,6 +74,7 @@ abstract class RequestHandler<T extends Body> {
       RequestKey.request: request,
       RequestKey.response: request.response,
       RequestKey.log: loggingService,
+      RequestKey.httpClient: httpClient ?? http.Client(),
     });
   }
 
@@ -100,9 +103,9 @@ abstract class RequestHandler<T extends Body> {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  T getValue<T>(RequestKey<T> key) {
+  T getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
     final T value = Zone.current[key];
-    if (value == null) {
+    if (!allowNull && value == null) {
       throw StateError('Attempt to access ${key.name} while not in a request context');
     }
     return value;
@@ -146,6 +149,13 @@ abstract class RequestHandler<T extends Body> {
   Future<T> post() async {
     throw const MethodNotAllowed('POST');
   }
+
+  /// The package:http Client to use for googleapis requests.
+  @protected
+  http.Client get httpClient => getValue<http.Client>(
+        RequestKey.httpClient,
+        allowNull: true,
+      );
 }
 
 /// A key that can be used to index a value within the request context.
@@ -161,6 +171,7 @@ class RequestKey<T> {
   static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>('request');
   static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>('response');
   static const RequestKey<Logging> log = RequestKey<Logging>('log');
+  static const RequestKey<http.Client> httpClient = RequestKey<http.Client>('httpClient');
 
   @override
   String toString() => '$runtimeType($name)';

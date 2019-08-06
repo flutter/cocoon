@@ -20,7 +20,7 @@ part 'buildbucket.g.dart';
 
 /// A request for the Batch RPC.
 ///
-/// This message can be used to find, get, schedule, or cancle multiple builds.
+/// This message can be used to find, get, schedule, or cancel multiple builds.
 @JsonSerializable(includeIfNull: false)
 class BatchRequest implements Body {
   /// Creates a request for the Batch RPC.

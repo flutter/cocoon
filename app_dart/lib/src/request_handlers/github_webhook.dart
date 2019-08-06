@@ -80,7 +80,7 @@ class GithubWebhook extends RequestHandler<Body> {
             event.repository.name,
             event.number,
             event.pullRequest.head.sha,
-            'Tryjobs cancled (label removed)',
+            'Tryjobs canceled (label removed)',
           );
         }
         break;

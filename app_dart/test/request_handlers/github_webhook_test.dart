@@ -386,7 +386,7 @@ void main() {
         );
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Tryjobs cancled (label removed)"}}]}]',
+          '[{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Tryjobs canceled (label removed)"}}]}]',
         );
       });
 

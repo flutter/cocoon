@@ -3,13 +3,18 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:github/server.dart';
+import 'package:googleapis/oauth2/v2.dart';
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -18,7 +23,7 @@ import '../request_handling/request_handler.dart';
 /// retried, and for updating GitHub with the status of completed builds.
 ///
 /// The PubSub subscription is set up here:
-/// https://pantheon.corp.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
+/// https://console.cloud.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
 ///
 /// This currently uses the GitHub Status API, but could be refactored at some
 /// point to use the Checks API, which may offer some more knobs to turn
@@ -32,6 +37,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
   @override
   Future<Body> post() async {
+    if (!await _authenticateRequest(request.headers)) {
+      throw const Unauthorized();
+    }
     final String requestString = await utf8.decodeStream(request);
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString),
@@ -66,6 +74,23 @@ class LuciStatusHandler extends RequestHandler<Body> {
         break;
     }
     return Body.empty;
+  }
+
+  Future<bool> _authenticateRequest(HttpHeaders headers) async {
+    final http.Client client = httpClient;
+    final Oauth2Api oauth2api = Oauth2Api(client);
+    final String idToken = headers.value(HttpHeaders.authorizationHeader);
+    if (idToken == null || !idToken.startsWith('Bearer ')) {
+      return false;
+    }
+    final Tokeninfo info = await oauth2api.tokeninfo(
+      idToken: idToken.substring('Bearer '.length),
+    );
+    if (info.expiresIn == null || info.expiresIn < 1) {
+      return false;
+    }
+    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
+    return info.email == devicelabServiceAccount.email;
   }
 
   Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
