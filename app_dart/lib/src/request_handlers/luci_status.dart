@@ -16,6 +16,15 @@ import '../request_handling/request_handler.dart';
 ///
 /// This endpoing is responsible for retrying a failed build if it has not been
 /// retried, and for updating GitHub with the status of completed builds.
+///
+/// The PubSub subscription is set up here:
+/// https://pantheon.corp.google.com/cloudpubsub/subscription/detail/github-updater?project=flutter-dashboard
+///
+/// This currently uses the GitHub Status API, but could be refactored at some
+/// point to use the Checks API, which may offer some more knobs to turn
+/// on the GitHub page. In particular, it might offer a nice way to retry a
+/// failed build - which right now would require removing and re-applying the
+/// label, or pushing a new commit.
 @immutable
 class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
