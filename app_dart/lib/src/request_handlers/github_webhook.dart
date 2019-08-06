@@ -137,7 +137,7 @@ class GithubWebhook extends RequestHandler<Body> {
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
-            'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
+            'buildset': <String>['pr/git/$number'],
             'user_agent': <String>['flutter-cocoon'],
           },
           includeExperimental: true,

@@ -11,7 +11,6 @@ import '../datastore/cocoon_config.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
-import '../service/buildbucket.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -20,12 +19,8 @@ import '../service/buildbucket.dart';
 @immutable
 class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
-  const LuciStatusHandler(Config config, this.buildBucketClient)
-      : assert(buildBucketClient != null),
-        super(config: config);
-
-  /// A client for querying and scheduling LUCI Builds.
-  final BuildBucketClient buildBucketClient;
+  const LuciStatusHandler(Config config)
+      : super(config: config);
 
   @override
   Future<Body> post() async {
@@ -54,13 +49,12 @@ class LuciStatusHandler extends RequestHandler<Body> {
         );
         break;
       case Status.scheduled:
+      case Status.started:
         await _setPendingStatus(
           ref: sha,
           builderName: builderName,
           buildUrl: build.url,
         );
-        break;
-      case Status.started:
         break;
     }
     return Body.empty;
@@ -108,6 +102,16 @@ class LuciStatusHandler extends RequestHandler<Body> {
   }) async {
     final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
     final GitHub gitHubClient = await config.createGitHubClient();
+    // GitHub "only" allows setting a status for a context/ref pair 1000 times.
+    // We should avoid unnecessarily setting a pending status, e.g. if we get
+    // started and pending messages close together.
+    // We have to check for both because sometimes one or the other might come
+    // in.
+    await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
+      if (status.context == builderName && status.state == 'pending') {
+        return;
+      }
+    }
     final CreateStatus status = CreateStatus('pending')
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'

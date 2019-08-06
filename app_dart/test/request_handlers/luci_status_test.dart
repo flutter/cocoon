@@ -20,15 +20,13 @@ void main() {
   LuciStatusHandler handler;
   FakeConfig config;
   MockGitHubClient mockGitHubClient;
-  MockBuildBucketClient mockBuildBucketClient;
   FakeHttpRequest request;
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
 
   setUp(() {
     config = FakeConfig();
-    mockBuildBucketClient = MockBuildBucketClient();
-    handler = LuciStatusHandler(config, mockBuildBucketClient);
+    handler = LuciStatusHandler(config);
     request = FakeHttpRequest();
     tester = RequestHandlerTester(request: request);
     config.luciBuildersValue = json.decode('''[
@@ -52,17 +50,75 @@ void main() {
     config.githubClient = mockGitHubClient;
   });
 
-  test('Handles a scheduled status as pending', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
-    await tester.post(handler);
-    expect(
-      verify(mockRepositoriesService.createStatus(
+  group('pending', () {
+    RepositoryStatus repositoryStatus;
+    setUp(() {
+      when(mockRepositoriesService.listStatuses(any, ref)).thenAnswer((_) {
+        return Stream<RepositoryStatus>.fromIterable(<RepositoryStatus>[repositoryStatus]);
+      });
+    });
+
+    tearDown(() {
+      repositoryStatus = null;
+    });
+
+    test('Handles a scheduled status as pending and no pending set', () async {
+      repositoryStatus = RepositoryStatus()
+        ..context = 'Linux Coverage'
+        ..state = 'failure';
+      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      await tester.post(handler);
+      expect(
+        verify(mockRepositoriesService.createStatus(
+          RepositorySlug('flutter', 'flutter'),
+          ref,
+          captureAny,
+        )).captured.single.toJSON(),
+        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      );
+    });
+
+    test('Handles a scheduled status as pending and pending already set', () async {
+      repositoryStatus = RepositoryStatus()
+        ..context = 'Linux Coverage'
+        ..state = 'pending';
+      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      await tester.post(handler);
+      verifyNever(mockRepositoriesService.createStatus(
         RepositorySlug('flutter', 'flutter'),
         ref,
-        captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
-    );
+        any,
+      ));
+    });
+
+    test('Handles a started status as pending and no pending set', () async {
+      repositoryStatus = RepositoryStatus()
+        ..context = 'Linux Coverage'
+        ..state = 'failure';
+      request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      await tester.post(handler);
+      expect(
+        verify(mockRepositoriesService.createStatus(
+          RepositorySlug('flutter', 'flutter'),
+          ref,
+          captureAny,
+        )).captured.single.toJSON(),
+        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      );
+    });
+
+    test('Handles a started status as pending and pending already set', () async {
+      repositoryStatus = RepositoryStatus()
+        ..context = 'Linux Coverage'
+        ..state = 'pending';
+      request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      await tester.post(handler);
+      verifyNever(mockRepositoriesService.createStatus(
+        RepositorySlug('flutter', 'flutter'),
+        ref,
+        any
+      ));
+    });
   });
 
   test('Handles a completed/failure status/result as failure', () async {
@@ -125,9 +181,6 @@ void main() {
 class MockGitHubClient extends Mock implements GitHub {}
 
 class MockRepositoriesService extends Mock implements RepositoriesService {}
-
-// ignore: must_be_immutable
-class MockBuildBucketClient extends Mock implements BuildBucketClient {}
 
 String pushMessageJson(
   String status, {
