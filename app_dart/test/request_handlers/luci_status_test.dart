@@ -51,21 +51,26 @@ void main() {
   });
 
   group('pending', () {
-    RepositoryStatus repositoryStatus;
+    List<RepositoryStatus> repositoryStatuses;
     setUp(() {
       when(mockRepositoriesService.listStatuses(any, ref)).thenAnswer((_) {
-        return Stream<RepositoryStatus>.fromIterable(<RepositoryStatus>[repositoryStatus]);
+        return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
     });
 
     tearDown(() {
-      repositoryStatus = null;
+      repositoryStatuses = null;
     });
 
-    test('Handles a scheduled status as pending and no pending set', () async {
-      repositoryStatus = RepositoryStatus()
-        ..context = 'Linux Coverage'
-        ..state = 'failure';
+    test('Handles a scheduled status as pending and pending is not most recent', () async {
+      repositoryStatuses = <RepositoryStatus>[
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'failure',
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'pending',
+      ];
       request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
       await tester.post(handler);
       expect(
@@ -79,9 +84,11 @@ void main() {
     });
 
     test('Handles a scheduled status as pending and pending already set', () async {
-      repositoryStatus = RepositoryStatus()
-        ..context = 'Linux Coverage'
-        ..state = 'pending';
+      repositoryStatuses = <RepositoryStatus>[
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'pending',
+      ];
       request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
       await tester.post(handler);
       verifyNever(mockRepositoriesService.createStatus(
@@ -91,10 +98,15 @@ void main() {
       ));
     });
 
-    test('Handles a started status as pending and no pending set', () async {
-      repositoryStatus = RepositoryStatus()
-        ..context = 'Linux Coverage'
-        ..state = 'failure';
+    test('Handles a started status as pending and most recent is not pending', () async {
+      repositoryStatuses = <RepositoryStatus>[
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'failure',
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'pending',
+      ];
       request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
       await tester.post(handler);
       expect(
@@ -108,16 +120,15 @@ void main() {
     });
 
     test('Handles a started status as pending and pending already set', () async {
-      repositoryStatus = RepositoryStatus()
-        ..context = 'Linux Coverage'
-        ..state = 'pending';
+      repositoryStatuses = <RepositoryStatus>[
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'pending',
+      ];
       request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
       await tester.post(handler);
-      verifyNever(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
-        ref,
-        any
-      ));
+      verifyNever(
+          mockRepositoriesService.createStatus(RepositorySlug('flutter', 'flutter'), ref, any));
     });
   });
 

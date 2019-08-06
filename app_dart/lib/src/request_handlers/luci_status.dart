@@ -28,8 +28,7 @@ import '../request_handling/request_handler.dart';
 @immutable
 class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
-  const LuciStatusHandler(Config config)
-      : super(config: config);
+  const LuciStatusHandler(Config config) : super(config: config);
 
   @override
   Future<Body> post() async {
@@ -116,9 +115,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
     // started and pending messages close together.
     // We have to check for both because sometimes one or the other might come
     // in.
+    // However, we should keep going if the _most recent_ status is not pending.
     await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
-      if (status.context == builderName && status.state == 'pending') {
-        return;
+      if (status.context == builderName) {
+        if (status.state == 'pending') {
+          return;
+        }
+        break;
       }
     }
     final CreateStatus status = CreateStatus('pending')
