@@ -80,6 +80,7 @@ class GithubWebhook extends RequestHandler<Body> {
             event.repository.name,
             event.number,
             event.pullRequest.head.sha,
+            'Tryjobs cancled (label removed)',
           );
         }
         break;
@@ -106,6 +107,7 @@ class GithubWebhook extends RequestHandler<Body> {
         event.repository.name,
         event.number,
         event.pullRequest.head.sha,
+        'Newer commit available',
       );
     }
     // The mergeable flag may be null. False indicates there's a merge conflict,
@@ -234,7 +236,7 @@ class GithubWebhook extends RequestHandler<Body> {
     return false;
   }
 
-  Future<void> _cancelLuci(String repositoryName, int number, String sha) async {
+  Future<void> _cancelLuci(String repositoryName, int number, String sha, String reason) async {
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
       throw BadRequestException('This service does not support repository $repositoryName');
     }
@@ -256,7 +258,7 @@ class GithubWebhook extends RequestHandler<Body> {
     for (Build build in builds) {
       requests.add(
         Request(
-          cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: 'No longer needed.'),
+          cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: reason),
         ),
       );
     }
