@@ -170,7 +170,7 @@ class Build implements Body {
   /// Parameters passed to the build.
   @JsonKey(name: 'parameters_json')
   @NestedJsonConverter()
-  final BuildParameters buildParameters;
+  final Map<String, dynamic> buildParameters;
 
   /// The BuildBucket project for the build, e.g. `flutter`.
   final String project;
@@ -210,6 +210,17 @@ class Build implements Body {
   /// The swarming tags for the build.
   final List<String> tags;
 
+  /// Returns all tags matching the prefix.
+  ///
+  /// For example, to get the `buildset` tag(s), call `tagsByName('buildset')`;
+  /// to get the `swarming_tag:os`, call `tagsByName('swarming_tag:os')`.
+  List<String> tagsByName(String prefix) {
+    return tags
+        .where((String tag) => tag.startsWith('$prefix:'))
+        .map<String>((String tag) => tag.substring(prefix.length + 1))
+        .toList();
+  }
+
   /// The time of the last update to this information.
   @JsonKey(name: 'updated_ts')
   @MillisecondsSinceEpochConverter()
@@ -225,27 +236,6 @@ class Build implements Body {
 
   @override
   Map<String, dynamic> toJson() => _$BuildToJson(this);
-}
-
-/// The build parameters sent into a Build by LUCI.
-@JsonSerializable()
-class BuildParameters implements Body {
-  const BuildParameters({
-    this.builderName,
-    this.properties,
-  });
-
-  static BuildParameters fromJson(Map<String, dynamic> json) => _$BuildParametersFromJson(json);
-
-  /// The BuildBucket builder name.
-  @JsonKey(name: 'builder_name')
-  final String builderName;
-
-  /// The properties passed into the builder.
-  final Map<String, dynamic> properties;
-
-  @override
-  Map<String, dynamic> toJson() => _$BuildParametersToJson(this);
 }
 
 /// The method to select whether canary hardware was chosen for a build.

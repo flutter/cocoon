@@ -36,10 +36,17 @@ class LuciStatusListener extends RequestHandler<Body> {
     final BuildPushMessage buildMessage =
         BuildPushMessage.fromJson(json.decode(envelope.message.data));
     final Build build = buildMessage.build;
+    final String builderName = build.tagsByName('builder').single;
+    const String shaPrefix = 'sha/git/';
+    final String sha = build
+        .tagsByName('buildset')
+        .firstWhere((String tag) => tag.startsWith(shaPrefix))
+        .substring(shaPrefix.length);
     switch (buildMessage.build.status) {
       case Status.completed:
         await _setCompletedStatus(
-          context: build.buildParameters.builderName,
+          ref: sha,
+          context: builderName,
           builderUrl: build.url,
           result: build.result,
         );
@@ -47,7 +54,8 @@ class LuciStatusListener extends RequestHandler<Body> {
       case Status.scheduled:
       case Status.started:
         await _setPendingStatus(
-          context: build.buildParameters.builderName,
+          ref: sha,
+          context: builderName,
           builderUrl: build.url,
         );
         break;
@@ -69,13 +77,13 @@ class LuciStatusListener extends RequestHandler<Body> {
   }
 
   Future<void> _setCompletedStatus({
+    @required String ref,
     @required String context,
     @required String builderUrl,
     @required Result result,
   }) async {
     final GitHub gitHubClient = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    const String ref = '';
     final CreateStatus status = _statusForResult(result)
       ..context = context
       ..description = 'Flutter LUCI Build: $context'
@@ -84,12 +92,12 @@ class LuciStatusListener extends RequestHandler<Body> {
   }
 
   Future<void> _setPendingStatus({
+    @required String ref,
     @required String context,
     @required String builderUrl,
   }) async {
     final GitHub gitHubClient = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    const String ref = '';
     final CreateStatus status = CreateStatus('pending')
       ..context = context
       ..description = 'Flutter LUCI Build: $context'

@@ -96,10 +96,8 @@ Build _$BuildFromJson(Map<String, dynamic> json) {
         _$enumDecodeNullable(_$FailureReasonEnumMap, json['failure_reason']),
     experimental: json['experimental'] as bool,
     id: const Int64Converter().fromJson(json['id'] as String),
-    buildParameters: json['parameters_json'] == null
-        ? null
-        : BuildParameters.fromJson(
-            json['parameters_json'] as Map<String, dynamic>),
+    buildParameters:
+        const NestedJsonConverter().fromJson(json['parameters_json'] as String),
     project: json['project'] as String,
     result: _$enumDecodeNullable(_$ResultEnumMap, json['result']),
     resultDetails: const NestedJsonConverter()
@@ -147,7 +145,8 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   writeNotNull(
       'failure_reason', _$FailureReasonEnumMap[instance.failureReason]);
   writeNotNull('id', const Int64Converter().toJson(instance.id));
-  writeNotNull('parameters_json', instance.buildParameters);
+  writeNotNull('parameters_json',
+      const NestedJsonConverter().toJson(instance.buildParameters));
   writeNotNull('project', instance.project);
   writeNotNull('result', _$ResultEnumMap[instance.result]);
   writeNotNull('result_details_json',
@@ -222,16 +221,3 @@ const _$StatusEnumMap = <Status, dynamic>{
   Status.scheduled: 'SCHEDULED',
   Status.started: 'STARTED'
 };
-
-BuildParameters _$BuildParametersFromJson(Map<String, dynamic> json) {
-  return BuildParameters(
-    builderName: json['builder_name'] as String,
-    properties: json['properties'] as Map<String, dynamic>,
-  );
-}
-
-Map<String, dynamic> _$BuildParametersToJson(BuildParameters instance) =>
-    <String, dynamic>{
-      'builder_name': instance.builderName,
-      'properties': instance.properties,
-    };
