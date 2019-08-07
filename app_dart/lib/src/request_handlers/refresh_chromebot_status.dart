@@ -16,9 +16,6 @@ import '../service/datastore.dart';
 
 import '../service/luci.dart';
 
-@visibleForTesting
-typedef LuciServiceProvider = LuciService Function(RefreshChromebotStatus handler);
-
 @immutable
 class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   const RefreshChromebotStatus(
@@ -33,7 +30,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   final LuciServiceProvider luciServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
 
-  static LuciService _createLuciService(RefreshChromebotStatus handler) {
+  static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
       config: handler.config,
       clientContext: handler.authContext.clientContext,
@@ -44,7 +41,10 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider();
-    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks();
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(
+      repo: 'flutter',
+      requireTaskName: true,
+    );
 
     for (LuciBuilder builder in luciTasks.keys) {
       await config.db.withTransaction<void>((Transaction transaction) async {

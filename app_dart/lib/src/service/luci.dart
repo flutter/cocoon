@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
+import '../request_handling/api_request_handler.dart';
 
 import 'buildbucket.dart';
 
@@ -26,6 +27,8 @@ const Map<Status, String> _luciStatusToTaskStatus = <Status, String>{
   Status.failure: Task.statusFailed,
   Status.infraFailure: Task.statusFailed,
 };
+
+typedef LuciServiceProvider = LuciService Function(ApiRequestHandler<dynamic> handler);
 
 /// Service class for interacting with LUCI.
 @immutable
@@ -49,13 +52,26 @@ class LuciService {
   /// owns them.
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
-  Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks() async {
+  Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
+    String repo,
+    bool requireTaskName = false,
+  }) async {
+    assert(requireTaskName != null);
     final BuildBucketClient buildBucketClient = BuildBucketClient();
 
+    bool includeBuilder(LuciBuilder builder) {
+      if (repo != null && builder.repo != repo) {
+        return false;
+      }
+      if (requireTaskName && builder.taskName == null) {
+        return false;
+      }
+      return true;
+    }
+
     final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
-    final List<Request> searchRequests = builders
-        .where((LuciBuilder builder) => builder.repo == 'flutter' && builder.taskName != null)
-        .map<Request>((LuciBuilder builder) {
+    final List<Request> searchRequests =
+        builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
       return Request(
         searchBuilds: SearchBuildsRequest(
           pageSize: _maxResults,

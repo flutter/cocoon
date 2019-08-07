@@ -53,7 +53,8 @@ void main() {
         key: (dynamic builder) => builder,
         value: (dynamic builder) => <LuciTask>[LuciTask(commitSha: 'abc', status: Task.statusNew)],
       );
-      when(mockLuciService.getRecentTasks()).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(repo: 'flutter', requireTaskName: true))
+          .thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 

@@ -5,9 +5,11 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
+import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 
@@ -106,5 +108,27 @@ class DatastoreService {
     final List<Stage> result =
         stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
     return result..sort();
+  }
+
+  Future<GithubBuildStatusUpdate> queryLastStatusUpdate(
+    RepositorySlug slug,
+    PullRequest pr,
+  ) async {
+    final Query<GithubBuildStatusUpdate> query = db.query<GithubBuildStatusUpdate>()
+      ..filter('repository =', slug.fullName)
+      ..filter('pr =', pr.number);
+    final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
+
+    if (previousStatusUpdates.isEmpty) {
+      return GithubBuildStatusUpdate(
+        repository: slug.fullName,
+        pr: pr.number,
+        status: null,
+        updates: 0,
+      );
+    } else {
+      assert(previousStatusUpdates.length == 1);
+      return previousStatusUpdates.single;
+    }
   }
 }
