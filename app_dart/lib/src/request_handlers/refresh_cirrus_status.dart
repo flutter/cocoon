@@ -41,6 +41,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       await for (RepositoryStatus status in github.repositories.listStatuses(slug, sha)) {
         final bool isCirrusStatus = status.targetUrl.contains('cirrus-ci.com');
         if (isCirrusStatus) {
+          log.debug('Found Cirrus build status for $sha: ${status.state}');
           final String taskName = status.context;
           final RepositoryStatus existingStatus = mostRecentStatuses[taskName];
           if (existingStatus == null || existingStatus.updatedAt.isBefore(status.updatedAt)) {
@@ -49,13 +50,15 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
         }
       }
 
+      final Iterable<String> states =
+          mostRecentStatuses.values.map<String>((RepositoryStatus status) => status.state);
       await config.db.withTransaction<void>((Transaction transaction) async {
         try {
-          if (mostRecentStatuses.isEmpty) {
+          if (states.isEmpty) {
             task.task.status = Task.statusNew;
-          } else if (mostRecentStatuses.values.any(_failedStates.contains)) {
+          } else if (states.any(_failedStates.contains)) {
             task.task.status = Task.statusFailed;
-          } else if (mostRecentStatuses.values.any(_inProgressStates.contains)) {
+          } else if (states.any(_inProgressStates.contains)) {
             task.task.status = Task.statusInProgress;
           } else {
             task.task.status = Task.statusSucceeded;
