@@ -45,7 +45,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
 
       await for (PullRequest pr in github.pullRequests.list(slug)) {
-        final GithubBuildStatusUpdate update = await queryLastStatusUpdate(datastore, slug, pr);
+        final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
 
         if (update.status != trend.githubStatus) {
           log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
@@ -79,29 +79,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     return Body.empty;
-  }
-
-  Future<GithubBuildStatusUpdate> queryLastStatusUpdate(
-    DatastoreService datastore,
-    RepositorySlug slug,
-    PullRequest pr,
-  ) async {
-    final Query<GithubBuildStatusUpdate> query = datastore.db.query<GithubBuildStatusUpdate>()
-      ..filter('repository =', slug.fullName)
-      ..filter('pr =', pr.number);
-    final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
-
-    if (previousStatusUpdates.isEmpty) {
-      return GithubBuildStatusUpdate(
-        repository: slug.fullName,
-        pr: pr.number,
-        status: null,
-        updates: 0,
-      );
-    } else {
-      assert(previousStatusUpdates.length == 1);
-      return previousStatusUpdates.single;
-    }
   }
 
   bool _isFinal(String status) {
