@@ -84,7 +84,7 @@ class LuciService {
           ),
         ),
       );
-    });
+    }).toList();
     final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
     final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
     final Iterable<Build> builds = batchResponse.responses

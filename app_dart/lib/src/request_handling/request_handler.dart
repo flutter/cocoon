@@ -59,7 +59,7 @@ abstract class RequestHandler<T extends Body> {
         } on HttpStatusException {
           rethrow;
         } catch (error, stackTrace) {
-          print('$error\n$stackTrace');
+          log.error('$error\n$stackTrace');
           throw InternalServerError('$error\n$stackTrace');
         }
       } on HttpStatusException catch (error) {
