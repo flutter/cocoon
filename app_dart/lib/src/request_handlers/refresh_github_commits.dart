@@ -33,7 +33,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final List<RepositoryCommit> commits = await github.repositories.listCommits(slug).toList();
+    final List<RepositoryCommit> commits =
+        await github.repositories.listCommits(slug).take(50).toList();
     log.debug('Downloaded ${commits.length} commits from GitHub');
 
     final int now = DateTime.now().millisecondsSinceEpoch;
