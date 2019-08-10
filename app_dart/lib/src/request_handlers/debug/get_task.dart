@@ -50,7 +50,7 @@ class DebugGetTaskById extends ApiRequestHandler<Body> {
 }
 
 @immutable
-class GetTaskByIdResponse extends Body {
+class GetTaskByIdResponse extends JsonBody {
   const GetTaskByIdResponse(this.task, this.commit, this.keyHelper)
       : assert(task != null),
         assert(commit != null),

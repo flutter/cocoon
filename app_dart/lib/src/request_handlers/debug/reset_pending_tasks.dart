@@ -58,7 +58,7 @@ class DebugResetPendingTasks extends ApiRequestHandler<ResetPendingTasksResponse
 }
 
 @immutable
-class ResetPendingTasksResponse extends Body {
+class ResetPendingTasksResponse extends JsonBody {
   const ResetPendingTasksResponse(this.count) : assert(count != null);
 
   final int count;

@@ -86,7 +86,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 }
 
 @immutable
-class ReserveTaskResponse extends Body {
+class ReserveTaskResponse extends JsonBody {
   const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
