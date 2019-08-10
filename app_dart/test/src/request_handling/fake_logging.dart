@@ -10,6 +10,11 @@ class FakeLogRecord {
   final LogLevel level;
   final String message;
   final DateTime timestamp;
+
+  @override
+  String toString() {
+    return '$timestamp: ($level) $message';
+  }
 }
 
 class FakeLogging implements Logging {

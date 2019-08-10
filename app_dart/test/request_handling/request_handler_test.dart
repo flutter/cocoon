@@ -67,15 +67,23 @@ void main() {
     });
 
     test('empty body yields empty HTTP response body', () async {
-      handler = EmptyBody();
+      handler = EmptyBodyHandler();
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await response.toList(), isEmpty);
       expect(log.records, isEmpty);
     });
 
-    test('non-empty body yields JSON HTTP response body', () async {
-      handler = NonNullBody();
+    test('string body yields string HTTP response body', () async {
+      handler = StringBodyHandler();
+      final HttpClientResponse response = await issueGet();
+      expect(response.statusCode, HttpStatus.ok);
+      expect(await utf8.decoder.bind(response).join(), 'Hello world');
+      expect(log.records, isEmpty);
+    });
+
+    test('JsonBody yields JSON HTTP response body', () async {
+      handler = JsonBodyHandler();
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.ok);
       expect(await utf8.decoder.bind(response).join(), '{"key":"value"}');
@@ -138,15 +146,22 @@ class MethodNotAllowed extends RequestHandler<Body> {
   MethodNotAllowed() : super(config: FakeConfig());
 }
 
-class EmptyBody extends RequestHandler<Body> {
-  EmptyBody() : super(config: FakeConfig());
+class EmptyBodyHandler extends RequestHandler<Body> {
+  EmptyBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<Body> get() async => Body.empty;
 }
 
-class NonNullBody extends RequestHandler<TestBody> {
-  NonNullBody() : super(config: FakeConfig());
+class StringBodyHandler extends RequestHandler<Body> {
+  StringBodyHandler() : super(config: FakeConfig());
+
+  @override
+  Future<Body> get() async => Body.forString('Hello world');
+}
+
+class JsonBodyHandler extends RequestHandler<TestBody> {
+  JsonBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<TestBody> get() async => const TestBody();
