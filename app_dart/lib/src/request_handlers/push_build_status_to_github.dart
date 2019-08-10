@@ -127,7 +127,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Stream<BuildStatus> _getBuildStatuses(DatastoreService datastore) async* {
     await for (Commit commit in datastore.queryRecentCommits()) {
       final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
-      yield BuildStatus(commit, stages, _computeBuildResult(commit, stages));
+      final Result result = _computeBuildResult(commit, stages);
+      log.debug('For commit ${commit.sha}, yielding result of $result');
+      yield BuildStatus(commit, stages, result);
     }
   }
 
@@ -204,16 +206,21 @@ class BuildStatus {
 }
 
 class Result {
-  const Result._();
+  const Result._(this.value);
 
-  static const Result notStarted = Result._();
-  static const Result inProgress = Result._();
-  static const Result buildWillFail = Result._();
-  static const Result succeeded = Result._();
-  static const Result failed = Result._();
-  static const Result stuck = Result._();
+  final String value;
+
+  static const Result notStarted = Result._('notStarted');
+  static const Result inProgress = Result._('inProgress');
+  static const Result buildWillFail = Result._('buildWillFail');
+  static const Result succeeded = Result._('succeeded');
+  static const Result failed = Result._('failed');
+  static const Result stuck = Result._('stuck');
 
   String get githubStatus => this == succeeded
       ? GithubBuildStatusUpdate.statusSuccess
       : GithubBuildStatusUpdate.statusFailure;
+
+  @override
+  String toString() => value;
 }
