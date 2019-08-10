@@ -35,14 +35,16 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-    await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus')) {
+    await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
+      final String existingTaskStatus = task.task.status;
+      log.debug('Found Cirrus task for commit $sha with existing status $existingTaskStatus');
       final Map<String, RepositoryStatus> mostRecentStatuses = <String, RepositoryStatus>{};
       await for (RepositoryStatus status in github.repositories.listStatuses(slug, sha)) {
         final bool isCirrusStatus = status.targetUrl.contains('cirrus-ci.com');
         if (isCirrusStatus) {
-          log.debug('Found Cirrus build status for $sha: ${status.state}');
           final String taskName = status.context;
+          log.debug('Found Cirrus build status for $sha: $taskName (${status.state})');
           final RepositoryStatus existingStatus = mostRecentStatuses[taskName];
           if (existingStatus == null || existingStatus.updatedAt.isBefore(status.updatedAt)) {
             mostRecentStatuses[taskName] = status;
@@ -52,24 +54,24 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
 
       final Iterable<String> states =
           mostRecentStatuses.values.map<String>((RepositoryStatus status) => status.state);
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          if (states.isEmpty) {
-            task.task.status = Task.statusNew;
-          } else if (states.any(_failedStates.contains)) {
-            task.task.status = Task.statusFailed;
-          } else if (states.any(_inProgressStates.contains)) {
-            task.task.status = Task.statusInProgress;
-          } else {
-            task.task.status = Task.statusSucceeded;
-          }
+      String newTaskStatus;
+      if (states.isEmpty) {
+        newTaskStatus = Task.statusNew;
+      } else if (states.any(_failedStates.contains)) {
+        newTaskStatus = Task.statusFailed;
+      } else if (states.any(_inProgressStates.contains)) {
+        newTaskStatus = Task.statusInProgress;
+      } else {
+        newTaskStatus = Task.statusSucceeded;
+      }
+
+      if (newTaskStatus != existingTaskStatus) {
+        task.task.status = newTaskStatus;
+        await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
-        }
-      });
+        });
+      }
     }
 
     return Body.empty;
