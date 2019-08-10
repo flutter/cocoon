@@ -33,7 +33,7 @@ void main() {
       mockAccessTokenProvider = MockAccessTokenProvider();
     });
 
-    Future<T> _httpTest<R extends Body, T>(
+    Future<T> _httpTest<R extends JsonBody, T>(
       R request,
       String response,
       String expectedPath,

@@ -127,7 +127,7 @@ void main() {
   });
 }
 
-class TestBody extends Body {
+class TestBody extends JsonBody {
   const TestBody();
 
   @override

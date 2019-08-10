@@ -135,7 +135,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 }
 
 @immutable
-class UpdateTaskStatusResponse extends Body {
+class UpdateTaskStatusResponse extends JsonBody {
   const UpdateTaskStatusResponse(this.task) : assert(task != null);
 
   final Task task;

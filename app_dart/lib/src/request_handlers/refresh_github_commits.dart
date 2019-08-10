@@ -41,53 +41,43 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final List<Commit> newCommits = <Commit>[];
     for (int i = 0; i < commits.length; i += config.maxEntityGroups) {
       await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          for (RepositoryCommit commit in commits.skip(i).take(config.maxEntityGroups)) {
-            final String id = 'flutter/flutter/${commit.sha}';
-            final Key key = transaction.db.emptyKey.append(Commit, id: id);
-            if (await transaction.lookupValue<Commit>(key, orElse: () => null) != null) {
-              // This commit has already been recorded.
-              continue;
-            }
-
-            final Commit newCommit = Commit(
-              key: key,
-              repository: 'flutter/flutter',
-              sha: commit.sha,
-              timestamp: now,
-              author: commit.author.login,
-              authorAvatarUrl: commit.author.avatarUrl,
-            );
-
-            newCommits.add(newCommit);
-            transaction.queueMutations(inserts: <Commit>[newCommit]);
+        for (RepositoryCommit commit in commits.skip(i).take(config.maxEntityGroups)) {
+          final String id = 'flutter/flutter/${commit.sha}';
+          final Key key = transaction.db.emptyKey.append(Commit, id: id);
+          if (await transaction.lookupValue<Commit>(key, orElse: () => null) != null) {
+            // This commit has already been recorded.
+            continue;
           }
 
-          await transaction.commit();
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
+          final Commit newCommit = Commit(
+            key: key,
+            repository: 'flutter/flutter',
+            sha: commit.sha,
+            timestamp: now,
+            author: commit.author.login,
+            authorAvatarUrl: commit.author.avatarUrl,
+          );
+
+          newCommits.add(newCommit);
+          transaction.queueMutations(inserts: <Commit>[newCommit]);
         }
+
+        await transaction.commit();
       });
     }
     log.debug('Committed ${newCommits.length} new commits');
 
     for (Commit commit in newCommits) {
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          final List<Task> tasks = await _createTasks(
-            commitKey: commit.key,
-            sha: commit.sha,
-            createTimestamp: now,
-          );
+      final List<Task> tasks = await _createTasks(
+        commitKey: commit.key,
+        sha: commit.sha,
+        createTimestamp: now,
+      );
 
-          transaction.queueMutations(inserts: tasks);
-          await transaction.commit();
-          log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
-        }
+      await config.db.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: tasks);
+        await transaction.commit();
+        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
       });
     }
 

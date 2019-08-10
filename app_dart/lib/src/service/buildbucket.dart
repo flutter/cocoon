@@ -52,7 +52,7 @@ class BuildBucketClient {
   /// Defaults to `HttpClient()`.
   final HttpClient httpClient;
 
-  Future<T> _postRequest<S extends Body, T>(
+  Future<T> _postRequest<S extends JsonBody, T>(
     String path,
     S request,
     T responseFromJson(Map<String, dynamic> rawResponse),

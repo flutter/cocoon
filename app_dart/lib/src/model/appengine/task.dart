@@ -23,9 +23,9 @@ class Task extends Model {
     this.attempts,
     this.isFlaky,
     this.timeoutInMinutes,
-    this.reason,
+    this.reason = '',
     this.requiredCapabilities,
-    this.reservedForAgentId,
+    this.reservedForAgentId = '',
     this.stageName,
     String status,
   }) : _status = status {

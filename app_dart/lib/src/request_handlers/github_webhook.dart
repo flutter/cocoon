@@ -140,7 +140,7 @@ class GithubWebhook extends RequestHandler<Body> {
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
             'buildset': <String>['pr/git/$number'],
-            'user_agent': <String>['flutter-cocoon'],
+            'user_agent': const <String>['flutter-cocoon'],
           },
           includeExperimental: true,
         ),
@@ -199,7 +199,7 @@ class GithubWebhook extends RequestHandler<Body> {
             experimental: Trinary.yes,
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
-              'user_agent': <String>['flutter-cocoon'],
+              'user_agent': const <String>['flutter-cocoon'],
               'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
             },
             properties: <String, String>{

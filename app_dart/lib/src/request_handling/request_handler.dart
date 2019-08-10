@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
@@ -53,7 +52,7 @@ abstract class RequestHandler<T extends Body> {
               throw MethodNotAllowed(request.method);
           }
           assert(body != null);
-          await respond(body: body == Body.empty ? null : json.encode(body.toJson()));
+          await _respond(body: body);
           httpClient?.close();
           return;
         } on HttpStatusException {
@@ -82,13 +81,11 @@ abstract class RequestHandler<T extends Body> {
   /// [body].
   ///
   /// Returns a future that completes when [response] has been closed.
-  @protected
-  Future<void> respond({int status = HttpStatus.ok, String body}) async {
+  Future<void> _respond({int status = HttpStatus.ok, Body body = Body.empty}) async {
     assert(status != null);
+    assert(body != null);
     response.statusCode = status;
-    if (body != null) {
-      response.write(body);
-    }
+    await response.addStream(body.serialize());
     await response.flush();
     await response.close();
   }

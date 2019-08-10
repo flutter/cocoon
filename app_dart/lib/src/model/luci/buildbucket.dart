@@ -22,7 +22,7 @@ part 'buildbucket.g.dart';
 ///
 /// This message can be used to find, get, schedule, or cancel multiple builds.
 @JsonSerializable(includeIfNull: false)
-class BatchRequest implements Body {
+class BatchRequest extends JsonBody {
   /// Creates a request for the Batch RPC.
   const BatchRequest({
     this.requests,
@@ -42,7 +42,7 @@ class BatchRequest implements Body {
 ///
 /// A single request must contain only one object.
 @JsonSerializable(includeIfNull: false)
-class Request implements Body {
+class Request extends JsonBody {
   /// Creates a request for the Batch RPC.
   ///
   /// One and only one argument should be set.
@@ -91,7 +91,7 @@ class Request implements Body {
 
 /// A response from the Batch RPC.
 @JsonSerializable(includeIfNull: false)
-class BatchResponse implements Body {
+class BatchResponse extends JsonBody {
   /// Creates a response for the Batch RPC.
   const BatchResponse({
     this.responses,
@@ -109,7 +109,7 @@ class BatchResponse implements Body {
 
 /// An individual response from a batch request.
 @JsonSerializable(includeIfNull: false)
-class Response implements Body {
+class Response extends JsonBody {
   /// Creates a response for the response from the Batch RPC.
   ///
   /// One and only one of these should be set.
@@ -156,7 +156,7 @@ class Response implements Body {
 
 /// A request for the GetBuild RPC.
 @JsonSerializable(includeIfNull: false)
-class GetBuildRequest implements Body {
+class GetBuildRequest extends JsonBody {
   /// Creates a request for the GetBuild RPC.
   const GetBuildRequest({
     this.id,
@@ -191,7 +191,7 @@ class GetBuildRequest implements Body {
 
 /// A request for the CancelBuild RPC.
 @JsonSerializable(includeIfNull: false)
-class CancelBuildRequest implements Body {
+class CancelBuildRequest extends JsonBody {
   /// Creates a request object for the CancelBuild RPC.
   ///
   /// Both [id] and [summaryMarkdown] are required.
@@ -220,7 +220,7 @@ class CancelBuildRequest implements Body {
 
 /// A request object for the SearchBuilds RPC.
 @JsonSerializable(includeIfNull: false)
-class SearchBuildsRequest implements Body {
+class SearchBuildsRequest extends JsonBody {
   /// Creates a request object for the SearchBuilds RPC.
   ///
   /// The [predicate] is required.
@@ -260,7 +260,7 @@ class SearchBuildsRequest implements Body {
 
 /// A predicate to apply when searching for builds in the SearchBuilds RPC.
 @JsonSerializable(includeIfNull: false)
-class BuildPredicate implements Body {
+class BuildPredicate extends JsonBody {
   /// Creates a predicate to apply when searching for builds in the SearchBuilds
   /// RPC.
   ///
@@ -301,7 +301,7 @@ class BuildPredicate implements Body {
 
 /// The response object from a SearchBuilds RPC.
 @JsonSerializable(includeIfNull: false)
-class SearchBuildsResponse implements Body {
+class SearchBuildsResponse extends JsonBody {
   /// Creates a new response object from the SearchBuilds RPC.
   ///
   /// The [nextPageToken] can be used to coninue searching if there are more
@@ -331,7 +331,7 @@ class SearchBuildsResponse implements Body {
 
 /// A request object for the ScheduleBuild RPC.
 @JsonSerializable(includeIfNull: false)
-class ScheduleBuildRequest implements Body {
+class ScheduleBuildRequest extends JsonBody {
   /// Creates a new request object for the ScheduleBuild RPC.
   ///
   /// The [requestId] is "strongly recommended", and is used by the back end to
@@ -419,7 +419,7 @@ class ScheduleBuildRequest implements Body {
 ///   * [BuilderId]
 ///   * [GetBuildRequest]
 @JsonSerializable(includeIfNull: false)
-class Build implements Body {
+class Build extends JsonBody {
   /// Creates a build object.
   ///
   /// The [id] and [builderId] parameter is required.
@@ -503,7 +503,7 @@ class Build implements Body {
 
 /// A unique handle to a builder on BuildBucket.
 @JsonSerializable(includeIfNull: false)
-class BuilderId implements Body {
+class BuilderId extends JsonBody {
   /// Creates a unique handle to a builder on BuildBucket.
   ///
   /// The bucket and builder control what ACLs for the infra, as specified in
@@ -536,7 +536,7 @@ class BuilderId implements Body {
 /// Specifies a Cloud PubSub topic to send notification updates to from a
 /// [ScheduleBuildRequest].
 @JsonSerializable(includeIfNull: false)
-class NotificationConfig extends Body {
+class NotificationConfig extends JsonBody {
   const NotificationConfig({this.pubsubTopic, this.userData});
 
   static NotificationConfig fromJson(Map<String, dynamic> json) => _$NotificationConfigFromJson(json);
@@ -557,7 +557,7 @@ class NotificationConfig extends Body {
 
 /// The build inputs for a build.
 @JsonSerializable(includeIfNull: false)
-class Input implements Body {
+class Input extends JsonBody {
   /// Creates a set of build inputs for a build.
   const Input({
     this.properties,
@@ -584,7 +584,7 @@ class Input implements Body {
 
 /// A landed Git commit hosted on Gitiles.
 @JsonSerializable(includeIfNull: false)
-class GitilesCommit implements Body {
+class GitilesCommit extends JsonBody {
   /// Creates a object corresponding to a landed Git commit hosted on Gitiles.
   const GitilesCommit({
     this.host,

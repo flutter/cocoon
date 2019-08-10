@@ -29,7 +29,7 @@ part 'push_message.g.dart';
 ///
 /// See https://cloud.google.com/pubsub/docs/push#receiving_push_messages
 @JsonSerializable(includeIfNull: false)
-class PushMessageEnvelope implements Body {
+class PushMessageEnvelope extends JsonBody {
   const PushMessageEnvelope({
     this.message,
     this.subscription,
@@ -50,7 +50,7 @@ class PushMessageEnvelope implements Body {
 
 /// A PubSub push message payload.
 @JsonSerializable(includeIfNull: false)
-class PushMessage implements Body {
+class PushMessage extends JsonBody {
   const PushMessage({
     this.attributes,
     this.data,
@@ -75,7 +75,7 @@ class PushMessage implements Body {
 
 /// The LUCI build data from a PubSub push message payload.
 @JsonSerializable(includeIfNull: false)
-class BuildPushMessage implements Body {
+class BuildPushMessage extends JsonBody {
   const BuildPushMessage({
     this.build,
     this.hostname,
@@ -100,7 +100,7 @@ class BuildPushMessage implements Body {
 
 /// See https://github.com/luci/luci-go/blob/master/common/api/buildbucket/buildbucket/v1/buildbucket-gen.go#L332ƒ
 @JsonSerializable(includeIfNull: false)
-class Build implements Body {
+class Build extends JsonBody {
   const Build({
     this.bucket,
     this.canary,
