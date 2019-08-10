@@ -31,7 +31,8 @@ abstract class JsonBody extends Body {
 
   @override
   Stream<Uint8List> serialize() {
-    return utf8.encoder.bind(json.encoder.bind(Stream<Object>.fromIterable(<Object>[toJson()])));
+    final Stream<String> raw = json.encoder.bind(Stream<Object>.fromIterable(<Object>[toJson()]));
+    return utf8.encoder.bind(raw).cast<Uint8List>();
   }
 
   /// Serializes this response body to a JSON-primitive map.
@@ -52,7 +53,7 @@ class _StringBody extends Body {
 
   @override
   Stream<Uint8List> serialize() {
-    return utf8.encoder.bind(Stream<String>.fromIterable(<String>[content]));
+    return utf8.encoder.bind(Stream<String>.fromIterable(<String>[content])).cast<Uint8List>();
   }
 }
 
