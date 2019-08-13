@@ -7,11 +7,11 @@ import 'dart:async';
 import 'package:flutter_web/foundation.dart';
 import 'package:flutter_web/material.dart';
 
-import '../services/github_status_service.dart';
+import '../services/status_page_service.dart';
 import 'providers.dart';
 
-class GitHubStatus {
-  const GitHubStatus({this.status, this.indicator});
+class StatusPageStatus {
+  const StatusPageStatus({this.status, this.indicator});
 
   final String status;
   final String indicator;
@@ -24,7 +24,7 @@ class GitHubStatus {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    final GitHubStatus otherStatus = other;
+    final StatusPageStatus otherStatus = other;
     return (otherStatus.status == status)
       && (otherStatus.indicator == indicator);
   }
@@ -33,18 +33,30 @@ class GitHubStatus {
   int get hashCode => hashValues(status, indicator);
 }
 
-class RefreshGitHubStatus extends StatefulWidget {
-  const RefreshGitHubStatus({@required this.child});
+class RefreshGitHubStatus extends RefreshStatusPageStatus {
+  const RefreshGitHubStatus({@required Widget child}) : super(child: child, url: 'https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
+}
 
+class RefreshCoverallsStatus extends RefreshStatusPageStatus {
+  const RefreshCoverallsStatus({@required Widget child}) : super(child: child, url: 'https://status.coveralls.io/api/v2/status.json');
+}
+
+class RefreshStatusPageStatus extends StatefulWidget {
+  const RefreshStatusPageStatus({@required this.url, @required this.child});
+
+  final String url;
   final Widget child;
 
   @override
   State<StatefulWidget> createState() {
-    return _RefreshGitHubStatusState();
+    return _RefreshStatusPageStatusState(url: url);
   }
 }
 
-class _RefreshGitHubStatusState extends State<RefreshGitHubStatus> with AutomaticKeepAliveClientMixin<RefreshGitHubStatus> {
+class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus> with AutomaticKeepAliveClientMixin<RefreshStatusPageStatus> {
+  _RefreshStatusPageStatusState({@required this.url});
+  final String url;
+
   Timer _refreshTimer;
 
   @override
@@ -65,12 +77,12 @@ class _RefreshGitHubStatusState extends State<RefreshGitHubStatus> with Automati
 
   Future<void> _refresh(Timer timer) async {
     try {
-      final GitHubStatus status = await fetchGitHubStatus();
+      final StatusPageStatus status = await fetchStatusPageStatus(url);
       if (status != null) {
-        ModelBinding.update<GitHubStatus>(context, status);
+        ModelBinding.update<StatusPageStatus>(context, status);
       }
     } catch (error) {
-      print('Error refreshing GitHub status $error');
+      print('Error refreshing StatusPage status $error');
     }
   }
 

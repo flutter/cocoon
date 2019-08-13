@@ -8,11 +8,11 @@ import 'package:test/test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:cocoon/repository/models/github_status.dart';
-import 'package:cocoon/repository/services/github_status_service.dart';
+import 'package:cocoon/repository/models/status_page_status.dart';
+import 'package:cocoon/repository/services/status_page_service.dart';
 
 void main() {
-  group('GitHub status fetch', () {
+  group('StatusPage status fetch', () {
     test('Successful fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
         final Map<String, dynamic> mapJson = <String, dynamic>{
@@ -22,7 +22,7 @@ void main() {
         };
         return http.Response(json.encode(mapJson), 200);
       });
-      final GitHubStatus status = await fetchGitHubStatus(client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status.status, 'Failure');
       expect(status.indicator, 'minor');
@@ -33,7 +33,7 @@ void main() {
         final Map<String, dynamic> mapJson = <String, dynamic>{'bogus': 'Failure'};
         return http.Response(json.encode(mapJson), 200);
       });
-      final GitHubStatus status = await fetchGitHubStatus(client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status, isNull);
     });
@@ -42,7 +42,7 @@ void main() {
       final MockClient client = MockClient((http.Request request) async {
         return http.Response(null, 404);
       });
-      final GitHubStatus status = await fetchGitHubStatus(client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status, isNull);
     });
