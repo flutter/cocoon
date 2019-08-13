@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_web/material.dart';
 
 import '../models/build_status.dart';
-import '../models/github_status.dart';
+import '../models/status_page_status.dart';
 import '../models/providers.dart';
 
 const double _kAvatarRadius = 36.0;
@@ -36,10 +36,24 @@ class InfrastructureDetails extends StatelessWidget {
                 child: Column(
                   children: const <Widget>[
                     BuildStatusWidget(),
-                    ModelBinding<GitHubStatus>(
-                      initialModel: GitHubStatus(),
+                    ModelBinding<StatusPageStatus>(
+                      initialModel: StatusPageStatus(),
                       child: RefreshGitHubStatus(
-                        child: GitHubStatusWidget()
+                        child: StatusPageWidget(
+                          name: 'GitHub',
+                          serviceIcon: Icons.compare_arrows,
+                          url: 'https://www.githubstatus.com',
+                        )
+                      )
+                    ),
+                    ModelBinding<StatusPageStatus>(
+                      initialModel: StatusPageStatus(),
+                      child: RefreshCoverallsStatus(
+                        child: StatusPageWidget(
+                          name: 'Coveralls',
+                          serviceIcon: Icons.code,
+                          url: 'https://status.coveralls.io/',
+                        )
                       )
                     )
                   ]
@@ -59,12 +73,16 @@ class InfrastructureDetails extends StatelessWidget {
   }
 }
 
-class GitHubStatusWidget extends StatelessWidget {
-  const GitHubStatusWidget();
+class StatusPageWidget extends StatelessWidget {
+  const StatusPageWidget({@required this.name, @required this.serviceIcon, @required this.url});
+
+  final String name;
+  final IconData serviceIcon;
+  final String url;
 
   @override
   Widget build(BuildContext context) {
-    final GitHubStatus githubStatus = ModelBinding.of<GitHubStatus>(context);
+    final StatusPageStatus githubStatus = ModelBinding.of<StatusPageStatus>(context);
     IconData icon;
     Color backgroundColor;
     switch (githubStatus.indicator) {
@@ -81,6 +99,7 @@ class GitHubStatusWidget extends StatelessWidget {
         backgroundColor = Colors.orangeAccent;
         break;
       case 'critical':
+      case 'maintenance':
         icon = Icons.error;
         backgroundColor = Colors.redAccent;
         break;
@@ -90,10 +109,10 @@ class GitHubStatusWidget extends StatelessWidget {
     }
     return ListTile(
       leading: CircleAvatar(
-        child: Icon(Icons.code),
+        child: Icon(serviceIcon),
         radius: _kAvatarRadius,
       ),
-      title: const Text('GitHub'),
+      title: Text(name),
       subtitle: Semantics(
         child: Align(
           alignment: AlignmentDirectional.centerStart,
@@ -103,9 +122,8 @@ class GitHubStatusWidget extends StatelessWidget {
             label: Text(githubStatus.status ?? 'Unknown')
           ),
         ),
-        hint: 'GitHub Status',
       ),
-      onTap: () => window.open('https://www.githubstatus.com', '_blank')
+      onTap: () => window.open(url, '_blank')
     );
   }
 }

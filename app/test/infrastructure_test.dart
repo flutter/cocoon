@@ -7,17 +7,17 @@ import 'package:flutter_web/material.dart';
 
 import 'package:cocoon/repository/details/infrastructure.dart';
 import 'package:cocoon/repository/models/build_status.dart';
-import 'package:cocoon/repository/models/github_status.dart';
+import 'package:cocoon/repository/models/status_page_status.dart';
 import 'package:cocoon/repository/models/providers.dart';
 
 void main() {
-  group('GitHub status widget', () {
+  group('status page widget', () {
     testWidgets('Operational', (WidgetTester tester) async {
-      const String gitHubStatusText = 'Status provided by GitHub'; // Status text is provided by GitHub, so there's no logic needed in the dashboard to handle different variants.
-      const GitHubStatus githubStatus = GitHubStatus(status: gitHubStatusText, indicator: 'none');
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const String statusText = 'Status provided by StatusPage'; // Status text is provided by StatusPage, so there's no logic needed in the dashboard to handle different variants.
+      const StatusPageStatus status = StatusPageStatus(status: statusText, indicator: 'none');
+      await _pumpStatusPageWidget(tester, status);
 
-      final Finder statusFinder = find.text(gitHubStatusText);
+      final Finder statusFinder = find.text(statusText);
       expect(statusFinder, findsOneWidget);
 
       final Finder iconFinder = find.byIcon(Icons.check);
@@ -25,36 +25,43 @@ void main() {
     });
 
     testWidgets('Minor', (WidgetTester tester) async {
-      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'minor');
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'minor');
+      await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.warning);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Major', (WidgetTester tester) async {
-      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'major');
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'major');
+      await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Critical', (WidgetTester tester) async {
-      const GitHubStatus githubStatus = GitHubStatus(status: 'Failure', indicator: 'critical');
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'critical');
+      await _pumpStatusPageWidget(tester, statusPageStatus);
+      final Finder iconFinder = find.byIcon(Icons.error);
+      expect(iconFinder, findsOneWidget);
+    });
+
+    testWidgets('Maintenence', (WidgetTester tester) async {
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'maintenance');
+      await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      const GitHubStatus githubStatus = GitHubStatus(indicator: 'bogus unknown indicator');
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const StatusPageStatus statusPageStatus = StatusPageStatus(indicator: 'bogus unknown indicator');
+      await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Unknown', (WidgetTester tester) async {
-      const GitHubStatus githubStatus = GitHubStatus();
-      await _pumpGitHubStatusWidget(tester, githubStatus);
+      const StatusPageStatus statusPageStatus = StatusPageStatus();
+      await _pumpStatusPageWidget(tester, statusPageStatus);
 
       final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
@@ -221,13 +228,17 @@ void main() {
   });
 }
 
-Future<void> _pumpGitHubStatusWidget(WidgetTester tester, GitHubStatus status) async {
+Future<void> _pumpStatusPageWidget(WidgetTester tester, StatusPageStatus status) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: ModelBinding<GitHubStatus>(
+        body: ModelBinding<StatusPageStatus>(
           initialModel: status,
-          child: const GitHubStatusWidget()
+          child: const StatusPageWidget(
+            name: 'Random Service Type',
+            serviceIcon: Icons.people,
+            url: 'https://store.google.com',
+          )
         )
       )
     )
