@@ -313,6 +313,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       if (file.filename == 'bin/internal/goldens.version') {
         isGoldenChange = true;
+        labels.add('will affect goldens');
         labels.add('severe: API break');
         labels.add('a: tests');
       }
