@@ -272,6 +272,7 @@ void main() {
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/$issueNumber/labels',
         body: jsonEncode(<String>[
+          'will affect goldens',
           'severe: API break',
           'a: tests',
         ]),
