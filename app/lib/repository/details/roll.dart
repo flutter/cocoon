@@ -9,6 +9,7 @@ import 'package:flutter_web/material.dart';
 
 import '../models/providers.dart';
 import '../models/roll_history.dart';
+import '../models/skia_autoroll.dart';
 
 enum RollUnits { hour, day }
 
@@ -21,45 +22,129 @@ class RollDetails extends StatelessWidget {
       data: Theme.of(context).copyWith(
         textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.3),
       ),
-      child: ModelBinding<RollHistory>(
-        initialModel: RollHistory(),
-        child: RefreshRollHistory(
-          child: Column(
-            children: <Widget>[
-              ListTile(
-                title: const Text('Skia → Engine'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
-                onTap: () => window.open('https://autoroll.skia.org/r/skia-flutter-autoroll', '_blank')
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          ModelBinding<RollHistory>(
+            initialModel: RollHistory(),
+            child: RefreshRollHistory(
+              child: Expanded(
+                child: Column(
+                  children: <Widget>[
+                    ListTile(
+                      title: Text('Roll Commits',
+                        style: Theme.of(context).textTheme.headline.copyWith(
+                          color: Theme.of(context).primaryColor
+                        ).apply(fontSizeFactor: 1.3)),
+                    ),
+                    ListTile(
+                      title: const Text('Skia → Engine'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
+                      onTap: () => window.open('https://autoroll.skia.org/r/skia-flutter-autoroll', '_blank')
+                    ),
+                    ListTile(
+                      title: const Text('Engine → Framework'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
+                      onTap: () => window.open('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll', '_blank')
+                    ),
+                    ListTile(
+                      title: const Text('master → dev channel'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
+                      onTap: () => window.open('https://github.com/flutter/flutter/commits/dev', '_blank')
+                    ),
+                    ListTile(
+                      title: const Text('dev → beta channel'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
+                      onTap: () => window.open('https://github.com/flutter/flutter/commits/beta', '_blank')
+                    ),
+                    ListTile(
+                      title: const Text('beta → stable channel'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
+                      onTap: () => window.open('https://github.com/flutter/flutter/commits/stable', '_blank')
+                    ),
+                    ListTile(
+                      title: const Text('flutter_web'),
+                      subtitle: _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
+                      onTap: () => window.open('https://github.com/flutter/flutter_web/commits/master', '_blank')
+                    ),
+                  ]
+                ),
               ),
-              ListTile(
-                title: const Text('Engine → Framework'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
-                onTap: () => window.open('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll', '_blank')
-              ),
-              ListTile(
-                title: const Text('master → dev channel'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
-                onTap: () => window.open('https://github.com/flutter/flutter/commits/dev', '_blank')
-              ),
-              ListTile(
-                title: const Text('dev → beta channel'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
-                onTap: () => window.open('https://github.com/flutter/flutter/commits/beta', '_blank')
-              ),
-              ListTile(
-                title: const Text('beta → stable channel'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
-                onTap: () => window.open('https://github.com/flutter/flutter/commits/stable', '_blank')
-              ),
-              ListTile(
-                title: const Text('flutter_web'),
-                subtitle: _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
-                onTap: () => window.open('https://github.com/flutter/flutter_web/commits/master', '_blank')
-              ),
-            ]
+            ),
           ),
-        ),
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                ListTile(
+                  title: Text('Auto Rollers',
+                    style: Theme.of(context).textTheme.headline.copyWith(
+                      color: Theme.of(context).primaryColor
+                    ).apply(fontSizeFactor: 1.3)),
+                ),
+                const ModelBinding<SkiaAutoRoll>(
+                  initialModel: SkiaAutoRoll(),
+                  child: RefreshEngineFrameworkRoll(
+                    child: AutoRollWidget(
+                      name: 'Engine → Framework',
+                      url: 'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll',
+                    )
+                  )
+                ),
+                const ModelBinding<SkiaAutoRoll>(
+                  initialModel: SkiaAutoRoll(),
+                  child: RefreshSkiaFlutterRoll(
+                    child: AutoRollWidget(
+                      name: 'Skia → Engine',
+                      url: 'https://autoroll.skia.org/r/skia-flutter-autoroll',
+                    )
+                  )
+                )
+              ]
+            ),
+          )
+        ]
+      )
+    );
+  }
+}
+
+class AutoRollWidget extends StatelessWidget {
+  const AutoRollWidget({@required this.name, @required this.url});
+
+  final String name;
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final SkiaAutoRoll autoRoll = ModelBinding.of<SkiaAutoRoll>(context);
+    IconData icon;
+    Color backgroundColor;
+    switch (autoRoll.mode) {
+      case 'running':
+        icon = Icons.check;
+        backgroundColor = Colors.green;
+        break;
+      case 'dry run':
+        icon = Icons.warning;
+        backgroundColor = Colors.amberAccent;
+        break;
+      case 'stopped':
+        icon = Icons.error;
+        backgroundColor = Colors.redAccent;
+        break;
+      default:
+        icon = Icons.help_outline;
+        backgroundColor = Colors.grey;
+    }
+    return ListTile(
+      title: Text(name),
+      leading: CircleAvatar(
+        child: Icon(icon),
+        backgroundColor: backgroundColor,
       ),
+      subtitle: Text('${autoRoll.mode ?? 'Unknown'}\nLast roll: ${autoRoll.lastRollResult}'),
+      isThreeLine: true,
+      onTap: () => window.open(url, '_blank')
     );
   }
 }
