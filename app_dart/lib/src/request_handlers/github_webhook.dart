@@ -291,6 +291,7 @@ class GithubWebhook extends RequestHandler<Body> {
     );
     bool hasTests = false;
     bool needsTests = false;
+    bool isGoldenChange = false;
     final Set<String> labels = <String>{};
     for (PullRequestFile file in files) {
       if (file.filename.endsWith('.dart')) {
@@ -309,6 +310,12 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
+      }
+      if (file.filename == 'bin/internal/goldens.version') {
+        isGoldenChange = true;
+        labels.add('will affect goldens');
+        labels.add('severe: API break');
+        labels.add('a: tests');
       }
 
       if (file.filename.startsWith('packages/flutter/') ||
@@ -356,6 +363,11 @@ class GithubWebhook extends RequestHandler<Body> {
     if (!hasTests && needsTests) {
       // Googlers can edit this at http://shortn/_GjZ5AgUqV2
       final String body = await config.missingTestsPullRequestMessage;
+      await gitHubClient.issues.createComment(slug, event.number, body);
+    }
+
+    if (isGoldenChange) {
+      final String body = await config.goldenBreakingChangeMessage;
       await gitHubClient.issues.createComment(slug, event.number, body);
     }
   }
