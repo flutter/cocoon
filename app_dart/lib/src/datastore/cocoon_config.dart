@@ -80,6 +80,30 @@ class Config {
     return json.decode(rawValue).cast<Map<String, dynamic>>();
   }
 
+  /// A List of try builders, i.e.:
+  ///
+  /// ```json
+  /// [
+  ///   {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
+  ///   {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
+  ///   {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
+  ///   {"name": "Linux Coverage", "repo": "flutter"},
+  ///   {"name": "Linux Host Engine", "repo": "engine"},
+  ///   {"name": "Linux Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Linux Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac Host Engine", "repo": "engine"},
+  ///   {"name": "Mac Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Mac Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac iOS Engine", "repo": "engine"},
+  ///   {"name": "Windows Host Engine", "repo": "engine"},
+  ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
+  /// ]
+  /// ```
+  Future<List<Map<String, dynamic>>> get luciTryBuilders async {
+    final String rawValue = await _getSingleValue('LuciTryBuilders');
+    return json.decode(rawValue).cast<Map<String, dynamic>>();
+  }
+
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
     return gh.createGitHubClient(

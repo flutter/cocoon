@@ -27,6 +27,7 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.cqLabelNameValue,
     this.luciBuildersValue,
+    this.luciTryBuildersValue,
   }) {
     dbValue ??= FakeDatastoreDB();
   }
@@ -44,6 +45,7 @@ class FakeConfig implements Config {
   String webhookKeyValue;
   String cqLabelNameValue;
   List<Map<String, dynamic>> luciBuildersValue;
+  List<Map<String, dynamic>> luciTryBuildersValue;
 
   @override
   int maxEntityGroups;
@@ -86,4 +88,7 @@ class FakeConfig implements Config {
 
   @override
   Future<List<Map<String, dynamic>>> get luciBuilders async => luciBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
 }

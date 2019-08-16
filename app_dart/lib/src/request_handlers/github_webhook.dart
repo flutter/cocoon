@@ -10,7 +10,6 @@ import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../github.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
@@ -45,7 +44,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(await getPullRequest(stringRequest));
+          await _handlePullRequest(await _getPullRequest(stringRequest));
           break;
       }
 
@@ -135,14 +134,13 @@ class GithubWebhook extends RequestHandler<Body> {
         predicate: BuildPredicate(
           builderId: BuilderId(
             project: repositoryName,
-            bucket: 'prod',
+            bucket: 'try',
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
             'buildset': <String>['pr/git/$number'],
             'user_agent': const <String>['flutter-cocoon'],
           },
-          includeExperimental: true,
         ),
       ),
     );
@@ -180,7 +178,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    final List<Map<String, dynamic>> builders = await config.luciBuilders;
+    final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
     final List<String> builderNames = builders
         .where((Map<String, dynamic> builder) => builder['repo'] == repositoryName)
         .map<String>((Map<String, dynamic> builder) => builder['name'])
@@ -189,14 +187,13 @@ class GithubWebhook extends RequestHandler<Body> {
     for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
         project: repositoryName,
-        bucket: 'prod',
+        bucket: 'try',
         builder: builder,
       );
       requests.add(
         Request(
           scheduleBuild: ScheduleBuildRequest(
             builderId: builderId,
-            experimental: Trinary.yes,
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
               'user_agent': const <String>['flutter-cocoon'],
@@ -388,5 +385,22 @@ class GithubWebhook extends RequestHandler<Body> {
     final Digest digest = hmac.convert(requestBody);
     final String bodySignature = 'sha1=$digest';
     return bodySignature == signature;
+  }
+
+  Future<PullRequestEvent> _getPullRequest(String request) async {
+    if (request == null) {
+      return null;
+    }
+    try {
+      final PullRequestEvent event = PullRequestEvent.fromJSON(json.decode(request));
+
+      if (event == null) {
+        return null;
+      }
+
+      return event;
+    } on FormatException {
+      return null;
+    }
   }
 }
