@@ -24,9 +24,9 @@ class SkiaAutoRoll {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    final SkiaAutoRoll otherStatus = other;
-    return (otherStatus.mode == mode)
-      && (otherStatus.lastRollResult == lastRollResult);
+    final SkiaAutoRoll otherRoll = other;
+    return otherRoll.mode == mode
+      && otherRoll.lastRollResult == lastRollResult;
   }
 
   @override
@@ -49,13 +49,12 @@ class RefreshAutoRoll extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _RefreshAutoRollState(url: url);
+    return _RefreshAutoRollState();
   }
 }
 
 class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAliveClientMixin<RefreshAutoRoll> {
-  _RefreshAutoRollState({@required this.url});
-  final String url;
+  _RefreshAutoRollState();
 
   Timer _refreshTimer;
 
@@ -77,9 +76,9 @@ class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAli
 
   Future<void> _refresh(Timer timer) async {
     try {
-      final SkiaAutoRoll status = await fetchSkiaAutoRollModeStatus(url);
-      if (status != null) {
-        ModelBinding.update<SkiaAutoRoll>(context, status);
+      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus(widget.url);
+      if (roll != null) {
+        ModelBinding.update<SkiaAutoRoll>(context, roll);
       }
     } catch (error) {
       print('Error refreshing autoroller status $error');

@@ -18,6 +18,11 @@ class RollDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle headerStyle = theme.textTheme.headline.copyWith(
+      color: Theme.of(context).primaryColor
+    ).apply(fontSizeFactor: 1.3);
+
     return Theme(
       data: Theme.of(context).copyWith(
         textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.3),
@@ -32,10 +37,7 @@ class RollDetails extends StatelessWidget {
                 child: Column(
                   children: <Widget>[
                     ListTile(
-                      title: Text('Roll Commits',
-                        style: Theme.of(context).textTheme.headline.copyWith(
-                          color: Theme.of(context).primaryColor
-                        ).apply(fontSizeFactor: 1.3)),
+                      title: Text('Roll Commits', style: headerStyle),
                     ),
                     ListTile(
                       title: const Text('Skia → Engine'),
@@ -76,10 +78,7 @@ class RollDetails extends StatelessWidget {
             child: Column(
               children: <Widget>[
                 ListTile(
-                  title: Text('Auto Rollers',
-                    style: Theme.of(context).textTheme.headline.copyWith(
-                      color: Theme.of(context).primaryColor
-                    ).apply(fontSizeFactor: 1.3)),
+                  title: Text('Auto Rollers', style: headerStyle),
                 ),
                 const ModelBinding<SkiaAutoRoll>(
                   initialModel: SkiaAutoRoll(),

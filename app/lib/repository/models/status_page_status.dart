@@ -25,8 +25,8 @@ class StatusPageStatus {
       return false;
     }
     final StatusPageStatus otherStatus = other;
-    return (otherStatus.status == status)
-      && (otherStatus.indicator == indicator);
+    return otherStatus.status == status
+      && otherStatus.indicator == indicator;
   }
 
   @override
@@ -49,13 +49,12 @@ class RefreshStatusPageStatus extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return _RefreshStatusPageStatusState(url: url);
+    return _RefreshStatusPageStatusState();
   }
 }
 
 class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus> with AutomaticKeepAliveClientMixin<RefreshStatusPageStatus> {
-  _RefreshStatusPageStatusState({@required this.url});
-  final String url;
+  _RefreshStatusPageStatusState();
 
   Timer _refreshTimer;
 
@@ -77,7 +76,7 @@ class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus> with 
 
   Future<void> _refresh(Timer timer) async {
     try {
-      final StatusPageStatus status = await fetchStatusPageStatus(url);
+      final StatusPageStatus status = await fetchStatusPageStatus(widget.url);
       if (status != null) {
         ModelBinding.update<StatusPageStatus>(context, status);
       }
