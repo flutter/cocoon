@@ -27,7 +27,7 @@ class BuildStatus {
       return false;
     }
     final BuildStatus otherStatus = other;
-    return (otherStatus.anticipatedBuildStatus == anticipatedBuildStatus)
+    return otherStatus.anticipatedBuildStatus == anticipatedBuildStatus
       && const ListEquality().equals(otherStatus.failingAgents, failingAgents)
       && const DeepCollectionEquality().equals(otherStatus.commitTestResults, commitTestResults);
   }

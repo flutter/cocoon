@@ -100,20 +100,20 @@ abstract class RepositoryStatus {
       return false;
     }
     final RepositoryStatus typedOther = other;
-    return (typedOther.name == name)
-      && (typedOther.labelEvaluation == labelEvaluation)
-      && (typedOther.watchersCount == watchersCount)
-      && (typedOther.subscribersCount == subscribersCount)
-      && (typedOther.issuesEnabled == issuesEnabled)
-      && (typedOther.todoCount == todoCount)
-      && (typedOther.issueCount == issueCount)
-      && (typedOther.missingLabelsIssuesCount == missingLabelsIssuesCount)
-      && (typedOther.staleIssueCount == staleIssueCount)
-      && (typedOther.pullRequestCount == pullRequestCount)
-      && (typedOther.stalePullRequestCount == stalePullRequestCount)
-      && (typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests)
-      && (typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName)
-      && (typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic)
+    return typedOther.name == name
+      && typedOther.labelEvaluation == labelEvaluation
+      && typedOther.watchersCount == watchersCount
+      && typedOther.subscribersCount == subscribersCount
+      && typedOther.issuesEnabled == issuesEnabled
+      && typedOther.todoCount == todoCount
+      && typedOther.issueCount == issueCount
+      && typedOther.missingLabelsIssuesCount == missingLabelsIssuesCount
+      && typedOther.staleIssueCount == staleIssueCount
+      && typedOther.pullRequestCount == pullRequestCount
+      && typedOther.stalePullRequestCount == stalePullRequestCount
+      && typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests
+      && typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName
+      && typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic
       && const MapEquality().equals(typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
   }
 

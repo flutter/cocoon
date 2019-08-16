@@ -36,12 +36,12 @@ class RollHistory {
       return false;
     }
     final RollHistory otherHistory = other;
-    return (otherHistory.lastSkiaAutoRoll == lastSkiaAutoRoll)
-      && (otherHistory.lastEngineRoll == lastEngineRoll)
-      && (otherHistory.lastDevBranchRoll == lastDevBranchRoll)
-      && (otherHistory.lastBetaBranchRoll == lastBetaBranchRoll)
-      && (otherHistory.lastStableBranchRoll == lastStableBranchRoll)
-      && (otherHistory.lastFlutterWebCommit == lastFlutterWebCommit);
+    return otherHistory.lastSkiaAutoRoll == lastSkiaAutoRoll
+      && otherHistory.lastEngineRoll == lastEngineRoll
+      && otherHistory.lastDevBranchRoll == lastDevBranchRoll
+      && otherHistory.lastBetaBranchRoll == lastBetaBranchRoll
+      && otherHistory.lastStableBranchRoll == lastStableBranchRoll
+      && otherHistory.lastFlutterWebCommit == lastFlutterWebCommit;
   }
 
   @override
