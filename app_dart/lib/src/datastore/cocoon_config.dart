@@ -19,8 +19,8 @@ class Config {
       : assert(_db != null);
 
   final DatastoreDB _db;
-  Logging get loggingService => ss.lookup(#appengine.logging);
 
+  Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
     final CocoonConfig cocoonConfig = CocoonConfig()

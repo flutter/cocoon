@@ -237,6 +237,7 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   // TODO(dnfield): Eliminate when github.dart has this in the model
+  // https://github.com/DirectMyFile/github.dart/pull/155
   List<IssueLabel> _getLabels(String pullRequestJson) {
     final Map<String, dynamic> decoded = json.decode(pullRequestJson);
     final Map<String, dynamic> decodedPr = decoded['pull_request'];
