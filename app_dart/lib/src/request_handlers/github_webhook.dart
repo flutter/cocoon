@@ -10,7 +10,6 @@ import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../github.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
@@ -42,22 +41,23 @@ class GithubWebhook extends RequestHandler<Body> {
 
     try {
       final String stringRequest = utf8.decode(requestBytes);
-
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(await getPullRequest(stringRequest));
+          await _handlePullRequest(stringRequest);
           break;
       }
 
       return Body.empty;
     } on FormatException {
-      throw const BadRequestException();
+      throw const BadRequestException('Could not process input data.');
     }
   }
 
-  Future<void> _handlePullRequest(PullRequestEvent event) async {
+  Future<void> _handlePullRequest(String rawRequest) async {
+    final PullRequestEvent event = await _getPullRequest(rawRequest);
+    final List<IssueLabel> labels = _getLabels(rawRequest);
     if (event == null) {
-      throw const BadRequestException();
+      throw const BadRequestException('Expected pull request event.');
     }
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -69,13 +69,21 @@ class GithubWebhook extends RequestHandler<Body> {
         break;
 
       case 'labeled':
-        await _scheduleIfMergeable(event, cancelRunningBuilds: false);
+        await _scheduleIfMergeable(
+          event,
+          cancelRunningBuilds: false,
+          labels: labels,
+        );
         break;
       case 'synchronize':
-        await _scheduleIfMergeable(event, cancelRunningBuilds: true);
+        await _scheduleIfMergeable(
+          event,
+          cancelRunningBuilds: true,
+          labels: labels,
+        );
         break;
       case 'unlabeled':
-        if (!await _checkForCqLabel(event.repository.slug(), event.number)) {
+        if (!await _checkForCqLabel(labels)) {
           await _cancelLuci(
             event.repository.name,
             event.number,
@@ -100,6 +108,7 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<void> _scheduleIfMergeable(
     PullRequestEvent event, {
     @required bool cancelRunningBuilds,
+    @required List<IssueLabel> labels,
   }) async {
     assert(cancelRunningBuilds != null);
     if (cancelRunningBuilds) {
@@ -112,8 +121,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
-    if (event.pullRequest.mergeable != false &&
-        await _checkForCqLabel(event.repository.slug(), event.number)) {
+    if (event.pullRequest.mergeable != false && await _checkForCqLabel(labels)) {
       await _scheduleLuci(
         number: event.number,
         sha: event.pullRequest.head.sha,
@@ -133,16 +141,16 @@ class GithubWebhook extends RequestHandler<Body> {
     final SearchBuildsResponse response = await buildBucketClient.searchBuilds(
       SearchBuildsRequest(
         predicate: BuildPredicate(
-          builderId: BuilderId(
-            project: repositoryName,
-            bucket: 'prod',
+          builderId: const BuilderId(
+            project: 'flutter',
+            bucket: 'try',
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
             'buildset': <String>['pr/git/$number'],
+            'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
             'user_agent': const <String>['flutter-cocoon'],
           },
-          includeExperimental: true,
         ),
       ),
     );
@@ -160,6 +168,7 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(repositoryName != null);
     assert(skipRunningCheck != null);
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
+      log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException('Repository $repositoryName is not supported by this service.');
     }
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
@@ -180,23 +189,23 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    final List<Map<String, dynamic>> builders = await config.luciBuilders;
+    final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
     final List<String> builderNames = builders
         .where((Map<String, dynamic> builder) => builder['repo'] == repositoryName)
         .map<String>((Map<String, dynamic> builder) => builder['name'])
         .toList();
+
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
-        project: repositoryName,
-        bucket: 'prod',
+        project: 'flutter',
+        bucket: 'try',
         builder: builder,
       );
       requests.add(
         Request(
           scheduleBuild: ScheduleBuildRequest(
             builderId: builderId,
-            experimental: Trinary.yes,
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
               'user_agent': const <String>['flutter-cocoon'],
@@ -216,29 +225,31 @@ class GithubWebhook extends RequestHandler<Body> {
         ),
       );
     }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
+    final BatchResponse luciResponse =
+        await buildBucketClient.batch(BatchRequest(requests: requests));
     return true;
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
-  Future<bool> _checkForCqLabel(RepositorySlug slug, int issueNumber) async {
-    final GitHub gitHubClient = await config.createGitHubClient();
-    try {
-      final String cqLabelName = await config.cqLabelName;
-      await for (IssueLabel label in gitHubClient.issues.listLabelsByIssue(slug, issueNumber)) {
-        if (label.name == cqLabelName) {
-          return true;
-        }
-      }
-    } finally {
-      gitHubClient.dispose();
-    }
-    return false;
+  Future<bool> _checkForCqLabel(List<IssueLabel> labels) async {
+    final String cqLabelName = await config.cqLabelName;
+    return labels.any((IssueLabel label) => label.name == cqLabelName);
+  }
+
+  // TODO(dnfield): Eliminate when github.dart has this in the model
+  // https://github.com/DirectMyFile/github.dart/pull/155
+  List<IssueLabel> _getLabels(String pullRequestJson) {
+    final Map<String, dynamic> decoded = json.decode(pullRequestJson);
+    final Map<String, dynamic> decodedPr = decoded['pull_request'];
+    return decodedPr['labels']
+        .cast<Map<String, dynamic>>()
+        .map<IssueLabel>(IssueLabel.fromJSON)
+        .toList();
   }
 
   Future<void> _cancelLuci(String repositoryName, int number, String sha, String reason) async {
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
-      throw BadRequestException('This service does not support repository $repositoryName');
+      throw BadRequestException('This service does not support repository $repositoryName.');
     }
     final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
     final List<Build> builds = await _buildsForRepositoryAndPr(
@@ -400,5 +411,22 @@ class GithubWebhook extends RequestHandler<Body> {
     final Digest digest = hmac.convert(requestBody);
     final String bodySignature = 'sha1=$digest';
     return bodySignature == signature;
+  }
+
+  Future<PullRequestEvent> _getPullRequest(String request) async {
+    if (request == null) {
+      return null;
+    }
+    try {
+      final PullRequestEvent event = PullRequestEvent.fromJSON(json.decode(request));
+
+      if (event == null) {
+        return null;
+      }
+
+      return event;
+    } on FormatException {
+      return null;
+    }
   }
 }

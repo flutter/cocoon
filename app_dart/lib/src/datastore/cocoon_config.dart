@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:appengine/appengine.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
@@ -13,9 +15,12 @@ import '../model/appengine/service_account_info.dart';
 
 @immutable
 class Config {
-  const Config(this._db) : assert(_db != null);
+  const Config(this._db)
+      : assert(_db != null);
 
   final DatastoreDB _db;
+
+  Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
     final CocoonConfig cocoonConfig = CocoonConfig()
@@ -23,6 +28,16 @@ class Config {
       ..parentKey = _db.emptyKey;
     final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
     return result.value;
+  }
+
+  Future<List<T>> _getJsonList<T>(String id) async {
+    final String rawValue = await _getSingleValue(id);
+    try {
+      return json.decode(rawValue).cast<T>();
+    } on FormatException {
+      loggingService.error('Invalid JSON format for property "$id": $rawValue');
+      throw InvalidConfigurationException(id);
+    }
   }
 
   /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
@@ -77,10 +92,30 @@ class Config {
   ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
   /// ]
   /// ```
-  Future<List<Map<String, dynamic>>> get luciBuilders async {
-    final String rawValue = await _getSingleValue('LuciBuilders');
-    return json.decode(rawValue).cast<Map<String, dynamic>>();
-  }
+  Future<List<Map<String, dynamic>>> get luciBuilders =>
+      _getJsonList<Map<String, dynamic>>('LuciBuilders');
+
+  /// A List of try builders, i.e.:
+  ///
+  /// ```json
+  /// [
+  ///   {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
+  ///   {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
+  ///   {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
+  ///   {"name": "Linux Coverage", "repo": "flutter"},
+  ///   {"name": "Linux Host Engine", "repo": "engine"},
+  ///   {"name": "Linux Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Linux Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac Host Engine", "repo": "engine"},
+  ///   {"name": "Mac Android AOT Engine", "repo": "engine"},
+  ///   {"name": "Mac Android Debug Engine", "repo": "engine"},
+  ///   {"name": "Mac iOS Engine", "repo": "engine"},
+  ///   {"name": "Windows Host Engine", "repo": "engine"},
+  ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
+  /// ]
+  /// ```
+  Future<List<Map<String, dynamic>>> get luciTryBuilders =>
+      _getJsonList<Map<String, dynamic>>('LuciTryBuilders');
 
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
@@ -94,4 +129,13 @@ class Config {
 class CocoonConfig extends Model {
   @StringProperty(propertyName: 'ParameterValue')
   String value;
+}
+
+class InvalidConfigurationException implements Exception {
+  const InvalidConfigurationException(this.id);
+
+  final String id;
+
+  @override
+  String toString() => 'Invalid configuration value for $id';
 }
