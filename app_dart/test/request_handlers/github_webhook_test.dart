@@ -343,7 +343,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
-          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
         );
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
@@ -382,7 +382,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
-          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
         );
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
@@ -421,7 +421,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
-          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
         );
         verifyNever(mockBuildBucketClient.batch(any));
       });
@@ -457,7 +457,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
-          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
         );
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
@@ -496,7 +496,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.searchBuilds(captureAny)).captured),
-          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
+          '[{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pulls/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}]',
         );
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),

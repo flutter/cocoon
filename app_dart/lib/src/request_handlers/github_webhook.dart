@@ -132,13 +132,14 @@ class GithubWebhook extends RequestHandler<Body> {
     final SearchBuildsResponse response = await buildBucketClient.searchBuilds(
       SearchBuildsRequest(
         predicate: BuildPredicate(
-          builderId: BuilderId(
-            project: repositoryName,
+          builderId: const BuilderId(
+            project: 'flutter',
             bucket: 'try',
           ),
           createdBy: serviceAccount.email,
           tags: <String, List<String>>{
             'buildset': <String>['pr/git/$number'],
+            'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
             'user_agent': const <String>['flutter-cocoon'],
           },
         ),
@@ -186,7 +187,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
       final BuilderId builderId = BuilderId(
-        project: repositoryName,
+        project: 'flutter',
         bucket: 'try',
         builder: builder,
       );
