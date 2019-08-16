@@ -55,6 +55,7 @@ void main() {
 
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
+      config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
@@ -245,6 +246,43 @@ void main() {
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
       ));
+    });
+
+    test('Labels Golden changes, comments to notify', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
+        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        convert: anyNamed('convert'),
+      )).thenAnswer(
+          (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'bin/internal/goldens.version',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>[
+          'will affect goldens',
+          'severe: API break',
+          'a: tests',
+        ]),
+        convert: anyNamed('convert'),
+      )).called(1);
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenBreakingChangeMessageValue)),
+      )).called(1);
     });
 
     test('Skips labeling or commenting on autorolls', () async {

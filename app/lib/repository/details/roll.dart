@@ -9,6 +9,7 @@ import 'package:flutter_web/material.dart';
 
 import '../models/providers.dart';
 import '../models/roll_history.dart';
+import '../models/roll_sheriff.dart';
 import '../models/skia_autoroll.dart';
 
 enum RollUnits { hour, day }
@@ -80,6 +81,12 @@ class RollDetails extends StatelessWidget {
                 ListTile(
                   title: Text('Auto Rollers', style: headerStyle),
                 ),
+                const ModelBinding<RollSheriff>(
+                  initialModel: RollSheriff(),
+                  child: RefreshSheriffRotation(
+                    child: RollSheriffWidget()
+                  )
+                ),
                 const ModelBinding<SkiaAutoRoll>(
                   initialModel: SkiaAutoRoll(),
                   child: RefreshEngineFrameworkRoll(
@@ -104,6 +111,25 @@ class RollDetails extends StatelessWidget {
         ]
       )
     );
+  }
+}
+
+class RollSheriffWidget extends StatelessWidget {
+  const RollSheriffWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    final RollSheriff sheriff = ModelBinding.of<RollSheriff>(context);
+    if (sheriff?.currentSheriff != null) {
+      return ListTile(
+        leading: CircleAvatar(
+          child: Icon(Icons.security),
+        ),
+        title: Text('${sheriff.currentSheriff} 🤠'),
+        onTap: () => window.open('http://chromium-build.appspot.com/static/rotations.html', '_blank')
+      );
+    }
+    return const SizedBox();
   }
 }
 
