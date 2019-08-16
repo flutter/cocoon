@@ -324,17 +324,12 @@ void main() {
       });
 
       test('Schedules builds when labeled', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = cqLabelName,
-          ]);
-        });
         when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
           return const SearchBuildsResponse(
             builds: <Build>[],
           );
         });
-        request.body = jsonTemplate('labeled', issueNumber, 'master');
+        request.body = jsonTemplate('labeled', issueNumber, 'master', includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
@@ -352,11 +347,6 @@ void main() {
       });
 
       test('Cancels builds when unlabeled', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'Random Label',
-          ]);
-        });
         when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
           return const SearchBuildsResponse(
             builds: <Build>[
@@ -427,11 +417,6 @@ void main() {
       });
 
       test('Cancels and schedules builds when synchronized', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'CQ+1',
-          ]);
-        });
         when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
           return const SearchBuildsResponse(
             builds: <Build>[
@@ -448,7 +433,7 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('synchronize', issueNumber, 'master');
+        request.body = jsonTemplate('synchronize', issueNumber, 'master', includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
@@ -466,11 +451,6 @@ void main() {
       });
 
       test('Only schedules builds when synchronized and no running builds', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'CQ+1',
-          ]);
-        });
         when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((_) async {
           return const SearchBuildsResponse(
             builds: <Build>[
@@ -487,7 +467,7 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('synchronize', issueNumber, 'master');
+        request.body = jsonTemplate('synchronize', issueNumber, 'master', includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body);
         final Uint8List key = utf8.encode(keyString);
         final String hmac = getHmac(body, key);
@@ -516,7 +496,14 @@ class MockPullRequestsService extends Mock implements PullRequestsService {}
 // ignore: must_be_immutable
 class MockBuildBucketClient extends Mock implements BuildBucketClient {}
 
-String jsonTemplate(String action, int number, String baseRef, {String login = 'flutter'}) => '''{
+String jsonTemplate(
+  String action,
+  int number,
+  String baseRef, {
+  String login = 'flutter',
+  bool includeCqLabel = false,
+}) =>
+    '''{
   "action": "$action",
   "number": $number,
   "pull_request": {
@@ -578,6 +565,15 @@ String jsonTemplate(String action, int number, String baseRef, {String login = '
         "color": "207de5",
         "default": false
       },
+      ${includeCqLabel ? '''
+      {
+        "id": 283480100,
+        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
+        "url": "https://api.github.com/repos/flutter/flutter/labels/tool",
+        "name": "CQ+1",
+        "color": "5319e7",
+        "default": false
+      },''' : ''}
       {
         "id": 283480100,
         "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:github/src/common.dart';
@@ -28,6 +29,7 @@ class FakeConfig implements Config {
     this.cqLabelNameValue,
     this.luciBuildersValue,
     this.luciTryBuildersValue,
+    this.loggingServiceValue,
   }) {
     dbValue ??= FakeDatastoreDB();
   }
@@ -46,6 +48,7 @@ class FakeConfig implements Config {
   String cqLabelNameValue;
   List<Map<String, dynamic>> luciBuildersValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
+  Logging loggingServiceValue;
 
   @override
   int maxEntityGroups;
@@ -91,4 +94,7 @@ class FakeConfig implements Config {
 
   @override
   Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
+
+  @override
+  Logging get loggingService => loggingServiceValue;
 }
