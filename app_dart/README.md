@@ -26,7 +26,8 @@ To update the Protocol Buffer generated code:
 
 2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
    package. Once installed, update your `PATH` to include the path to the
-   `protoc_plugin/bin` directory.
+   `protoc_plugin/bin` directory (or `$HOME/.pub-cache/bin` if you used
+   `pub global activate protoc_plugin`).
 
 3. Run the following command:
 
@@ -35,6 +36,12 @@ To update the Protocol Buffer generated code:
        --plugin=/path/to/protoc_plugin/bin/ \
        --dart_out=. \
        lib/src/path/to/file.proto
+   ```
+
+4. Remove the unused generated files:
+
+   ```sh
+   $ find -E . -regex '.*\.(pbenum|pbjson|pbserver)\.dart' -delete
    ```
 
 ### Generating cloud datastore indexes
