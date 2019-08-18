@@ -6,6 +6,8 @@ This folder contains a Dart based backend for Cocoon.
 
 ### Running codegen
 
+#### JSON
+
 To update the JSON serialization generated code, run:
 
 ```sh
@@ -13,6 +15,34 @@ $ pub run build_runner build
 ```
 
 Any updates should be checked into source control.
+
+#### Protobuf
+
+To update the Protocol Buffer generated code:
+
+1. [Download](https://github.com/protocolbuffers/protobuf/releases) and install
+   the protocol buffer compiler (`protoc`). Once installed, update your `PATH`
+   to include the path to the `protoc` binary.
+
+2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
+   package. Once installed, update your `PATH` to include the path to the
+   `protoc_plugin/bin` directory (or `$HOME/.pub-cache/bin` if you used
+   `pub global activate protoc_plugin`).
+
+3. Run the following command:
+
+   ```sh
+   $ protoc \
+       --plugin=/path/to/protoc_plugin/bin/ \
+       --dart_out=. \
+       lib/src/path/to/file.proto
+   ```
+
+4. Remove the unused generated files:
+
+   ```sh
+   $ find -E . -regex '.*\.(pbenum|pbjson|pbserver)\.dart' -delete
+   ```
 
 ### Generating cloud datastore indexes
 
