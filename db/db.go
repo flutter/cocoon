@@ -1000,3 +1000,8 @@ func SendTeamNotification(ctx context.Context, subject string, message string) e
 
 	return mail.Send(ctx, mailMessage)
 }
+
+type TokenInfo struct {
+	Email string
+	Name string
+}

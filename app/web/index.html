@@ -9,6 +9,9 @@
 <html style="width: 100%; height: 100%">
 <head>
   <meta http-equiv="refresh" content="1200">
+  <meta name="google-signin-scope" content="profile email">
+  <meta name="google-signin-client_id" content="308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 
   <title>Flutter Dashboard</title>
 
@@ -81,6 +84,32 @@
       background-color: #ffc4c4;
     }
   </style>
+  <script>
+    function onSignIn(googleUser) {
+        // Useful data for your client-side scripts:
+        var profile = googleUser.getBasicProfile();
+        console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+        console.log('Full Name: ' + profile.getName());
+        console.log('Given Name: ' + profile.getGivenName());
+        console.log('Family Name: ' + profile.getFamilyName());
+        console.log("Image URL: " + profile.getImageUrl());
+        console.log("Email: " + profile.getEmail());
+
+        // The ID token you need to pass to your backend:
+        var idToken = googleUser.getAuthResponse().id_token;
+        console.log("ID Token: " + idToken);
+        var expires = new Date();
+        expires.setDate(expires.getDate() + 30);
+        document.cookie = "X-Flutter-IdToken=" + idToken +
+            "; expires=" + expires.toUTCString() +
+	    "; path=/";
+    }
+
+    function onSignInFailure(error) {
+        console.log(error);
+	document.cookie = "X-Flutter-IdToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+  </script>
 </head>
 <body style="padding: 0; margin: 0; width: 100%; height: 100%; position: relative">
   <div id="sign-in-required-banner">
@@ -108,6 +137,7 @@
   </div>
 
   <footer id="page-footer">
+    <div class="g-signin2" data-onsuccess="onSignIn" data-onfailure="onSignInFailure" data-theme="dark"></div>
     <button class="login-button">Sign in with Google</button>
     <button id="logout-button">Sign out of Google</button>
   </footer>
