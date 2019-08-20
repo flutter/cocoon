@@ -164,7 +164,7 @@ func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 	for name, headers := range r.Header {
 		name = strings.ToLower(name)
 		for _, h := range headers {
-			log.Warningf(ctx, "%v: %v\n", name, h)
+			log.Debugf(ctx, "%v: %v\n", name, h)
 		}
 	}
 	agentAuthToken := r.Header.Get("Agent-Auth-Token")
