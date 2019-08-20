@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/whitelisted_account.dart';
+import '../model/google/token_info.dart';
 
 import 'exceptions.dart';
 
@@ -23,9 +24,18 @@ import 'exceptions.dart';
 /// as part of the [AuthenticatedContext].
 typedef ClientContextProvider = ClientContext Function();
 
+/// Signature for a function that returns an [HttpClient].
+///
+/// This is used by [AuthenticationProvider] to provide the HTTP client that
+/// will be used (if necessary) to verify OAuth ID tokens (JWT tokens).
+typedef HttpClientProvider = HttpClient Function();
+
+/// Default [HttpClient] provider.
+HttpClient _provideFreshHttpClient() => HttpClient();
+
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are three types of authentication this class supports:
+/// There are four types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -56,6 +66,14 @@ typedef ClientContextProvider = ClientContext Function();
 ///     as a user-request. The [RequestContext.agent] field will be null
 ///     (unless the request _also_ contained the aforementioned headers).
 ///
+///  4. If the request has the `'X-Flutter-IdToken'` HTTP cookie set to a valid
+///     encrypted JWT token, then the request will be authenticated as a user
+///     account. The [RequestContext.agent] field will be null (unless the
+///     request _also_ contained the aforementioned headers).
+///
+///     User accounts are only authorized if the user is either a "@google.com"
+///     account or is a whitelisted account in the Cocoon backend.
+///
 /// If none of the three authentication methods yielded an authenticated
 /// request, then the request is unauthenticated, and any call to
 /// [authenticate] will throw an [Unauthenticated] exception.
@@ -65,15 +83,23 @@ typedef ClientContextProvider = ClientContext Function();
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 class AuthenticationProvider {
-  const AuthenticationProvider(this._config, this._clientContextProvider)
-      : assert(_config != null),
-        assert(_clientContextProvider != null);
+  const AuthenticationProvider(
+    this._config,
+    this._clientContextProvider, {
+    HttpClientProvider httpClientProvider = _provideFreshHttpClient,
+  })  : assert(_config != null),
+        assert(_clientContextProvider != null),
+        assert(httpClientProvider != null),
+        _httpClientProvider = httpClientProvider;
 
   /// The Cocoon config, guaranteed to be non-null.
   final Config _config;
 
   /// The App Engine context, guaranteed to be non-null.
   final ClientContextProvider _clientContextProvider;
+
+  /// Provides HTTP clients, guaranteed to be non-null.
+  final HttpClientProvider _httpClientProvider;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -86,6 +112,11 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
+    final String emailHeader = request.headers.value('X-AppEngine-User-Email');
+    final String idToken = request.cookies
+        .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
+        .map<String>((Cookie cookie) => cookie.value)
+        .followedBy(<String>[null]).first;
     final ClientContext clientContext = _clientContextProvider();
 
     if (agentId != null) {
@@ -110,26 +141,63 @@ class AuthenticationProvider {
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
       return AuthenticatedContext._(clientContext: clientContext);
-    } else {
+    } else if (emailHeader != null) {
       // Authenticate as a signed-in Google account.
-      final String email = request.headers.value('X-AppEngine-User-Email');
-
-      if (email == null) {
-        throw const Unauthenticated('User is not signed in');
-      }
-
-      if (!email.endsWith('@google.com')) {
-        final Query<WhitelistedAccount> query = _config.db.query<WhitelistedAccount>()
-          ..filter('Email =', email)
-          ..limit(20);
-
-        if (await query.run().isEmpty) {
-          throw Unauthenticated('$email is not authorized to access the dashboard');
+      if (!emailHeader.endsWith('@google.com')) {
+        final bool isWhitelisted = await _isWhitelisted(emailHeader);
+        if (!isWhitelisted) {
+          throw Unauthenticated('$emailHeader is not authorized to access the dashboard');
         }
       }
 
       return AuthenticatedContext._(clientContext: clientContext);
+    } else if (idToken != null) {
+      // Authenticate as a signed-in Google account via OAuth id token.
+      final HttpClient client = _httpClientProvider();
+      try {
+        final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+          'oauth2.googleapis.com',
+          '/tokeninfo',
+          <String, String>{
+            'id_token': idToken,
+          },
+        ));
+        final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
+
+        if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+          throw const Unauthenticated('Invalid ID token');
+        }
+
+        final String tokenJson = await utf8.decoder.bind(verifyTokenResponse).join();
+        final TokenInfo token = TokenInfo.fromJson(json.decode(tokenJson));
+        final String clientId = await _config.oauthClientId;
+
+        if (token.audience != clientId) {
+          throw const Unauthenticated('Invalid ID token');
+        }
+
+        if (token.hostedDomain != 'google.com') {
+          final bool isWhitelisted = await _isWhitelisted(token.email);
+          if (!isWhitelisted) {
+            throw Unauthenticated('${token.email} is not authorized to access the dashboard');
+          }
+        }
+
+        return AuthenticatedContext._(clientContext: clientContext);
+      } finally {
+        client.close();
+      }
+    } else {
+      throw const Unauthenticated('User is not signed in');
     }
+  }
+
+  Future<bool> _isWhitelisted(String email) async {
+    final Query<WhitelistedAccount> query = _config.db.query<WhitelistedAccount>()
+      ..filter('Email =', email)
+      ..limit(20);
+
+    return !(await query.run().isEmpty);
   }
 
   // This method is expensive (run time of ~1,500ms!). If the server starts

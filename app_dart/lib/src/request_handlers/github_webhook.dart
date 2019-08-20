@@ -225,8 +225,7 @@ class GithubWebhook extends RequestHandler<Body> {
         ),
       );
     }
-    final BatchResponse luciResponse =
-        await buildBucketClient.batch(BatchRequest(requests: requests));
+    await buildBucketClient.batch(BatchRequest(requests: requests));
     return true;
   }
 
