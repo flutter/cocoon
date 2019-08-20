@@ -5,7 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/body.dart';
-import 'json_converters.dart';
+import '../common/json_converters.dart';
 
 part 'push_message.g.dart';
 

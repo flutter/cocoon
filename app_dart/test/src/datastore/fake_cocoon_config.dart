@@ -22,6 +22,7 @@ class FakeConfig implements Config {
     this.forwardPortValue,
     this.forwardSchemeValue,
     this.maxTaskRetriesValue,
+    this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.missingTestsPullRequestMessageValue,
     this.nonMasterPullRequestMessageValue,
@@ -42,6 +43,7 @@ class FakeConfig implements Config {
   int forwardPortValue;
   String forwardSchemeValue;
   int maxTaskRetriesValue;
+  String oauthClientIdValue;
   String githubOAuthTokenValue;
   String missingTestsPullRequestMessageValue;
   String nonMasterPullRequestMessageValue;
@@ -75,6 +77,9 @@ class FakeConfig implements Config {
 
   @override
   Future<int> get maxTaskRetries async => maxTaskRetriesValue;
+
+  @override
+  Future<String> get oauthClientId async => oauthClientIdValue;
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;

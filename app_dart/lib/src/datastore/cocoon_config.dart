@@ -47,6 +47,8 @@ class Config {
 
   DatastoreDB get db => _db;
 
+  Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
+
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
   Future<String> get nonMasterPullRequestMessage => _getSingleValue('NonMasterPullRequestMessage');

@@ -7,8 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 typedef ContentLengthProvider = int Function();
 
+@immutable
 class _Body {
   _Body.empty()
       : isUtf8 = true,
@@ -34,24 +37,26 @@ class _Body {
   final Stream<Uint8List> stream;
 }
 
-class FakeHttpRequest implements HttpRequest {
-  /// Creates a new [FakeHttpRequest].
-  ///
-  /// If the optional [body] argument is specified, the request stream will
-  /// yield the specified body value when UTF-8 decoded. By default, the
-  /// request stream will be empty. The [body] property can be modified until
-  /// the stream has been exposed to callers, at which time it becomes
-  /// immutable.
-  FakeHttpRequest({
-    this.method = 'GET',
-    String body,
-    String path = '/',
-    FakeHttpResponse response,
-  }) {
-    _body = body == null ? _Body.empty() : _Body.utf8(body);
-    uri = Uri(path: path);
-    this.response = response ?? FakeHttpResponse();
+abstract class FakeTransport {
+  int get contentLength;
+
+  HttpConnectionInfo get connectionInfo => null;
+
+  final List<FakeCookie> cookies = <FakeCookie>[];
+
+  FakeHttpHeaders get headers {
+    _headers ??= FakeHttpHeaders(contentLengthProvider: () => contentLength);
+    return _headers;
   }
+
+  FakeHttpHeaders _headers;
+
+  bool get persistentConnection => false;
+}
+
+// TODO(tvolkert): `implements Stream<Uint8List>` once HttpClientResponse does the same
+abstract class FakeInbound extends FakeTransport {
+  FakeInbound(String body) : _body = body == null ? _Body.empty() : _Body.utf8(body);
 
   /// Indicates whether the body stream has been exposed to callers in any way.
   /// Once the body stream has been exposed to callers, [body] becomes
@@ -74,10 +79,11 @@ class FakeHttpRequest implements HttpRequest {
     }
     return _body.value;
   }
+
   _Body _body;
   set body(String value) {
     if (_isStreamExposed) {
-      throw StateError('The body of this FakeHttpRequest has been made immutable');
+      throw StateError('The body of this transport has been made immutable');
     }
     _body = value == null ? _Body.empty() : _Body.utf8(value);
   }
@@ -94,54 +100,15 @@ class FakeHttpRequest implements HttpRequest {
   /// Once the body stream has been exposed to callers in any way, the
   /// [bodyBytes] value becomes immutable (as does the [body] value), and any
   /// attempt to modify it will throw a [StateError].
-  Uint8List  get bodyBytes => _body.bytes;
+  Uint8List get bodyBytes => _body.bytes;
   set bodyBytes(Uint8List value) {
     if (_isStreamExposed) {
-      throw StateError('The body of this FakeHttpRequest has been made immutable');
+      throw StateError('The body of this transport has been made immutable');
     }
     assert(value != null);
     _body = _Body.rawBytes(value);
   }
 
-  @override
-  String method;
-
-  @override
-  Uri uri;
-
-  String get path => uri.path;
-  set path(String value) {
-    uri = uri.replace(path: value);
-  }
-
-  @override
-  FakeHttpResponse response;
-
-  @override
-  final HttpHeaders headers = FakeHttpHeaders();
-
-  @override
-  String get protocolVersion => '1.1';
-
-  @override
-  Uri get requestedUri => uri;
-
-  @override
-  HttpSession get session => throw UnsupportedError('Unsupported');
-
-  @override
-  X509Certificate get certificate => null;
-
-  @override
-  HttpConnectionInfo get connectionInfo => null;
-
-  @override
-  int get contentLength => _body.bytes.length;
-
-  @override
-  List<Cookie> get cookies => throw UnimplementedError();
-
-  @override
   StreamSubscription<Uint8List> listen(
     void Function(Uint8List event) onData, {
     Function onError,
@@ -157,16 +124,11 @@ class FakeHttpRequest implements HttpRequest {
     );
   }
 
-  @override
-  bool get persistentConnection => false;
-
-  @override
   Future<bool> any(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.any(test);
   }
 
-  @override
   Stream<Uint8List> asBroadcastStream({
     void Function(StreamSubscription<Uint8List> subscription) onListen,
     void Function(StreamSubscription<Uint8List> subscription) onCancel,
@@ -175,67 +137,56 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
   }
 
-  @override
   Stream<E> asyncExpand<E>(Stream<E> Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.asyncExpand<E>(convert);
   }
 
-  @override
   Stream<E> asyncMap<E>(FutureOr<E> Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.asyncMap<E>(convert);
   }
 
-  @override
   Stream<R> cast<R>() {
     _isStreamExposed = true;
     return _body.stream.cast<R>();
   }
 
-  @override
   Future<bool> contains(Object needle) {
     _isStreamExposed = true;
     return _body.stream.contains(needle);
   }
 
-  @override
   Stream<Uint8List> distinct([bool Function(Uint8List previous, Uint8List next) equals]) {
     _isStreamExposed = true;
     return _body.stream.distinct(equals);
   }
 
-  @override
   Future<E> drain<E>([E futureValue]) {
     _isStreamExposed = true;
     return _body.stream.drain<E>(futureValue);
   }
 
-  @override
   Future<Uint8List> elementAt(int index) {
     _isStreamExposed = true;
     return _body.stream.elementAt(index);
   }
 
-  @override
   Future<bool> every(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.every(test);
   }
 
-  @override
   Stream<S> expand<S>(Iterable<S> Function(Uint8List element) convert) {
     _isStreamExposed = true;
     return _body.stream.expand(convert);
   }
 
-  @override
   Future<Uint8List> get first {
     _isStreamExposed = true;
     return _body.stream.first;
   }
 
-  @override
   Future<Uint8List> firstWhere(
     bool Function(Uint8List element) test, {
     List<int> Function() orElse,
@@ -244,19 +195,16 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.firstWhere(test, orElse: orElse);
   }
 
-  @override
   Future<S> fold<S>(S initialValue, S Function(S previous, Uint8List element) combine) {
     _isStreamExposed = true;
     return _body.stream.fold<S>(initialValue, combine);
   }
 
-  @override
   Future<dynamic> forEach(void Function(Uint8List element) action) {
     _isStreamExposed = true;
     return _body.stream.forEach(action);
   }
 
-  @override
   Stream<Uint8List> handleError(
     Function onError, {
     bool Function(dynamic error) test,
@@ -265,31 +213,26 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.handleError(onError, test: test);
   }
 
-  @override
   bool get isBroadcast {
     _isStreamExposed = true;
     return _body.stream.isBroadcast;
   }
 
-  @override
   Future<bool> get isEmpty {
     _isStreamExposed = true;
     return _body.stream.isEmpty;
   }
 
-  @override
   Future<String> join([String separator = '']) {
     _isStreamExposed = true;
     return _body.stream.join(separator);
   }
 
-  @override
   Future<Uint8List> get last {
     _isStreamExposed = true;
     return _body.stream.last;
   }
 
-  @override
   Future<Uint8List> lastWhere(
     bool Function(Uint8List element) test, {
     List<int> Function() orElse,
@@ -298,37 +241,31 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.lastWhere(test, orElse: orElse);
   }
 
-  @override
   Future<int> get length {
     _isStreamExposed = true;
     return _body.stream.length;
   }
 
-  @override
   Stream<S> map<S>(S Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.map<S>(convert);
   }
 
-  @override
   Future<dynamic> pipe(StreamConsumer<List<int>> streamConsumer) {
     _isStreamExposed = true;
     return _body.stream.pipe(streamConsumer);
   }
 
-  @override
   Future<Uint8List> reduce(List<int> Function(Uint8List previous, Uint8List element) combine) {
     _isStreamExposed = true;
     return _body.stream.reduce(combine);
   }
 
-  @override
   Future<Uint8List> get single {
     _isStreamExposed = true;
     return _body.stream.single;
   }
 
-  @override
   Future<Uint8List> singleWhere(
     bool Function(Uint8List element) test, {
     List<int> Function() orElse,
@@ -337,31 +274,26 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.singleWhere(test, orElse: orElse);
   }
 
-  @override
   Stream<Uint8List> skip(int count) {
     _isStreamExposed = true;
     return _body.stream.skip(count);
   }
 
-  @override
   Stream<Uint8List> skipWhile(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.skipWhile(test);
   }
 
-  @override
   Stream<Uint8List> take(int count) {
     _isStreamExposed = true;
     return _body.stream.take(count);
   }
 
-  @override
   Stream<Uint8List> takeWhile(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.takeWhile(test);
   }
 
-  @override
   Stream<Uint8List> timeout(
     Duration timeLimit, {
     void Function(EventSink<Uint8List> sink) onTimeout,
@@ -370,56 +302,42 @@ class FakeHttpRequest implements HttpRequest {
     return _body.stream.timeout(timeLimit, onTimeout: onTimeout);
   }
 
-  @override
   Future<List<Uint8List>> toList() {
     _isStreamExposed = true;
     return _body.stream.toList();
   }
 
-  @override
   Future<Set<Uint8List>> toSet() {
     _isStreamExposed = true;
     return _body.stream.toSet();
   }
 
-  @override
   Stream<S> transform<S>(StreamTransformer<List<int>, S> streamTransformer) {
     _isStreamExposed = true;
     return _body.stream.transform<S>(streamTransformer);
   }
 
-  @override
   Stream<Uint8List> where(bool Function(Uint8List event) test) {
     _isStreamExposed = true;
     return _body.stream.where(test);
   }
+
+  @override
+  int get contentLength => _body.bytes.length;
+
+  X509Certificate get certificate => null;
 }
 
-class FakeHttpResponse implements HttpResponse {
+abstract class FakeOutbound extends FakeTransport implements IOSink {
   final StringBuffer _buffer = StringBuffer();
 
   String get body => _buffer.toString();
 
-  @override
-  bool get bufferOutput => false;
+  final List<Object> errors = <Object>[];
 
-  @override
-  set bufferOutput(bool value) => throw UnsupportedError('Unsupported');
-
-  @override
-  int get contentLength => _contentLength ?? _buffer.length;
-  int _contentLength;
-
-  @override
-  set contentLength(int value) {
-    _contentLength = value;
-  }
-
-  @override
-  Duration get deadline => null;
-
-  @override
-  set deadline(Duration value) => throw UnsupportedError('Unsupported');
+  /// Whether this outbound has been closed.
+  bool get isClosed => _isClosed;
+  bool _isClosed = false;
 
   @override
   Encoding get encoding => utf8;
@@ -428,86 +346,128 @@ class FakeHttpResponse implements HttpResponse {
   set encoding(Encoding value) => throw UnsupportedError('Unsupported');
 
   @override
-  bool get persistentConnection => false;
-
-  @override
-  set persistentConnection(bool value) => throw UnsupportedError('Unsupported');
-
-  @override
-  String get reasonPhrase => null;
-
-  @override
-  set reasonPhrase(String value) => throw UnsupportedError('Unsupported');
-
-  @override
-  int statusCode = HttpStatus.ok;
-
-  @override
   void add(List<int> data) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.write(utf8.decode(data));
   }
 
   @override
-  void addError(Object error, [StackTrace stackTrace]) => throw UnsupportedError('Unsupported');
+  void addError(Object error, [StackTrace stackTrace]) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
+    errors.add(error);
+  }
 
   @override
   Future<dynamic> addStream(Stream<List<int>> stream) async {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.write(await utf8.decoder.bind(stream).join());
   }
 
   @override
   void write(Object obj) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.write(obj);
   }
 
   @override
   void writeAll(Iterable<dynamic> objects, [String separator = '']) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.writeAll(objects, separator);
   }
 
   @override
   void writeCharCode(int charCode) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.writeCharCode(charCode);
   }
 
   @override
   void writeln([Object obj = '']) {
+    if (isClosed) {
+      throw StateError('Transport is closed');
+    }
     headers._sealed = true;
     _buffer.writeln(obj);
   }
 
   @override
-  HttpConnectionInfo get connectionInfo => throw UnsupportedError('Unsupported');
+  Future<dynamic> get done async {}
 
   @override
-  FakeHttpHeaders get headers => FakeHttpHeaders(contentLengthProvider: () => contentLength);
+  Future<dynamic> flush() async {}
 
   @override
-  List<Cookie> get cookies => throw UnimplementedError();
-
-  @override
-  Future<dynamic> redirect(Uri location, {int status = HttpStatus.movedTemporarily}) {
-    statusCode = status;
-    headers.add(HttpHeaders.locationHeader, '$location');
-    return close();
+  Future<dynamic> close() async {
+    _isClosed = true;
   }
 
-  @override
-  Future<Socket> detachSocket({bool writeHeaders = true}) => throw UnsupportedError('Unsupported');
+  bool get bufferOutput => false;
+
+  set bufferOutput(bool value) => throw UnsupportedError('Unsupported');
 
   @override
-  Future<dynamic> get done => Future<dynamic>.value();
+  int get contentLength => _contentLength ?? _buffer.length;
+  int _contentLength;
+
+  set contentLength(int value) {
+    _contentLength = value;
+  }
+
+  set persistentConnection(bool value) => throw UnsupportedError('Unsupported');
+}
+
+class FakeCookie implements Cookie {
+  FakeCookie({
+    this.name,
+    this.value,
+    this.domain,
+    this.path,
+    this.expires,
+    this.httpOnly,
+    this.maxAge,
+    this.secure,
+  });
 
   @override
-  Future<dynamic> flush() => Future<dynamic>.value();
+  String name;
 
   @override
-  Future<dynamic> close() => Future<dynamic>.value();
+  String value;
+
+  @override
+  String domain;
+
+  @override
+  String path;
+
+  @override
+  DateTime expires;
+
+  @override
+  bool httpOnly;
+
+  @override
+  int maxAge;
+
+  @override
+  bool secure;
 }
 
 class FakeHttpHeaders implements HttpHeaders {
@@ -616,4 +576,268 @@ class FakeHttpHeaders implements HttpHeaders {
     final List<String> value = _values[name.toLowerCase()];
     return value == null ? null : value.single;
   }
+}
+
+class FakeHttpRequest extends FakeInbound implements HttpRequest {
+  /// Creates a new [FakeHttpRequest].
+  ///
+  /// If the optional [body] argument is specified, the request stream will
+  /// yield the specified body value when UTF-8 decoded. By default, the
+  /// request stream will be empty. The [body] property can be modified until
+  /// the stream has been exposed to callers, at which time it becomes
+  /// immutable.
+  FakeHttpRequest({
+    this.method = 'GET',
+    String body,
+    String path = '/',
+    FakeHttpResponse response,
+  })  : assert(method != null),
+        assert(path != null),
+        uri = Uri(path: path),
+        response = response ?? FakeHttpResponse(),
+        super(body);
+
+  @override
+  String method;
+
+  @override
+  Uri uri;
+
+  String get path => uri.path;
+  set path(String value) {
+    uri = uri.replace(path: value);
+  }
+
+  @override
+  FakeHttpResponse response;
+
+  @override
+  String get protocolVersion => '1.1';
+
+  @override
+  Uri get requestedUri => uri;
+
+  @override
+  HttpSession get session => throw UnsupportedError('Unsupported');
+}
+
+class FakeHttpResponse extends FakeOutbound implements HttpResponse {
+  @override
+  Duration get deadline => null;
+
+  @override
+  set deadline(Duration value) => throw UnsupportedError('Unsupported');
+
+  @override
+  String get reasonPhrase => null;
+
+  @override
+  set reasonPhrase(String value) => throw UnsupportedError('Unsupported');
+
+  @override
+  int statusCode = HttpStatus.ok;
+
+  @override
+  Future<dynamic> redirect(Uri location, {int status = HttpStatus.movedTemporarily}) {
+    assert(location != null);
+    assert(status != null);
+    statusCode = status;
+    headers.add(HttpHeaders.locationHeader, '$location');
+    return close();
+  }
+
+  @override
+  Future<Socket> detachSocket({bool writeHeaders = true}) => throw UnsupportedError('Unsupported');
+}
+
+class FakeHttpClient implements HttpClient {
+  FakeHttpClient({
+    FakeHttpClientRequest request,
+  }) : request = request ?? FakeHttpClientRequest();
+
+  /// The request to return from the HTTP methods.
+  FakeHttpClientRequest request;
+
+  /// The number of requests that have been issued.
+  int get requestCount => _requestCount;
+  int _requestCount = 0;
+
+  static const String methodDelete = 'DELETE';
+  static const String methodGet = 'GET';
+  static const String methodHead = 'HEAD';
+  static const String methodPatch = 'PATCH';
+  static const String methodPost = 'POST';
+  static const String methodPut = 'PUT';
+
+  @override
+  bool autoUncompress;
+
+  @override
+  Duration connectionTimeout;
+
+  @override
+  Duration idleTimeout;
+
+  @override
+  int maxConnectionsPerHost;
+
+  @override
+  String userAgent;
+
+  @override
+  void addCredentials(Uri url, String realm, HttpClientCredentials credentials) {}
+
+  @override
+  void addProxyCredentials(
+      String host, int port, String realm, HttpClientCredentials credentials) {}
+
+  @override
+  set authenticate(Future<bool> Function(Uri url, String scheme, String realm) f) {}
+
+  @override
+  set authenticateProxy(
+      Future<bool> Function(String host, int port, String scheme, String realm) f) {}
+
+  @override
+  set badCertificateCallback(bool Function(X509Certificate cert, String host, int port) callback) {}
+
+  @override
+  set findProxy(String Function(Uri url) f) {}
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<HttpClientRequest> delete(String host, int port, String path) async {
+    return open(methodDelete, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> deleteUrl(Uri url) async {
+    return openUrl(methodDelete, url);
+  }
+
+  @override
+  Future<HttpClientRequest> get(String host, int port, String path) async {
+    return open(methodGet, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) async {
+    return openUrl(methodGet, url);
+  }
+
+  @override
+  Future<HttpClientRequest> head(String host, int port, String path) async {
+    return open(methodHead, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> headUrl(Uri url) async {
+    return openUrl(methodHead, url);
+  }
+
+  @override
+  Future<HttpClientRequest> patch(String host, int port, String path) {
+    return open(methodPatch, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> patchUrl(Uri url) {
+    return openUrl(methodPatch, url);
+  }
+
+  @override
+  Future<HttpClientRequest> post(String host, int port, String path) async {
+    return open(methodPost, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> postUrl(Uri url) async {
+    return openUrl(methodPost, url);
+  }
+
+  @override
+  Future<HttpClientRequest> put(String host, int port, String path) async {
+    return open(methodPut, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> putUrl(Uri url) async {
+    return openUrl(methodPut, url);
+  }
+
+  @override
+  Future<HttpClientRequest> open(String method, String host, int port, String path) {
+    return openUrl(method, Uri(host: host, port: port, path: path));
+  }
+
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async {
+    _requestCount++;
+    request.method = method;
+    return request;
+  }
+}
+
+class FakeHttpClientRequest extends FakeOutbound implements HttpClientRequest {
+  FakeHttpClientRequest({
+    FakeHttpClientResponse response,
+  }) : response = response ?? FakeHttpClientResponse();
+
+  /// The response to produce when this request is closed.
+  FakeHttpClientResponse response;
+
+  final Completer<HttpClientResponse> _doneCompleter = Completer<HttpClientResponse>();
+
+  @override
+  String method;
+
+  @override
+  Uri uri;
+
+  @override
+  bool followRedirects;
+
+  @override
+  int maxRedirects;
+
+  @override
+  Future<HttpClientResponse> close() async {
+    await super.close();
+    _doneCompleter.complete(response);
+    return response;
+  }
+
+  @override
+  Future<HttpClientResponse> get done => _doneCompleter.future;
+}
+
+class FakeHttpClientResponse extends FakeInbound implements HttpClientResponse {
+  FakeHttpClientResponse({String body}) : super(body);
+
+  @override
+  HttpClientResponseCompressionState get compressionState {
+    return HttpClientResponseCompressionState.decompressed;
+  }
+
+  @override
+  Future<Socket> detachSocket() async => throw UnsupportedError('Mocked response');
+
+  @override
+  bool get isRedirect => false;
+
+  @override
+  String get reasonPhrase => null;
+
+  @override
+  Future<HttpClientResponse> redirect([String method, Uri url, bool followLoops]) {
+    return Future<HttpClientResponse>.error(UnsupportedError('Mocked response'));
+  }
+
+  @override
+  List<RedirectInfo> get redirects => <RedirectInfo>[];
+
+  @override
+  int statusCode = HttpStatus.ok;
 }
