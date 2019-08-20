@@ -709,99 +709,73 @@ class FakeHttpClient implements HttpClient {
 
   @override
   Future<HttpClientRequest> delete(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodDelete;
-    return request;
+    return open(methodDelete, host, port, path);
   }
 
   @override
   Future<HttpClientRequest> deleteUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodDelete;
-    return request;
+    return openUrl(methodDelete, url);
   }
 
   @override
   Future<HttpClientRequest> get(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodGet;
-    return request;
+    return open(methodGet, host, port, path);
   }
 
   @override
   Future<HttpClientRequest> getUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodGet;
-    return request;
+    return openUrl(methodGet, url);
   }
 
   @override
   Future<HttpClientRequest> head(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodHead;
-    return request;
+    return open(methodHead, host, port, path);
   }
 
   @override
   Future<HttpClientRequest> headUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodHead;
-    return request;
+    return openUrl(methodHead, url);
   }
 
   @override
-  Future<HttpClientRequest> open(String method, String host, int port, String path) async {
-    _requestCount++;
-    request.method = method;
-    return request;
+  Future<HttpClientRequest> patch(String host, int port, String path) {
+    return open(methodPatch, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> patchUrl(Uri url) {
+    return openUrl(methodPatch, url);
+  }
+
+  @override
+  Future<HttpClientRequest> post(String host, int port, String path) async {
+    return open(methodPost, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> postUrl(Uri url) async {
+    return openUrl(methodPost, url);
+  }
+
+  @override
+  Future<HttpClientRequest> put(String host, int port, String path) async {
+    return open(methodPut, host, port, path);
+  }
+
+  @override
+  Future<HttpClientRequest> putUrl(Uri url) async {
+    return openUrl(methodPut, url);
+  }
+
+  @override
+  Future<HttpClientRequest> open(String method, String host, int port, String path) {
+    return openUrl(method, Uri(host: host, port: port, path: path));
   }
 
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) async {
     _requestCount++;
     request.method = method;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> patch(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodPatch;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> patchUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodPatch;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> post(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodPost;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> postUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodPost;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> put(String host, int port, String path) async {
-    _requestCount++;
-    request.method = methodPut;
-    return request;
-  }
-
-  @override
-  Future<HttpClientRequest> putUrl(Uri url) async {
-    _requestCount++;
-    request.method = methodPut;
     return request;
   }
 }
