@@ -17,6 +17,9 @@ class HttpStatusException implements Exception {
 
   /// The message to show to the issuer to explain the error.
   final String message;
+
+  @override
+  String toString() => 'HTTP $statusCode: $message';
 }
 
 /// Exception that will trigger an HTTP 400 bad request.

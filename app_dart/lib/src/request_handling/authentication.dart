@@ -30,8 +30,16 @@ typedef ClientContextProvider = ClientContext Function();
 /// will be used (if necessary) to verify OAuth ID tokens (JWT tokens).
 typedef HttpClientProvider = HttpClient Function();
 
+/// Signature for a function that returns a [Logging] instance.
+///
+/// This is used by [AuthenticationProvider] to provide the logger.
+typedef LoggingProvider = Logging Function();
+
 /// Default [HttpClient] provider.
 HttpClient _provideFreshHttpClient() => HttpClient();
+
+/// Default [Logging] provider.
+Logging _provideServiceScopeLogger() => loggingService;
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
@@ -87,10 +95,13 @@ class AuthenticationProvider {
     this._config,
     this._clientContextProvider, {
     HttpClientProvider httpClientProvider = _provideFreshHttpClient,
+    LoggingProvider loggingProvider = _provideServiceScopeLogger,
   })  : assert(_config != null),
         assert(_clientContextProvider != null),
         assert(httpClientProvider != null),
-        _httpClientProvider = httpClientProvider;
+        assert(loggingProvider != null),
+        _httpClientProvider = httpClientProvider,
+        _loggingProvider = loggingProvider;
 
   /// The Cocoon config, guaranteed to be non-null.
   final Config _config;
@@ -100,6 +111,9 @@ class AuthenticationProvider {
 
   /// Provides HTTP clients, guaranteed to be non-null.
   final HttpClientProvider _httpClientProvider;
+
+  /// Provides the logger, guaranteed to be non-null.
+  final LoggingProvider _loggingProvider;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -118,6 +132,7 @@ class AuthenticationProvider {
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
     final ClientContext clientContext = _clientContextProvider();
+    final Logging log = _loggingProvider();
 
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
@@ -165,14 +180,23 @@ class AuthenticationProvider {
         final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
 
         if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+          final String body = await utf8.decodeStream(verifyTokenResponse);
+          log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
           throw const Unauthenticated('Invalid ID token');
         }
 
-        final String tokenJson = await utf8.decoder.bind(verifyTokenResponse).join();
-        final TokenInfo token = TokenInfo.fromJson(json.decode(tokenJson));
-        final String clientId = await _config.oauthClientId;
+        final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
+        TokenInfo token;
+        try {
+          token = TokenInfo.fromJson(json.decode(tokenJson));
+        } on FormatException {
+          throw InternalServerError('Invalid JSON: "$tokenJson"');
+        }
 
+        final String clientId = await _config.oauthClientId;
+        assert(clientId != null);
         if (token.audience != clientId) {
+          log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
           throw const Unauthenticated('Invalid ID token');
         }
 
