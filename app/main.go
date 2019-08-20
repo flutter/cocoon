@@ -217,13 +217,18 @@ func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 			var tokenInfo db.TokenInfo
 			err = json.Unmarshal(body, &tokenInfo)
 
+			cocoon := db.NewCocoon(ctx)
+			if tokenInfo.Aud != cocoon.GetOAuthClientId() {
+				// https://developers.google.com/identity/sign-in/web/backend-auth
+				return nil, errors.New("Invalid ID token: " + cookie.Value)
+			}
+
 			if err != nil {
 				return nil, err
 			}
 
 			log.Debugf(ctx, "Received OAuth request from %v\n", tokenInfo.Email)
-			if !strings.HasSuffix(tokenInfo.Email, "@google.com") {
-				cocoon := db.NewCocoon(ctx)
+			if tokenInfo.Hd != "google.com" {
 				err := cocoon.IsWhitelisted(tokenInfo.Email)
 
 				if err != nil {
@@ -231,7 +236,7 @@ func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 				}
 			}
 
-			return db.NewCocoon(ctx), nil
+			return cocoon, nil
 		}
 
 		if !strings.HasSuffix(googleUser.Email, "@google.com") {

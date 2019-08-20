@@ -1001,7 +1001,15 @@ func SendTeamNotification(ctx context.Context, subject string, message string) e
 	return mail.Send(ctx, mailMessage)
 }
 
+// Verified OAuth ID token info.
 type TokenInfo struct {
 	Email string
 	Name string
+	Aud string
+	Hd string
+}
+
+// GetOAuthClientId returns the OAuth client id stored in the CocoonConfig table.
+func (c *Cocoon) GetOAuthClientId() string {
+	return c.GetConfigValue("OAuthClientId")
 }
