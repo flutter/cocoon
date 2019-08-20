@@ -24,7 +24,7 @@ Future<void> main() async {
       '/api/authorize-agent': null,
       '/api/check-build-status': null,
       '/api/create-agent': null,
-      '/api/get-authentication-status': null,
+      '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(config, buildBucketClient),
       '/api/luci-status-handler': LuciStatusHandler(config),
