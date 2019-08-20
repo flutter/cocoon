@@ -116,6 +116,49 @@ class MillisecondsSinceEpochConverter implements JsonConverter<DateTime, String>
   }
 }
 
+/// A converter for "timestamp" fields encoded as seconds since epoch.
+class SecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
+  const SecondsSinceEpochConverter();
+
+  @override
+  DateTime fromJson(String json) {
+    if (json == null) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(int.parse(json) * 1000);
+  }
+
+  @override
+  String toJson(DateTime dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+    final int secondsSinceEpoch = dateTime.millisecondsSinceEpoch ~/ 1000;
+    return secondsSinceEpoch.toString();
+  }
+}
+
+/// A converter for boolean fields encoded as strings.
+class BoolConverter implements JsonConverter<bool, String> {
+  const BoolConverter();
+
+  @override
+  bool fromJson(String json) {
+    if (json == null) {
+      return null;
+    }
+    return json.toLowerCase() == 'true';
+  }
+
+  @override
+  String toJson(bool value) {
+    if (value == null) {
+      return null;
+    }
+    return '$value';
+  }
+}
+
 /// A converter for fields with nested JSON objects in String format.
 class NestedJsonConverter implements JsonConverter<Map<String, dynamic>, String> {
   const NestedJsonConverter();

@@ -4,6 +4,8 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
+import '../common/json_converters.dart';
+
 part 'token_info.g.dart';
 
 @JsonSerializable()
@@ -119,45 +121,4 @@ class TokenInfo {
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$TokenInfoToJson(this);
-}
-
-class SecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
-  const SecondsSinceEpochConverter();
-
-  @override
-  DateTime fromJson(String json) {
-    if (json == null) {
-      return null;
-    }
-    return DateTime.fromMillisecondsSinceEpoch(int.parse(json) * 1000);
-  }
-
-  @override
-  String toJson(DateTime dateTime) {
-    if (dateTime == null) {
-      return null;
-    }
-    final int secondsSinceEpoch = dateTime.millisecondsSinceEpoch ~/ 1000;
-    return secondsSinceEpoch.toString();
-  }
-}
-
-class BoolConverter implements JsonConverter<bool, String> {
-  const BoolConverter();
-
-  @override
-  bool fromJson(String json) {
-    if (json == null) {
-      return null;
-    }
-    return json.toLowerCase() == 'true';
-  }
-
-  @override
-  String toJson(bool value) {
-    if (value == null) {
-      return null;
-    }
-    return '$value';
-  }
 }

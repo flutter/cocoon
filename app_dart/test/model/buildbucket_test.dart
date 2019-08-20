@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/luci/json_converters.dart';
+import 'package:cocoon_service/src/model/common/json_converters.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
