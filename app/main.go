@@ -22,6 +22,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/appengine/user"
 )
 
@@ -160,6 +161,12 @@ func serveUnauthorizedAccess(w http.ResponseWriter, err error) {
 
 func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 	ctx := appengine.NewContext(r)
+	for name, headers := range r.Header {
+		name = strings.ToLower(name)
+		for _, h := range headers {
+			log.Debugf(ctx, "%v: %v\n", name, h)
+		}
+	}
 	agentAuthToken := r.Header.Get("Agent-Auth-Token")
 	isCron := r.Header.Get("X-Appengine-Cron") == "true"
 	if agentAuthToken != "" {
@@ -182,7 +189,54 @@ func getAuthenticatedContext(r *http.Request) (*db.Cocoon, error) {
 		googleUser := user.Current(ctx)
 
 		if googleUser == nil {
-			return nil, errors.New("User not signed in")
+			cookie, err := r.Cookie("X-Flutter-IdToken");
+
+			if err != nil {
+				return nil, errors.New("User not signed in")
+			}
+
+			log.Debugf(ctx, "Request authenticated via OAuth ID token")
+			client := urlfetch.Client(ctx)
+			resp, err := client.Get("https://oauth2.googleapis.com/tokeninfo?id_token=" + cookie.Value)
+
+			if err != nil {
+				return nil, err
+			}
+
+			if resp.StatusCode != 200 {
+				return nil, errors.New("Unexpected server response: " + resp.Status)
+			}
+
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+
+			if err != nil {
+				return nil, err
+			}
+
+			var tokenInfo db.TokenInfo
+			err = json.Unmarshal(body, &tokenInfo)
+
+			cocoon := db.NewCocoon(ctx)
+			if tokenInfo.Aud != cocoon.GetOAuthClientId() {
+				// https://developers.google.com/identity/sign-in/web/backend-auth
+				return nil, errors.New("Invalid ID token: " + cookie.Value)
+			}
+
+			if err != nil {
+				return nil, err
+			}
+
+			log.Debugf(ctx, "Received OAuth request from %v\n", tokenInfo.Email)
+			if tokenInfo.Hd != "google.com" {
+				err := cocoon.IsWhitelisted(tokenInfo.Email)
+
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			return cocoon, nil
 		}
 
 		if !strings.HasSuffix(googleUser.Email, "@google.com") {
