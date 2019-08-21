@@ -12,34 +12,13 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/whitelisted_account.dart';
 import '../model/google/token_info.dart';
 
 import 'exceptions.dart';
-
-/// Signature for a function that returns an App Engine [ClientContext].
-///
-/// This is used in [AuthenticationProvider] to provide the client context
-/// as part of the [AuthenticatedContext].
-typedef ClientContextProvider = ClientContext Function();
-
-/// Signature for a function that returns an [HttpClient].
-///
-/// This is used by [AuthenticationProvider] to provide the HTTP client that
-/// will be used (if necessary) to verify OAuth ID tokens (JWT tokens).
-typedef HttpClientProvider = HttpClient Function();
-
-/// Signature for a function that returns a [Logging] instance.
-///
-/// This is used by [AuthenticationProvider] to provide the logger.
-typedef LoggingProvider = Logging Function();
-
-/// Default [HttpClient] provider.
-HttpClient _provideFreshHttpClient() => HttpClient();
-
-/// Default [Logging] provider.
-Logging _provideServiceScopeLogger() => loggingService;
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
@@ -94,8 +73,8 @@ class AuthenticationProvider {
   const AuthenticationProvider(
     this._config,
     this._clientContextProvider, {
-    HttpClientProvider httpClientProvider = _provideFreshHttpClient,
-    LoggingProvider loggingProvider = _provideServiceScopeLogger,
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
   })  : assert(_config != null),
         assert(_clientContextProvider != null),
         assert(httpClientProvider != null),
@@ -106,13 +85,21 @@ class AuthenticationProvider {
   /// The Cocoon config, guaranteed to be non-null.
   final Config _config;
 
-  /// The App Engine context, guaranteed to be non-null.
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
   final ClientContextProvider _clientContextProvider;
 
-  /// Provides HTTP clients, guaranteed to be non-null.
+  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
+  /// ID tokens (JWT tokens).
+  ///
+  /// This is guaranteed to be non-null.
   final HttpClientProvider _httpClientProvider;
 
-  /// Provides the logger, guaranteed to be non-null.
+  /// Provides the logger.
+  ///
+  /// This is guaranteed to be non-null.
   final LoggingProvider _loggingProvider;
 
   /// Authenticates the specified [request] and returns the associated
