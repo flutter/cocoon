@@ -11,6 +11,10 @@ import 'package:meta/meta.dart';
 
 typedef ContentLengthProvider = int Function();
 
+/// Signature for a callback function that will be notified whenever a
+/// [FakeHttpClient] issues requests.
+typedef IssueRequestCallback = void Function(FakeHttpClientRequest request);
+
 @immutable
 class _Body {
   _Body.empty()
@@ -30,6 +34,13 @@ class _Body {
         isUtf8 = false,
         value = null,
         stream = Stream<Uint8List>.fromIterable(<Uint8List>[bytes]);
+
+  _Body.copy(_Body other)
+      : assert(other != null),
+        isUtf8 = other.isUtf8,
+        value = other.value,
+        bytes = other.bytes,
+        stream = Stream<Uint8List>.fromIterable(<Uint8List>[other.bytes]);
 
   final bool isUtf8;
   final String value;
@@ -62,6 +73,13 @@ abstract class FakeInbound extends FakeTransport {
   /// Once the body stream has been exposed to callers, [body] becomes
   /// immutable.
   bool _isStreamExposed = false;
+
+  /// Resets this transport so that it may be reused.
+  @mustCallSuper
+  void reset() {
+    _body = _Body.copy(_body);
+    _isStreamExposed = false;
+  }
 
   /// The UTF-8 encoded value of the HTTP request body, or null if this request
   /// specifies no body.
@@ -329,15 +347,24 @@ abstract class FakeInbound extends FakeTransport {
 }
 
 abstract class FakeOutbound extends FakeTransport implements IOSink {
-  final StringBuffer _buffer = StringBuffer();
+  StringBuffer _buffer = StringBuffer();
 
   String get body => _buffer.toString();
 
-  final List<Object> errors = <Object>[];
+  List<Object> get errors => _errors;
+  List<Object> _errors = <Object>[];
 
   /// Whether this outbound has been closed.
   bool get isClosed => _isClosed;
   bool _isClosed = false;
+
+  /// Resets this transport so that it may be reused.
+  @mustCallSuper
+  void reset() {
+    _isClosed = false;
+    _buffer = StringBuffer();
+    _errors = <Object>[];
+  }
 
   @override
   Encoding get encoding => utf8;
@@ -653,10 +680,14 @@ class FakeHttpResponse extends FakeOutbound implements HttpResponse {
 class FakeHttpClient implements HttpClient {
   FakeHttpClient({
     FakeHttpClientRequest request,
+    this.onIssueRequest,
   }) : request = request ?? FakeHttpClientRequest();
 
   /// The request to return from the HTTP methods.
   FakeHttpClientRequest request;
+
+  /// Optional callback that will be notified when this client issues requests.
+  IssueRequestCallback onIssueRequest;
 
   /// The number of requests that have been issued.
   int get requestCount => _requestCount;
@@ -775,7 +806,12 @@ class FakeHttpClient implements HttpClient {
   @override
   Future<HttpClientRequest> openUrl(String method, Uri url) async {
     _requestCount++;
+    request.reset();
     request.method = method;
+    request.uri = url;
+    if (onIssueRequest != null) {
+      onIssueRequest(request);
+    }
     return request;
   }
 }
@@ -788,7 +824,18 @@ class FakeHttpClientRequest extends FakeOutbound implements HttpClientRequest {
   /// The response to produce when this request is closed.
   FakeHttpClientResponse response;
 
-  final Completer<HttpClientResponse> _doneCompleter = Completer<HttpClientResponse>();
+  Completer<HttpClientResponse> _doneCompleter = Completer<HttpClientResponse>();
+
+  /// Resets this fake request so that it may be reused.
+  @override
+  void reset() {
+    super.reset();
+    response.reset();
+    if (!_doneCompleter.isCompleted) {
+      _doneCompleter.complete(response);
+    }
+    _doneCompleter = Completer<HttpClientResponse>();
+  }
 
   @override
   String method;

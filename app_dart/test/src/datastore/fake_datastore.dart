@@ -3,9 +3,20 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:gcloud/datastore.dart' show Datastore;
 import 'package:gcloud/db.dart';
+
+/// Signature for a callback function that will be notified whenever `commit()`
+/// is called, either via [FakeDatastoreDB.commit] or [FakeTransaction.commit].
+///
+/// The `inserts` and `deletes` arguments represent the prospective mutations.
+/// Both arguments are immutable.
+///
+/// This callback will be invoked before any mutations are applied, so by
+/// throwing an exception, callbacks can simulate a failed commit.
+typedef CommitCallback = void Function(List<Model> inserts, List<Key> deletes);
 
 /// A fake datastore database implementation.
 ///
@@ -15,14 +26,19 @@ import 'package:gcloud/db.dart';
 class FakeDatastoreDB implements DatastoreDB {
   FakeDatastoreDB({
     Map<Key, Model> values,
+    this.onCommit,
   }) : values = values ?? <Key, Model>{};
 
   final Map<Key, Model> values;
+  CommitCallback onCommit;
 
   @override
   Future<dynamic> commit({List<Model> inserts, List<Key> deletes}) async {
     inserts ??= <Model>[];
     deletes ??= <Key>[];
+    if (onCommit != null) {
+      onCommit(List<Model>.unmodifiable(inserts), List<Key>.unmodifiable(deletes));
+    }
     deletes.forEach(values.remove);
     for (Model model in inserts) {
       values[model.key] = model;
@@ -131,6 +147,9 @@ class FakeTransaction implements Transaction {
     if (sealed) {
       throw StateError('Transaction sealed');
     }
+    if (db.onCommit != null) {
+      db.onCommit(List<Model>.unmodifiable(inserts.values), List<Key>.unmodifiable(deletes));
+    }
     for (MapEntry<Key, Model> entry in inserts.entries) {
       db.values[entry.key] = entry.value;
     }
@@ -185,8 +204,13 @@ class FakeTransaction implements Transaction {
       throw StateError('Transaction sealed');
     }
     if (inserts != null) {
+      final math.Random random = math.Random();
       for (Model insert in inserts) {
-        this.inserts[insert.key] = insert;
+        Key key = insert.key;
+        if (key.id == null) {
+          key = Key(key.parent, key.type, random.nextInt(math.pow(2, 20)));
+        }
+        this.inserts[key] = insert;
       }
     }
     if (deletes != null) {

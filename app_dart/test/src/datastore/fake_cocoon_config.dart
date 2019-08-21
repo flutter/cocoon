@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:github/src/common.dart';
+import 'package:github/server.dart';
 
 import 'fake_datastore.dart';
 

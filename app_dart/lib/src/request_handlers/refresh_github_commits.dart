@@ -12,6 +12,8 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
@@ -19,6 +21,21 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/datastore.dart';
+
+/// Signature for a function that calculates the backoff duration to wait in
+/// between requests when GitHub responds with an error.
+///
+/// The `attempt` argument is zero-based, so if the first attempt to request
+/// from GitHub fails, and we're backing off before making the second attempt,
+/// the `attempt` argument will be zero.
+typedef GitHubBackoffCalculator = Duration Function(int attempt);
+
+/// Default backoff calculator.
+@visibleForTesting
+Duration twoSecondLinearBackoff(int attempt) {
+  return const Duration(seconds: 2) * (attempt + 1);
+}
 
 /// Queries GitHub for the list of recent commits, and creates corresponding
 /// rows in the cloud datastore for any commits not yet in the datastore. Then
@@ -26,47 +43,55 @@ import '../request_handling/exceptions.dart';
 /// The task rows that it creates are driven by the Flutter [Manifest].
 @immutable
 class RefreshGithubCommits extends ApiRequestHandler<Body> {
-  const RefreshGithubCommits(Config config, AuthenticationProvider authenticationProvider)
-      : super(config: config, authenticationProvider: authenticationProvider);
+  const RefreshGithubCommits(
+    Config config,
+    AuthenticationProvider authenticationProvider, {
+    this.datastoreProvider = DatastoreService.defaultProvider,
+    this.httpClientProvider = Providers.freshHttpClient,
+    this.gitHubBackoffCalculator = twoSecondLinearBackoff,
+  })  : assert(datastoreProvider != null),
+        assert(httpClientProvider != null),
+        assert(gitHubBackoffCalculator != null),
+        super(config: config, authenticationProvider: authenticationProvider);
+
+  final DatastoreServiceProvider datastoreProvider;
+  final HttpClientProvider httpClientProvider;
+  final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   @override
   Future<Body> get() async {
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final List<RepositoryCommit> commits =
-        await github.repositories.listCommits(slug).take(50).toList();
-    log.debug('Downloaded ${commits.length} commits from GitHub');
-
+    final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
     final int now = DateTime.now().millisecondsSinceEpoch;
+    final DatastoreService datastore = datastoreProvider();
+
     final List<Commit> newCommits = <Commit>[];
-    for (int i = 0; i < commits.length; i += config.maxEntityGroups) {
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        for (RepositoryCommit commit in commits.skip(i).take(config.maxEntityGroups)) {
-          final String id = 'flutter/flutter/${commit.sha}';
-          final Key key = transaction.db.emptyKey.append(Commit, id: id);
-          if (await transaction.lookupValue<Commit>(key, orElse: () => null) != null) {
-            // This commit has already been recorded.
-            continue;
-          }
+    await for (RepositoryCommit commit in commits) {
+      final String id = 'flutter/flutter/${commit.sha}';
+      final Key key = datastore.db.emptyKey.append(Commit, id: id);
 
-          final Commit newCommit = Commit(
-            key: key,
-            repository: 'flutter/flutter',
-            sha: commit.sha,
-            timestamp: now,
-            author: commit.author.login,
-            authorAvatarUrl: commit.author.avatarUrl,
-          );
-
-          newCommits.add(newCommit);
-          transaction.queueMutations(inserts: <Commit>[newCommit]);
-        }
-
-        await transaction.commit();
-      });
+      if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) == null) {
+        newCommits.add(Commit(
+          key: key,
+          repository: 'flutter/flutter',
+          sha: commit.sha,
+          timestamp: now,
+          author: commit.author.login,
+          authorAvatarUrl: commit.author.avatarUrl,
+        ));
+      } else {
+        // Once we've found a commit that's already been recorded, we stop looking.
+        break;
+      }
     }
-    log.debug('Committed ${newCommits.length} new commits');
 
+    if (newCommits.isEmpty) {
+      // Nothing to do.
+      return Body.empty;
+    }
+
+    log.debug('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
       final List<Task> tasks = await _createTasks(
         commitKey: commit.key,
@@ -74,11 +99,16 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         createTimestamp: now,
       );
 
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: tasks);
-        await transaction.commit();
-        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
-      });
+      try {
+        await datastore.db.withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(inserts: <Commit>[commit]);
+          transaction.queueMutations(inserts: tasks);
+          await transaction.commit();
+          log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
+        });
+      } catch (error) {
+        log.warning('Failed to add commit ${commit.sha}: $error');
+      }
     }
 
     return Body.empty;
@@ -139,7 +169,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final String path = '/flutter/flutter/$sha/dev/devicelab/manifest.yaml';
     final Uri url = Uri.https('raw.githubusercontent.com', path);
 
-    final HttpClient client = HttpClient();
+    final HttpClient client = httpClientProvider();
     try {
       for (int attempt = 0; attempt < 3; attempt++) {
         final HttpClientRequest clientRequest = await client.getUrl(url);
@@ -154,11 +184,11 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           } else {
             log.warning('Attempt to download manifest.yaml failed (HTTP $status)');
           }
-        } catch (error) {
-          log.warning('Attempt to download manifest.yaml failed ($error)');
+        } catch (error, stackTrace) {
+          log.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
         }
 
-        await Future<void>.delayed(const Duration(seconds: 2) * (attempt + 1));
+        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
       }
     } finally {
       client.close(force: true);
