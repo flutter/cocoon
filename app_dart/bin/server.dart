@@ -7,14 +7,13 @@ import 'dart:io';
 import 'package:cocoon_service/cocoon_service.dart';
 
 import 'package:appengine/appengine.dart';
-import 'package:appengine/appengine.dart' as gae show context;
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
     final Config config = Config(dbService);
-    final AuthenticationProvider authProvider = AuthenticationProvider(config, () => gae.context);
+    final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenProvider: AccessTokenProvider(config),
     );

@@ -71,14 +71,15 @@ import 'exceptions.dart';
 @immutable
 class AuthenticationProvider {
   const AuthenticationProvider(
-    this._config,
-    this._clientContextProvider, {
+    this._config, {
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
     LoggingProvider loggingProvider = Providers.serviceScopeLogger,
   })  : assert(_config != null),
-        assert(_clientContextProvider != null),
+        assert(clientContextProvider != null),
         assert(httpClientProvider != null),
         assert(loggingProvider != null),
+        _clientContextProvider = clientContextProvider,
         _httpClientProvider = httpClientProvider,
         _loggingProvider = loggingProvider;
 

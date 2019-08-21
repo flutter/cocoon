@@ -51,6 +51,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
         assert(httpClientProvider != null),
+        assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;

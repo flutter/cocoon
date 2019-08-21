@@ -4,10 +4,11 @@
 
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
+import 'package:appengine/appengine.dart' as gae;
 
 import 'typedefs.dart';
 
+/// Class that holds static default providers.
 class Providers {
   const Providers._();
 
@@ -18,10 +19,17 @@ class Providers {
   ///  * [HttpClientProvider], which defines this interface.
   static HttpClient freshHttpClient() => HttpClient();
 
-  /// Default [Logging] provider.
+  /// Default [gae.Logging] provider.
   ///
   /// See also:
   ///
   ///  * [LoggingProvider], which defines this interface.
-  static Logging serviceScopeLogger() => loggingService;
+  static gae.Logging serviceScopeLogger() => gae.loggingService;
+
+  /// Default [gae.ClientContext] provider.
+  ///
+  /// See also:
+  ///
+  ///  * [ClientContextProvider], which defines this interface.
+  static gae.ClientContext serviceScopeContext() => gae.context;
 }

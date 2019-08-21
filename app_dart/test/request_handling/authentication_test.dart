@@ -32,7 +32,7 @@ void main() {
       request = FakeHttpRequest();
       auth = AuthenticationProvider(
         config,
-        () => clientContext,
+        clientContextProvider: () => clientContext,
         httpClientProvider: () => throw AssertionError(),
         loggingProvider: () => log,
       );
@@ -138,7 +138,7 @@ void main() {
         verifyTokenResponse = httpClient.request.response;
         auth = AuthenticationProvider(
           config,
-          () => clientContext,
+          clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
           loggingProvider: () => log,
         );
