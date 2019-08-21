@@ -81,40 +81,36 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     // TODO(tvolkert): PushBuildStatusToGithub
 
     if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          for (String scoreKey in scoreKeys) {
-            final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey);
-            final num value = resultData[scoreKey];
+      for (String scoreKey in scoreKeys) {
+        await config.db.withTransaction<void>((Transaction transaction) async {
+          final TimeSeries series = await _getOrCreateTimeSeries(transaction, task, scoreKey);
+          final num value = resultData[scoreKey];
 
-            final TimeSeriesValue seriesValue = TimeSeriesValue(
-              key: series.key.append(TimeSeriesValue),
-              createTimestamp: DateTime.now().millisecondsSinceEpoch,
-              revision: commit.sha,
-              taskKey: task.key,
-              value: value.toDouble(),
-            );
+          final TimeSeriesValue seriesValue = TimeSeriesValue(
+            key: series.key.append(TimeSeriesValue),
+            createTimestamp: DateTime.now().millisecondsSinceEpoch,
+            revision: commit.sha,
+            taskKey: task.key,
+            value: value.toDouble(),
+          );
 
-            await config.db.withTransaction<void>((Transaction transaction) async {
-              transaction.queueMutations(inserts: <TimeSeriesValue>[seriesValue]);
-            });
-          }
-
+          transaction.queueMutations(inserts: <TimeSeriesValue>[seriesValue]);
           await transaction.commit();
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
-        }
-      });
+        });
+      }
     }
 
     return UpdateTaskStatusResponse(task);
   }
 
-  Future<TimeSeries> _getOrCreateTimeSeries(Task task, String scoreKey) async {
+  Future<TimeSeries> _getOrCreateTimeSeries(
+    Transaction transaction,
+    Task task,
+    String scoreKey,
+  ) async {
     final String id = '${task.name}.$scoreKey';
     final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    TimeSeries series = (await config.db.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
+    TimeSeries series = (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(
@@ -124,10 +120,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         label: scoreKey,
         unit: 'ms',
       );
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: <TimeSeries>[series]);
-        await transaction.commit();
-      });
+      transaction.queueMutations(inserts: <TimeSeries>[series]);
     }
 
     return series;
