@@ -62,7 +62,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       });
     }
 
-    while (true) {
+    const int maxAttempts = 3;
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
       final FullTask task = await taskProvider.findNextTask(agent);
 
       if (task == null) {
@@ -79,9 +80,13 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
+        log.debug('Reservation lost for task ${task.task.name} on commit ${task.commit.sha}');
         continue;
       }
     }
+
+    log.warning('Could not secure reservation after $maxAttempts; giving up');
+    return const ReserveTaskResponse.empty();
   }
 }
 
@@ -219,11 +224,11 @@ class ReservationProvider {
   /// If another agent has obtained the reservation on the task before we've
   /// been able to secure our reservation, ths will throw a
   /// [ReservationLostException]
-  Future<void> secureReservation(Task task, String agentId) async {
+  Future<void> secureReservation(Task task, String agentId) {
     assert(task != null);
     assert(agentId != null);
-    return config.db.withTransaction<void>((Transaction transaction) async {
-      try {
+    try {
+      return config.db.withTransaction<void>((Transaction transaction) async {
         final Task lockedTask = await transaction.lookupValue<Task>(task.key);
 
         if (lockedTask.status != Task.statusNew) {
@@ -233,15 +238,16 @@ class ReservationProvider {
 
         lockedTask.status = Task.statusInProgress;
         lockedTask.attempts += 1;
-        lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
+        lockedTask.startTimestamp = DateTime
+            .now()
+            .millisecondsSinceEpoch;
         lockedTask.reservedForAgentId = agentId;
         transaction.queueMutations(inserts: <Task>[lockedTask]);
         await transaction.commit();
-      } catch (error) {
-        await transaction.rollback();
-        rethrow;
-      }
-    });
+      });
+    } catch (error) {
+      throw const ReservationLostException();
+    }
   }
 }
 
