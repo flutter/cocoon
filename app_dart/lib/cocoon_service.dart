@@ -7,6 +7,7 @@ export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/debug/get_task.dart';
 export 'src/request_handlers/debug/reset_pending_tasks.dart';
 export 'src/request_handlers/get_authentication_status.dart';
+export 'src/request_handlers/get_benchmarks.dart';
 export 'src/request_handlers/get_log.dart';
 export 'src/request_handlers/github_webhook.dart';
 export 'src/request_handlers/luci_status.dart';

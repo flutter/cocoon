@@ -3,12 +3,18 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+import 'key_converter.dart';
+
+part 'time_series.g.dart';
 
 /// Class that represents a quantifiable metric that is tracked at every commit
 /// for the Flutter benchmarks.
 ///
 /// Values in a series  are stored in [TimeSeriesValue], whose keys are
 /// children of [TimeSeries] keys.
+@JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'Timeseries', idType: IdType.String)
 class TimeSeries extends Model {
   /// Creates a new [TimeSeries].
@@ -26,8 +32,12 @@ class TimeSeries extends Model {
     id = key?.id;
   }
 
+  /// Create a new [TimeSeries] object from its JSON representation.
+  factory TimeSeries.fromJson(Map<String, dynamic> json) => _$TimeSeriesFromJson(json);
+
   /// Whether the series has been archived and is no longer active.
   @BoolProperty(propertyName: 'Archived', required: true)
+  @JsonKey(name: 'Archived')
   bool archived;
 
   /// The metric value that defines the baseline for this series.
@@ -35,28 +45,37 @@ class TimeSeries extends Model {
   /// Values above this baseline will be flagged in the Flutter dashboard as
   /// needing attention.
   @DoubleProperty(propertyName: 'Baseline')
+  @JsonKey(name: 'Baseline')
   double baseline;
 
   /// The metric value that the series is striving to achieve.
   @DoubleProperty(propertyName: 'Goal', required: true)
+  @JsonKey(name: 'Goal')
   double goal;
 
   /// The identifier of the series.
   @StringProperty(propertyName: 'ID', required: true)
+  @JsonKey(name: 'ID')
   String timeSeriesId;
 
   /// The human readable name of the series (e.g. "aot_snapshot_build_millis").
   @StringProperty(propertyName: 'Label', required: true)
+  @JsonKey(name: 'Label')
   String label;
 
   /// The name of the [Task] whose execution records values for this series.
   @StringProperty(propertyName: 'TaskName')
+  @JsonKey(name: 'TaskName')
   String taskName;
 
   /// The unit of measurement against which values in this series are applied
   /// (e.g. "ms", "bytes").
   @StringProperty(propertyName: 'Unit', required: true)
+  @JsonKey(name: 'Unit')
   String unit;
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$TimeSeriesToJson(this);
 
   @override
   String toString() {
@@ -75,4 +94,21 @@ class TimeSeries extends Model {
       ..write(')');
     return buf.toString();
   }
+}
+
+@JsonSerializable(createFactory: false)
+class TimeSeriesWrapper {
+  const TimeSeriesWrapper({
+    this.series,
+  });
+
+  @JsonKey(name: 'Timeseries')
+  final TimeSeries series;
+
+  @JsonKey(name: 'Key')
+  @KeyConverter()
+  Key get key => series.key;
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$TimeSeriesWrapperToJson(this);
 }

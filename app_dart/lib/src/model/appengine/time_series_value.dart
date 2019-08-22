@@ -3,9 +3,15 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+import 'key_converter.dart';
+
+part 'time_series_value.g.dart';
 
 /// Class that represents an individual measurement of a metric as part of a
 /// [TimeSeries].
+@JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'TimeseriesValue')
 class TimeSeriesValue extends Model {
   /// Creates a new [TimeSeriesValue].
@@ -21,8 +27,12 @@ class TimeSeriesValue extends Model {
     id = key?.id;
   }
 
+  /// Create a new [TimeSeriesValue] object from its JSON representation.
+  factory TimeSeriesValue.fromJson(Map<String, dynamic> json) => _$TimeSeriesValueFromJson(json);
+
   /// Whether data is missing for this measurement.
-  @BoolProperty(propertyName: 'DataMissing', required: true)
+  @BoolProperty(propertyName: 'DataMissing')
+  @JsonKey(name: 'DataMissing', defaultValue: false)
   bool dataMissing;
 
   /// The value of this measurement.
@@ -30,15 +40,19 @@ class TimeSeriesValue extends Model {
   /// The unit against which to interpret this value is stored in the value's
   /// [TimeSeries].
   @DoubleProperty(propertyName: 'Value', required: true)
+  @JsonKey(name: 'Value')
   double value;
 
   /// The timestamp (in milliseconds since the Epoch) that this value was
   /// created.
   @IntProperty(propertyName: 'CreateTimestamp', required: true)
+  @JsonKey(name: 'CreateTimestamp')
   int createTimestamp;
 
   /// The key of the task whose execution produced this measurement.
   @ModelKeyProperty(propertyName: 'TaskKey', required: true)
+  @JsonKey(name: 'TaskKey')
+  @KeyConverter()
   Key taskKey;
 
   /// The SHA1 hash of the commit at which this measurement was taken.
@@ -47,7 +61,11 @@ class TimeSeriesValue extends Model {
   ///
   ///  * [Commit.sha]
   @StringProperty(propertyName: 'Revision', required: true)
+  @JsonKey(name: 'Revision')
   String revision;
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$TimeSeriesValueToJson(this);
 
   @override
   String toString() {

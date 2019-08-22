@@ -7,6 +7,7 @@ import 'dart:mirrors';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:appengine/appengine.dart' as gae show context;
 import 'package:gcloud/db.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:meta/meta.dart';
@@ -36,9 +37,10 @@ const Set<Type> _defaultTypes = <Type>{
 @immutable
 class KeyHelper {
   KeyHelper({
-    @required this.applicationContext,
+    AppEngineContext applicationContext,
     Set<Type> types = _defaultTypes,
-  }) : types = _populateTypes(types);
+  })  : applicationContext = applicationContext ?? gae.context.applicationContext,
+        types = _populateTypes(types);
 
   /// Metadata about the App Engine application.
   final AppEngineContext applicationContext;
