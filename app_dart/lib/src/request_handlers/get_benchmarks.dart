@@ -63,6 +63,7 @@ class GetBenchmarks extends RequestHandler<Body> {
             revision: commit.sha,
             createTimestamp: commit.timestamp,
             dataMissing: true,
+            value: 0,
           );
         }
 
