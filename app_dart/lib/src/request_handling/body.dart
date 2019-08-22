@@ -19,8 +19,12 @@ abstract class Body {
   /// Creates a [Body] that passes through the already-serialized [stream].
   factory Body.forStream(Stream<Uint8List> stream) => _StreamBody(stream);
 
-  /// Creates a [Body] that serializes the specified JSON [map].
-  factory Body.forJson(Map<String, dynamic> map) => Body.forString(json.encode(map));
+  /// Creates a [Body] that serializes the specified JSON [value].
+  ///
+  /// The [value] argument may be any JSON tyope (any scalar value, any object
+  /// that defines a `toJson()` method that returns a JSON type, or a [List] or
+  /// [Map] of other JSON types).
+  factory Body.forJson(dynamic value) => Body.forString(json.encode(value));
 
   /// Value indicating that the HTTP response body should be empty.
   static const Body empty = _EmptyBody();

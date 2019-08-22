@@ -172,52 +172,64 @@ Map<String, dynamic> _$BuildToJson(Build instance) {
   return val;
 }
 
-T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     throw ArgumentError('A value must be provided. Supported values: '
         '${enumValues.values.join(', ')}');
   }
-  return enumValues.entries
-      .singleWhere((e) => e.value == source,
-          orElse: () => throw ArgumentError(
-              '`$source` is not one of the supported values: '
-              '${enumValues.values.join(', ')}'))
-      .key;
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
 }
 
-T _$enumDecodeNullable<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecodeNullable<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source);
+  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
 }
 
-const _$CanaryPreferenceEnumMap = <CanaryPreference, dynamic>{
+const _$CanaryPreferenceEnumMap = {
   CanaryPreference.auto: 'AUTO',
   CanaryPreference.canary: 'CANARY',
-  CanaryPreference.prod: 'PROD'
+  CanaryPreference.prod: 'PROD',
 };
 
-const _$CancelationReasonEnumMap = <CancelationReason, dynamic>{
+const _$CancelationReasonEnumMap = {
   CancelationReason.canceledExplicitly: 'CANCELED_EXPLICITLY',
-  CancelationReason.timeout: 'TIMEOUT'
+  CancelationReason.timeout: 'TIMEOUT',
 };
 
-const _$FailureReasonEnumMap = <FailureReason, dynamic>{
+const _$FailureReasonEnumMap = {
   FailureReason.buildbucketFailure: 'BUILDBUCKET_FAILURE',
   FailureReason.buildFailure: 'BUILD_FAILURE',
   FailureReason.infraFailure: 'INFRA_FAILURE',
-  FailureReason.invalidBuildDefinition: 'INVALID_BUILD_DEFINITION'
+  FailureReason.invalidBuildDefinition: 'INVALID_BUILD_DEFINITION',
 };
 
-const _$ResultEnumMap = <Result, dynamic>{
+const _$ResultEnumMap = {
   Result.canceled: 'CANCELED',
   Result.failure: 'FAILURE',
-  Result.success: 'SUCCESS'
+  Result.success: 'SUCCESS',
 };
 
-const _$StatusEnumMap = <Status, dynamic>{
+const _$StatusEnumMap = {
   Status.completed: 'COMPLETED',
   Status.scheduled: 'SCHEDULED',
-  Status.started: 'STARTED'
+  Status.started: 'STARTED',
 };

@@ -21,7 +21,6 @@ Future<void> main() async {
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': null,
-      '/api/check-build-status': null,
       '/api/create-agent': null,
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
@@ -44,7 +43,7 @@ Future<void> main() async {
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
 
       '/api/public/build-status': null,
-      '/api/public/get-benchmarks': null,
+      '/api/public/get-benchmarks': GetBenchmarks(config),
       '/api/public/get-status': null,
       '/api/public/get-timeseries-history': null,
     };

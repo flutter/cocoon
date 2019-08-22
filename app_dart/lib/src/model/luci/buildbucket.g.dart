@@ -221,27 +221,39 @@ Map<String, dynamic> _$BuildPredicateToJson(BuildPredicate instance) {
   return val;
 }
 
-T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecode<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     throw ArgumentError('A value must be provided. Supported values: '
         '${enumValues.values.join(', ')}');
   }
-  return enumValues.entries
-      .singleWhere((e) => e.value == source,
-          orElse: () => throw ArgumentError(
-              '`$source` is not one of the supported values: '
-              '${enumValues.values.join(', ')}'))
-      .key;
+
+  final value = enumValues.entries
+      .singleWhere((e) => e.value == source, orElse: () => null)
+      ?.key;
+
+  if (value == null && unknownValue == null) {
+    throw ArgumentError('`$source` is not one of the supported values: '
+        '${enumValues.values.join(', ')}');
+  }
+  return value ?? unknownValue;
 }
 
-T _$enumDecodeNullable<T>(Map<T, dynamic> enumValues, dynamic source) {
+T _$enumDecodeNullable<T>(
+  Map<T, dynamic> enumValues,
+  dynamic source, {
+  T unknownValue,
+}) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source);
+  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
 }
 
-const _$StatusEnumMap = <Status, dynamic>{
+const _$StatusEnumMap = {
   Status.unspecified: 'STATUS_UNSPECIFIED',
   Status.scheduled: 'SCHEDULED',
   Status.started: 'STARTED',
@@ -249,7 +261,7 @@ const _$StatusEnumMap = <Status, dynamic>{
   Status.success: 'SUCCESS',
   Status.failure: 'FAILURE',
   Status.infraFailure: 'INFRA_FAILURE',
-  Status.canceled: 'CANCELED'
+  Status.canceled: 'CANCELED',
 };
 
 SearchBuildsResponse _$SearchBuildsResponseFromJson(Map<String, dynamic> json) {
@@ -319,10 +331,10 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(
   return val;
 }
 
-const _$TrinaryEnumMap = <Trinary, dynamic>{
+const _$TrinaryEnumMap = {
   Trinary.yes: 'YES',
   Trinary.no: 'NO',
-  Trinary.unset: 'UNSET'
+  Trinary.unset: 'UNSET',
 };
 
 Build _$BuildFromJson(Map<String, dynamic> json) {
