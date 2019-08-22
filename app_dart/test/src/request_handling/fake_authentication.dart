@@ -36,24 +36,25 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 class FakeAuthenticatedContext implements AuthenticatedContext {
   FakeAuthenticatedContext({
     this.agent,
-    ClientContext clientContext,
+    FakeClientContext clientContext,
   }) : clientContext = clientContext ?? FakeClientContext();
 
   @override
   Agent agent;
 
   @override
-  ClientContext clientContext;
+  FakeClientContext clientContext;
 }
 
 class FakeClientContext implements ClientContext {
   FakeClientContext({
     this.isDevelopmentEnvironment = true,
     this.isProductionEnvironment = false,
-  });
+    FakeAppEngineContext applicationContext,
+  }) : applicationContext = applicationContext ?? FakeAppEngineContext();
 
   @override
-  AppEngineContext applicationContext;
+  FakeAppEngineContext applicationContext;
 
   @override
   bool isDevelopmentEnvironment;
@@ -66,4 +67,30 @@ class FakeClientContext implements ClientContext {
 
   @override
   String traceId;
+}
+
+class FakeAppEngineContext implements AppEngineContext {
+  @override
+  String applicationID;
+
+  @override
+  String fullQualifiedApplicationId;
+
+  @override
+  String instance;
+
+  @override
+  String instanceId;
+
+  @override
+  bool isDevelopmentEnvironment;
+
+  @override
+  String module;
+
+  @override
+  String partition;
+
+  @override
+  String version;
 }
