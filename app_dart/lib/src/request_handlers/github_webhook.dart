@@ -297,7 +297,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // it's got other problems.
     final List<PullRequestFile> files =
         await gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-      '/repos/${slug.fullName}/pulls/${event.number}/files&per_page=100',
+      '/repos/${slug.fullName}/pulls/${event.number}/files?per_page=100',
       convert: (List<dynamic> jsonFileList) =>
           jsonFileList.cast<Map<String, dynamic>>().map(PullRequestFile.fromJSON).toList(),
     );
