@@ -140,7 +140,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -173,7 +173,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -206,7 +206,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -259,7 +259,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -295,7 +295,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
