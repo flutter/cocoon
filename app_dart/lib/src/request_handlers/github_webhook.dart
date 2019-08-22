@@ -293,9 +293,11 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     final RepositorySlug slug = event.repository.slug();
     // TODO(dnfield): Use event.pullRequests.listFiles API when it's fixed: DirectMyFile/github.dart#151
+    // We probably should page here, but if a PR contains over 100 files changed
+    // it's got other problems.
     final List<PullRequestFile> files =
         await gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-      '/repos/${slug.fullName}/pulls/${event.number}/files',
+      '/repos/${slug.fullName}/pulls/${event.number}/files&per_page=100',
       convert: (List<dynamic> jsonFileList) =>
           jsonFileList.cast<Map<String, dynamic>>().map(PullRequestFile.fromJSON).toList(),
     );
@@ -304,6 +306,11 @@ class GithubWebhook extends RequestHandler<Body> {
     bool isGoldenChange = false;
     final Set<String> labels = <String>{};
     for (PullRequestFile file in files) {
+      if (file.filename.endsWith('pubspec.yaml')) {
+        // These get updated by a script, and are updated en masse.
+        labels.add('team');
+        continue;
+      }
       if (file.filename.endsWith('.dart')) {
         needsTests = true;
       }
