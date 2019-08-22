@@ -140,7 +140,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -173,7 +173,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -206,7 +206,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
         (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
@@ -248,6 +248,42 @@ void main() {
       ));
     });
 
+    test('No labels when only pubspec.yaml changes', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
+        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
+        convert: anyNamed('convert'),
+      )).thenAnswer(
+        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+          PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
+          PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>[
+          'team',
+        ]),
+        convert: anyNamed('convert'),
+      )).called(1);
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
     test('Labels Golden changes, comments to notify', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -259,10 +295,10 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files',
+        '/repos/${slug.fullName}/pulls/$issueNumber/files&per_page=100',
         convert: anyNamed('convert'),
       )).thenAnswer(
-          (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
           PullRequestFile()..filename = 'bin/internal/goldens.version',
         ]),
       );
