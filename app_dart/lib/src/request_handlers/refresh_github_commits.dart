@@ -46,9 +46,9 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   const RefreshGithubCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    this.httpClientProvider = Providers.freshHttpClient,
-    this.gitHubBackoffCalculator = twoSecondLinearBackoff,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
         assert(httpClientProvider != null),
         assert(gitHubBackoffCalculator != null),

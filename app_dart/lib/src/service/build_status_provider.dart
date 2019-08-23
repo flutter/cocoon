@@ -21,11 +21,15 @@ class BuildStatusProvider {
 
   final DatastoreServiceProvider datastoreProvider;
 
-  Future<BuildStatus> calculateStatus() async {
+  /// Calculates and returns the "overall" status of the Flutter build.
+  ///
+  /// This calculation operates by looking for the most recent success or
+  /// failure for every (non-flaky) task in the manifest.
+  Future<BuildStatus> calculateCumulativeStatus() async {
     final Map<String, bool> checkedTasks = <String, bool>{};
     bool isLatestBuild = true;
 
-    await for (CommitStatus status in _getCommitStatuses()) {
+    await for (CommitStatus status in retrieveCommitStatus()) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
           if (isLatestBuild) {
@@ -54,6 +58,18 @@ class BuildStatusProvider {
     return BuildStatus.succeeded;
   }
 
+  /// Retrieves the comprehensive status of every task that runs per commit.
+  ///
+  /// The returned stream will be ordered by most recent commit first, then
+  /// the next newest, and so on.
+  Stream<CommitStatus> retrieveCommitStatus() async* {
+    final DatastoreService datastore = datastoreProvider();
+    await for (Commit commit in datastore.queryRecentCommits()) {
+      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
+      yield CommitStatus(commit, stages);
+    }
+  }
+
   bool _isFinal(String status) {
     return status == Task.statusSucceeded ||
         status == Task.statusFailed ||
@@ -63,21 +79,23 @@ class BuildStatusProvider {
   bool _isFailedOrSkipped(String status) {
     return status == Task.statusFailed || status == Task.statusSkipped;
   }
-
-  Stream<CommitStatus> _getCommitStatuses() async* {
-    final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits()) {
-      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
-      yield CommitStatus(commit, stages);
-    }
-  }
 }
 
+/// Class that holds the status for all tasks corresponding to a particular
+/// commit.
+///
+/// Tasks may still be running, and thus their status is subject to change.
+/// Put another way, this class holds information that is a snapshot in time.
 @immutable
 class CommitStatus {
+  /// Creates a new [CommitStatus].
   const CommitStatus(this.commit, this.stages);
 
+  /// The commit against which all the tasks in [stages] are run.
   final Commit commit;
+
+  /// The partitioned stages, each of which holds a bucket of tasks that
+  /// belong in the stage.
   final List<Stage> stages;
 }
 

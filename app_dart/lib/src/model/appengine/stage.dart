@@ -2,16 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import 'commit.dart';
 import 'task.dart';
+
+part 'stage.g.dart';
 
 /// A group of related [Task]s run against a particular [Commit].
 ///
 /// Stages are grouped by the infrastructure family that runs them, such as
 /// Cirrus, LUCI, DeviceLab on Linux, DeviceLab on Windows, etc.
 @immutable
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 class Stage implements Comparable<Stage> {
   const Stage._(this.name, this.commit, this.tasks, this.taskStatus)
       : assert(name != null),
@@ -36,6 +40,7 @@ class Stage implements Comparable<Stage> {
   /// The name of the stage (e.g. 'cirrus', 'devicelab', 'devicelab_win').
   ///
   /// This is guaranteed to be non-null.
+  @JsonKey(name: 'Name')
   final String name;
 
   /// The commit that owns this stage.
@@ -49,6 +54,12 @@ class Stage implements Comparable<Stage> {
   /// non-empty.
   final List<Task> tasks;
 
+  /// Representation of [tasks] used for JSON serialization.
+  @JsonKey(name: 'Tasks')
+  List<TaskWrapper> get taskWrappers {
+    return tasks.map<TaskWrapper>((Task task) => TaskWrapper(task)).toList();
+  }
+
   /// The aggregate status, accounting for all [tasks] in this stage.
   ///
   /// The status is defined as follows:
@@ -57,6 +68,7 @@ class Stage implements Comparable<Stage> {
   ///  * If at least one task in this stage failed, then [Task.statusFailed]
   ///  * If all tasks have the same status, then that status
   ///  * Else [Task.statusInProgress]
+  @JsonKey(name: 'Status')
   final String taskStatus;
 
   /// Whether this stage is managed by the Flutter device lab.
@@ -76,6 +88,9 @@ class Stage implements Comparable<Stage> {
     }
     return index;
   }
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$StageToJson(this);
 
   @override
   String toString() {

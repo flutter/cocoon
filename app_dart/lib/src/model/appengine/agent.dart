@@ -3,10 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'task.dart';
 
+part 'agent.g.dart';
+
 /// Class that represents a worker capable of running tasks.
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Agent', idType: IdType.String)
 class Agent extends Model {
   /// Creates a new [Agent].
@@ -26,17 +30,20 @@ class Agent extends Model {
 
   /// The human-readable ID of the agent (e.g. 'linux1').
   @StringProperty(propertyName: 'AgentID', required: true)
+  @JsonKey(name: 'AgentID')
   String agentId;
 
   /// The timestamp (in milliseconds since the Epoch) of the agent's last
   /// health check.
   @IntProperty(propertyName: 'HealthCheckTimestamp', required: true)
+  @JsonKey(name: 'HealthCheckTimestamp')
   int healthCheckTimestamp;
 
   /// True iff the agent is currently marked as healthy.
   ///
   /// A healthy agent is capable of accepting tasks.
   @BoolProperty(propertyName: 'IsHealthy', required: true)
+  @JsonKey(name: 'IsHealthy')
   bool isHealthy;
 
   @BoolProperty(propertyName: 'Hidden', required: true)
@@ -55,6 +62,7 @@ class Agent extends Model {
   ///
   ///  * [Task.requiredCapabilities]
   @StringListProperty(propertyName: 'Capabilities')
+  @JsonKey(name: 'Capabilities')
   List<String> capabilities;
 
   /// Freeform information about the agent that was reported during its last
@@ -62,6 +70,7 @@ class Agent extends Model {
   ///
   /// This will include information such as the agent's host IP address.
   @StringProperty(propertyName: 'HealthDetails')
+  @JsonKey(name: 'HealthDetails')
   String healthDetails;
 
   /// A hash of the agent's authentication token.
@@ -82,6 +91,9 @@ class Agent extends Model {
   /// this agent's list of [capabilities].
   bool isCapableOfPerformingTask(Task task) =>
       task.requiredCapabilities.every((String capability) => capabilities.contains(capability));
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$AgentToJson(this);
 
   @override
   String toString() {

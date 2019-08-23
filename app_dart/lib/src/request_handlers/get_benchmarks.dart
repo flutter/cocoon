@@ -19,7 +19,7 @@ import '../service/datastore.dart';
 class GetBenchmarks extends RequestHandler<Body> {
   const GetBenchmarks(
     Config config, {
-    this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;

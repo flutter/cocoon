@@ -14,7 +14,7 @@ part 'time_series.g.dart';
 ///
 /// Values in a series  are stored in [TimeSeriesValue], whose keys are
 /// children of [TimeSeries] keys.
-@JsonSerializable(ignoreUnannotated: true)
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Timeseries', idType: IdType.String)
 class TimeSeries extends Model {
   /// Creates a new [TimeSeries].
@@ -31,9 +31,6 @@ class TimeSeries extends Model {
     parentKey = key?.parent;
     id = key?.id;
   }
-
-  /// Create a new [TimeSeries] object from its JSON representation.
-  factory TimeSeries.fromJson(Map<String, dynamic> json) => _$TimeSeriesFromJson(json);
 
   /// Whether the series has been archived and is no longer active.
   @BoolProperty(propertyName: 'Archived', required: true)

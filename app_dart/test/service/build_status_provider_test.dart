@@ -56,14 +56,14 @@ void main() {
 
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
       test('returns success if top commit is all green', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -73,21 +73,21 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? allGreen : middleTaskFailed;
         });
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
       test('returns failure if last commit contains any red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
       test('ignores failures on flaky commits', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -97,7 +97,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : allGreen;
         });
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -107,7 +107,7 @@ void main() {
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
-        final BuildStatus status = await buildStatusProvider.calculateStatus();
+        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
     });

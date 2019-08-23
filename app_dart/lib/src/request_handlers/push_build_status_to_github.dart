@@ -21,18 +21,15 @@ import '../service/datastore.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
-  PushBuildStatusToGithub(
+  const PushBuildStatusToGithub(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    DatastoreServiceProvider datastoreProvider,
-    LoggingProvider loggingProvider,
-    BuildStatusProvider buildStatusProvider,
+    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    @visibleForTesting LoggingProvider loggingProvider,
+    @visibleForTesting BuildStatusProvider buildStatusProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        buildStatusProvider = buildStatusProvider ??
-            BuildStatusProvider(
-              datastoreProvider: datastoreProvider,
-            ),
+        buildStatusProvider = buildStatusProvider ?? const BuildStatusProvider(),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -50,7 +47,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final BuildStatus buildStatus = await buildStatusProvider.calculateStatus();
+    final BuildStatus buildStatus = await buildStatusProvider.calculateCumulativeStatus();
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     log.debug('Computed build result of $buildStatus');

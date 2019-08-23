@@ -51,7 +51,9 @@ void main() {
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
         await LuciBuilder.getBuilders(config),
         key: (dynamic builder) => builder,
-        value: (dynamic builder) => <LuciTask>[LuciTask(commitSha: 'abc', status: Task.statusNew)],
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(commitSha: 'abc', status: Task.statusNew),
+        ],
       );
       when(mockLuciService.getRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
