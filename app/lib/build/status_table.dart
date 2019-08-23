@@ -99,6 +99,8 @@ class StatusTableComponent implements OnInit, OnDestroy {
       isBuildBroken = false;
     } else if (status == 'Failed') {
       isBuildBroken = true;
+    } else if (status == 'Build Will Fail') {
+      isBuildBroken = true;
     } else {
       isBuildBroken = null;
     }
