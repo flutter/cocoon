@@ -5,8 +5,19 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:gcloud/datastore.dart' show Datastore;
+import 'package:gcloud/datastore.dart' show Datastore, OrderDirection;
 import 'package:gcloud/db.dart';
+
+/// Signature for a callback function that will be notified whenever a
+/// [FakeQuery] is run.
+///
+/// The `results` argument contains the provisional results of the query (after
+/// [FakeQuery.limit] and [FakeQuery.offset] have been applied). Callers can
+/// affect the results of the query by returning a different set of results
+/// from the callback.
+///
+/// The callback must not return null.
+typedef QueryCallback<T extends Model> = Iterable<T> Function(Iterable<T> results);
 
 /// Signature for a callback function that will be notified whenever `commit()`
 /// is called, either via [FakeDatastoreDB.commit] or [FakeTransaction.commit].
@@ -26,11 +37,26 @@ typedef CommitCallback = void Function(List<Model> inserts, List<Key> deletes);
 class FakeDatastoreDB implements DatastoreDB {
   FakeDatastoreDB({
     Map<Key, Model> values,
+    Map<Type, QueryCallback<dynamic>> onQuery,
     this.onCommit,
-  }) : values = values ?? <Key, Model>{};
+  })  : values = values ?? <Key, Model>{},
+        onQuery = onQuery ?? <Type, QueryCallback<dynamic>>{};
 
   final Map<Key, Model> values;
+  final Map<Type, QueryCallback<dynamic>> onQuery;
   CommitCallback onCommit;
+
+  /// Adds a [QueryCallback] to the set of callbacks that will be notified when
+  /// queries are run.
+  ///
+  /// The [callback] argument will replace any existing callback that has been
+  /// specified for type `T`, as only one callback may exist per type.
+  void addOnQuery<T extends Model>(QueryCallback<T> callback) {
+    final QueryCallback<dynamic> untypedCallback = (Iterable<dynamic> results) {
+      return callback(results.cast<T>()).cast<dynamic>();
+    };
+    onQuery[T] = untypedCallback;
+  }
 
   @override
   Future<dynamic> commit({List<Model> inserts, List<Key> deletes}) async {
@@ -82,7 +108,7 @@ class FakeDatastoreDB implements DatastoreDB {
   @override
   FakeQuery<T> query<T extends Model>({Partition partition, Key ancestorKey}) {
     final List<T> results = values.values.whereType<T>().toList();
-    return FakeQuery<T>(results: results);
+    return FakeQuery<T>._(this, results);
   }
 
   @override
@@ -98,14 +124,20 @@ class FakeDatastoreDB implements DatastoreDB {
 /// This fake query ignores any [filter] or [order] directives, though it does
 /// respect [limit] and [offset] directives.
 class FakeQuery<T extends Model> implements Query<T> {
-  FakeQuery({this.results});
+  FakeQuery._(this.db, this.results);
+
+  final FakeDatastoreDB db;
+  final List<FakeFilterSpec> filters = <FakeFilterSpec>[];
+  final List<FakeOrderSpec> orders = <FakeOrderSpec>[];
 
   List<T> results;
   int start = 0;
   int count = 100;
 
   @override
-  void filter(String filterString, Object comparisonObject) {}
+  void filter(String filterString, Object comparisonObject) {
+    filters.add(FakeFilterSpec._(filterString, comparisonObject));
+  }
 
   @override
   void limit(int limit) {
@@ -122,10 +154,36 @@ class FakeQuery<T extends Model> implements Query<T> {
   }
 
   @override
-  void order(String orderString) {}
+  void order(String orderString) {
+    if (orderString.startsWith('-')) {
+      orders.add(FakeOrderSpec._(orderString.substring(1), OrderDirection.Decending));
+    } else {
+      orders.add(FakeOrderSpec._(orderString, OrderDirection.Ascending));
+    }
+  }
 
   @override
-  Stream<T> run() => Stream<T>.fromIterable(results.skip(start).take(count));
+  Stream<T> run() {
+    Iterable<T> resultsView = results.skip(start).take(count);
+    if (db.onQuery.containsKey(T)) {
+      resultsView = db.onQuery[T](resultsView).cast<T>();
+    }
+    return Stream<T>.fromIterable(resultsView);
+  }
+}
+
+class FakeFilterSpec {
+  const FakeFilterSpec._(this.filterString, this.comparisonObject);
+
+  final String filterString;
+  final Object comparisonObject;
+}
+
+class FakeOrderSpec {
+  const FakeOrderSpec._(this.fieldName, this.direction);
+
+  final String fieldName;
+  final OrderDirection direction;
 }
 
 /// A fake datastore transaction.
@@ -195,7 +253,7 @@ class FakeTransaction implements Transaction {
       ...db.values.values.whereType<T>(),
     ];
     deletes.whereType<T>().forEach(queryResults.remove);
-    return FakeQuery<T>(results: queryResults);
+    return FakeQuery<T>._(db, queryResults);
   }
 
   @override
