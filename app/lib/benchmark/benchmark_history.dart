@@ -135,7 +135,7 @@ class BenchmarkHistory {
       _statusMessage = 'New targets saved.';
       await _loadData();
     } else {
-      _statusMessage = 'Server responded with and error saving new targets (HTTP ${response.statusCode})';
+      _statusMessage = 'Server responded with an error saving new targets (HTTP ${response.statusCode})';
     }
   }
 
