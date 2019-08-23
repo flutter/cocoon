@@ -7,13 +7,14 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../model/appengine/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 
 const Map<BuildStatus, String> _buildStatusLookup = <BuildStatus, String>{
-  BuildStatus.succeeded: 'Succeeded',
-  BuildStatus.failed: 'Failed',
+  BuildStatus.succeeded: Task.statusSucceeded,
+  BuildStatus.failed: Task.statusFailed,
 };
 
 @immutable
