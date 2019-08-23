@@ -36,13 +36,15 @@ class GetStatus extends RequestHandler<Body> {
 
     final DatastoreService datastore = datastoreProvider();
     final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
-    final List<Agent> agents = await agentQuery.run().toList();
+    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
 
     return Body.forJson(<String, dynamic>{
       'Statuses': statuses,
       'AgentStatuses': agents,
     });
   }
+
+  static bool _isVisible(Agent agent) => !agent.isHidden;
 }
 
 /// The serialized representation of a [CommitStatus].
