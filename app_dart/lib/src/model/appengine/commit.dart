@@ -67,9 +67,11 @@ class Commit extends Model {
   }
 }
 
+/// The serialized representation of a [Commit].
+// TODO(tvolkert): Directly serialize [Commit] once frontends migrate to new serialization format.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
-class CommitWrapper {
-  const CommitWrapper(this.commit);
+class SerializableCommit {
+  const SerializableCommit(this.commit);
 
   final Commit commit;
 
@@ -93,5 +95,5 @@ class CommitWrapper {
   }
 
   /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$CommitWrapperToJson(this);
+  Map<String, dynamic> toJson() => _$SerializableCommitToJson(this);
 }

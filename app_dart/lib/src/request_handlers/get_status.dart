@@ -29,9 +29,9 @@ class GetStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final List<CommitStatusWrapper> statuses = await buildStatusProvider
+    final List<SerializableCommitStatus> statuses = await buildStatusProvider
         .retrieveCommitStatus()
-        .map<CommitStatusWrapper>((CommitStatus status) => CommitStatusWrapper(status))
+        .map<SerializableCommitStatus>((CommitStatus status) => SerializableCommitStatus(status))
         .toList();
 
     final DatastoreService datastore = datastoreProvider();
@@ -45,14 +45,16 @@ class GetStatus extends RequestHandler<Body> {
   }
 }
 
-class CommitStatusWrapper {
-  const CommitStatusWrapper(this.status);
+/// The serialized representation of a [CommitStatus].
+// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
+class SerializableCommitStatus {
+  const SerializableCommitStatus(this.status);
 
   final CommitStatus status;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Checklist': CommitWrapper(status.commit),
+      'Checklist': SerializableCommit(status.commit),
       'Stages': status.stages,
     };
   }

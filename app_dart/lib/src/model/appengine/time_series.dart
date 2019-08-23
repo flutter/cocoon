@@ -93,9 +93,11 @@ class TimeSeries extends Model {
   }
 }
 
+/// The serialized representation of a [TimeSeries].
+// TODO(tvolkert): Directly serialize [TimeSeries] once frontends migrate to new format.
 @JsonSerializable(createFactory: false)
-class TimeSeriesWrapper {
-  const TimeSeriesWrapper({
+class SerializableTimeSeries {
+  const SerializableTimeSeries({
     this.series,
   });
 
@@ -107,5 +109,5 @@ class TimeSeriesWrapper {
   Key get key => series.key;
 
   /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$TimeSeriesWrapperToJson(this);
+  Map<String, dynamic> toJson() => _$SerializableTimeSeriesToJson(this);
 }

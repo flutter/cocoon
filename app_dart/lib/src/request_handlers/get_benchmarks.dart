@@ -71,7 +71,7 @@ class GetBenchmarks extends RequestHandler<Body> {
       }
 
       benchmarks.add(<String, dynamic>{
-        'Timeseries': TimeSeriesWrapper(series: series),
+        'Timeseries': SerializableTimeSeries(series: series),
         'Values': values,
       });
     }

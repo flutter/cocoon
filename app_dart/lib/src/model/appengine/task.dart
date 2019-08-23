@@ -198,9 +198,11 @@ class Task extends Model {
   }
 }
 
+/// The serialized representation of a [Task].
+// TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.
 @JsonSerializable(createFactory: false)
-class TaskWrapper {
-  const TaskWrapper(this.task);
+class SerializableTask {
+  const SerializableTask(this.task);
 
   @JsonKey(name: 'Task')
   final Task task;
@@ -210,7 +212,7 @@ class TaskWrapper {
   Key get key => task.key;
 
   /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$TaskWrapperToJson(this);
+  Map<String, dynamic> toJson() => _$SerializableTaskToJson(this);
 }
 
 /// A [Task], paired with its associated parent [Commit].

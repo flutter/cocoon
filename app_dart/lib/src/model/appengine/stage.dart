@@ -56,8 +56,8 @@ class Stage implements Comparable<Stage> {
 
   /// Representation of [tasks] used for JSON serialization.
   @JsonKey(name: 'Tasks')
-  List<TaskWrapper> get taskWrappers {
-    return tasks.map<TaskWrapper>((Task task) => TaskWrapper(task)).toList();
+  List<SerializableTask> get serializableTasks {
+    return tasks.map<SerializableTask>((Task task) => SerializableTask(task)).toList();
   }
 
   /// The aggregate status, accounting for all [tasks] in this stage.
