@@ -19,7 +19,7 @@ import '../service/datastore.dart';
 class GetBenchmarks extends RequestHandler<Body> {
   const GetBenchmarks(
     Config config, {
-    this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -71,7 +71,7 @@ class GetBenchmarks extends RequestHandler<Body> {
       }
 
       benchmarks.add(<String, dynamic>{
-        'Timeseries': TimeSeriesWrapper(series: series),
+        'Timeseries': SerializableTimeSeries(series: series),
         'Values': values,
       });
     }

@@ -11,7 +11,7 @@ part 'time_series_value.g.dart';
 
 /// Class that represents an individual measurement of a metric as part of a
 /// [TimeSeries].
-@JsonSerializable(ignoreUnannotated: true)
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'TimeseriesValue')
 class TimeSeriesValue extends Model {
   /// Creates a new [TimeSeriesValue].
@@ -26,9 +26,6 @@ class TimeSeriesValue extends Model {
     parentKey = key?.parent;
     id = key?.id;
   }
-
-  /// Create a new [TimeSeriesValue] object from its JSON representation.
-  factory TimeSeriesValue.fromJson(Map<String, dynamic> json) => _$TimeSeriesValueFromJson(json);
 
   /// Whether data is missing for this measurement.
   @BoolProperty(propertyName: 'DataMissing')

@@ -3,13 +3,18 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'commit.dart';
+import 'key_converter.dart';
+
+part 'task.g.dart';
 
 /// Class that represents the intersection of a test at a particular [Commit].
 ///
 /// Tasks are tests that have been run N (possibly zero) times against a
 /// particular commit.
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Task')
 class Task extends Model {
   /// Creates a new [Task].
@@ -62,6 +67,8 @@ class Task extends Model {
 
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
+  @JsonKey(name: 'ChecklistKey')
+  @KeyConverter()
   Key commitKey;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
@@ -70,6 +77,7 @@ class Task extends Model {
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
   @IntProperty(propertyName: 'CreateTimestamp', required: true)
+  @JsonKey(name: 'CreateTimestamp')
   int createTimestamp;
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
@@ -78,11 +86,13 @@ class Task extends Model {
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
   @IntProperty(propertyName: 'StartTimestamp', required: true)
+  @JsonKey(name: 'StartTimestamp')
   int startTimestamp;
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
   @IntProperty(propertyName: 'EndTimestamp', required: true)
+  @JsonKey(name: 'EndTimestamp')
   int endTimestamp;
 
   /// The name of the task.
@@ -90,6 +100,7 @@ class Task extends Model {
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
   @StringProperty(propertyName: 'Name', required: true)
+  @JsonKey(name: 'Name')
   String name;
 
   /// The number of attempts that have been made to run this task successfully.
@@ -97,6 +108,7 @@ class Task extends Model {
   /// New tasks that have not yet been picked up by an [Agent] will have zero
   /// attempts.
   @IntProperty(propertyName: 'Attempts', required: true)
+  @JsonKey(name: 'Attempts')
   int attempts;
 
   /// Whether this task has been marked flaky by the devicelab manifest.
@@ -105,14 +117,17 @@ class Task extends Model {
   ///
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/manifest.yaml>
   @BoolProperty(propertyName: 'Flaky')
+  @JsonKey(name: 'Flaky')
   bool isFlaky;
 
   /// The timeout of the task, or zero if the task has no timeout.
   @IntProperty(propertyName: 'TimeoutInMinutes', required: true)
+  @JsonKey(name: 'TimeoutInMinutes')
   int timeoutInMinutes;
 
   /// Currently unset and unused.
   @StringProperty(propertyName: 'Reason')
+  @JsonKey(name: 'Reason')
   String reason;
 
   /// The list of capabilities that agents are required to have to run this
@@ -122,23 +137,27 @@ class Task extends Model {
   ///
   ///  * [Agent.capabilities], which list the capabilities of an agent.
   @StringListProperty(propertyName: 'RequiredCapabilities')
+  @JsonKey(name: 'RequiredCapabilities')
   List<String> requiredCapabilities;
 
   /// Set to the ID of the agent that's responsible for running this task.
   ///
   /// This will be null until an agent has reserved this task.
   @StringProperty(propertyName: 'ReservedForAgentID')
+  @JsonKey(name: 'ReservedForAgentID')
   String reservedForAgentId;
 
   /// The name of the [Stage] that groups this task with other tasks that are
   /// related to it.
   @StringProperty(propertyName: 'StageName', required: true)
+  @JsonKey(name: 'StageName')
   String stageName;
 
   /// The status of the task.
   ///
   /// Legal values and their meanings are defined in [legalStatusValues].
   @StringProperty(propertyName: 'Status', required: true)
+  @JsonKey(name: 'Status')
   String get status => _status;
   String _status;
   set status(String value) {
@@ -150,6 +169,9 @@ class Task extends Model {
 
   /// Comparator that sorts tasks by fewest attempts first.
   static int byAttempts(Task a, Task b) => a.attempts.compareTo(b.attempts);
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$TaskToJson(this);
 
   @override
   String toString() {
@@ -174,6 +196,23 @@ class Task extends Model {
       ..write(')');
     return buf.toString();
   }
+}
+
+/// The serialized representation of a [Task].
+// TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.
+@JsonSerializable(createFactory: false)
+class SerializableTask {
+  const SerializableTask(this.task);
+
+  @JsonKey(name: 'Task')
+  final Task task;
+
+  @JsonKey(name: 'Key')
+  @KeyConverter()
+  Key get key => task.key;
+
+  /// Serializes this object to a JSON primitive.
+  Map<String, dynamic> toJson() => _$SerializableTaskToJson(this);
 }
 
 /// A [Task], paired with its associated parent [Commit].

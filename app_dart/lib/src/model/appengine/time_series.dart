@@ -14,7 +14,7 @@ part 'time_series.g.dart';
 ///
 /// Values in a series  are stored in [TimeSeriesValue], whose keys are
 /// children of [TimeSeries] keys.
-@JsonSerializable(ignoreUnannotated: true)
+@JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Timeseries', idType: IdType.String)
 class TimeSeries extends Model {
   /// Creates a new [TimeSeries].
@@ -31,9 +31,6 @@ class TimeSeries extends Model {
     parentKey = key?.parent;
     id = key?.id;
   }
-
-  /// Create a new [TimeSeries] object from its JSON representation.
-  factory TimeSeries.fromJson(Map<String, dynamic> json) => _$TimeSeriesFromJson(json);
 
   /// Whether the series has been archived and is no longer active.
   @BoolProperty(propertyName: 'Archived', required: true)
@@ -96,9 +93,11 @@ class TimeSeries extends Model {
   }
 }
 
+/// The serialized representation of a [TimeSeries].
+// TODO(tvolkert): Directly serialize [TimeSeries] once frontends migrate to new format.
 @JsonSerializable(createFactory: false)
-class TimeSeriesWrapper {
-  const TimeSeriesWrapper({
+class SerializableTimeSeries {
+  const SerializableTimeSeries({
     this.series,
   });
 
@@ -110,5 +109,5 @@ class TimeSeriesWrapper {
   Key get key => series.key;
 
   /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$TimeSeriesWrapperToJson(this);
+  Map<String, dynamic> toJson() => _$SerializableTimeSeriesToJson(this);
 }
