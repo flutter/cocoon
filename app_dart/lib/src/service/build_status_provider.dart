@@ -81,6 +81,7 @@ class CommitStatus {
   final List<Stage> stages;
 }
 
+@immutable
 class BuildStatus {
   const BuildStatus._(this.value);
 

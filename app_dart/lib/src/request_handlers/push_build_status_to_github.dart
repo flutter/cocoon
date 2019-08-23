@@ -29,8 +29,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     BuildStatusProvider buildStatusProvider,
   })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        buildStatusProvider =
-            buildStatusProvider ?? BuildStatusProvider(datastoreProvider: datastoreProvider),
+        buildStatusProvider = buildStatusProvider ??
+            BuildStatusProvider(
+              datastoreProvider: datastoreProvider,
+            ),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
