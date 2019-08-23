@@ -52,6 +52,14 @@ To update the indexes in the App Engine project, run:
 $ gcloud datastore indexes create index.yaml
 ```
 
+### Updating cloud cron tasks
+
+To update the cron tasks in the App Engine project, run:
+
+```sh
+$ gcloud app deploy cron.yaml
+```
+
 ### Running a local development instance
 
 Once you've installed Docker and have the `docker` command-line tool in
