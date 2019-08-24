@@ -180,12 +180,6 @@ void main() {
   });
 }
 
-bool Function(FakeLogRecord) hasLevel(LogLevel level) {
-  return (FakeLogRecord record) {
-    return record.level == level;
-  };
-}
-
 String toSha(Commit commit) => commit.sha;
 
 class MockGitHub extends Mock implements GitHub {}
