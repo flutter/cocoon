@@ -12,6 +12,7 @@ class GithubBuildStatusUpdate extends Model {
     Key key,
     this.repository,
     this.pr,
+    this.head,
     this.status,
     this.updates,
   }) {
@@ -29,6 +30,9 @@ class GithubBuildStatusUpdate extends Model {
   @IntProperty(propertyName: 'PR', required: true)
   int pr;
 
+  @StringProperty(propertyName: 'Head')
+  String head;
+
   @StringProperty(propertyName: 'Status', required: true)
   String status;
 
@@ -44,6 +48,7 @@ class GithubBuildStatusUpdate extends Model {
       ..write(', key: ${parentKey == null ? null : key.id}')
       ..write(', repository: $repository')
       ..write(', pr: $pr')
+      ..write(', head: $head')
       ..write(', lastStatus: $status')
       ..write(', updates: $updates')
       ..write(')');

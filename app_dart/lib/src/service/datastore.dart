@@ -116,13 +116,15 @@ class DatastoreService {
   ) async {
     final Query<GithubBuildStatusUpdate> query = db.query<GithubBuildStatusUpdate>()
       ..filter('repository =', slug.fullName)
-      ..filter('pr =', pr.number);
+      ..filter('pr =', pr.number)
+      ..filter('head =', pr.head.sha);
     final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
         repository: slug.fullName,
         pr: pr.number,
+        head: pr.head.sha,
         status: null,
         updates: 0,
       );
