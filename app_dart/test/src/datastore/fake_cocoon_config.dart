@@ -14,9 +14,8 @@ import 'fake_datastore.dart';
 // ignore: must_be_immutable
 class FakeConfig implements Config {
   FakeConfig({
-    this.maxEntityGroups,
+    this.maxEntityGroups = 5,
     this.githubClient,
-    this.dbValue,
     this.deviceLabServiceAccountValue,
     this.forwardHostValue,
     this.forwardPortValue,
@@ -32,9 +31,8 @@ class FakeConfig implements Config {
     this.luciBuildersValue,
     this.luciTryBuildersValue,
     this.loggingServiceValue,
-  }) {
-    dbValue ??= FakeDatastoreDB();
-  }
+    FakeDatastoreDB dbValue,
+  }) : dbValue = dbValue ?? FakeDatastoreDB();
 
   GitHub githubClient;
   FakeDatastoreDB dbValue;

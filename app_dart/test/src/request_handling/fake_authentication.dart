@@ -13,14 +13,14 @@ import 'package:appengine/appengine.dart';
 class FakeAuthenticationProvider implements AuthenticationProvider {
   FakeAuthenticationProvider({
     this.agent,
-    ClientContext clientContext,
+    FakeClientContext clientContext,
     this.authenticated = true,
   })  : assert(authenticated != null),
         clientContext = clientContext ?? FakeClientContext();
 
   bool authenticated;
   Agent agent;
-  ClientContext clientContext;
+  FakeClientContext clientContext;
 
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {

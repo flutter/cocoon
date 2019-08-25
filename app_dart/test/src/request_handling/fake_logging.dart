@@ -53,3 +53,9 @@ class FakeLogging implements Logging {
   @override
   Future<void> flush() async {}
 }
+
+bool Function(FakeLogRecord) hasLevel(LogLevel level) {
+  return (FakeLogRecord record) {
+    return record.level == level;
+  };
+}
