@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -37,6 +38,7 @@ class GetStatus extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider();
     final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
     final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
+    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
     return Body.forJson(<String, dynamic>{
       'Statuses': statuses,
