@@ -23,18 +23,14 @@ void main() {
     FakeBuildStatusProvider buildStatusProvider;
     GetStatus handler;
 
-    Future<Map<String, dynamic>> decodeHandlerBody() async {
+    Future<Object> decodeHandlerBody() async {
       final Body body = await handler.get();
-      final List<Uint8List> bytes = await body.serialize().toList();
-      final String decodedBody =
-          utf8.decode(bytes.expand((Uint8List bytes) => bytes).toList());
-      return json.decode(decodedBody);
+      return utf8.decoder.bind(body.serialize()).transform(json.decoder).single;
     }
 
     setUp(() {
       config = FakeConfig();
-      buildStatusProvider =
-          FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
+      buildStatusProvider = FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
       handler = GetStatus(
         config,
