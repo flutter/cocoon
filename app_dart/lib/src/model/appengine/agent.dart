@@ -19,7 +19,7 @@ class Agent extends Model {
     this.agentId,
     this.healthCheckTimestamp,
     this.isHealthy,
-    this.isHidden,
+    this.isHidden = false,
     this.capabilities,
     this.healthDetails,
     this.authToken,
