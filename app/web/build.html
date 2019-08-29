@@ -13,7 +13,7 @@
   <title>Flutter Build History</title>
   <link href="buildStyles.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
+  <script src="google_signin.js"></script>
   <script>
   (function(w,d,s,g,js,fjs){
     g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(cb){this.q.push(cb)}};
@@ -27,6 +27,10 @@
   <div id="container">
     <status-table></status-table>
   </div>
+
+  <footer id="page-footer">
+    <div class="g-signin2" data-onsuccess="onSignIn" data-onfailure="onSignInFailure" data-theme="dark"></div>
+  </footer>
 
   <script defer src="build.dart.js"></script>
 </body>

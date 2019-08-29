@@ -84,21 +84,7 @@
       background-color: #ffc4c4;
     }
   </style>
-  <script>
-    function onSignIn(googleUser) {
-        var idToken = googleUser.getAuthResponse().id_token;
-        var expires = new Date();
-        expires.setDate(expires.getDate() + 30);
-        document.cookie = "X-Flutter-IdToken=" + idToken +
-            "; expires=" + expires.toUTCString() +
-            "; path=/";
-    }
-
-    function onSignInFailure(error) {
-        console.log(error);
-        document.cookie = "X-Flutter-IdToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
-  </script>
+  <script src="google_signin.js"></script>
 </head>
 <body style="padding: 0; margin: 0; width: 100%; height: 100%; position: relative">
   <div id="sign-in-required-banner">
