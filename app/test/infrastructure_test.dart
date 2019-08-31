@@ -88,6 +88,14 @@ void main() {
       expect(iconFinder, findsOneWidget);
     });
 
+    testWidgets('failed', (WidgetTester tester) async {
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Failed');
+      await _pumpBuildStatusWidget(tester, buildStatus);
+
+      final Finder iconFinder = find.byIcon(Icons.error);
+      expect(iconFinder, findsOneWidget);
+    });
+
     testWidgets('Bogus', (WidgetTester tester) async {
       const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Bogus unknown status');
       await _pumpBuildStatusWidget(tester, buildStatus);

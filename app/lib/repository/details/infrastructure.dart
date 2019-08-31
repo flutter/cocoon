@@ -142,6 +142,7 @@ class BuildStatusWidget extends StatelessWidget {
         backgroundColor = Colors.green;
         break;
       case 'Build Will Fail':
+      case 'Failed':
         icon = Icons.error;
         backgroundColor = Colors.redAccent;
         break;
