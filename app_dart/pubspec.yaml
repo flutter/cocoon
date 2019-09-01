@@ -16,7 +16,7 @@ dependencies:
   crypto: ^2.0.6
   fixnum: ^0.10.9
   gcloud: ^0.6.3
-  github: ^5.0.1
+  github: ^5.1.0
   googleapis_auth: ^0.2.10
   http: ^0.12.0
   json_annotation: ^3.0.0
@@ -32,9 +32,3 @@ dev_dependencies:
 
 builders:
   json_serializable: ^3.2.2
-
-dependency_overrides:
-  github:
-    git:
-      url: git://github.com/DirectMyFile/github.dart.git
-      ref: fad98d2ff2785d1723c7e5eb6149f60e71cdbd45
