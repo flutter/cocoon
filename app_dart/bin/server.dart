@@ -43,8 +43,8 @@ Future<void> main() async {
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
 
       '/api/public/build-status': GetBuildStatus(config),
-      //'/api/public/get-benchmarks': GetBenchmarks(config),
-      //'/api/public/get-status': GetStatus(config),
+      '/api/public/get-benchmarks': GetBenchmarks(config),
+      '/api/public/get-status': GetStatus(config),
       '/api/public/get-timeseries-history': null,
     };
 
