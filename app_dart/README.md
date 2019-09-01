@@ -60,6 +60,12 @@ To update the cron tasks in the App Engine project, run:
 $ gcloud app deploy cron.yaml
 ```
 
+### ssh into instance
+
+```sh
+$ docker exec -it <container name> /bin/bash
+```
+
 ### Running a local development instance
 
 Once you've installed Docker and have the `docker` command-line tool in
