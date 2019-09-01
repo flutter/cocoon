@@ -14,7 +14,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.38.1"
+    version: "0.38.2"
   appengine:
     dependency: "direct main"
     description:
@@ -98,7 +98,7 @@ packages:
       name: built_value
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.7.0"
+    version: "6.7.1"
   charcode:
     dependency: transitive
     description:
@@ -175,7 +175,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.23"
+    version: "0.1.24"
   gcloud:
     dependency: "direct main"
     description:
@@ -186,12 +186,10 @@ packages:
   github:
     dependency: "direct main"
     description:
-      path: "."
-      ref: fad98d2ff2785d1723c7e5eb6149f60e71cdbd45
-      resolved-ref: fad98d2ff2785d1723c7e5eb6149f60e71cdbd45
-      url: "git://github.com/DirectMyFile/github.dart.git"
-    source: git
-    version: "5.1.0-dev"
+      name: github
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.1.0"
   glob:
     dependency: transitive
     description:
@@ -303,7 +301,7 @@ packages:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.23"
+    version: "0.3.24"
   logging:
     dependency: transitive
     description:
