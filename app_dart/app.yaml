@@ -5,3 +5,6 @@
 runtime: custom
 env: flex
 service: default
+
+resources:
+  memory_gb: 4.0
