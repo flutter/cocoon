@@ -102,6 +102,12 @@ class ContinuousIntegrationCommand extends Command {
                 logger.info('  custom timeout : ${task.timeoutInMinutes}');
               }
 
+              if (Platform.isWindows) {
+                // Kill all dart.exe that are potentially holding flutter bin/cache,
+                // preventing it from being deleted.
+                await killAllRunningProcessesOnWindows('dart');
+              }
+
               // Sync flutter outside of the task so it does not contribute to
               // the task timeout.
               await getFlutterAt(task.revision).timeout(_kInstallationTimeout);

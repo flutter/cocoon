@@ -595,7 +595,7 @@ bool canRun(String path) => _processManager.canRun(path);
 final RegExp _whitespace = RegExp(r'\s+');
 
 List<String> runningProcessesOnWindows(String processName) {
-  final ProcessResult result = _processManager.runSync(<String>['powershell', '-script="Get-CimInstance Win32_Process"']);
+  final ProcessResult result = _processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {
     for (String rawProcess in result.stdout.split('\n')) {
@@ -617,8 +617,16 @@ List<String> runningProcessesOnWindows(String processName) {
   return pids;
 }
 
-void killAllRunningProcessesOnWindows(String processName) {
-  for (String pid in runningProcessesOnWindows(processName)) {
-    _processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
+void killAllRunningProcessesOnWindows(String processName) async {
+  while(true) {
+    final pids = runningProcessesOnWindows(processName);
+    if (pids.isEmpty) {
+      return;
+    }
+    for (String pid in pids) {
+      _processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
+    }
+    // Killed processes don't release resources instantenously.
+    await Future.delayed(Duration(seconds: 1));
   }
 }

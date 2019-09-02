@@ -45,7 +45,7 @@ class RunCommand extends Command {
     if (Platform.isWindows) {
       // Kill all dart.exe that are potentially holding flutter bin/cache,
       // preventing it from being deleted.
-      killAllRunningProcessesOnWindows('dart');
+      await killAllRunningProcessesOnWindows('dart');
     }
 
     CocoonTask task = CocoonTask(
