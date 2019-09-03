@@ -42,6 +42,8 @@ class RunCommand extends Command {
       exit(1);
     }
 
+    // TODO(https://github.com/flutter/flutter/issues/29141) - remove
+    // once source of leaked processes is identified.
     if (Platform.isWindows) {
       // Kill all dart.exe that are potentially holding flutter bin/cache,
       // preventing it from being deleted.
