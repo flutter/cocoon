@@ -1,0 +1,15 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+import "lib/src/model/proto/internal/commit.proto";
+import "lib/src/model/proto/internal/task.proto";
+
+message Stage {
+    optional string name = 1;
+    optional Commit commit = 2;
+    repeated Task tasks = 3;
+    optional string task_status = 4;
+}
