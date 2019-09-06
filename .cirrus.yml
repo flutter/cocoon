@@ -1,8 +1,12 @@
 container:
-  image: dart/runtime:latest
+  image: google/dart-runtime:latest
 
-app_dart_task:
+app_task:
   env:
-    CIRRUS_WORKING_DIR: app_dart
+    matrix:
+      - CIRRUS_WORKING_DIR: app
+      - CIRRUS_WORKING_DIR: app_dart
+  pub_script: pub get
   analyze_script: dartanalyzer --options analysis_options.yaml .
+  build_script: pub run build_runner build
   test_script: pub run test
