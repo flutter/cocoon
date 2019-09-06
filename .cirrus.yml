@@ -1,12 +1,14 @@
 container:
   image: google/dart-runtime:dev
 
-app_task:
+task:
+  name: $CWD
   env:
     matrix:
       - CWD: app
       - CWD: app_dart
+      - CWD: agent
   pub_script: cd $CWD && pub get
-  build_script: cd $CWD && pub run build_runner build --delete-conflicting-outputs
+  build_script: [[ $CWD != 'agent' ]] && cd $CWD && pub run build_runner build --delete-conflicting-outputs
   analyze_script: ./analyze.sh $CWD
   test_script: cd $CWD && pub run test -r expanded
