@@ -18,6 +18,8 @@ class GetStatusResult {
 
   @JsonKey(name: 'AgentStatuses')
   final List<AgentStatus> agentStatuses;
+
+  Map<String, dynamic> toJson() => _$GetStatusResultToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -32,6 +34,8 @@ class BuildStatus {
 
   @JsonKey(name: 'Checklist')
   final ChecklistEntity checklist;
+
+  Map<String, dynamic> toJson() => _$BuildStatusToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -57,6 +61,8 @@ class AgentStatus {
 
   @JsonKey(name: 'HealthDetails')
   final String healthDetails;
+
+  Map<String, dynamic> toJson() => _$AgentStatusToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -71,6 +77,8 @@ class CommitInfo {
 
   @JsonKey(name: 'Author')
   final AuthorInfo author;
+
+  Map<String, dynamic> toJson() => _$CommitInfoToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -85,6 +93,8 @@ class AuthorInfo {
 
   @JsonKey(name: 'avatar_url')
   final String avatarUrl;
+
+  Map<String, dynamic> toJson() => _$AuthorInfoToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -99,6 +109,8 @@ class ChecklistEntity {
 
   @JsonKey(name: 'Checklist')
   final Checklist checklist;
+
+  Map<String, dynamic> toJson() => _$ChecklistEntityToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -120,6 +132,8 @@ class Checklist {
 
   @JsonKey(name: 'CreateTimestamp', fromJson: fromMilliseconds)
   final DateTime createTimestamp;
+
+  Map<String, dynamic> toJson() => _$ChecklistToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -133,6 +147,8 @@ class Stage {
 
   @JsonKey(name: 'Tasks')
   final List<TaskEntity> tasks;
+
+  Map<String, dynamic> toJson() => _$StageToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -147,6 +163,8 @@ class TaskEntity {
 
   @JsonKey(name: 'Task')
   final Task task;
+
+  Map<String, dynamic> toJson() => _$TaskEntityToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -191,6 +209,8 @@ class Task {
 
   @JsonKey(name: 'ReservedForAgentID')
   final String host;
+
+  Map<String, dynamic> toJson() => _$TaskToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -202,6 +222,8 @@ class GetBenchmarksResult {
 
   @JsonKey(name: 'Benchmarks')
   final List<BenchmarkData> benchmarks;
+
+  Map<String, dynamic> toJson() => _$GetBenchmarksResultToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -216,6 +238,8 @@ class BenchmarkData {
 
   @JsonKey(name: 'Values')
   final List<TimeseriesValue> values;
+
+  Map<String, dynamic> toJson() => _$BenchmarkDataToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -233,6 +257,8 @@ class GetTimeseriesHistoryResult {
 
   @JsonKey(name: 'LastPosition', fromJson: fromCursor)
   final String lastPosition;
+
+  Map<String, dynamic> toJson() => _$GetTimeseriesHistoryResultToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -250,6 +276,8 @@ class TimeseriesEntity {
 
   @JsonKey(name: 'Timeseries')
   final Timeseries timeseries;
+
+  Map<String, dynamic> toJson() => _$TimeseriesEntityToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -287,6 +315,8 @@ class Timeseries {
 
   @JsonKey(name: 'Archived')
   final bool isArchived;
+
+  Map<String, dynamic> toJson() => _$TimeseriesToJson(this);
 }
 
 @JsonSerializable(nullable: true)
@@ -312,6 +342,8 @@ class TimeseriesValue {
 
   @JsonKey(name: 'DataMissing', defaultValue: false)
   final bool isDataMissing;
+
+  Map<String, dynamic> toJson() => _$TimeseriesValueToJson(this);
 }
 
 /// Creates a [DateTime] object from milliseconds.
