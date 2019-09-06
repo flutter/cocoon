@@ -4,9 +4,10 @@ container:
 app_task:
   env:
     matrix:
-      - CWD: app
+      # TODO(dnfield): Enable this.
+      # - CWD: app
       - CWD: app_dart
   pub_script: cd $CWD && pub get
-  analyze_script: cd $CWD && dartanalyzer --options analysis_options.yaml .
   build_script: cd $CWD && pub run build_runner build
+  analyze_script: ./analyze.sh $CWD
   test_script: cd $CWD && pub run test
