@@ -10,11 +10,11 @@ import 'package:http/browser_client.dart' as browser_http;
 import 'package:http/http.dart' as http;
 
 class AuthenticationStatus {
+  AuthenticationStatus(this.isAuthenticated, this.loginUrl, this.logoutUrl);
+
   final bool isAuthenticated;
   final String loginUrl;
   final String logoutUrl;
-
-  AuthenticationStatus(this.isAuthenticated, this.loginUrl, this.logoutUrl);
 }
 
 Future<AuthenticationStatus> getAuthenticationStatus(String returnPage) async {

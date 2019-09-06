@@ -218,7 +218,7 @@ Future<Null> _whenLocalPortIsListening(int port) async {
     } catch(error, stackTrace) {
       lastError = error;
       lastStackTrace = stackTrace;
-      await new Future.delayed(new Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
     }
   }
 

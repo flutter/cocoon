@@ -7,7 +7,8 @@
 
 pushd $1 > /dev/null
 
-if [[ grep -q "build_runner" pubspec.yaml ]]; then
+# agent doesn't use build_runner as of this writing.
+if grep -lq "build_runner" pubspec.yaml; then
   pub run build_runner build --delete-conflicting-outputs
 fi
 

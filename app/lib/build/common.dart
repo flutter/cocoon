@@ -84,9 +84,9 @@ String _iconForStageName(String stageName) {
 }
 
 class Color {
-  final int r, g, b;
-
   const Color(this.r, this.g, this.b);
+
+  final int r, g, b;
 
   /// A 6-digit hex CSS string representation of the color.
   String get cssHex => '#${_cHex(r)}${_cHex(g)}${_cHex(b)}';

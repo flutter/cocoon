@@ -1,4 +1,3 @@
-// ignore_for_file: specify_type_annotations
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'luci.dart';

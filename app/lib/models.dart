@@ -81,11 +81,9 @@ class AuthorInfo {
       _$AuthorInfoFromJson(json);
 
   @JsonKey(name: 'Login')
-  @override
   final String login;
 
   @JsonKey(name: 'avatar_url')
-  @override
   final String avatarUrl;
 }
 

@@ -97,10 +97,9 @@ class CreateAgentCommand extends CliCommand {
         abbr: 'a',
         help: 'Unique agent ID.'
       )
-      ..addOption(
+      ..addMultiOption(
         'capability',
         abbr: 'c',
-        allowMultiple: true,
         splitCommas: true,
         help: 'An agent capability. May be repeated to supply multiple capabilities.'
       );
