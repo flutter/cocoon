@@ -4,8 +4,7 @@ container:
 app_task:
   env:
     matrix:
-      # TODO(dnfield): Enable this.
-      # - CWD: app
+      - CWD: app
       - CWD: app_dart
   pub_script: cd $CWD && pub get
   build_script: cd $CWD && pub run build_runner build --delete-conflicting-outputs
