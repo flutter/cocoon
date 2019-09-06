@@ -7,6 +7,10 @@
 
 pushd $1 > /dev/null
 
+if [[ grep -q "build_runner" pubspec.yaml ]]; then
+  pub run build_runner build --delete-conflicting-outputs
+fi
+
 analysis_output="$(dartanalyzer --options analysis_options.yaml . | grep -Ev ".(g|pb).dart")"
 
 line_count=($(echo "$analysis_output" | wc -l))
