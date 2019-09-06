@@ -154,10 +154,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
         break;
       }
     }
+
     final CreateStatus status = CreateStatus('pending')
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'
-      ..targetUrl = buildUrl;
+      ..targetUrl = '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
     await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 }

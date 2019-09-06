@@ -128,7 +128,30 @@ void main() {
           ref,
           captureAny,
         )).captured.single.toJSON(),
-        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      );
+    });
+
+    test('Handles a scheduled status as pending and pending is not most recent with query param', () async {
+      repositoryStatuses = <RepositoryStatus>[
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'failure',
+        RepositoryStatus()
+          ..context = 'Linux Coverage'
+          ..state = 'pending',
+      ];
+      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar'));
+      request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
+      await tester.post(handler);
+      expect(
+        verify(mockRepositoriesService.createStatus(
+          RepositorySlug('flutter', 'flutter'),
+          ref,
+          captureAny,
+        )).captured.single.toJSON(),
+        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?foo=bar&reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
       );
     });
 
@@ -168,7 +191,7 @@ void main() {
           ref,
           captureAny,
         )).captured.single.toJSON(),
-        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
       );
     });
 
@@ -260,11 +283,12 @@ String pushMessageJson(
   String status, {
   String result,
   String builderName = 'Linux Coverage',
+  String urlParam = '',
 }) {
   return '''{
      "message": {
        "attributes": {},
-       "data": "${buildPushMessageJson(status, result: result, builderName: builderName)}",
+       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam)}",
        "messageId": "123"
      },
      "subscription": "projects/myproject/subscriptions/mysubscription"
@@ -272,7 +296,7 @@ String pushMessageJson(
 }
 
 String buildPushMessageJson(String status,
-        {String result, String builderName = 'Linux Coverage'}) =>
+        {String result, String builderName = 'Linux Coverage', String urlParam = ''}) =>
     base64.encode(
       utf8.encode('''{
   "build": {
@@ -305,7 +329,7 @@ String buildPushMessageJson(String status,
       "swarming_task_id:467d04f2f022d510"
     ],
     "updated_ts": "1565049194391321",
-    "url": "https://ci.chromium.org/b/8905920700440101120",
+    "url": "https://ci.chromium.org/b/8905920700440101120$urlParam",
     "utcnow_ts": "1565049194653640"
   },
   "hostname": "cr-buildbucket.appspot.com",
