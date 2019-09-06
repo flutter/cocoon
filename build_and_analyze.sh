@@ -13,6 +13,6 @@ fi
 
 # See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
 
-tuneup check
+pub global run tuneup check
 
 popd > /dev/null
