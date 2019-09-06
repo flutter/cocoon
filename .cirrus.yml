@@ -10,4 +10,4 @@ app_task:
   pub_script: cd $CWD && pub get
   build_script: cd $CWD && pub run build_runner build --delete-conflicting-outputs
   analyze_script: ./analyze.sh $CWD
-  test_script: cd $CWD && pub run test
+  test_script: cd $CWD && pub run test -r expanded
