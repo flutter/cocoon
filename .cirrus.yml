@@ -4,8 +4,8 @@ container:
 app_task:
   env:
     matrix:
-      - CIRRUS_WORKING_DIR: app
-      - CIRRUS_WORKING_DIR: app_dart
+      - CIRRUS_WORKING_DIR: $CIRRUS_WORKING_DIR/app
+      - CIRRUS_WORKING_DIR: $CIRRUS_WORKING_DIR/app_dart
   pub_script: pub get
   analyze_script: dartanalyzer --options analysis_options.yaml .
   build_script: pub run build_runner build
