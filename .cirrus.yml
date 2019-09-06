@@ -1,0 +1,8 @@
+container:
+  image: dart/runtime:latest
+
+app_dart_task:
+  env:
+    CIRRUS_WORKING_DIR: app_dart
+  analyze_script: dartanalyzer --options analysis_options.yaml .
+  test_script: pub run test
