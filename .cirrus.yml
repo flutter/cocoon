@@ -1,5 +1,5 @@
 container:
-  image: google/dart-runtime:latest
+  image: google/dart-runtime:dev
 
 app_task:
   env:
