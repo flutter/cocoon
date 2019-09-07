@@ -56,18 +56,15 @@ class StatusCard extends ComponentState implements OnInit, OnDestroy {
   void show(AgentStatus value) {
     _checkHealth();
     agentStatus = value;
-    deliverStateChanges();
   }
 
   /// Hide the agent status card.
   void hide() {
     agentStatus = null;
-    deliverStateChanges();
   }
 
   void _checkHealth([Object _]) {
     _lastHealthCheck = new DateTime.now();
-    deliverStateChanges();
   }
 }
 

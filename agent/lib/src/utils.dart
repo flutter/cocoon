@@ -617,7 +617,7 @@ List<String> runningProcessesOnWindows(String processName) {
   return pids;
 }
 
-void killAllRunningProcessesOnWindows(String processName) async {
+Future<void> killAllRunningProcessesOnWindows(String processName) async {
   while(true) {
     final pids = runningProcessesOnWindows(processName);
     if (pids.isEmpty) {
@@ -627,6 +627,6 @@ void killAllRunningProcessesOnWindows(String processName) async {
       _processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
     }
     // Killed processes don't release resources instantenously.
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(Duration(seconds: 1));
   }
 }

@@ -1,0 +1,14 @@
+container:
+  image: google/dart-runtime:dev
+
+task:
+  name: $CWD
+  env:
+    matrix:
+      - CWD: app
+      - CWD: app_dart
+      - CWD: agent
+  install_tuneup_script: pub global activate tuneup
+  pub_script: cd $CWD && pub get
+  build_analyze_script: ./build_and_analyze.sh $CWD
+  test_script: ./test.sh $CWD
