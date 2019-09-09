@@ -201,7 +201,7 @@ type ManifestTask struct {
 	Description               string
 	Stage                     string
 	RequiredAgentCapabilities []string `yaml:"required_agent_capabilities"`
-	Flaky                     bool
+	Flaky                     bool `yaml:"new"`
 	TimeoutInMinutes          int64 `yaml:"timeout_in_minutes"`
 }
 

@@ -80,7 +80,7 @@ class ManifestTask {
   ///
   /// A task that is marked as flaky is allowed to fail without turning the
   /// build red.
-  @JsonKey(name: 'flaky', defaultValue: false)
+  @JsonKey(name: 'new', defaultValue: false)
   final bool isFlaky;
 
   /// This task's timeout, specified in minutes.
