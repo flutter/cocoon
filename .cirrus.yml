@@ -1,5 +1,5 @@
 container:
-  image: google/dart-runtime:dev
+  image: cirrusci/flutter:latest
 
 task:
   name: $CWD
@@ -12,3 +12,9 @@ task:
   pub_script: cd $CWD && pub get
   build_analyze_script: ./build_and_analyze.sh $CWD
   test_script: ./test.sh $CWD
+  
+task:
+  name: app_flutter
+  pub_script: cd app_flutter && flutter packages get
+  analyze_script: cd app_flutter && flutter analyze
+  test_script: cd app_flutter && flutter test
