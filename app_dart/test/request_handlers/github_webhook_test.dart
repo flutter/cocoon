@@ -391,6 +391,14 @@ void main() {
       ));
     });
 
+    test('Reminds to triage for golden changes when closed and merged', () async {});
+    // due to label, due to ignore
+    test('Does not remind to triage for golden changes when closed !merged', () async {});
+    // due to label, due to ignore
+    test('Will not spawn comments if they have already been made.', () async {});
+
+
+
     test('Skips labeling or commenting on autorolls', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -647,6 +655,7 @@ String jsonTemplate(
   String login = 'flutter',
   bool includeCqLabel = false,
   bool isDraft = false,
+  bool merged = false,
 }) =>
     '''{
   "action": "$action",
@@ -1012,7 +1021,7 @@ String jsonTemplate(
       }
     },
     "author_association": "MEMBER",
-    "merged": false,
+    "merged": $merged,
     "mergeable": null,
     "rebaseable": true,
     "mergeable_state": "draft",
