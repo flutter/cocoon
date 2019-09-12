@@ -5,6 +5,8 @@
 import 'package:flutter/material.dart';
 
 /// Parent widget for an individual result.
+///
+/// Shows a black box for unknown messages.
 class ResultBox extends StatelessWidget {
   ResultBox({Key key, @required this.message}) : super(key: key);
 
