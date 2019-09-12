@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
+import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -52,6 +53,13 @@ void main() {
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
+
+      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+        .thenReturn(Future<http.Response>(() => http.Response(
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
+      ));
 
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
@@ -106,12 +114,10 @@ void main() {
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(any,
-              convert: anyNamed('convert')))
-          .thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
-        ]),
+        ),
       );
 
       await tester.post(webhook);
@@ -139,13 +145,10 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
-        ]),
+        ),
       );
 
       await tester.post(webhook);
@@ -172,13 +175,10 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.md',
-        ]),
+        ),
       );
 
       await tester.post(webhook);
@@ -205,11 +205,8 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/semantics_test.dart',
           PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
           PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
@@ -258,11 +255,8 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
           PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
         ]),
@@ -284,7 +278,7 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes, comments to notify', () async {
+    test('Labels Golden changes based on goldens.version, comments to notify', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -294,13 +288,44 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+          .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'bin/internal/goldens.version',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>[
+          'will affect goldens',
+          'severe: API break',
+          'a: tests',
         ]),
+        convert: anyNamed('convert'),
+      )).called(1);
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenBreakingChangeMessageValue)),
+      )).called(1);
+    });
+
+    test('Labels Golden changes based on Skia Gold ignore, comments to notify', () async {
+      const int issueNumber = 124;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        )
       );
 
       await tester.post(webhook);

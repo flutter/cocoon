@@ -78,11 +78,7 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'opened':
       case 'ready_for_review':
       case 'reopened':
-        await _checkForLabelsAndTests(
-          event,
-          existingLabels,
-          isDraft,
-        );
+        await _checkForLabelsAndTests(event, isDraft);
         break;
       case 'labeled':
       case 'synchronize':
@@ -301,9 +297,11 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequestEvent event,
     List<IssueLabel>labels,
   ) async {
+    final List<String> labelNames =
+      List<String>.generate(labels.length, (int index) => labels[index].name);
     if (event.pullRequest.merged &&
       event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-      (await _isIgnoredForGold(event) || labels.contains('will affect goldens'))) {
+      (await _isIgnoredForGold(event) || labelNames.contains('will affect goldens'))) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
@@ -321,7 +319,6 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _checkForLabelsAndTests(
     PullRequestEvent event,
-    List<IssueLabel> labels,
     bool isDraft,
   ) async {
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
@@ -412,6 +409,10 @@ class GithubWebhook extends RequestHandler<Body> {
           labels.add('team: gallery');
         }
       }
+    }
+
+    if (isDraft) {
+      labels.add('work in progress; do not review');
     }
 
     if (labels.isNotEmpty) {
