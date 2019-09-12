@@ -8,22 +8,21 @@ import 'package:flutter/material.dart';
 ///
 /// Shows a black box for unknown messages.
 class ResultBox extends StatelessWidget {
-  ResultBox({Key key, @required this.message}) : super(key: key);
+  const ResultBox({Key key, @required this.message}) : super(key: key);
 
   final String message;
 
   /// A lookup table to define the background color for this ResultBox.
   ///
   /// The result messages are based on the messages the backend sends.
-  final Map<String, Color> _resultColor = Map.fromEntries([
-    MapEntry('Failed', Colors.red),
-    MapEntry(
-        'In Progress', Colors.purple), // v1 used the 'New' color while spinning
-    MapEntry('New', Colors.blue),
-    MapEntry('Skipped', Colors.white),
-    MapEntry('Succeeded', Colors.green),
-    MapEntry('Underperformed', Colors.orange),
-  ]);
+  static const _resultColor = <String, Color>{
+    'Failed': Colors.red,
+    'In Progress': Colors.purple, // v1 used the 'New' color while spinning
+    'New': Colors.blue,
+    'Skipped': Colors.white,
+    'Succeeded': Colors.green,
+    'Underperformed': Colors.orange,
+  };
 
   @override
   Widget build(BuildContext context) {

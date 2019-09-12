@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import './result_box.dart';
+import 'result_box.dart';
 
 void main() => runApp(MyApp());
 
