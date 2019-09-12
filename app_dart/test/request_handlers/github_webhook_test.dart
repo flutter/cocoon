@@ -50,9 +50,6 @@ void main() {
 
       webhook = GithubWebhook(config, mockBuildBucketClient);
 
-      when(gitHubClient.issues).thenReturn(issuesService);
-      when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
-
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
