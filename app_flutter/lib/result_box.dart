@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 class ResultBox extends StatelessWidget {
   const ResultBox({Key key, @required this.message}) : super(key: key);
 
+  // TODO(chillers): Make this an enum
   final String message;
 
   /// A lookup table to define the background color for this ResultBox.
