@@ -60,8 +60,6 @@ class Config {
 
   Future<String> get goldenBreakingChangeMessage => _getSingleValue('GoldenBreakingChangeMessage');
 
-  Future<String> get goldenTriageMessage => _getSingleValue('GoldenTriageMessage');
-
   Future<String> get forwardHost => _getSingleValue('ForwardHost');
 
   Future<int> get forwardPort => _getSingleValue('ForwardPort').then(int.parse);

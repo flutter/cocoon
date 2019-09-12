@@ -26,7 +26,6 @@ class FakeConfig implements Config {
     this.missingTestsPullRequestMessageValue,
     this.nonMasterPullRequestMessageValue,
     this.goldenBreakingChangeMessageValue,
-    this.goldenTriageMessageValue,
     this.webhookKeyValue,
     this.cqLabelNameValue,
     this.luciBuildersValue,
@@ -47,7 +46,6 @@ class FakeConfig implements Config {
   String missingTestsPullRequestMessageValue;
   String nonMasterPullRequestMessageValue;
   String goldenBreakingChangeMessageValue;
-  String goldenTriageMessageValue;
   String webhookKeyValue;
   String cqLabelNameValue;
   List<Map<String, dynamic>> luciBuildersValue;
@@ -92,9 +90,6 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get goldenBreakingChangeMessage async => goldenBreakingChangeMessageValue;
-
-  @override
-  Future<String> get goldenTriageMessage async => goldenTriageMessageValue;
 
   @override
   Future<String> get webhookKey async => webhookKeyValue;
