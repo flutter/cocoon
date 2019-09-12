@@ -289,7 +289,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'bin/internal/goldens.version',
         ),
       );
@@ -305,6 +305,7 @@ void main() {
         ]),
         convert: anyNamed('convert'),
       )).called(1);
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -346,6 +347,7 @@ void main() {
         ]),
         convert: anyNamed('convert'),
       )).called(1);
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -391,11 +393,166 @@ void main() {
       ));
     });
 
-    test('Reminds to triage for golden changes when closed and merged', () async {});
-    // due to label, due to ignore
-    test('Does not remind to triage for golden changes when closed !merged', () async {});
-    // due to label, due to ignore
-    test('Will not spawn comments if they have already been made.', () async {});
+    test('Golden triage comment when closed && merged from labels', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'closed',
+        issueNumber,
+        'master',
+        merged: true,
+      );
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+        return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+          IssueLabel()..name = 'will affect goldens',
+        ]);
+      });
+
+      await tester.post(webhook);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenTriageMessageValue)),
+      )).called(1);
+    });
+
+    test('Golden triage comment when closed && merged from ignores', () async {
+      const int issueNumber = 124;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'closed',
+        issueNumber,
+        'master',
+        merged: true,
+      );
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        )
+      );
+
+      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+        .thenReturn(Future<http.Response>(() => http.Response(
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
+      ));
+
+      await tester.post(webhook);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenTriageMessageValue)),
+      )).called(1);
+    });
+
+    test('No golden triage comment when closed && !merged from labels', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('closed', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+        return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+          IssueLabel()..name = 'will affect goldens',
+        ]);
+      });
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenTriageMessageValue)),
+      ));
+    });
+
+    test('No golden triage comment when closed && !merged from ignores', () async {
+      const int issueNumber = 124;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('closed', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        )
+      );
+
+      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+        .thenReturn(Future<http.Response>(() => http.Response(
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
+      ));
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.goldenTriageMessageValue)),
+      ));
+    });
+
+    test('Will not spawn comments if they have already been made.', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(gitHubClient.issues.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = config.missingTestsPullRequestMessageValue,
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>['framework']),
+        convert: anyNamed('convert'),
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
 
 
 
@@ -422,6 +579,7 @@ void main() {
         body: anyNamed('body'),
         convert: anyNamed('convert'),
       ));
+      
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,

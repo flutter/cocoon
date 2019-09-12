@@ -301,7 +301,7 @@ class GithubWebhook extends RequestHandler<Body> {
       List<String>.generate(labels.length, (int index) => labels[index].name);
     if (event.pullRequest.merged &&
       event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-      (await _isIgnoredForGold(event) || labelNames.contains('will affect goldens'))) {
+      (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
