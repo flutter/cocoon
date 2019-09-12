@@ -56,7 +56,7 @@ void main() {
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
         .thenReturn(Future<http.Response>(() => http.Response(
-          jsonEncode('[{"note" : "124"}]'),
+          jsonEncode('[{"note" : "000"}]'),
           200,
         )
       ));
@@ -278,7 +278,7 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes based on goldens.version, comments to notify', () async {
+    test('Labels Golden changes based on `goldens.version` change, comments to notify', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -328,6 +328,13 @@ void main() {
         )
       );
 
+      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+        .thenReturn(Future<http.Response>(() => http.Response(
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
+      ));
+
       await tester.post(webhook);
 
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
@@ -344,6 +351,44 @@ void main() {
         issueNumber,
         argThat(contains(config.goldenBreakingChangeMessageValue)),
       )).called(1);
+    });
+
+    test('Labels draft issues as work in progress, does not test pest.', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        isDraft: true,
+      );
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        )
+      );
+
+      await tester.post(webhook);
+
+      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
+        '/repos/${slug.fullName}/issues/$issueNumber/labels',
+        body: jsonEncode(<String>[
+          'work in progress; do not review',
+        ]),
+        convert: anyNamed('convert'),
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
     });
 
     test('Skips labeling or commenting on autorolls', () async {
@@ -601,6 +646,7 @@ String jsonTemplate(
   String baseRef, {
   String login = 'flutter',
   bool includeCqLabel = false,
+  bool isDraft = false,
 }) =>
     '''{
   "action": "$action",
@@ -637,6 +683,7 @@ String jsonTemplate(
       "type": "User",
       "site_admin": false
     },
+    "draft" : "$isDraft",
     "body": "The body",
     "created_at": "2019-07-03T07:14:35Z",
     "updated_at": "2019-07-03T16:34:53Z",
