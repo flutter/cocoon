@@ -673,7 +673,6 @@ String jsonTemplate(
       "type": "User",
       "site_admin": false
     },
-    "draft" : "$isDraft",
     "body": "The body",
     "created_at": "2019-07-03T07:14:35Z",
     "updated_at": "2019-07-03T16:34:53Z",
@@ -1002,6 +1001,8 @@ String jsonTemplate(
       }
     },
     "author_association": "MEMBER",
+    "draft" : "$isDraft",
+    "merged": false,
     "mergeable": null,
     "rebaseable": true,
     "mergeable_state": "draft",
