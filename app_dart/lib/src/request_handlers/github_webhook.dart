@@ -279,16 +279,21 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
     // Get active ignores from Skia Gold
     // Check against current event.pullRequest.number
-    final http.Response response = await http.get('https://flutter-gold.skia.org/json/ignores');
-    final List<dynamic> ignores = jsonDecode(response.body);
-    for (Map<String, dynamic> ignore in ignores) {
-      final int ignoredPullRequestNumber = ignore['note']
-        .split('/')
-        .last()
-        .toInt();
-      if (event.number == ignoredPullRequestNumber) {
-        return true;
+    try {
+      final http.Response response = await http.get(
+        'https://flutter-gold.skia.org/json/ignores');
+      final List<dynamic> ignores = jsonDecode(response.body);
+      for (Map<String, dynamic> ignore in ignores) {
+        final int ignoredPullRequestNumber = ignore['note']
+          .split('/')
+          .last()
+          .toInt();
+        if (event.number == ignoredPullRequestNumber) {
+          return true;
+        }
       }
+    } catch(_) {
+      return false;
     }
     return false;
   }

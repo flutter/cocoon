@@ -554,8 +554,6 @@ void main() {
       ));
     });
 
-
-
     test('Skips labeling or commenting on autorolls', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -579,7 +577,7 @@ void main() {
         body: anyNamed('body'),
         convert: anyNamed('convert'),
       ));
-      
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
