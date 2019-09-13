@@ -16,7 +16,7 @@ class ResultBox extends StatelessWidget {
   /// A lookup table to define the background color for this ResultBox.
   ///
   /// The result messages are based on the messages the backend sends.
-  static const _resultColor = <String, Color>{
+  static const resultColor = <String, Color>{
     'Failed': Colors.red,
     'In Progress': Colors.purple, // v1 used the 'New' color while spinning
     'New': Colors.blue,
@@ -29,8 +29,8 @@ class ResultBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(4.0),
-      color: _resultColor.containsKey(message)
-          ? _resultColor[message]
+      color: resultColor.containsKey(message)
+          ? resultColor[message]
           : Colors.black,
       width: 20,
       height: 20,

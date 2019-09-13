@@ -8,36 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:app_flutter/result_box.dart';
 
 void main() {
-  testWidgets('ResultBox is the color red when given the message Failed',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'Failed', Colors.red);
-  });
-
-  testWidgets(
-      'ResultBox is the color purple when given the message In Progress',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'In Progress', Colors.purple);
-  });
-
-  testWidgets('ResultBox is the color blue when given the message New',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'New', Colors.blue);
-  });
-
-  testWidgets('ResultBox is the color white when given the message Skipped',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'Skipped', Colors.white);
-  });
-
-  testWidgets('ResultBox is the color green when given the message Succeeded',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'Succeeded', Colors.green);
-  });
-
-  testWidgets(
-      'ResultBox is the color orange when given the message Underperformed',
-      (WidgetTester tester) async {
-    expectResultBoxColorWithMessage(tester, 'Underperformed', Colors.orange);
+  // Table Driven Approach to ensure every message does show the corresponding color
+  ResultBox.resultColor.forEach((String message, Color color) {
+    testWidgets('ResultBox is the color $color when given the message $message',
+        (WidgetTester tester) async {
+      expectResultBoxColorWithMessage(tester, message, color);
+    });
   });
 
   testWidgets('ResultBox is the color black when given an unknown message',
