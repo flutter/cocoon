@@ -112,6 +112,12 @@ void main() {
         ),
       );
 
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
       await tester.post(webhook);
 
       verify(pullRequestsService.edit(
@@ -140,6 +146,12 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
         ),
       );
 
@@ -286,6 +298,12 @@ void main() {
         ),
       );
 
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
       await tester.post(webhook);
 
       verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
@@ -359,7 +377,7 @@ void main() {
         ),
       );
 
-      when(gitHubClient.issues.listCommentsByIssue(slug, issueNumber))
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
         .thenAnswer((_) => Stream<IssueComment>.value(
           IssueComment()..body = config.missingTestsPullRequestMessageValue,
         ),
