@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+set -e
+
 pushd $1 > /dev/null
 
 # agent doesn't use build_runner as of this writing.
