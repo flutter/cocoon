@@ -294,6 +294,7 @@ class GithubWebhook extends RequestHandler<Body> {
               .split('/')
               .last()
               .toInt();
+            print('*** $ignores ***');
             if (event.number == ignoredPullRequestNumber) {
               ignored = true;
             }

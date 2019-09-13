@@ -354,6 +354,7 @@ void main() {
 
       await tester.post(webhook);
 
+      // TODO(Piinks)
       verify(issuesService.addLabelsToIssue(
         slug,
         issueNumber,
@@ -379,6 +380,7 @@ void main() {
         issueNumber,
         'master',
         merged: true,
+        includeGoldLabel: true,
       );
       final Uint8List body = utf8.encode(request.body);
       final Uint8List key = utf8.encode(keyString);
@@ -386,14 +388,8 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-        return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-          IssueLabel()..name = 'will affect goldens',
-        ]);
-      });
-
       await tester.post(webhook);
-
+      
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -426,6 +422,7 @@ void main() {
 
       await tester.post(webhook);
 
+      // TODO(Piinks)
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -817,6 +814,7 @@ String jsonTemplate(
   String baseRef, {
   String login = 'flutter',
   bool includeCqLabel = false,
+  bool includeGoldLabel = false,
   bool isDraft = false,
   bool merged = false,
 }) =>
@@ -883,6 +881,15 @@ String jsonTemplate(
         "color": "207de5",
         "default": false
       },
+      ${includeGoldLabel ? '''
+      {
+        "id": 283480100,
+        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
+        "url": "https://api.github.com/repos/flutter/flutter/labels/tool",
+        "name": "will affect goldens",
+        "color": "5319e7",
+        "default": false
+      },''' : ''}
       ${includeCqLabel ? '''
       {
         "id": 283480100,
