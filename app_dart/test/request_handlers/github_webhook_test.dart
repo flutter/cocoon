@@ -41,6 +41,7 @@ void main() {
     }
 
     setUp(() {
+      httpClient = FakeHttpClient();
       request = FakeHttpRequest();
       config = FakeConfig();
       gitHubClient = MockGitHubClient();
@@ -48,7 +49,6 @@ void main() {
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
       tester = RequestHandlerTester(request: request);
-      httpClient = FakeHttpClient();
 
       webhook = GithubWebhook(config, mockBuildBucketClient);
 
@@ -58,6 +58,7 @@ void main() {
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
+      config.goldenTriageMessageValue = 'goldenTriageMessage';
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
@@ -341,6 +342,12 @@ void main() {
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'some_change.dart',
         )
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       httpClient.request.response.body = '[{"note" : "124"}]';
