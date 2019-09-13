@@ -4,10 +4,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -281,23 +281,28 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
     // Get active ignores from Skia Gold
     // Check against current event.pullRequest.number
+    bool ignored = false;
     try {
-      final http.Response response = await http.get(
-        'https://flutter-gold.skia.org/json/ignores');
-      final List<dynamic> ignores = jsonDecode(response.body);
-      for (Map<String, dynamic> ignore in ignores) {
-        final int ignoredPullRequestNumber = ignore['note']
-          .split('/')
-          .last()
-          .toInt();
-        if (event.number == ignoredPullRequestNumber) {
-          return true;
-        }
-      }
+      final io.HttpClient client = io.HttpClient();
+      await client.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
+        .then((io.HttpClientRequest request) => request.close())
+        .then((io.HttpClientResponse response) async {
+          final String responseBody = await response.transform(utf8.decoder).join();
+          final List<dynamic> ignores = jsonDecode(responseBody);
+          for (Map<String, dynamic> ignore in ignores) {
+            final int ignoredPullRequestNumber = ignore['note']
+              .split('/')
+              .last()
+              .toInt();
+            if (event.number == ignoredPullRequestNumber) {
+              ignored = true;
+            }
+          }
+      });
     } catch(_) {
-      return false;
+      return ignored;
     }
-    return false;
+    return ignored;
   }
 
   Future<void> _checkForGoldenTriage(

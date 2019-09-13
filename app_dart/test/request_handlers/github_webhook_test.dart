@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
-import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -32,6 +31,7 @@ void main() {
     MockPullRequestsService pullRequestsService;
     MockBuildBucketClient mockBuildBucketClient;
     RequestHandlerTester tester;
+    FakeHttpClient httpClient;
 
     const String keyString = 'not_a_real_key';
 
@@ -48,17 +48,17 @@ void main() {
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
       tester = RequestHandlerTester(request: request);
+      httpClient = FakeHttpClient();
 
       webhook = GithubWebhook(config, mockBuildBucketClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
         .thenAnswer((_) async {
-          return http.Response(
-            jsonEncode('[{"note" : "000"}]'),
-            200,
+          return FakeHttpClientRequest(
+            response: FakeHttpClientResponse(body:'[{"note" : "000"}]')
           );
         }
       );
@@ -351,13 +351,12 @@ void main() {
         )
       );
 
-      when(http.get('https://flutter-gold.skia.org/json/ignores'))
+      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
         .thenAnswer((_) async {
-          return http.Response(
-            jsonEncode('[{"note" : "124"}]'),
-            200,
-          );
-        }
+        return FakeHttpClientRequest(
+          response: FakeHttpClientResponse(body:'[{"note" : "124"}]')
+        );
+      }
       );
 
       await tester.post(webhook);
