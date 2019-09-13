@@ -429,12 +429,13 @@ void main() {
         )
       );
 
-      when(http.get('https://flutter-gold.skia.org/json/ignores'))
-        .thenReturn(Future<http.Response>(() => http.Response(
-          jsonEncode('[{"note" : "124"}]'),
-          200,
-        )
-      ));
+      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+        .thenAnswer((_) async {
+          return FakeHttpClientRequest(
+            response: FakeHttpClientResponse(body:'[{"note" : "124"}]')
+          );
+        }
+      );
 
       await tester.post(webhook);
 
@@ -486,12 +487,13 @@ void main() {
         )
       );
 
-      when(http.get('https://flutter-gold.skia.org/json/ignores'))
-        .thenReturn(Future<http.Response>(() => http.Response(
-          jsonEncode('[{"note" : "124"}]'),
-          200,
-        )
-      ));
+      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+        .thenAnswer((_) async {
+          return FakeHttpClientRequest(
+            response: FakeHttpClientResponse(body:'[{"note" : "124"}]')
+          );
+        }
+      );
 
       await tester.post(webhook);
 
@@ -501,7 +503,6 @@ void main() {
         argThat(contains(config.goldenTriageMessageValue)),
       ));
     });
-
 
     test('Labels draft issues as work in progress, does not test pest.', () async {
       const int issueNumber = 123;
