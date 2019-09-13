@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'result_box.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -102,6 +104,14 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.display1,
             ),
+            // To demo the different result messages
+            ResultBox(message: 'Succeeded'),
+            ResultBox(message: 'Failed'),
+            ResultBox(message: 'New'),
+            ResultBox(message: 'In Progress'),
+            ResultBox(message: 'Skipped'),
+            ResultBox(message: 'Underperformed'),
+            ResultBox(message: 'not found'),
           ],
         ),
       ),
