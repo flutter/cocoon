@@ -55,13 +55,13 @@ void main() {
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-        .thenAnswer((_) async {
-          return FakeHttpClientRequest(
-            response: FakeHttpClientResponse(body:'[{"note" : "000"}]')
-          );
-        }
-      );
+//      when(httpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+//        .thenAnswer((_) async {
+//          return FakeHttpClientRequest(
+//            response: FakeHttpClientResponse(body:'[{"note" : "000"}]')
+//          );
+//        }
+//      );
 
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
