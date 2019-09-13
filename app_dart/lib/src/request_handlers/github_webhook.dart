@@ -21,7 +21,7 @@ import '../service/buildbucket.dart';
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
   const GithubWebhook(Config config, this.buildBucketClient)
-      : assert(buildBucketClient != null),
+    : assert(buildBucketClient != null),
         super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
@@ -294,7 +294,6 @@ class GithubWebhook extends RequestHandler<Body> {
               .split('/')
               .last()
               .toInt();
-            print('*** $ignores ***');
             if (event.number == ignoredPullRequestNumber) {
               ignored = true;
             }

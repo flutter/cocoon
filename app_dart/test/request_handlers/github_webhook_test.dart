@@ -16,6 +16,7 @@ import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../service/buildbucket_test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
@@ -31,7 +32,7 @@ void main() {
     MockPullRequestsService pullRequestsService;
     MockBuildBucketClient mockBuildBucketClient;
     RequestHandlerTester tester;
-    FakeHttpClient httpClient;
+    MockHttpClient mockHttpClient;
 
     const String keyString = 'not_a_real_key';
 
@@ -41,10 +42,10 @@ void main() {
     }
 
     setUp(() {
-      httpClient = FakeHttpClient();
       request = FakeHttpRequest();
       config = FakeConfig();
       gitHubClient = MockGitHubClient();
+      mockHttpClient = MockHttpClient();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
@@ -350,11 +351,19 @@ void main() {
         ),
       );
 
-      httpClient.request.response.body = '[{"note" : "124"}]';
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode('[{"note" : "124"}]')
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
-      // TODO(Piinks): Fix response for ignore
       verify(issuesService.addLabelsToIssue(
         slug,
         issueNumber,
@@ -418,11 +427,19 @@ void main() {
         )
       );
 
-      httpClient.request.response.body = '[{"note" : "124"}]';
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode('[{"note" : "124"}]')
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
-      // TODO(Piinks): Fix response for ignore
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -471,7 +488,16 @@ void main() {
         )
       );
 
-      httpClient.request.response.body = '[{"note" : "124"}]';
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode('[{"note" : "124"}]')
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
