@@ -354,7 +354,7 @@ void main() {
 
       await tester.post(webhook);
 
-      // TODO(Piinks)
+      // TODO(Piinks): Fix response for ignore
       verify(issuesService.addLabelsToIssue(
         slug,
         issueNumber,
@@ -389,7 +389,7 @@ void main() {
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       await tester.post(webhook);
-      
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -422,7 +422,7 @@ void main() {
 
       await tester.post(webhook);
 
-      // TODO(Piinks)
+      // TODO(Piinks): Fix response for ignore
       verify(issuesService.createComment(
         slug,
         issueNumber,
