@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'result_box.dart';
+import 'status_grid.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,21 +28,7 @@ class BuildDashboardPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Flutter Build Dashboard v2'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // To demo the different result messages
-            ResultBox(message: 'Succeeded'),
-            ResultBox(message: 'Failed'),
-            ResultBox(message: 'New'),
-            ResultBox(message: 'In Progress'),
-            ResultBox(message: 'Skipped'),
-            ResultBox(message: 'Underperformed'),
-            ResultBox(message: 'not found'),
-          ],
-        ),
-      ),
+      body: StatusGrid(),
     );
   }
 }
