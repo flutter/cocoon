@@ -151,7 +151,6 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-
       when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
@@ -188,7 +187,6 @@ void main() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
 
       when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
@@ -345,29 +343,29 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
-        PullRequestFile()..filename = 'some_change.dart',
-      )
+          PullRequestFile()..filename = 'some_change.dart',
+        )
       );
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
         .thenReturn(Future<http.Response>(() => http.Response(
-        jsonEncode('[{"note" : "124"}]'),
-        200,
-      )
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
       ));
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
           'will affect goldens',
           'severe: API break',
           'a: tests',
-        ]),
-        convert: anyNamed('convert'),
+        ],
       )).called(1);
 
       verify(issuesService.createComment(
@@ -422,17 +420,17 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
-        PullRequestFile()..filename = 'some_change.dart',
-      )
+          PullRequestFile()..filename = 'some_change.dart',
+        )
       );
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
         .thenReturn(Future<http.Response>(() => http.Response(
-        jsonEncode('[{"note" : "124"}]'),
-        200,
-      )
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
       ));
 
       await tester.post(webhook);
@@ -479,17 +477,17 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
-        PullRequestFile()..filename = 'some_change.dart',
-      )
+          PullRequestFile()..filename = 'some_change.dart',
+        )
       );
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
         .thenReturn(Future<http.Response>(() => http.Response(
-        jsonEncode('[{"note" : "124"}]'),
-        200,
-      )
+          jsonEncode('[{"note" : "124"}]'),
+          200,
+        )
       ));
 
       await tester.post(webhook);
