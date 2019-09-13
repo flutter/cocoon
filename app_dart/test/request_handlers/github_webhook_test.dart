@@ -157,11 +157,12 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>['framework']),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
       )).called(1);
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -187,11 +188,12 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>['framework']),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -225,9 +227,10 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
           'framework',
           'a: accessibility',
           'tool',
@@ -239,9 +242,9 @@ void main() {
           'f: cupertino',
           'f: material design',
           'a: internationalization',
-        ]),
-        convert: anyNamed('convert'),
+        ],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -268,13 +271,12 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
-          'team',
-        ]),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['team'],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -306,14 +308,14 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
           'will affect goldens',
           'severe: API break',
           'a: tests',
-        ]),
-        convert: anyNamed('convert'),
+        ],
       )).called(1);
 
       verify(issuesService.createComment(
@@ -346,12 +348,10 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
-          'work in progress; do not review',
-        ]),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['work in progress; do not review'],
       )).called(1);
 
       verifyNever(issuesService.createComment(
@@ -385,10 +385,10 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>['framework']),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
       )).called(1);
 
       verifyNever(issuesService.createComment(
