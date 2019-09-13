@@ -6,6 +6,9 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:io';
 
+// TODO(dnfield): Move to replacement once we make it more reasnoable to
+// upgrade the agent.
+// ignore: deprecated_member_use
 import 'package:vm_service_client/vm_service_client.dart';
 
 import 'agent.dart';

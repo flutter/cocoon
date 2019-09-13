@@ -69,10 +69,12 @@ class GithubWebhook extends RequestHandler<Body> {
     // which unfortunately is a bit light on explanations.
     switch (event.action) {
       case 'closed':
-        await _checkForGoldenTriage(
-          event,
-          existingLabels,
-        );
+        if (event.pullRequest.merged) {
+          await _checkForGoldenTriage(
+            event,
+            existingLabels,
+          );
+        }
         break;
       case 'edited':
       case 'opened':
@@ -304,8 +306,7 @@ class GithubWebhook extends RequestHandler<Body> {
   ) async {
     final List<String> labelNames =
       List<String>.generate(labels.length, (int index) => labels[index].name);
-    if (event.pullRequest.merged &&
-      event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
       (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
