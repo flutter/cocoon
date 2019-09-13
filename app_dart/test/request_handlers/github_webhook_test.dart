@@ -50,6 +50,9 @@ void main() {
 
       webhook = GithubWebhook(config, mockBuildBucketClient);
 
+      when(gitHubClient.issues).thenReturn(issuesService);
+      when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
+
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
@@ -103,7 +106,7 @@ void main() {
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
@@ -134,7 +137,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
@@ -164,7 +167,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.md',
         ),
@@ -194,7 +197,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/semantics_test.dart',
           PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
@@ -244,7 +247,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
           PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
@@ -277,7 +280,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'bin/internal/goldens.version',
         ),
@@ -317,7 +320,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'some_change.dart',
         )
@@ -350,7 +353,7 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.pullRequests.listFiles(slug, issueNumber))
+      when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
@@ -998,7 +1001,7 @@ String jsonTemplate(
       }
     },
     "author_association": "MEMBER",
-    "draft" : "$isDraft",
+    "draft" : $isDraft,
     "merged": false,
     "mergeable": null,
     "rebaseable": true,
