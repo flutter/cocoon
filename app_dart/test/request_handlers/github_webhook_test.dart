@@ -55,11 +55,13 @@ void main() {
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
-        .thenReturn(Future<http.Response>(() => http.Response(
-          jsonEncode('[{"note" : "000"}]'),
-          200,
-        )
-      ));
+        .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode('[{"note" : "000"}]'),
+            200,
+          );
+        }
+      );
 
       config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
@@ -350,11 +352,13 @@ void main() {
       );
 
       when(http.get('https://flutter-gold.skia.org/json/ignores'))
-        .thenReturn(Future<http.Response>(() => http.Response(
-          jsonEncode('[{"note" : "124"}]'),
-          200,
-        )
-      ));
+        .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode('[{"note" : "124"}]'),
+            200,
+          );
+        }
+      );
 
       await tester.post(webhook);
 
