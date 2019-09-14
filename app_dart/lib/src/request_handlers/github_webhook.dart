@@ -289,7 +289,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // Check against current event.pullRequest.number
     bool ignored = false;
     try {
-      io.HttpClient client = _testClient ?? io.HttpClient();
+      final io.HttpClient client = _testClient ?? io.HttpClient();
       await client.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
         .then((io.HttpClientRequest request) => request.close())
         .then((io.HttpClientResponse response) async {
