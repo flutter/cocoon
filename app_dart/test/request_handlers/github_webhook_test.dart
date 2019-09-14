@@ -51,7 +51,7 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       tester = RequestHandlerTester(request: request);
 
-      webhook = GithubWebhook(config, mockBuildBucketClient, testClient: mockHttpClient);
+      webhook = GithubWebhook(config, mockBuildBucketClient, skiaClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
@@ -358,9 +358,16 @@ void main() {
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
       ))
-        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+        .thenAnswer((_) async {
+          print('*** mockHttpRequest: $mockHttpRequest ***');
+          return Future<MockHttpClientRequest>.value(mockHttpRequest);
+        });
       when(mockHttpRequest.close())
-        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+        .thenAnswer((_) async {
+          print('*** mockHttpResponse: $mockHttpResponse ***');
+          return Future<MockHttpClientResponse>.value(mockHttpResponse);
+        });
+
 
       await tester.post(webhook);
 

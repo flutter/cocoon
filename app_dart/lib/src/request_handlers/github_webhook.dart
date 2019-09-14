@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
@@ -20,18 +20,18 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(
+  GithubWebhook(
     Config config,
     this.buildBucketClient, {
-    io.HttpClient testClient
-  }) : _testClient = testClient,
-      assert(buildBucketClient != null),
+    HttpClient skiaClient
+  }) : assert(buildBucketClient != null),
+      skiaClient = skiaClient ?? HttpClient(),
       super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
 
-  final io.HttpClient _testClient;
+  final HttpClient skiaClient;
 
   @override
   Future<Body> post() async {
@@ -289,10 +289,9 @@ class GithubWebhook extends RequestHandler<Body> {
     // Check against current event.pullRequest.number
     bool ignored = false;
     try {
-      final io.HttpClient client = _testClient ?? io.HttpClient();
-      await client.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
-        .then((io.HttpClientRequest request) => request.close())
-        .then((io.HttpClientResponse response) async {
+      await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) async {
           final String responseBody = await response.transform(utf8.decoder).join();
           final List<dynamic> ignores = jsonDecode(responseBody);
           for (Map<String, dynamic> ignore in ignores) {
