@@ -359,12 +359,12 @@ void main() {
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
       ))
         .thenAnswer((_) async {
-          print('*** mockHttpRequest: $mockHttpRequest ***');
           return Future<MockHttpClientRequest>.value(mockHttpRequest);
         });
       when(mockHttpRequest.close())
         .thenAnswer((_) async {
-          print('*** mockHttpResponse: $mockHttpResponse ***');
+          print('*** mockHttpResponse: ${mockHttpResponse.response} ***');
+          print('*** ${mockHttpResponse.transform(utf8.decoder).join()} ***');
           return Future<MockHttpClientResponse>.value(mockHttpResponse);
         });
 
