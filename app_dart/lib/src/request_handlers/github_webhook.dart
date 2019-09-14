@@ -20,12 +20,18 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config, this.buildBucketClient)
-    : assert(buildBucketClient != null),
-        super(config: config);
+  const GithubWebhook(
+    Config config,
+    this.buildBucketClient, {
+    io.HttpClient testClient
+  }) : _testClient = testClient,
+      assert(buildBucketClient != null),
+      super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
+
+  final io.HttpClient _testClient;
 
   @override
   Future<Body> post() async {
@@ -283,7 +289,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // Check against current event.pullRequest.number
     bool ignored = false;
     try {
-      final io.HttpClient client = io.HttpClient();
+      io.HttpClient client = _testClient ?? io.HttpClient();
       await client.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
         .then((io.HttpClientRequest request) => request.close())
         .then((io.HttpClientResponse response) async {

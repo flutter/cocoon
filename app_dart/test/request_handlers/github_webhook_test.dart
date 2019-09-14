@@ -51,7 +51,7 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       tester = RequestHandlerTester(request: request);
 
-      webhook = GithubWebhook(config, mockBuildBucketClient);
+      webhook = GithubWebhook(config, mockBuildBucketClient, testClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
