@@ -330,7 +330,7 @@ void main() {
     });
 
     test('Labels Golden changes based on Skia Gold ignore, comments to notify', () async {
-      const int issueNumber = 124;
+      const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
       final Uint8List body = utf8.encode(request.body);
@@ -361,7 +361,7 @@ void main() {
         .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
       when(mockHttpRequest.close())
         .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
-      
+
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -407,7 +407,7 @@ void main() {
     });
 
     test('Golden triage comment when closed && merged from ignores', () async {
-      const int issueNumber = 124;
+      const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
         'closed',
@@ -473,7 +473,7 @@ void main() {
     });
 
     test('No golden triage comment when closed && !merged from ignores', () async {
-      const int issueNumber = 124;
+      const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, 'master');
       final Uint8List body = utf8.encode(request.body);
