@@ -353,7 +353,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode(skiaIgnoreTemplate())
+        utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
@@ -429,7 +429,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode(skiaIgnoreTemplate())
+        utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
@@ -490,7 +490,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode(skiaIgnoreTemplate())
+        utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
