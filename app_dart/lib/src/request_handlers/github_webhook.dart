@@ -31,6 +31,7 @@ class GithubWebhook extends RequestHandler<Body> {
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
 
+  /// An Http Client for querying the Skia Gold API.
   final HttpClient skiaClient;
 
   @override
@@ -285,8 +286,6 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
-    // Get active ignores from Skia Gold
-    // Check against current event.pullRequest.number
     bool ignored = false;
     try {
       final HttpClientRequest request = await skiaClient.getUrl(
@@ -302,21 +301,7 @@ class GithubWebhook extends RequestHandler<Body> {
           break;
         }
       }
-//      await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
-//        .then((HttpClientRequest request) => request.close())
-//        .then((HttpClientResponse response) async {
-//          final String responseBody = await response.transform(utf8.decoder).join();
-//          final List<dynamic> ignores = jsonDecode(responseBody);
-//          for (Map<String, dynamic> ignore in ignores) {
-//            if (ignore['note'].isNotEmpty &&
-//              event.number.toString() == ignore['note'].split('/').last) {
-//              ignored = true;
-//            }
-//          }
-//      });
-    } catch(_) {
-      return ignored;
-    }
+    } catch(_) {}
     return ignored;
   }
 
