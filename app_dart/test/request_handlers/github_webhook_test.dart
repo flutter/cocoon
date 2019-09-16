@@ -361,8 +361,7 @@ void main() {
         .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
       when(mockHttpRequest.close())
         .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
-
-
+      
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -555,13 +554,11 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-
       when(pullRequestsService.listFiles(slug, issueNumber))
         .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
         ),
       );
-
 
       when(issuesService.listCommentsByIssue(slug, issueNumber))
         .thenAnswer((_) => Stream<IssueComment>.value(
@@ -570,7 +567,6 @@ void main() {
       );
 
       await tester.post(webhook);
-
 
       verify(issuesService.addLabelsToIssue(
         slug,
