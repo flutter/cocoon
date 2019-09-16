@@ -358,17 +358,9 @@ void main() {
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
       ))
-        .thenAnswer((_) async {
-          return Future<MockHttpClientRequest>.value(mockHttpRequest);
-        });
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
       when(mockHttpRequest.close())
-        .thenAnswer((_) async {
-          final String afterTransform= await mockHttpResponse.transform(utf8.decoder).join();
-          final List<dynamic> ignores = jsonDecode(afterTransform);
-          print('*** afterTransform: $afterTransform ***');
-          print('*** ignores: $ignores ***');
-          return Future<MockHttpClientResponse>.value(mockHttpResponse);
-        });
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
 
       await tester.post(webhook);

@@ -295,11 +295,8 @@ class GithubWebhook extends RequestHandler<Body> {
           final String responseBody = await response.transform(utf8.decoder).join();
           final List<dynamic> ignores = jsonDecode(responseBody);
           for (Map<String, dynamic> ignore in ignores) {
-            final int ignoredPullRequestNumber = ignore['note']
-              .split('/')
-              .last()
-              .toInt();
-            if (event.number == ignoredPullRequestNumber) {
+            if (ignore['note'].isNotEmpty &&
+              event.number.toString() == ignore['note'].split('/').last) {
               ignored = true;
             }
           }
