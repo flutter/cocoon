@@ -122,6 +122,17 @@ void main() {
         ),
       );
 
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
       await tester.post(webhook);
 
       verify(pullRequestsService.edit(
@@ -159,6 +170,17 @@ void main() {
         ),
       );
 
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -189,6 +211,17 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter/blah.md',
         ),
       );
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -228,6 +261,17 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
         ]),
       );
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -529,6 +573,17 @@ void main() {
         )
       );
 
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -565,6 +620,17 @@ void main() {
           IssueComment()..body = config.missingTestsPullRequestMessageValue,
         ),
       );
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+        utf8.encode(skiaIgnoreTemplate())
+      );
+      when(mockHttpClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      ))
+        .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close())
+        .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -831,7 +897,7 @@ class MockPullRequestsService extends Mock implements PullRequestsService {}
 // ignore: must_be_immutable
 class MockBuildBucketClient extends Mock implements BuildBucketClient {}
 
-String skiaIgnoreTemplate({String pullRequestNumber = '1234'}) {
+String skiaIgnoreTemplate({String pullRequestNumber = '0000'}) {
   return '''
     [
       {
