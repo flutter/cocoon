@@ -287,12 +287,13 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
     bool ignored = false;
+    String rawResponse;
     try {
       final HttpClientRequest request = await skiaClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
       );
       final HttpClientResponse response = await request.close();
-      final String rawResponse = await utf8.decodeStream(response);
+      rawResponse = await utf8.decodeStream(response);
       final List<dynamic> ignores = jsonDecode(rawResponse);
       for (Map<String, dynamic> ignore in ignores) {
         if (ignore['note'].isNotEmpty &&
@@ -301,7 +302,18 @@ class GithubWebhook extends RequestHandler<Body> {
           break;
         }
       }
-    } catch(_) {}
+    } on IOException catch(e) {
+      log.error(
+        'Request to Flutter Gold for ignores failed for PR '
+          '#${event.number} on action: ${event.action}.\n'
+          'error: $e'
+      );
+    } on FormatException catch(_) {
+      log.error('Format Exception from Flutter Gold ignore request.\n'
+        'rawResponse: $rawResponse'
+      );
+      rethrow;
+    }
     return ignored;
   }
 
