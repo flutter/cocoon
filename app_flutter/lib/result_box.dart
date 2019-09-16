@@ -32,8 +32,8 @@ class ResultBox extends StatelessWidget {
       color: resultColor.containsKey(message)
           ? resultColor[message]
           : Colors.black,
-      width: 20,
-      height: 20,
+      width: 50,
+      height: 50,
     );
   }
 }
