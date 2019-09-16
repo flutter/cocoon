@@ -106,12 +106,16 @@ void main() {
 
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(any,
-              convert: anyNamed('convert')))
-          .thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
-        ]),
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       await tester.post(webhook);
@@ -139,22 +143,26 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.dart',
-        ]),
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>['framework']),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
       )).called(1);
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
@@ -172,22 +180,20 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'packages/flutter/blah.md',
-        ]),
+        ),
       );
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>['framework']),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -205,11 +211,8 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/semantics_test.dart',
           PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
           PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
@@ -224,9 +227,10 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
           'framework',
           'a: accessibility',
           'tool',
@@ -238,9 +242,9 @@ void main() {
           'f: cupertino',
           'f: material design',
           'a: internationalization',
-        ]),
-        convert: anyNamed('convert'),
+        ],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -258,11 +262,8 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
           PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
         ]),
@@ -270,13 +271,12 @@ void main() {
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
-          'team',
-        ]),
-        convert: anyNamed('convert'),
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['team'],
       )).called(1);
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -284,7 +284,7 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes, comments to notify', () async {
+    test('Labels Golden changes based on goldens.version, comments to notify', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -294,31 +294,108 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(gitHubClient.getJSON<List<dynamic>, List<PullRequestFile>>(
-        '/repos/${slug.fullName}/pulls/$issueNumber/files?per_page=100',
-        convert: anyNamed('convert'),
-      )).thenAnswer(
-        (_) => Future<List<PullRequestFile>>.value(<PullRequestFile>[
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
           PullRequestFile()..filename = 'bin/internal/goldens.version',
-        ]),
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       await tester.post(webhook);
 
-      verify(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
-        '/repos/${slug.fullName}/issues/$issueNumber/labels',
-        body: jsonEncode(<String>[
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
           'will affect goldens',
           'severe: API break',
           'a: tests',
-        ]),
-        convert: anyNamed('convert'),
+        ],
       )).called(1);
+
       verify(issuesService.createComment(
         slug,
         issueNumber,
         argThat(contains(config.goldenBreakingChangeMessageValue)),
       )).called(1);
+    });
+
+    test('Labels draft issues as work in progress, does not test pest.', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        isDraft: true,
+      );
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'some_change.dart',
+        )
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['work in progress; do not review'],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Will not spawn comments if they have already been made.', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, 'master');
+      final Uint8List body = utf8.encode(request.body);
+      final Uint8List key = utf8.encode(keyString);
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber))
+        .thenAnswer((_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber))
+        .thenAnswer((_) => Stream<IssueComment>.value(
+          IssueComment()..body = config.missingTestsPullRequestMessageValue,
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['framework'],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
     });
 
     test('Skips labeling or commenting on autorolls', () async {
@@ -344,6 +421,7 @@ void main() {
         body: anyNamed('body'),
         convert: anyNamed('convert'),
       ));
+
       verifyNever(issuesService.createComment(
         slug,
         issueNumber,
@@ -576,6 +654,7 @@ String jsonTemplate(
   String baseRef, {
   String login = 'flutter',
   bool includeCqLabel = false,
+  bool isDraft = false,
 }) =>
     '''{
   "action": "$action",
@@ -940,6 +1019,7 @@ String jsonTemplate(
       }
     },
     "author_association": "MEMBER",
+    "draft" : $isDraft,
     "merged": false,
     "mergeable": null,
     "rebaseable": true,
