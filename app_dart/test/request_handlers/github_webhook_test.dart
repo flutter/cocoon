@@ -353,7 +353,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode('[{"note" : "124"}]')
+        utf8.encode(skiaIgnoreTemplate())
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
@@ -363,8 +363,10 @@ void main() {
         });
       when(mockHttpRequest.close())
         .thenAnswer((_) async {
-          print('*** mockHttpResponse: ${mockHttpResponse.response} ***');
-          print('*** ${mockHttpResponse.transform(utf8.decoder).join()} ***');
+          final String afterTransform= await mockHttpResponse.transform(utf8.decoder).join();
+          final List<dynamic> ignores = jsonDecode(afterTransform);
+          print('*** afterTransform: $afterTransform ***');
+          print('*** ignores: $ignores ***');
           return Future<MockHttpClientResponse>.value(mockHttpResponse);
         });
 
@@ -436,7 +438,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode('[{"note" : "124"}]')
+        utf8.encode(skiaIgnoreTemplate())
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
@@ -497,7 +499,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-        utf8.encode('[{"note" : "124"}]')
+        utf8.encode(skiaIgnoreTemplate())
       );
       when(mockHttpClient.getUrl(
         Uri.parse('https://flutter-gold.skia.org/json/ignores')
@@ -840,6 +842,22 @@ class MockPullRequestsService extends Mock implements PullRequestsService {}
 
 // ignore: must_be_immutable
 class MockBuildBucketClient extends Mock implements BuildBucketClient {}
+
+String skiaIgnoreTemplate({String pullRequestNumber = '1234'}) {
+  return '''
+    [
+      {
+        "id": "7579425228619212078",
+        "name": "contributor@getMail.com",
+        "updatedBy": "contributor@getMail.com",
+        "expires": "2019-09-06T21:28:18.815336Z",
+        "query": "ext=png&name=widgets.golden_file_test",
+        "note": "https://github.com/flutter/flutter/pull/$pullRequestNumber"
+      }
+    ]
+  ''';
+}
+
 
 String jsonTemplate(
   String action,
