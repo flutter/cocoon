@@ -289,18 +289,31 @@ class GithubWebhook extends RequestHandler<Body> {
     // Check against current event.pullRequest.number
     bool ignored = false;
     try {
-      await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) async {
-          final String responseBody = await response.transform(utf8.decoder).join();
-          final List<dynamic> ignores = jsonDecode(responseBody);
-          for (Map<String, dynamic> ignore in ignores) {
-            if (ignore['note'].isNotEmpty &&
-              event.number.toString() == ignore['note'].split('/').last) {
-              ignored = true;
-            }
-          }
-      });
+      final HttpClientRequest request = await skiaClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      );
+      final HttpClientResponse response = await request.close();
+      final String rawResponse = await utf8.decodeStream(response);
+      final List<dynamic> ignores = jsonDecode(rawResponse);
+      for (Map<String, dynamic> ignore in ignores) {
+        if (ignore['note'].isNotEmpty &&
+          event.number.toString() == ignore['note'].split('/').last) {
+          ignored = true;
+          break;
+        }
+      }
+//      await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'))
+//        .then((HttpClientRequest request) => request.close())
+//        .then((HttpClientResponse response) async {
+//          final String responseBody = await response.transform(utf8.decoder).join();
+//          final List<dynamic> ignores = jsonDecode(responseBody);
+//          for (Map<String, dynamic> ignore in ignores) {
+//            if (ignore['note'].isNotEmpty &&
+//              event.number.toString() == ignore['note'].split('/').last) {
+//              ignored = true;
+//            }
+//          }
+//      });
     } catch(_) {
       return ignored;
     }
