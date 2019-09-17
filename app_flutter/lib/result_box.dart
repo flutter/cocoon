@@ -28,7 +28,7 @@ class ResultBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(4.0),
+      margin: const EdgeInsets.all(1.0),
       color: resultColor.containsKey(message)
           ? resultColor[message]
           : Colors.black,
