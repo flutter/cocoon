@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/server.dart';
@@ -19,12 +20,19 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config, this.buildBucketClient)
-      : assert(buildBucketClient != null),
-        super(config: config);
+  GithubWebhook(
+    Config config,
+    this.buildBucketClient, {
+    HttpClient skiaClient
+  }) : assert(buildBucketClient != null),
+      skiaClient = skiaClient ?? HttpClient(),
+      super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
+
+  /// An Http Client for querying the Skia Gold API.
+  final HttpClient skiaClient;
 
   @override
   Future<Body> post() async {
@@ -67,6 +75,14 @@ class GithubWebhook extends RequestHandler<Body> {
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
     switch (event.action) {
+      case 'closed':
+        if (event.pullRequest.merged) {
+          await _checkForGoldenTriage(
+            event,
+            existingLabels,
+          );
+        }
+        break;
       case 'edited':
       case 'opened':
       case 'ready_for_review':
@@ -92,7 +108,6 @@ class GithubWebhook extends RequestHandler<Body> {
         }
         break;
       case 'assigned':
-      case 'closed':
       case 'locked':
       case 'review_request_removed':
       case 'review_requested':
@@ -270,6 +285,61 @@ class GithubWebhook extends RequestHandler<Body> {
     await buildBucketClient.batch(BatchRequest(requests: requests));
   }
 
+  Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
+    bool ignored = false;
+    String rawResponse;
+    try {
+      final HttpClientRequest request = await skiaClient.getUrl(
+        Uri.parse('https://flutter-gold.skia.org/json/ignores')
+      );
+      final HttpClientResponse response = await request.close();
+      rawResponse = await utf8.decodeStream(response);
+      final List<dynamic> ignores = jsonDecode(rawResponse);
+      for (Map<String, dynamic> ignore in ignores) {
+        if (ignore['note'].isNotEmpty &&
+          event.number.toString() == ignore['note'].split('/').last) {
+          ignored = true;
+          break;
+        }
+      }
+    } on IOException catch(e) {
+      log.error(
+        'Request to Flutter Gold for ignores failed for PR '
+          '#${event.number} on action: ${event.action}.\n'
+          'error: $e'
+      );
+    } on FormatException catch(_) {
+      log.error('Format Exception from Flutter Gold ignore request.\n'
+        'rawResponse: $rawResponse'
+      );
+      rethrow;
+    }
+    return ignored;
+  }
+
+  Future<void> _checkForGoldenTriage(
+    PullRequestEvent event,
+    List<IssueLabel>labels,
+  ) async {
+    final List<String> labelNames =
+      List<String>.generate(labels.length, (int index) => labels[index].name);
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
+      (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
+      final GitHub gitHubClient = await config.createGitHubClient();
+      try {
+        await _pingForTriage(gitHubClient, event);
+      } finally {
+        gitHubClient.dispose();
+      }
+    }
+  }
+
+  Future<void> _pingForTriage(GitHub gitHubClient, PullRequestEvent event) async {
+    final String body = await config.goldenTriageMessage;
+    final RepositorySlug slug = event.repository.slug();
+    await gitHubClient.issues.createComment(slug, event.number, body);
+  }
+
   Future<void> _checkForLabelsAndTests(
     PullRequestEvent event,
     bool isDraft,
@@ -323,7 +393,7 @@ class GithubWebhook extends RequestHandler<Body> {
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
       }
-      if (file.filename == 'bin/internal/goldens.version') {
+      if (file.filename == 'bin/internal/goldens.version' || await _isIgnoredForGold(event)) {
         isGoldenChange = true;
         labels.add('will affect goldens');
         labels.add('severe: API break');
