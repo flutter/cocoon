@@ -13,7 +13,10 @@ class CommitBox extends StatelessWidget {
     @required this.avatarUrl,
   }) : super(key: key);
 
+  /// Commit message that summarizes the change made.
   final String message;
+
+  /// Image URL to the avatar of the author of this commit.
   final String avatarUrl;
 
   @override
