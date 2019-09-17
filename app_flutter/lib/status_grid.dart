@@ -21,6 +21,7 @@ class StatusGrid extends StatelessWidget {
         height: 500.0,
         child: GridView.count(
           crossAxisCount: taskCount,
+          // TODO(chillers): Use result data
           children: List.generate(taskCount * commitCount, (index) {
             return ResultBox(message: 'Succeeded');
           }),
