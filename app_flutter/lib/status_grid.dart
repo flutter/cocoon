@@ -8,7 +8,7 @@ import 'result_box.dart';
 
 class StatusGrid extends StatelessWidget {
   static const int taskCount = 80; // rough estimate based on existing dashboard
-  static const int commitCount = 200; // based on existing dashboard
+  static const int commitCount = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,6 @@ class StatusGrid extends StatelessWidget {
         width: taskCount * 50.0,
         height: 500.0,
         child: GridView.count(
-          shrinkWrap: true,
           crossAxisCount: taskCount,
           children: List.generate(taskCount * commitCount, (index) {
             return ResultBox(message: 'Succeeded');
