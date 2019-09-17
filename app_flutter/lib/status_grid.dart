@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'commit_box.dart';
 import 'result_box.dart';
 
 /// Display results from flutter/flutter repository's continuous integration.
@@ -26,10 +27,18 @@ class StatusGrid extends StatelessWidget {
         width: taskCount * 50.0,
         height: 500.0,
         child: GridView.count(
-          // TODO(chillers)L implement custom scroll physics to match horizontal scroll
+          // TODO(chillers): implement custom scroll physics to match horizontal scroll
           crossAxisCount: taskCount,
           // TODO(chillers): Use result data
           children: List.generate(taskCount * commitCount, (index) {
+            if (index % taskCount == 0) {
+              return CommitBox(
+                message: 'commit #$index',
+                avatarUrl:
+                    'https://avatars2.githubusercontent.com/u/2148558?v=4',
+              );
+            }
+
             return ResultBox(message: 'Succeeded');
           }),
         ),

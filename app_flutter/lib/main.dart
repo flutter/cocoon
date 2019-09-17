@@ -32,11 +32,6 @@ class BuildDashboardPage extends StatelessWidget {
       body: Column(
         children: [
           StatusGrid(),
-          // To demo CommitBox
-          CommitBox(
-            message: 'my first commit',
-            avatarUrl: 'https://avatars2.githubusercontent.com/u/42042535?v=4',
-          ),
         ],
       ),
     );
