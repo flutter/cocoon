@@ -16,6 +16,7 @@ class CommitBox extends StatelessWidget {
   final String message;
   final String avatarUrl;
 
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
