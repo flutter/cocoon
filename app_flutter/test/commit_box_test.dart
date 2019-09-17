@@ -19,53 +19,27 @@ void main() {
     });
 
     testWidgets('shows information correctly', (WidgetTester tester) async {
-      const String author = 'tester';
-      const String message = 'message';
-      const String hash = 'hashy hash';
+      const String message = 'message message';
       const String avatarUrl =
-          'https://avatars2.githubusercontent.com/u/42042535?v=4';
+          'https://avatars2.githubusercontent.com/u/2148558?v=4';
 
       await tester.pumpWidget(Directionality(
         child: CommitBox(
-            author: author, message: message, avatarUrl: avatarUrl, hash: hash),
+          message: message,
+          avatarUrl: avatarUrl,
+        ),
         textDirection: TextDirection.ltr,
       ));
 
       expect(find.text(message), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
     });
-
-    testWidgets('shows overlay on click', (WidgetTester tester) async {
-      const String author = 'tester';
-      const String message = 'message';
-      const String hash = 'hashy hash';
-      const String avatarUrl =
-          'https://avatars2.githubusercontent.com/u/42042535?v=4';
-
-      await tester.pumpWidget(Directionality(
-        child: CommitBox(
-            author: author, message: message, avatarUrl: avatarUrl, hash: hash),
-        textDirection: TextDirection.ltr,
-      ));
-
-      expect(find.text(message), findsOneWidget);
-      expect(find.text(author), findsNothing);
-
-      await tester.tap(find.byType(CommitBox));
-      await tester.pumpAndSettle(Duration(seconds: 2));
-
-      expect(find.text(author), findsOneWidget);
-      expect(find.text(message), findsNWidgets(2));
-    });
   });
 }
 
 class MockHttpClient extends Mock implements io.HttpClient {}
-
 class MockHttpClientRequest extends Mock implements io.HttpClientRequest {}
-
 class MockHttpClientResponse extends Mock implements io.HttpClientResponse {}
-
 class MockHttpHeaders extends Mock implements io.HttpHeaders {}
 
 class TestHttpOverrides extends io.HttpOverrides {
@@ -104,68 +78,9 @@ MockHttpClient createMockImageHttpClient(io.SecurityContext _) {
 }
 
 const List<int> _transparentImage = const <int>[
-  0x89,
-  0x50,
-  0x4E,
-  0x47,
-  0x0D,
-  0x0A,
-  0x1A,
-  0x0A,
-  0x00,
-  0x00,
-  0x00,
-  0x0D,
-  0x49,
-  0x48,
-  0x44,
-  0x52,
-  0x00,
-  0x00,
-  0x00,
-  0x01,
-  0x00,
-  0x00,
-  0x00,
-  0x01,
-  0x08,
-  0x06,
-  0x00,
-  0x00,
-  0x00,
-  0x1F,
-  0x15,
-  0xC4,
-  0x89,
-  0x00,
-  0x00,
-  0x00,
-  0x0A,
-  0x49,
-  0x44,
-  0x41,
-  0x54,
-  0x78,
-  0x9C,
-  0x63,
-  0x00,
-  0x01,
-  0x00,
-  0x00,
-  0x05,
-  0x00,
-  0x01,
-  0x0D,
-  0x0A,
-  0x2D,
-  0xB4,
-  0x00,
-  0x00,
-  0x00,
-  0x00,
-  0x49,
-  0x45,
-  0x4E,
-  0x44,
-  0xAE,
+  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49,
+  0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06,
+  0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44,
+  0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, 0x0D,
+  0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
 ];
