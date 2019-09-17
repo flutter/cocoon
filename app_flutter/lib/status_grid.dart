@@ -6,7 +6,13 @@ import 'package:flutter/material.dart';
 
 import 'result_box.dart';
 
+/// Display results from flutter/flutter repository's continuous integration.
+///
+/// Results are displayed in a matrix format. Rows are commits and columns
+/// are the results from tasks.
 class StatusGrid extends StatelessWidget {
+  const StatusGrid({Key key}) : super(key: key);
+
   static const int taskCount = 80; // rough estimate based on existing dashboard
   static const int commitCount = 50;
 
@@ -20,6 +26,7 @@ class StatusGrid extends StatelessWidget {
         width: taskCount * 50.0,
         height: 500.0,
         child: GridView.count(
+          // TODO(chillers)L implement custom scroll physics to match horizontal scroll
           crossAxisCount: taskCount,
           // TODO(chillers): Use result data
           children: List.generate(taskCount * commitCount, (index) {
