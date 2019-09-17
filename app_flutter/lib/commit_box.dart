@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 
 /// Displays Git commit information.
-class CommitBox extends StatefulWidget {
+class CommitBox extends StatelessWidget {
   // TODO(chillers): convert to use commit model
   const CommitBox({
     Key key,
@@ -16,23 +16,16 @@ class CommitBox extends StatefulWidget {
   final String message;
   final String avatarUrl;
 
-  @override
-  _CommitBoxState createState() => _CommitBoxState();
-}
-
-class _CommitBoxState extends State<CommitBox> {
-  // TODO(chillers): on click
-  @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
         Image.network(
-          widget.avatarUrl,
+          avatarUrl,
           height: 40,
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(widget.message),
+          child: Text(message),
         ),
       ],
     );

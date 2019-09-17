@@ -36,8 +36,6 @@ class BuildDashboardPage extends StatelessWidget {
           CommitBox(
             message: 'my first commit',
             avatarUrl: 'https://avatars2.githubusercontent.com/u/42042535?v=4',
-            author: 'caseyhillers',
-            hash: 'thisisahash',
           ),
         ],
       ),
