@@ -25,7 +25,6 @@ void main() {
       const String avatarUrl =
           'https://avatars2.githubusercontent.com/u/42042535?v=4';
 
-      // Text requires direction
       await tester.pumpWidget(Directionality(
         child: CommitBox(
             author: author, message: message, avatarUrl: avatarUrl, hash: hash),
@@ -33,6 +32,30 @@ void main() {
       ));
 
       expect(find.text(message), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
+    });
+
+    testWidgets('shows overlay on click', (WidgetTester tester) async {
+      const String author = 'tester';
+      const String message = 'message';
+      const String hash = 'hashy hash';
+      const String avatarUrl =
+          'https://avatars2.githubusercontent.com/u/42042535?v=4';
+
+      await tester.pumpWidget(Directionality(
+        child: CommitBox(
+            author: author, message: message, avatarUrl: avatarUrl, hash: hash),
+        textDirection: TextDirection.ltr,
+      ));
+
+      expect(find.text(message), findsOneWidget);
+      expect(find.text(author), findsNothing);
+
+      await tester.tap(find.byType(CommitBox));
+      await tester.pumpAndSettle(Duration(seconds: 2));
+
+      expect(find.text(author), findsOneWidget);
+      expect(find.text(message), findsNWidgets(2));
     });
   });
 }
