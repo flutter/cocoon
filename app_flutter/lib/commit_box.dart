@@ -54,14 +54,18 @@ class _CommitBoxState extends State<CommitBox> {
         builder: (overlayContext) => CommitOverlayContents(
             parentContext: context,
             widget: widget,
-            closeCallback: closeOverlay));
+            closeCallback: _closeOverlay));
 
     Overlay.of(context).insert(_commitOverlay);
   }
 
-  void closeOverlay() => _commitOverlay.remove();
+  void _closeOverlay() => _commitOverlay.remove();
 }
 
+/// Displays the information from a Git commit.
+///
+/// This is intended to be inserted in an [OverlayEntry] as it requires
+/// [closeCallback] that will remove the widget from the tree.
 class CommitOverlayContents extends StatelessWidget {
   CommitOverlayContents({
     Key key,
