@@ -66,14 +66,14 @@ class _CommitBoxState extends State<CommitBox> {
                   child: Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
-                    color: Colors.blueGrey.withOpacity(0.01),
+                    // Color must be defined otherwise the container can't be clicked on
+                    color: Colors.transparent,
                   ),
                 ),
                 Positioned(
-                  width: 300,
+                  width: 1000,
                   child: CompositedTransformFollower(
                     link: this._layerLink,
-                    showWhenUnlinked: false,
                     offset: Offset(25.0, renderBox.size.height),
                     child: Card(
                       child: Column(
