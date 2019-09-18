@@ -37,7 +37,6 @@ class StatusGrid extends StatelessWidget {
                 author: 'author #$index',
                 avatarUrl:
                     'https://avatars2.githubusercontent.com/u/2148558?v=4',
-                sha: 'sha shank hash',
               );
             }
 

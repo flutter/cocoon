@@ -11,8 +11,7 @@ class CommitBox extends StatefulWidget {
       {Key key,
       @required this.message,
       @required this.avatarUrl,
-      @required this.author,
-      @required this.sha})
+      @required this.author})
       : super(key: key);
 
   /// Commit message that summarizes the change made.
@@ -23,9 +22,6 @@ class CommitBox extends StatefulWidget {
 
   /// The person that authored this commit.
   final String author;
-
-  /// The unique identifier for the commit in this repository
-  final String sha;
 
   @override
   _CommitBoxState createState() => _CommitBoxState();
@@ -72,43 +68,41 @@ class _CommitBoxState extends State<CommitBox> {
                 ),
                 Positioned(
                   width: 300,
+                  // Move this overlay to be where the parent is
                   top: renderBox.localToGlobal(Offset.zero).dy +
                       (renderBox.size.height / 2),
                   left: renderBox.localToGlobal(Offset.zero).dx +
                       (renderBox.size.width / 2),
-                  child: CompositedTransformFollower(
-                    link: this._layerLink,
-                    child: Card(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        children: <Widget>[
-                          ListTile(
-                            leading: CircleAvatar(
-                              radius: 25.0,
-                              backgroundImage: NetworkImage(widget.avatarUrl),
-                              backgroundColor: Colors.transparent,
+                  child: Card(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        ListTile(
+                          leading: CircleAvatar(
+                            radius: 25.0,
+                            backgroundImage: NetworkImage(widget.avatarUrl),
+                            backgroundColor: Colors.transparent,
+                          ),
+                          title: Text(widget.message),
+                          subtitle: Text(widget.author),
+                        ),
+                        ButtonBar(
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.repeat),
+                              onPressed: () {
+                                // TODO(chillers): rerun all tests for this commit
+                              },
                             ),
-                            title: Text(widget.message),
-                            subtitle: Text(widget.author),
-                          ),
-                          ButtonBar(
-                            children: <Widget>[
-                              IconButton(
-                                icon: const Icon(Icons.repeat),
-                                onPressed: () {
-                                  // TODO(chillers): rerun all tests for this commit
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.open_in_new),
-                                onPressed: () {
-                                  // TODO(chillers): open new tab with the commit on Github
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            IconButton(
+                              icon: const Icon(Icons.open_in_new),
+                              onPressed: () {
+                                // TODO(chillers): open new tab with the commit on Github
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
