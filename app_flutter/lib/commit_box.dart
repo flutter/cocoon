@@ -61,6 +61,7 @@ class _CommitBoxState extends State<CommitBox> {
                 // This is the area a user can click (the rest of the screen) to close the overlay.
                 GestureDetector(
                   onTap: () {
+                    print(renderBox.localToGlobal(Offset.zero).dx);
                     _commitOverlay.remove();
                   },
                   child: Container(
@@ -71,10 +72,11 @@ class _CommitBoxState extends State<CommitBox> {
                   ),
                 ),
                 Positioned(
-                  width: 1000,
+                  width: 300,
+                  top: renderBox.localToGlobal(Offset.zero).dy + (renderBox.size.height / 2),
+                  left: renderBox.localToGlobal(Offset.zero).dx + (renderBox.size.width / 2),
                   child: CompositedTransformFollower(
                     link: this._layerLink,
-                    offset: Offset(25.0, renderBox.size.height),
                     child: Card(
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
