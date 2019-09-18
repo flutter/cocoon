@@ -45,70 +45,89 @@ class _CommitBoxState extends State<CommitBox> {
   }
 
   void _handleTap() {
-    _commitOverlay = CommitOverlay(widget, context);
+    CommitOverlayContents _content =
+        CommitOverlayContents(parentContext: context, widget: widget);
+    _commitOverlay = OverlayEntry(builder: (context) => _content);
+    _content.setOverlayEntry(_commitOverlay);
+
     Overlay.of(context).insert(this._commitOverlay);
   }
 }
 
-class CommitOverlay extends OverlayEntry {
-  CommitOverlay(CommitBox widget, BuildContext parentContext)
-      : super(builder: (context) {
-          RenderBox renderBox = parentContext.findRenderObject();
+class CommitOverlayContents extends StatelessWidget {
+  CommitOverlayContents({
+    Key key,
+    @required this.parentContext,
+    @required this.widget,
+  }) : super(key: key);
 
-          return Stack(
-            children: <Widget>[
-              // This is the area a user can click (the rest of the screen) to close the overlay.
-              GestureDetector(
-                onTap:
-                    remove, // error: Only static members can be accessed in initializers.
-                child: Container(
-                  width: MediaQuery.of(parentContext).size.width,
-                  height: MediaQuery.of(parentContext).size.height,
-                  // Color must be defined otherwise the container can't be clicked on
-                  color: Colors.transparent,
-                ),
-              ),
-              Positioned(
-                width: 300,
-                // Move this overlay to be where the parent is
-                top: renderBox.localToGlobal(Offset.zero).dy +
-                    (renderBox.size.height / 2),
-                left: renderBox.localToGlobal(Offset.zero).dx +
-                    (renderBox.size.width / 2),
-                child: Card(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      ListTile(
-                        leading: CircleAvatar(
-                          radius: 25.0,
-                          backgroundImage: NetworkImage(widget.avatarUrl),
-                          backgroundColor: Colors.transparent,
-                        ),
-                        title: Text(widget.message),
-                        subtitle: Text(widget.author),
-                      ),
-                      ButtonBar(
-                        children: <Widget>[
-                          IconButton(
-                            icon: const Icon(Icons.repeat),
-                            onPressed: () {
-                              // TODO(chillers): rerun all tests for this commit
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.open_in_new),
-                            onPressed: () {
-                              // TODO(chillers): open new tab with the commit on Github
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+  /// The parent context that has the size of the whole screen
+  final BuildContext parentContext;
+
+  /// The parent widget that contains state variables
+  final CommitBox widget;
+
+  OverlayEntry _overlayEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    RenderBox renderBox = parentContext.findRenderObject();
+
+    return Stack(
+      children: <Widget>[
+        // This is the area a user can click (the rest of the screen) to close the overlay.
+        GestureDetector(
+          onTap: _overlayEntry.remove,
+          child: Container(
+            width: MediaQuery.of(parentContext).size.width,
+            height: MediaQuery.of(parentContext).size.height,
+            // Color must be defined otherwise the container can't be clicked on
+            color: Colors.transparent,
+          ),
+        ),
+        Positioned(
+          width: 300,
+          // Move this overlay to be where the parent is
+          top: renderBox.localToGlobal(Offset.zero).dy +
+              (renderBox.size.height / 2),
+          left: renderBox.localToGlobal(Offset.zero).dx +
+              (renderBox.size.width / 2),
+          child: Card(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                ListTile(
+                  leading: CircleAvatar(
+                    radius: 25.0,
+                    backgroundImage: NetworkImage(widget.avatarUrl),
+                    backgroundColor: Colors.transparent,
                   ),
+                  title: Text(widget.message),
+                  subtitle: Text(widget.author),
                 ),
-              ),
-            ],
-          );
-        });
+                ButtonBar(
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(Icons.repeat),
+                      onPressed: () {
+                        // TODO(chillers): rerun all tests for this commit
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new),
+                      onPressed: () {
+                        // TODO(chillers): open new tab with the commit on Github
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void setOverlayEntry(OverlayEntry entry) => _overlayEntry = entry;
 }
