@@ -5,6 +5,11 @@
 import 'package:flutter/material.dart';
 
 /// Displays Git commit information.
+/// 
+/// On click, it will open an [OverlayEntry] with [CommitOverlayContents]
+/// to show the information provided. Otherwise, it just shows the avatar
+/// for the author of this commit. Clicking outside of the [OverlayEntry]
+/// will close it.
 class CommitBox extends StatefulWidget {
   // TODO(chillers): convert to use commit model
   const CommitBox(
