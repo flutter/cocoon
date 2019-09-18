@@ -34,6 +34,7 @@ class StatusGrid extends StatelessWidget {
             if (index % taskCount == 0) {
               return CommitBox(
                 message: 'commit #$index',
+                author: 'author #$index',
                 avatarUrl:
                     'https://avatars2.githubusercontent.com/u/2148558?v=4',
               );
