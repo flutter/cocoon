@@ -45,67 +45,70 @@ class _CommitBoxState extends State<CommitBox> {
   }
 
   void _handleTap() {
-    _commitOverlay = this._createCommitOverlay(widget);
+    _commitOverlay = CommitOverlay(widget, context);
     Overlay.of(context).insert(this._commitOverlay);
   }
+}
 
-  OverlayEntry _createCommitOverlay(CommitBox widget) {
-    RenderBox renderBox = context.findRenderObject();
+class CommitOverlay extends OverlayEntry {
+  CommitOverlay(CommitBox widget, BuildContext parentContext)
+      : super(builder: (context) {
+          RenderBox renderBox = parentContext.findRenderObject();
 
-    return OverlayEntry(
-        builder: (context) => Stack(
-              children: <Widget>[
-                // This is the area a user can click (the rest of the screen) to close the overlay.
-                GestureDetector(
-                  onTap: _commitOverlay.remove,
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    // Color must be defined otherwise the container can't be clicked on
-                    color: Colors.transparent,
-                  ),
+          return Stack(
+            children: <Widget>[
+              // This is the area a user can click (the rest of the screen) to close the overlay.
+              GestureDetector(
+                onTap:
+                    remove, // error: Only static members can be accessed in initializers.
+                child: Container(
+                  width: MediaQuery.of(parentContext).size.width,
+                  height: MediaQuery.of(parentContext).size.height,
+                  // Color must be defined otherwise the container can't be clicked on
+                  color: Colors.transparent,
                 ),
-                Positioned(
-                  width: 300,
-                  // Move this overlay to be where the parent is
-                  top: renderBox.localToGlobal(Offset.zero).dy +
-                      (renderBox.size.height / 2),
-                  left: renderBox.localToGlobal(Offset.zero).dx +
-                      (renderBox.size.width / 2),
-                  child: Card(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        ListTile(
-                          leading: CircleAvatar(
-                            radius: 25.0,
-                            backgroundImage: NetworkImage(widget.avatarUrl),
-                            backgroundColor: Colors.transparent,
+              ),
+              Positioned(
+                width: 300,
+                // Move this overlay to be where the parent is
+                top: renderBox.localToGlobal(Offset.zero).dy +
+                    (renderBox.size.height / 2),
+                left: renderBox.localToGlobal(Offset.zero).dx +
+                    (renderBox.size.width / 2),
+                child: Card(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      ListTile(
+                        leading: CircleAvatar(
+                          radius: 25.0,
+                          backgroundImage: NetworkImage(widget.avatarUrl),
+                          backgroundColor: Colors.transparent,
+                        ),
+                        title: Text(widget.message),
+                        subtitle: Text(widget.author),
+                      ),
+                      ButtonBar(
+                        children: <Widget>[
+                          IconButton(
+                            icon: const Icon(Icons.repeat),
+                            onPressed: () {
+                              // TODO(chillers): rerun all tests for this commit
+                            },
                           ),
-                          title: Text(widget.message),
-                          subtitle: Text(widget.author),
-                        ),
-                        ButtonBar(
-                          children: <Widget>[
-                            IconButton(
-                              icon: const Icon(Icons.repeat),
-                              onPressed: () {
-                                // TODO(chillers): rerun all tests for this commit
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.open_in_new),
-                              onPressed: () {
-                                // TODO(chillers): open new tab with the commit on Github
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          IconButton(
+                            icon: const Icon(Icons.open_in_new),
+                            onPressed: () {
+                              // TODO(chillers): open new tab with the commit on Github
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ));
-  }
+              ),
+            ],
+          );
+        });
 }
