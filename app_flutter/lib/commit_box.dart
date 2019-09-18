@@ -32,14 +32,84 @@ class CommitBox extends StatefulWidget {
 }
 
 class _CommitBoxState extends State<CommitBox> {
+  OverlayEntry _commitOverlay;
+  final LayerLink _layerLink = LayerLink();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(1.0),
-      child: Image.network(
-        widget.avatarUrl,
-        height: 40,
+    return GestureDetector(
+      onTap: () {
+        this._commitOverlay = this._createCommitOverlay(widget);
+        Overlay.of(context).insert(this._commitOverlay);
+      },
+      child: Container(
+        margin: const EdgeInsets.all(1.0),
+        child: Image.network(
+          widget.avatarUrl,
+          height: 40,
+        ),
       ),
     );
+  }
+
+  OverlayEntry _createCommitOverlay(CommitBox widget) {
+    RenderBox renderBox = context.findRenderObject();
+
+    return OverlayEntry(
+        builder: (context) => Stack(
+              children: <Widget>[
+                // This is the area a user can click (the rest of the screen) to close the overlay.
+                GestureDetector(
+                  onTap: () {
+                    _commitOverlay.remove();
+                  },
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    color: Colors.blueGrey.withOpacity(0.01),
+                  ),
+                ),
+                Positioned(
+                  width: 300,
+                  child: CompositedTransformFollower(
+                    link: this._layerLink,
+                    showWhenUnlinked: false,
+                    offset: Offset(25.0, renderBox.size.height),
+                    child: Card(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: <Widget>[
+                          ListTile(
+                            leading: CircleAvatar(
+                              radius: 25.0,
+                              backgroundImage: NetworkImage(widget.avatarUrl),
+                              backgroundColor: Colors.transparent,
+                            ),
+                            title: Text(widget.message),
+                            subtitle: Text(widget.author),
+                          ),
+                          ButtonBar(
+                            children: <Widget>[
+                              IconButton(
+                                icon: const Icon(Icons.repeat),
+                                onPressed: () {
+                                  // TODO(chillers): rerun all tests for this commit
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.open_in_new),
+                                onPressed: () {
+                                  // TODO(chillers): open new tab with the commit on Github
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ));
   }
 }
