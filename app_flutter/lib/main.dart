@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 
-import 'commit_box.dart';
 import 'status_grid.dart';
 
 void main() => runApp(MyApp());
