@@ -45,13 +45,16 @@ class _CommitBoxState extends State<CommitBox> {
   }
 
   void _handleTap() {
-    CommitOverlayContents _content =
-        CommitOverlayContents(parentContext: context, widget: widget);
-    _commitOverlay = OverlayEntry(builder: (context) => _content);
-    _content.setOverlayEntry(_commitOverlay);
+    _commitOverlay = OverlayEntry(
+        builder: (nullContext) => CommitOverlayContents(
+            parentContext: context,
+            widget: widget,
+            closeCallback: closeOverlay));
 
     Overlay.of(context).insert(this._commitOverlay);
   }
+
+  void closeOverlay() => _commitOverlay.remove();
 }
 
 class CommitOverlayContents extends StatelessWidget {
@@ -59,6 +62,7 @@ class CommitOverlayContents extends StatelessWidget {
     Key key,
     @required this.parentContext,
     @required this.widget,
+    @required this.closeCallback,
   }) : super(key: key);
 
   /// The parent context that has the size of the whole screen
@@ -67,7 +71,7 @@ class CommitOverlayContents extends StatelessWidget {
   /// The parent widget that contains state variables
   final CommitBox widget;
 
-  OverlayEntry _overlayEntry;
+  final void Function() closeCallback;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +81,7 @@ class CommitOverlayContents extends StatelessWidget {
       children: <Widget>[
         // This is the area a user can click (the rest of the screen) to close the overlay.
         GestureDetector(
-          onTap: _overlayEntry.remove,
+          onTap: closeCallback,
           child: Container(
             width: MediaQuery.of(parentContext).size.width,
             height: MediaQuery.of(parentContext).size.height,
@@ -128,6 +132,4 @@ class CommitOverlayContents extends StatelessWidget {
       ],
     );
   }
-
-  void setOverlayEntry(OverlayEntry entry) => _overlayEntry = entry;
 }
