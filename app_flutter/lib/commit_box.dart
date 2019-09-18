@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 
 /// Displays Git commit information.
-/// 
+///
 /// On click, it will open an [OverlayEntry] with [CommitOverlayContents]
 /// to show the information provided. Otherwise, it just shows the avatar
 /// for the author of this commit. Clicking outside of the [OverlayEntry]
@@ -76,11 +76,16 @@ class CommitOverlayContents extends StatelessWidget {
   /// The parent widget that contains state variables
   final CommitBox widget;
 
+  /// This callback removes the parent overlay from the widget tree.
+  ///
+  /// On a click that is outside the area of the overlay (the rest of the screen),
+  /// this callback is called closing the overlay.
   final void Function() closeCallback;
 
   @override
   Widget build(BuildContext context) {
-    RenderBox renderBox = parentContext.findRenderObject();
+    final RenderBox renderBox = parentContext.findRenderObject();
+    final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
 
     return Stack(
       children: <Widget>[
@@ -97,10 +102,8 @@ class CommitOverlayContents extends StatelessWidget {
         Positioned(
           width: 300,
           // Move this overlay to be where the parent is
-          top: renderBox.localToGlobal(Offset.zero).dy +
-              (renderBox.size.height / 2),
-          left: renderBox.localToGlobal(Offset.zero).dx +
-              (renderBox.size.width / 2),
+          top: offsetLeft.dy + (renderBox.size.height / 2),
+          left: offsetLeft.dx + (renderBox.size.width / 2),
           child: Card(
             child: Column(
               mainAxisSize: MainAxisSize.max,
