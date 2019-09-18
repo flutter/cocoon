@@ -29,15 +29,11 @@ class CommitBox extends StatefulWidget {
 
 class _CommitBoxState extends State<CommitBox> {
   OverlayEntry _commitOverlay;
-  final LayerLink _layerLink = LayerLink();
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        this._commitOverlay = this._createCommitOverlay(widget);
-        Overlay.of(context).insert(this._commitOverlay);
-      },
+      onTap: _handleTap,
       child: Container(
         margin: const EdgeInsets.all(1.0),
         child: Image.network(
@@ -48,6 +44,11 @@ class _CommitBoxState extends State<CommitBox> {
     );
   }
 
+  void _handleTap() {
+    _commitOverlay = this._createCommitOverlay(widget);
+    Overlay.of(context).insert(this._commitOverlay);
+  }
+
   OverlayEntry _createCommitOverlay(CommitBox widget) {
     RenderBox renderBox = context.findRenderObject();
 
@@ -56,9 +57,7 @@ class _CommitBoxState extends State<CommitBox> {
               children: <Widget>[
                 // This is the area a user can click (the rest of the screen) to close the overlay.
                 GestureDetector(
-                  onTap: () {
-                    _commitOverlay.remove();
-                  },
+                  onTap: _commitOverlay.remove,
                   child: Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
