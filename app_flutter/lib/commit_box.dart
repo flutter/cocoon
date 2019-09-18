@@ -72,8 +72,10 @@ class _CommitBoxState extends State<CommitBox> {
                 ),
                 Positioned(
                   width: 300,
-                  top: renderBox.localToGlobal(Offset.zero).dy + (renderBox.size.height / 2),
-                  left: renderBox.localToGlobal(Offset.zero).dx + (renderBox.size.width / 2),
+                  top: renderBox.localToGlobal(Offset.zero).dy +
+                      (renderBox.size.height / 2),
+                  left: renderBox.localToGlobal(Offset.zero).dx +
+                      (renderBox.size.width / 2),
                   child: CompositedTransformFollower(
                     link: this._layerLink,
                     child: Card(
