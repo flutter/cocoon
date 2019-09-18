@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 
-import 'commit_box.dart';
 import 'status_grid.dart';
 
 void main() => runApp(MyApp());
@@ -32,11 +31,6 @@ class BuildDashboardPage extends StatelessWidget {
       body: Column(
         children: [
           StatusGrid(),
-          // To demo CommitBox
-          CommitBox(
-            message: 'my first commit',
-            avatarUrl: 'https://avatars2.githubusercontent.com/u/42042535?v=4',
-          ),
         ],
       ),
     );

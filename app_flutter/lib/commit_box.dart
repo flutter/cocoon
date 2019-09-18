@@ -21,17 +21,13 @@ class CommitBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        Image.network(
-          avatarUrl,
-          height: 40,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(message),
-        ),
-      ],
+    // TODO(chillers): add overlay to view more information
+    return Container(
+      margin: const EdgeInsets.all(1.0),
+      child: Image.network(
+        avatarUrl,
+        height: 40,
+      ),
     );
   }
 }

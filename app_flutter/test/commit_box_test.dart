@@ -22,7 +22,6 @@ void main() {
         textDirection: TextDirection.ltr,
       ));
 
-      expect(find.text(message), findsOneWidget);
       expect(find.byType(Image), findsOneWidget);
 
       // Image.Network throws a 400 exception in tests
