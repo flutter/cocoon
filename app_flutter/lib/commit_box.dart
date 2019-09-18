@@ -51,12 +51,12 @@ class _CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-        builder: (nullContext) => CommitOverlayContents(
+        builder: (overlayContext) => CommitOverlayContents(
             parentContext: context,
             widget: widget,
             closeCallback: closeOverlay));
 
-    Overlay.of(context).insert(this._commitOverlay);
+    Overlay.of(context).insert(_commitOverlay);
   }
 
   void closeOverlay() => _commitOverlay.remove();
