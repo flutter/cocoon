@@ -14,34 +14,38 @@ import 'result_box.dart';
 class StatusGrid extends StatelessWidget {
   const StatusGrid({Key key}) : super(key: key);
 
-  static const int taskCount = 80; // rough estimate based on existing dashboard
-  static const int commitCount = 50;
+  static const int columnCount =
+      81; // rough estimate based on existing dashboard
+  static const int commitCount = 200;
 
   @override
   Widget build(BuildContext context) {
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        width: taskCount * 50.0,
-        height: 500.0,
-        child: GridView.count(
-          // TODO(chillers): implement custom scroll physics to match horizontal scroll
-          crossAxisCount: taskCount,
-          // TODO(chillers): Use result data
-          children: List.generate(taskCount * commitCount, (index) {
-            if (index % taskCount == 0) {
-              return CommitBox(
-                message: 'commit #$index',
-                author: 'author #$index',
-                avatarUrl:
-                    'https://avatars2.githubusercontent.com/u/2148558?v=4',
-              );
-            }
+    return Expanded(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          width: columnCount * 50.0,
+          child: GridView.builder(
+            // TODO(chillers): implement custom scroll physics to match horizontal scroll
+            itemCount: columnCount * commitCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount),
+            itemBuilder: (BuildContext context, int index) {
+              // TODO(chillers): Use StageModel data
+              if (index % columnCount == 0) {
+                return CommitBox(
+                  message: 'commit #$index',
+                  author: 'author #$index',
+                  avatarUrl:
+                      'https://avatars2.githubusercontent.com/u/2148558?v=4',
+                );
+              }
 
-            return ResultBox(message: 'Succeeded');
-          }),
+              return ResultBox(message: 'Succeeded');
+            },
+          ),
         ),
       ),
     );
