@@ -58,14 +58,13 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final Commit commit = await config.db.lookupValue<Commit>(task.commitKey);
 
-    final int endTimestamp = DateTime.now().millisecondsSinceEpoch;
     if (newStatus == Task.statusFailed) {
       // Attempt to de-flake the test.
       final int maxRetries = await config.maxTaskRetries;
       if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;
         task.reason = 'Task failed on agent';
-        task.endTimestamp = endTimestamp;
+        task.endTimestamp = DateTime.now().millisecondsSinceEpoch;;
       } else {
         // This will cause this task to be picked up by an agent again.
         task.status = Task.statusNew;
@@ -73,7 +72,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       }
     } else {
       task.status = newStatus;
-      task.endTimestamp = endTimestamp;
+      task.endTimestamp = DateTime.now().millisecondsSinceEpoch;;
     }
 
     await config.db.withTransaction<void>((Transaction transaction) async {
