@@ -36,13 +36,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
-    final Map<String, dynamic> resultData =
-        requestData[resultsParam] ?? const <String, dynamic>{};
-    final List<String> scoreKeys =
-        requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
+    final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
+    final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
 
     Key taskKey;
     try {
@@ -52,8 +49,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw const BadRequestException(
-          'NewStatus can be one of "Succeeded", "Failed"');
+      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
     final Task task = await config.db.lookupValue<Task>(taskKey, orElse: () {
@@ -90,8 +86,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
       for (String scoreKey in scoreKeys) {
         await config.db.withTransaction<void>((Transaction transaction) async {
-          final TimeSeries series =
-              await _getOrCreateTimeSeries(transaction, task, scoreKey);
+          final TimeSeries series = await _getOrCreateTimeSeries(transaction, task, scoreKey);
           final num value = resultData[scoreKey];
 
           final TimeSeriesValue seriesValue = TimeSeriesValue(
@@ -117,10 +112,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     String scoreKey,
   ) async {
     final String id = '${task.name}.$scoreKey';
-    final Key timeSeriesKey =
-        Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    TimeSeries series =
-        (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
+    final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
+    TimeSeries series = (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(
