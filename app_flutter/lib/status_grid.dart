@@ -28,10 +28,12 @@ class StatusGrid extends StatelessWidget {
         width: columnCount * 50.0,
         height: MediaQuery.of(context).size.height - 56,
         child: GridView.builder(
+          // TODO(chillers): implement custom scroll physics to match horizontal scroll
           itemCount: columnCount * commitCount,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columnCount),
           itemBuilder: (BuildContext context, int index) {
+            // TODO(chillers): Use StageModel data
             if (index % columnCount == 0) {
               return CommitBox(
                 message: 'commit #$index',
