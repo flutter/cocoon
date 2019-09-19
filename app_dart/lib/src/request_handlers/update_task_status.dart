@@ -64,7 +64,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;
         task.reason = 'Task failed on agent';
-        task.endTimestamp = DateTime.now().millisecondsSinceEpoch;;
+        task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
       } else {
         // This will cause this task to be picked up by an agent again.
         task.status = Task.statusNew;
@@ -72,7 +72,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       }
     } else {
       task.status = newStatus;
-      task.endTimestamp = DateTime.now().millisecondsSinceEpoch;;
+      task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     }
 
     await config.db.withTransaction<void>((Transaction transaction) async {
