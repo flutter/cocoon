@@ -22,29 +22,31 @@ class StatusGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Container(
-        width: columnCount * 50.0,
-        height: MediaQuery.of(context).size.height - 56,
-        child: GridView.builder(
-          // TODO(chillers): implement custom scroll physics to match horizontal scroll
-          itemCount: columnCount * commitCount,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columnCount),
-          itemBuilder: (BuildContext context, int index) {
-            // TODO(chillers): Use StageModel data
-            if (index % columnCount == 0) {
-              return CommitBox(
-                message: 'commit #$index',
-                author: 'author #$index',
-                avatarUrl:
-                    'https://avatars2.githubusercontent.com/u/2148558?v=4',
-              );
-            }
+    return Expanded(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          width: columnCount * 50.0,
+          // height: MediaQuery.of(context).size.height,
+          child: GridView.builder(
+            // TODO(chillers): implement custom scroll physics to match horizontal scroll
+            itemCount: columnCount * commitCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount),
+            itemBuilder: (BuildContext context, int index) {
+              // TODO(chillers): Use StageModel data
+              if (index % columnCount == 0) {
+                return CommitBox(
+                  message: 'commit #$index',
+                  author: 'author #$index',
+                  avatarUrl:
+                      'https://avatars2.githubusercontent.com/u/2148558?v=4',
+                );
+              }
 
-            return ResultBox(message: 'Succeeded');
-          },
+              return ResultBox(message: 'Succeeded');
+            },
+          ),
         ),
       ),
     );
