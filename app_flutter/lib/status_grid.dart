@@ -27,7 +27,6 @@ class StatusGrid extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Container(
           width: columnCount * 50.0,
-          // height: MediaQuery.of(context).size.height,
           child: GridView.builder(
             // TODO(chillers): implement custom scroll physics to match horizontal scroll
             itemCount: columnCount * commitCount,
