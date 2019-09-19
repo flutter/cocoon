@@ -14,8 +14,9 @@ import 'result_box.dart';
 class StatusGrid extends StatelessWidget {
   const StatusGrid({Key key}) : super(key: key);
 
-  static const int taskCount = 80; // rough estimate based on existing dashboard
-  static const int commitCount = 50;
+  static const int columnCount =
+      81; // rough estimate based on existing dashboard
+  static const int commitCount = 200;
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +25,14 @@ class StatusGrid extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
-        width: taskCount * 50.0,
-        height: 500.0,
-        child: GridView.count(
-          // TODO(chillers): implement custom scroll physics to match horizontal scroll
-          crossAxisCount: taskCount,
-          // TODO(chillers): Use result data
-          children: List.generate(taskCount * commitCount, (index) {
-            if (index % taskCount == 0) {
+        width: columnCount * 50.0,
+        height: MediaQuery.of(context).size.height - 56,
+        child: GridView.builder(
+          itemCount: columnCount * commitCount,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columnCount),
+          itemBuilder: (BuildContext context, int index) {
+            if (index % columnCount == 0) {
               return CommitBox(
                 message: 'commit #$index',
                 author: 'author #$index',
@@ -41,7 +42,7 @@ class StatusGrid extends StatelessWidget {
             }
 
             return ResultBox(message: 'Succeeded');
-          }),
+          },
         ),
       ),
     );
