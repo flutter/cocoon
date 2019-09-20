@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 
 /// Displays Git commit information.
@@ -11,22 +12,10 @@ import 'package:flutter/material.dart';
 /// for the author of this commit. Clicking outside of the [OverlayEntry]
 /// will close it.
 class CommitBox extends StatefulWidget {
-  // TODO(chillers): convert to use commit model
-  const CommitBox(
-      {Key key,
-      @required this.message,
-      @required this.avatarUrl,
-      @required this.author})
-      : super(key: key);
+  const CommitBox({Key key, @required this.commit}) : super(key: key);
 
-  /// Commit message that summarizes the change made.
-  final String message;
-
-  /// Image URL to the avatar of the author of this commit.
-  final String avatarUrl;
-
-  /// The person that authored this commit.
-  final String author;
+  /// The commit being shown
+  final Commit commit;
 
   @override
   _CommitBoxState createState() => _CommitBoxState();
@@ -42,7 +31,7 @@ class _CommitBoxState extends State<CommitBox> {
       child: Container(
         margin: const EdgeInsets.all(1.0),
         child: Image.network(
-          widget.avatarUrl,
+          widget.commit.authorAvatarUrl,
           height: 40,
         ),
       ),
@@ -51,10 +40,11 @@ class _CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-        builder: (overlayContext) => CommitOverlayContents(
-            parentContext: context,
-            widget: widget,
-            closeCallback: _closeOverlay));
+      builder: (overlayContext) => CommitOverlayContents(
+          parentContext: context,
+          commit: widget.commit,
+          closeCallback: _closeOverlay),
+    );
 
     Overlay.of(context).insert(_commitOverlay);
   }
@@ -70,15 +60,15 @@ class CommitOverlayContents extends StatelessWidget {
   CommitOverlayContents({
     Key key,
     @required this.parentContext,
-    @required this.widget,
+    @required this.commit,
     @required this.closeCallback,
   }) : super(key: key);
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
 
-  /// The parent widget that contains state variables
-  final CommitBox widget;
+  /// The commit of the parent widget to show information from
+  final Commit commit;
 
   /// This callback removes the parent overlay from the widget tree.
   ///
@@ -115,11 +105,12 @@ class CommitOverlayContents extends StatelessWidget {
                 ListTile(
                   leading: CircleAvatar(
                     radius: 25.0,
-                    backgroundImage: NetworkImage(widget.avatarUrl),
+                    backgroundImage: NetworkImage(commit.authorAvatarUrl),
                     backgroundColor: Colors.transparent,
                   ),
-                  title: Text(widget.message),
-                  subtitle: Text(widget.author),
+                  // TODO(chillers): Show commit message here instead
+                  title: Text(commit.sha),
+                  subtitle: Text(commit.author),
                 ),
                 ButtonBar(
                   children: <Widget>[
