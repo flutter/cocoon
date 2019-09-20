@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,17 +10,16 @@ import 'package:app_flutter/commit_box.dart';
 
 void main() {
   group('CommitBox', () {
-    const String message = 'message message';
-    const String avatarUrl =
-        'https://avatars2.githubusercontent.com/u/2148558?v=4';
-    const String author = 'contributor';
+    Commit expectedCommit = Commit()
+      ..author = 'AuthoryMcAuthor Face'
+      ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
+      ..repository = 'flutter/cocoon'
+      ..sha = 'sha shank redemption';
 
     testWidgets('shows information correctly', (WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
         child: CommitBox(
-          message: message,
-          avatarUrl: avatarUrl,
-          author: author,
+          commit: expectedCommit,
         ),
         textDirection: TextDirection.ltr,
       ));
@@ -33,20 +33,18 @@ void main() {
     testWidgets('shows overlay on click', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
         home: CommitBox(
-          message: message,
-          avatarUrl: avatarUrl,
-          author: author,
+          commit: expectedCommit,
         ),
       ));
 
-      expect(find.text(message), findsNothing);
-      expect(find.text(author), findsNothing);
+      expect(find.text(expectedCommit.sha), findsNothing);
+      expect(find.text(expectedCommit.author), findsNothing);
 
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
 
-      expect(find.text(message), findsOneWidget);
-      expect(find.text(author), findsOneWidget);
+      expect(find.text(expectedCommit.sha), findsOneWidget);
+      expect(find.text(expectedCommit.author), findsOneWidget);
 
       // Image.Network throws a 400 exception in tests
       tester.takeException();
@@ -55,9 +53,7 @@ void main() {
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
         home: CommitBox(
-          message: message,
-          avatarUrl: avatarUrl,
-          author: author,
+          commit: expectedCommit,
         ),
       ));
 
@@ -70,7 +66,7 @@ void main() {
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
 
-      expect(find.text(message), findsNothing);
+      expect(find.text(expectedCommit.sha), findsNothing);
 
       // Image.Network throws a 400 exception in tests
       tester.takeException();
