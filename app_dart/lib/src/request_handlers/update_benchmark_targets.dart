@@ -28,7 +28,6 @@ class UpdateBenchmarkTargets
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-
   static const String timeSeriesKeyParam = 'TimeSeriesKey';
   static const String goalParam = 'Goal';
   static const String baselineParam = 'Baseline';
@@ -39,7 +38,6 @@ class UpdateBenchmarkTargets
         <String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
     final ClientContext clientContext = authContext.clientContext;
-    final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
     double goal = requestData[goalParam];
@@ -53,13 +51,6 @@ class UpdateBenchmarkTargets
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
-    final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(
-      timeSeriesKey,
-      orElse: () {
-        throw BadRequestException('Invalid time series Key: $timeSeriesKey');
-      },
-    );
-
     if (goal < 0) {
       goal = 0;
     }
@@ -67,10 +58,17 @@ class UpdateBenchmarkTargets
       baseline = 0;
     }
 
+    final TimeSeries timeSeries =
+        await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+      throw BadRequestException('No such task: ${timeSeriesKey.id}');
+    });
     timeSeries.goal = goal;
     timeSeries.baseline = baseline;
 
-    await datastore.db.commit(inserts: <TimeSeries>[timeSeries]);
+    await config.db.withTransaction<void>((Transaction transaction) async {
+      transaction.queueMutations(inserts: <TimeSeries>[timeSeries]);
+      await transaction.commit();
+    });
 
     return UpdateBenchmarkTargetsResponse(timeSeries);
   }
@@ -86,9 +84,9 @@ class UpdateBenchmarkTargetsResponse extends JsonBody {
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
+      'Label': timeSeries.label,
       'Goal': timeSeries.goal,
       'Baseline': timeSeries.baseline,
     };
   }
 }
-
