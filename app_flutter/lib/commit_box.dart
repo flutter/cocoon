@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 /// for the author of this commit. Clicking outside of the [OverlayEntry]
 /// will close it.
 class CommitBox extends StatefulWidget {
-  const CommitBox({Key key, @required this.commit}) : super(key: key);
+  const CommitBox({Key key, @required this.commit})
+      : assert(commit != null),
+        super(key: key);
 
   /// The commit being shown
   final Commit commit;
@@ -62,12 +64,15 @@ class CommitOverlayContents extends StatelessWidget {
     @required this.parentContext,
     @required this.commit,
     @required this.closeCallback,
-  }) : super(key: key);
+  })  : assert(parentContext != null),
+        assert(commit != null),
+        assert(closeCallback != null),
+        super(key: key);
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
 
-  /// The commit of the parent widget to show information from
+  /// The commit data to display in the overlay
   final Commit commit;
 
   /// This callback removes the parent overlay from the widget tree.
@@ -108,7 +113,7 @@ class CommitOverlayContents extends StatelessWidget {
                     backgroundImage: NetworkImage(commit.authorAvatarUrl),
                     backgroundColor: Colors.transparent,
                   ),
-                  // TODO(chillers): Show commit message here instead
+                  // TODO(chillers): Show commit message here instead: https://github.com/flutter/cocoon/issues/435
                   title: Text(commit.sha),
                   subtitle: Text(commit.author),
                 ),
