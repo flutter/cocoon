@@ -20,13 +20,10 @@ import '../service/buildbucket.dart';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(
-    Config config,
-    this.buildBucketClient, {
-    HttpClient skiaClient
-  }) : assert(buildBucketClient != null),
-      skiaClient = skiaClient ?? HttpClient(),
-      super(config: config);
+  GithubWebhook(Config config, this.buildBucketClient, {HttpClient skiaClient})
+      : assert(buildBucketClient != null),
+        skiaClient = skiaClient ?? HttpClient(),
+        super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
@@ -64,9 +61,9 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<void> _handlePullRequest(String rawRequest) async {
     final PullRequestEvent event = await _getPullRequest(rawRequest);
     final List<IssueLabel> existingLabels = _getProperty(rawRequest, 'labels')
-      .cast<Map<String, dynamic>>()
-      .map<IssueLabel>(IssueLabel.fromJSON)
-      .toList();
+        .cast<Map<String, dynamic>>()
+        .map<IssueLabel>(IssueLabel.fromJSON)
+        .toList();
     final bool isDraft = _getProperty(rawRequest, 'draft');
     if (event == null) {
       throw const BadRequestException('Expected pull request event.');
@@ -150,23 +147,42 @@ class GithubWebhook extends RequestHandler<Body> {
     BuildBucketClient buildBucketClient,
     ServiceAccountInfo serviceAccount,
   ) async {
-    final SearchBuildsResponse response = await buildBucketClient.searchBuilds(
-      SearchBuildsRequest(
-        predicate: BuildPredicate(
-          builderId: const BuilderId(
-            project: 'flutter',
-            bucket: 'try',
+    final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
+      Request(
+        searchBuilds: SearchBuildsRequest(
+          predicate: BuildPredicate(
+            builderId: const BuilderId(
+              project: 'flutter',
+              bucket: 'try',
+            ),
+            createdBy: serviceAccount.email,
+            tags: <String, List<String>>{
+              'buildset': <String>['pr/git/$number'],
+              'github_link': <String>['https://github.com/flutter/$repositoryName/pull/$number'],
+              'user_agent': const <String>['flutter-cocoon'],
+            },
           ),
-          createdBy: serviceAccount.email,
-          tags: <String, List<String>>{
-            'buildset': <String>['pr/git/$number'],
-            'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
-            'user_agent': const <String>['flutter-cocoon'],
-          },
         ),
       ),
-    );
-    return response.builds;
+      Request(
+        searchBuilds: SearchBuildsRequest(
+          predicate: BuildPredicate(
+            builderId: const BuilderId(
+              project: 'flutter',
+              bucket: 'try',
+            ),
+            tags: <String, List<String>>{
+              'buildset': <String>['pr/git/$number'],
+              'user_agent': const <String>['recipe'],
+            },
+          ),
+        ),
+      ),
+    ]));
+    return batch.responses
+        .map((Response response) => response.searchBuilds)
+        .expand((SearchBuildsResponse response) => response.builds)
+        .toList();
   }
 
   Future<bool> _scheduleLuci({
@@ -221,7 +237,7 @@ class GithubWebhook extends RequestHandler<Body> {
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
               'user_agent': const <String>['flutter-cocoon'],
-              'github_link': <String>['https://github.com/flutter/$repositoryName/pulls/$number'],
+              'github_link': <String>['https://github.com/flutter/$repositoryName/pull/$number'],
             },
             properties: <String, String>{
               'git_url': 'https://github.com/flutter/$repositoryName',
@@ -289,29 +305,25 @@ class GithubWebhook extends RequestHandler<Body> {
     bool ignored = false;
     String rawResponse;
     try {
-      final HttpClientRequest request = await skiaClient.getUrl(
-        Uri.parse('https://flutter-gold.skia.org/json/ignores')
-      );
+      final HttpClientRequest request =
+          await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
       final HttpClientResponse response = await request.close();
       rawResponse = await utf8.decodeStream(response);
       final List<dynamic> ignores = jsonDecode(rawResponse);
       for (Map<String, dynamic> ignore in ignores) {
         if (ignore['note'].isNotEmpty &&
-          event.number.toString() == ignore['note'].split('/').last) {
+            event.number.toString() == ignore['note'].split('/').last) {
           ignored = true;
           break;
         }
       }
-    } on IOException catch(e) {
-      log.error(
-        'Request to Flutter Gold for ignores failed for PR '
+    } on IOException catch (e) {
+      log.error('Request to Flutter Gold for ignores failed for PR '
           '#${event.number} on action: ${event.action}.\n'
-          'error: $e'
-      );
-    } on FormatException catch(_) {
+          'error: $e');
+    } on FormatException catch (_) {
       log.error('Format Exception from Flutter Gold ignore request.\n'
-        'rawResponse: $rawResponse'
-      );
+          'rawResponse: $rawResponse');
       rethrow;
     }
     return ignored;
@@ -319,12 +331,12 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _checkForGoldenTriage(
     PullRequestEvent event,
-    List<IssueLabel>labels,
+    List<IssueLabel> labels,
   ) async {
     final List<String> labelNames =
-      List<String>.generate(labels.length, (int index) => labels[index].name);
+        List<String>.generate(labels.length, (int index) => labels[index].name);
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-      (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
+        (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
@@ -482,7 +494,8 @@ class GithubWebhook extends RequestHandler<Body> {
     RepositorySlug slug,
     String message,
   ) async {
-    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, event.number);
+    final Stream<IssueComment> comments =
+        gitHubClient.issues.listCommentsByIssue(slug, event.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(message)) {
         return true;
