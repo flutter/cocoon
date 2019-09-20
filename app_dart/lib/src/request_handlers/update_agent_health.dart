@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -25,31 +24,32 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-
-  static const String agentIdParam = 'AgentID';
+  static const String agentIDParam = 'AgentID';
   static const String isHealthyParam = 'IsHealthy';
   static const String healthDetailsParam = 'HealthDetails';
 
   @override
   Future<UpdateAgentHealthResponse> post() async {
-    checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
+    checkRequiredParameters(<String>[isHealthyParam, healthDetailsParam]);
 
-    final String agentId = requestData[agentIdParam];
     final bool isHealthy = requestData[isHealthyParam];
     final String healthDetails = requestData[healthDetailsParam];
-    final DatastoreService datastore = datastoreProvider();
-    final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
-    final Agent agent = await datastore.db.lookupValue<Agent>(
-      key,
-      orElse: () {
-        throw BadRequestException('Invalid agent ID: $agentId');
-      },
-    );
 
+    final Query<Agent> query = config.db.query<Agent>()
+      ..filter('agentID =', requestData[agentIDParam]);
+    final List<Agent> agents = await query.run().toList();
+    assert(agents.length <= 1);
+    if (agents.isEmpty) {
+      return Body.empty;
+    }
+    final Agent agent = agents.single;
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
 
-    await datastore.db.commit(inserts: <Agent>[agent]);
+    await config.db.withTransaction<void>((Transaction transaction) async {
+      transaction.queueMutations(inserts: <Agent>[agent]);
+      await transaction.commit();
+    });
 
     return UpdateAgentHealthResponse(agent);
   }
@@ -70,4 +70,3 @@ class UpdateAgentHealthResponse extends JsonBody {
     };
   }
 }
-

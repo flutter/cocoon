@@ -18,7 +18,8 @@ import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
 @immutable
-class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
+class UpdateTimeSeries
+    extends ApiRequestHandler<UpdateTimeSeriesResponse> {
   const UpdateTimeSeries(
     Config config,
     AuthenticationProvider authenticationProvider, {
@@ -27,28 +28,19 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-
-  static const String archivedParam = 'Archived';
-  static const String baselineParam = 'Baseline';
-  static const String goalParam = 'Goal';
-  static const String labelParam = 'Label';
-  static const String taskNameParam = 'TaskName';
   static const String timeSeriesKeyParam = 'TimeSeriesKey';
+  static const String goalParam = 'Goal';
+  static const String baselineParam = 'Baseline';
+  static const String taskNameParam = 'TaskName';
+  static const String labelParam = 'Label';
   static const String unitParam = 'Unit';
+  static const String archivedParam = 'Archived';
 
   @override
   Future<UpdateTimeSeriesResponse> post() async {
-    checkRequiredParameters(<String>[
-      timeSeriesKeyParam,
-      goalParam,
-      baselineParam,
-      taskNameParam,
-      labelParam,
-      unitParam,
-      archivedParam
-    ]);
+    checkRequiredParameters(
+        <String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
-    final DatastoreService datastore = datastoreProvider();
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
@@ -57,7 +49,7 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
     final String taskName = requestData[taskNameParam];
     final String label = requestData[labelParam];
     final String unit = requestData[unitParam];
-    final bool archived = requestData[archivedParam];
+    final bool archived = requestData[archivedParam]; 
 
     Key timeSeriesKey;
     try {
@@ -74,22 +66,19 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
       baseline = 0;
     }
     if (taskName.isEmpty) {
-      throw const BadRequestException('Missing required parameter: TaskName');
+      throw BadRequestException('Missing required parameter: TaskName');
     }
     if (label.isEmpty) {
-      throw const BadRequestException('Missing required parameter: Label');
+      throw BadRequestException('Missing required parameter: Label');
     }
     if (unit.isEmpty) {
-      throw const BadRequestException('Missing required parameter: Unit');
+      throw BadRequestException('Missing required parameter: Unit');
     }
 
-    final TimeSeries timeSeries = await datastore.db.lookupValue<TimeSeries>(
-      timeSeriesKey,
-      orElse: () {
-        throw BadRequestException('No such timeseries: ${timeSeriesKey.id}');
-      },
-    );
-
+    final TimeSeries timeSeries =
+        await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+      throw BadRequestException('No such task: ${timeSeriesKey.id}');
+    });
     timeSeries.goal = goal;
     timeSeries.taskName = taskName;
     timeSeries.label = label;
@@ -97,7 +86,10 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
     timeSeries.baseline = baseline;
     timeSeries.archived = archived;
 
-    await datastore.db.commit(inserts: <TimeSeries>[timeSeries]);
+    await config.db.withTransaction<void>((Transaction transaction) async {
+      transaction.queueMutations(inserts: <TimeSeries>[timeSeries]);
+      await transaction.commit();
+    });
 
     return UpdateTimeSeriesResponse(timeSeries);
   }
@@ -105,7 +97,8 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
 
 @immutable
 class UpdateTimeSeriesResponse extends JsonBody {
-  const UpdateTimeSeriesResponse(this.timeSeries) : assert(timeSeries != null);
+  const UpdateTimeSeriesResponse(this.timeSeries)
+      : assert(timeSeries != null);
 
   final TimeSeries timeSeries;
 
@@ -113,9 +106,11 @@ class UpdateTimeSeriesResponse extends JsonBody {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'Goal': timeSeries.goal,
+      'TaskName': timeSeries.taskName,
+      'Label': timeSeries.label,
+      'Unit': timeSeries.unit,
       'Baseline': timeSeries.baseline,
       'Archived': timeSeries.archived,
     };
   }
 }
-
