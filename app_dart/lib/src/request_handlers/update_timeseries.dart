@@ -66,13 +66,13 @@ class UpdateTimeSeries
       baseline = 0;
     }
     if (taskName.isEmpty) {
-      throw BadRequestException('Missing required parameter: TaskName');
+      throw const BadRequestException('Missing required parameter: TaskName');
     }
     if (label.isEmpty) {
-      throw BadRequestException('Missing required parameter: Label');
+      throw const BadRequestException('Missing required parameter: Label');
     }
     if (unit.isEmpty) {
-      throw BadRequestException('Missing required parameter: Unit');
+      throw const BadRequestException('Missing required parameter: Unit');
     }
 
     final TimeSeries timeSeries =
