@@ -9,18 +9,27 @@ import 'dart:convert';
 
 import 'cocoon.dart';
 
+/// CocoonService for interacting with flutter/flutter production build data.
+///
+/// This queries API endpoints that are hosted on AppEngine.
 class AppEngineCocoonService implements CocoonService {
   /// The Cocoon API endpoint to query
+  ///
+  /// This is the base for all API requests to cocoon
   static const baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
 
   @override
   Future<List<CommitStatus>> getStats() async {
+    /// This endpoint returns a JSON [List<Agent>, List<CommitStatus>]
     var response = await http.get('$baseApiUrl/public/get-status');
 
+    return _jsonDecodeCommitStatuses(jsonDecode(response.body)[1]);
+  }
+
+  List<CommitStatus> _jsonDecodeCommitStatuses(List<String> pieces) {
     List<CommitStatus> statuses = List();
 
-    List<dynamic> responsePiece = jsonDecode(response.body);
-    responsePiece.map((piece) => statuses.add(CommitStatus.fromJson(piece)));
+    pieces.map((piece) => statuses.add(CommitStatus.fromJson(piece)));
 
     return statuses;
   }
