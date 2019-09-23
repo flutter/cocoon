@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 
 import 'commit_box.dart';
@@ -36,11 +37,12 @@ class StatusGrid extends StatelessWidget {
               // TODO(chillers): Use StageModel data
               if (index % columnCount == 0) {
                 return CommitBox(
-                  message: 'commit #$index',
-                  author: 'author #$index',
-                  avatarUrl:
-                      'https://avatars2.githubusercontent.com/u/2148558?v=4',
-                );
+                    commit: Commit()
+                      ..author = 'AuthoryMcAuthor #$index'
+                      ..authorAvatarUrl =
+                          'https://avatars2.githubusercontent.com/u/2148558?v=4'
+                      ..repository = 'flutter/cocoon'
+                      ..sha = 'sha shank redemption');
               }
 
               return ResultBox(message: 'Succeeded');
