@@ -29,7 +29,7 @@ class AppEngineCocoonService implements CocoonService {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     http.Response response = await client.get('$baseApiUrl/public/get-status');
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != HttpStatus.ok) {
       throw HttpException(
           '$baseApiUrl/public/get-status returned ${response.statusCode}');
     }
