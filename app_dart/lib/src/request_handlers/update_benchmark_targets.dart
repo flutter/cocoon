@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -19,25 +18,26 @@ import '../service/datastore.dart';
 
 @immutable
 class UpdateBenchmarkTargets
-    extends ApiRequestHandler<UpdateBenchmarkTargetsResponse> {
+    extends ApiRequestHandler<Body> {
   const UpdateBenchmarkTargets(
-    Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+
   static const String timeSeriesKeyParam = 'TimeSeriesKey';
   static const String goalParam = 'Goal';
   static const String baselineParam = 'Baseline';
 
   @override
-  Future<UpdateBenchmarkTargetsResponse> post() async {
+  Future<Body> post() async {
     checkRequiredParameters(
         <String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
     final ClientContext clientContext = authContext.clientContext;
+    final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
     double goal = requestData[goalParam];
@@ -59,34 +59,18 @@ class UpdateBenchmarkTargets
     }
 
     final TimeSeries timeSeries =
-        await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+        await datastore.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
       throw BadRequestException('No such task: ${timeSeriesKey.id}');
     });
     timeSeries.goal = goal;
     timeSeries.baseline = baseline;
 
-    await config.db.withTransaction<void>((Transaction transaction) async {
-      transaction.queueMutations(inserts: <TimeSeries>[timeSeries]);
-      await transaction.commit();
-    });
+    await datastore.db.commit(inserts: <TimeSeries>[timeSeries]);
 
-    return UpdateBenchmarkTargetsResponse(timeSeries);
-  }
-}
-
-@immutable
-class UpdateBenchmarkTargetsResponse extends JsonBody {
-  const UpdateBenchmarkTargetsResponse(this.timeSeries)
-      : assert(timeSeries != null);
-
-  final TimeSeries timeSeries;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
+    return Body.forJson(<String, dynamic>{
       'Label': timeSeries.label,
       'Goal': timeSeries.goal,
       'Baseline': timeSeries.baseline,
-    };
+    });
   }
 }
