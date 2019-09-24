@@ -18,10 +18,12 @@ class AppEngineCocoonService implements CocoonService {
   /// This is the base for all API requests to cocoon
   static const baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
 
+  http.Client client = http.Client();
+
   @override
   Future<List<CommitStatus>> getStats() async {
     /// This endpoint returns a JSON [List<Agent>, List<CommitStatus>]
-    var response = await http.get('$baseApiUrl/public/get-status');
+    var response = await client.get('$baseApiUrl/public/get-status');
 
     return _jsonDecodeCommitStatuses(jsonDecode(response.body)[1]);
   }

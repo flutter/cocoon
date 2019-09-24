@@ -7,6 +7,7 @@ import 'dart:ffi';
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 import 'package:fixnum/fixnum.dart';
+import 'package:http/src/mock_client.dart';
 
 import 'appengine_cocoon.dart';
 
