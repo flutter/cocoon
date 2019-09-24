@@ -4,14 +4,16 @@
 
 import 'package:flutter/material.dart';
 
-/// Parent widget for an individual result.
+import 'package:cocoon_service/protos.dart' show Task;
+
+/// Displays information from a [Task].
 ///
 /// Shows a black box for unknown messages.
-class ResultBox extends StatelessWidget {
-  const ResultBox({Key key, @required this.message}) : super(key: key);
+class TaskBox extends StatelessWidget {
+  const TaskBox({Key key, @required this.task}) : super(key: key);
 
-  // TODO(chillers): Make this an enum
-  final String message;
+  /// [Task] to show information from.
+  final Task task;
 
   /// A lookup table to define the background color for this ResultBox.
   ///
@@ -20,7 +22,7 @@ class ResultBox extends StatelessWidget {
     'Failed': Colors.red,
     'In Progress': Colors.purple, // v1 used the 'New' color while spinning
     'New': Colors.blue,
-    'Skipped': Colors.white,
+    'Skipped': Colors.transparent,
     'Succeeded': Colors.green,
     'Underperformed': Colors.orange,
   };
@@ -29,8 +31,8 @@ class ResultBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(1.0),
-      color: resultColor.containsKey(message)
-          ? resultColor[message]
+      color: resultColor.containsKey(task.status)
+          ? resultColor[task.status]
           : Colors.black,
       width: 20,
       height: 20,

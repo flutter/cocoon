@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 import 'package:flutter/material.dart';
 
 import 'commit_box.dart';
-import 'result_box.dart';
+import 'task_box.dart';
 
 /// Display results from flutter/flutter repository's continuous integration.
 ///
@@ -45,7 +45,7 @@ class StatusGrid extends StatelessWidget {
                       ..sha = 'sha shank redemption');
               }
 
-              return ResultBox(message: 'Succeeded');
+              return TaskBox(task: Task()..status = 'Succeeded');
             },
           ),
         ),
