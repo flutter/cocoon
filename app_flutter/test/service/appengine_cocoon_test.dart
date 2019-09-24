@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:fixnum/fixnum.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' show Response;
+import 'package:http/testing.dart';
+
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
-import 'package:test/test.dart';
-
-import 'package:http/http.dart' show Response;
-import 'package:http/testing.dart';
-import 'package:fixnum/fixnum.dart';
 
 void main() {
   // This is based off data the Cocoon backend sends out from v1.
