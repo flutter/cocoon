@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
 import 'package:test/test.dart';
 
 import 'package:http/http.dart' show Response;
@@ -88,7 +89,22 @@ void main() {
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'
           ..repository = 'flutter/cocoon')
-        ..stages.add(Stage());
+        ..stages.add(Stage()
+          ..name = 'devicelab'
+          ..taskStatus = 'Succeeded'
+          ..tasks.add(Task()
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..name = 'complex_layout_semantics_perf'
+            ..attempts = 1
+            ..isFlaky = false
+            ..timeoutInMinutes = 0
+            ..reason = ''
+            ..requiredCapabilities.add('[linux/android]')
+            ..reservedForAgentId = 'linux2'
+            ..stageName = 'devicelab'
+            ..status = 'Succeeded'));
 
       expect(statuses.length, 1);
       expect(statuses.elementAt(0), expectedStatus);
