@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 import 'package:http/http.dart' as http;
 
@@ -23,9 +25,14 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<List<CommitStatus>> getStats() async {
     /// This endpoint returns a JSON [List<Agent>, List<CommitStatus>]
-    var response = await client.get('$baseApiUrl/public/get-status');
+    http.Response response = await client.get('$baseApiUrl/public/get-status');
 
-    return _jsonDecodeCommitStatuses(jsonDecode(response.body)[1]);
+    if (response.statusCode != 200) {
+      throw new HttpException(
+          '$baseApiUrl/public/get-status returned ${response.statusCode}');
+    }
+
+    return _jsonDecodeCommitStatuses(jsonDecode(response.body));
   }
 
   List<CommitStatus> _jsonDecodeCommitStatuses(List<String> pieces) {

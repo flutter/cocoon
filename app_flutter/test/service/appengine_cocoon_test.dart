@@ -10,19 +10,53 @@ import 'package:http/http.dart' show Response;
 import 'package:http/testing.dart';
 
 void main() {
-  group('AppEngine CocoonService', () {
-    test('should make an http request', () {
-      final AppEngineCocoonService service = AppEngineCocoonService();
-      service.client = MockClient((request) {
-        const String jsonResponse = """
-        {"Statuses": ["Checklist": {"Key": "iamatestkey", "Checklist": {"FlutterRepositoryPath": "flutter/cocoon", "CreateTimestamp": 123456789, "Commit": {"Sha": "ShaShankHash", "Author": {"Login": "iamacontributor", "avatar_url": "https://google.com"}}}}, "Stages": []], "AgentStatuses": []}
-        """;
+  final String jsonGetStatsResponse = """
+        {
+          "Statuses": {
+            "Checklist": {
+              "Key": "iamatestkey", 
+              "Checklist": {
+                "FlutterRepositoryPath": "flutter/cocoon", 
+                "CreateTimestamp": 123456789, 
+                "Commit": {
+                  "Sha": "ShaShankHash", 
+                  "Author": {
+                    "Login": "iamacontributor", 
+                    "avatar_url": "https://google.com"
+                    }
+                  }
+                }
+              }, 
+              "Stages": []
+            }, 
+          "AgentStatuses": []
+        }
+  """;
 
+  group('AppEngine CocoonService', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService();
+      service.client = MockClient((request) {
+        return Future<Response>.delayed(Duration(microseconds: 100),
+            () => Response(jsonGetStatsResponse, 200));
+      });
+    });
+
+    test('should return List<CommitStatus>', () {
+      expect(service.getStats(), TypeMatcher<Future<List<CommitStatus>>>());
+    });
+
+    test('should return expected List<CommitStatus>', () {});
+
+    test('should throw HttpException if given non-200 response', () {
+      service.client = MockClient((request) {
         return Future<Response>.delayed(
-            Duration(microseconds: 500), () => Response(jsonResponse, 200));
+            Duration(microseconds: 100), () => Response('', 404));
       });
 
-      expect(service.getStats(), TypeMatcher<Future<CommitStatus>>());
+      expect(service.getStats(), throwsException);
     });
   });
 }
