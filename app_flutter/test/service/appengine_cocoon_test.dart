@@ -12,7 +12,8 @@ import 'package:http/testing.dart';
 void main() {
   final String jsonGetStatsResponse = """
         {
-          "Statuses": {
+          "Statuses": [
+            {
             "Checklist": {
               "Key": "iamatestkey", 
               "Checklist": {
@@ -27,8 +28,22 @@ void main() {
                   }
                 }
               }, 
-              "Stages": []
-            }, 
+              "Stages": [
+                {
+                  "Name": "devicelab",
+                  "Status": "Succeeded",
+                  "Tasks": [
+                    {
+                      "Key": "taskKey1",
+                      "Task": {
+                        "Attempts": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ], 
           "AgentStatuses": []
         }
   """;
@@ -44,13 +59,13 @@ void main() {
       });
     });
 
-    test('should return List<CommitStatus>', () {
+    test('should return List<CommitStatus>', () async {
       expect(service.getStats(), TypeMatcher<Future<List<CommitStatus>>>());
     });
 
     test('should return expected List<CommitStatus>', () {});
 
-    test('should throw HttpException if given non-200 response', () {
+    test('should throw exception if given non-200 response', () async {
       service.client = MockClient((request) {
         return Future<Response>.delayed(
             Duration(microseconds: 100), () => Response('', 404));
@@ -58,5 +73,7 @@ void main() {
 
       expect(service.getStats(), throwsException);
     });
+
+    test('should throw exception if given bad response', () async {});
   });
 }

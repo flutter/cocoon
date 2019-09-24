@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:convert';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
 import 'package:http/http.dart' as http;
 
-import 'dart:convert';
+import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import 'cocoon.dart';
 
@@ -32,13 +32,21 @@ class AppEngineCocoonService implements CocoonService {
           '$baseApiUrl/public/get-status returned ${response.statusCode}');
     }
 
-    return _jsonDecodeCommitStatuses(jsonDecode(response.body));
+    Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+    assert(jsonResponse != null);
+
+    return _jsonDecodeCommitStatuses(jsonResponse['Statuses']);
   }
 
-  List<CommitStatus> _jsonDecodeCommitStatuses(List<String> pieces) {
+  List<CommitStatus> _jsonDecodeCommitStatuses(
+      List<dynamic> jsonCommitStatuses) {
+    assert(jsonCommitStatuses != null);
+
     List<CommitStatus> statuses = List();
 
-    pieces.map((piece) => statuses.add(CommitStatus.fromJson(piece)));
+    jsonCommitStatuses.map((jsonCommitStatus) {
+      statuses.add(CommitStatus.fromJson(jsonCommitStatus));
+    });
 
     return statuses;
   }
