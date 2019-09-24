@@ -9,7 +9,7 @@ import 'package:cocoon_service/protos.dart'
 
 import 'cocoon.dart';
 
-class MockCocoonService implements CocoonService {
+class FakeCocoonService implements CocoonService {
   @override
   Future<List<CommitStatus>> getStats() {
     return Future.delayed(Duration(seconds: 1), () => _getFakeStats());

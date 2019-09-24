@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import 'appengine_cocoon.dart';
-import 'mock_cocoon.dart';
+import 'fake_cocoon.dart';
 
 /// Service class for interacting with flutter/flutter build data.
 ///
@@ -14,16 +16,15 @@ abstract class CocoonService {
   /// Creates a new [CocoonService] based on if the Flutter app is in production.
   ///
   /// Production uses the Cocoon backend running on AppEngine.
-  /// Otherwise, it uses fake data populated from a mock service.
+  /// Otherwise, it uses fake data populated from a fake service.
   factory CocoonService() {
-    const bool isProduction = bool.fromEnvironment('dart.vm.product');
-    if (isProduction) {
+    if (kReleaseMode) {
       return AppEngineCocoonService();
     }
 
     // TODO(chillers): LocalCocoonService. https://github.com/flutter/cocoon/issues/442
 
-    return MockCocoonService();
+    return FakeCocoonService();
   }
 
   /// Gets build information from the last 200 commits.
