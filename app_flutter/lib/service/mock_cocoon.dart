@@ -44,9 +44,12 @@ class MockCocoonService implements CocoonService {
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(List.generate(3, (i) => _getFakeTask(i))));
+      ..tasks.addAll(List.generate(15, (i) => _getFakeTask(i))));
 
-    // TODO(chillers): Generate multiple stages to mimick production.
+    stages.add(Stage()
+      ..commit = commit
+      ..name = 'devicelab_win'
+      ..tasks.addAll(List.generate(3, (i) => _getFakeTask(i))));
 
     return stages;
   }
