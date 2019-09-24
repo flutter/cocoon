@@ -9,23 +9,26 @@ import 'package:cocoon_service/protos.dart'
 
 import 'cocoon.dart';
 
+/// [CocoonService] for local development purposes.
+///
+/// This creates fake data that mimicks what production will send.
 class FakeCocoonService implements CocoonService {
   @override
   Future<List<CommitStatus>> getStats() {
-    return Future.value(_getFakeStats());
+    return Future.value(_createFakeCommitStatuses());
   }
 
-  List<CommitStatus> _getFakeStats() {
+  List<CommitStatus> _createFakeCommitStatuses() {
     List<CommitStatus> stats = <CommitStatus>[];
 
     final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     for (int i = 0; i < 100; i++) {
-      Commit commit = _getFakeCommit(i, baseTimestamp);
+      Commit commit = _createFakeCommit(i, baseTimestamp);
 
       CommitStatus status = CommitStatus()
         ..commit = commit
-        ..stages.addAll(_getFakeStages(i, commit));
+        ..stages.addAll(_createFakeStages(i, commit));
 
       stats.add(status);
     }
@@ -33,7 +36,7 @@ class FakeCocoonService implements CocoonService {
     return stats;
   }
 
-  Commit _getFakeCommit(int index, int baseTimestamp) {
+  Commit _createFakeCommit(int index, int baseTimestamp) {
     return Commit()
       ..author = 'Author McAuthory $index'
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
@@ -42,23 +45,23 @@ class FakeCocoonService implements CocoonService {
       ..timestamp = Int64(baseTimestamp - (index * 100));
   }
 
-  List<Stage> _getFakeStages(int index, Commit commit) {
+  List<Stage> _createFakeStages(int index, Commit commit) {
     List<Stage> stages = <Stage>[];
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(List.generate(15, (i) => _getFakeTask(i))));
+      ..tasks.addAll(List.generate(15, (i) => _createFakeTask(i))));
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab_win'
-      ..tasks.addAll(List.generate(3, (i) => _getFakeTask(i))));
+      ..tasks.addAll(List.generate(3, (i) => _createFakeTask(i))));
 
     return stages;
   }
 
-  Task _getFakeTask(int index) {
+  Task _createFakeTask(int index) {
     return Task()
       ..createTimestamp = Int64(index)
       ..startTimestamp = Int64(index + 1)
