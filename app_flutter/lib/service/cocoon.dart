@@ -2,14 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:ffi';
-
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
-import 'package:fixnum/fixnum.dart';
-import 'package:http/src/mock_client.dart';
+import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import 'appengine_cocoon.dart';
+import 'mock_cocoon.dart';
 
 /// Service class for interacting with flutter/flutter build data.
 ///
@@ -25,6 +21,8 @@ abstract class CocoonService {
       return AppEngineCocoonService();
     }
 
+    // TODO(chillers): LocalCocoonService. https://github.com/flutter/cocoon/issues/442
+
     return MockCocoonService();
   }
 
@@ -32,55 +30,4 @@ abstract class CocoonService {
   ///
   /// TODO(chillers): Make configurable to get range of commits
   Future<List<CommitStatus>> getStats();
-}
-
-class MockCocoonService implements CocoonService {
-  @override
-  Future<List<CommitStatus>> getStats() {
-    return Future.delayed(Duration(seconds: 1), () => _getFakeStats());
-  }
-
-  List<CommitStatus> _getFakeStats() {
-    List<CommitStatus> stats = List();
-
-    final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
-
-    for (int i = 0; i < 100; i++) {
-      Commit commit = _getFakeCommit(i, baseTimestamp);
-
-      CommitStatus status = CommitStatus()
-        ..commit = commit
-        ..stages.addAll(_getFakeStages(i, commit));
-
-      stats.add(status);
-    }
-
-    return stats;
-  }
-
-  Commit _getFakeCommit(int index, int baseTimestamp) {
-    return Commit()
-      ..author = 'Author McAuthory $index'
-      ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
-      ..repository = 'flutter/cocoon'
-      ..sha = 'Sha Shank Hash $index'
-      ..timestamp = (baseTimestamp - (index * 100)) as Int64;
-  }
-
-  List<Stage> _getFakeStages(int index, Commit commit) {
-    List<Stage> stages = List();
-
-    stages.add(Stage()
-      ..commit = commit
-      ..name = 'chromebot'
-      ..tasks.addAll(List.generate(3, (i) => _getFakeTask(i))));
-
-    // TODO(chillers): Generate multiple stages to mimick production.
-
-    return stages;
-  }
-
-  Task _getFakeTask(int index) {
-    return Task();
-  }
 }

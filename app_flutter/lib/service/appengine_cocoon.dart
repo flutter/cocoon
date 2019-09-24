@@ -26,7 +26,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<List<CommitStatus>> getStats() async {
-    /// This endpoint returns a JSON [List<Agent>, List<CommitStatus>]
+    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     http.Response response = await client.get('$baseApiUrl/public/get-status');
 
     if (response.statusCode != 200) {
@@ -67,6 +67,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<Stage> _stagesFromJson(List<dynamic> json) {
+    assert(json != null);
     List<Stage> stages = List();
 
     json.forEach((jsonStage) => stages.add(_stageFromJson(jsonStage)));
@@ -84,6 +85,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<Task> _tasksFromJson(List<dynamic> json) {
+    assert(json != null);
     List<Task> tasks = List();
 
     json.forEach((jsonTask) => tasks.add(_taskFromJson(jsonTask['Task'])));
