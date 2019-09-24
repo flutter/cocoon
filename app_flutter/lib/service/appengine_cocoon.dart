@@ -8,7 +8,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
 
 import 'cocoon.dart';
 
@@ -36,36 +37,80 @@ class AppEngineCocoonService implements CocoonService {
     Map<String, dynamic> jsonResponse = jsonDecode(response.body);
     assert(jsonResponse != null);
 
-    return _jsonDecodeCommitStatuses(jsonResponse['Statuses']);
+    return _commitStatusesFromJson(jsonResponse['Statuses']);
   }
 
-  List<CommitStatus> _jsonDecodeCommitStatuses(
-      List<dynamic> jsonCommitStatuses) {
+  List<CommitStatus> _commitStatusesFromJson(List<dynamic> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     List<CommitStatus> statuses = List();
 
     jsonCommitStatuses.forEach((jsonCommitStatus) {
-      var jsonCommit = jsonCommitStatus['Checklist']['Checklist'];
-      assert(jsonCommit != null);
-
-      Commit commit = Commit()
-        ..timestamp = Int64() + jsonCommit['CreateTimestamp']
-        ..sha = jsonCommit['Commit']['Sha']
-        ..author = jsonCommit['Commit']['Author']['Login']
-        ..authorAvatarUrl = jsonCommit['Commit']['Author']['avatar_url']
-        ..repository = jsonCommit['FlutterRepositoryPath'];
-
-      List<dynamic> stagePieces = jsonCommitStatus['Stages'];
-      List<Stage> stages = List();
-      stagePieces.map((piece) => stages.add(Stage.fromJson(piece)));
-
       statuses.add(CommitStatus()
-        ..commit = commit
-        ..stages.addAll(stages));
+        ..commit = _commitFromJson(jsonCommitStatus['Checklist']['Checklist'])
+        ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
     });
 
     return statuses;
+  }
+
+  Commit _commitFromJson(Map<String, dynamic> jsonCommit) {
+    assert(jsonCommit != null);
+
+    return Commit()
+      ..timestamp = Int64() + jsonCommit['CreateTimestamp']
+      ..sha = jsonCommit['Commit']['Sha']
+      ..author = jsonCommit['Commit']['Author']['Login']
+      ..authorAvatarUrl = jsonCommit['Commit']['Author']['avatar_url']
+      ..repository = jsonCommit['FlutterRepositoryPath'];
+  }
+
+  List<Stage> _stagesFromJson(List<dynamic> json) {
+    List<Stage> stages = List();
+
+    json.forEach((jsonStage) => stages.add(_stageFromJson(jsonStage)));
+
+    return stages;
+  }
+
+  Stage _stageFromJson(Map<String, dynamic> json) {
+    assert(json != null);
+
+    return Stage()
+      ..name = json['Name']
+      ..tasks.addAll(_tasksFromJson(json['Tasks']))
+      ..taskStatus = json['Status'];
+  }
+
+  List<Task> _tasksFromJson(List<dynamic> json) {
+    List<Task> tasks = List();
+
+    json.forEach((jsonTask) => tasks.add(_taskFromJson(jsonTask['Task'])));
+
+    return tasks;
+  }
+
+  Task _taskFromJson(Map<String, dynamic> json) {
+    assert(json != null);
+
+    List<String> requiredCapabilities = List();
+    List<dynamic> dynamicRequiredCapabilities = json['RequiredCapabilities'];
+    dynamicRequiredCapabilities.forEach((dynamicCapability) =>
+        requiredCapabilities.add(dynamicRequiredCapabilities.toString()));
+
+    return Task()
+      ..createTimestamp = Int64(json['CreateTimestamp'])
+      ..startTimestamp = Int64(json['StartTimestamp'])
+      ..endTimestamp = Int64(json['EndTimestamp'])
+      ..name = json['Name']
+      ..attempts = json['Attempts']
+      ..isFlaky = json['Flaky']
+      ..timeoutInMinutes = json['TimeoutInMinutes']
+      ..reason = json['Reason']
+      ..requiredCapabilities.addAll(requiredCapabilities)
+      ..reservedForAgentId = json['ReservedForAgentID']
+      ..stageName = json['StageName']
+      ..status = json['Status'];
   }
 }

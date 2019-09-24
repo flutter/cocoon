@@ -12,8 +12,8 @@ import 'package:fixnum/fixnum.dart';
 
 void main() {
   // This is based off data the Cocoon backend sends out from v1.
-  // It doesn't map perfectly to the protos since the backend does
-  // not use the protos yet.
+  // It doesn't map directly to protos since the backend does
+  // not use protos yet.
   final String jsonGetStatsResponse = """
         {
           "Statuses": [
@@ -40,7 +40,18 @@ void main() {
                     {
                       "Key": "taskKey1",
                       "Task": {
-                        "Attempts": 1
+                        "Attempts": 1,
+                        "CreateTimestamp": 1569353940885,
+                        "EndTimestamp": 1569354700642,
+                        "Flaky": false,
+                        "Name": "complex_layout_semantics_perf",
+                        "Reason": "",
+                        "RequiredCapabilities": ["linux/android"],
+                        "ReservedForAgentID": "linux2",
+                        "StageName": "devicelab",
+                        "StartTimestamp": 1569354594672,
+                        "Status": "Succeeded",
+                        "TimeoutInMinutes": 0
                       }
                     }
                   ]
