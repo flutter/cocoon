@@ -30,7 +30,7 @@ class AppEngineCocoonService implements CocoonService {
     http.Response response = await client.get('$baseApiUrl/public/get-status');
 
     if (response.statusCode != 200) {
-      throw new HttpException(
+      throw HttpException(
           '$baseApiUrl/public/get-status returned ${response.statusCode}');
     }
 
