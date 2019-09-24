@@ -59,21 +59,24 @@ void main() {
       });
     });
 
-    test('should return List<CommitStatus>', () async {
+    test('should return List<CommitStatus>', () {
       expect(service.getStats(), TypeMatcher<Future<List<CommitStatus>>>());
     });
 
     test('should return expected List<CommitStatus>', () {});
 
-    test('should throw exception if given non-200 response', () async {
-      service.client = MockClient((request) {
-        return Future<Response>.delayed(
-            Duration(microseconds: 100), () => Response('', 404));
-      });
+    test('should throw exception if given non-200 response', () {
+      service.client = MockClient((request) => Future<Response>.delayed(
+          Duration(microseconds: 100), () => Response('', 404)));
 
       expect(service.getStats(), throwsException);
     });
 
-    test('should throw exception if given bad response', () async {});
+    test('should throw exception if given bad response', () {
+      service.client = MockClient((request) => Future<Response>.delayed(
+          Duration(microseconds: 100), () => Response('bad', 200)));
+
+      expect(service.getStats(), throwsException);
+    });
   });
 }
