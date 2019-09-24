@@ -70,9 +70,8 @@ void main() {
 
     setUp(() async {
       service = AppEngineCocoonService();
-      service.client = MockClient((request) {
-        return Future<Response>.delayed(Duration(microseconds: 100),
-            () => Response(jsonGetStatsResponse, 200));
+      service.client = MockClient((request) async {
+        return Response(jsonGetStatsResponse, 200);
       });
     });
 
@@ -112,15 +111,13 @@ void main() {
     });
 
     test('should throw exception if given non-200 response', () {
-      service.client = MockClient((request) => Future<Response>.delayed(
-          Duration(microseconds: 100), () => Response('', 404)));
+      service.client = MockClient((request) async => Response('', 404));
 
       expect(service.getStats(), throwsException);
     });
 
     test('should throw exception if given bad response', () {
-      service.client = MockClient((request) => Future<Response>.delayed(
-          Duration(microseconds: 100), () => Response('bad', 200)));
+      service.client = MockClient((request) async => Response('bad', 200));
 
       expect(service.getStats(), throwsException);
     });
