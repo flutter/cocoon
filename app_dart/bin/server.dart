@@ -33,10 +33,10 @@ Future<void> main() async {
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
-      '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
-      '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
+      '/api/update-agent-health': UpdateAgentHealth(authProvider),
+      '/api/update-benchmark-targets': UpdateBenchmarkTargets(authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
-      '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
+      '/api/update-timeseries': UpdateTimeSeries(authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
 
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
