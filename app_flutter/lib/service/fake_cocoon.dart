@@ -12,11 +12,11 @@ import 'cocoon.dart';
 class FakeCocoonService implements CocoonService {
   @override
   Future<List<CommitStatus>> getStats() {
-    return Future.delayed(Duration(seconds: 1), () => _getFakeStats());
+    return Future.value(_getFakeStats());
   }
 
   List<CommitStatus> _getFakeStats() {
-    List<CommitStatus> stats = List();
+    List<CommitStatus> stats = <CommitStatus>[];
 
     final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -43,7 +43,7 @@ class FakeCocoonService implements CocoonService {
   }
 
   List<Stage> _getFakeStages(int index, Commit commit) {
-    List<Stage> stages = List();
+    List<Stage> stages = <Stage>[];
 
     stages.add(Stage()
       ..commit = commit
