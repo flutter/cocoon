@@ -6,8 +6,9 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage;
 
 import 'cocoon.dart';
 
@@ -41,11 +42,28 @@ class AppEngineCocoonService implements CocoonService {
   List<CommitStatus> _jsonDecodeCommitStatuses(
       List<dynamic> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
+    // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     List<CommitStatus> statuses = List();
 
-    jsonCommitStatuses.map((jsonCommitStatus) {
-      statuses.add(CommitStatus.fromJson(jsonCommitStatus));
+    jsonCommitStatuses.forEach((jsonCommitStatus) {
+      var jsonCommit = jsonCommitStatus['Checklist']['Checklist'];
+      assert(jsonCommit != null);
+
+      Commit commit = Commit()
+        ..timestamp = Int64() + jsonCommit['CreateTimestamp']
+        ..sha = jsonCommit['Commit']['Sha']
+        ..author = jsonCommit['Commit']['Author']['Login']
+        ..authorAvatarUrl = jsonCommit['Commit']['Author']['avatar_url']
+        ..repository = jsonCommit['FlutterRepositoryPath'];
+
+      List<dynamic> stagePieces = jsonCommitStatus['Stages'];
+      List<Stage> stages = List();
+      stagePieces.map((piece) => stages.add(Stage.fromJson(piece)));
+
+      statuses.add(CommitStatus()
+        ..commit = commit
+        ..stages.addAll(stages));
     });
 
     return statuses;
