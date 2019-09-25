@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
 import 'package:flutter/material.dart';
 
 import 'commit_box.dart';
@@ -17,12 +18,10 @@ class StatusGrid extends StatelessWidget {
 
   final List<CommitStatus> statuses;
 
-  static const int columnCount =
-      81; // rough estimate based on existing dashboard
-  static const int commitCount = 200;
-
   @override
   Widget build(BuildContext context) {
+    int columnCount = _getColumnCount(statuses);
+
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
     return Expanded(
@@ -31,20 +30,13 @@ class StatusGrid extends StatelessWidget {
         child: Container(
           width: columnCount * 50.0,
           child: GridView.builder(
-            // TODO(chillers): implement custom scroll physics to match horizontal scroll
-            itemCount: columnCount * commitCount,
+            itemCount: columnCount * statuses.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int index) {
-              // TODO(chillers): Use StageModel data
+              int commitStatusIndex = (index / columnCount).floor();
               if (index % columnCount == 0) {
-                return CommitBox(
-                    commit: Commit()
-                      ..author = 'AuthoryMcAuthor #$index'
-                      ..authorAvatarUrl =
-                          'https://avatars2.githubusercontent.com/u/2148558?v=4'
-                      ..repository = 'flutter/cocoon'
-                      ..sha = 'sha shank redemption');
+                return CommitBox(commit: statuses[commitStatusIndex].commit);
               }
 
               return TaskBox(task: Task()..status = 'Succeeded');
@@ -53,5 +45,15 @@ class StatusGrid extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  int _getColumnCount(List<CommitStatus> statuses) {
+    int columnCount = 1; // start at 1 to include [CommitBox]
+    CommitStatus catCalledForJuryDuty = statuses.first;
+    for (Stage stage in catCalledForJuryDuty.stages) {
+      columnCount += stage.tasks.length;
+    }
+
+    return columnCount;
   }
 }
