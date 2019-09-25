@@ -32,7 +32,7 @@ class BuildDashboardPage extends StatefulWidget {
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  List<CommitStatus> _statuses;
+  List<CommitStatus> _statuses = [];
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       body: Column(
         children: [
           StatusGrid(
-            statuses: _statuses ?? [],
+            statuses: _statuses,
           ),
         ],
       ),
