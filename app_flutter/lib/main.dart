@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 
+import 'service/cocoon.dart';
 import 'status_grid.dart';
 
 void main() => runApp(MyApp());
@@ -24,15 +25,20 @@ class MyApp extends StatelessWidget {
 class BuildDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Flutter Build Dashboard v2'),
-      ),
-      body: Column(
-        children: [
-          StatusGrid(),
-        ],
-      ),
-    );
+    final CocoonService service = CocoonService();
+    service.fetchCommitStatuses().then((statuses) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Flutter Build Dashboard v2'),
+        ),
+        body: Column(
+          children: [
+            StatusGrid(
+              statuses: statuses,
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

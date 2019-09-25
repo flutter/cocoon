@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 import 'package:flutter/material.dart';
 
 import 'commit_box.dart';
@@ -13,7 +13,9 @@ import 'task_box.dart';
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key}) : super(key: key);
+  const StatusGrid({Key key, @required this.statuses}) : super(key: key);
+
+  final List<CommitStatus> statuses;
 
   static const int columnCount =
       81; // rough estimate based on existing dashboard
