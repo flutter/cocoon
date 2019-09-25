@@ -52,7 +52,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       body: Column(
         children: [
           StatusGrid(
-            statuses: _statuses,
+            statuses: _statuses ?? [],
           ),
         ],
       ),
