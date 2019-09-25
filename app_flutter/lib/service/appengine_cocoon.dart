@@ -25,7 +25,7 @@ class AppEngineCocoonService implements CocoonService {
   http.Client client = http.Client();
 
   @override
-  Future<List<CommitStatus>> getStats() async {
+  Future<List<CommitStatus>> fetchCommitStatuses() async {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     http.Response response = await client.get('$baseApiUrl/public/get-status');
 

@@ -30,5 +30,5 @@ abstract class CocoonService {
   /// Gets build information from the last 200 commits.
   ///
   /// TODO(chillers): Make configurable to get range of commits
-  Future<List<CommitStatus>> getStats();
+  Future<List<CommitStatus>> fetchCommitStatuses();
 }

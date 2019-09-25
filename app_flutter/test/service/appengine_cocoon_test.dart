@@ -75,11 +75,12 @@ void main() {
     });
 
     test('should return List<CommitStatus>', () {
-      expect(service.getStats(), TypeMatcher<Future<List<CommitStatus>>>());
+      expect(service.fetchCommitStatuses(),
+          TypeMatcher<Future<List<CommitStatus>>>());
     });
 
     test('should return expected List<CommitStatus>', () async {
-      List<CommitStatus> statuses = await service.getStats();
+      List<CommitStatus> statuses = await service.fetchCommitStatuses();
 
       CommitStatus expectedStatus = CommitStatus()
         ..commit = (Commit()
@@ -112,13 +113,13 @@ void main() {
     test('should throw exception if given non-200 response', () {
       service.client = MockClient((request) async => Response('', 404));
 
-      expect(service.getStats(), throwsException);
+      expect(service.fetchCommitStatuses(), throwsException);
     });
 
     test('should throw exception if given bad response', () {
       service.client = MockClient((request) async => Response('bad', 200));
 
-      expect(service.getStats(), throwsException);
+      expect(service.fetchCommitStatuses(), throwsException);
     });
   });
 }
