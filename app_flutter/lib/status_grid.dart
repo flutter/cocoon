@@ -23,6 +23,7 @@ class StatusGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Assume if there is no data that it is loading.
     if (statuses.isEmpty) {
       return Expanded(
         child: Center(
