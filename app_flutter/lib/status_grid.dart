@@ -18,16 +18,29 @@ class StatusGrid extends StatelessWidget {
       : assert(statuses != null),
         super(key: key);
 
+  /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   @override
   Widget build(BuildContext context) {
     if (statuses.isEmpty) {
-      return Text('loading');
+      return Expanded(
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
+    // The grid needs to know its dimensions, column is based off the stages and how many tasks they each run.
     int columnCount = _getColumnCount(statuses.first);
-    List<int> stageIndices = _getTaskIndexTable(statuses.first);
+
+    /// This is a list of total number of tasks at the end of each stage.
+    ///
+    /// This allows us to lookup a task based on the number of stages instead of
+    /// bruteforcing and looping through all stages and their tasks.
+    ///
+    /// We calculate this once as it is used when retrieving each [Task].
+    List<int> stageIndices = _getStageTaskIndices(statuses.first);
 
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
@@ -42,8 +55,10 @@ class StatusGrid extends StatelessWidget {
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int index) {
               int commitStatusIndex = index ~/ columnCount;
+              CommitStatus status = statuses[commitStatusIndex];
+
               if (index % columnCount == 0) {
-                return CommitBox(commit: statuses[commitStatusIndex].commit);
+                return CommitBox(commit: status.commit);
               }
 
               return TaskBox(
@@ -71,8 +86,10 @@ class StatusGrid extends StatelessWidget {
     return columnCount;
   }
 
-  /// Returns
-  List<int> _getTaskIndexTable(CommitStatus status) {
+  /// Returns a list of the total number of tasks at the end of each stage.
+  ///
+  ///
+  List<int> _getStageTaskIndices(CommitStatus status) {
     List<int> indices = <int>[];
 
     for (int i = 0; i < status.stages.length; i++) {
