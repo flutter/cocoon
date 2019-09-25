@@ -3,10 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Response;
 import 'package:http/testing.dart';
+import 'package:test/test.dart';
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:cocoon_service/protos.dart'

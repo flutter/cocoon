@@ -34,48 +34,51 @@ class AppEngineCocoonService implements CocoonService {
           '$baseApiUrl/public/get-status returned ${response.statusCode}');
     }
 
-    Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-    assert(jsonResponse != null);
+    Map<String, Object> jsonResponse = jsonDecode(response.body);
 
     return _commitStatusesFromJson(jsonResponse['Statuses']);
   }
 
-  List<CommitStatus> _commitStatusesFromJson(List<dynamic> jsonCommitStatuses) {
+  List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
-    List<CommitStatus> statuses = List();
+    List<CommitStatus> statuses = <CommitStatus>[];
 
-    jsonCommitStatuses.forEach((jsonCommitStatus) {
+    for (Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
+      Map<String, Object> commit = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
-        ..commit = _commitFromJson(jsonCommitStatus['Checklist']['Checklist'])
+        ..commit = _commitFromJson(commit['Checklist'])
         ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
-    });
+    }
 
     return statuses;
   }
 
-  Commit _commitFromJson(Map<String, dynamic> jsonCommit) {
+  Commit _commitFromJson(Map<String, Object> jsonCommit) {
     assert(jsonCommit != null);
+
+    Map<String, Object> commit = jsonCommit['Commit'];
+    Map<String, Object> author = commit['Author'];
 
     return Commit()
       ..timestamp = Int64() + jsonCommit['CreateTimestamp']
-      ..sha = jsonCommit['Commit']['Sha']
-      ..author = jsonCommit['Commit']['Author']['Login']
-      ..authorAvatarUrl = jsonCommit['Commit']['Author']['avatar_url']
+      ..sha = commit['Sha']
+      ..author = author['Login']
+      ..authorAvatarUrl = author['avatar_url']
       ..repository = jsonCommit['FlutterRepositoryPath'];
   }
 
-  List<Stage> _stagesFromJson(List<dynamic> json) {
+  List<Stage> _stagesFromJson(List<Object> json) {
     assert(json != null);
-    List<Stage> stages = List();
+    List<Stage> stages = <Stage>[];
 
     json.forEach((jsonStage) => stages.add(_stageFromJson(jsonStage)));
 
     return stages;
   }
 
-  Stage _stageFromJson(Map<String, dynamic> json) {
+  Stage _stageFromJson(Map<String, Object> json) {
     assert(json != null);
 
     return Stage()
@@ -84,22 +87,24 @@ class AppEngineCocoonService implements CocoonService {
       ..taskStatus = json['Status'];
   }
 
-  List<Task> _tasksFromJson(List<dynamic> json) {
+  List<Task> _tasksFromJson(List<Object> json) {
     assert(json != null);
-    List<Task> tasks = List();
+    List<Task> tasks = <Task>[];
 
-    json.forEach((jsonTask) => tasks.add(_taskFromJson(jsonTask['Task'])));
+    for (Map<String, Object> jsonTask in json) {
+      tasks.add(_taskFromJson(jsonTask['Task']));
+    }
 
     return tasks;
   }
 
-  Task _taskFromJson(Map<String, dynamic> json) {
+  Task _taskFromJson(Map<String, Object> json) {
     assert(json != null);
 
-    List<String> requiredCapabilities = List();
-    List<dynamic> dynamicRequiredCapabilities = json['RequiredCapabilities'];
-    dynamicRequiredCapabilities.forEach((dynamicCapability) =>
-        requiredCapabilities.add(dynamicRequiredCapabilities.toString()));
+    List<String> requiredCapabilities = <String>[];
+    List<Object> objectRequiredCapabilities = json['RequiredCapabilities'];
+    objectRequiredCapabilities.forEach((objectCapability) =>
+        requiredCapabilities.add(objectRequiredCapabilities.toString()));
 
     return Task()
       ..createTimestamp = Int64(json['CreateTimestamp'])
