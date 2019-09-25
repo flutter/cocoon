@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:cocoon_service/protos.dart' show CommitStatus;
+
 import 'service/cocoon.dart';
 import 'status_grid.dart';
 
@@ -22,23 +24,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class BuildDashboardPage extends StatelessWidget {
+class BuildDashboardPage extends StatefulWidget {
+  final CocoonService service = CocoonService();
+
+  @override
+  _BuildDashboardPageState createState() => _BuildDashboardPageState();
+}
+
+class _BuildDashboardPageState extends State<BuildDashboardPage> {
+  List<CommitStatus> _statuses;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.service
+        .fetchCommitStatuses()
+        .then((statuses) => setState(() => _statuses = statuses));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final CocoonService service = CocoonService();
-    service.fetchCommitStatuses().then((statuses) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Flutter Build Dashboard v2'),
-        ),
-        body: Column(
-          children: [
-            StatusGrid(
-              statuses: statuses,
-            ),
-          ],
-        ),
-      );
-    });
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Flutter Build Dashboard v2'),
+      ),
+      body: Column(
+        children: [
+          StatusGrid(
+            statuses: _statuses,
+          ),
+        ],
+      ),
+    );
   }
 }
