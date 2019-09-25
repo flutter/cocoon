@@ -68,10 +68,9 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService();
-      service.client = MockClient((request) async {
+      service = AppEngineCocoonService(client: MockClient((request) async {
         return Response(jsonGetStatsResponse, 200);
-      });
+      }));
     });
 
     test('should return List<CommitStatus>', () {
@@ -111,13 +110,15 @@ void main() {
     });
 
     test('should throw exception if given non-200 response', () {
-      service.client = MockClient((request) async => Response('', 404));
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('', 404)));
 
       expect(service.fetchCommitStatuses(), throwsException);
     });
 
     test('should throw exception if given bad response', () {
-      service.client = MockClient((request) async => Response('bad', 200));
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('bad', 200)));
 
       expect(service.fetchCommitStatuses(), throwsException);
     });
