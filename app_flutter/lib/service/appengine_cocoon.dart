@@ -22,7 +22,7 @@ class AppEngineCocoonService implements CocoonService {
   /// This is the base for all API requests to cocoon
   static const _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
 
-  http.Client _client;
+  final http.Client _client;
 
   /// Creates a new [AppEngineCocoonService].
   ///
