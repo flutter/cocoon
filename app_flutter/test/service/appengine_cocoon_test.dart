@@ -84,7 +84,7 @@ void main() {
 
       CommitStatus expectedStatus = CommitStatus()
         ..commit = (Commit()
-          ..timestamp = Int64() + 123456789
+          ..timestamp = Int64(123456789)
           ..sha = 'ShaShankHash'
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'
@@ -107,7 +107,7 @@ void main() {
             ..status = 'Succeeded'));
 
       expect(statuses.length, 1);
-      expect(statuses.elementAt(0), expectedStatus);
+      expect(statuses.first, expectedStatus);
     });
 
     test('should throw exception if given non-200 response', () {
