@@ -11,20 +11,41 @@ import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/status_grid.dart';
 
 void main() {
-  // TODO(chillers): smoke screen test, remove when actual tests added
-  testWidgets('StatusGrid smoke test', (WidgetTester tester) async {
-    final FakeCocoonService service = FakeCocoonService();
-    List<CommitStatus> statuses = await service.fetchCommitStatuses();
-    // SingleChildScrollView needs an ancestor that has directionality
-    await tester.pumpWidget(MaterialApp(
-      home: StatusGrid(
-        statuses: statuses,
-      ),
-    ));
+  group('StatusGrid', () {
+    List<CommitStatus> statuses;
 
-    expect(find.text('404'), findsNothing);
+    setUpAll(() async {
+      final FakeCocoonService service = FakeCocoonService();
+      statuses = await service.fetchCommitStatuses();
+    });
 
-    // CommitBox is expected to throw an exception when loading images
-    tester.takeException();
+    testWidgets('shows loading indicator when statuses is empty',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(Column(
+        children: [
+          StatusGrid(
+            statuses: <CommitStatus>[],
+          ),
+        ],
+      ));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+
+      tester.takeException();
+    });
+
+    testWidgets('has correct width', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: StatusGrid(
+          statuses: statuses,
+        ),
+      ));
+    });
+
+    testWidgets('has correct height', (WidgetTester tester) async {});
+
+    testWidgets('commits only show in left most column',
+        (WidgetTester tester) async {});
   });
 }
