@@ -25,20 +25,20 @@ class MyApp extends StatelessWidget {
 }
 
 class BuildDashboardPage extends StatefulWidget {
-  final CocoonService service = CocoonService();
-
   @override
   _BuildDashboardPageState createState() => _BuildDashboardPageState();
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
+  final CocoonService service = CocoonService();
+
   List<CommitStatus> _statuses = [];
 
   @override
   void initState() {
     super.initState();
 
-    widget.service
+    service
         .fetchCommitStatuses()
         .then((statuses) => setState(() => _statuses = statuses));
   }
