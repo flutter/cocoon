@@ -5,11 +5,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 
-import 'package:app_flutter/result_box.dart';
+import 'package:cocoon_service/protos.dart' show Task;
+
+import 'package:app_flutter/task_box.dart';
 
 void main() {
   // Table Driven Approach to ensure every message does show the corresponding color
-  ResultBox.resultColor.forEach((String message, Color color) {
+  TaskBox.resultColor.forEach((String message, Color color) {
     testWidgets('ResultBox is the color $color when given the message $message',
         (WidgetTester tester) async {
       expectResultBoxColorWithMessage(tester, message, color);
@@ -24,7 +26,7 @@ void main() {
 
 void expectResultBoxColorWithMessage(
     WidgetTester tester, String message, Color expectedColor) async {
-  await tester.pumpWidget(ResultBox(message: message));
+  await tester.pumpWidget(TaskBox(task: Task()..status = message));
 
   Container resultBoxWidget = find.byType(Container).evaluate().first.widget;
   BoxDecoration decoration = resultBoxWidget.decoration;

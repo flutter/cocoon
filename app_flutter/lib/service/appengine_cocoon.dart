@@ -27,13 +27,14 @@ class AppEngineCocoonService implements CocoonService {
   /// Creates a new [AppEngineCocoonService].
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
-  AppEngineCocoonService({http.Client client}) :
-    _client = client ?? http.Client();
+  AppEngineCocoonService({http.Client client})
+      : _client = client ?? http.Client();
 
   @override
   Future<List<CommitStatus>> fetchCommitStatuses() async {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
-    http.Response response = await _client.get('$_baseApiUrl/public/get-status');
+    http.Response response =
+        await _client.get('$_baseApiUrl/public/get-status');
 
     if (response.statusCode != HttpStatus.ok) {
       throw HttpException(

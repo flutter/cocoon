@@ -6,6 +6,7 @@ import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart' as test show TypeMatcher;
 
 import 'package:app_flutter/commit_box.dart';
 
@@ -28,7 +29,8 @@ void main() {
       expect(find.byType(Image), findsOneWidget);
 
       // Image.Network throws a 400 exception in tests
-      tester.takeException();
+      expect(tester.takeException(),
+          test.TypeMatcher<NetworkImageLoadException>());
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {
@@ -46,9 +48,6 @@ void main() {
 
       expect(find.text(expectedCommit.sha), findsOneWidget);
       expect(find.text(expectedCommit.author), findsOneWidget);
-
-      // Image.Network throws a 400 exception in tests
-      tester.takeException();
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
@@ -68,9 +67,6 @@ void main() {
       await tester.pump();
 
       expect(find.text(expectedCommit.sha), findsNothing);
-
-      // Image.Network throws a 400 exception in tests
-      tester.takeException();
     });
 
     testWidgets('tapping redirect button should redirect to Github',
