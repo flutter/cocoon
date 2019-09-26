@@ -32,7 +32,8 @@ class StatusGrid extends StatelessWidget {
       );
     }
 
-    // The grid needs to know its dimensions, column is based off the stages and how many tasks they each run.
+    // The grid needs to know its dimensions, column is based off the stages and
+    // how many tasks they each run.
     int columnCount = _getColumnCount(statuses.first);
 
     /// This is a list of total number of tasks at the end of each stage.
@@ -41,7 +42,7 @@ class StatusGrid extends StatelessWidget {
     /// bruteforcing and looping through all stages and their tasks.
     ///
     /// We calculate this once as it is used when retrieving each [Task].
-    List<int> stageIndices = _getStageTaskIndices(statuses.first);
+    List<int> taskIndexBoundaries = _getTaskIndexBoundaries(statuses.first);
 
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
@@ -54,16 +55,16 @@ class StatusGrid extends StatelessWidget {
             itemCount: columnCount * statuses.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
-            itemBuilder: (BuildContext context, int index) {
-              int commitStatusIndex = index ~/ columnCount;
-              CommitStatus status = statuses[commitStatusIndex];
+            itemBuilder: (BuildContext context, int gridIndex) {
+              int statusIndex = gridIndex ~/ columnCount;
 
-              if (index % columnCount == 0) {
-                return CommitBox(commit: status.commit);
+              if (gridIndex % columnCount == 0) {
+                return CommitBox(commit: statuses[statusIndex].commit);
               }
 
               return TaskBox(
-                  task: _getTaskFromStatuses(index, columnCount, stageIndices));
+                  task: _mapGridIndexToTask(
+                      gridIndex, columnCount, taskIndexBoundaries));
             },
           ),
         ),
@@ -73,12 +74,13 @@ class StatusGrid extends StatelessWidget {
 
   /// Returns the number of columns the grid should show based on [CommitStatus].
   ///
-  /// [CommitStatus] is composed of [List<Stage>] that contains the tasks run for that stage.
-  /// Each [Stage] runs a different amount of tasks.
+  /// [CommitStatus] is composed of [List<Stage>] that contains the tasks run
+  /// for that stage. Each [Stage] runs a different amount of tasks.
   ///
-  /// Additionally, [Commit] from [CommitStatus] must have a cell reserved on the grid.
+  /// Additionally, [Commit] from [CommitStatus] must have a cell reserved on
+  /// the grid which is another index offset that is accounted.
   int _getColumnCount(CommitStatus status) {
-    int columnCount = 1;
+    int columnCount = 1; // start at 1 to reserve room for CommitBox column
 
     for (Stage stage in status.stages) {
       columnCount += stage.tasks.length;
@@ -89,8 +91,16 @@ class StatusGrid extends StatelessWidget {
 
   /// Returns a list of the total number of tasks at the end of each stage.
   ///
+  /// This is useful for quickly looking up what [Stage] a [Task] is in given
+  /// just an index.
   ///
-  List<int> _getStageTaskIndices(CommitStatus status) {
+  /// Additionally, storing the total number of tasks at the end of a [Stage]
+  /// allows for quickly getting the relative index for a task in that [Stage].
+  ///
+  /// The last boundary is 1 above the total number of tasks, thus this
+  /// list is inclusive of all tasks (assuming the first [CommitStatus] is
+  /// representative of the data).
+  List<int> _getTaskIndexBoundaries(CommitStatus status) {
     List<int> indices = <int>[];
 
     for (int i = 0; i < status.stages.length; i++) {
@@ -106,23 +116,23 @@ class StatusGrid extends StatelessWidget {
   }
 
   /// Returns [Task] associated with an overall index in [List<CommitStatus>]
-  Task _getTaskFromStatuses(
-      int index, int columnCount, List<int> stageIndices) {
-    int commitStatusIndex = index ~/ columnCount;
+  Task _mapGridIndexToTask(
+      int gridIndex, int columnCount, List<int> taskIndexBoundaries) {
+    int commitStatusIndex = gridIndex ~/ columnCount;
     CommitStatus status = statuses[commitStatusIndex];
 
     // set index to be relative to this status (and remove the commit index)
     int indexOffset = columnCount * commitStatusIndex;
-    index = index - indexOffset - 1;
+    int index = gridIndex - indexOffset - 1;
 
     int stageIndex = 0;
     int taskIndex = 0;
-    for (int i in stageIndices) {
-      if (index < i) {
+    for (int taskIndexBoundary in taskIndexBoundaries) {
+      if (index < taskIndexBoundary) {
         break;
       }
 
-      taskIndex = index - i;
+      taskIndex = index - taskIndexBoundary;
       stageIndex++;
     }
 
