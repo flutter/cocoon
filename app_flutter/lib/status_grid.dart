@@ -2,25 +2,41 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
 
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
+
 import 'commit_box.dart';
-import 'result_box.dart';
+import 'task_box.dart';
 
 /// Display results from flutter/flutter repository's continuous integration.
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key}) : super(key: key);
+  const StatusGrid({Key key, @required this.statuses})
+      : assert(statuses != null),
+        super(key: key);
 
-  static const int columnCount =
-      81; // rough estimate based on existing dashboard
-  static const int commitCount = 200;
+  /// The build status data to display in the grid.
+  final List<CommitStatus> statuses;
 
   @override
   Widget build(BuildContext context) {
+    // Assume if there is no data that it is loading.
+    if (statuses.isEmpty) {
+      return Expanded(
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // The grid needs to know its dimensions, column is based off the stages and
+    // how many tasks they each run.
+    int columnCount = _getColumnCount(statuses.first);
+
     // The grid is wrapped with SingleChildScrollView to enable scrolling both
     // horizontally and vertically
     return Expanded(
@@ -29,27 +45,61 @@ class StatusGrid extends StatelessWidget {
         child: Container(
           width: columnCount * 50.0,
           child: GridView.builder(
-            // TODO(chillers): implement custom scroll physics to match horizontal scroll
-            itemCount: columnCount * commitCount,
+            itemCount: columnCount * statuses.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
-            itemBuilder: (BuildContext context, int index) {
-              // TODO(chillers): Use StageModel data
-              if (index % columnCount == 0) {
-                return CommitBox(
-                    commit: Commit()
-                      ..author = 'AuthoryMcAuthor #$index'
-                      ..authorAvatarUrl =
-                          'https://avatars2.githubusercontent.com/u/2148558?v=4'
-                      ..repository = 'flutter/cocoon'
-                      ..sha = 'sha shank redemption');
+            itemBuilder: (BuildContext context, int gridIndex) {
+              int statusIndex = gridIndex ~/ columnCount;
+
+              if (gridIndex % columnCount == 0) {
+                return CommitBox(commit: statuses[statusIndex].commit);
               }
 
-              return ResultBox(message: 'Succeeded');
+              return TaskBox(
+                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
+              );
             },
           ),
         ),
       ),
     );
+  }
+
+  /// Returns the number of columns the grid should show based on [CommitStatus].
+  ///
+  /// [CommitStatus] is composed of [List<Stage>] that contains the tasks run
+  /// for that stage. Each [Stage] runs a different amount of tasks.
+  ///
+  /// Additionally, [Commit] from [CommitStatus] must have a cell reserved on
+  /// the grid which is another index offset that is accounted.
+  int _getColumnCount(CommitStatus status) {
+    int columnCount = 1; // start at 1 to reserve room for CommitBox column
+
+    for (Stage stage in status.stages) {
+      columnCount += stage.tasks.length;
+    }
+
+    return columnCount;
+  }
+
+  /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
+  Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
+    int commitStatusIndex = gridIndex ~/ columnCount;
+    CommitStatus status = statuses[commitStatusIndex];
+
+    int taskIndex = (gridIndex % columnCount) - 1;
+
+    int currentStageIndex = 0;
+    while (taskIndex >= 0 && currentStageIndex < status.stages.length) {
+      Stage currentStage = status.stages[currentStageIndex];
+      if (taskIndex >= currentStage.tasks.length) {
+        taskIndex = taskIndex - currentStage.tasks.length;
+        currentStageIndex++;
+      } else {
+        return currentStage.tasks[taskIndex];
+      }
+    }
+
+    throw Exception('Could not find Task for gridIndex=$gridIndex');
   }
 }
