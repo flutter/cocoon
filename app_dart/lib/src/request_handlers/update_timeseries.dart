@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -17,12 +18,13 @@ import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
 @immutable
-class UpdateTimeSeries extends ApiRequestHandler<Body> {
+class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
   const UpdateTimeSeries(
+    Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(authenticationProvider: authenticationProvider);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -35,7 +37,7 @@ class UpdateTimeSeries extends ApiRequestHandler<Body> {
   static const String unitParam = 'Unit';
 
   @override
-  Future<Body> post() async {
+  Future<UpdateTimeSeriesResponse> post() async {
     checkRequiredParameters(<String>[
       timeSeriesKeyParam,
       goalParam,
@@ -85,6 +87,7 @@ class UpdateTimeSeries extends ApiRequestHandler<Body> {
         await datastore.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
       throw BadRequestException('No such timeseries: ${timeSeriesKey.id}');
     });
+    
     timeSeries.goal = goal;
     timeSeries.taskName = taskName;
     timeSeries.label = label;
@@ -94,13 +97,22 @@ class UpdateTimeSeries extends ApiRequestHandler<Body> {
 
     await datastore.db.commit(inserts: <TimeSeries>[timeSeries]);
 
-    return Body.forJson(<String, dynamic>{
+    return UpdateTimeSeriesResponse(timeSeries);
+  }
+}
+
+@immutable
+class UpdateTimeSeriesResponse extends JsonBody {
+  const UpdateTimeSeriesResponse(this.timeSeries) : assert(timeSeries != null);
+
+  final TimeSeries timeSeries;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
       'Goal': timeSeries.goal,
-      'TaskName': timeSeries.taskName,
-      'Label': timeSeries.label,
-      'Unit': timeSeries.unit,
       'Baseline': timeSeries.baseline,
       'Archived': timeSeries.archived,
-    });
+    };
   }
 }
