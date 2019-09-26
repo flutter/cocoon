@@ -85,12 +85,14 @@ void main() {
         ),
       ));
 
+      // The contributor avatar leads to Image.Network throws a 400 exception in tests
       tester.takeException();
 
       // Open the overlay
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
 
+      // The overlay has its own widget to show the avatar, so another 400 exception is thrown
       tester.takeException();
 
       // Tap the redirect button
