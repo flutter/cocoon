@@ -122,8 +122,8 @@ class StatusGrid extends StatelessWidget {
     CommitStatus status = statuses[commitStatusIndex];
 
     // set index to be relative to this status (and remove the commit index)
-    int indexOffset = columnCount * commitStatusIndex;
-    int index = gridIndex - indexOffset - 1;
+    int indexOffset = columnCount * commitStatusIndex - 1;
+    int index = gridIndex - indexOffset;
 
     int stageIndex = 0;
     int taskIndex = 0;
