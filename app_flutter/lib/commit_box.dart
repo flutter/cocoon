@@ -130,14 +130,14 @@ class CommitOverlayContents extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
                       onPressed: () async {
-                        String url =
+                        String githubUrl =
                             'https://github.com/${commit.repository}/commit/${commit.sha}';
 
-                        // if (await canLaunch(url)) {
-                        await launch(url);
-                        // } else {
-                        // throw 'Could not launch $url';
-                        // }
+                        if (await canLaunch(githubUrl)) {
+                          await launch(githubUrl);
+                        } else {
+                          throw 'Could not launch $githubUrl';
+                        }
                       },
                     ),
                   ],
