@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -18,12 +19,13 @@ import '../service/datastore.dart';
 
 @immutable
 class UpdateBenchmarkTargets
-    extends ApiRequestHandler<Body> {
+    extends ApiRequestHandler<UpdateBenchmarkTargetsResponse> {
   const UpdateBenchmarkTargets(
+    Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(authenticationProvider: authenticationProvider);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -32,7 +34,7 @@ class UpdateBenchmarkTargets
   static const String baselineParam = 'Baseline';
 
   @override
-  Future<Body> post() async {
+  Future<UpdateBenchmarkTargetsResponse> post() async {
     checkRequiredParameters(
         <String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
@@ -51,6 +53,10 @@ class UpdateBenchmarkTargets
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
+    final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+        throw BadRequestException('Invalid time series Key: $timeSeriesKey');
+      });
+    
     if (goal < 0) {
       goal = 0;
     }
@@ -58,19 +64,26 @@ class UpdateBenchmarkTargets
       baseline = 0;
     }
 
-    final TimeSeries timeSeries =
-        await datastore.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
-      throw BadRequestException('No such task: ${timeSeriesKey.id}');
-    });
     timeSeries.goal = goal;
     timeSeries.baseline = baseline;
 
     await datastore.db.commit(inserts: <TimeSeries>[timeSeries]);
 
-    return Body.forJson(<String, dynamic>{
-      'Label': timeSeries.label,
+    return UpdateBenchmarkTargetsResponse(timeSeries);
+  }
+}
+
+@immutable
+class UpdateBenchmarkTargetsResponse extends JsonBody {
+  const UpdateBenchmarkTargetsResponse(this.timeSeries) : assert(timeSeries != null);
+
+  final TimeSeries timeSeries;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
       'Goal': timeSeries.goal,
       'Baseline': timeSeries.baseline,
-    });
+    };
   }
 }
