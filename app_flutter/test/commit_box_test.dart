@@ -89,10 +89,6 @@ void main() {
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
 
-      // The overlay has its own widget to show the avatar, so another 400 exception is thrown
-      // expect(tester.takeException(),
-      //     test.TypeMatcher<NetworkImageLoadException>());
-
       // Tap the redirect button
       await tester.tap(find.byIcon(Icons.open_in_new));
       await tester.pump();
