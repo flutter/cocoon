@@ -54,16 +54,9 @@ class StatusGrid extends StatelessWidget {
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
-              return GestureDetector(
-                  onTap: () {
-                    Task task =
-                        _mapGridIndexToTaskBruteForce(gridIndex, columnCount);
-                    print(
-                        'statusI: $statusIndex\t\ttaskI: ${task.createTimestamp}\t\tgridI: $gridIndex');
-                  },
-                  child: TaskBox(
-                    task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
-                  ));
+              return TaskBox(
+                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
+              );
             },
           ),
         ),
