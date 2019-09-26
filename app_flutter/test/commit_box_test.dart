@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app_flutter/commit_box.dart';
@@ -14,7 +15,7 @@ void main() {
       ..author = 'AuthoryMcAuthor Face'
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
       ..repository = 'flutter/cocoon'
-      ..sha = 'sha shank redemption';
+      ..sha = 'ShaShankRedemption';
 
     testWidgets('shows information correctly', (WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
@@ -70,6 +71,51 @@ void main() {
 
       // Image.Network throws a 400 exception in tests
       tester.takeException();
+    });
+
+    testWidgets('tapping redirect button should redirect to Github',
+        (WidgetTester tester) async {
+      // The url_launcher calls get logged in this channel
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
+
+      await tester.pumpWidget(MaterialApp(
+        home: CommitBox(
+          commit: expectedCommit,
+        ),
+      ));
+
+      tester.takeException();
+
+      // Open the overlay
+      await tester.tap(find.byType(CommitBox));
+      await tester.pump();
+
+      tester.takeException();
+
+      // Tap the redirect button
+      await tester.tap(find.byIcon(Icons.open_in_new));
+      await tester.pump();
+
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url':
+                'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
     });
   });
 }

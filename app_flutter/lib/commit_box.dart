@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:cocoon_service/protos.dart' show Commit;
 
 /// Displays Git commit information.
 ///
@@ -127,8 +129,15 @@ class CommitOverlayContents extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
-                      onPressed: () {
-                        // TODO(chillers): open new tab with the commit on Github
+                      onPressed: () async {
+                        String url =
+                            'https://github.com/${commit.repository}/commit/${commit.sha}';
+
+                        // if (await canLaunch(url)) {
+                        await launch(url);
+                        // } else {
+                        // throw 'Could not launch $url';
+                        // }
                       },
                     ),
                   ],
