@@ -36,16 +36,42 @@ void main() {
     });
 
     testWidgets('has correct width', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: StatusGrid(
-          statuses: statuses,
-        ),
+      await tester.pumpWidget(Column(
+        children: [
+          StatusGrid(
+            statuses: statuses,
+          ),
+        ],
       ));
+
+      // expect(find.byType(GridView).evaluate()., 200);
     });
 
-    testWidgets('has correct height', (WidgetTester tester) async {});
+    testWidgets('has correct height', (WidgetTester tester) async {
+            await tester.pumpWidget(Column(
+        children: [
+          StatusGrid(
+            statuses: <CommitStatus>[],
+          ),
+        ],
+      ));
+
+      GridView grid = find.byType(GridView).evaluate().first.widget;
+
+      // height should be 50.0 * statuses.length
+    });
 
     testWidgets('commits only show in left most column',
-        (WidgetTester tester) async {});
+        (WidgetTester tester) async {
+      await tester.pumpWidget(Column(
+        children: [
+          StatusGrid(
+            statuses: <CommitStatus>[],
+          ),
+        ],
+      ));
+
+      GridView grid = find.byType(GridView).evaluate().first.widget;
+    });
   });
 }
