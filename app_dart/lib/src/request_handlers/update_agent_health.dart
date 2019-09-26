@@ -5,53 +5,65 @@
 import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
 
 @immutable
-class UpdateAgentHealth extends ApiRequestHandler<Body> {
+class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   const UpdateAgentHealth(
+    Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(authenticationProvider: authenticationProvider);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-
+  
   static const String agentIdParam = 'AgentID';
   static const String isHealthyParam = 'IsHealthy';
   static const String healthDetailsParam = 'HealthDetails';
 
   @override
-  Future<Body> post() async {
-    checkRequiredParameters(<String>[isHealthyParam, healthDetailsParam]);
+  Future<UpdateAgentHealthResponse> post() async {
+    checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
 
+    final String agentId = requestData[agentIdParam];
     final bool isHealthy = requestData[isHealthyParam];
     final String healthDetails = requestData[healthDetailsParam];
     final DatastoreService datastore = datastoreProvider();
+    final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
+    final Agent agent = await datastore.db.lookupValue<Agent>(key, orElse: () {
+      throw BadRequestException('Invalid agent ID: $agentId');
+      });
 
-    final Query<Agent> query = datastore.db.query<Agent>()
-      ..filter('agentid =', requestData[agentIdParam]);
-    final List<Agent> agents = await query.run().toList();
-    assert(agents.length <= 1);
-    if (agents.isEmpty) {
-      return Body.empty;
-    }
-    final Agent agent = agents.single;
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
 
-    return Body.forJson(<String, dynamic>{
+    return UpdateAgentHealthResponse(agent);
+  }
+}
+
+@immutable
+class UpdateAgentHealthResponse extends JsonBody {
+  const UpdateAgentHealthResponse(this.agent) : assert(agent != null);
+
+  final Agent agent;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
       'Agent': agent.agentId,
       'Healthy': agent.isHealthy,
       'Details': agent.healthDetails,
-    });
+    };
   }
 }
