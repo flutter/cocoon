@@ -67,7 +67,6 @@ class StatusGrid extends StatelessWidget {
           ),
         );
       },
-      child: Container(),
     );
   }
 
