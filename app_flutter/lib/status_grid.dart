@@ -75,8 +75,7 @@ class StatusGrid extends StatelessWidget {
               }
 
               return TaskBox(
-                task: _mapGridIndexToTaskBruteForce(
-                    gridIndex, columnCount, statuses),
+                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
               );
             },
           ),
@@ -103,8 +102,7 @@ class StatusGrid extends StatelessWidget {
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
-  Task _mapGridIndexToTaskBruteForce(
-      int gridIndex, int columnCount, List<CommitStatus> statuses) {
+  Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
     int commitStatusIndex = gridIndex ~/ columnCount;
     CommitStatus status = statuses[commitStatusIndex];
 
