@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 
+import 'state/flutter_build.dart';
 import 'commit_box.dart';
 import 'task_box.dart';
 
@@ -15,53 +17,57 @@ import 'task_box.dart';
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key, @required this.statuses})
-      : assert(statuses != null),
-        super(key: key);
-
-  /// The build status data to display in the grid.
-  final List<CommitStatus> statuses;
-
   @override
   Widget build(BuildContext context) {
-    // Assume if there is no data that it is loading.
-    if (statuses.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    /// The build status data to display in the grid.
+    List<CommitStatus> statuses;
 
-    // The grid needs to know its dimensions, column is based off the stages and
-    // how many tasks they each run.
-    int columnCount = _getColumnCount(statuses.first);
+    return Consumer<FlutterBuildState>(
+      builder: (context, buildState, child) {
+        statuses = buildState.statuses;
 
-    // The grid is wrapped with SingleChildScrollView to enable scrolling both
-    // horizontally and vertically
-    return Expanded(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          width: columnCount * 50.0,
-          child: GridView.builder(
-            itemCount: columnCount * statuses.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount),
-            itemBuilder: (BuildContext context, int gridIndex) {
-              int statusIndex = gridIndex ~/ columnCount;
+        // Assume if there is no data that it is loading.
+        if (statuses.isEmpty) {
+          return Expanded(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-              if (gridIndex % columnCount == 0) {
-                return CommitBox(commit: statuses[statusIndex].commit);
-              }
+        // The grid needs to know its dimensions, column is based off the stages and
+        // how many tasks they each run.
+        int columnCount = _getColumnCount(statuses.first);
 
-              return TaskBox(
-                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
-              );
-            },
+        return Expanded(
+          // The grid is wrapped with SingleChildScrollView to enable scrolling both
+          // horizontally and vertically
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Container(
+              width: columnCount * 50.0,
+              child: GridView.builder(
+                itemCount: columnCount * statuses.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columnCount),
+                itemBuilder: (BuildContext context, int gridIndex) {
+                  int statusIndex = gridIndex ~/ columnCount;
+
+                  if (gridIndex % columnCount == 0) {
+                    return CommitBox(commit: statuses[statusIndex].commit);
+                  }
+
+                  return TaskBox(
+                    task: _mapGridIndexToTaskBruteForce(
+                        gridIndex, columnCount, statuses),
+                  );
+                },
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
+      child: Container(),
     );
   }
 
@@ -83,7 +89,8 @@ class StatusGrid extends StatelessWidget {
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
-  Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
+  Task _mapGridIndexToTaskBruteForce(
+      int gridIndex, int columnCount, List<CommitStatus> statuses) {
     int commitStatusIndex = gridIndex ~/ columnCount;
     CommitStatus status = statuses[commitStatusIndex];
 

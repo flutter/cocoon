@@ -30,6 +30,7 @@ dependencies:
 
   cocoon_service:
     path: ../app_dart
+  provider: ^3.0.0
   url_launcher: ^5.1.0
 
 dev_dependencies:

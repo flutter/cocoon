@@ -2,17 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/service/cocoon.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus;
+
+import '../service/cocoon.dart';
 
 class FlutterBuildState extends ChangeNotifier {
   final CocoonService _cocoonService = CocoonService();
 
-  List<CommitStatus> statuses;
+  List<CommitStatus> statuses = [];
 
   void fetchBuildStatusUpdate() async {
-    _cocoonService.fetchCommitStatuses();
+    statuses = await _cocoonService.fetchCommitStatuses();
+    notifyListeners();
   }
 }

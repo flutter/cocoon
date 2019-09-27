@@ -3,13 +3,15 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
-
-import 'service/cocoon.dart';
+import 'state/flutter_build.dart';
 import 'status_grid.dart';
 
 void main() => runApp(MyApp());
+
+/// How often to query the Cocoon backend for the current build state.
+final Duration dashboardRefreshRate = Duration(seconds: 10);
 
 class MyApp extends StatelessWidget {
   @override
@@ -30,17 +32,20 @@ class BuildDashboardPage extends StatefulWidget {
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  final CocoonService service = CocoonService();
-
-  List<CommitStatus> _statuses = [];
+  final FlutterBuildState buildState = FlutterBuildState();
 
   @override
   void initState() {
     super.initState();
 
-    service
-        .fetchCommitStatuses()
-        .then((statuses) => setState(() => _statuses = statuses));
+    _updateBuildState();
+  }
+
+  /// Recursive function that calls itself to maintain a constant cycle of updates.
+  void _updateBuildState() {
+    buildState.fetchBuildStatusUpdate();
+
+    Future.delayed(dashboardRefreshRate, () => _updateBuildState());
   }
 
   @override
@@ -51,8 +56,9 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       ),
       body: Column(
         children: [
-          StatusGrid(
-            statuses: _statuses,
+          ChangeNotifierProvider(
+            builder: (context) => buildState,
+            child: StatusGrid(),
           ),
         ],
       ),
