@@ -10,9 +10,6 @@ import 'status_grid.dart';
 
 void main() => runApp(MyApp());
 
-/// How often to query the Cocoon backend for the current build state.
-final Duration dashboardRefreshRate = Duration(seconds: 10);
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -38,14 +35,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
   void initState() {
     super.initState();
 
-    _updateBuildState();
-  }
-
-  /// Recursive function that calls itself to maintain a constant cycle of updates.
-  void _updateBuildState() {
-    buildState.fetchBuildStatusUpdate();
-
-    Future.delayed(dashboardRefreshRate, () => _updateBuildState());
+    buildState.startFetchingBuildStatusUpdates();
   }
 
   @override
