@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,31 +11,21 @@ import 'package:cocoon_service/protos.dart' show CommitStatus;
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/commit_box.dart';
 import 'package:app_flutter/status_grid.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   group('StatusGrid', () {
-    List<CommitStatus> expectedStatuses;
+    List<CommitStatus> statuses;
 
-    FlutterBuildState buildState;
-
-    setUp(() async {
-      buildState = FlutterBuildState();
-      buildState.startFetchingBuildStatusUpdates();
-
+    setUpAll(() async {
       final FakeCocoonService service = FakeCocoonService();
-      expectedStatuses = await service.fetchCommitStatuses();
-    });
-
-    tearDown(() async {
-      buildState.stopFetchingBuildStatusUpdate();
+      statuses = await service.fetchCommitStatuses();
     });
 
     testWidgets('shows loading indicator when statuses is empty',
         (WidgetTester tester) async {
       await tester.pumpWidget(Column(
         children: [
-          StatusGrid(),
+          StatusGridContainer(),
         ],
       ));
 
@@ -51,9 +40,8 @@ void main() {
         MaterialApp(
           home: Column(
             children: [
-              ChangeNotifierProvider(
-                builder: (_) => buildState,
-                child: StatusGrid(),
+              StatusGrid(
+                statuses: statuses,
               ),
             ],
           ),
@@ -77,9 +65,8 @@ void main() {
         MaterialApp(
           home: Column(
             children: [
-              ChangeNotifierProvider(
-                builder: (_) => buildState,
-                child: StatusGrid(),
+              StatusGrid(
+                statuses: statuses,
               ),
             ],
           ),
@@ -87,7 +74,7 @@ void main() {
       );
 
       TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
-      expect(firstTask.task, expectedStatuses[0].stages[0].tasks[0]);
+      expect(firstTask.task, statuses[0].stages[0].tasks[0]);
 
       tester.takeException();
     });
@@ -98,9 +85,8 @@ void main() {
         MaterialApp(
           home: Column(
             children: [
-              ChangeNotifierProvider(
-                builder: (_) => buildState,
-                child: StatusGrid(),
+              StatusGrid(
+                statuses: statuses,
               ),
             ],
           ),
@@ -108,7 +94,7 @@ void main() {
       );
 
       TaskBox lastTask = find.byType(TaskBox).evaluate().last.widget;
-      expect(lastTask.task, expectedStatuses.last.stages.last.tasks.last);
+      expect(lastTask.task, statuses.last.stages.last.tasks.last);
 
       tester.takeException();
     });

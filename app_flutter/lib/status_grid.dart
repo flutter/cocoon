@@ -16,15 +16,12 @@ import 'task_box.dart';
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
-class StatusGrid extends StatelessWidget {
+class StatusGridContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    /// The build status data to display in the grid.
-    List<CommitStatus> statuses;
-
     return Consumer<FlutterBuildState>(
       builder: (context, buildState, child) {
-        statuses = buildState.statuses;
+        List<CommitStatus> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {
@@ -35,38 +32,56 @@ class StatusGrid extends StatelessWidget {
           );
         }
 
-        // The grid needs to know its dimensions, column is based off the stages and
-        // how many tasks they each run.
-        int columnCount = _getColumnCount(statuses.first);
-
-        return Expanded(
-          // The grid is wrapped with SingleChildScrollView to enable scrolling both
-          // horizontally and vertically
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Container(
-              width: columnCount * 50.0,
-              child: GridView.builder(
-                itemCount: columnCount * statuses.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columnCount),
-                itemBuilder: (BuildContext context, int gridIndex) {
-                  int statusIndex = gridIndex ~/ columnCount;
-
-                  if (gridIndex % columnCount == 0) {
-                    return CommitBox(commit: statuses[statusIndex].commit);
-                  }
-
-                  return TaskBox(
-                    task: _mapGridIndexToTaskBruteForce(
-                        gridIndex, columnCount, statuses),
-                  );
-                },
-              ),
-            ),
-          ),
+        return StatusGrid(
+          statuses: statuses,
         );
       },
+    );
+  }
+}
+
+/// Display results from flutter/flutter repository's continuous integration.
+///
+/// Results are displayed in a matrix format. Rows are commits and columns
+/// are the results from tasks.
+class StatusGrid extends StatelessWidget {
+  const StatusGrid({Key key, @required this.statuses}) : super(key: key);
+
+  /// The build status data to display in the grid.
+  final List<CommitStatus> statuses;
+
+  @override
+  Widget build(BuildContext context) {
+    // The grid needs to know its dimensions, column is based off the stages and
+    // how many tasks they each run.
+    int columnCount = _getColumnCount(statuses.first);
+
+    return Expanded(
+      // The grid is wrapped with SingleChildScrollView to enable scrolling both
+      // horizontally and vertically
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          width: columnCount * 50.0,
+          child: GridView.builder(
+            itemCount: columnCount * statuses.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount),
+            itemBuilder: (BuildContext context, int gridIndex) {
+              int statusIndex = gridIndex ~/ columnCount;
+
+              if (gridIndex % columnCount == 0) {
+                return CommitBox(commit: statuses[statusIndex].commit);
+              }
+
+              return TaskBox(
+                task: _mapGridIndexToTaskBruteForce(
+                    gridIndex, columnCount, statuses),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 

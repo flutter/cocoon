@@ -48,7 +48,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
         children: [
           ChangeNotifierProvider(
             builder: (context) => buildState,
-            child: StatusGrid(),
+            child: StatusGridContainer(),
           ),
         ],
       ),
