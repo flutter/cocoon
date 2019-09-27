@@ -21,15 +21,8 @@ class FlutterBuildState extends ChangeNotifier {
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
-  Timer _updateTimer;
-
   void startFetchingBuildStatusUpdates() async {
-    _updateTimer =
-        Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
-  }
-
-  void stopFetchingBuildStatusUpdate() {
-    _updateTimer.cancel();
+    Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
   void _fetchBuildStatusUpdate() async {
