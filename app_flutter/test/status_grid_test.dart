@@ -2,15 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import 'package:app_flutter/service/fake_cocoon.dart';
+import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/commit_box.dart';
 import 'package:app_flutter/status_grid.dart';
+import 'package:app_flutter/task_box.dart';
 
 void main() {
   group('StatusGrid', () {
@@ -23,11 +25,18 @@ void main() {
 
     testWidgets('shows loading indicator when statuses is empty',
         (WidgetTester tester) async {
-      await tester.pumpWidget(Column(
-        children: [
-          StatusGridContainer(),
-        ],
-      ));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: [
+              ChangeNotifierProvider(
+                builder: (_) => FlutterBuildState(),
+                child: StatusGridContainer(),
+              ),
+            ],
+          ),
+        ),
+      );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.byType(GridView), findsNothing);
