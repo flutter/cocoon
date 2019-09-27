@@ -10,26 +10,29 @@ import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import '../service/cocoon.dart';
 
-/// State for the build dashboard based on what is collected
+/// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
-  /// Cocoon backend service that retrieves the data needed
+  /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService _cocoonService = CocoonService();
 
   /// How often to query the Cocoon backend for the current build state.
-  final Duration refreshRate = Duration(seconds: 1);
+  final Duration refreshRate = Duration(seconds: 10);
 
+  /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
-  Timer updateTimer;
+  Timer _updateTimer;
 
   void startFetchingBuildStatusUpdates() async {
-    print('start fetching!');
-    updateTimer = Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
+    _updateTimer =
+        Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
+  }
+
+  void stopFetchingBuildStatusUpdate() {
+    _updateTimer.cancel();
   }
 
   void _fetchBuildStatusUpdate() async {
-    print('updating!');
-
     statuses = await _cocoonService.fetchCommitStatuses();
     notifyListeners();
   }
