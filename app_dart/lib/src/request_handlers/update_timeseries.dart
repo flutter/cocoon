@@ -83,11 +83,13 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
       throw const BadRequestException('Missing required parameter: Unit');
     }
 
-    final TimeSeries timeSeries =
-        await datastore.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
-      throw BadRequestException('No such timeseries: ${timeSeriesKey.id}');
-    });
-    
+    final TimeSeries timeSeries = await datastore.db.lookupValue<TimeSeries>(
+      timeSeriesKey,
+      orElse: () {
+        throw BadRequestException('No such timeseries: ${timeSeriesKey.id}');
+      },
+    );
+
     timeSeries.goal = goal;
     timeSeries.taskName = taskName;
     timeSeries.label = label;
@@ -116,3 +118,4 @@ class UpdateTimeSeriesResponse extends JsonBody {
     };
   }
 }
+
