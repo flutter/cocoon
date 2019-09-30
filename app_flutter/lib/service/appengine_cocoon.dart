@@ -69,6 +69,7 @@ class AppEngineCocoonService implements CocoonService {
 
   /// Check if [Map<String,Object>] follows the format for build-status.
   ///
+  /// Template of the response it should receive:
   /// ```json
   /// {
   ///   "AnticipatedBuildStatus": "Succeeded"|"Failed"
