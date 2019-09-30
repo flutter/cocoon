@@ -19,18 +19,20 @@ class FlutterBuildState extends ChangeNotifier {
   final Duration _refreshRate = Duration(seconds: 10);
 
   /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
-  Timer _refreshTimer;
+  @visibleForTesting
+  Timer refreshTimer;
 
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
   /// Start a fixed interval loop that fetches build state updates based on [_refreshRate].
   void startFetchingBuildStateUpdates() async {
-    if (_refreshTimer != null) {
-      throw 'already fetching build state updates';
+    if (refreshTimer != null) {
+      // There's already an update loop, no need to make another.
+      return;
     }
 
-    _refreshTimer =
+    refreshTimer =
         Timer.periodic(_refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
@@ -44,6 +46,6 @@ class FlutterBuildState extends ChangeNotifier {
   void dispose() {
     super.dispose();
 
-    _refreshTimer?.cancel();
+    refreshTimer?.cancel();
   }
 }
