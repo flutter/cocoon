@@ -12,10 +12,9 @@ import 'state/flutter_build.dart';
 import 'commit_box.dart';
 import 'task_box.dart';
 
-/// Display results from flutter/flutter repository's continuous integration.
+/// Container that manages the layout and data handling for [StatusGrid].
 ///
-/// Results are displayed in a matrix format. Rows are commits and columns
-/// are the results from tasks.
+/// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
 class StatusGridContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
