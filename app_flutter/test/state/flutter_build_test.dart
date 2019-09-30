@@ -20,20 +20,22 @@ void main() {
       buildState = FlutterBuildState(cocoonService: mockService);
     });
 
-    tearDown(() {
-      buildState.dispose();
-    });
-
     testWidgets('timer should periodically fetch updates',
         (WidgetTester tester) async {
+      buildState.startFetchingBuildStateUpdates();
       verifyZeroInteractions(mockService);
 
-      buildState.startFetchingBuildStateUpdates();
-
-      // pump [refreshRate] so at least one fetch call is made
-      await tester.pump(buildState.refreshRate);
-
+      // Periodic timers don't necessarily run at the same time in each interval.
+      // We double the refreshRate to gurantee a call would have been made.
+      await tester.pump(buildState.refreshRate * 2);
       verify(mockService.fetchCommitStatuses()).called(greaterThan(0));
+
+      await tester.pump(buildState.refreshRate * 2);
+      // Now we check to see if another call had been made
+      verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
+
+      // Tear down fails to cancel the timer before the test is over
+      buildState.dispose();
     });
 
     test('multiple start updates should not change the timer', () {
@@ -44,6 +46,9 @@ void main() {
       buildState.startFetchingBuildStateUpdates();
 
       expect(refreshTimer, equals(buildState.refreshTimer));
+
+      // Tear down fails to cancel the timer before the test is over
+      buildState.dispose();
     });
   });
 }
