@@ -29,6 +29,18 @@ class TaskBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (task.status == 'In Progress') {
+      return Container(
+        color: resultColor['New'],
+        child: const Padding(
+          padding: EdgeInsets.all(25.0),
+          child: const CircularProgressIndicator(
+            backgroundColor: Colors.white60,
+          ),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.all(1.0),
       color: resultColor.containsKey(task.status)
