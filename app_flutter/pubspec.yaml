@@ -30,6 +30,7 @@ dependencies:
 
   cocoon_service:
     path: ../app_dart
+  provider: ^3.0.0
   url_launcher: ^5.1.0
 
 dev_dependencies:
@@ -37,6 +38,7 @@ dev_dependencies:
     sdk: flutter
 
   test: ^1.6.0
+  mockito: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

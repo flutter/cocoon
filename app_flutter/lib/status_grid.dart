@@ -3,43 +3,63 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 
+import 'state/flutter_build.dart';
 import 'commit_box.dart';
 import 'task_box.dart';
+
+/// Container that manages the layout and data handling for [StatusGrid].
+///
+/// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
+class StatusGridContainer extends StatelessWidget {
+  const StatusGridContainer({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FlutterBuildState>(
+      builder: (context, buildState, child) {
+        List<CommitStatus> statuses = buildState.statuses;
+
+        // Assume if there is no data that it is loading.
+        if (statuses.isEmpty) {
+          return Expanded(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        return StatusGrid(
+          statuses: statuses,
+        );
+      },
+    );
+  }
+}
 
 /// Display results from flutter/flutter repository's continuous integration.
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key, @required this.statuses})
-      : assert(statuses != null),
-        super(key: key);
+  const StatusGrid({Key key, @required this.statuses}) : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   @override
   Widget build(BuildContext context) {
-    // Assume if there is no data that it is loading.
-    if (statuses.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     // The grid needs to know its dimensions, column is based off the stages and
     // how many tasks they each run.
     int columnCount = _getColumnCount(statuses.first);
 
-    // The grid is wrapped with SingleChildScrollView to enable scrolling both
-    // horizontally and vertically
     return Expanded(
+      // The grid is wrapped with SingleChildScrollView to enable scrolling both
+      // horizontally and vertically
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Container(

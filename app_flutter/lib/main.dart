@@ -3,10 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
-
-import 'service/cocoon.dart';
+import 'state/flutter_build.dart';
 import 'status_grid.dart';
 
 void main() => runApp(MyApp());
@@ -30,17 +29,13 @@ class BuildDashboardPage extends StatefulWidget {
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  final CocoonService service = CocoonService();
-
-  List<CommitStatus> _statuses = [];
+  final FlutterBuildState buildState = FlutterBuildState();
 
   @override
   void initState() {
     super.initState();
 
-    service
-        .fetchCommitStatuses()
-        .then((statuses) => setState(() => _statuses = statuses));
+    buildState.startFetchingBuildStateUpdates();
   }
 
   @override
@@ -51,11 +46,18 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       ),
       body: Column(
         children: [
-          StatusGrid(
-            statuses: _statuses,
+          ChangeNotifierProvider(
+            builder: (context) => buildState,
+            child: StatusGridContainer(),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    buildState.dispose();
+    super.dispose();
   }
 }
