@@ -16,15 +16,17 @@ class FlutterBuildState extends ChangeNotifier {
   final CocoonService _cocoonService = CocoonService();
 
   /// How often to query the Cocoon backend for the current build state.
-  final Duration refreshRate = Duration(seconds: 10);
+  final Duration _refreshRate = Duration(seconds: 10);
 
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
-  void startFetchingBuildStatusUpdates() async {
-    Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
+  /// Start a fixed interval loop that fetches build state updates based on [_refreshRate].
+  void startFetchingBuildStateUpdates() async {
+    Timer.periodic(_refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
+  /// Request the latest [statuses] from [CocoonService].
   void _fetchBuildStatusUpdate() async {
     statuses = await _cocoonService.fetchCommitStatuses();
     notifyListeners();
