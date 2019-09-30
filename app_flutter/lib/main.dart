@@ -43,6 +43,9 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Build Dashboard v2'),
+        backgroundColor: buildState.isTreeBuilding
+            ? Theme.of(context).primaryColor
+            : Theme.of(context).errorColor,
       ),
       body: Column(
         children: [
