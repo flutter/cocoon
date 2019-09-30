@@ -25,7 +25,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-  
+
   static const String agentIdParam = 'AgentID';
   static const String isHealthyParam = 'IsHealthy';
   static const String healthDetailsParam = 'HealthDetails';
@@ -39,9 +39,12 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
     final String healthDetails = requestData[healthDetailsParam];
     final DatastoreService datastore = datastoreProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
-    final Agent agent = await datastore.db.lookupValue<Agent>(key, orElse: () {
-      throw BadRequestException('Invalid agent ID: $agentId');
-      });
+    final Agent agent = await datastore.db.lookupValue<Agent>(
+      key,
+      orElse: () {
+        throw BadRequestException('Invalid agent ID: $agentId');
+      },
+    );
 
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
@@ -67,3 +70,4 @@ class UpdateAgentHealthResponse extends JsonBody {
     };
   }
 }
+
