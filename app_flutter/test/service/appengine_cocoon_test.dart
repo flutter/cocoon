@@ -63,8 +63,14 @@ const String jsonGetStatsResponse = """
       }
 """;
 
+const String jsonBuildStatusResponse = """
+  {
+    "AnticipatedBuildStatus": "Succeeded"
+  }
+""";
+
 void main() {
-  group('AppEngine CocoonService', () {
+  group('AppEngine CocoonService fetchCommitStatus ', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -121,6 +127,40 @@ void main() {
           client: MockClient((request) async => Response('bad', 200)));
 
       expect(service.fetchCommitStatuses(), throwsException);
+    });
+  });
+
+  group('AppEngine CocoonService fetchTreeBuildStatus ', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService(client: MockClient((request) async {
+        return Response(jsonBuildStatusResponse, 200);
+      }));
+    });
+
+    test('should return bool', () {
+      expect(service.fetchTreeBuildStatus(), TypeMatcher<Future<bool>>());
+    });
+
+    test('should return expected bool', () async {
+      bool treeBuildStatus = await service.fetchTreeBuildStatus();
+
+      expect(treeBuildStatus, true);
+    });
+
+    test('should throw exception if given non-200 response', () {
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('', 404)));
+
+      expect(service.fetchTreeBuildStatus(), throwsException);
+    });
+
+    test('should throw exception if given bad response', () {
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('bad', 200)));
+
+      expect(service.fetchTreeBuildStatus(), throwsException);
     });
   });
 }

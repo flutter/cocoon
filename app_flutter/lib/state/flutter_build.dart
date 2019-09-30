@@ -26,6 +26,9 @@ class FlutterBuildState extends ChangeNotifier {
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
+  /// Whether or not flutter/flutter currently passes tests.
+  bool isTreeBuilding;
+
   /// Creates a new [FlutterBuildState].
   ///
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.

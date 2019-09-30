@@ -46,6 +46,47 @@ class AppEngineCocoonService implements CocoonService {
     return _commitStatusesFromJson(jsonResponse['Statuses']);
   }
 
+  @override
+  Future<bool> fetchTreeBuildStatus() async {
+    /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
+    http.Response response =
+        await _client.get('$_baseApiUrl/public/build-status');
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw HttpException(
+          '$_baseApiUrl/public/build-status returned ${response.statusCode}');
+    }
+
+    Map<String, Object> jsonResponse = jsonDecode(response.body);
+
+    if (!_isBuildStatusResponseValid(jsonResponse)) {
+      throw HttpException(
+          '$_baseApiUrl/public/build-status had a malformed response');
+    }
+
+    return jsonResponse['AnticipatedBuildStatus'] == "Succeeded";
+  }
+
+  /// Check if [Map<String,Object>] follows the format for build-status.
+  ///
+  /// ```json
+  /// {
+  ///   "AnticipatedBuildStatus": "Succeeded"|"Failed"
+  /// }
+  /// ```
+  bool _isBuildStatusResponseValid(Map<String, Object> response) {
+    if (!response.containsKey('AnticipatedBuildStatus')) {
+      return false;
+    }
+
+    String treeBuildStatus = response['AnticipatedBuildStatus'];
+    if (treeBuildStatus != 'Failed' && treeBuildStatus != 'Succeeded') {
+      return false;
+    }
+
+    return true;
+  }
+
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
