@@ -16,6 +16,8 @@ import 'task_box.dart';
 ///
 /// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
 class StatusGridContainer extends StatelessWidget {
+  const StatusGridContainer({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
