@@ -13,10 +13,11 @@ import '../service/cocoon.dart';
 /// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
   /// Cocoon backend service that retrieves the data needed for this state.
-  final CocoonService _cocoonService = CocoonService();
+  final CocoonService _cocoonService;
 
   /// How often to query the Cocoon backend for the current build state.
-  final Duration _refreshRate = Duration(seconds: 10);
+  @visibleForTesting
+  final Duration refreshRate = Duration(seconds: 10);
 
   /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
   @visibleForTesting
@@ -25,7 +26,13 @@ class FlutterBuildState extends ChangeNotifier {
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
-  /// Start a fixed interval loop that fetches build state updates based on [_refreshRate].
+  /// Creates a new [FlutterBuildState].
+  ///
+  /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
+  FlutterBuildState({CocoonService cocoonService})
+      : _cocoonService = cocoonService ?? CocoonService();
+
+  /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   void startFetchingBuildStateUpdates() async {
     if (refreshTimer != null) {
       // There's already an update loop, no need to make another.
@@ -33,7 +40,7 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     refreshTimer =
-        Timer.periodic(_refreshRate, (t) => _fetchBuildStatusUpdate());
+        Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
   /// Request the latest [statuses] from [CocoonService].
