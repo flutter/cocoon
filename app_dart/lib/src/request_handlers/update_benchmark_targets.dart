@@ -53,10 +53,13 @@ class UpdateBenchmarkTargets
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
-    final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+    final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(
+      timeSeriesKey,
+      orElse: () {
         throw BadRequestException('Invalid time series Key: $timeSeriesKey');
-      });
-    
+      },
+    );
+
     if (goal < 0) {
       goal = 0;
     }
@@ -75,7 +78,8 @@ class UpdateBenchmarkTargets
 
 @immutable
 class UpdateBenchmarkTargetsResponse extends JsonBody {
-  const UpdateBenchmarkTargetsResponse(this.timeSeries) : assert(timeSeries != null);
+  const UpdateBenchmarkTargetsResponse(this.timeSeries)
+      : assert(timeSeries != null);
 
   final TimeSeries timeSeries;
 
@@ -87,3 +91,4 @@ class UpdateBenchmarkTargetsResponse extends JsonBody {
     };
   }
 }
+
