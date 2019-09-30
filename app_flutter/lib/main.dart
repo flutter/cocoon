@@ -35,7 +35,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
   void initState() {
     super.initState();
 
-    buildState.startFetchingBuildStatusUpdates();
+    buildState.startFetchingBuildStateUpdates();
   }
 
   @override
