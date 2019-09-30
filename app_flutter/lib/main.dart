@@ -57,8 +57,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   void dispose() {
-    super.dispose();
-
     buildState.dispose();
+    super.dispose();
   }
 }
