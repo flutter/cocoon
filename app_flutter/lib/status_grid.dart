@@ -23,10 +23,10 @@ class StatusGridContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
-        final List<CommitStatus> statuses = buildState.statuses;
+        CocoonResponse<List<CommitStatus>> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
-        if (statuses.isEmpty) {
+        if (statuses.data.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(),
@@ -35,7 +35,7 @@ class StatusGridContainer extends StatelessWidget {
         }
 
         return StatusGrid(
-          statuses: statuses,
+          statuses: statuses.data,
         );
       },
     );
