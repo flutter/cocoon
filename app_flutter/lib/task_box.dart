@@ -32,6 +32,7 @@ class TaskBox extends StatelessWidget {
   static const statusColor = <String, Color>{
     statusFailed: Colors.red,
     statusNew: Colors.blue,
+    statusInProgress: Colors.blue,
     statusSkipped: Colors.transparent,
     statusSucceeded: Colors.green,
     statusUnderperformed: Colors.orange,
@@ -39,27 +40,20 @@ class TaskBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (task.status == statusInProgress) {
-      return Container(
-        margin: const EdgeInsets.all(1.0),
-        color: statusColor[statusNew],
-        child: const Padding(
-          padding: EdgeInsets.all(25.0),
-          child: const CircularProgressIndicator(
-            strokeWidth: 3.0,
-            backgroundColor: Colors.white70,
-          ),
-        ),
-        width: 20,
-        height: 20,
-      );
-    }
-
     return Container(
       margin: const EdgeInsets.all(1.0),
       color: statusColor.containsKey(task.status)
           ? statusColor[task.status]
           : Colors.black,
+      child: (task.status == statusInProgress)
+          ? const Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: CircularProgressIndicator(
+                strokeWidth: 3.0,
+                backgroundColor: Colors.white70,
+              ),
+            )
+          : null,
       width: 20,
       height: 20,
     );
