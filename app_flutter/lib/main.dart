@@ -40,12 +40,12 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter Build Dashboard v2'),
-        backgroundColor: buildState.isTreeBuilding
-            ? Theme.of(context).primaryColor
-            : Theme.of(context).errorColor,
+        backgroundColor:
+            buildState.isTreeBuilding ? theme.primaryColor : theme.errorColor,
       ),
       body: Column(
         children: [
