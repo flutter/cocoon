@@ -27,7 +27,8 @@ class FlutterBuildState extends ChangeNotifier {
   List<CommitStatus> statuses = [];
 
   /// Whether or not flutter/flutter currently passes tests.
-  bool isTreeBuilding = true;
+  bool get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding = true;
 
   /// Creates a new [FlutterBuildState].
   ///
@@ -49,7 +50,7 @@ class FlutterBuildState extends ChangeNotifier {
   /// Request the latest [statuses] from [CocoonService].
   void _fetchBuildStatusUpdate() async {
     statuses = await _cocoonService.fetchCommitStatuses();
-    isTreeBuilding = await _cocoonService.fetchTreeBuildStatus();
+    _isTreeBuilding = await _cocoonService.fetchTreeBuildStatus();
 
     notifyListeners();
   }
