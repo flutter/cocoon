@@ -47,7 +47,7 @@ class TaskBox extends StatelessWidget {
           : Colors.black,
       child: (task.status == statusInProgress)
           ? const Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: EdgeInsets.all(15.0),
               child: CircularProgressIndicator(
                 strokeWidth: 3.0,
                 backgroundColor: Colors.white70,
