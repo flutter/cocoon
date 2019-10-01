@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
-
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
