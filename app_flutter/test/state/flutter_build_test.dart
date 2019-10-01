@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:cocoon_service/protos.dart' show CommitStatus;
+
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
@@ -18,27 +20,31 @@ void main() {
     setUp(() {
       mockService = MockCocoonService();
       buildState = FlutterBuildState(cocoonService: mockService);
+
+      when(mockService.fetchCommitStatuses())
+          .thenAnswer((_) => Future.value([]));
+      when(mockService.fetchTreeBuildStatus())
+          .thenAnswer((_) => Future.value(true));
     });
 
     testWidgets('timer should periodically fetch updates',
         (WidgetTester tester) async {
       buildState.startFetchingBuildStateUpdates();
-      verifyZeroInteractions(mockService);
+
+      // startFetching immediately starts fetching results
+      verify(mockService.fetchCommitStatuses()).called(1);
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchCommitStatuses()).called(greaterThan(0));
-
-      await tester.pump(buildState.refreshRate * 2);
-      // Now we check to see if another call had been made
       verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
     });
 
-    test('multiple start updates should not change the timer', () {
+    testWidgets('multiple start updates should not change the timer',
+        (WidgetTester tester) async {
       buildState.startFetchingBuildStateUpdates();
       Timer refreshTimer = buildState.refreshTimer;
 
@@ -46,6 +52,10 @@ void main() {
       buildState.startFetchingBuildStateUpdates();
 
       expect(refreshTimer, equals(buildState.refreshTimer));
+
+      // Since startFetching sends out requests on start, we need to wait
+      // for them to finish before disposing of the state.
+      await tester.pumpAndSettle();
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();

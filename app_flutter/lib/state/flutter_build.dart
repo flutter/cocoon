@@ -43,14 +43,23 @@ class FlutterBuildState extends ChangeNotifier {
       return;
     }
 
+    /// [Timer.periodic] does not necessarily run at the start of the timer.
+    _fetchBuildStatusUpdate();
+
     refreshTimer =
         Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
   /// Request the latest [statuses] from [CocoonService].
   void _fetchBuildStatusUpdate() async {
-    statuses = await _cocoonService.fetchCommitStatuses();
-    _isTreeBuilding = await _cocoonService.fetchTreeBuildStatus();
+    await Future.wait([
+      _cocoonService
+          .fetchCommitStatuses()
+          .then((commitStatuses) => statuses = commitStatuses),
+      _cocoonService
+          .fetchTreeBuildStatus()
+          .then((treeStatus) => _isTreeBuilding = treeStatus),
+    ]);
 
     notifyListeners();
   }
