@@ -63,9 +63,15 @@ const String jsonGetStatsResponse = """
       }
 """;
 
-const String jsonBuildStatusResponse = """
+const String jsonBuildStatusTrueResponse = """
   {
     "AnticipatedBuildStatus": "Succeeded"
+  }
+""";
+
+const String jsonBuildStatusFalseResponse = """
+  {
+    "AnticipatedBuildStatus": "Failed"
   }
 """;
 
@@ -135,7 +141,7 @@ void main() {
 
     setUp(() async {
       service = AppEngineCocoonService(client: MockClient((request) async {
-        return Response(jsonBuildStatusResponse, 200);
+        return Response(jsonBuildStatusTrueResponse, 200);
       }));
     });
 
@@ -143,10 +149,20 @@ void main() {
       expect(service.fetchTreeBuildStatus(), TypeMatcher<Future<bool>>());
     });
 
-    test('should return expected bool', () async {
+    test('should return true when given Succeeded', () async {
       bool treeBuildStatus = await service.fetchTreeBuildStatus();
 
       expect(treeBuildStatus, true);
+    });
+
+    test('should return false when given Failed', () async {
+      service = AppEngineCocoonService(client: MockClient((request) async {
+        return Response(jsonBuildStatusFalseResponse, 200);
+      }));
+
+      bool treeBuildStatus = await service.fetchTreeBuildStatus();
+
+      expect(treeBuildStatus, false);
     });
 
     test('should throw exception if given non-200 response', () {
