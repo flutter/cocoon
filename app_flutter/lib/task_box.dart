@@ -20,6 +20,7 @@ class TaskBox extends StatelessWidget {
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
+  /// TODO(chillers): Update these to TaskStatus enum when backend switches to protos. https://github.com/flutter/cocoon/issues/441
   static const statusColor = <String, Color>{
     'Failed': Colors.red,
     'New': Colors.blue,
