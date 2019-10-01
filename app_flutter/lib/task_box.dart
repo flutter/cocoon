@@ -17,24 +17,32 @@ class TaskBox extends StatelessWidget {
   /// [Task] to show information from.
   final Task task;
 
+  /// Status messages that map to TaskStatus enums.
+  /// TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
+  static const String statusFailed = 'Failed';
+  static const String statusNew = 'New';
+  static const String statusSkipped = 'Skipped';
+  static const String statusSucceeded = 'Succeeded';
+  static const String statusUnderperformed = 'Underperformed';
+  static const String statusInProgress = 'In Progress';
+
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
-  /// TODO(chillers): Update these to TaskStatus enum when backend switches to protos. https://github.com/flutter/cocoon/issues/441
   static const statusColor = <String, Color>{
-    'Failed': Colors.red,
-    'New': Colors.blue,
-    'Skipped': Colors.transparent,
-    'Succeeded': Colors.green,
-    'Underperformed': Colors.orange,
+    statusFailed: Colors.red,
+    statusNew: Colors.blue,
+    statusSkipped: Colors.transparent,
+    statusSucceeded: Colors.green,
+    statusUnderperformed: Colors.orange,
   };
 
   @override
   Widget build(BuildContext context) {
-    if (task.status == 'In Progress') {
+    if (task.status == statusInProgress) {
       return Container(
         margin: const EdgeInsets.all(1.0),
-        color: statusColor['New'],
+        color: statusColor[statusNew],
         child: const Padding(
           padding: EdgeInsets.all(25.0),
           child: const CircularProgressIndicator(

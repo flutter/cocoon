@@ -21,7 +21,8 @@ void main() {
 
     testWidgets('shows loading indicator for In Progress task',
         (WidgetTester tester) async {
-      await tester.pumpWidget(TaskBox(task: Task()..status = 'In Progress'));
+      await tester
+          .pumpWidget(TaskBox(task: Task()..status = TaskBox.statusInProgress));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
