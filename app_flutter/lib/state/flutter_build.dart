@@ -26,6 +26,10 @@ class FlutterBuildState extends ChangeNotifier {
   /// The current status of the commits loaded.
   List<CommitStatus> statuses = [];
 
+  /// Whether or not flutter/flutter currently passes tests.
+  bool get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding = true;
+
   /// Creates a new [FlutterBuildState].
   ///
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
@@ -39,13 +43,24 @@ class FlutterBuildState extends ChangeNotifier {
       return;
     }
 
+    /// [Timer.periodic] does not necessarily run at the start of the timer.
+    _fetchBuildStatusUpdate();
+
     refreshTimer =
         Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
   }
 
   /// Request the latest [statuses] from [CocoonService].
   void _fetchBuildStatusUpdate() async {
-    statuses = await _cocoonService.fetchCommitStatuses();
+    await Future.wait([
+      _cocoonService
+          .fetchCommitStatuses()
+          .then((commitStatuses) => statuses = commitStatuses),
+      _cocoonService
+          .fetchTreeBuildStatus()
+          .then((treeStatus) => _isTreeBuilding = treeStatus),
+    ]);
+
     notifyListeners();
   }
 

@@ -18,6 +18,11 @@ class FakeCocoonService implements CocoonService {
     return Future.value(_createFakeCommitStatuses());
   }
 
+  @override
+  Future<bool> fetchTreeBuildStatus() async {
+    return true;
+  }
+
   List<CommitStatus> _createFakeCommitStatuses() {
     List<CommitStatus> stats = <CommitStatus>[];
 

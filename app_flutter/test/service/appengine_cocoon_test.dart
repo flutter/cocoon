@@ -63,8 +63,20 @@ const String jsonGetStatsResponse = """
       }
 """;
 
+const String jsonBuildStatusTrueResponse = """
+  {
+    "AnticipatedBuildStatus": "Succeeded"
+  }
+""";
+
+const String jsonBuildStatusFalseResponse = """
+  {
+    "AnticipatedBuildStatus": "Failed"
+  }
+""";
+
 void main() {
-  group('AppEngine CocoonService', () {
+  group('AppEngine CocoonService fetchCommitStatus ', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -121,6 +133,50 @@ void main() {
           client: MockClient((request) async => Response('bad', 200)));
 
       expect(service.fetchCommitStatuses(), throwsException);
+    });
+  });
+
+  group('AppEngine CocoonService fetchTreeBuildStatus ', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService(client: MockClient((request) async {
+        return Response(jsonBuildStatusTrueResponse, 200);
+      }));
+    });
+
+    test('should return bool', () {
+      expect(service.fetchTreeBuildStatus(), TypeMatcher<Future<bool>>());
+    });
+
+    test('should return true when given Succeeded', () async {
+      bool treeBuildStatus = await service.fetchTreeBuildStatus();
+
+      expect(treeBuildStatus, true);
+    });
+
+    test('should return false when given Failed', () async {
+      service = AppEngineCocoonService(client: MockClient((request) async {
+        return Response(jsonBuildStatusFalseResponse, 200);
+      }));
+
+      bool treeBuildStatus = await service.fetchTreeBuildStatus();
+
+      expect(treeBuildStatus, false);
+    });
+
+    test('should throw exception if given non-200 response', () {
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('', 404)));
+
+      expect(service.fetchTreeBuildStatus(), throwsException);
+    });
+
+    test('should throw exception if given bad response', () {
+      service = AppEngineCocoonService(
+          client: MockClient((request) async => Response('bad', 200)));
+
+      expect(service.fetchTreeBuildStatus(), throwsException);
     });
   });
 }
