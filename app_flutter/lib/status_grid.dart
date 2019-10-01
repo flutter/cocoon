@@ -9,6 +9,7 @@ import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 
 import 'commit_box.dart';
+import 'stage_box.dart';
 import 'state/flutter_build.dart';
 import 'task_box.dart';
 
@@ -69,14 +70,23 @@ class StatusGrid extends StatelessWidget {
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
-              final int statusIndex = gridIndex ~/ columnCount;
+              if (gridIndex == 0) {
+                return Container();
+              }
 
-              if (gridIndex % columnCount == 0) {
+              // This needs explaination
+              final int index = gridIndex - columnCount;
+              if (index < 0) {
+                return StageBox(stage: _mapIndexToStage(gridIndex));
+              }
+
+              if (index % columnCount == 0) {
+                final int statusIndex = index ~/ columnCount;
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
               return TaskBox(
-                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
+                task: _mapGridIndexToTaskBruteForce(index, columnCount),
               );
             },
           ),
@@ -100,6 +110,26 @@ class StatusGrid extends StatelessWidget {
     }
 
     return columnCount;
+  }
+
+  Stage _mapIndexToStage(int index) {
+    // The first index is reserved for the CommitBox column
+    index--;
+
+    final CommitStatus status = statuses[0];
+
+    int stageIndex = 0;
+    while (stageIndex < status.stages.length) {
+      final Stage currentStage = status.stages[stageIndex];
+      if (index >= currentStage.tasks.length) {
+        index = index - currentStage.tasks.length;
+        stageIndex++;
+      } else {
+        break;
+      }
+    }
+
+    return status.stages[stageIndex];
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
