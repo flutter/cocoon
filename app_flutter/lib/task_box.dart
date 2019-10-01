@@ -8,19 +8,20 @@ import 'package:cocoon_service/protos.dart' show Task;
 
 /// Displays information from a [Task].
 ///
-/// Shows a black box for unknown messages.
+/// If [Task.status] is "In Progress", it will show as a "New" task
+/// with a [CircularProgressIndicator] in the box.
+/// Shows a black box for unknown statuses.
 class TaskBox extends StatelessWidget {
   const TaskBox({Key key, @required this.task}) : super(key: key);
 
   /// [Task] to show information from.
   final Task task;
 
-  /// A lookup table to define the background color for this ResultBox.
+  /// A lookup table to define the background color for this TaskBox.
   ///
-  /// The result messages are based on the messages the backend sends.
-  static const resultColor = <String, Color>{
+  /// The status messages are based on the messages the backend sends.
+  static const statusColor = <String, Color>{
     'Failed': Colors.red,
-    'In Progress': Colors.purple, // v1 used the 'New' color while spinning
     'New': Colors.blue,
     'Skipped': Colors.transparent,
     'Succeeded': Colors.green,
@@ -31,7 +32,8 @@ class TaskBox extends StatelessWidget {
   Widget build(BuildContext context) {
     if (task.status == 'In Progress') {
       return Container(
-        color: resultColor['New'],
+        margin: const EdgeInsets.all(1.0),
+        color: statusColor['New'],
         child: const Padding(
           padding: EdgeInsets.all(25.0),
           child: const CircularProgressIndicator(
@@ -39,13 +41,15 @@ class TaskBox extends StatelessWidget {
             backgroundColor: Colors.white70,
           ),
         ),
+        width: 20,
+        height: 20,
       );
     }
 
     return Container(
       margin: const EdgeInsets.all(1.0),
-      color: resultColor.containsKey(task.status)
-          ? resultColor[task.status]
+      color: statusColor.containsKey(task.status)
+          ? statusColor[task.status]
           : Colors.black,
       width: 20,
       height: 20,
