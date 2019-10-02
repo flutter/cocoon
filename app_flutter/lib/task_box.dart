@@ -18,7 +18,7 @@ class TaskBox extends StatelessWidget {
   final Task task;
 
   /// Status messages that map to TaskStatus enums.
-  /// TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
+  // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
   static const String statusFailed = 'Failed';
   static const String statusNew = 'New';
   static const String statusSkipped = 'Skipped';
@@ -32,7 +32,7 @@ class TaskBox extends StatelessWidget {
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
-  static const statusColor = <String, Color>{
+  static const Map<String, Color> statusColor = <String, Color>{
     statusFailed: Colors.red,
     statusNew: Colors.blue,
     statusInProgress: Colors.blue,

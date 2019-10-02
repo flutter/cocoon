@@ -12,7 +12,7 @@ import 'package:app_flutter/commit_box.dart';
 
 void main() {
   group('CommitBox', () {
-    Commit expectedCommit = Commit()
+    final Commit expectedCommit = Commit()
       ..author = 'AuthoryMcAuthor Face'
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/2148558?v=4'
       ..repository = 'flutter/cocoon'
@@ -30,7 +30,7 @@ void main() {
 
       // Image.Network throws a 400 exception in tests
       expect(tester.takeException(),
-          test.TypeMatcher<NetworkImageLoadException>());
+          const test.TypeMatcher<NetworkImageLoadException>());
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {

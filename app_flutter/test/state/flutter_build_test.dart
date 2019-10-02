@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:cocoon_service/protos.dart' show CommitStatus;
+
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
@@ -20,9 +22,9 @@ void main() {
       buildState = FlutterBuildState(cocoonService: mockService);
 
       when(mockService.fetchCommitStatuses())
-          .thenAnswer((_) => Future.value([]));
+          .thenAnswer((_) => Future<List<CommitStatus>>.value(<CommitStatus>[]));
       when(mockService.fetchTreeBuildStatus())
-          .thenAnswer((_) => Future.value(true));
+          .thenAnswer((_) => Future<bool>.value(true));
     });
 
     testWidgets('timer should periodically fetch updates',
@@ -44,7 +46,7 @@ void main() {
     testWidgets('multiple start updates should not change the timer',
         (WidgetTester tester) async {
       buildState.startFetchingBuildStateUpdates();
-      Timer refreshTimer = buildState.refreshTimer;
+      final Timer refreshTimer = buildState.refreshTimer;
 
       // This second run should not change the refresh timer
       buildState.startFetchingBuildStateUpdates();

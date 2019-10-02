@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 
-import 'state/flutter_build.dart';
 import 'commit_box.dart';
+import 'state/flutter_build.dart';
 import 'task_box.dart';
 
 /// Container that manages the layout and data handling for [StatusGrid].
@@ -21,12 +21,12 @@ class StatusGridContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
-      builder: (context, buildState, child) {
-        List<CommitStatus> statuses = buildState.statuses;
+      builder: (_, FlutterBuildState buildState, Widget child) {
+        final List<CommitStatus> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {
-          return Expanded(
+          return const Expanded(
             child: Center(
               child: CircularProgressIndicator(),
             ),
@@ -55,7 +55,7 @@ class StatusGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     // The grid needs to know its dimensions, column is based off the stages and
     // how many tasks they each run.
-    int columnCount = _getColumnCount(statuses.first);
+    final int columnCount = _getColumnCount(statuses.first);
 
     return Expanded(
       // The grid is wrapped with SingleChildScrollView to enable scrolling both
@@ -69,7 +69,7 @@ class StatusGrid extends StatelessWidget {
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
-              int statusIndex = gridIndex ~/ columnCount;
+              final int statusIndex = gridIndex ~/ columnCount;
 
               if (gridIndex % columnCount == 0) {
                 return CommitBox(commit: statuses[statusIndex].commit);
@@ -104,14 +104,14 @@ class StatusGrid extends StatelessWidget {
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
   Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
-    int commitStatusIndex = gridIndex ~/ columnCount;
-    CommitStatus status = statuses[commitStatusIndex];
+    final int commitStatusIndex = gridIndex ~/ columnCount;
+    final CommitStatus status = statuses[commitStatusIndex];
 
     int taskIndex = (gridIndex % columnCount) - 1;
 
     int currentStageIndex = 0;
     while (taskIndex >= 0 && currentStageIndex < status.stages.length) {
-      Stage currentStage = status.stages[currentStageIndex];
+      final Stage currentStage = status.stages[currentStageIndex];
       if (taskIndex >= currentStage.tasks.length) {
         taskIndex = taskIndex - currentStage.tasks.length;
         currentStageIndex++;

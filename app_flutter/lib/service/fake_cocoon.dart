@@ -20,8 +20,8 @@ class FakeCocoonService implements CocoonService {
   final Random random;
 
   @override
-  Future<List<CommitStatus>> fetchCommitStatuses() {
-    return Future.value(_createFakeCommitStatuses());
+  Future<List<CommitStatus>> fetchCommitStatuses() async {
+    return _createFakeCommitStatuses();
   }
 
   @override
@@ -30,14 +30,14 @@ class FakeCocoonService implements CocoonService {
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {
-    List<CommitStatus> stats = <CommitStatus>[];
+    final List<CommitStatus> stats = <CommitStatus>[];
 
     final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     for (int i = 0; i < 100; i++) {
-      Commit commit = _createFakeCommit(i, baseTimestamp);
+      final Commit commit = _createFakeCommit(i, baseTimestamp);
 
-      CommitStatus status = CommitStatus()
+      final CommitStatus status = CommitStatus()
         ..commit = commit
         ..stages.addAll(_createFakeStages(i, commit));
 
@@ -57,17 +57,17 @@ class FakeCocoonService implements CocoonService {
   }
 
   List<Stage> _createFakeStages(int index, Commit commit) {
-    List<Stage> stages = <Stage>[];
+    final List<Stage> stages = <Stage>[];
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(List.generate(15, (i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(15, (int i) => _createFakeTask(i))));
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab_win'
-      ..tasks.addAll(List.generate(3, (i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(3, (int i) => _createFakeTask(i))));
 
     return stages;
   }

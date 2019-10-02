@@ -44,7 +44,7 @@ class _CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-      builder: (overlayContext) => CommitOverlayContents(
+      builder: (_) => CommitOverlayContents(
           parentContext: context,
           commit: widget.commit,
           closeCallback: _closeOverlay),
@@ -61,7 +61,7 @@ class _CommitBoxState extends State<CommitBox> {
 /// This is intended to be inserted in an [OverlayEntry] as it requires
 /// [closeCallback] that will remove the widget from the tree.
 class CommitOverlayContents extends StatelessWidget {
-  CommitOverlayContents({
+  const CommitOverlayContents({
     Key key,
     @required this.parentContext,
     @required this.commit,
@@ -130,7 +130,7 @@ class CommitOverlayContents extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
                       onPressed: () async {
-                        String githubUrl =
+                        final String githubUrl =
                             'https://github.com/${commit.repository}/commit/${commit.sha}';
                         await launch(githubUrl);
                       },
