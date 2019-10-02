@@ -3,10 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import 'state/flutter_build.dart';
-import 'status_grid.dart';
+import 'build_dashboard.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,47 +18,5 @@ class MyApp extends StatelessWidget {
       ),
       home: BuildDashboardPage(),
     );
-  }
-}
-
-class BuildDashboardPage extends StatefulWidget {
-  @override
-  _BuildDashboardPageState createState() => _BuildDashboardPageState();
-}
-
-class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  final FlutterBuildState buildState = FlutterBuildState();
-
-  @override
-  void initState() {
-    super.initState();
-
-    buildState.startFetchingBuildStateUpdates();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Flutter Build Dashboard v2'),
-        backgroundColor:
-            buildState.isTreeBuilding ? theme.primaryColor : theme.errorColor,
-      ),
-      body: Column(
-        children: [
-          ChangeNotifierProvider(
-            builder: (context) => buildState,
-            child: StatusGridContainer(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    buildState.dispose();
-    super.dispose();
   }
 }

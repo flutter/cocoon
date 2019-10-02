@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:fixnum/fixnum.dart';
 
 import 'package:cocoon_service/protos.dart'
@@ -20,7 +22,7 @@ class FakeCocoonService implements CocoonService {
 
   @override
   Future<bool> fetchTreeBuildStatus() async {
-    return true;
+    return Random().nextBool();
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {
