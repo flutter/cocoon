@@ -19,17 +19,14 @@ class StageBox extends StatelessWidget {
   static const String stageLuci = 'chromebot';
   static const String stageDevicelab = 'devicelab';
   static const String stageDevicelabWin = 'devicelab_win';
-  static const String stageDevicelabMac = 'devicelab_mac';
+  static const String stageDevicelabIOs = 'devicelab_ios';
 
   static Map<String, Widget> stageIcons = <String, Widget>{
-    // SVG is not supported yet by Flutter, flutter_svg adds support
-    // however, flutter_svg does not support web yet
-    stageCirrus: Image.asset('assets/cirrus.svg'),
-    // stageCirrus: Image.asset('assets/appveyor.png'),
-    stageLuci: Image.asset('assets/chromium.svg'),
-    stageDevicelab: Image.asset('assets/android.svg'),
-    stageDevicelabWin: Image.asset('assets/windows.svg'),
-    stageDevicelabMac: Image.asset('assets/apple.svg'),
+    stageCirrus: Image.asset('assets/cirrus.png'),
+    stageLuci: Image.asset('assets/chromium.png'),
+    stageDevicelab: Image.asset('assets/android.png'),
+    stageDevicelabWin: Image.asset('assets/windows.png'),
+    stageDevicelabIOs: Image.asset('assets/apple.png'),
   };
 
   @override
