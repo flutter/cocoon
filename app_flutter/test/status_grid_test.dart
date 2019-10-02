@@ -99,9 +99,8 @@ void main() {
       );
 
       TaskBox lastTaskWidget = find.byType(TaskBox).evaluate().last.widget;
-      // TaskBox updates status
-      Task lastTask = statuses.last.stages.last.tasks.last
-        ..status = TaskBox.statusSucceededButFlaky;
+      Task lastTask = statuses.last.stages.last.tasks.last;
+      
       expect(lastTaskWidget.task, lastTask);
     });
   });

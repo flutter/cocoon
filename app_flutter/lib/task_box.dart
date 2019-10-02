@@ -46,23 +46,23 @@ class TaskBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool attempted = task.attempts > 1;
+    String status = task.status;
     if (attempted) {
-      if (task.status == statusSucceeded) {
-        task.status = statusSucceededButFlaky;
-      } else if (task.status == statusNew) {
-        task.status = statusUnderperformed;
-      } else if (task.status == statusInProgress) {
-        task.status = statusUnderperformedInProgress;
+      if (status == statusSucceeded) {
+        status = statusSucceededButFlaky;
+      } else if (status == statusNew) {
+        status = statusUnderperformed;
+      } else if (status == statusInProgress) {
+        status = statusUnderperformedInProgress;
       }
     }
 
     return Container(
       margin: const EdgeInsets.all(1.0),
-      color: statusColor.containsKey(task.status)
-          ? statusColor[task.status]
-          : Colors.black,
-      child: (task.status == statusInProgress ||
-              task.status == statusUnderperformedInProgress)
+      color:
+          statusColor.containsKey(status) ? statusColor[status] : Colors.black,
+      child: (status == statusInProgress ||
+              status == statusUnderperformedInProgress)
           ? const Padding(
               padding: EdgeInsets.all(15.0),
               child: CircularProgressIndicator(
