@@ -61,6 +61,9 @@ class FlutterBuildState extends ChangeNotifier {
           .then((List<CommitStatus> commitStatuses) {
         _statuses.data = commitStatuses;
         _statuses.error = null;
+      }, onError: (Exception error) {
+        _statuses.error = error.toString();
+        print('error occurred');
       }),
       _cocoonService.fetchTreeBuildStatus().then((bool treeStatus) {
         _isTreeBuilding.data = treeStatus;

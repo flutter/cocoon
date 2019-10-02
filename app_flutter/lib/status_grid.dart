@@ -21,9 +21,20 @@ class StatusGridContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
-        CocoonResponse<List<CommitStatus>> statuses = buildState.statuses;
+        final CocoonResponse<List<CommitStatus>> statuses = buildState.statuses;
+        if (statuses.error != null) {
+          print('there was an error!');
+          final SnackBar snackbar = SnackBar(
+            content: const Text('Failed to get the latest commit statuses'),
+            backgroundColor: theme.errorColor,
+            duration: const Duration(seconds: 10),
+            behavior: SnackBarBehavior.floating,
+          );
+          Scaffold.of(context).showSnackBar(snackbar);
+        }
 
         // Assume if there is no data that it is loading.
         if (statuses.data.isEmpty) {
