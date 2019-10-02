@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
@@ -40,8 +40,6 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.byType(GridView), findsNothing);
-
-      tester.takeException();
     });
 
     testWidgets('commits show in the same column', (WidgetTester tester) async {
@@ -84,8 +82,6 @@ void main() {
 
       TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, statuses[0].stages[0].tasks[0]);
-
-      tester.takeException();
     });
 
     testWidgets('last task in grid is the last task given',
@@ -102,10 +98,10 @@ void main() {
         ),
       );
 
-      TaskBox lastTask = find.byType(TaskBox).evaluate().last.widget;
-      expect(lastTask.task, statuses.last.stages.last.tasks.last);
-
-      tester.takeException();
+      TaskBox lastTaskWidget = find.byType(TaskBox).evaluate().last.widget;
+      Task lastTask = statuses.last.stages.last.tasks.last;
+      
+      expect(lastTaskWidget.task, lastTask);
     });
   });
 }

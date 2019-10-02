@@ -27,6 +27,50 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
+    testWidgets('show orange when New but already attempted',
+        (WidgetTester tester) async {
+      final Task repeatTask = Task()
+        ..status = 'New'
+        ..attempts = 2;
+
+      await tester.pumpWidget(TaskBox(task: repeatTask));
+
+      final Container taskBoxWidget =
+          find.byType(Container).evaluate().first.widget;
+      final BoxDecoration decoration = taskBoxWidget.decoration;
+      expect(decoration.color, Colors.orange);
+    });
+
+    testWidgets(
+        'show loading indicator for In Progress task that is not on first attempt',
+        (WidgetTester tester) async {
+      final Task repeatTask = Task()
+        ..status = 'In Progress'
+        ..attempts = 2;
+
+      await tester.pumpWidget(TaskBox(task: repeatTask));
+
+      final Container taskBoxWidget =
+          find.byType(Container).evaluate().first.widget;
+      final BoxDecoration decoration = taskBoxWidget.decoration;
+      expect(decoration.color, Colors.orange);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('show yellow when Succeeded but ran multiple times',
+        (WidgetTester tester) async {
+      final Task repeatTask = Task()
+        ..status = 'Succeeded'
+        ..attempts = 2;
+
+      await tester.pumpWidget(TaskBox(task: repeatTask));
+
+      final Container taskBoxWidget =
+          find.byType(Container).evaluate().first.widget;
+      final BoxDecoration decoration = taskBoxWidget.decoration;
+      expect(decoration.color, Colors.yellow);
+    });
+
     testWidgets('is the color black when given an unknown message',
         (WidgetTester tester) async {
       expectTaskBoxColorWithMessage(tester, '404', Colors.black);
