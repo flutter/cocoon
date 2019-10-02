@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:fixnum/fixnum.dart';
 
 import 'package:cocoon_service/protos.dart'
@@ -13,6 +15,10 @@ import 'cocoon.dart';
 ///
 /// This creates fake data that mimicks what production will send.
 class FakeCocoonService implements CocoonService {
+  FakeCocoonService({Random rand}) : random = rand ?? Random();
+
+  final Random random;
+
   @override
   Future<List<CommitStatus>> fetchCommitStatuses() {
     return Future.value(_createFakeCommitStatuses());
@@ -20,7 +26,7 @@ class FakeCocoonService implements CocoonService {
 
   @override
   Future<bool> fetchTreeBuildStatus() async {
-    return true;
+    return random.nextBool();
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {
