@@ -15,6 +15,10 @@ import 'cocoon.dart';
 ///
 /// This creates fake data that mimicks what production will send.
 class FakeCocoonService implements CocoonService {
+  FakeCocoonService({Random rand}) : random = rand ?? Random();
+
+  final Random random;
+
   @override
   Future<List<CommitStatus>> fetchCommitStatuses() {
     return Future.value(_createFakeCommitStatuses());
@@ -22,7 +26,7 @@ class FakeCocoonService implements CocoonService {
 
   @override
   Future<bool> fetchTreeBuildStatus() async {
-    return Random().nextBool();
+    return random.nextBool();
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {
