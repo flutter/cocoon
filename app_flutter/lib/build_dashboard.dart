@@ -26,8 +26,8 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        builder: (context) => buildState, child: BuildDashboard());
+    return ChangeNotifierProvider<FlutterBuildState>(
+        builder: (_) => buildState, child: BuildDashboard());
   }
 
   @override
@@ -46,14 +46,14 @@ class BuildDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
-      builder: (_, buildState, child) => Scaffold(
+      builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
         appBar: AppBar(
           title: const Text('Flutter Build Dashboard v2'),
           backgroundColor:
               buildState.isTreeBuilding ? theme.primaryColor : theme.errorColor,
         ),
         body: Column(
-          children: [
+          children: const <Widget>[
             StatusGridContainer(),
           ],
         ),
