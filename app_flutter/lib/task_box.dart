@@ -23,7 +23,10 @@ class TaskBox extends StatelessWidget {
   static const String statusNew = 'New';
   static const String statusSkipped = 'Skipped';
   static const String statusSucceeded = 'Succeeded';
+  static const String statusSucceededButFlaky = 'Succeeded Flaky';
   static const String statusUnderperformed = 'Underperformed';
+  static const String statusUnderperformedInProgress =
+      'Underperfomed In Progress';
   static const String statusInProgress = 'In Progress';
 
   /// A lookup table to define the background color for this TaskBox.
@@ -35,17 +38,31 @@ class TaskBox extends StatelessWidget {
     statusInProgress: Colors.blue,
     statusSkipped: Colors.transparent,
     statusSucceeded: Colors.green,
+    statusSucceededButFlaky: Colors.yellow,
     statusUnderperformed: Colors.orange,
+    statusUnderperformedInProgress: Colors.orange,
   };
 
   @override
   Widget build(BuildContext context) {
+    final bool attempted = task.attempts > 1;
+    if (attempted) {
+      if (task.status == statusSucceeded) {
+        task.status = statusSucceededButFlaky;
+      } else if (task.status == statusNew) {
+        task.status = statusUnderperformed;
+      } else if (task.status == statusInProgress) {
+        task.status = statusUnderperformedInProgress;
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.all(1.0),
       color: statusColor.containsKey(task.status)
           ? statusColor[task.status]
           : Colors.black,
-      child: (task.status == statusInProgress)
+      child: (task.status == statusInProgress ||
+              task.status == statusUnderperformedInProgress)
           ? const Padding(
               padding: EdgeInsets.all(15.0),
               child: CircularProgressIndicator(
