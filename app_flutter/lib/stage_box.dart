@@ -37,7 +37,7 @@ class StageBox extends StatelessWidget {
     return Tooltip(
       message: stage.name,
       child: Container(
-        margin: const EdgeInsets.all(1.0),
+        margin: const EdgeInsets.all(7.5),
         child: stageIcons.containsKey(stage.name)
             ? stageIcons[stage.name]
             : Icon(Icons.help),
