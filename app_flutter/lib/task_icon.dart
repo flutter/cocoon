@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-/// Displays information from a [Stage].
+/// Displays information from a [Task].
 ///
 /// Shows a question mark for unknown stages.
-class StageBox extends StatelessWidget {
-  const StageBox({Key key, @required this.task}) : super(key: key);
+class TaskIcon extends StatelessWidget {
+  const TaskIcon({Key key, @required this.task}) : super(key: key);
 
-  /// [Stage] to show information from.
+  /// [Task] to show icon from.
   final Task task;
 
   static const String stageCirrus = 'cirrus';

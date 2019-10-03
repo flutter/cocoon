@@ -9,9 +9,9 @@ import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
 
 import 'commit_box.dart';
-import 'stage_box.dart';
 import 'state/flutter_build.dart';
 import 'task_box.dart';
+import 'task_icon.dart';
 
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
@@ -77,7 +77,7 @@ class StatusGrid extends StatelessWidget {
               // This needs explaination
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return StageBox(
+                return TaskIcon(
                     task:
                         _mapGridIndexToTaskBruteForce(gridIndex, columnCount));
               }
