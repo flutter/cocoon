@@ -6,22 +6,29 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-/// Displays information from a [Task].
+/// Header icon for all [Task] that map to the same [task.stageName] and [task.name].
 ///
-/// Shows a question mark for unknown stages.
+/// Intended to be used in the first row of [StatusGrid].
+/// Shows an icon based on [task.stageName], defaulting to [Icons.help] if it can't be mapped.
+/// On tap, shows [task.name].
 class TaskIcon extends StatelessWidget {
   const TaskIcon({Key key, @required this.task}) : super(key: key);
 
-  /// [Task] to show icon from.
+  /// [Task] to get information from.
   final Task task;
 
+  /// [stageName] that maps to StageName enums.
+  // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
   static const String stageCirrus = 'cirrus';
   static const String stageLuci = 'chromebot';
   static const String stageDevicelab = 'devicelab';
   static const String stageDevicelabWin = 'devicelab_win';
   static const String stageDevicelabIOs = 'devicelab_ios';
 
-  static Map<String, Widget> stageIcons = <String, Widget>{
+  /// A lookup table for matching [stageName] to [Image].
+  ///
+  /// [stageName] is based on the backend.
+  static Map<String, Image> stageIcons = <String, Image>{
     stageCirrus: Image.asset('assets/cirrus.png'),
     stageLuci: Image.asset('assets/chromium.png'),
     stageDevicelab: Image.asset('assets/android.png'),
@@ -32,7 +39,7 @@ class TaskIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '${task.stageName}/${task.name}',
+      message: task.name,
       child: Container(
         margin: const EdgeInsets.all(7.5),
         child: stageIcons.containsKey(task.stageName)
