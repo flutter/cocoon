@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
@@ -28,6 +27,11 @@ class AppEngineCocoonService implements CocoonService {
   /// This is the base for all API requests to cocoon
   static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
 
+  /// HTTP Status Code for response was Ok!
+  ///
+  /// dart:io provides HttpStatus.ok, but dart:io does not run on web.
+  static const int _statusOk = 200;
+
   final http.Client _client;
 
   @override
@@ -36,8 +40,8 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response =
         await _client.get('$_baseApiUrl/public/get-status');
 
-    if (response.statusCode != HttpStatus.ok) {
-      throw HttpException(
+    if (response.statusCode != _statusOk) {
+      throw http.ClientException(
           '$_baseApiUrl/public/get-status returned ${response.statusCode}');
     }
 
@@ -52,15 +56,15 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response =
         await _client.get('$_baseApiUrl/public/build-status');
 
-    if (response.statusCode != HttpStatus.ok) {
-      throw HttpException(
+    if (response.statusCode != _statusOk) {
+      throw http.ClientException(
           '$_baseApiUrl/public/build-status returned ${response.statusCode}');
     }
 
     final Map<String, Object> jsonResponse = jsonDecode(response.body);
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
-      throw const HttpException(
+      throw http.ClientException(
           '$_baseApiUrl/public/build-status had a malformed response');
     }
 
