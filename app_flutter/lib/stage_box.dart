@@ -4,16 +4,16 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:cocoon_service/protos.dart' show Stage;
+import 'package:cocoon_service/protos.dart' show Task;
 
 /// Displays information from a [Stage].
 ///
 /// Shows a question mark for unknown stages.
 class StageBox extends StatelessWidget {
-  const StageBox({Key key, @required this.stage}) : super(key: key);
+  const StageBox({Key key, @required this.task}) : super(key: key);
 
   /// [Stage] to show information from.
-  final Stage stage;
+  final Task task;
 
   static const String stageCirrus = 'cirrus';
   static const String stageLuci = 'chromebot';
@@ -32,11 +32,11 @@ class StageBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: stage.name,
+      message: '${task.stageName}/${task.name}',
       child: Container(
         margin: const EdgeInsets.all(7.5),
-        child: stageIcons.containsKey(stage.name)
-            ? stageIcons[stage.name]
+        child: stageIcons.containsKey(task.stageName)
+            ? stageIcons[task.stageName]
             : Icon(Icons.help),
         width: 100,
         height: 100,

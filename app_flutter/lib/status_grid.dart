@@ -77,7 +77,9 @@ class StatusGrid extends StatelessWidget {
               // This needs explaination
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return StageBox(stage: _mapIndexToStage(gridIndex));
+                return StageBox(
+                    task:
+                        _mapGridIndexToTaskBruteForce(gridIndex, columnCount));
               }
 
               if (index % columnCount == 0) {
@@ -110,26 +112,6 @@ class StatusGrid extends StatelessWidget {
     }
 
     return columnCount;
-  }
-
-  Stage _mapIndexToStage(int index) {
-    // The first index is reserved for the CommitBox column
-    index--;
-
-    final CommitStatus status = statuses[0];
-
-    int stageIndex = 0;
-    while (stageIndex < status.stages.length) {
-      final Stage currentStage = status.stages[stageIndex];
-      if (index >= currentStage.tasks.length) {
-        index = index - currentStage.tasks.length;
-        stageIndex++;
-      } else {
-        break;
-      }
-    }
-
-    return status.stages[stageIndex];
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
