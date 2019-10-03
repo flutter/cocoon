@@ -74,7 +74,7 @@ class StatusGrid extends StatelessWidget {
                 /// The top left corner of the grid is nothing since
                 /// the left column is for [CommitBox] and the top
                 /// row is for [TaskIcon].
-                return Container();
+                return const SizedBox();
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
