@@ -123,6 +123,9 @@ class StatusGrid extends StatelessWidget {
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
+  ///
+  /// Runs in O(# of [Stage]).
+  // TODO(chillers): Optimize to O(1). https://github.com/flutter/cocoon/issues/461
   Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
     final int commitStatusIndex = gridIndex ~/ columnCount;
     final CommitStatus status = statuses[commitStatusIndex];
