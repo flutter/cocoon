@@ -44,7 +44,7 @@ class TaskIcon extends StatelessWidget {
         margin: const EdgeInsets.all(7.5),
         child: stageIcons.containsKey(task.stageName)
             ? stageIcons[task.stageName]
-            : Icon(Icons.help),
+            : const Icon(Icons.help),
         width: 100,
         height: 100,
       ),
