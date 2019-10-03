@@ -71,10 +71,18 @@ class StatusGrid extends StatelessWidget {
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
               if (gridIndex == 0) {
+                /// The top left corner of the grid is nothing since
+                /// the left column is for [CommitBox] and the top
+                /// row is for [TaskIcon].
                 return Container();
               }
 
-              // This needs explaination
+              /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
+              /// of [List<CommitStatus>]. This allows the row of [TaskIcon] to align
+              /// with the column of [Task] that it maps to.
+              ///
+              /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
+              /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
                 return TaskIcon(
