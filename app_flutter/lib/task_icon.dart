@@ -28,7 +28,7 @@ class TaskIcon extends StatelessWidget {
   /// A lookup table for matching [stageName] to [Image].
   ///
   /// [stageName] is based on the backend.
-  static Map<String, Image> stageIcons = <String, Image>{
+  static final Map<String, Image> stageIcons = <String, Image>{
     stageCirrus: Image.asset('assets/cirrus.png'),
     stageLuci: Image.asset('assets/chromium.png'),
     stageDevicelab: Image.asset('assets/android.png'),
