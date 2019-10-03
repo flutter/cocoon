@@ -11,6 +11,7 @@ import 'package:cocoon_service/protos.dart'
 import 'commit_box.dart';
 import 'state/flutter_build.dart';
 import 'task_box.dart';
+import 'task_icon.dart';
 
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
@@ -69,14 +70,33 @@ class StatusGrid extends StatelessWidget {
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
-              final int statusIndex = gridIndex ~/ columnCount;
+              if (gridIndex == 0) {
+                /// The top left corner of the grid is nothing since
+                /// the left column is for [CommitBox] and the top
+                /// row is for [TaskIcon].
+                return const SizedBox();
+              }
 
-              if (gridIndex % columnCount == 0) {
+              /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
+              /// of [List<CommitStatus>]. This allows the row of [TaskIcon] to align
+              /// with the column of [Task] that it maps to.
+              ///
+              /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
+              /// row of [TaskIcon] introduces.
+              final int index = gridIndex - columnCount;
+              if (index < 0) {
+                return TaskIcon(
+                    task:
+                        _mapGridIndexToTaskBruteForce(gridIndex, columnCount));
+              }
+
+              if (index % columnCount == 0) {
+                final int statusIndex = index ~/ columnCount;
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
               return TaskBox(
-                task: _mapGridIndexToTaskBruteForce(gridIndex, columnCount),
+                task: _mapGridIndexToTaskBruteForce(index, columnCount),
               );
             },
           ),
@@ -103,6 +123,9 @@ class StatusGrid extends StatelessWidget {
   }
 
   /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
+  ///
+  /// Runs in O(# of [Stage]).
+  // TODO(chillers): Optimize to O(1). https://github.com/flutter/cocoon/issues/461
   Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
     final int commitStatusIndex = gridIndex ~/ columnCount;
     final CommitStatus status = statuses[commitStatusIndex];

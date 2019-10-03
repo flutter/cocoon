@@ -80,7 +80,8 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonGetStatsResponse, 200);
       }));
     });
@@ -140,7 +141,8 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusTrueResponse, 200);
       }));
     });
@@ -156,7 +158,8 @@ void main() {
     });
 
     test('should return false when given Failed', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
 

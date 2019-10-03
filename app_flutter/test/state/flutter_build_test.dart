@@ -21,8 +21,8 @@ void main() {
       mockService = MockCocoonService();
       buildState = FlutterBuildState(cocoonService: mockService);
 
-      when(mockService.fetchCommitStatuses())
-          .thenAnswer((_) => Future<List<CommitStatus>>.value(<CommitStatus>[]));
+      when(mockService.fetchCommitStatuses()).thenAnswer(
+          (_) => Future<List<CommitStatus>>.value(<CommitStatus>[]));
       when(mockService.fetchTreeBuildStatus())
           .thenAnswer((_) => Future<bool>.value(true));
     });

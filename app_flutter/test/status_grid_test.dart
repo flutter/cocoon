@@ -98,9 +98,10 @@ void main() {
         ),
       );
 
-      final TaskBox lastTaskWidget = find.byType(TaskBox).evaluate().last.widget;
+      final TaskBox lastTaskWidget =
+          find.byType(TaskBox).evaluate().last.widget;
       final Task lastTask = statuses.last.stages.last.tasks.last;
-      
+
       expect(lastTaskWidget.task, lastTask);
     });
   });
