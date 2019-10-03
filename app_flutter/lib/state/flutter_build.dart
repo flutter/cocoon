@@ -12,32 +12,32 @@ import '../service/cocoon.dart';
 
 /// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
-  /// Cocoon backend service that retrieves the data needed for this state.
-  final CocoonService _cocoonService;
-
-  /// How often to query the Cocoon backend for the current build state.
-  @visibleForTesting
-  final Duration refreshRate = Duration(seconds: 10);
-
-  /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
-  @visibleForTesting
-  Timer refreshTimer;
-
-  /// The current status of the commits loaded.
-  List<CommitStatus> statuses = [];
-
-  /// Whether or not flutter/flutter currently passes tests.
-  bool get isTreeBuilding => _isTreeBuilding;
-  bool _isTreeBuilding = true;
-
   /// Creates a new [FlutterBuildState].
   ///
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
   FlutterBuildState({CocoonService cocoonService})
       : _cocoonService = cocoonService ?? CocoonService();
 
+  /// Cocoon backend service that retrieves the data needed for this state.
+  final CocoonService _cocoonService;
+
+  /// How often to query the Cocoon backend for the current build state.
+  @visibleForTesting
+  final Duration refreshRate = const Duration(seconds: 10);
+
+  /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
+  @visibleForTesting
+  Timer refreshTimer;
+
+  /// The current status of the commits loaded.
+  List<CommitStatus> statuses = <CommitStatus>[];
+
+  /// Whether or not flutter/flutter currently passes tests.
+  bool get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding = true;
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  void startFetchingBuildStateUpdates() async {
+  Future<void> startFetchingBuildStateUpdates() async {
     if (refreshTimer != null) {
       // There's already an update loop, no need to make another.
       return;
@@ -47,18 +47,18 @@ class FlutterBuildState extends ChangeNotifier {
     _fetchBuildStatusUpdate();
 
     refreshTimer =
-        Timer.periodic(refreshRate, (t) => _fetchBuildStatusUpdate());
+        Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
   /// Request the latest [statuses] from [CocoonService].
-  void _fetchBuildStatusUpdate() async {
-    await Future.wait([
+  Future<void> _fetchBuildStatusUpdate() async {
+    await Future.wait<void>(<Future<void>>[
       _cocoonService
           .fetchCommitStatuses()
-          .then((commitStatuses) => statuses = commitStatuses),
+          .then<List<CommitStatus>>((List<CommitStatus> commitStatuses) => statuses = commitStatuses),
       _cocoonService
           .fetchTreeBuildStatus()
-          .then((treeStatus) => _isTreeBuilding = treeStatus),
+          .then<bool>((bool treeStatus) => _isTreeBuilding = treeStatus),
     ]);
 
     notifyListeners();

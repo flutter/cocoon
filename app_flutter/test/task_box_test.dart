@@ -78,11 +78,11 @@ void main() {
   });
 }
 
-void expectTaskBoxColorWithMessage(
+Future<void> expectTaskBoxColorWithMessage(
     WidgetTester tester, String message, Color expectedColor) async {
   await tester.pumpWidget(TaskBox(task: Task()..status = message));
 
-  Container taskBoxWidget = find.byType(Container).evaluate().first.widget;
-  BoxDecoration decoration = taskBoxWidget.decoration;
+  final Container taskBoxWidget = find.byType(Container).evaluate().first.widget;
+  final BoxDecoration decoration = taskBoxWidget.decoration;
   expect(decoration.color, expectedColor);
 }

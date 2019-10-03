@@ -28,10 +28,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
-            children: [
-              ChangeNotifierProvider(
+            children: <Widget>[
+              ChangeNotifierProvider<FlutterBuildState>(
                 builder: (_) => FlutterBuildState(),
-                child: StatusGridContainer(),
+                child: const StatusGridContainer(),
               ),
             ],
           ),
@@ -46,7 +46,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
-            children: [
+            children: <Widget>[
               StatusGrid(
                 statuses: statuses,
               ),
@@ -55,9 +55,9 @@ void main() {
         ),
       );
 
-      List<Element> commits = find.byType(CommitBox).evaluate().toList();
+      final List<Element> commits = find.byType(CommitBox).evaluate().toList();
 
-      double xPosition = commits.first.size.topLeft(Offset.zero).dx;
+      final double xPosition = commits.first.size.topLeft(Offset.zero).dx;
 
       for (Element commit in commits) {
         // All the x positions should match the first instance if they're all in the same column
@@ -71,7 +71,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
-            children: [
+            children: <Widget>[
               StatusGrid(
                 statuses: statuses,
               ),
@@ -80,7 +80,7 @@ void main() {
         ),
       );
 
-      TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
+      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, statuses[0].stages[0].tasks[0]);
     });
 
@@ -89,7 +89,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
-            children: [
+            children: <Widget>[
               StatusGrid(
                 statuses: statuses,
               ),
@@ -98,8 +98,8 @@ void main() {
         ),
       );
 
-      TaskBox lastTaskWidget = find.byType(TaskBox).evaluate().last.widget;
-      Task lastTask = statuses.last.stages.last.tasks.last;
+      final TaskBox lastTaskWidget = find.byType(TaskBox).evaluate().last.widget;
+      final Task lastTask = statuses.last.stages.last.tasks.last;
       
       expect(lastTaskWidget.task, lastTask);
     });

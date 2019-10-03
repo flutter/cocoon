@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
@@ -17,23 +17,23 @@ import 'cocoon.dart';
 ///
 /// This queries API endpoints that are hosted on AppEngine.
 class AppEngineCocoonService implements CocoonService {
-  /// The Cocoon API endpoint to query
-  ///
-  /// This is the base for all API requests to cocoon
-  static const _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
-
-  final http.Client _client;
-
   /// Creates a new [AppEngineCocoonService].
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
   AppEngineCocoonService({http.Client client})
       : _client = client ?? http.Client();
 
+  /// The Cocoon API endpoint to query
+  ///
+  /// This is the base for all API requests to cocoon
+  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
+
+  final http.Client _client;
+
   @override
   Future<List<CommitStatus>> fetchCommitStatuses() async {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
-    http.Response response =
+    final http.Response response =
         await _client.get('$_baseApiUrl/public/get-status');
 
     if (response.statusCode != HttpStatus.ok) {
@@ -41,7 +41,7 @@ class AppEngineCocoonService implements CocoonService {
           '$_baseApiUrl/public/get-status returned ${response.statusCode}');
     }
 
-    Map<String, Object> jsonResponse = jsonDecode(response.body);
+    final Map<String, Object> jsonResponse = jsonDecode(response.body);
 
     return _commitStatusesFromJson(jsonResponse['Statuses']);
   }
@@ -49,7 +49,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> fetchTreeBuildStatus() async {
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
-    http.Response response =
+    final http.Response response =
         await _client.get('$_baseApiUrl/public/build-status');
 
     if (response.statusCode != HttpStatus.ok) {
@@ -57,14 +57,14 @@ class AppEngineCocoonService implements CocoonService {
           '$_baseApiUrl/public/build-status returned ${response.statusCode}');
     }
 
-    Map<String, Object> jsonResponse = jsonDecode(response.body);
+    final Map<String, Object> jsonResponse = jsonDecode(response.body);
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
-      throw HttpException(
+      throw const HttpException(
           '$_baseApiUrl/public/build-status had a malformed response');
     }
 
-    return jsonResponse['AnticipatedBuildStatus'] == "Succeeded";
+    return jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.
@@ -80,7 +80,7 @@ class AppEngineCocoonService implements CocoonService {
       return false;
     }
 
-    String treeBuildStatus = response['AnticipatedBuildStatus'];
+    final String treeBuildStatus = response['AnticipatedBuildStatus'];
     if (treeBuildStatus != 'Failed' && treeBuildStatus != 'Succeeded') {
       return false;
     }
@@ -92,10 +92,10 @@ class AppEngineCocoonService implements CocoonService {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
-    List<CommitStatus> statuses = <CommitStatus>[];
+    final List<CommitStatus> statuses = <CommitStatus>[];
 
     for (Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
-      Map<String, Object> commit = jsonCommitStatus['Checklist'];
+      final Map<String, Object> commit = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(commit['Checklist'])
         ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
@@ -107,8 +107,8 @@ class AppEngineCocoonService implements CocoonService {
   Commit _commitFromJson(Map<String, Object> jsonCommit) {
     assert(jsonCommit != null);
 
-    Map<String, Object> commit = jsonCommit['Commit'];
-    Map<String, Object> author = commit['Author'];
+    final Map<String, Object> commit = jsonCommit['Commit'];
+    final Map<String, Object> author = commit['Author'];
 
     return Commit()
       ..timestamp = Int64() + jsonCommit['CreateTimestamp']
@@ -120,9 +120,11 @@ class AppEngineCocoonService implements CocoonService {
 
   List<Stage> _stagesFromJson(List<Object> json) {
     assert(json != null);
-    List<Stage> stages = <Stage>[];
+    final List<Stage> stages = <Stage>[];
 
-    json.forEach((jsonStage) => stages.add(_stageFromJson(jsonStage)));
+    for (Object jsonStage in json) {
+      stages.add(_stageFromJson(jsonStage));
+    }
 
     return stages;
   }
@@ -138,7 +140,7 @@ class AppEngineCocoonService implements CocoonService {
 
   List<Task> _tasksFromJson(List<Object> json) {
     assert(json != null);
-    List<Task> tasks = <Task>[];
+    final List<Task> tasks = <Task>[];
 
     for (Map<String, Object> jsonTask in json) {
       tasks.add(_taskFromJson(jsonTask['Task']));
@@ -150,10 +152,8 @@ class AppEngineCocoonService implements CocoonService {
   Task _taskFromJson(Map<String, Object> json) {
     assert(json != null);
 
-    List<String> requiredCapabilities = <String>[];
-    List<Object> objectRequiredCapabilities = json['RequiredCapabilities'];
-    objectRequiredCapabilities.forEach((objectCapability) =>
-        requiredCapabilities.add(objectRequiredCapabilities.toString()));
+    final List<Object> objectRequiredCapabilities =
+        json['RequiredCapabilities'];
 
     return Task()
       ..createTimestamp = Int64(json['CreateTimestamp'])
@@ -164,7 +164,7 @@ class AppEngineCocoonService implements CocoonService {
       ..isFlaky = json['Flaky']
       ..timeoutInMinutes = json['TimeoutInMinutes']
       ..reason = json['Reason']
-      ..requiredCapabilities.addAll(requiredCapabilities)
+      ..requiredCapabilities.add(objectRequiredCapabilities.toString())
       ..reservedForAgentId = json['ReservedForAgentID']
       ..stageName = json['StageName']
       ..status = json['Status'];
