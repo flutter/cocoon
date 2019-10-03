@@ -29,6 +29,9 @@ abstract class CocoonService {
 
   /// Gets build information from the last 200 commits.
   ///
-  /// TODO(chillers): Make configurable to get range of commits
+  // TODO(chillers): Make configurable to get range of commits, https://github.com/flutter/cocoon/issues/458
   Future<List<CommitStatus>> fetchCommitStatuses();
+
+  /// Gets the current build status of flutter/flutter.
+  Future<bool> fetchTreeBuildStatus();
 }

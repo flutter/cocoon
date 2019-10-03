@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:fixnum/fixnum.dart';
 
 import 'package:cocoon_service/protos.dart'
@@ -13,20 +15,29 @@ import 'cocoon.dart';
 ///
 /// This creates fake data that mimicks what production will send.
 class FakeCocoonService implements CocoonService {
+  FakeCocoonService({Random rand}) : random = rand ?? Random();
+
+  final Random random;
+
   @override
-  Future<List<CommitStatus>> fetchCommitStatuses() {
-    return Future.value(_createFakeCommitStatuses());
+  Future<List<CommitStatus>> fetchCommitStatuses() async {
+    return _createFakeCommitStatuses();
+  }
+
+  @override
+  Future<bool> fetchTreeBuildStatus() async {
+    return random.nextBool();
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {
-    List<CommitStatus> stats = <CommitStatus>[];
+    final List<CommitStatus> stats = <CommitStatus>[];
 
     final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     for (int i = 0; i < 100; i++) {
-      Commit commit = _createFakeCommit(i, baseTimestamp);
+      final Commit commit = _createFakeCommit(i, baseTimestamp);
 
-      CommitStatus status = CommitStatus()
+      final CommitStatus status = CommitStatus()
         ..commit = commit
         ..stages.addAll(_createFakeStages(i, commit));
 
@@ -46,17 +57,17 @@ class FakeCocoonService implements CocoonService {
   }
 
   List<Stage> _createFakeStages(int index, Commit commit) {
-    List<Stage> stages = <Stage>[];
+    final List<Stage> stages = <Stage>[];
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(List.generate(15, (i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(15, (int i) => _createFakeTask(i))));
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab_win'
-      ..tasks.addAll(List.generate(3, (i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(3, (int i) => _createFakeTask(i))));
 
     return stages;
   }

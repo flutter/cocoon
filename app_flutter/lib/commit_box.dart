@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:cocoon_service/protos.dart' show Commit;
 
 /// Displays Git commit information.
 ///
@@ -42,7 +44,7 @@ class _CommitBoxState extends State<CommitBox> {
 
   void _handleTap() {
     _commitOverlay = OverlayEntry(
-      builder: (overlayContext) => CommitOverlayContents(
+      builder: (_) => CommitOverlayContents(
           parentContext: context,
           commit: widget.commit,
           closeCallback: _closeOverlay),
@@ -59,7 +61,7 @@ class _CommitBoxState extends State<CommitBox> {
 /// This is intended to be inserted in an [OverlayEntry] as it requires
 /// [closeCallback] that will remove the widget from the tree.
 class CommitOverlayContents extends StatelessWidget {
-  CommitOverlayContents({
+  const CommitOverlayContents({
     Key key,
     @required this.parentContext,
     @required this.commit,
@@ -127,8 +129,10 @@ class CommitOverlayContents extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
-                      onPressed: () {
-                        // TODO(chillers): open new tab with the commit on Github
+                      onPressed: () async {
+                        final String githubUrl =
+                            'https://github.com/${commit.repository}/commit/${commit.sha}';
+                        await launch(githubUrl);
                       },
                     ),
                   ],
