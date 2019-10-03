@@ -18,6 +18,7 @@ dependencies:
   gcloud: ^0.6.3
   github: ^5.1.0
   googleapis_auth: ^0.2.10
+  googleapis: ^0.54.0
   http: ^0.12.0
   json_annotation: ^3.0.0
   meta: ^1.1.7

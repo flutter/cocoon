@@ -74,6 +74,9 @@ class ContinuousIntegrationCommand extends Command {
           // Always upload health status whether succeeded or failed.
           await agent.updateHealthStatus(health);
 
+          // Always upload health stats whether succeeded or failed.
+          await agent.updateHealthStatusHistory(health);
+
           if (!health.ok) {
             logger.warning('Some health checks failed:');
             health

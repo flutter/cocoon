@@ -34,6 +34,7 @@ Future<void> main() async {
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
+      '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),

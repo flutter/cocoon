@@ -175,6 +175,14 @@ class Agent {
     });
   }
 
+  Future<void> updateHealthStatusHistory(AgentHealth health) async {
+    await _cocoon('update-agent-health-history', {
+      'AgentID': agentId,
+      'IsHealthy': health.ok,
+      'HealthDetails': '$health',
+    });
+  }
+
   void resetHttpClient() {
     if (httpClient != null) {
       httpClient.close();

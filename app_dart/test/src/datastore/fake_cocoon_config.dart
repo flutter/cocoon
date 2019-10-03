@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:github/server.dart';
 
 import 'fake_datastore.dart';
+import '../bigquery/fake_bigquery.dart';
 
 // ignore: must_be_immutable
 class FakeConfig implements Config {
@@ -33,6 +34,7 @@ class FakeConfig implements Config {
     this.luciTryBuildersValue,
     this.loggingServiceValue,
     FakeDatastoreDB dbValue,
+    FakeTabledataResourceApi tabledataResource,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
   GitHub githubClient;
