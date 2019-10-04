@@ -60,6 +60,35 @@ void main() {
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
     });
+
+    testWidgets('error when fetching statuses should be set in CocoonResponse',
+        (WidgetTester tester) async {
+      when(mockService.fetchCommitStatuses())
+          .thenAnswer((_) => Future<List<CommitStatus>>.error(42));
+
+      buildState.startFetchingBuildStateUpdates();
+
+      await tester.pumpAndSettle();
+
+      expect(buildState.statuses.error, isNotNull);
+
+      buildState.dispose();
+    });
+
+    testWidgets(
+        'error when fetching tree build status should be set in CocoonResponse',
+        (WidgetTester tester) async {
+      when(mockService.fetchTreeBuildStatus())
+          .thenAnswer((_) => Future<bool>.error(42));
+
+      buildState.startFetchingBuildStateUpdates();
+
+      await tester.pumpAndSettle();
+
+      expect(buildState.isTreeBuilding.error, isNotNull);
+
+      buildState.dispose();
+    });
   });
 }
 
