@@ -63,7 +63,6 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
-    final int now = DateTime.now().millisecondsSinceEpoch;
     final DatastoreService datastore = datastoreProvider();
 
     final List<Commit> newCommits = <Commit>[];
@@ -76,7 +75,6 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           key: key,
           repository: 'flutter/flutter',
           sha: commit.sha,
-          timestamp: now,
           author: commit.author.login,
           authorAvatarUrl: commit.author.avatarUrl,
         ));
@@ -92,12 +90,17 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     }
 
     log.debug('Found ${newCommits.length} new commits on GitHub');
-    for (Commit commit in newCommits) {
+    /// [newCommit] has commits from latest to oldest
+    /// However, oldest is expected to be inserted first into datastore. Thus we 
+    /// need to reverse the order. At the same time, we update [timestamp]
+    for (Commit commit in newCommits.reversed.toList()) {
       final List<Task> tasks = await _createTasks(
         commitKey: commit.key,
         sha: commit.sha,
-        createTimestamp: now,
+        createTimestamp: DateTime.now().millisecondsSinceEpoch,
       );
+      
+      commit.timestamp = DateTime.now().millisecondsSinceEpoch;      
 
       try {
         await datastore.db.withTransaction<void>((Transaction transaction) async {
