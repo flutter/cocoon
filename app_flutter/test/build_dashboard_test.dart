@@ -36,6 +36,7 @@ void main() {
       );
 
       await tester.pump(const Duration(seconds: 1));
+      await tester.pump();
 
       expect(find.text('Cocoon Backend is having issues'), findsOneWidget);
 
