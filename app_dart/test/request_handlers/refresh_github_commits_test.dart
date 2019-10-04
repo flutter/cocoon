@@ -47,10 +47,7 @@ void main() {
         final User author = User()
           ..login = 'Username'
           ..avatarUrl = 'http://example.org/avatar.jpg';
-        final GitCommitUser committer = GitCommitUser(
-            'Username',
-            'Username@abc.com',
-            DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
+        final GitCommitUser committer = GitCommitUser('Username','Username@abc.com',DateTime.now());
         final GitCommit gitCommit = GitCommit()
           ..committer = committer;
         final RepositoryCommit commit = RepositoryCommit()
