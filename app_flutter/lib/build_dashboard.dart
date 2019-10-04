@@ -44,20 +44,34 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 class BuildDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
-      builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter Build Dashboard v2'),
-          backgroundColor:
-              buildState.isTreeBuilding ? theme.primaryColor : theme.errorColor,
-        ),
-        body: Column(
-          children: const <Widget>[
-            StatusGridContainer(),
-          ],
-        ),
-      ),
+      builder: (_, FlutterBuildState buildState, Widget child) {
+        if (buildState.hasError) {
+          const SnackBar snackbar = SnackBar(
+            content: Text('Cocoon Backend is having issues'),
+            duration: Duration(seconds: 10),
+            behavior: SnackBarBehavior.floating,
+          );
+          _scaffoldKey.currentState.showSnackBar(snackbar);
+        }
+
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            title: const Text('Flutter Build Dashboard v2'),
+            backgroundColor: buildState.isTreeBuilding.data
+                ? theme.primaryColor
+                : theme.errorColor,
+          ),
+          body: Column(
+            children: const <Widget>[
+              StatusGridContainer(),
+            ],
+          ),
+        );
+      },
     );
   }
 }

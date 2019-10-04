@@ -39,6 +39,9 @@ class FlutterBuildState extends ChangeNotifier {
     ..data = false;
   CocoonResponse<bool> get isTreeBuilding => _isTreeBuilding;
 
+  /// Whether an error occured getting the latest data for the fields of this state.
+  bool get hasError => _isTreeBuilding.error ?? _statuses.error ?? false;
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {
     if (refreshTimer != null) {
@@ -56,18 +59,18 @@ class FlutterBuildState extends ChangeNotifier {
   /// Request the latest [statuses] from [CocoonService].
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      _cocoonService
-          .fetchCommitStatuses()
-          .then((List<CommitStatus> commitStatuses) {
+      _cocoonService.fetchCommitStatuses().then(
+          (List<CommitStatus> commitStatuses) {
         _statuses.data = commitStatuses;
         _statuses.error = null;
-      }, onError: (Exception error) {
+      }, onError: (dynamic error) {
         _statuses.error = error.toString();
-        print('error occurred');
       }),
       _cocoonService.fetchTreeBuildStatus().then((bool treeStatus) {
         _isTreeBuilding.data = treeStatus;
         _isTreeBuilding.error = null;
+      }, onError: (dynamic error) {
+        _isTreeBuilding.error = error.toString();
       }),
     ]);
 
@@ -81,6 +84,9 @@ class FlutterBuildState extends ChangeNotifier {
   }
 }
 
+/// Wrapper class for data in this state.
+///
+/// Holds [data] and information for errors.
 class CocoonResponse<T> {
   T data;
   String error;
