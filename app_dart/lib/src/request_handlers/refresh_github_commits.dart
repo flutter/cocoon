@@ -94,14 +94,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     /// [newCommit] has commits from latest to oldest
     /// However, oldest is expected to be inserted first into datastore. Thus we 
     /// need to reverse the order. At the same time, we update [timestamp]
-    for (Commit commit in newCommits.reversed.toList()) {
+    for (Commit commit in newCommits) {
       final List<Task> tasks = await _createTasks(
         commitKey: commit.key,
         sha: commit.sha,
         createTimestamp: DateTime.now().millisecondsSinceEpoch,
-      );
-      
-      commit.timestamp = DateTime.now().millisecondsSinceEpoch;      
+      );   
 
       try {
         await datastore.db.withTransaction<void>((Transaction transaction) async {
