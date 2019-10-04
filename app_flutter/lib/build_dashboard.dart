@@ -49,6 +49,11 @@ class BuildDashboard extends StatelessWidget {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
         if (buildState.hasError) {
+          print('FlutterBuildState has an error');
+          print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
+          print('statuses: ${buildState.statuses.error}');
+
+          // TODO(chillers): Make this display better on the TV by using a bigger widget.
           const SnackBar snackbar = SnackBar(
             content: Text('Cocoon Backend is having issues'),
             duration: Duration(seconds: 10),

@@ -21,7 +21,6 @@ class StatusGridContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
         final CocoonResponse<List<CommitStatus>> statuses = buildState.statuses;

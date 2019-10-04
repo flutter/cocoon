@@ -56,7 +56,7 @@ class FlutterBuildState extends ChangeNotifier {
         Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
-  /// Request the latest [statuses] from [CocoonService].
+  /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService.fetchCommitStatuses().then(
@@ -84,10 +84,13 @@ class FlutterBuildState extends ChangeNotifier {
   }
 }
 
-/// Wrapper class for data in this state.
+/// Wrapper class for data this state serves.
 ///
-/// Holds [data] and information for errors.
+/// Holds [data] and possible error information.
 class CocoonResponse<T> {
+  /// The data that gets used from [CocoonService].
   T data;
+
+  /// Error information that can be used for debugging.
   String error;
 }
