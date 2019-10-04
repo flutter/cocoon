@@ -40,7 +40,7 @@ class FlutterBuildState extends ChangeNotifier {
   CocoonResponse<bool> get isTreeBuilding => _isTreeBuilding;
 
   /// Whether an error occured getting the latest data for the fields of this state.
-  bool get hasError => _isTreeBuilding.error ?? _statuses.error ?? false;
+  bool get hasError => _isTreeBuilding != null || _statuses.error != null;
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {

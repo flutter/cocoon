@@ -70,6 +70,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      expect(buildState.hasError, true);
       expect(buildState.statuses.error, isNotNull);
 
       buildState.dispose();
@@ -85,6 +86,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      expect(buildState.hasError, true);
       expect(buildState.isTreeBuilding.error, isNotNull);
 
       buildState.dispose();
