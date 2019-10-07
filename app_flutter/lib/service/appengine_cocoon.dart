@@ -37,6 +37,7 @@ class AppEngineCocoonService implements CocoonService {
         await _client.get('$_baseApiUrl/public/get-status');
 
     if (response.statusCode != HttpStatus.ok) {
+      print(response);
       throw HttpException(
           '$_baseApiUrl/public/get-status returned ${response.statusCode}');
     }
@@ -53,6 +54,7 @@ class AppEngineCocoonService implements CocoonService {
         await _client.get('$_baseApiUrl/public/build-status');
 
     if (response.statusCode != HttpStatus.ok) {
+      print(response);
       throw HttpException(
           '$_baseApiUrl/public/build-status returned ${response.statusCode}');
     }
