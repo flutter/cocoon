@@ -88,14 +88,14 @@ void main() {
         ),
       ));
 
-      expect(find.text(expectedTask.sha), findsNothing);
-      expect(find.text(expectedTask.author), findsNothing);
+      expect(find.text(expectedTask.name), findsNothing);
+      expect(find.text('Attempts: ${expectedTask.attempts}'), findsNothing);
 
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
-      expect(find.text(expectedTask.sha), findsOneWidget);
-      expect(find.text(expectedTask.author), findsOneWidget);
+      expect(find.text(expectedTask.name), findsOneWidget);
+      expect(find.text('Attempts: ${expectedTask.attempts}'), findsOneWidget);
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
@@ -114,7 +114,7 @@ void main() {
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
-      expect(find.text(expectedTask.sha), findsNothing);
+      expect(find.text(expectedTask.name), findsNothing);
     });
   });
 }
