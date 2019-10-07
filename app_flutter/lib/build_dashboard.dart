@@ -46,21 +46,19 @@ class BuildDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
-      builder: (_, FlutterBuildState buildState, Widget child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Flutter Build Dashboard v2'),
-            backgroundColor: buildState.isTreeBuilding.data
-                ? theme.primaryColor
-                : theme.errorColor,
-          ),
-          body: Column(
-            children: const <Widget>[
-              StatusGridContainer(),
-            ],
-          ),
-        );
-      },
+      builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Flutter Build Dashboard v2'),
+          backgroundColor: buildState.isTreeBuilding.data
+              ? theme.primaryColor
+              : theme.errorColor,
+        ),
+        body: Column(
+          children: const <Widget>[
+            StatusGridContainer(),
+          ],
+        ),
+      ),
     );
   }
 }
