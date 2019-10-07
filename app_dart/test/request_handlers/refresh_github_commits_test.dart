@@ -41,13 +41,16 @@ void main() {
 
     List<String> githubCommits;
     int yieldedCommitCount;
+    
+    final DateTime now = DateTime.now();
+    final int nowMillionSecond = now.millisecondsSinceEpoch;
 
     Stream<RepositoryCommit> commitStream() async* {
       for (String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
           ..avatarUrl = 'http://example.org/avatar.jpg';
-        final GitCommitUser committer = GitCommitUser('Username','Username@abc.com',DateTime.now());
+        final GitCommitUser committer = GitCommitUser('Username','Username@abc.com',now);
         final GitCommit gitCommit = GitCommit()
           ..committer = committer;
         final RepositoryCommit commit = RepositoryCommit()
@@ -135,6 +138,7 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 2);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '3']);
+      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[nowMillionSecond, nowMillionSecond]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
@@ -185,6 +189,8 @@ void main() {
 }
 
 String toSha(Commit commit) => commit.sha;
+
+int toTimestamp(Commit commit) => commit.timestamp;
 
 class MockGitHub extends Mock implements GitHub {}
 
