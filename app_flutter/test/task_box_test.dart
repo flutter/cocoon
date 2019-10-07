@@ -11,6 +11,11 @@ import 'package:app_flutter/task_box.dart';
 
 void main() {
   group('TaskBox', () {
+    final Task expectedTask = Task()
+      ..attempts = 3
+      ..name = 'Tasky McTaskFace'
+      ..reason = 'Because I said so';
+
     // Table Driven Approach to ensure every message does show the corresponding color
     TaskBox.statusColor.forEach((String message, Color color) {
       testWidgets('is the color $color when given the message $message',
@@ -74,6 +79,42 @@ void main() {
     testWidgets('is the color black when given an unknown message',
         (WidgetTester tester) async {
       expectTaskBoxColorWithMessage(tester, '404', Colors.black);
+    });
+
+    testWidgets('shows overlay on click', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: TaskBox(
+          task: expectedTask,
+        ),
+      ));
+
+      expect(find.text(expectedTask.sha), findsNothing);
+      expect(find.text(expectedTask.author), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTask.sha), findsOneWidget);
+      expect(find.text(expectedTask.author), findsOneWidget);
+    });
+
+    testWidgets('closes overlay on click out', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: TaskBox(
+          task: expectedTask,
+        ),
+      ));
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // Since the overlay positions itself in the middle of the widget,
+      // it is safe to click the widget to close it again
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTask.sha), findsNothing);
     });
   });
 }
