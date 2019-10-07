@@ -99,7 +99,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         commitKey: commit.key,
         sha: commit.sha,
         createTimestamp: DateTime.now().millisecondsSinceEpoch,
-      );   
+      );
 
       try {
         await datastore.db.withTransaction<void>((Transaction transaction) async {
