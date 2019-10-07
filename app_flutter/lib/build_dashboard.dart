@@ -42,6 +42,9 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
+  @visibleForTesting
+  static const String errorCocoonBackend = 'Cocoon Backend is having issues';
+
   @override
   Widget build(BuildContext context) {
     final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -55,7 +58,7 @@ class BuildDashboard extends StatelessWidget {
 
           // TODO(chillers): Make this display better on the TV by using a bigger widget.
           const SnackBar snackbar = SnackBar(
-            content: Text('Cocoon Backend is having issues'),
+            content: Text(errorCocoonBackend),
             duration: Duration(seconds: 10),
             behavior: SnackBarBehavior.floating,
           );

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -16,13 +17,15 @@ void main() {
   group('BuildDashboard', () {
     testWidgets('should show error when FlutterBuildState has error',
         (WidgetTester tester) async {
-      final MockFlutterBuildState buildState = MockFlutterBuildState();
+      final MockCocoonService errorService = MockCocoonService();
 
-      when(buildState.hasError).thenReturn(true);
-      when(buildState.statuses).thenReturn(
-          CocoonResponse<List<CommitStatus>>()..error = 'status error');
-      when(buildState.isTreeBuilding)
-          .thenReturn(CocoonResponse<bool>()..data = false);
+      when(errorService.fetchCommitStatuses())
+          .thenAnswer((_) => Future<List<CommitStatus>>.error(0));
+      when(errorService.fetchTreeBuildStatus())
+          .thenAnswer((_) => Future<bool>.value(false));
+
+      final FlutterBuildState buildState =
+          FlutterBuildState(cocoonService: errorService);
 
       buildState.startFetchingBuildStateUpdates();
 
@@ -35,15 +38,14 @@ void main() {
         ),
       );
 
-      await tester.pump(const Duration(seconds: 1));
       await tester.pump();
 
-      expect(find.text('Cocoon Backend is having issues'), findsOneWidget);
+      expect(find.text(BuildDashboard.errorCocoonBackend), findsOneWidget);
 
       buildState.dispose();
     });
   });
 }
 
-/// [FlutterBuildState] for giving errors.
-class MockFlutterBuildState extends Mock implements FlutterBuildState {}
+/// [FakeCocoonService] for giving errors.
+class MockCocoonService extends Mock implements FakeCocoonService {}
