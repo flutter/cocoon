@@ -16,7 +16,6 @@ import 'task_icon.dart';
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
 /// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
-/// If [FlutterBuildState] had an error, it shows [Snackbar] stating there are issues.
 class StatusGridContainer extends StatelessWidget {
   const StatusGridContainer({Key key}) : super(key: key);
 
