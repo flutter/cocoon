@@ -105,33 +105,5 @@ void main() {
 
       expect(lastTaskWidget.task, lastTask);
     });
-
-    testWidgets('shows error message when FlutterBuildState has error',
-        (WidgetTester tester) async {
-      final MockFlutterBuildState buildState = MockFlutterBuildState();
-
-      when(buildState.hasError).thenReturn(true);
-      when(buildState.statuses)
-          .thenReturn(CocoonResponse<List<CommitStatus>>()..error = 'error!');
-      when(buildState.isTreeBuilding)
-          .thenReturn(CocoonResponse<bool>()..data = false);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ChangeNotifierProvider<FlutterBuildState>(
-              builder: (_) => buildState,
-              child: const StatusGridContainer(),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      expect(find.text(StatusGridContainer.errorCocoonBackend), findsOneWidget);
-    });
   });
 }
-
-class MockFlutterBuildState extends Mock implements FlutterBuildState {}

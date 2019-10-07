@@ -34,13 +34,7 @@ class StatusGridContainer extends StatelessWidget {
           print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
           print('statuses: ${buildState.statuses.error}');
 
-          // TODO(chillers): Make this display better on the TV by using a bigger widget.
-          const SnackBar snackbar = SnackBar(
-            content: Text(errorCocoonBackend),
-            duration: Duration(seconds: 10),
-            behavior: SnackBarBehavior.floating,
-          );
-          Scaffold.of(context).showSnackBar(snackbar);
+          // TODO(chillers): Display the error
         }
 
         // Assume if there is no data that it is loading.
