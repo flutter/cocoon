@@ -42,31 +42,12 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
-  @visibleForTesting
-  static const String errorCocoonBackend = 'Cocoon Backend is having issues';
-
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
-        if (buildState.hasError) {
-          print('FlutterBuildState has an error');
-          print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
-          print('statuses: ${buildState.statuses.error}');
-
-          // TODO(chillers): Make this display better on the TV by using a bigger widget.
-          const SnackBar snackbar = SnackBar(
-            content: Text(errorCocoonBackend),
-            duration: Duration(seconds: 10),
-            behavior: SnackBarBehavior.floating,
-          );
-          _scaffoldKey.currentState.showSnackBar(snackbar);
-        }
-
         return Scaffold(
-          key: _scaffoldKey,
           appBar: AppBar(
             title: const Text('Flutter Build Dashboard v2'),
             backgroundColor: buildState.isTreeBuilding.data

@@ -16,14 +16,32 @@ import 'task_icon.dart';
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
 /// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
+/// If [FlutterBuildState] had an error, it shows [Snackbar] stating there are issues.
 class StatusGridContainer extends StatelessWidget {
   const StatusGridContainer({Key key}) : super(key: key);
+
+  @visibleForTesting
+  static const String errorCocoonBackend = 'Cocoon Backend is having issues';
 
   @override
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
         final List<CommitStatus> statuses = buildState.statuses.data;
+
+        if (buildState.hasError) {
+          print('FlutterBuildState has an error');
+          print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
+          print('statuses: ${buildState.statuses.error}');
+
+          // TODO(chillers): Make this display better on the TV by using a bigger widget.
+          const SnackBar snackbar = SnackBar(
+            content: Text(errorCocoonBackend),
+            duration: Duration(seconds: 10),
+            behavior: SnackBarBehavior.floating,
+          );
+          Scaffold.of(context).showSnackBar(snackbar);
+        }
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {
