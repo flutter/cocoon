@@ -145,19 +145,17 @@ class TaskOverlayContents extends StatelessWidget {
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
 
-  /// A lookup table to define the background color for this TaskBox.
-  ///
-  /// The status messages are based on the messages the backend sends.
+  /// A lookup table to define the [Icon] for this [Overlay].
   static const Map<String, Icon> statusIcon = <String, Icon>{
-    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red),
-    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue),
-    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue),
-    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green),
-    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline),
+    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
+    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
+    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
     TaskBox.statusUnderperformed:
-        Icon(Icons.new_releases, color: Colors.orange),
+        Icon(Icons.new_releases, color: Colors.orange, size: 32),
     TaskBox.statusUnderperformedInProgress:
-        Icon(Icons.autorenew, color: Colors.orange),
+        Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
   @override
