@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
+import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/commit_box.dart';
@@ -20,7 +21,9 @@ void main() {
 
     setUpAll(() async {
       final FakeCocoonService service = FakeCocoonService();
-      statuses = await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response =
+          await service.fetchCommitStatuses();
+      statuses = response.data;
     });
 
     testWidgets('shows loading indicator when statuses is empty',

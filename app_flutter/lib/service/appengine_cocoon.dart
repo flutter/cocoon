@@ -31,42 +31,55 @@ class AppEngineCocoonService implements CocoonService {
   final http.Client _client;
 
   @override
-  Future<List<CommitStatus>> fetchCommitStatuses() async {
+  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response =
         await _client.get('$_baseApiUrl/public/get-status');
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response);
-      throw HttpException(
-          '$_baseApiUrl/public/get-status returned ${response.statusCode}');
+      print(response.body);
+      return CocoonResponse<List<CommitStatus>>()
+        ..error =
+            '$_baseApiUrl/public/get-status returned ${response.statusCode}';
     }
 
-    final Map<String, Object> jsonResponse = jsonDecode(response.body);
-
-    return _commitStatusesFromJson(jsonResponse['Statuses']);
+    try {
+      final Map<String, Object> jsonResponse = jsonDecode(response.body);
+      return CocoonResponse<List<CommitStatus>>()
+        ..data = _commitStatusesFromJson(jsonResponse['Statuses']);
+    } catch (error) {
+      return CocoonResponse<List<CommitStatus>>()..error = error.toString();
+    }
   }
 
   @override
-  Future<bool> fetchTreeBuildStatus() async {
+  Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response =
         await _client.get('$_baseApiUrl/public/build-status');
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response);
-      throw HttpException(
-          '$_baseApiUrl/public/build-status returned ${response.statusCode}');
+      print(response.body);
+      return CocoonResponse<bool>()
+        ..error =
+            '$_baseApiUrl/public/build-status returned ${response.statusCode}';
     }
 
-    final Map<String, Object> jsonResponse = jsonDecode(response.body);
+    Map<String, Object> jsonResponse;
+    try {
+      jsonResponse = jsonDecode(response.body);
+    } catch (error) {
+      return CocoonResponse<bool>()
+        ..error = '$_baseApiUrl/public/build-status had a malformed response';
+    }
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
-      throw const HttpException(
-          '$_baseApiUrl/public/build-status had a malformed response');
+      return CocoonResponse<bool>()
+        ..error = '$_baseApiUrl/public/build-status had a malformed response';
     }
 
-    return jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
+    return CocoonResponse<bool>()
+      ..data = jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.

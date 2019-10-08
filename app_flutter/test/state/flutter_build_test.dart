@@ -9,6 +9,7 @@ import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 
+import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
@@ -21,10 +22,12 @@ void main() {
       mockService = MockCocoonService();
       buildState = FlutterBuildState(cocoonService: mockService);
 
-      when(mockService.fetchCommitStatuses()).thenAnswer(
-          (_) => Future<List<CommitStatus>>.value(<CommitStatus>[]));
-      when(mockService.fetchTreeBuildStatus())
-          .thenAnswer((_) => Future<bool>.value(true));
+      when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(
+              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]));
+      when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
+          Future<CocoonResponse<bool>>.value(
+              CocoonResponse<bool>()..data = true));
     });
 
     testWidgets('timer should periodically fetch updates',
@@ -58,37 +61,6 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tear down fails to cancel the timer before the test is over
-      buildState.dispose();
-    });
-
-    testWidgets('error when fetching statuses should be set in CocoonResponse',
-        (WidgetTester tester) async {
-      when(mockService.fetchCommitStatuses())
-          .thenAnswer((_) => Future<List<CommitStatus>>.error(42));
-
-      buildState.startFetchingBuildStateUpdates();
-
-      await tester.pumpAndSettle();
-
-      expect(buildState.hasError, true);
-      expect(buildState.statuses.error, isNotNull);
-
-      buildState.dispose();
-    });
-
-    testWidgets(
-        'error when fetching tree build status should be set in CocoonResponse',
-        (WidgetTester tester) async {
-      when(mockService.fetchTreeBuildStatus())
-          .thenAnswer((_) => Future<bool>.error(42));
-
-      buildState.startFetchingBuildStateUpdates();
-
-      await tester.pumpAndSettle();
-
-      expect(buildState.hasError, true);
-      expect(buildState.isTreeBuilding.error, isNotNull);
-
       buildState.dispose();
     });
   });

@@ -30,13 +30,12 @@ class FlutterBuildState extends ChangeNotifier {
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
-  final CocoonResponse<List<CommitStatus>> _statuses =
+  CocoonResponse<List<CommitStatus>> _statuses =
       CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
   CocoonResponse<List<CommitStatus>> get statuses => _statuses;
 
   /// Whether or not flutter/flutter currently passes tests.
-  final CocoonResponse<bool> _isTreeBuilding = CocoonResponse<bool>()
-    ..data = false;
+  CocoonResponse<bool> _isTreeBuilding = CocoonResponse<bool>()..data = false;
   CocoonResponse<bool> get isTreeBuilding => _isTreeBuilding;
 
   /// Whether an error occured getting the latest data for the fields of this state.
@@ -60,18 +59,11 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService.fetchCommitStatuses().then(
-          (List<CommitStatus> commitStatuses) {
-        _statuses.data = commitStatuses;
-        _statuses.error = null;
-      }, onError: (dynamic error) {
-        _statuses.error = error.toString();
-      }),
-      _cocoonService.fetchTreeBuildStatus().then((bool treeStatus) {
-        _isTreeBuilding.data = treeStatus;
-        _isTreeBuilding.error = null;
-      }, onError: (dynamic error) {
-        _isTreeBuilding.error = error.toString();
-      }),
+          (CocoonResponse<List<CommitStatus>> response) =>
+              _statuses = response),
+      _cocoonService
+          .fetchTreeBuildStatus()
+          .then((CocoonResponse<bool> response) => _isTreeBuilding = response),
     ]);
 
     notifyListeners();
@@ -82,15 +74,4 @@ class FlutterBuildState extends ChangeNotifier {
     refreshTimer?.cancel();
     super.dispose();
   }
-}
-
-/// Wrapper class for data this state serves.
-///
-/// Holds [data] and possible error information.
-class CocoonResponse<T> {
-  /// The data that gets used from [CocoonService].
-  T data;
-
-  /// Error information that can be used for debugging.
-  String error;
 }
