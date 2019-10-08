@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
+import 'package:url_launcher/url_launcher.dart';
 
 /// Displays information from a [Task].
 ///
@@ -64,7 +65,7 @@ class _TaskBoxState extends State<TaskBox> {
       }
     }
 
-    return GestureDetector(
+    return InkWell(
       onTap: _handleTap,
       child: Container(
         margin: const EdgeInsets.all(1.0),
@@ -89,7 +90,7 @@ class _TaskBoxState extends State<TaskBox> {
 
   void _handleTap() {
     _taskOverlay = OverlayEntry(
-      builder: (_) => CommitOverlayContents(
+      builder: (_) => TaskOverlayContents(
           parentContext: context,
           task: widget.task,
           closeCallback: _closeOverlay),
@@ -105,8 +106,11 @@ class _TaskBoxState extends State<TaskBox> {
 ///
 /// This is intended to be inserted in an [OverlayEntry] as it requires
 /// [closeCallback] that will remove the widget from the tree.
-class CommitOverlayContents extends StatelessWidget {
-  const CommitOverlayContents({
+///
+/// Offers the functionality of opening the log for this [Task] and rerunning
+/// this [Task] through the build system.
+class TaskOverlayContents extends StatelessWidget {
+  const TaskOverlayContents({
     Key key,
     @required this.parentContext,
     @required this.task,
@@ -119,7 +123,7 @@ class CommitOverlayContents extends StatelessWidget {
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
 
-  /// The commit data to display in the overlay
+  /// The [Task] to display in the overlay
   final Task task;
 
   /// This callback removes the parent overlay from the widget tree.
@@ -146,7 +150,7 @@ class CommitOverlayContents extends StatelessWidget {
           ),
         ),
         Positioned(
-          width: 300,
+          width: 250,
           // Move this overlay to be where the parent is
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
@@ -163,12 +167,12 @@ class CommitOverlayContents extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.repeat),
                       onPressed: () {
-                        // TODO(chillers): rerun all tests for this commit
+                        // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
-                      onPressed: () async {},
+                      onPressed: _openTaskLog,
                     ),
                   ],
                 ),
@@ -178,5 +182,43 @@ class CommitOverlayContents extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Open a new window with the log for this [Task].
+  Future<void> _openTaskLog() async {
+    final String logUrl = _getTaskLogUrl(task);
+
+    await launch(logUrl);
+  }
+
+  ///
+  String _getLuciLogUrl(String taskName) {
+    const String luciBaseUrl = 'https://ci.chromium.org/p';
+    switch (taskName) {
+      case 'mac_bot':
+        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Mac';
+      case 'linux_bot':
+        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Linux';
+      case 'windows_bot':
+        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Windows';
+      default:
+        return '$luciBaseUrl/flutter';
+    }
+  }
+
+  String _getTaskLogUrl(Task task) {
+    switch (task.stageName) {
+      case 'chromebot':
+        return _getLuciLogUrl(task.name);
+      case 'cirrus':
+        const String cirrusBaseUrl = 'https://cirrus-ci.com';
+        if (task.commitKey != null) {
+          return '$cirrusBaseUrl/build/flutter/flutter/${task.name}';
+        }
+
+        return '$cirrusBaseUrl/github/flutter/flutter/master';
+      default:
+        throw Exception('Could not get log url for ${task.stageName}');
+    }
   }
 }
