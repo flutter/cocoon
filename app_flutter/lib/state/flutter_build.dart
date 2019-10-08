@@ -30,11 +30,16 @@ class FlutterBuildState extends ChangeNotifier {
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
-  List<CommitStatus> statuses = <CommitStatus>[];
+  CocoonResponse<List<CommitStatus>> _statuses =
+      CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
+  CocoonResponse<List<CommitStatus>> get statuses => _statuses;
 
   /// Whether or not flutter/flutter currently passes tests.
-  bool get isTreeBuilding => _isTreeBuilding;
-  bool _isTreeBuilding = true;
+  CocoonResponse<bool> _isTreeBuilding = CocoonResponse<bool>()..data = false;
+  CocoonResponse<bool> get isTreeBuilding => _isTreeBuilding;
+
+  /// Whether an error occured getting the latest data for the fields of this state.
+  bool get hasError => _isTreeBuilding.error != null || _statuses.error != null;
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {
@@ -50,14 +55,15 @@ class FlutterBuildState extends ChangeNotifier {
         Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
-  /// Request the latest [statuses] from [CocoonService].
+  /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   Future<void> _fetchBuildStatusUpdate() async {
-    await Future.wait<void>(<Future<void>>[
-      _cocoonService.fetchCommitStatuses().then<List<CommitStatus>>(
-          (List<CommitStatus> commitStatuses) => statuses = commitStatuses),
+    await Future.wait(<Future<void>>[
+      _cocoonService.fetchCommitStatuses().then(
+          (CocoonResponse<List<CommitStatus>> response) =>
+              _statuses = response),
       _cocoonService
           .fetchTreeBuildStatus()
-          .then<bool>((bool treeStatus) => _isTreeBuilding = treeStatus),
+          .then((CocoonResponse<bool> response) => _isTreeBuilding = response),
     ]);
 
     notifyListeners();

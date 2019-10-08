@@ -7,9 +7,11 @@ import 'package:http/http.dart' show Request, Response;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
+
+import 'package:app_flutter/service/appengine_cocoon.dart';
+import 'package:app_flutter/service/cocoon.dart';
 
 // This is based off data the Cocoon backend sends out from v1.
 // It doesn't map directly to protos since the backend does
@@ -86,13 +88,14 @@ void main() {
       }));
     });
 
-    test('should return List<CommitStatus>', () {
+    test('should return CocoonResponse<List<CommitStatus>>', () {
       expect(service.fetchCommitStatuses(),
-          const TypeMatcher<Future<List<CommitStatus>>>());
+          const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
     });
 
     test('should return expected List<CommitStatus>', () async {
-      final List<CommitStatus> statuses = await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> statuses =
+          await service.fetchCommitStatuses();
 
       final CommitStatus expectedStatus = CommitStatus()
         ..commit = (Commit()
@@ -118,22 +121,26 @@ void main() {
             ..stageName = 'devicelab'
             ..status = 'Succeeded'));
 
-      expect(statuses.length, 1);
-      expect(statuses.first, expectedStatus);
+      expect(statuses.data.length, 1);
+      expect(statuses.data.first, expectedStatus);
     });
 
-    test('should throw exception if given non-200 response', () {
+    test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('', 404)));
 
-      expect(service.fetchCommitStatuses(), throwsException);
+      final CocoonResponse<List<CommitStatus>> response =
+          await service.fetchCommitStatuses();
+      expect(response.error, isNotNull);
     });
 
-    test('should throw exception if given bad response', () {
+    test('should have error if given bad response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('bad', 200)));
 
-      expect(service.fetchCommitStatuses(), throwsException);
+      final CocoonResponse<List<CommitStatus>> response =
+          await service.fetchCommitStatuses();
+      expect(response.error, isNotNull);
     });
   });
 
@@ -147,39 +154,46 @@ void main() {
       }));
     });
 
-    test('should return bool', () {
-      expect(service.fetchTreeBuildStatus(), const TypeMatcher<Future<bool>>());
+    test('should return CocoonResponse<bool>', () {
+      expect(service.fetchTreeBuildStatus(),
+          const TypeMatcher<Future<CocoonResponse<bool>>>());
     });
 
-    test('should return true when given Succeeded', () async {
-      final bool treeBuildStatus = await service.fetchTreeBuildStatus();
+    test('data should be true when given Succeeded', () async {
+      final CocoonResponse<bool> treeBuildStatus =
+          await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus, true);
+      expect(treeBuildStatus.data, true);
     });
 
-    test('should return false when given Failed', () async {
+    test('data should be false when given Failed', () async {
       service =
           AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
 
-      final bool treeBuildStatus = await service.fetchTreeBuildStatus();
+      final CocoonResponse<bool> treeBuildStatus =
+          await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus, false);
+      expect(treeBuildStatus.data, false);
     });
 
-    test('should throw exception if given non-200 response', () {
+    test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('', 404)));
 
-      expect(service.fetchTreeBuildStatus(), throwsException);
+      final CocoonResponse<bool> response =
+          await service.fetchTreeBuildStatus();
+      expect(response.error, isNotNull);
     });
 
-    test('should throw exception if given bad response', () {
+    test('should have error if given bad response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('bad', 200)));
 
-      expect(service.fetchTreeBuildStatus(), throwsException);
+      final CocoonResponse<bool> response =
+          await service.fetchTreeBuildStatus();
+      expect(response.error, isNotNull);
     });
   });
 }

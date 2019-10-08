@@ -9,6 +9,7 @@ import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 
+import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
@@ -21,10 +22,12 @@ void main() {
       mockService = MockCocoonService();
       buildState = FlutterBuildState(cocoonService: mockService);
 
-      when(mockService.fetchCommitStatuses()).thenAnswer(
-          (_) => Future<List<CommitStatus>>.value(<CommitStatus>[]));
-      when(mockService.fetchTreeBuildStatus())
-          .thenAnswer((_) => Future<bool>.value(true));
+      when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(
+              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]));
+      when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
+          Future<CocoonResponse<bool>>.value(
+              CocoonResponse<bool>()..data = true));
     });
 
     testWidgets('timer should periodically fetch updates',
