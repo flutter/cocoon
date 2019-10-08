@@ -167,17 +167,6 @@ class TaskOverlayContents extends StatelessWidget {
 
     return Stack(
       children: <Widget>[
-        // This is the area a user can click (the rest of the screen) to close the overlay.
-        GestureDetector(
-          onTap: closeCallback,
-          child: Container(
-            width: MediaQuery.of(parentContext).size.width,
-            height: MediaQuery.of(parentContext).size.height,
-            // Color must be defined otherwise the container can't be clicked on
-            color: Colors.transparent,
-          ),
-        ),
-
         /// This is a focus container to emphasize the [TaskBox] that this
         /// [Overlay] is currently showing information from.
         Positioned(
@@ -187,6 +176,17 @@ class TaskOverlayContents extends StatelessWidget {
           height: renderBox.size.height,
           child: Container(
             color: Colors.white70,
+            key: const Key('task-overlay-key'),
+          ),
+        ),
+        // This is the area a user can click (the rest of the screen) to close the overlay.
+        GestureDetector(
+          onTap: closeCallback,
+          child: Container(
+            width: MediaQuery.of(parentContext).size.width,
+            height: MediaQuery.of(parentContext).size.height,
+            // Color must be defined otherwise the container can't be clicked on
+            color: Colors.transparent,
           ),
         ),
         Positioned(
