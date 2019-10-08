@@ -143,3 +143,4 @@ class UpdateTaskStatusResponse extends JsonBody {
     };
   }
 }
+
