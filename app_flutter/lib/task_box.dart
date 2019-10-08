@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
-import 'package:url_launcher/url_launcher.dart';
 
 /// Displays information from a [Task].
 ///
@@ -51,10 +50,18 @@ class TaskBox extends StatefulWidget {
 class _TaskBoxState extends State<TaskBox> {
   OverlayEntry _taskOverlay;
 
+  /// [Task.status] modified to take into account [Task.attempts] to create
+  /// a more descriptive status.
+  ///
+  /// For example, [Task.status] = "In Progress" and [Task.attempts] > 1 results
+  /// in the status of [statusUnderperformedInProgress].
+  String status;
+
   @override
   Widget build(BuildContext context) {
     final bool attempted = widget.task.attempts > 1;
-    String status = widget.task.status;
+
+    status = widget.task.status;
     if (attempted) {
       if (status == TaskBox.statusSucceeded) {
         status = TaskBox.statusSucceededButFlaky;
@@ -93,6 +100,7 @@ class _TaskBoxState extends State<TaskBox> {
       builder: (_) => TaskOverlayContents(
           parentContext: context,
           task: widget.task,
+          taskStatus: status,
           closeCallback: _closeOverlay),
     );
 
@@ -114,6 +122,7 @@ class TaskOverlayContents extends StatelessWidget {
     Key key,
     @required this.parentContext,
     @required this.task,
+    @required this.taskStatus,
     @required this.closeCallback,
   })  : assert(parentContext != null),
         assert(task != null),
@@ -126,11 +135,30 @@ class TaskOverlayContents extends StatelessWidget {
   /// The [Task] to display in the overlay
   final Task task;
 
+  /// [Task.status] modified to take into account [Task.attempts] to create
+  /// a more descriptive status.
+  final String taskStatus;
+
   /// This callback removes the parent overlay from the widget tree.
   ///
   /// On a click that is outside the area of the overlay (the rest of the screen),
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
+
+  /// A lookup table to define the background color for this TaskBox.
+  ///
+  /// The status messages are based on the messages the backend sends.
+  static const Map<String, Icon> statusIcon = <String, Icon>{
+    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red),
+    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue),
+    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue),
+    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green),
+    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline),
+    TaskBox.statusUnderperformed:
+        Icon(Icons.new_releases, color: Colors.orange),
+    TaskBox.statusUnderperformedInProgress:
+        Icon(Icons.autorenew, color: Colors.orange),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -159,13 +187,15 @@ class TaskOverlayContents extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 ListTile(
+                  leading: Tooltip(
+                      message: taskStatus, child: statusIcon[taskStatus]),
                   title: Text(task.name),
                   subtitle: Text('Attempts: ${task.attempts}'),
                 ),
                 ButtonBar(
                   children: <Widget>[
                     IconButton(
-                      icon: const Icon(Icons.repeat),
+                      icon: const Icon(Icons.redo),
                       onPressed: () {
                         // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
                       },
