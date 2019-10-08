@@ -172,7 +172,9 @@ class TaskOverlayContents extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.open_in_new),
-                      onPressed: _openTaskLog,
+                      onPressed: () {
+                        // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
+                      },
                     ),
                   ],
                 ),
@@ -182,43 +184,5 @@ class TaskOverlayContents extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  /// Open a new window with the log for this [Task].
-  Future<void> _openTaskLog() async {
-    final String logUrl = _getTaskLogUrl(task);
-
-    await launch(logUrl);
-  }
-
-  ///
-  String _getLuciLogUrl(String taskName) {
-    const String luciBaseUrl = 'https://ci.chromium.org/p';
-    switch (taskName) {
-      case 'mac_bot':
-        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Mac';
-      case 'linux_bot':
-        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Linux';
-      case 'windows_bot':
-        return '$luciBaseUrl/flutter/builders/luci.flutter.prod/Windows';
-      default:
-        return '$luciBaseUrl/flutter';
-    }
-  }
-
-  String _getTaskLogUrl(Task task) {
-    switch (task.stageName) {
-      case 'chromebot':
-        return _getLuciLogUrl(task.name);
-      case 'cirrus':
-        const String cirrusBaseUrl = 'https://cirrus-ci.com';
-        if (task.commitKey != null) {
-          return '$cirrusBaseUrl/build/flutter/flutter/${task.name}';
-        }
-
-        return '$cirrusBaseUrl/github/flutter/flutter/master';
-      default:
-        throw Exception('Could not get log url for ${task.stageName}');
-    }
   }
 }
