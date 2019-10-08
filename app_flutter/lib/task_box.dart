@@ -72,7 +72,7 @@ class _TaskBoxState extends State<TaskBox> {
       }
     }
 
-    return InkWell(
+    return GestureDetector(
       onTap: _handleTap,
       child: Container(
         margin: const EdgeInsets.all(1.0),
