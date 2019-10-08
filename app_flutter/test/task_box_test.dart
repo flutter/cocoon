@@ -88,14 +88,15 @@ void main() {
         ),
       ));
 
+      final String expectTaskInfoString = 'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
       expect(find.text(expectedTask.name), findsNothing);
-      expect(find.text('Attempts: ${expectedTask.attempts}'), findsNothing);
+      expect(find.text(expectTaskInfoString), findsNothing);
 
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
       expect(find.text(expectedTask.name), findsOneWidget);
-      expect(find.text('Attempts: ${expectedTask.attempts}'), findsOneWidget);
+      expect(find.text(expectTaskInfoString), findsOneWidget);
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
