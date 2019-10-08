@@ -88,10 +88,10 @@ void main() {
         ),
       ));
 
-      final String expectTaskInfoString =
+      final String expectedTaskInfoString =
           'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
       expect(find.text(expectedTask.name), findsNothing);
-      expect(find.text(expectTaskInfoString), findsNothing);
+      expect(find.text(expectedTaskInfoString), findsNothing);
 
       // Ensure the task indicator isn't showing when overlay is not shown
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
@@ -100,7 +100,7 @@ void main() {
       await tester.pump();
 
       expect(find.text(expectedTask.name), findsOneWidget);
-      expect(find.text(expectTaskInfoString), findsOneWidget);
+      expect(find.text(expectedTaskInfoString), findsOneWidget);
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
