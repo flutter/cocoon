@@ -178,7 +178,7 @@ class TaskOverlayContents extends StatelessWidget {
           ),
         ),
         Positioned(
-          width: 250,
+          width: 350,
           // Move this overlay to be where the parent is
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
@@ -190,20 +190,21 @@ class TaskOverlayContents extends StatelessWidget {
                   leading: Tooltip(
                       message: taskStatus, child: statusIcon[taskStatus]),
                   title: Text(task.name),
-                  subtitle: Text('Attempts: ${task.attempts}'),
+                  subtitle: Text(
+                      'Attempts: ${task.attempts}\nDuration: ${task.endTimestamp - task.startTimestamp} seconds\nAgent: ${task.reservedForAgentId}'),
                 ),
                 ButtonBar(
                   children: <Widget>[
                     IconButton(
-                      icon: const Icon(Icons.redo),
+                      icon: const Icon(Icons.receipt),
                       onPressed: () {
-                        // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
+                        // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.open_in_new),
+                      icon: const Icon(Icons.redo),
                       onPressed: () {
-                        // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
+                        // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
                       },
                     ),
                   ],
