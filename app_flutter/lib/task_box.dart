@@ -149,8 +149,10 @@ class TaskOverlayContents extends StatelessWidget {
   static const Map<String, Icon> statusIcon = <String, Icon>{
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusInProgress:
+        Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskBox.statusSucceeded:
+        Icon(Icons.check_circle, color: Colors.green, size: 32),
     TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
     TaskBox.statusUnderperformed:
         Icon(Icons.new_releases, color: Colors.orange, size: 32),
@@ -173,6 +175,18 @@ class TaskOverlayContents extends StatelessWidget {
             height: MediaQuery.of(parentContext).size.height,
             // Color must be defined otherwise the container can't be clicked on
             color: Colors.transparent,
+          ),
+        ),
+
+        /// This is a focus container to emphasize the [TaskBox] that this
+        /// [Overlay] is currently showing information from.
+        Positioned(
+          top: offsetLeft.dy,
+          left: offsetLeft.dx,
+          width: renderBox.size.width,
+          height: renderBox.size.height,
+          child: Container(
+            color: Colors.white70,
           ),
         ),
         Positioned(
