@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:cocoon_service/cocoon_service.dart';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/request_handlers/get_timeseries_history.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:gcloud/db.dart';
 
@@ -45,7 +46,7 @@ Future<void> main() async {
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
       '/api/public/get-status': GetStatus(config),
-      '/api/public/get-timeseries-history': null,
+      '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
