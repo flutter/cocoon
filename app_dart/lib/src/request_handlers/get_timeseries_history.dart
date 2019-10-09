@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/benchmark_data.dart';
 import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:gcloud/db.dart';
@@ -20,7 +21,7 @@ import '../request_handling/regular_request_handler.dart';
 import '../service/datastore.dart';
 
 @immutable
-class GetTimeSeriesHistory extends RegularRequestHandler<Body> {
+class GetTimeSeriesHistory extends RegularRequestHandler<GetTimeSeriesHistoryResponse> {
   const GetTimeSeriesHistory(
     Config config, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
@@ -37,7 +38,7 @@ class GetTimeSeriesHistory extends RegularRequestHandler<Body> {
     checkRequiredParameters(<String>[timeSeriesKeyParam]);
     const int maxRecords = 1500;
     final DatastoreService datastore = datastoreProvider();
-    final KeyHelper keyHelper = KeyHelper();
+    final KeyHelper keyHelper = KeyHelper(applicationContext: AppEngineContext(false,'','','','','',Uri()));
     final Set<Commit> commits =
         await datastore.queryRecentCommits(limit: maxRecords).toSet();
 

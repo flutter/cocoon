@@ -2,72 +2,58 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:cocoon_service/src/model/appengine/agent.dart';
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/time_series.dart';
+import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:cocoon_service/src/request_handlers/get_timeseries_history.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/request_handling/regular_request_handler_tester.dart';
 
 void main() {
   group('GetTimeSeriesHistory', () {
     FakeConfig config;
     FakeDatastoreDB db;
     GetTimeSeriesHistory handler;
-
-    Future<Object> decodeHandlerBody() async {
-      final Body body = await handler.post();
-      return utf8.decoder.bind(body.serialize()).transform(json.decoder).single;
-    }
+    RegularRequestHandlerTester tester;
 
     setUp(() {
       config = FakeConfig();
       db = FakeDatastoreDB();
+      tester = RegularRequestHandlerTester();
+      tester.requestData = <String, dynamic>{
+        'TimeSeriesKey':
+            'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcjULEgpUaW1lc2VyaWVzIiVhbmFseXplcl9iZW5jaG1hcmsuZmx1dHRlcl9yZXBvX2JhdGNoDA',
+      };
       handler = GetTimeSeriesHistory(
         config,
         datastoreProvider: () => DatastoreService(db: db),
       );
     });
 
-    test('no statuses or agents', () async {
-      final Map<String, dynamic> result = await decodeHandlerBody();
-      expect(result['Statuses'], isEmpty);
-      expect(result['AgentStatuses'], isEmpty);
-    });
-
-    test('reports agents', () async {
-      final Agent linux1 = Agent(agentId: 'linux1');
-      final Agent mac1 = Agent(agentId: 'mac1');
-      final Agent linux100 = Agent(agentId: 'linux100');
-      final Agent linux5 = Agent(agentId: 'linux5');
-      final Agent windows1 = Agent(agentId: 'windows1', isHidden: true);
-
-      final List<Agent> reportedAgents = <Agent>[
-        linux1,
-        mac1,
-        linux100,
-        linux5,
-        windows1,
+    test('get timeseries value based on timeseries key', () async {
+      final TimeSeries timeSeries =
+          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      config.db.values[timeSeries.key] = timeSeries;
+    
+      final Commit commit = Commit(sha: 'abc', timestamp: 4);
+      final List<Commit> reportedCommits = <Commit>[
+        commit,
       ];
 
-      db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
-      final Map<String, dynamic> result = await decodeHandlerBody();
-
-      expect(result['Statuses'], isEmpty);
-
-      final List<dynamic> expectedOrderedAgents = <dynamic>[
-        linux1.toJson(),
-        linux5.toJson(),
-        linux100.toJson(),
-        mac1.toJson(),
+      final TimeSeriesValue timeSeriesValue = TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'abc');
+      final List<TimeSeriesValue> reportedTimeSeriesValues = <TimeSeriesValue>[
+        timeSeriesValue,
       ];
 
-      expect(result['AgentStatuses'], equals(expectedOrderedAgents));
+      db.addOnQuery<Commit>((Iterable<Commit> commits) => reportedCommits);
+      db.addOnQuery<TimeSeriesValue>((Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
+      final GetTimeSeriesHistoryResponse response = await tester.post(handler);
+
+      expect(response.timeSeriesValues.first.value, 4.5);
     });
   });
 }
