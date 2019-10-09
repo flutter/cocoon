@@ -11,6 +11,7 @@ export 'src/request_handlers/get_benchmarks.dart';
 export 'src/request_handlers/get_build_status.dart';
 export 'src/request_handlers/get_log.dart';
 export 'src/request_handlers/get_status.dart';
+export 'src/request_handlers/get_timeseries_history.dart';
 export 'src/request_handlers/github_webhook.dart';
 export 'src/request_handlers/luci_status.dart';
 export 'src/request_handlers/push_build_status_to_github.dart';

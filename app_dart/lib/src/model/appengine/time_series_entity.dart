@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-//import 'package:gcloud/db.dart';
 import 'package:cocoon_service/src/model/appengine/key_converter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'time_series.dart';

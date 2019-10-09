@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/appengine/time_series.dart';
-import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -14,6 +12,8 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
+import '../model/appengine/time_series.dart';
+import '../model/appengine/time_series_value.dart';
 
 typedef DatastoreServiceProvider = DatastoreService Function();
 
