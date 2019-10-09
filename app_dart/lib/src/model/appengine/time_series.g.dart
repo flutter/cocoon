@@ -23,3 +23,15 @@ Map<String, dynamic> _$SerializableTimeSeriesToJson(
       'Timeseries': instance.series,
       'Key': const KeyConverter().toJson(instance.key),
     };
+
+TimeSeries _$TimeSeriesFromJson(Map<String, dynamic> json) {
+  return TimeSeries(
+    timeSeriesId: json['ID'],
+    taskName: json['TaskName'],
+    label: json['Label'],
+    unit: json['Unit'],
+    goal: (json['Goal'])?.toDouble(),
+    baseline: (json['Baseline'])?.toDouble(),
+    archived: json['Archived'],
+  );
+}

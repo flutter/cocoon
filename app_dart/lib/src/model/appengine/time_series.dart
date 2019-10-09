@@ -32,6 +32,9 @@ class TimeSeries extends Model {
     id = key?.id;
   }
 
+  factory TimeSeries.fromJson(Map<String, dynamic> json) =>
+      _$TimeSeriesFromJson(json);
+
   /// Whether the series has been archived and is no longer active.
   @BoolProperty(propertyName: 'Archived', required: true)
   @JsonKey(name: 'Archived')
