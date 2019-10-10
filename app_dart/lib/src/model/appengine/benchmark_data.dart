@@ -16,7 +16,7 @@ class BenchmarkData {
   factory BenchmarkData.fromJson(Map<String, dynamic> json) =>
       _$BenchmarkDataFromJson(json);
 
-  @JsonKey(name: 'TimeSeries')
+  @JsonKey(name: 'Timeseries')
   final TimeseriesEntity timeSeriesEntity;
 
   @JsonKey(name: 'Values')

@@ -11,7 +11,7 @@ part 'time_series_value.g.dart';
 
 /// Class that represents an individual measurement of a metric as part of a
 /// [TimeSeries].
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
+@JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'TimeseriesValue')
 class TimeSeriesValue extends Model {
   /// Creates a new [TimeSeriesValue].

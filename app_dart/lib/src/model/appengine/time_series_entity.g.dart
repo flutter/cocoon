@@ -8,9 +8,10 @@ part of 'time_series_entity.dart';
 
 TimeseriesEntity _$TimeseriesEntityFromJson(Map<String, dynamic> json) {
   return TimeseriesEntity(
-    timeSeries: json['TimeSeries'] == null
+    timeSeries: json['Timeseries'] == null
         ? null
-        : TimeSeries.fromJson(json['TimeSeries'])
+        : TimeSeries.fromJson(json['Timeseries'] as Map<String, dynamic>),
+    key: json['Key'] as String,
   );
 }
 

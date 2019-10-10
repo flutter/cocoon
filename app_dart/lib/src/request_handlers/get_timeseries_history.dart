@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/benchmark_data.dart';
+import 'package:cocoon_service/src/model/appengine/key_converter.dart';
 import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
@@ -21,7 +22,8 @@ import '../request_handling/regular_request_handler.dart';
 import '../service/datastore.dart';
 
 @immutable
-class GetTimeSeriesHistory extends RegularRequestHandler<GetTimeSeriesHistoryResponse> {
+class GetTimeSeriesHistory
+    extends RegularRequestHandler<GetTimeSeriesHistoryResponse> {
   const GetTimeSeriesHistory(
     Config config, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
@@ -38,14 +40,15 @@ class GetTimeSeriesHistory extends RegularRequestHandler<GetTimeSeriesHistoryRes
     checkRequiredParameters(<String>[timeSeriesKeyParam]);
     const int maxRecords = 1500;
     final DatastoreService datastore = datastoreProvider();
-    final KeyHelper keyHelper = KeyHelper(applicationContext: AppEngineContext(false,'','','','','',Uri()));
+    final KeyHelper keyHelper = KeyHelper(
+        applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
     final Set<Commit> commits =
         await datastore.queryRecentCommits(limit: maxRecords).toSet();
 
     Key timeSeriesKey;
     try {
       timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam]);
-    } catch (error) {
+    } catch (FormatException) {
       throw BadRequestException(
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
@@ -77,9 +80,12 @@ class GetTimeSeriesHistoryResponse extends JsonBody {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'BenchmarkData': BenchmarkData(
-          timeSeriesEntity: TimeseriesEntity(timeSeries: timeSeries),
+          timeSeriesEntity: TimeseriesEntity(
+              timeSeries: timeSeries,
+              key: const KeyConverter().toJson(timeSeries.key)),
           values: timeSeriesValues),
-      //LastPosition to do @Keyong
+      // TODO(keyonghan): implemement last position
+      // https://github.com/flutter/flutter/issues/42362
       'LastPosition': null,
     };
   }
@@ -104,6 +110,8 @@ List<TimeSeriesValue> insertMissingTimeseriesValues(
       }
     } else {
       // Insert placeholder entries for missing values.
+      // Missing values happen when there is any queried timeSeriesValue
+      // whose commit does not appear in the queried top [maxRecords] commits
       value = TimeSeriesValue(
         revision: commit.sha,
         createTimestamp: commit.timestamp,

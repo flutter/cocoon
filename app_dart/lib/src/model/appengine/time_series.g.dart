@@ -6,6 +6,18 @@ part of 'time_series.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+TimeSeries _$TimeSeriesFromJson(Map<String, dynamic> json) {
+  return TimeSeries(
+    archived: json['Archived'] as bool,
+    baseline: (json['Baseline'] as num)?.toDouble(),
+    goal: (json['Goal'] as num)?.toDouble(),
+    timeSeriesId: json['ID'] as String,
+    label: json['Label'] as String,
+    taskName: json['TaskName'] as String,
+    unit: json['Unit'] as String,
+  );
+}
+
 Map<String, dynamic> _$TimeSeriesToJson(TimeSeries instance) =>
     <String, dynamic>{
       'Archived': instance.archived,
@@ -23,15 +35,3 @@ Map<String, dynamic> _$SerializableTimeSeriesToJson(
       'Timeseries': instance.series,
       'Key': const KeyConverter().toJson(instance.key),
     };
-
-TimeSeries _$TimeSeriesFromJson(Map<String, dynamic> json) {
-  return TimeSeries(
-    timeSeriesId: json['ID'],
-    taskName: json['TaskName'],
-    label: json['Label'],
-    unit: json['Unit'],
-    goal: (json['Goal'])?.toDouble(),
-    baseline: (json['Baseline'])?.toDouble(),
-    archived: json['Archived'],
-  );
-}

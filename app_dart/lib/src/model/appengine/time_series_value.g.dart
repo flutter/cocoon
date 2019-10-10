@@ -6,6 +6,16 @@ part of 'time_series_value.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+TimeSeriesValue _$TimeSeriesValueFromJson(Map<String, dynamic> json) {
+  return TimeSeriesValue(
+    dataMissing: json['DataMissing'] as bool ?? false,
+    value: (json['Value'] as num)?.toDouble(),
+    createTimestamp: json['CreateTimestamp'] as int,
+    taskKey: const KeyConverter().fromJson(json['TaskKey'] as String),
+    revision: json['Revision'] as String,
+  );
+}
+
 Map<String, dynamic> _$TimeSeriesValueToJson(TimeSeriesValue instance) =>
     <String, dynamic>{
       'DataMissing': instance.dataMissing,
@@ -14,12 +24,3 @@ Map<String, dynamic> _$TimeSeriesValueToJson(TimeSeriesValue instance) =>
       'TaskKey': const KeyConverter().toJson(instance.taskKey),
       'Revision': instance.revision,
     };
-
-TimeSeriesValue _$TimeSeriesValueFromJson(Map<String, dynamic> json) {
-  return TimeSeriesValue(
-    createTimestamp: json['CreateTimestamp'],
-    revision: json['Revision'],
-    value: (json['Value'])?.toDouble(),
-    dataMissing: json['DataMissing'] ?? false,
-  );
-}

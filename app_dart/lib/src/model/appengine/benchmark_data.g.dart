@@ -8,13 +8,13 @@ part of 'benchmark_data.dart';
 
 BenchmarkData _$BenchmarkDataFromJson(Map<String, dynamic> json) {
   return BenchmarkData(
-    timeSeriesEntity: json['TimeSeries'] == null
+    timeSeriesEntity: json['Timeseries'] == null
         ? null
-        : TimeseriesEntity.fromJson(json['TimeSeries']),
-    values: (json['Values'])
-        ?.map((Map<String, dynamic> e) => e == null
+        : TimeseriesEntity.fromJson(json['Timeseries'] as Map<String, dynamic>),
+    values: (json['Values'] as List)
+        ?.map((e) => e == null
             ? null
-            : TimeSeriesValue.fromJson(e))
+            : TimeSeriesValue.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }
