@@ -8,3 +8,15 @@ service: default
 
 resources:
   memory_gb: 4.0
+
+handlers:
+- url: /v2
+  application_readable: true
+  static_files: build/web/index.html
+  upload: build/web/index.html
+  secure: always
+- url: /v2/(.*\.(html|css|js|ico|svg|png|jpg|map|dart|json))$
+  application_readable: true
+  static_files: build/web/\1
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart|json)$
+  secure: always

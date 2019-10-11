@@ -79,7 +79,7 @@ Future<void> main() async {
       filePath = filePath.replaceFirst('/v2', '');
 
       final String resultPath = filePath == '/' ? '/index.html' : filePath;
-      const String basePath = '../app_flutter/build/web';
+      const String basePath = 'build/web';
       final File file = File('$basePath$resultPath');
 
       if (file.existsSync()) {
