@@ -48,6 +48,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
 
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
+    agent.healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
 
