@@ -24,31 +24,24 @@ Future<void> main() async {
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': null,
       '/api/create-agent': null,
-      '/api/get-authentication-status':
-          GetAuthenticationStatus(config, authProvider),
+      '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
-      '/api/github-webhook-pullrequest':
-          GithubWebhook(config, buildBucketClient),
+      '/api/github-webhook-pullrequest': GithubWebhook(config, buildBucketClient),
       '/api/luci-status-handler': LuciStatusHandler(config),
-      '/api/push-build-status-to-github':
-          PushBuildStatusToGithub(config, authProvider),
-      '/api/push-engine-build-status-to-github':
-          PushEngineStatusToGithub(config, authProvider),
-      '/api/refresh-chromebot-status':
-          RefreshChromebotStatus(config, authProvider),
+      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
+      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),
+      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
-      '/api/update-benchmark-targets':
-          UpdateBenchmarkTargets(config, authProvider),
+      '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
-      '/api/debug/reset-pending-tasks':
-          DebugResetPendingTasks(config, authProvider),
+      '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
       '/api/public/get-status': GetStatus(config),
