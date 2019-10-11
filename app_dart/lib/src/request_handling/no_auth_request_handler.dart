@@ -14,18 +14,18 @@ import 'body.dart';
 import 'exceptions.dart';
 import 'request_handler.dart';
 
-/// A [RequestHandler] that handles regular requests.
+/// A [RequestHandler] that handles requests with no authentication.
 ///
-/// Regular requests extend by enabling request data for non-API requests
+/// No Auth requests enables [requestData]
 ///
 /// `T` is the type of object that is returned as the body of the HTTP response
 /// (before serialization). Subclasses whose HTTP responses don't include a
 /// body should extend `RequestHandler<Body>` and return null in their service
 /// handlers ([get] and [post]).
 @immutable
-abstract class RegularRequestHandler<T extends Body> extends RequestHandler<T> {
-  /// Creates a new [ApiRequestHandler].
-  const RegularRequestHandler({
+abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
+  /// Creates a new [NoAuthRequestHandler].
+  const NoAuthRequestHandler({
     @required Config config,
   }) : super(config: config);
 
@@ -51,7 +51,7 @@ abstract class RegularRequestHandler<T extends Body> extends RequestHandler<T> {
   ///  * [requestData], which contains the JSON-decoded [Map] of the request
   ///    body content (if applicable).
   @protected
-  Uint8List get requestBody => getValue<Uint8List>(RegularKey.requestBody);
+  Uint8List get requestBody => getValue<Uint8List>(NoAuthKey.requestBody);
 
   /// The JSON data specified in the HTTP request body.
   ///
@@ -64,7 +64,7 @@ abstract class RegularRequestHandler<T extends Body> extends RequestHandler<T> {
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
   Map<String, dynamic> get requestData =>
-      getValue<Map<String, dynamic>>(RegularKey.requestData);
+      getValue<Map<String, dynamic>>(NoAuthKey.requestData);
 
   @override
   Future<void> service(HttpRequest request) async {
@@ -101,19 +101,19 @@ abstract class RegularRequestHandler<T extends Body> extends RequestHandler<T> {
 
     await runZoned<Future<void>>(() async {
       await super.service(request);
-    }, zoneValues: <RegularKey<dynamic>, Object>{
-      RegularKey.requestBody: Uint8List.fromList(body),
-      RegularKey.requestData: requestData,
+    }, zoneValues: <NoAuthKey<dynamic>, Object>{
+      NoAuthKey.requestBody: Uint8List.fromList(body),
+      NoAuthKey.requestData: requestData,
     });
   }
 }
 
 @visibleForTesting
-class RegularKey<T> extends RequestKey<T> {
-  const RegularKey._(String name) : super(name);
+class NoAuthKey<T> extends RequestKey<T> {
+  const NoAuthKey._(String name) : super(name);
 
-  static const RegularKey<Uint8List> requestBody =
-      RegularKey<Uint8List>._('requestBody');
-  static const RegularKey<Map<String, dynamic>> requestData =
-      RegularKey<Map<String, dynamic>>._('requestData');
+  static const NoAuthKey<Uint8List> requestBody =
+      NoAuthKey<Uint8List>._('requestBody');
+  static const NoAuthKey<Map<String, dynamic>> requestData =
+      NoAuthKey<Map<String, dynamic>>._('requestData');
 }

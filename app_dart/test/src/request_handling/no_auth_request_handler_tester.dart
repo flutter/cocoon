@@ -6,15 +6,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/request_handling/regular_request_handler.dart';
+import 'package:cocoon_service/src/request_handling/no_auth_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_logging.dart';
 import 'request_handler_tester.dart';
 
-class RegularRequestHandlerTester extends RequestHandlerTester {
-  RegularRequestHandlerTester({
+class NoAuthRequestHandlerTester extends RequestHandlerTester {
+  NoAuthRequestHandlerTester({
     HttpRequest request,
     FakeLogging log,
     Map<String, dynamic> requestData,
@@ -30,7 +30,7 @@ class RegularRequestHandlerTester extends RequestHandlerTester {
       return runZoned<Future<T>>(() {
         return callback();
       }, zoneValues: <RequestKey<dynamic>, Object>{
-        RegularKey.requestData: requestData,
+        NoAuthKey.requestData: requestData,
       });
     });
   }

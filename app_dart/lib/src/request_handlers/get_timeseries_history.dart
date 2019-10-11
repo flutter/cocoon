@@ -18,12 +18,12 @@ import '../model/appengine/time_series.dart';
 import '../model/appengine/time_series_entity.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/regular_request_handler.dart';
+import '../request_handling/no_auth_request_handler.dart';
 import '../service/datastore.dart';
 
 @immutable
 class GetTimeSeriesHistory
-    extends RegularRequestHandler<GetTimeSeriesHistoryResponse> {
+    extends NoAuthRequestHandler<GetTimeSeriesHistoryResponse> {
   const GetTimeSeriesHistory(
     Config config, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
@@ -38,6 +38,7 @@ class GetTimeSeriesHistory
   @override
   Future<GetTimeSeriesHistoryResponse> post() async {
     checkRequiredParameters(<String>[timeSeriesKeyParam]);
+    // This number inherites from earlier GO backend. Up to change if necessary.
     const int maxRecords = 1500;
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper = KeyHelper(
@@ -105,6 +106,7 @@ List<TimeSeriesValue> insertMissingTimeseriesValues(
 
     if (valuesByCommit.containsKey(commit.sha)) {
       value = valuesByCommit[commit.sha];
+      // This logic inherites from earlier GO backend. Up to change if necessary.
       if (value.value < 0) {
         value.value = 0;
       }

@@ -11,19 +11,19 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
-import '../src/request_handling/regular_request_handler_tester.dart';
+import '../src/request_handling/no_auth_request_handler_tester.dart';
 
 void main() {
   group('GetTimeSeriesHistory', () {
     FakeConfig config;
     FakeDatastoreDB db;
     GetTimeSeriesHistory handler;
-    RegularRequestHandlerTester tester;
+    NoAuthRequestHandlerTester tester;
 
     setUp(() {
       config = FakeConfig();
       db = FakeDatastoreDB();
-      tester = RegularRequestHandlerTester();
+      tester = NoAuthRequestHandlerTester();
       tester.requestData = <String, dynamic>{
         'TimeSeriesKey':
             'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcjULEgpUaW1lc2VyaWVzIiVhbmFseXplcl9iZW5jaG1hcmsuZmx1dHRlcl9yZXBvX2JhdGNoDA',
