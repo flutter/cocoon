@@ -52,8 +52,8 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
-    double goal = requestData[goalParam];
-    double baseline = requestData[baselineParam];
+    double goal = requestData[goalParam]?.toDouble();
+    double baseline = requestData[baselineParam]?.toDouble();
     final String taskName = requestData[taskNameParam];
     final String label = requestData[labelParam];
     final String unit = requestData[unitParam];

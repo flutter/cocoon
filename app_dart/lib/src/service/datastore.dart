@@ -12,6 +12,8 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
+import '../model/appengine/time_series.dart';
+import '../model/appengine/time_series_value.dart';
 
 typedef DatastoreServiceProvider = DatastoreService Function();
 
@@ -44,6 +46,18 @@ class DatastoreService {
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
       ..order('-timestamp');
+    return query.run();
+  }
+
+  /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from 
+  /// [startFrom] and up to a given [limit].
+  ///
+  /// If startFrom is nil, starts from the latest available record.
+  /// [startFrom] to be implemented...
+  Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries, {int limit = 1500, String startFrom}) {
+    final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
+      ..limit(limit)
+      ..order('-createTimestamp');
     return query.run();
   }
 
