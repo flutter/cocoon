@@ -101,3 +101,4 @@ $ deploy.sh
 ```
 
 The deploy script will build the Flutter project and copy it over for deployment.
+Then it will deploy the project to AppEngine.
