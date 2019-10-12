@@ -15,5 +15,5 @@ handlers:
 - url: /v2/(.*\.(html|css|js|ico|svg|png|jpg|map|dart|json))$
   application_readable: true # This is so the dart server can read the files
   static_files: build/web/\1
-  upload: ../app_flutter/build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart|json)$
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map|dart|json)$ # this cannot use the parent directory
   secure: always
