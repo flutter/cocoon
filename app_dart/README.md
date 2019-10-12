@@ -91,14 +91,13 @@ $ docker images|grep local|tr -s ' '|cut -d' ' -f3|xargs docker rmi -f
 
 ### Deploying a release to App Engine
 
-Let _VERSION_ be the version you're deploying to App Engine. Visit
+Let _$VERSION_ be the version you're deploying to App Engine and _$GCLOUD\_PROJECT_
+be the Google Cloud Project Id. Visit
 https://console.cloud.google.com/appengine/versions?project=flutter-dashboard
 for the list of current versions.
 
 ```sh
-$ gcloud app deploy \
-    --project flutter-dashboard \
-    --no-promote \
-    --no-stop-previous-version \
-    --version $VERSION
+$ deploy.sh
 ```
+
+The deploy script will build the Flutter project and copy it over for deployment.
