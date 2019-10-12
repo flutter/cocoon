@@ -13,7 +13,7 @@ handlers:
 # The Dart server handles all requests. However, this is used to ensure the 
 # assets the dart server needs are uploaded to AppEngine.
 - url: /v2/(.*\.(html|css|js|ico|svg|png|jpg|map))$
-  application_readable: true # This is so the dart server can read the files
+  application_readable: true # So the dart server can read the files
   static_files: build/web/\1
-  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$ # this cannot use the parent directory
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$ # This cannot use the parent directory
   secure: always
