@@ -3,11 +3,15 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
+import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
+import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
@@ -146,5 +150,25 @@ class DatastoreService {
       assert(previousStatusUpdates.length == 1);
       return previousStatusUpdates.single;
     }
+  }
+
+  /// Generate new authorization token for [agent]
+  ///
+  /// The hashed code of token will be returned as a list
+  List<int> refreshAgentAuthToken(Agent agent){
+    const int length = 16;
+    const String urlSafeChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    final Random random = Random();
+    final List<String> token = <String>[];
+
+    for (int i = 0; i < length; i++){
+      token.add(urlSafeChars[random.nextInt(urlSafeChars.length)]);
+    }
+
+    final String hashPwd = DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
+    final List<int> encoded = ascii.encode(hashPwd);
+
+    return encoded;
   }
 }
