@@ -14,6 +14,9 @@ handlers:
 # assets the dart server needs are uploaded to AppEngine.
 - url: /v2/(.*\.(html|css|js|ico|svg|png|jpg|map))$
   application_readable: true # So the dart server can read the files
-  static_files: build/web/\1
+  # If the Dart custom runtime changes and starts using this handler,
+  # we want to know. This will have the app only serve HTML and we
+  # will know we can remove the Dart handling code. Just swap
+  # index.html to \1
+  static_files: build/web/index.html
   upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$ # This cannot use the parent directory
-  secure: always
