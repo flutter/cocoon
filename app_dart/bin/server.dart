@@ -7,8 +7,6 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:mime/mime.dart';
-
 
 Future<void> main() async {
   await withAppEngineServices(() async {
@@ -55,58 +53,17 @@ Future<void> main() async {
       port: await config.forwardPort,
     );
 
-    /// Send HTTP 404 Response to Client
-    Future<void> sendNotFound(HttpResponse response) async {
-      response.statusCode = HttpStatus.notFound;
-      await response.close();
-    }
-
-    /// Send HTTP 500 Response to Client
-    Future<void> sendInternalError(HttpResponse response) async {
-      response.statusCode = HttpStatus.internalServerError;
-      await response.close();
-    }
-
-    /// Send static assets for the Flutter application to the client.
-    /// 
-    /// If the asset cannot be found, send a 404 Not Found response.
-    /// If there is an error sending the asset, send a 500 Internal Server Error
-    /// response.
-    Future<void> sendFlutterApplicationAssets(HttpRequest request) async {
-      String filePath = request.uri.toFilePath();
-      // TODO(chillers): Remove when Flutter application goes into production.
-      filePath = filePath.replaceFirst('/v2', '');
-
-      final String resultPath = filePath == '/' ? '/index.html' : filePath;
-      const String basePath = 'build/web';
-      final File file = File('$basePath$resultPath');
-
-      if (file.existsSync()) {
-        try {
-          final String mimeType = lookupMimeType(resultPath);
-          request.response.headers.contentType = ContentType.parse(mimeType);
-          await request.response.addStream(file.openRead());
-          await request.response.close();
-        } catch (exception) {
-          print('Error: $exception');
-          await sendInternalError(request.response);
-        }
-      } else {
-        await sendNotFound(request.response);
-      }
-    }
-
     /// Check if the requested URI is for the Flutter Application
     /// 
     /// Currently the Flutter application will run at
     /// https://flutter-dashboard.appspot.com/v2/
     bool isRequestForFlutterApplicationBeta(HttpRequest request) {
-      return request.uri.path.contains('/v2');
+      return request.uri.path.contains(StaticFileHandler.flutterBetaUrlPrefix);
     }
 
     return await runAppEngine((HttpRequest request) async {
       if (isRequestForFlutterApplicationBeta(request)) {
-        await sendFlutterApplicationAssets(request);
+        await const StaticFileHandler().service(request);
       }
 
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
