@@ -28,6 +28,12 @@ class BadRequestException extends HttpStatusException {
       : super(HttpStatus.badRequest, message);
 }
 
+/// Exception that will trigger an HTTP 404 not found
+class NotFoundException extends HttpStatusException {
+  const NotFoundException(String missing)
+      : super(HttpStatus.notFound, 'Not found: $missing');
+}
+
 /// Exception that will trigger an HTTP 405 method not allowed.
 class MethodNotAllowed extends HttpStatusException {
   const MethodNotAllowed(String method)
