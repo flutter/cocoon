@@ -65,3 +65,4 @@ class AuthorizeAgentResponse extends JsonBody {
     };
   }
 }
+
