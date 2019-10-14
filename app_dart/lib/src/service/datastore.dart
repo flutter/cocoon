@@ -166,10 +166,10 @@ class DatastoreService {
       token.add(urlSafeChars[random.nextInt(urlSafeChars.length)]);
     }
 
-    final String hashPwd = DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
-    final List<int> encoded = ascii.encode(hashPwd);
+    final String hashToken = DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
+    final List<int> encodeToken = ascii.encode(hashToken);
 
-    return encoded;
+    return encodeToken;
   }
 }
 
