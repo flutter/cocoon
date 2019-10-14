@@ -51,10 +51,10 @@ class StaticFileHandler {
         await response.close();
         return;
       }
-    }, zoneValues: <RequestKey<dynamic>, Object>{
-      RequestKey.request: request,
-      RequestKey.response: response,
-      RequestKey.log: loggingService,
+    }, zoneValues: <_RequestKey<dynamic>, Object>{
+      _RequestKey.request: request,
+      _RequestKey.response: response,
+      _RequestKey.log: loggingService,
     });
   }
 
@@ -82,7 +82,7 @@ class StaticFileHandler {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  T getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
+  T getValue<T>(_RequestKey<T> key, {bool allowNull = false}) {
     final T value = Zone.current[key];
     if (!allowNull && value == null) {
       throw StateError(
@@ -96,7 +96,7 @@ class StaticFileHandler {
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
-  Logging get log => getValue<Logging>(RequestKey.log);
+  Logging get log => getValue<Logging>(_RequestKey.log);
 
   /// Services an HTTP GET Request for static files.
   Future<HttpResponse> get(HttpRequest request) async {
@@ -129,17 +129,16 @@ class StaticFileHandler {
 ///
 /// Subclasses will only need to deal directly with this class if they add
 /// their own request context values.
-@visibleForTesting
-class RequestKey<T> {
-  const RequestKey(this.name);
+class _RequestKey<T> {
+  const _RequestKey(this.name);
 
   final String name;
 
-  static const RequestKey<HttpRequest> request =
-      RequestKey<HttpRequest>('request');
-  static const RequestKey<HttpResponse> response =
-      RequestKey<HttpResponse>('response');
-  static const RequestKey<Logging> log = RequestKey<Logging>('log');
+  static const _RequestKey<HttpRequest> request =
+      _RequestKey<HttpRequest>('request');
+  static const _RequestKey<HttpResponse> response =
+      _RequestKey<HttpResponse>('response');
+  static const _RequestKey<Logging> log = _RequestKey<Logging>('log');
 
   @override
   String toString() => '$runtimeType($name)';
