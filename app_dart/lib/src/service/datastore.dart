@@ -151,25 +151,5 @@ class DatastoreService {
       return previousStatusUpdates.single;
     }
   }
-
-  /// Generate new authorization token for [agent]
-  ///
-  /// The hashed code of token will be returned as a list
-  List<int> refreshAgentAuthToken(Agent agent){
-    const int length = 16;
-    const String urlSafeChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-    final Random random = Random();
-    final List<String> token = <String>[];
-
-    for (int i = 0; i < length; i++){
-      token.add(urlSafeChars[random.nextInt(urlSafeChars.length)]);
-    }
-
-    final String hashToken = DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
-    final List<int> encodeToken = ascii.encode(hashToken);
-
-    return encodeToken;
-  }
 }
 
