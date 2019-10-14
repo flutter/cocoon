@@ -45,26 +45,25 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
       },
     );
 
-    agent.authToken = agentService.refreshAgentAuthToken();
-    
+    final Map<String, dynamic> map = agentService.refreshAgentAuthToken();
+    agent.authToken = map['HashToken'];
+
     await datastore.db.commit(inserts: <Agent>[agent]);
 
-    return AuthorizeAgentResponse(agent);
+    return AuthorizeAgentResponse(map['Token']);
   }
 }
 
 @immutable
 class AuthorizeAgentResponse extends JsonBody {
-  const AuthorizeAgentResponse(this.agent) : assert(agent != null);
+  const AuthorizeAgentResponse(this.token) : assert(token != null);
 
-  final Agent agent;
+  final String token;
 
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Agent': agent.agentId,
-      'Healthy': agent.isHealthy,
-      'Details': agent.healthDetails,
+      'Token': token,
     };
   }
 }

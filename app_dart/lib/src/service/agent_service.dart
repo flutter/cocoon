@@ -17,11 +17,11 @@ class AgentService {
   /// Generate new authorization token for [agent]
   ///
   /// The hashed code of token will be returned as a list
-  List<int> refreshAgentAuthToken() {
+  Map<String, dynamic> refreshAgentAuthToken() {
     const int length = 16;
     const String urlSafeChars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
+    final Map<String, dynamic> result = <String, dynamic>{};
     final Random random = Random();
     final StringBuffer token = StringBuffer();
 
@@ -29,9 +29,13 @@ class AgentService {
       token.write(urlSafeChars[random.nextInt(urlSafeChars.length)]);
     }
 
+    result['Token'] = token.toString();
+
     final String hashToken =
         DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
 
-    return ascii.encode(hashToken);
+    result['HashToken'] = ascii.encode(hashToken);
+
+    return result;
   }
 }
