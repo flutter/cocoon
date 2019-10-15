@@ -10,6 +10,11 @@ import 'package:gcloud/db.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
+
+    /// The location for the Flutter application
+    // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
+    const String flutterBetaUrlPrefix = '/v2';
+
     final Config config = Config(dbService);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
@@ -58,12 +63,16 @@ Future<void> main() async {
     /// Currently the Flutter application will run at
     /// https://flutter-dashboard.appspot.com/v2/
     bool isRequestForFlutterApplicationBeta(HttpRequest request) {
-      return request.uri.path.contains(StaticFileHandler.flutterBetaUrlPrefix);
+      return request.uri.path.contains(flutterBetaUrlPrefix);
     }
 
     return await runAppEngine((HttpRequest request) async {
       if (isRequestForFlutterApplicationBeta(request)) {
-        await const StaticFileHandler().service(request);
+        String filePath = request.uri.toFilePath();
+        // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
+        filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
+        
+        await const StaticFileHandler().service(request, filePath);
       }
 
       final RequestHandler<dynamic> handler = handlers[request.uri.path];

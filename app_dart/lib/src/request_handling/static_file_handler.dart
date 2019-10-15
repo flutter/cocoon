@@ -17,19 +17,15 @@ class StaticFileHandler {
   /// Creates a new [StaticFileHandler].
   const StaticFileHandler();
 
-  /// The location for the Flutter application
-  // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
-  static const String flutterBetaUrlPrefix = '/v2';
-
   /// Services an HTTP request.
-  Future<void> service(HttpRequest request) {
+  Future<void> service(HttpRequest request, String filePath) {
     final HttpResponse response = request.response;
     return runZoned<Future<void>>(() async {
       try {
         try {
           switch (request.method) {
             case 'GET':
-              await get(request);
+              await get(request, filePath);
               break;
             default:
               throw MethodNotAllowed(request.method);
@@ -99,12 +95,8 @@ class StaticFileHandler {
   Logging get log => getValue<Logging>(_RequestKey.log);
 
   /// Services an HTTP GET Request for static files.
-  Future<HttpResponse> get(HttpRequest request) async {
+  Future<HttpResponse> get(HttpRequest request, String filePath) async {
     final HttpResponse response = request.response;
-
-    String filePath = request.uri.toFilePath();
-    // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
-    filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
 
     final String resultPath = filePath == '/' ? '/index.html' : filePath;
     const String basePath = 'build/web';
