@@ -24,9 +24,11 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
+        this.agentServiceProvider = AgentService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+  final AgentServiceProvider agentServiceProvider;
 
   static const String agentIdParam = 'AgentID';
 
@@ -36,7 +38,7 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
 
     final String agentId = requestData[agentIdParam];
     final DatastoreService datastore = datastoreProvider();
-    final AgentService agentService = AgentService();
+    final AgentService agentService =  agentServiceProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
     final Agent agent = await datastore.db.lookupValue<Agent>(
       key,
@@ -45,12 +47,12 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
       },
     );
 
-    final Map<String, dynamic> map = agentService.refreshAgentAuthToken();
-    agent.authToken = map['HashToken'];
+    final AgentAuthToken agentAuthToken = agentService.refreshAgentAuthToken();
+    agent.authToken = agentAuthToken.hash;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
 
-    return AuthorizeAgentResponse(map['Token']);
+    return AuthorizeAgentResponse(agentAuthToken.value);
   }
 }
 

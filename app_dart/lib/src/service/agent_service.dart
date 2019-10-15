@@ -8,20 +8,27 @@ import 'dart:math';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:meta/meta.dart';
 
+typedef AgentServiceProvider = AgentService Function();
+
 /// Service class for Agent.
 ///
-/// This service exists to provide common agent queries made by
-/// the Cocoon backend.
+/// This service provides funtionality for interacting with
+/// [Agent] instances
 @immutable
 class AgentService {
   /// Generate new authorization token for [agent]
   ///
   /// The hashed code of token will be returned as a list
-  Map<String, dynamic> refreshAgentAuthToken() {
+  const AgentService();
+
+  static AgentService defaultProvider() {
+    return const AgentService();
+  }
+
+  AgentAuthToken refreshAgentAuthToken() {
     const int length = 16;
     const String urlSafeChars =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    final Map<String, dynamic> result = <String, dynamic>{};
     final Random random = Random();
     final StringBuffer token = StringBuffer();
 
@@ -29,13 +36,18 @@ class AgentService {
       token.write(urlSafeChars[random.nextInt(urlSafeChars.length)]);
     }
 
-    result['Token'] = token.toString();
-
     final String hashToken =
         DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
 
-    result['HashToken'] = ascii.encode(hashToken);
-
-    return result;
+    return AgentAuthToken(token.toString(), ascii.encode(hashToken));
   }
+}
+
+class AgentAuthToken {
+  const AgentAuthToken(this.value, this.hash)
+      : assert(value != null),
+        assert(hash != null);
+
+  final String value;
+  final List<int> hash;
 }
