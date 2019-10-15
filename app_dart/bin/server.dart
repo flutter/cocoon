@@ -72,6 +72,8 @@ Future<void> main() async {
         filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
         
         await StaticFileHandler<Body>(filePath, config: config).service(request);
+
+        return;
       }
 
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
