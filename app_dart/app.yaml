@@ -19,4 +19,7 @@ handlers:
   # will know we can remove the Dart handling code. Just swap
   # index.html to \1
   static_files: build/web/index.html
-  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$ # This cannot use the parent directory
+  # app_flutter's build files needed to be copied over to this project. This
+  # is because the Google Cloud utility cannot go outside the scope of app_dart.
+  # Navigating to ../app_flutter/build/web will silently error.
+  upload: build/web/.*\.(html|css|js|ico|svg|png|jpg|map)$
