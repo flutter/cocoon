@@ -17,7 +17,7 @@ import 'exceptions.dart';
 @immutable
 class StaticFileHandler<T extends Body> extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler(this.filePath);
+  const StaticFileHandler(this.filePath, {Config config}) : super(config: config);
 
   /// The location of the static file to serve to the client.
   final String filePath;

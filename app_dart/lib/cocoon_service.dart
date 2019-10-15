@@ -27,6 +27,7 @@ export 'src/request_handlers/update_task_status.dart';
 export 'src/request_handlers/update_timeseries.dart';
 export 'src/request_handlers/vacuum-clean.dart';
 export 'src/request_handling/authentication.dart';
+export 'src/request_handling/body.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
 export 'src/request_handling/static_file_handler.dart';

@@ -8,18 +8,27 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+
+import '../src/datastore/fake_cocoon_config.dart';
+import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
   group('StaticFileHandler', () {
+    RequestHandlerTester tester;
+    StaticFileHandler<Body> staticFileHandler;
+
+    final FakeConfig config = FakeConfig();
+
+    setUp(() {
+      tester = RequestHandlerTester();
+    });
+
     test('returns 404 response when file does not exist', () async {
-      const StaticFileHandler staticFileHandler = StaticFileHandler();
+      staticFileHandler = StaticFileHandler<Body>('null', config: config);
 
-      final HttpRequest request = MockHttpRequest();
-      final Uri uri = Uri();
-      when(request.uri).thenReturn(uri);
-
-      expect(staticFileHandler.get(request),
+      expect(tester.get(staticFileHandler),
           throwsA(const TypeMatcher<NotFoundException>()));
     });
   });
