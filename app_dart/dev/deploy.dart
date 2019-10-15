@@ -37,15 +37,71 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   return true;
 }
 
-void main(List<String> arguments) {
+/// Build app_flutter for web.
+Future<bool> _buildFlutterWebApp() async {
+  final Process process = await Process.start(
+      'flutter', <String>['build', 'web'],
+      workingDirectory: '../app_flutter');
+  await stdout.addStream(process.stdout);
+
+  return await process.exitCode == 0;
+}
+
+/// Copy the built project from app_flutter to this app_dart project.
+Future<bool> _copyFlutterApp() async {
+  final ProcessResult result =
+      await Process.run('cp', <String>['-r', '../app_flutter/build', 'build']);
+
+  return result.exitCode == 0;
+}
+
+/// Run the Google Cloud CLI tool to deploy to [gcloudProjectId] under 
+/// version [gcloudProjectVersion].
+Future<bool> _deployToAppEngine() async {
+  stdout.write('Deploying to AppEngine\n');
+  final ProcessResult result = Process.runSync(
+    'gcloud',
+    <String>[
+      'app',
+      'deploy',
+      '--project',
+      gcloudProjectId,
+      '--version',
+      gcloudProjectVersion,
+      '--no-promote',
+      '--no-stop-previous-version',
+    ],
+  );
+
+  return result.exitCode == 0;
+}
+
+Future<int> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag);
 
   if (!_getArgs(argParser, arguments)) {
-    return;
+    return 1;
   }
 
   stdout.write('GCloud Project Id: $gcloudProjectId\n');
   stdout.write('GCloud Project Version: $gcloudProjectVersion\n');
+
+  if (!await _buildFlutterWebApp()) {
+    stderr.write('Failed to build Flutter app');
+    return 1;
+  }
+
+  if (!await _copyFlutterApp()) {
+    stderr.write('Failed to copy Flutter app over');
+    return 1;
+  }
+
+  if (!await _deployToAppEngine()) {
+    stderr.write('Failed to deploy to AppEngine');
+    return 1;
+  }
+
+  return 0;
 }
