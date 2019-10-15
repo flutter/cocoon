@@ -62,7 +62,7 @@ Future<void> main() async {
     /// Currently the Flutter application will run at
     /// https://flutter-dashboard.appspot.com/v2/
     bool isRequestForFlutterApplicationBeta(HttpRequest request) {
-      return request.uri.path.contains(flutterBetaUrlPrefix);
+      return request.uri.path.startsWith(flutterBetaUrlPrefix);
     }
 
     return await runAppEngine((HttpRequest request) async {
