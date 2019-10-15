@@ -59,7 +59,9 @@ Future<bool> _copyFlutterApp() async {
 /// version [gcloudProjectVersion].
 Future<bool> _deployToAppEngine() async {
   stdout.write('Deploying to AppEngine\n');
-  final ProcessResult result = Process.runSync(
+  /// The Google Cloud deployment command is an interactive process. It will
+  /// print out what it is about to do, and ask for confirmation (Y/n).
+  final Process process = await Process.start(
     'gcloud',
     <String>[
       'app',
@@ -73,7 +75,13 @@ Future<bool> _deployToAppEngine() async {
     ],
   );
 
-  return result.exitCode == 0;
+  await process.stderr.pipe(stdout);
+  await process.stdout.pipe(stdout);
+
+  // So this is probably not the best way to do it
+  await Future<void>.delayed(const Duration(seconds: 15), () => process.stdin.write('y\n'));
+
+  return await process.exitCode == 0;
 }
 
 Future<int> main(List<String> arguments) async {
