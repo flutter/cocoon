@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show ContentType, HttpResponse;
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 
@@ -17,7 +19,13 @@ import 'exceptions.dart';
 @immutable
 class StaticFileHandler<T extends Body> extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler(this.filePath, {@required Config config}) : super(config: config);
+  const StaticFileHandler(this.filePath,
+      {@required Config config, FileSystem fs})
+      : _fs = fs ?? const LocalFileSystem(),
+        super(config: config);
+
+  /// The current [FileSystem] to retrieve files from.
+  final FileSystem _fs;
 
   /// The location of the static file to serve to the client.
   final String filePath;
@@ -31,7 +39,8 @@ class StaticFileHandler<T extends Body> extends RequestHandler<Body> {
 
     /// The file path in app_dart to the files to serve
     const String basePath = 'build/web';
-    final File file = File('$basePath$resultPath');
+
+    final File file = _fs.file('$basePath$resultPath');
 
     if (file.existsSync()) {
       final String mimeType = lookupMimeType(resultPath);
