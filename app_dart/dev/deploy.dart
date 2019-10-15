@@ -58,7 +58,7 @@ Future<bool> _copyFlutterApp() async {
 /// Run the Google Cloud CLI tool to deploy to [gcloudProjectId] under 
 /// version [gcloudProjectVersion].
 Future<bool> _deployToAppEngine() async {
-  stdout.write('Deploying to AppEngine\n');
+  stdout.writeln('Deploying to AppEngine');
   /// The Google Cloud deployment command is an interactive process. It will
   /// print out what it is about to do, and ask for confirmation (Y/n).
   final Process process = await Process.start(
@@ -75,11 +75,11 @@ Future<bool> _deployToAppEngine() async {
     ],
   );
 
+  /// Let this user confirm the details before Google Cloud sends for deployment.
+  stdin.pipe(process.stdin); // ignore: unawaited_futures
+
   await process.stderr.pipe(stdout);
   await process.stdout.pipe(stdout);
-
-  // So this is probably not the best way to do it
-  await Future<void>.delayed(const Duration(seconds: 15), () => process.stdin.write('y\n'));
 
   return await process.exitCode == 0;
 }
@@ -93,21 +93,21 @@ Future<int> main(List<String> arguments) async {
     return 1;
   }
 
-  stdout.write('GCloud Project Id: $gcloudProjectId\n');
-  stdout.write('GCloud Project Version: $gcloudProjectVersion\n');
+  stdout.writeln('GCloud Project Id: $gcloudProjectId');
+  stdout.writeln('GCloud Project Version: $gcloudProjectVersion');
 
   if (!await _buildFlutterWebApp()) {
-    stderr.write('Failed to build Flutter app');
+    stderr.writeln('Failed to build Flutter app');
     return 1;
   }
 
   if (!await _copyFlutterApp()) {
-    stderr.write('Failed to copy Flutter app over');
+    stderr.writeln('Failed to copy Flutter app over');
     return 1;
   }
 
   if (!await _deployToAppEngine()) {
-    stderr.write('Failed to deploy to AppEngine');
+    stderr.writeln('Failed to deploy to AppEngine');
     return 1;
   }
 
