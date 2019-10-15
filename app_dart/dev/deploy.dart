@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:pedantic/pedantic.dart';
 
 const String gcloudProjectIdFlag = 'project';
 const String gcloudProjectIdAbbrFlag = 'p';
@@ -76,9 +77,9 @@ Future<bool> _deployToAppEngine() async {
   );
 
   /// Let this user confirm the details before Google Cloud sends for deployment.
-  stdin.pipe(process.stdin); // ignore: unawaited_futures
+  unawaited(stdin.pipe(process.stdin));
 
-  await process.stderr.pipe(stdout);
+  await process.stderr.pipe(stderr);
   await process.stdout.pipe(stdout);
 
   return await process.exitCode == 0;
@@ -92,10 +93,7 @@ Future<int> main(List<String> arguments) async {
   if (!_getArgs(argParser, arguments)) {
     return 1;
   }
-
-  stdout.writeln('GCloud Project Id: $gcloudProjectId');
-  stdout.writeln('GCloud Project Version: $gcloudProjectVersion');
-
+  
   if (!await _buildFlutterWebApp()) {
     stderr.writeln('Failed to build Flutter app');
     return 1;
