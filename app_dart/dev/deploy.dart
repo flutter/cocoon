@@ -13,24 +13,24 @@ const String gcloudProjectIdAbbrFlag = 'p';
 const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
-String gcloudProjectId;
-String gcloudProjectVersion;
+String _gcloudProjectId;
+String _gcloudProjectVersion;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
-/// were passed as arguments. If they were, also set [gcloudProjectId]
-/// and [gcloudProjectVersion] accordingly.
+/// were passed as arguments. If they were, also set [_gcloudProjectId]
+/// and [_gcloudProjectVersion] accordingly.
 bool _getArgs(ArgParser argParser, List<String> arguments) {
   final ArgResults args = argParser.parse(arguments);
 
-  gcloudProjectId = args[gcloudProjectIdFlag];
-  gcloudProjectVersion = args[gcloudProjectVersionFlag];
+  _gcloudProjectId = args[gcloudProjectIdFlag];
+  _gcloudProjectVersion = args[gcloudProjectVersionFlag];
 
-  if (gcloudProjectId == null) {
+  if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
     return false;
   }
 
-  if (gcloudProjectVersion == null) {
+  if (_gcloudProjectVersion == null) {
     stderr.write('--$gcloudProjectVersionFlag must be defined\n');
     return false;
   }
@@ -56,8 +56,8 @@ Future<bool> _copyFlutterApp() async {
   return result.exitCode == 0;
 }
 
-/// Run the Google Cloud CLI tool to deploy to [gcloudProjectId] under 
-/// version [gcloudProjectVersion].
+/// Run the Google Cloud CLI tool to deploy to [_gcloudProjectId] under 
+/// version [_gcloudProjectVersion].
 Future<bool> _deployToAppEngine() async {
   stdout.writeln('Deploying to AppEngine');
   /// The Google Cloud deployment command is an interactive process. It will
@@ -68,9 +68,9 @@ Future<bool> _deployToAppEngine() async {
       'app',
       'deploy',
       '--project',
-      gcloudProjectId,
+      _gcloudProjectId,
       '--version',
-      gcloudProjectVersion,
+      _gcloudProjectVersion,
       '--no-promote',
       '--no-stop-previous-version',
     ],
@@ -85,29 +85,27 @@ Future<bool> _deployToAppEngine() async {
   return await process.exitCode == 0;
 }
 
-Future<int> main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag);
 
   if (!_getArgs(argParser, arguments)) {
-    return 1;
+    exit(1);
   }
   
   if (!await _buildFlutterWebApp()) {
     stderr.writeln('Failed to build Flutter app');
-    return 1;
+    exit(1);
   }
 
   if (!await _copyFlutterApp()) {
     stderr.writeln('Failed to copy Flutter app over');
-    return 1;
+    exit(1);
   }
 
   if (!await _deployToAppEngine()) {
     stderr.writeln('Failed to deploy to AppEngine');
-    return 1;
+    exit(1);
   }
-
-  return 0;
 }
