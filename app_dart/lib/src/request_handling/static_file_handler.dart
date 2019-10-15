@@ -4,101 +4,32 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 
+import 'body.dart';
 import 'exceptions.dart';
 
 /// A class based on [RequestHandler] for serving static files.
 @immutable
-class StaticFileHandler {
+class StaticFileHandler<T extends Body> extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler();
+  const StaticFileHandler(this.filePath);
 
-  /// Services an HTTP request.
-  Future<void> service(HttpRequest request, String filePath) {
-    final HttpResponse response = request.response;
-    return runZoned<Future<void>>(() async {
-      try {
-        try {
-          switch (request.method) {
-            case 'GET':
-              await get(request, filePath);
-              break;
-            default:
-              throw MethodNotAllowed(request.method);
-          }
-          await _respond(response: response);
-          return;
-        } on HttpStatusException {
-          rethrow;
-        } catch (error, stackTrace) {
-          log.error('$error\n$stackTrace');
-          throw InternalServerError('$error\n$stackTrace');
-        }
-      } on HttpStatusException catch (error) {
-        await response.close();
-        response
-          ..statusCode = error.statusCode
-          ..write(error.message);
-        await response.flush();
-        await response.close();
-        return;
-      }
-    }, zoneValues: <_RequestKey<dynamic>, Object>{
-      _RequestKey.request: request,
-      _RequestKey.response: response,
-      _RequestKey.log: loggingService,
-    });
-  }
-
-  /// Responds (using [response]) with the specified [status] and optional
-  /// [body].
-  ///
-  /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(
-      {int status = HttpStatus.ok, @required HttpResponse response}) async {
-    assert(status != null);
-    assert(response != null);
-
-    response.statusCode = status;
-    await response.flush();
-    await response.close();
-  }
-
-  /// Gets the value associated with the specified [key] in the request
-  /// context.
-  ///
-  /// Concrete subclasses should not call this directly. Instead, they should
-  /// access the getters that are tied to specific keys, such as [request]
-  /// and [response].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  T getValue<T>(_RequestKey<T> key, {bool allowNull = false}) {
-    final T value = Zone.current[key];
-    if (!allowNull && value == null) {
-      throw StateError(
-          'Attempt to access ${key.name} while not in a request context');
-    }
-    return value;
-  }
-
-  /// Gets the current [Logging] instance.
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  Logging get log => getValue<Logging>(_RequestKey.log);
+  /// The location of the static file to serve to the client.
+  final String filePath;
 
   /// Services an HTTP GET Request for static files.
-  Future<HttpResponse> get(HttpRequest request, String filePath) async {
+  @override
+  Future<Body> get() async {
     final HttpResponse response = request.response;
 
     final String resultPath = filePath == '/' ? '/index.html' : filePath;
+
+    /// The file path in app_dart to the files to serve
     const String basePath = 'build/web';
     final File file = File('$basePath$resultPath');
 
@@ -106,8 +37,7 @@ class StaticFileHandler {
       try {
         final String mimeType = lookupMimeType(resultPath);
         response.headers.contentType = ContentType.parse(mimeType);
-        await response.addStream(file.openRead());
-        return response;
+        return Body.forStream(Stream<Uint8List>.fromFuture(file.readAsBytes()));
       } catch (error, stackTrace) {
         throw InternalServerError('$error\n$stackTrace');
       }
@@ -115,23 +45,4 @@ class StaticFileHandler {
       throw NotFoundException(resultPath);
     }
   }
-}
-
-/// A key that can be used to index a value within the request context.
-///
-/// Subclasses will only need to deal directly with this class if they add
-/// their own request context values.
-class _RequestKey<T> {
-  const _RequestKey(this.name);
-
-  final String name;
-
-  static const _RequestKey<HttpRequest> request =
-      _RequestKey<HttpRequest>('request');
-  static const _RequestKey<HttpResponse> response =
-      _RequestKey<HttpResponse>('response');
-  static const _RequestKey<Logging> log = _RequestKey<Logging>('log');
-
-  @override
-  String toString() => '$runtimeType($name)';
 }
