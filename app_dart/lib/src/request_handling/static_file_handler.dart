@@ -34,13 +34,9 @@ class StaticFileHandler<T extends Body> extends RequestHandler<Body> {
     final File file = File('$basePath$resultPath');
 
     if (file.existsSync()) {
-      try {
-        final String mimeType = lookupMimeType(resultPath);
-        response.headers.contentType = ContentType.parse(mimeType);
-        return Body.forStream(Stream<Uint8List>.fromFuture(file.readAsBytes()));
-      } catch (error, stackTrace) {
-        throw InternalServerError('$error\n$stackTrace');
-      }
+      final String mimeType = lookupMimeType(resultPath);
+      response.headers.contentType = ContentType.parse(mimeType);
+      return Body.forStream(Stream<Uint8List>.fromFuture(file.readAsBytes()));
     } else {
       throw NotFoundException(resultPath);
     }
