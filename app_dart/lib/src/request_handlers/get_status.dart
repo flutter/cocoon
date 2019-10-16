@@ -3,50 +3,34 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:collection/collection.dart';
-import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
+import 'package:neat_cache/neat_cache.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
-import '../service/datastore.dart';
 
 @immutable
 class GetStatus extends RequestHandler<Body> {
-  const GetStatus(
-    Config config, {
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting BuildStatusProvider buildStatusProvider,
-  })  : buildStatusProvider = buildStatusProvider ?? const BuildStatusProvider(),
-        super(config: config);
-
-  final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusProvider buildStatusProvider;
+  const GetStatus(Config config) : super(config: config);
 
   @override
   Future<Body> get() async {
-    final List<SerializableCommitStatus> statuses = await buildStatusProvider
-        .retrieveCommitStatus()
-        .map<SerializableCommitStatus>((CommitStatus status) => SerializableCommitStatus(status))
-        .toList();
+    final cacheProvider = Cache.redisCacheProvider('redis://10.0.0.4:6379');
+    final cache = Cache(cacheProvider);
 
-    final DatastoreService datastore = datastoreProvider();
-    final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
-    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
-    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
+    final statusCache = cache.withPrefix('responses').withCodec(utf8);
 
-    return Body.forJson(<String, dynamic>{
-      'Statuses': statuses,
-      'AgentStatuses': agents,
-    });
+    final response = await statusCache['get-status'].get();
+
+    await cacheProvider.close();
+
+    return Body.forJson(jsonDecode(response));
   }
-
-  static bool _isVisible(Agent agent) => !agent.isHidden;
 }
 
 /// The serialized representation of a [CommitStatus].
