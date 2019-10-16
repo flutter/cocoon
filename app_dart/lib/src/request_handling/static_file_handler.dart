@@ -20,12 +20,11 @@ import 'exceptions.dart';
 class StaticFileHandler extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
   const StaticFileHandler(this.filePath,
-      {@required Config config, FileSystem fs})
-      : _fs = fs ?? const LocalFileSystem(),
-        super(config: config);
+      {@required Config config, this.fs = const LocalFileSystem()})
+      : super(config: config);
 
   /// The current [FileSystem] to retrieve files from.
-  final FileSystem _fs;
+  final FileSystem fs;
 
   /// The location of the static file to serve to the client.
   final String filePath;
@@ -40,7 +39,7 @@ class StaticFileHandler extends RequestHandler<Body> {
     /// The file path in app_dart to the files to serve
     const String basePath = 'build/web';
 
-    final File file = _fs.file('$basePath$resultPath');
+    final File file = fs.file('$basePath$resultPath');
 
     if (file.existsSync()) {
       final String mimeType = lookupMimeType(resultPath);
