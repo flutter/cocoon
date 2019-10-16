@@ -4,3 +4,5 @@ key*.json
 .dart_tool/
 
 !pubspec.lock
+
+build/
