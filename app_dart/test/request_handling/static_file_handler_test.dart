@@ -3,12 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:convert' show utf8;
-import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
