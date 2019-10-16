@@ -57,5 +57,3 @@ void main() {
     });
   });
 }
-
-class MockHttpRequest extends Mock implements HttpRequest {}
