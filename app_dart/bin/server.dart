@@ -6,8 +6,6 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handlers/set_status_cache.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {

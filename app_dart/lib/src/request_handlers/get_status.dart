@@ -9,10 +9,8 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/commit.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
-import '../service/build_status_provider.dart';
 
 @immutable
 class GetStatus extends RequestHandler<Body> {
@@ -30,20 +28,5 @@ class GetStatus extends RequestHandler<Body> {
     await cacheProvider.close();
 
     return Body.forJson(jsonDecode(response));
-  }
-}
-
-/// The serialized representation of a [CommitStatus].
-// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
-class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status);
-
-  final CommitStatus status;
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Checklist': SerializableCommit(status.commit),
-      'Stages': status.stages,
-    };
   }
 }
