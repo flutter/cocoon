@@ -162,6 +162,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  file:
+    dependency: "direct main"
+    description:
+      name: file
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.1.0"
   fixnum:
     dependency: "direct main"
     description:
@@ -267,6 +274,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.8+3"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.16.0"
   io:
     dependency: transitive
     description:
@@ -324,7 +338,7 @@ packages:
     source: hosted
     version: "1.1.7"
   mime:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: mime
       url: "https://pub.dartlang.org"

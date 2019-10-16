@@ -4,14 +4,16 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/cocoon_service.dart';
-
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
+    /// The location for the Flutter application
+    // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
+    const String flutterBetaUrlPrefix = '/v2';
+
     final Config config = Config(dbService);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
@@ -20,7 +22,7 @@ Future<void> main() async {
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
-      '/api/authorize-agent': null,
+      '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/create-agent': null,
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
@@ -55,7 +57,25 @@ Future<void> main() async {
       port: await config.forwardPort,
     );
 
+    /// Check if the requested URI is for the Flutter Application
+    /// 
+    /// Currently the Flutter application will run at
+    /// https://flutter-dashboard.appspot.com/v2/
+    bool isRequestForFlutterApplicationBeta(HttpRequest request) {
+      return request.uri.path.startsWith(flutterBetaUrlPrefix);
+    }
+
     return await runAppEngine((HttpRequest request) async {
+      if (isRequestForFlutterApplicationBeta(request)) {
+        String filePath = request.uri.toFilePath();
+        // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
+        filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
+        
+        await StaticFileHandler(filePath, config: config).service(request);
+
+        return;
+      }
+
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
       if (handler != null) {
         await handler.service(request);
