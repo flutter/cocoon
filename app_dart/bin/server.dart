@@ -71,7 +71,7 @@ Future<void> main() async {
         // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
         filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
         
-        await StaticFileHandler<Body>(filePath, config: config).service(request);
+        await StaticFileHandler(filePath, config: config).service(request);
 
         return;
       }

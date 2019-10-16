@@ -39,16 +39,16 @@ void main() {
     }
 
     test('returns 404 response when file does not exist', () async {
-      final StaticFileHandler<Body> staticFileHandler =
-          StaticFileHandler<Body>('i do not exist as a file', config: config, fs: fs);
+      final StaticFileHandler staticFileHandler =
+          StaticFileHandler('i do not exist as a file', config: config, fs: fs);
 
       expect(tester.get(staticFileHandler),
           throwsA(const TypeMatcher<NotFoundException>()));
     });
 
     test('returns body when file does exist', () async {
-      final StaticFileHandler<Body> staticFileHandler =
-          StaticFileHandler<Body>('/$indexFileName', config: config, fs: fs);
+      final StaticFileHandler staticFileHandler =
+          StaticFileHandler('/$indexFileName', config: config, fs: fs);
 
       final Body body = await tester.get(staticFileHandler);
       expect(body, isNotNull);
