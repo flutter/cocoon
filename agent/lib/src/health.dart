@@ -82,8 +82,8 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
   if (Platform.isMacOS) {
     ip = (await eval('ipconfig', ['getifaddr', 'en0'], canFail: true)).trim();
   } else if (Platform.isLinux) {
-    // Expect: 3: enp0s25    inet 123.45.67.89/26 brd ...
-    final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'enp0s25'], canFail: true)).trim();
+    // Expect: 3: eno1    inet 123.45.67.89/26 brd ...
+    final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eno1'], canFail: true)).trim();
     final Match match = _kLinuxIpAddrExp.firstMatch(out);
     ip = match?.group(1) ?? '';
   } else if (Platform.isWindows) {
