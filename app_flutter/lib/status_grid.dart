@@ -51,6 +51,39 @@ class StatusGridContainer extends StatelessWidget {
       },
     );
   }
+
+  @visibleForTesting
+  Map<String, int> getTaskNameIndex(List<CommitStatus> statuses) {
+    final Map<String, int> taskNameIndex = <String, int>{};
+    int currentIndex = 0;
+
+    // O(N^2) scan to find all the task categories that were run in the history.
+    for (CommitStatus status in statuses) {
+      for (Stage stage in status.stages) {
+        for (Task task in stage.tasks) {
+          final String key = '${stage.name}:${task.name}';
+          if (taskNameIndex.containsKey(key)) {
+            continue;
+          }
+
+          taskNameIndex[key] = currentIndex++;
+        }
+      }
+    }
+
+    return taskNameIndex;
+  }
+
+  @visibleForTesting
+  List<List<Task>> taskMatrix(List<CommitStatus> statuses) {
+    /// Rows are commits, columns are same tasks
+    final List<List<Task>> tasks = List<List<Task>>();
+    final Map<String, int> taskNameIndex = getTaskNameIndex(statuses);
+    
+
+
+    return tasks;
+  }
 }
 
 /// Display results from flutter/flutter repository's continuous integration.
@@ -58,10 +91,12 @@ class StatusGridContainer extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key, @required this.statuses}) : super(key: key);
+  const StatusGrid({Key key, @required this.statuses, @required this.tasks}) : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
+
+  final List<List<Task>> tasks;
 
   @override
   Widget build(BuildContext context) {
