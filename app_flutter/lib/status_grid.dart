@@ -5,8 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
 import 'commit_box.dart';
 import 'state/flutter_build.dart';
@@ -47,57 +46,72 @@ class StatusGridContainer extends StatelessWidget {
 
         return StatusGrid(
           statuses: statuses,
-          tasks: taskMatrix(statuses),
+          taskMatrix: createTaskMatrix(statuses),
         );
       },
     );
   }
 
-  static String _getTaskNameKey(Task task) {
+  /// A unique index for grouping [Task] from separate [CommitStatus].
+  ///
+  /// [task.stageName] and [task.name] are not unique. However, they
+  /// are unique when combined together.
+  static String taskColumnKey(Task task) {
     return '${task.stageName}:${task.name}';
   }
 
+  /// A map of all [taskColumnKey] to a unique index from [List<CommitStatus>].
+  ///
+  /// Scans through all [Task] in [List<CommitStatus>] to find all unique [taskColumnKey].
+  /// This ensures a column is allocated in [createTaskMatrix].
+  ///
+  /// When a new [taskColumnKey] is found, it is inserted and the index is incremeted.
   @visibleForTesting
-  static Map<String, int> getTaskNameIndex(List<CommitStatus> statuses) {
-    final Map<String, int> taskNameIndex = <String, int>{};
+  static Map<String, int> createTaskColumnKeyIndex(
+      List<CommitStatus> statuses) {
+    final Map<String, int> taskColumnKeyIndex = <String, int>{};
     int currentIndex = 0;
 
-    // O(N^2) scan to find all the task categories that were run in the history.
+    /// O(Tasks * CommitStatuses). In production, this is usually O(85 * 100) ~ 8500 operations.
     for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          final String key = _getTaskNameKey(task);
-          if (taskNameIndex.containsKey(key)) {
+          final String key = taskColumnKey(task);
+          if (taskColumnKeyIndex.containsKey(key)) {
             continue;
           }
 
-          taskNameIndex[key] = currentIndex++;
+          taskColumnKeyIndex[key] = currentIndex++;
         }
       }
     }
 
-    return taskNameIndex;
+    return taskColumnKeyIndex;
   }
 
+  /// Create a matrix of [Task] for easier sorting of [List<CommitStatus>].
   @visibleForTesting
-  static List<List<Task>> taskMatrix(List<CommitStatus> statuses) {
-    final Map<String, int> taskNameIndex = getTaskNameIndex(statuses);
+  static List<List<Task>> createTaskMatrix(List<CommitStatus> statuses) {
+    final Map<String, int> taskColumnKeyIndex =
+        createTaskColumnKeyIndex(statuses);
 
-    /// Rows are commits, columns are same tasks
-    final List<List<Task>> tasks = List<List<Task>>.generate(
-        statuses.length, (_) => List<Task>(taskNameIndex.keys.length));
+    /// Rows are commits, columns are [Task] with same [taskColumnKey].
+    final List<List<Task>> taskMatrix = List<List<Task>>.generate(
+        statuses.length, (_) => List<Task>(taskColumnKeyIndex.keys.length));
 
     for (int statusIndex = 0; statusIndex < statuses.length; statusIndex++) {
       final CommitStatus status = statuses[statusIndex];
-      final List<Task> statusTasks = tasks[statusIndex];
+      final List<Task> statusTasks = taskMatrix[statusIndex];
+
+      /// Organize [Task] in [CommitStatus] to the column they map to.
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          statusTasks[taskNameIndex[_getTaskNameKey(task)]] = task;
+          statusTasks[taskColumnKeyIndex[taskColumnKey(task)]] = task;
         }
       }
     }
 
-    return tasks;
+    return taskMatrix;
   }
 }
 
@@ -106,20 +120,21 @@ class StatusGridContainer extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key, @required this.statuses, @required this.tasks})
+  const StatusGrid(
+      {Key key, @required this.statuses, @required this.taskMatrix})
       : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
-  final List<List<Task>> tasks;
+  final List<List<Task>> taskMatrix;
 
   @override
   Widget build(BuildContext context) {
     // The grid needs to know its dimensions, column is based off the stages and
     // how many tasks they each run.
-    final int columnCount = tasks[0].length;
+    final int columnCount = taskMatrix[0].length;
 
     return Expanded(
       // The grid is wrapped with SingleChildScrollView to enable scrolling both
@@ -141,14 +156,14 @@ class StatusGrid extends StatelessWidget {
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
-              /// of [List<CommitStatus>]. This allows the row of [TaskIcon] to align
+              /// of [List<List<Task>>]. This allows the row of [TaskIcon] to align
               /// with the column of [Task] that it maps to.
               ///
               /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return TaskIcon(task: tasks[0][gridIndex - 1]);
+                return TaskIcon(task: taskMatrix[0][gridIndex - 1]);
               }
 
               final int statusIndex = index ~/ columnCount;
@@ -156,9 +171,9 @@ class StatusGrid extends StatelessWidget {
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
-              final int taskIndex = (index % columnCount) - 1;
+              final int taskIndex = index % columnCount;
               return TaskBox(
-                task: tasks[statusIndex][taskIndex],
+                task: taskMatrix[statusIndex][taskIndex],
               );
             },
           ),
