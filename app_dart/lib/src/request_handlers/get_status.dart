@@ -24,6 +24,9 @@ class GetStatus extends RequestHandler<Body> {
     final statusCache = cache.withPrefix('responses').withCodec(utf8);
 
     final response = await statusCache['get-status'].get();
+    if (response == null) {
+      // TODO(chillers): Call set-status and do it the long way.
+    }
 
     await cacheProvider.close();
 

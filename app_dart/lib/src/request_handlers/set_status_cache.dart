@@ -49,6 +49,7 @@ class SetStatusCache extends RequestHandler<Body> {
     agents.sort((Agent a, Agent b) =>
         compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
+    // TODO(chillers): Split these into separate endpoints when Flutter app is used for production. https://github.com/flutter/cocoon/issues/472
     final Map<String, dynamic> jsonResponse = <String, dynamic>{
       'Statuses': statuses,
       'AgentStatuses': agents,
@@ -56,11 +57,11 @@ class SetStatusCache extends RequestHandler<Body> {
 
     final Body response = Body.forJson(jsonResponse);
 
-    final cacheProvider =
+    final CacheProvider<List<int>> cacheProvider =
         Cache.redisCacheProvider('redis://10.0.0.4:6379');
-    final cache = Cache(cacheProvider);
+    final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
 
-    final statusCache = cache.withPrefix('responses').withCodec(utf8);
+    final Cache<String> statusCache = cache.withPrefix('responses').withCodec(utf8);
 
     await statusCache['get-status']
         .set(jsonEncode(jsonResponse), const Duration(minutes: 5));
