@@ -132,9 +132,9 @@ class StatusGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The grid needs to know its dimensions, column is based off the stages and
-    // how many tasks they each run.
-    final int columnCount = taskMatrix[0].length;
+    // The grid needs to know its dimensions, column is based off how many tasks are
+    // in a row and a commit
+    final int columnCount = taskMatrix[0].length + 1;
 
     return Expanded(
       // The grid is wrapped with SingleChildScrollView to enable scrolling both
@@ -171,7 +171,12 @@ class StatusGrid extends StatelessWidget {
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
-              final int taskIndex = index % columnCount;
+              final int taskIndex = (index % columnCount) - 1;
+              if (taskMatrix[statusIndex][taskIndex] == null) {
+                /// [Task] was skipped so don't show anything.
+                return Container();
+              }
+
               return TaskBox(
                 task: taskMatrix[statusIndex][taskIndex],
               );

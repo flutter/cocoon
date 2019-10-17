@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -18,18 +18,14 @@ import 'package:app_flutter/task_box.dart';
 void main() {
   group('StatusGrid', () {
     List<CommitStatus> statuses;
+    List<List<Task>> tasks;
 
     setUpAll(() async {
       final FakeCocoonService service = FakeCocoonService();
       final CocoonResponse<List<CommitStatus>> response =
           await service.fetchCommitStatuses();
       statuses = response.data;
-    });
-
-    test('task matrix builds', () {
-      List<List<Task>> tasks = StatusGridContainer.taskMatrix(statuses);
-
-      expect(tasks.length, statuses.length);
+      tasks = StatusGridContainer.createTaskMatrix(statuses);
     });
 
     testWidgets('shows loading indicator when statuses is empty',
@@ -58,6 +54,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskMatrix: tasks,
               ),
             ],
           ),
@@ -83,6 +80,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskMatrix: tasks,
               ),
             ],
           ),
@@ -101,6 +99,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskMatrix: tasks,
               ),
             ],
           ),
@@ -109,9 +108,57 @@ void main() {
 
       final TaskBox lastTaskWidget =
           find.byType(TaskBox).evaluate().last.widget;
-      final Task lastTask = statuses.last.stages.last.tasks.last;
+
+      final Task lastTask = tasks.last.last;
 
       expect(lastTaskWidget.task, lastTask);
+    });
+
+    int _totalTasksInCommitStatus(CommitStatus status) {
+      int totalTasksInCommitStatus = 0;
+      for (Stage stage in status.stages) {
+        totalTasksInCommitStatus += stage.tasks.length;
+      }
+
+      return totalTasksInCommitStatus;
+    }
+
+    test('a basic task matrix works', () {
+      // The fake data creates a perfect grid, so the task matrix should match statuses
+
+      final int totalTasksInCommitStatus =
+          _totalTasksInCommitStatus(statuses[0]);
+      expect(tasks.length, statuses.length);
+      expect(tasks[0].length, totalTasksInCommitStatus);
+    });
+
+    test('task matrix builds correctly when statuses have different tasks', () {
+      final CommitStatus statusA = CommitStatus()
+        ..stages.insert(
+            0,
+            Stage()
+              ..tasks.insert(
+                  0,
+                  Task()
+                    ..stageName = 'special stage'
+                    ..name = 'special task'));
+
+      final CommitStatus statusB = CommitStatus()
+        ..stages.insert(
+            0,
+            Stage()
+              ..tasks.insert(
+                  0,
+                  Task()
+                    ..stageName = 'different stage'
+                    ..name = 'special task'));
+
+      final List<CommitStatus> statusesAB = <CommitStatus>[statusA, statusB];
+
+      final List<List<Task>> tasks =
+          StatusGridContainer.createTaskMatrix(statusesAB);
+
+      expect(tasks[0].length, 2);
     });
   });
 }
