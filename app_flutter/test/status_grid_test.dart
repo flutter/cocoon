@@ -18,14 +18,20 @@ import 'package:app_flutter/task_box.dart';
 void main() {
   group('StatusGrid', () {
     List<CommitStatus> statuses;
-    List<List<Task>> tasks;
+    List<List<Task>> taskMatrix;
+    List<Task> taskIconRow;
 
     setUpAll(() async {
       final FakeCocoonService service = FakeCocoonService();
       final CocoonResponse<List<CommitStatus>> response =
           await service.fetchCommitStatuses();
       statuses = response.data;
-      tasks = StatusGridContainer.createTaskMatrix(statuses);
+      final Map<String, int> taskColumnKeyIndex =
+          StatusGridContainer.createTaskColumnKeyIndex(statuses);
+      taskMatrix =
+          StatusGridContainer.createTaskMatrix(statuses, taskColumnKeyIndex);
+      taskIconRow =
+          StatusGridContainer.createTaskIconRow(statuses, taskColumnKeyIndex);
     });
 
     testWidgets('shows loading indicator when statuses is empty',
@@ -54,7 +60,8 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
-                taskMatrix: tasks,
+                taskMatrix: taskMatrix,
+                taskIconRow: taskIconRow,
               ),
             ],
           ),
@@ -80,7 +87,8 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
-                taskMatrix: tasks,
+                taskMatrix: taskMatrix,
+                taskIconRow: taskIconRow,
               ),
             ],
           ),
@@ -99,7 +107,8 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
-                taskMatrix: tasks,
+                taskMatrix: taskMatrix,
+                taskIconRow: taskIconRow,
               ),
             ],
           ),
@@ -109,7 +118,7 @@ void main() {
       final TaskBox lastTaskWidget =
           find.byType(TaskBox).evaluate().last.widget;
 
-      final Task lastTask = tasks.last.last;
+      final Task lastTask = taskMatrix.last.last;
 
       expect(lastTaskWidget.task, lastTask);
     });
@@ -128,8 +137,8 @@ void main() {
 
       final int totalTasksInCommitStatus =
           _totalTasksInCommitStatus(statuses[0]);
-      expect(tasks.length, statuses.length);
-      expect(tasks[0].length, totalTasksInCommitStatus);
+      expect(taskMatrix.length, statuses.length);
+      expect(taskMatrix[0].length, totalTasksInCommitStatus);
     });
 
     test('task matrix builds correctly when statuses have different tasks', () {
@@ -155,8 +164,8 @@ void main() {
 
       final List<CommitStatus> statusesAB = <CommitStatus>[statusA, statusB];
 
-      final List<List<Task>> tasks =
-          StatusGridContainer.createTaskMatrix(statusesAB);
+      final List<List<Task>> tasks = StatusGridContainer.createTaskMatrix(
+          statusesAB, StatusGridContainer.createTaskColumnKeyIndex(statusesAB));
 
       expect(tasks[0].length, 2);
     });
