@@ -26,6 +26,12 @@ void main() {
       statuses = response.data;
     });
 
+    test('task matrix builds', () {
+      List<List<Task>> tasks = StatusGridContainer.taskMatrix(statuses);
+
+      expect(tasks.length, statuses.length);
+    });
+
     testWidgets('shows loading indicator when statuses is empty',
         (WidgetTester tester) async {
       await tester.pumpWidget(

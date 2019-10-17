@@ -47,13 +47,18 @@ class StatusGridContainer extends StatelessWidget {
 
         return StatusGrid(
           statuses: statuses,
+          tasks: taskMatrix(statuses),
         );
       },
     );
   }
 
+  static String _getTaskNameKey(Task task) {
+    return '${task.stageName}:${task.name}';
+  }
+
   @visibleForTesting
-  Map<String, int> getTaskNameIndex(List<CommitStatus> statuses) {
+  static Map<String, int> getTaskNameIndex(List<CommitStatus> statuses) {
     final Map<String, int> taskNameIndex = <String, int>{};
     int currentIndex = 0;
 
@@ -61,7 +66,7 @@ class StatusGridContainer extends StatelessWidget {
     for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          final String key = '${stage.name}:${task.name}';
+          final String key = _getTaskNameKey(task);
           if (taskNameIndex.containsKey(key)) {
             continue;
           }
@@ -75,12 +80,22 @@ class StatusGridContainer extends StatelessWidget {
   }
 
   @visibleForTesting
-  List<List<Task>> taskMatrix(List<CommitStatus> statuses) {
-    /// Rows are commits, columns are same tasks
-    final List<List<Task>> tasks = List<List<Task>>();
+  static List<List<Task>> taskMatrix(List<CommitStatus> statuses) {
     final Map<String, int> taskNameIndex = getTaskNameIndex(statuses);
-    
 
+    /// Rows are commits, columns are same tasks
+    final List<List<Task>> tasks = List<List<Task>>.generate(
+        statuses.length, (_) => List<Task>(taskNameIndex.keys.length));
+
+    for (int statusIndex = 0; statusIndex < statuses.length; statusIndex++) {
+      final CommitStatus status = statuses[statusIndex];
+      final List<Task> statusTasks = tasks[statusIndex];
+      for (Stage stage in status.stages) {
+        for (Task task in stage.tasks) {
+          statusTasks[taskNameIndex[_getTaskNameKey(task)]] = task;
+        }
+      }
+    }
 
     return tasks;
   }
@@ -91,18 +106,20 @@ class StatusGridContainer extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid({Key key, @required this.statuses, @required this.tasks}) : super(key: key);
+  const StatusGrid({Key key, @required this.statuses, @required this.tasks})
+      : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
+  /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
   final List<List<Task>> tasks;
 
   @override
   Widget build(BuildContext context) {
     // The grid needs to know its dimensions, column is based off the stages and
     // how many tasks they each run.
-    final int columnCount = _getColumnCount(statuses.first);
+    final int columnCount = tasks[0].length;
 
     return Expanded(
       // The grid is wrapped with SingleChildScrollView to enable scrolling both
@@ -131,64 +148,22 @@ class StatusGrid extends StatelessWidget {
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return TaskIcon(
-                    task:
-                        _mapGridIndexToTaskBruteForce(gridIndex, columnCount));
+                return TaskIcon(task: tasks[0][gridIndex - 1]);
               }
 
+              final int statusIndex = index ~/ columnCount;
               if (index % columnCount == 0) {
-                final int statusIndex = index ~/ columnCount;
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
+              final int taskIndex = (index % columnCount) - 1;
               return TaskBox(
-                task: _mapGridIndexToTaskBruteForce(index, columnCount),
+                task: tasks[statusIndex][taskIndex],
               );
             },
           ),
         ),
       ),
     );
-  }
-
-  /// Returns the number of columns the grid should show based on [CommitStatus].
-  ///
-  /// [CommitStatus] is composed of [List<Stage>] that contains the tasks run
-  /// for that stage. Each [Stage] runs a different amount of tasks.
-  ///
-  /// Additionally, [Commit] from [CommitStatus] must have a cell reserved on
-  /// the grid which is another index offset that is accounted.
-  int _getColumnCount(CommitStatus status) {
-    int columnCount = 1; // start at 1 to reserve room for CommitBox column
-
-    for (Stage stage in status.stages) {
-      columnCount += stage.tasks.length;
-    }
-
-    return columnCount;
-  }
-
-  /// Maps a [gridIndex] to a specific [Task] in [List<CommitStatus>]
-  ///
-  /// Runs in O(# of [Stage]).
-  // TODO(chillers): Optimize to O(1). https://github.com/flutter/cocoon/issues/461
-  Task _mapGridIndexToTaskBruteForce(int gridIndex, int columnCount) {
-    final int commitStatusIndex = gridIndex ~/ columnCount;
-    final CommitStatus status = statuses[commitStatusIndex];
-
-    int taskIndex = (gridIndex % columnCount) - 1;
-
-    int currentStageIndex = 0;
-    while (taskIndex >= 0 && currentStageIndex < status.stages.length) {
-      final Stage currentStage = status.stages[currentStageIndex];
-      if (taskIndex >= currentStage.tasks.length) {
-        taskIndex = taskIndex - currentStage.tasks.length;
-        currentStageIndex++;
-      } else {
-        return currentStage.tasks[taskIndex];
-      }
-    }
-
-    throw Exception('Could not find Task for gridIndex=$gridIndex');
   }
 }
