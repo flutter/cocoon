@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
+=import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pedantic/pedantic.dart';
@@ -16,7 +16,9 @@ import '../request_handling/request_handler.dart';
 
 @immutable
 class GetStatus extends RequestHandler<Body> {
-  const GetStatus(Config config) : super(config: config);
+  const GetStatus(Config config, this.fallbackHandler) : super(config: config);
+
+  final RequestHandler<Body> fallbackHandler;
 
   @override
   Future<Body> get() async {
@@ -28,7 +30,7 @@ class GetStatus extends RequestHandler<Body> {
 
     final String response = await statusCache['get-status'].get();
     if (response == null) {
-      // TODO(chillers): Call set-status and do it the long way.
+      return fallbackHandler.get();
     }
 
     // Since this is just a read operation, waiting is an extra precaution
