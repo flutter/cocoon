@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pedantic/pedantic.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../request_handling/body.dart';
@@ -18,17 +20,20 @@ class GetStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final cacheProvider = Cache.redisCacheProvider(await config.redisUrl);
-    final cache = Cache(cacheProvider);
+   final CacheProvider<List<int>> cacheProvider =
+        Cache.redisCacheProvider(await config.redisUrl);
+    final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
 
-    final statusCache = cache.withPrefix('responses').withCodec(utf8);
+    final Cache<String> statusCache = cache.withPrefix('responses').withCodec(utf8);
 
-    final response = await statusCache['get-status'].get();
+    final String response = await statusCache['get-status'].get();
     if (response == null) {
       // TODO(chillers): Call set-status and do it the long way.
     }
 
-    await cacheProvider.close();
+    // Since this is just a read operation, waiting is an extra precaution
+    // that does not need to be taken.
+    unawaited(cacheProvider.close());
 
     return Body.forJson(jsonDecode(response));
   }
