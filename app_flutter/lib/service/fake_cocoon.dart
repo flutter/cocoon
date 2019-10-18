@@ -63,17 +63,17 @@ class FakeCocoonService implements CocoonService {
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(List<Task>.generate(15, (int i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(15, (int i) => _createFakeTask(i, 'devicelab'))));
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab_win'
-      ..tasks.addAll(List<Task>.generate(3, (int i) => _createFakeTask(i))));
+      ..tasks.addAll(List<Task>.generate(3, (int i) => _createFakeTask(i, 'devicelab_win'))));
 
     return stages;
   }
 
-  Task _createFakeTask(int index) {
+  Task _createFakeTask(int index, String stageName) {
     return Task()
       ..createTimestamp = Int64(index)
       ..startTimestamp = Int64(index + 1)
@@ -83,7 +83,7 @@ class FakeCocoonService implements CocoonService {
       ..isFlaky = false
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'
-      ..stageName = 'stage name'
+      ..stageName = stageName
       ..status = 'Succeeded';
   }
 }
