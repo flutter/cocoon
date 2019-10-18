@@ -19,8 +19,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
   exit 1
 fi
 
-# Unlocks the login keychain, otherwise Xcode build reports the error of
-# "Your session has expired" shortly.
+# Unlocks the login keychain, otherwise Xcode build reports the error of "Your session has expired"
+# shortly.
 if [ "$(uname)" == "Darwin" ]; then
   security unlock-keychain login.keychain
 fi
