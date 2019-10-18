@@ -19,3 +19,6 @@ cron:
 - description: refresh github CI status (cirrus)
   url: /api/refresh-cirrus-status
   schedule: every 2 minutes
+- description: updatee memorystore get-status response
+  url: /api/public/set-status
+  schedule: every 1 minutes
