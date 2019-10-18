@@ -174,7 +174,7 @@ class StatusGridHelper {
     for (int i = 0; i < weights.length; i++) {
       weightIndex[i] = weights[i];
     }
-    final List<int> sortedWeightKeys = weightIndex.keys.toList(growable: false)
+    final List<int> sortedWeightKeys = weightIndex.keys.toList()
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
     final LinkedHashMap<int, int> sortedWeights =
         LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
@@ -212,7 +212,7 @@ class StatusGridHelper {
     for (int colIndex = 0; colIndex < matrix[0].length; colIndex++) {
       for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
         if (taskMatrix[rowIndex][colIndex]?.status == TaskBox.statusFailed) {
-          errorScore.insert(colIndex, rowIndex);
+          errorScore[colIndex] = rowIndex;
           break;
         }
       }
