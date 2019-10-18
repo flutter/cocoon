@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -57,10 +59,10 @@ class StatusGridContainer extends StatelessWidget {
 }
 
 /// Class to handle data operations on [List<CommitStatus>].
-/// 
+///
 /// Flattens the mapping of one [CommitStatus] from many [Stage] objects,
 /// where each [Stage] object maps to many [Task] objects, to a 2D matrix.
-/// 
+///
 // TODO(chillers): Support special ordering of taskMatrix. https://github.com/flutter/cocoon/issues/478
 class StatusGridHelper {
   StatusGridHelper({@required this.statuses}) {
@@ -68,6 +70,7 @@ class StatusGridHelper {
 
     _taskIconRow = _createTaskIconRow(statuses, _columnKeyIndex);
     _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
+    _taskMatrix = _sortByRecentlyErrored(_taskMatrix);
   }
 
   final List<CommitStatus> statuses;
@@ -160,6 +163,62 @@ class StatusGridHelper {
     }
 
     return taskIconRow;
+  }
+
+  @visibleForTesting
+  static Map<String, int> sortColumnKeyIndex(
+      Map<String, int> originalColumnKeyIndex, List<int> weights) {
+    final Map<String, int> sortedColumnKeyIndex = <String, int>{};
+
+    final Map<int, int> weightIndex = <int, int>{};
+    for (int i = 0; i < weights.length; i++) {
+      weightIndex[i] = weights[i];
+    }
+    final List<int> sortedWeightKeys = weightIndex.keys.toList(growable: false)
+      ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
+    final LinkedHashMap<int, int> sortedWeights =
+        LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
+            key: (k) => k, value: (k) => weightIndex[k]);
+
+    int newIndex = 0;
+    sortedWeights.forEach((int key, int value) {
+      String taskKey;
+      originalColumnKeyIndex.forEach((String columnKey, int index) {
+        if (index == key) {
+          taskKey = columnKey;
+        }
+      });
+      originalColumnKeyIndex.remove(taskKey);
+      sortedColumnKeyIndex[taskKey] = newIndex++;
+    });
+
+    return sortedColumnKeyIndex;
+  }
+
+  List<List<Task>> _sortByRecentlyErrored(List<List<Task>> originalMatrix) {
+    /// Create map with errors
+    final List<int> errorScore = _calculateErrorScoreForColumns(originalMatrix);
+    final Map<String, int> sortedColumnKeyIndex =
+        sortColumnKeyIndex(_columnKeyIndex, errorScore);
+
+    return _createTaskMatrix(statuses, sortedColumnKeyIndex);
+  }
+
+  List<int> _calculateErrorScoreForColumns(List<List<Task>> matrix) {
+    /// Fill every column with the maximum value, which is the the number of rows.
+    final List<int> errorScore =
+        List<int>.filled(matrix[0].length, matrix.length);
+
+    for (int colIndex = 0; colIndex < matrix[0].length; colIndex++) {
+      for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
+        if (taskMatrix[rowIndex][colIndex]?.status == TaskBox.statusFailed) {
+          errorScore.insert(colIndex, rowIndex);
+          break;
+        }
+      }
+    }
+
+    return errorScore;
   }
 }
 

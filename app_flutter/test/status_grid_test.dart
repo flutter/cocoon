@@ -144,6 +144,7 @@ void main() {
               ..tasks.insert(
                   0,
                   Task()
+                    ..status = 'Succeeded'
                     ..stageName = 'special stage'
                     ..name = 'special task'));
 
@@ -154,6 +155,7 @@ void main() {
               ..tasks.insert(
                   0,
                   Task()
+                    ..status = 'Succeeded'
                     ..stageName = 'different stage'
                     ..name = 'special task'));
 
@@ -161,6 +163,31 @@ void main() {
       final StatusGridHelper helper = StatusGridHelper(statuses: statusesAB);
 
       expect(helper.taskMatrix[0].length, 2);
+    });
+
+    test('sort column key index sorts', () {
+      final Map<String, int> columnKeyIndex = <String, int>{
+        'A': 0,
+        'B': 1,
+        'C': 2,
+        'D': 3,
+        'E': 4,
+        'F': 5,
+        'G': 6,
+      };
+      final List<int> weights = <int>[28, 13, 18, 1, 0, 10, 4];
+
+      final Map<String, int> sortedColumnKeyIndex = <String, int>{
+        'A': 6,
+        'B': 4,
+        'C': 5,
+        'D': 1,
+        'E': 0,
+        'F': 3,
+        'G': 2,
+      };
+
+      expect(StatusGridHelper.sortColumnKeyIndex(columnKeyIndex, weights), sortedColumnKeyIndex);
     });
   });
 }
