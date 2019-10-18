@@ -5,6 +5,7 @@
 export 'src/datastore/cocoon_config.dart';
 export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/authorize_agent.dart';
+export 'src/request_handlers/create_agent.dart';
 export 'src/request_handlers/debug/get_task.dart';
 export 'src/request_handlers/debug/reset_pending_tasks.dart';
 export 'src/request_handlers/get_authentication_status.dart';
