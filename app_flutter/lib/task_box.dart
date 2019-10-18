@@ -12,7 +12,9 @@ import 'package:cocoon_service/protos.dart' show Task;
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox({Key key, @required this.task}) : super(key: key);
+  const TaskBox({Key key, @required this.task})
+      : assert(task != null),
+        super(key: key);
 
   /// [Task] to show information from.
   final Task task;

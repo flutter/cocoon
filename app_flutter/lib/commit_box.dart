@@ -132,7 +132,7 @@ class CommitOverlayContents extends StatelessWidget {
                       onPressed: () async {
                         final String githubUrl =
                             'https://github.com/${commit.repository}/commit/${commit.sha}';
-                        await launch(githubUrl);
+                        launch(githubUrl);
                       },
                     ),
                   ],
