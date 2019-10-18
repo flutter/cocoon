@@ -32,6 +32,7 @@ class FakeConfig implements Config {
     this.luciBuildersValue,
     this.luciTryBuildersValue,
     this.loggingServiceValue,
+    this.redisUrlValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -53,6 +54,7 @@ class FakeConfig implements Config {
   List<Map<String, dynamic>> luciBuildersValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
   Logging loggingServiceValue;
+  String redisUrlValue;
 
   @override
   int maxEntityGroups;
@@ -110,4 +112,7 @@ class FakeConfig implements Config {
 
   @override
   Logging get loggingService => loggingServiceValue;
+
+  @override
+  Future<String> get redisUrl => redisUrlValue;
 }

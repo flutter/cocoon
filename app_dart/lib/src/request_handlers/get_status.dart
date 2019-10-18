@@ -18,7 +18,7 @@ class GetStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final cacheProvider = Cache.redisCacheProvider('redis://10.0.0.4:6379');
+    final cacheProvider = Cache.redisCacheProvider(await config.redisUrl);
     final cache = Cache(cacheProvider);
 
     final statusCache = cache.withPrefix('responses').withCodec(utf8);

@@ -58,7 +58,7 @@ class SetStatusCache extends RequestHandler<Body> {
     final Body response = Body.forJson(jsonResponse);
 
     final CacheProvider<List<int>> cacheProvider =
-        Cache.redisCacheProvider('redis://10.0.0.4:6379');
+        Cache.redisCacheProvider(await config.redisUrl);
     final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
 
     final Cache<String> statusCache = cache.withPrefix('responses').withCodec(utf8);
