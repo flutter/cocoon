@@ -62,7 +62,7 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
     }
 
     if (agent == null) {
-      throw BadRequestException('Agent is null');
+      throw const BadRequestException('Agent is null');
     }
 
     await datastore.db.commit(inserts: <Agent>[agent]);
