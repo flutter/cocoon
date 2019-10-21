@@ -3,43 +3,35 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:meta/meta.dart';
-import 'package:mime/mime.dart';
 
 import 'body.dart';
-import 'exceptions.dart';
 
-/// A class based on [RequestHandler] for serving static files.
+/// A class based on [RequestHandler] for serving cached responses from redis.
 @immutable
 class CacheResponseHandler extends RequestHandler<Body> {
   /// Creates a new [CacheResponseHandler].
-  const CacheResponseHandler(this.filePath,
+  const CacheResponseHandler(this.responseKey, this.fallbackHandler,
       {@required Config config})
       : super(config: config);
 
-  /// The location of the static file to serve to the client.
-  final String filePath;
+  /// The key in the subcache for responses that stores this cached response.
+  final String responseKey;
 
-  /// Services an HTTP GET Request for static files.
+  /// [RequestHandler] that updates the cache.
+  final RequestHandler<Body> fallbackHandler;
+
+  /// Services a request that is cached in redis.
   @override
   Future<Body> get() async {
     final HttpResponse response = request.response;
 
-    final String resultPath = filePath == '/' ? '/index.html' : filePath;
-
-    /// The file path in app_dart to the files to serve
-    const String basePath = 'build/web';
-
-    final File file = fs.file('$basePath$resultPath');
-
     if (file.existsSync()) {
-      final String mimeType = lookupMimeType(resultPath);
-      return Body.forStream(file.openRead().cast<Uint8List>());
+      // return cached response
     } else {
-      throw NotFoundException(resultPath);
+      return fallbackHandler.get();
     }
   }
 }
