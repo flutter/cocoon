@@ -215,6 +215,9 @@ class StatusGridHelper {
   /// recently errored formula.
   /// 
   /// The most recently errored formula is based on the number of [Task] since failure.
+  /// 
+  /// The lower the failWeight, the more recently failed. Lower failWeights should be
+  /// in the leftmost columns of [matrix].
   List<int> _calculateRecentlyFailedWeights(List<List<Task>> matrix) {
     /// Fill every column with the maximum value, which is the the number of rows.
     final List<int> failWeights =
