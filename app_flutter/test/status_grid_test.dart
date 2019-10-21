@@ -55,6 +55,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskColumnMap: helper.taskColumnMap,
                 taskMatrix: helper.taskMatrix,
                 taskIconRow: helper.taskIconRow,
               ),
@@ -82,6 +83,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskColumnMap: helper.taskColumnMap,
                 taskMatrix: helper.taskMatrix,
                 taskIconRow: helper.taskIconRow,
               ),
@@ -102,6 +104,7 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 statuses: statuses,
+                taskColumnMap: helper.taskColumnMap,
                 taskMatrix: helper.taskMatrix,
                 taskIconRow: helper.taskIconRow,
               ),
@@ -187,7 +190,8 @@ void main() {
         'G': 2,
       };
 
-      expect(StatusGridHelper.sortColumnKeyIndex(columnKeyIndex, weights), sortedColumnKeyIndex);
+      expect(StatusGridHelper.sortColumnKeyIndex(columnKeyIndex, weights),
+          sortedColumnKeyIndex);
     });
   });
 }

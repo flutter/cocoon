@@ -68,15 +68,13 @@ class StatusGridContainer extends StatelessWidget {
 class StatusGridHelper {
   StatusGridHelper({@required this.statuses}) {
     _columnKeyIndex = _createTaskColumnKeyIndex(statuses);
-    for (int index = 0; index < _columnKeyIndex.keys.length; index++) {
-      _taskColumnMap[index] = index;
-    }
-
 
     _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
     _taskIconRow = _createTaskIconRow(_taskMatrix);
-    
-    _taskMatrix = _sortByRecentlyFailed(_taskMatrix);
+
+    // Sorting does not touch the original matrix, instead it remaps
+    // what the order of the columns should be.
+    _taskColumnMap = _sortByRecentlyFailed(_taskMatrix);
   }
 
   final List<CommitStatus> statuses;
@@ -87,7 +85,7 @@ class StatusGridHelper {
   /// A map for taking in the corresponding column in [StatusGrid] and
   /// where it maps to in [_taskMatrix].
   Map<int, int> get taskColumnMap => _taskColumnMap;
-  final Map<int, int> _taskColumnMap = <int, int>{};
+  Map<int, int> _taskColumnMap = <int, int>{};
 
   /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
   List<List<Task>> get taskMatrix => _taskMatrix;
@@ -184,20 +182,20 @@ class StatusGridHelper {
       Map<String, int> columnKeyIndex, List<int> weights) {
     final Map<String, int> sortedColumnKeyIndex = <String, int>{};
 
-    // Map the current index to its given weight
+    // 1. Map the current index to its given weight
     final Map<int, int> weightIndex = <int, int>{};
     for (int i = 0; i < weights.length; i++) {
       weightIndex[i] = weights[i];
     }
 
-    // Sort by weight in [weightIndex]. Using a LinkedHashMap to preserve the order.
+    // 2. Sort (1) by weight using a LinkedHashMap to preserve the order.
     final List<int> sortedWeightKeys = weightIndex.keys.toList()
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
     final LinkedHashMap<int, int> sortedWeights =
         LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
             key: (dynamic k) => k, value: (dynamic k) => weightIndex[k]);
 
-    // Reassign indices based on the order
+    // 3. Reassign the task index map based on the order from (2)
     final Map<int, String> reversedColumnKeyIndex = columnKeyIndex
         .map((String key, int value) => MapEntry<int, String>(value, key));
     int newIndex = 0;
@@ -209,13 +207,22 @@ class StatusGridHelper {
     return sortedColumnKeyIndex;
   }
 
-  /// Sort [matrix] columns by most recently failed.
-  List<List<Task>> _sortByRecentlyFailed(List<List<Task>> matrix) {
+  /// Return a new column mapping for [matrix] prioritizing columns that
+  /// have failed recently with indices closer to 0.
+  Map<int, int> _sortByRecentlyFailed(List<List<Task>> matrix) {
     final List<int> failWeights = _calculateRecentlyFailedWeights(matrix);
     final Map<String, int> sortedColumnKeyIndex =
         sortColumnKeyIndex(_columnKeyIndex, failWeights);
 
-    return _createTaskMatrix(statuses, sortedColumnKeyIndex);
+    final Map<int, int> taskColumnMap = <int, int>{};
+    for (int taskColumn = 0; taskColumn < matrix[0].length; taskColumn++) {
+      /// We can take advantage of the work done to calculate [_taskIconRow] to easily
+      /// find the [_taskColumnKey] for a column in [matrix].
+      final Task task = _taskIconRow[taskColumn];
+      taskColumnMap[taskColumn] = sortedColumnKeyIndex[_taskColumnKey(task)];
+    }
+
+    return taskColumnMap;
   }
 
   /// Generate [List<int>] of weights based on the given [matrix] using the most
