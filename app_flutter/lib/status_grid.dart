@@ -192,7 +192,6 @@ class StatusGridHelper {
     int newIndex = 0;
     sortedWeights.forEach((int key, int value) {
       final String taskKey = reversedColumnKeyIndex[key];
-      columnKeyIndex.remove(taskKey);
       sortedColumnKeyIndex[taskKey] = newIndex++;
     });
 
