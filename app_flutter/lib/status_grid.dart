@@ -69,8 +69,8 @@ class StatusGridHelper {
     _columnKeyIndex = _createTaskColumnKeyIndex(statuses);
 
     _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
-    _taskMatrix = _sortByRecentlyErrored(_taskMatrix);
-    _taskIconRow = _createTaskIconRow(taskMatrix);
+    _taskMatrix = _sortByRecentlyFailed(_taskMatrix);
+    _taskIconRow = _createTaskIconRow(_taskMatrix);
   }
 
   final List<CommitStatus> statuses;
@@ -165,60 +165,71 @@ class StatusGridHelper {
     return taskIconRow;
   }
 
+  /// Sort [columnKeyIndex] based on a list of weights.
+  /// 
+  /// For duplicate weights, order is assumed to not matter.
   @visibleForTesting
   static Map<String, int> sortColumnKeyIndex(
-      Map<String, int> originalColumnKeyIndex, List<int> weights) {
+      Map<String, int> columnKeyIndex, List<int> weights) {
     final Map<String, int> sortedColumnKeyIndex = <String, int>{};
 
+    // Map the current index to its given weight
     final Map<int, int> weightIndex = <int, int>{};
     for (int i = 0; i < weights.length; i++) {
       weightIndex[i] = weights[i];
     }
+
+    // Sort by weight in [weightIndex]
     final List<int> sortedWeightKeys = weightIndex.keys.toList()
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
     final LinkedHashMap<int, int> sortedWeights =
         LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
             key: (dynamic k) => k, value: (dynamic k) => weightIndex[k]);
 
+    // Reassign indices based on the order
     int newIndex = 0;
     sortedWeights.forEach((int key, int value) {
       String taskKey;
-      originalColumnKeyIndex.forEach((String columnKey, int index) {
+      columnKeyIndex.forEach((String columnKey, int index) {
         if (index == key) {
           taskKey = columnKey;
         }
       });
-      originalColumnKeyIndex.remove(taskKey);
+      columnKeyIndex.remove(taskKey);
       sortedColumnKeyIndex[taskKey] = newIndex++;
     });
 
     return sortedColumnKeyIndex;
   }
 
-  List<List<Task>> _sortByRecentlyErrored(List<List<Task>> originalMatrix) {
-    /// Create map with errors
-    final List<int> errorScore = _calculateErrorScoreForColumns(originalMatrix);
+  /// Sort [matrix] columns by most recently failed.
+  List<List<Task>> _sortByRecentlyFailed(List<List<Task>> matrix) {
+    final List<int> failWeights = _calculateRecentlyFailedWeights(matrix);
     final Map<String, int> sortedColumnKeyIndex =
-        sortColumnKeyIndex(_columnKeyIndex, errorScore);
+        sortColumnKeyIndex(_columnKeyIndex, failWeights);
 
     return _createTaskMatrix(statuses, sortedColumnKeyIndex);
   }
 
-  List<int> _calculateErrorScoreForColumns(List<List<Task>> matrix) {
+  /// Generate [List<int>] of weights based on the given [matrix] using the most
+  /// recently errored formula.
+  /// 
+  /// The most recently errored formula is based on the number of [Task] since failure.
+  List<int> _calculateRecentlyFailedWeights(List<List<Task>> matrix) {
     /// Fill every column with the maximum value, which is the the number of rows.
-    final List<int> errorScore =
+    final List<int> failWeights =
         List<int>.filled(matrix[0].length, matrix.length);
 
     for (int colIndex = 0; colIndex < matrix[0].length; colIndex++) {
       for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
         if (taskMatrix[rowIndex][colIndex]?.status == TaskBox.statusFailed) {
-          errorScore[colIndex] = rowIndex;
+          failWeights[colIndex] = rowIndex;
           break;
         }
       }
     }
 
-    return errorScore;
+    return failWeights;
   }
 }
 
