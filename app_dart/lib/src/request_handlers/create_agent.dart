@@ -43,27 +43,20 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
     final AgentService agentService = agentServiceProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
 
-    Agent agent;
-    AgentAuthToken agentAuthToken;
-
-    if (await datastore.db.lookupValue<Agent>(key, orElse: () => null) ==
+    if (await datastore.db.lookupValue<Agent>(key, orElse: () => null) !=
         null) {
-      agentAuthToken = agentService.refreshAgentAuthToken();
-      agent = Agent(
-        agentId: agentId,
-        capabilities: capabilities,
-        healthCheckTimestamp: DateTime.now().millisecondsSinceEpoch,
-        authToken: agentAuthToken.hash,
-        isHealthy: false,
-        key: key,
-      );
-    } else {
       throw BadRequestException('Agent ID: $agentId already exists');
     }
 
-    if (agent == null) {
-      throw const BadRequestException('Agent is null');
-    }
+    final AgentAuthToken agentAuthToken = agentService.refreshAgentAuthToken();
+    final Agent agent = Agent(
+      agentId: agentId,
+      capabilities: capabilities,
+      healthCheckTimestamp: DateTime.now().millisecondsSinceEpoch,
+      authToken: agentAuthToken.hash,
+      isHealthy: false,
+      key: key,
+    );
 
     await datastore.db.commit(inserts: <Agent>[agent]);
 
