@@ -179,7 +179,7 @@ class StatusGridHelper {
       weightIndex[i] = weights[i];
     }
 
-    // Sort by weight in [weightIndex]
+    // Sort by weight in [weightIndex]. Using a LinkedHashMap to preserve the order.
     final List<int> sortedWeightKeys = weightIndex.keys.toList()
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
     final LinkedHashMap<int, int> sortedWeights =
