@@ -166,7 +166,7 @@ class StatusGridHelper {
   }
 
   /// Sort [columnKeyIndex] based on a list of weights.
-  /// 
+  ///
   /// For duplicate weights, order is assumed to not matter.
   @visibleForTesting
   static Map<String, int> sortColumnKeyIndex(
@@ -187,14 +187,11 @@ class StatusGridHelper {
             key: (dynamic k) => k, value: (dynamic k) => weightIndex[k]);
 
     // Reassign indices based on the order
+    final Map<int, String> reversedColumnKeyIndex = columnKeyIndex
+        .map((String key, int value) => MapEntry<int, String>(value, key));
     int newIndex = 0;
     sortedWeights.forEach((int key, int value) {
-      String taskKey;
-      columnKeyIndex.forEach((String columnKey, int index) {
-        if (index == key) {
-          taskKey = columnKey;
-        }
-      });
+      final String taskKey = reversedColumnKeyIndex[key];
       columnKeyIndex.remove(taskKey);
       sortedColumnKeyIndex[taskKey] = newIndex++;
     });
@@ -213,9 +210,9 @@ class StatusGridHelper {
 
   /// Generate [List<int>] of weights based on the given [matrix] using the most
   /// recently errored formula.
-  /// 
+  ///
   /// The most recently errored formula is based on the number of [Task] since failure.
-  /// 
+  ///
   /// The lower the failWeight, the more recently failed. Lower failWeights should be
   /// in the leftmost columns of [matrix].
   List<int> _calculateRecentlyFailedWeights(List<List<Task>> matrix) {
