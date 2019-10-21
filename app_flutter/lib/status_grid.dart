@@ -50,6 +50,7 @@ class StatusGridContainer extends StatelessWidget {
             StatusGridHelper(statuses: statuses);
         return StatusGrid(
           statuses: statuses,
+          taskColumnMap: statusGridHelper.taskColumnMap,
           taskMatrix: statusGridHelper.taskMatrix,
           taskIconRow: statusGridHelper.taskIconRow,
         );
@@ -67,16 +68,26 @@ class StatusGridContainer extends StatelessWidget {
 class StatusGridHelper {
   StatusGridHelper({@required this.statuses}) {
     _columnKeyIndex = _createTaskColumnKeyIndex(statuses);
+    for (int index = 0; index < _columnKeyIndex.keys.length; index++) {
+      _taskColumnMap[index] = index;
+    }
+
 
     _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
-    _taskMatrix = _sortByRecentlyFailed(_taskMatrix);
     _taskIconRow = _createTaskIconRow(_taskMatrix);
+    
+    _taskMatrix = _sortByRecentlyFailed(_taskMatrix);
   }
 
   final List<CommitStatus> statuses;
 
   /// A key, value table to find what column a [Task] is in.
   Map<String, int> _columnKeyIndex;
+
+  /// A map for taking in the corresponding column in [StatusGrid] and
+  /// where it maps to in [_taskMatrix].
+  Map<int, int> get taskColumnMap => _taskColumnMap;
+  final Map<int, int> _taskColumnMap = <int, int>{};
 
   /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
   List<List<Task>> get taskMatrix => _taskMatrix;
@@ -241,7 +252,8 @@ class StatusGrid extends StatelessWidget {
       {Key key,
       @required this.statuses,
       @required this.taskMatrix,
-      @required this.taskIconRow})
+      @required this.taskIconRow,
+      @required this.taskColumnMap})
       : super(key: key);
 
   /// The build status data to display in the grid.
@@ -252,6 +264,8 @@ class StatusGrid extends StatelessWidget {
 
   /// A list of [Task] objects that can be used for the row of [TaskIcon].
   final List<Task> taskIconRow;
+
+  final Map<int, int> taskColumnMap;
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +300,8 @@ class StatusGrid extends StatelessWidget {
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return TaskIcon(task: taskIconRow[gridIndex - 1]);
+                final int iconIndex = taskColumnMap[gridIndex - 1];
+                return TaskIcon(task: taskIconRow[iconIndex]);
               }
 
               final int statusIndex = index ~/ columnCount;
@@ -294,7 +309,8 @@ class StatusGrid extends StatelessWidget {
                 return CommitBox(commit: statuses[statusIndex].commit);
               }
 
-              final int taskIndex = (index % columnCount) - 1;
+              // We need to map the GridView taskIndex and to the taskMatrix column.
+              final int taskIndex = taskColumnMap[(index % columnCount) - 1];
               if (taskMatrix[statusIndex][taskIndex] == null) {
                 /// [Task] was skipped so don't show anything.
                 return const SizedBox();
