@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-=import 'package:meta/meta.dart';
+import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pedantic/pedantic.dart';

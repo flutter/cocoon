@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
-import 'package:cocoon_service/src/request_handlers/get_status.dart';
+import 'package:cocoon_service/src/request_handlers/set_status_cache.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -20,7 +20,7 @@ void main() {
     FakeConfig config;
     FakeDatastoreDB db;
     FakeBuildStatusProvider buildStatusProvider;
-    GetStatus handler;
+    SetStatus handler;
 
     Future<Object> decodeHandlerBody() async {
       final Body body = await handler.get();
@@ -31,7 +31,7 @@ void main() {
       config = FakeConfig();
       buildStatusProvider = FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
-      handler = GetStatus(
+      handler = SetStatus(
         config,
         datastoreProvider: () => DatastoreService(db: db),
         buildStatusProvider: buildStatusProvider,
