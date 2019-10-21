@@ -32,10 +32,6 @@ dependencies:
     path: ../app_dart
   provider: ^3.0.0
   url_launcher: ^5.1.0
-  url_launcher_web:
-    git:
-      url: git://github.com/flutter/plugins.git
-      path: packages/url_launcher/url_launcher_web
 
 dev_dependencies:
   flutter_test:
