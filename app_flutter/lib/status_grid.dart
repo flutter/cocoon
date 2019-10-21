@@ -68,9 +68,9 @@ class StatusGridHelper {
   StatusGridHelper({@required this.statuses}) {
     _columnKeyIndex = _createTaskColumnKeyIndex(statuses);
 
-    _taskIconRow = _createTaskIconRow(statuses, _columnKeyIndex);
     _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
     _taskMatrix = _sortByRecentlyErrored(_taskMatrix);
+    _taskIconRow = _createTaskIconRow(taskMatrix);
   }
 
   final List<CommitStatus> statuses;
@@ -146,18 +146,18 @@ class StatusGridHelper {
   }
 
   /// Create [List<Task>] for [List<TaskIcon>] at the top of [StatusGrid].
-  List<Task> _createTaskIconRow(
-      List<CommitStatus> statuses, Map<String, int> taskColumnKeyIndex) {
-    final List<Task> taskIconRow = List<Task>(taskColumnKeyIndex.keys.length);
+  ///
+  /// Tasks are organized by column in [matrix].
+  List<Task> _createTaskIconRow(List<List<Task>> matrix) {
+    final List<Task> taskIconRow = List<Task>(matrix[0].length);
 
-    for (int statusIndex = 0; statusIndex < statuses.length; statusIndex++) {
-      final CommitStatus status = statuses[statusIndex];
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
-          final int taskIndex = taskColumnKeyIndex[_taskColumnKey(task)];
-          if (taskIconRow[taskIndex] == null) {
-            taskIconRow[taskIndex] = task;
-          }
+    // In the worst case, this has to scan the entire matrix to build the first row. However,
+    // the common in production is that the first row has the task.
+    for (int column = 0; column < matrix[0].length; column++) {
+      for (int row = 0; row < matrix.length; row++) {
+        if (matrix[row][column] != null) {
+          taskIconRow[column] = matrix[row][column];
+          break;
         }
       }
     }
@@ -178,7 +178,7 @@ class StatusGridHelper {
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
     final LinkedHashMap<int, int> sortedWeights =
         LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
-            key: (k) => k, value: (k) => weightIndex[k]);
+            key: (dynamic k) => k, value: (dynamic k) => weightIndex[k]);
 
     int newIndex = 0;
     sortedWeights.forEach((int key, int value) {
