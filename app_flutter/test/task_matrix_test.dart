@@ -105,8 +105,6 @@ void main() {
       expect(matrix.sampleTask(2), statusC.stages[0].tasks[0]);
     });
 
-    test('sorting by recently failed', () {});
-
     test('create column key index works', () {
       final CommitStatus statusC = CommitStatus()
         ..stages.insert(

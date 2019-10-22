@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/task_box.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
@@ -9,9 +10,27 @@ import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 class TaskMatrix {
   TaskMatrix({@required this.statuses}) {
     _columnKeyIndex = createColumnKeyIndex();
+
+    // There is no fancy mapping at the start, so each index just points to itself.
     _columnMap = List<int>.generate(_columnKeyIndex.length, (int i) => i);
 
     _matrix = createTaskMatrix(statuses);
+
+    sort(compareRecentlyFailed);
+  }
+
+  int compareRecentlyFailed(Column a, Column b) {
+    return _failScore(a).compareTo(_failScore(b));
+  }
+
+  int _failScore(Column a) {
+    for (int row = 0; row < a.tasks.length; row++) {
+      if (a.tasks[row]?.status == TaskBox.statusFailed) {
+        return row;
+      }
+    }
+
+    return a.tasks.length;
   }
 
   final List<CommitStatus> statuses;
@@ -19,7 +38,7 @@ class TaskMatrix {
   List<Column> _matrix;
 
   /// A map for taking in the corresponding column in [StatusGrid] and
-  /// where it maps to in [_taskMatrix].
+  /// where it maps to in this matrix.
   List<int> _columnMap;
 
   /// A key, value table to find what column a [Task] is in.
@@ -42,7 +61,11 @@ class TaskMatrix {
     return _matrix[mapCol].sampleTask;
   }
 
-  void sort(int compare(Column a, Column b)) {}
+  void sort(int compare(Column a, Column b)) {
+    _columnMap.sort((int indexA, int indexB) {
+      return compare(_matrix[indexA], _matrix[indexB]);
+    });
+  }
 
   /// A unique index for grouping [Task] from separate [CommitStatus].
   ///
