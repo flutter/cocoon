@@ -23,7 +23,7 @@ class TaskMatrix {
   List<int> _columnMap;
 
   /// A key, value table to find what column a [Task] is in.
-  /// 
+  ///
   /// This is necessary to ensure every possible task has a column in the grid.
   Map<String, int> _columnKeyIndex;
 
@@ -94,7 +94,8 @@ class TaskMatrix {
 
     /// Rows are commits, columns are [Task] with same [taskColumnKey].
     final List<Column> matrix = List<Column>.generate(
-        columnKeyIndex.keys.length, (int i) => Column(statuses.length, columnKeyIndex.keys.elementAt(i)));
+        columnKeyIndex.keys.length,
+        (int i) => Column(statuses.length, columnKeyIndex.keys.elementAt(i)));
 
     for (int row = 0; row < statuses.length; row++) {
       final CommitStatus status = statuses[row];
@@ -108,7 +109,7 @@ class TaskMatrix {
           final List<Task> tasks = column.tasks;
 
           tasks[row] = task;
-          column.sampleTask = task;
+          column.sampleTask ??= task;
         }
       }
     }

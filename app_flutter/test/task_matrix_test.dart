@@ -93,14 +93,16 @@ void main() {
         statusC
       ];
       final TaskMatrix matrix = TaskMatrix(statuses: statusesABC);
-      
-      expect(matrix.task(0, 0), statusC.stages[0].tasks[0]);
-      expect(matrix.task(0, 1), isNull);
-      expect(matrix.task(1, 0), isNull);
-      expect(matrix.task(1, 1), statusB.stages[0].tasks[0]);
 
-      expect(matrix.sampleTask(0), statusC.stages[0].tasks[0]);
-      expect(matrix.sampleTask(1), statusB.stages[0].tasks[0]);
+      expect(matrix.task(0, 2), isNull);
+
+      expect(matrix.task(2, 0), isNull);
+      expect(matrix.task(2, 1), isNull);
+      expect(matrix.task(2, 2), statusC.stages[0].tasks[0]);
+
+      expect(matrix.sampleTask(0), statusA.stages[0].tasks[0]);
+      expect(matrix.sampleTask(1), statusA.stages[0].tasks[1]);
+      expect(matrix.sampleTask(2), statusC.stages[0].tasks[0]);
     });
 
     test('sorting by recently failed', () {});
