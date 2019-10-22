@@ -74,7 +74,7 @@ class StatusGridHelper {
 
     // Sorting does not touch the original matrix, instead it remaps
     // what the order of the columns should be.
-    _taskColumnMap = _sortByRecentlyFailed(_taskMatrix);
+    _taskColumnMap = sortByRecentlyFailed(_taskMatrix);
   }
 
   final List<CommitStatus> statuses;
@@ -182,18 +182,22 @@ class StatusGridHelper {
       Map<String, int> columnKeyIndex, List<int> weights) {
     final Map<String, int> sortedColumnKeyIndex = <String, int>{};
 
-    // 1. Map the current index to its given weight
+    // 1. Create a map that maps the current index to its given weight
     final Map<int, int> weightIndex = <int, int>{};
     for (int i = 0; i < weights.length; i++) {
       weightIndex[i] = weights[i];
     }
 
-    // 2. Sort (1) by weight using a LinkedHashMap to preserve the order.
+    // 2. Sort (1) by value (weight) in ascending order.
     final List<int> sortedWeightKeys = weightIndex.keys.toList()
       ..sort((int k1, int k2) => weightIndex[k1].compareTo(weightIndex[k2]));
-    final LinkedHashMap<int, int> sortedWeights =
-        LinkedHashMap<int, int>.fromIterable(sortedWeightKeys,
-            key: (dynamic k) => k, value: (dynamic k) => weightIndex[k]);
+
+    // Store in a LinkedHashMap to preserve the order
+    final LinkedHashMap<int, int> sortedWeights = LinkedHashMap<int, int>();
+    for (int index = 0; index < sortedWeightKeys.length; index++) {
+      final int weight = sortedWeightKeys[index];
+      sortedWeights[weight] = weightIndex[weight];
+    }
 
     // 3. Reassign the task index map based on the order from (2)
     final Map<int, String> reversedColumnKeyIndex = columnKeyIndex
@@ -209,17 +213,23 @@ class StatusGridHelper {
 
   /// Return a new column mapping for [matrix] prioritizing columns that
   /// have failed recently with indices closer to 0.
-  Map<int, int> _sortByRecentlyFailed(List<List<Task>> matrix) {
-    final List<int> failWeights = _calculateRecentlyFailedWeights(matrix);
+  @visibleForTesting
+  Map<int, int> sortByRecentlyFailed(List<List<Task>> matrix,
+      {Map<String, int> keyIndex, List<Task> tasks}) {
+    keyIndex ??= _columnKeyIndex;
+    tasks ??= _taskIconRow;
+
+    final List<int> failWeights = calculateRecentlyFailedWeights(matrix);
     final Map<String, int> sortedColumnKeyIndex =
-        sortColumnKeyIndex(_columnKeyIndex, failWeights);
+        sortColumnKeyIndex(keyIndex, failWeights);
 
     final Map<int, int> taskColumnMap = <int, int>{};
     for (int taskColumn = 0; taskColumn < matrix[0].length; taskColumn++) {
       /// We can take advantage of the work done to calculate [_taskIconRow] to easily
       /// find the [_taskColumnKey] for a column in [matrix].
-      final Task task = _taskIconRow[taskColumn];
-      taskColumnMap[taskColumn] = sortedColumnKeyIndex[_taskColumnKey(task)];
+      final Task task = tasks[taskColumn];
+      final String key = _taskColumnKey(task);
+      taskColumnMap[taskColumn] = sortedColumnKeyIndex[key];
     }
 
     return taskColumnMap;
@@ -232,14 +242,16 @@ class StatusGridHelper {
   ///
   /// The lower the failWeight, the more recently failed. Lower failWeights should be
   /// in the leftmost columns of [matrix].
-  List<int> _calculateRecentlyFailedWeights(List<List<Task>> matrix) {
+  @visibleForTesting
+  List<int> calculateRecentlyFailedWeights(List<List<Task>> matrix) {
     /// Fill every column with the maximum value, which is the the number of rows.
     final List<int> failWeights =
         List<int>.filled(matrix[0].length, matrix.length);
 
     for (int colIndex = 0; colIndex < matrix[0].length; colIndex++) {
       for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
-        if (taskMatrix[rowIndex][colIndex]?.status == TaskBox.statusFailed) {
+        final Task task = matrix[rowIndex][colIndex];
+        if (task?.status == TaskBox.statusFailed) {
           failWeights[colIndex] = rowIndex;
           break;
         }
