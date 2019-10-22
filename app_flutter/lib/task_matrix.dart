@@ -41,7 +41,7 @@ class TaskMatrix {
   /// where it maps to in this matrix.
   List<int> _columnMap;
 
-  /// A key, value table to find what column a [Task] is in.
+  /// A key, value table to find what grid column a [Task] is in.
   ///
   /// This is necessary to ensure every possible task has a column in the grid.
   Map<String, int> _columnKeyIndex;
@@ -49,18 +49,24 @@ class TaskMatrix {
   int get columns => _matrix.length;
   int get rows => statuses.length;
 
-  /// Return [Task] in [_matrix] for a row and col in [StatusGrid].
+  /// Return [Task] for a cell in [StatusGrid].
   Task task(int gridRow, int gridCol) {
     final int mapCol = _columnMap[gridCol];
     return _matrix[mapCol].tasks[gridRow];
   }
 
   /// Return a sample task from a column.
+  /// 
+  /// This is used for the [TaskIcon] widget row.
   Task sampleTask(int gridCol) {
     final int mapCol = _columnMap[gridCol];
     return _matrix[mapCol].sampleTask;
   }
 
+  /// Sort this matrix based on [compare].
+  /// 
+  /// This sort function does not change any of the underlying matrix.
+  /// Instead, it remaps the column map to point to the correct order.
   void sort(int compare(Column a, Column b)) {
     _columnMap.sort((int indexA, int indexB) {
       return compare(_matrix[indexA], _matrix[indexB]);
@@ -107,7 +113,7 @@ class TaskMatrix {
     return taskColumnKeyIndex;
   }
 
-  /// Create a matrix of [Task] for easier sorting of [List<CommitStatus>].
+  /// Create a matrix of [Task] by grouping related tasks into a [Column].
   ///
   /// If no [Task] can be placed in a cell of the matrix, it will be left null.
   @visibleForTesting
@@ -115,7 +121,6 @@ class TaskMatrix {
       {Map<String, int> columnKeyIndex}) {
     columnKeyIndex ??= _columnKeyIndex;
 
-    /// Rows are commits, columns are [Task] with same [taskColumnKey].
     final List<Column> matrix = List<Column>.generate(
         columnKeyIndex.keys.length,
         (int i) => Column(statuses.length, columnKeyIndex.keys.elementAt(i)));
@@ -123,7 +128,7 @@ class TaskMatrix {
     for (int row = 0; row < statuses.length; row++) {
       final CommitStatus status = statuses[row];
 
-      /// Organize [Task] in [CommitStatus] to the column they map to.
+      /// Organize [Task] in [CommitStatus] to the [Column] they map to.
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
           final String columnKey = taskColumnKey(task);
@@ -141,13 +146,23 @@ class TaskMatrix {
   }
 }
 
+/// Helper class to group [Task] that have the same [taskColumnKey] as those tasks are the same
+/// except for what [Commit] they were run on.
 class Column {
   Column(int size, this.key) : tasks = List<Task>(size);
 
+  /// The [taskColumnKey] that all [Task] in [List<Task>] have.
   final String key;
 
+  /// The rows of [Task].
+  /// 
+  /// There is guranteed to be one non-null entry.
   List<Task> tasks;
 
-  /// Task for the task icon
+  /// The most recent [Task] that is not null.
+  /// 
+  /// Useful for show information about a [Column] that is true in
+  /// the tasks of [List<Task>]. For example, when showing the
+  /// [TaskIcon] row in [StatusGrid].
   Task sampleTask;
 }
