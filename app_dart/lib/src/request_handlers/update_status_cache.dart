@@ -20,8 +20,8 @@ import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
 
 @immutable
-class SetStatusCache extends RequestHandler<Body> {
-  const SetStatusCache(
+class UpdateStatusCache extends RequestHandler<Body> {
+  const UpdateStatusCache(
     Config config, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
@@ -61,10 +61,10 @@ class SetStatusCache extends RequestHandler<Body> {
         Cache.redisCacheProvider(await config.redisUrl);
     final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
 
-    final Cache<String> statusCache = cache.withPrefix('responses').withCodec(utf8);
+    final Cache<String> statusCache = cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
     await statusCache['get-status']
-        .set(jsonEncode(jsonResponse), const Duration(minutes: 5));
+        .set(jsonEncode(jsonResponse), const Duration(hours: 1));
 
     await cacheProvider.close();
 
