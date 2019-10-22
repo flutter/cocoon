@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handling/cache_response_handler.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -19,6 +20,8 @@ Future<void> main() async {
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenProvider: AccessTokenProvider(config),
     );
+
+    final RequestHandler<dynamic> setStatusHandler = SetStatusCache(config);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -46,11 +49,11 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': SetStatus(config),
+      '/api/public/get-status': CacheResponseHandler('get-status', setStatusHandler, config: config),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
 
       /// Cache updating cron job endpoints
-      '/api/public/set-status': SetStatusCache(config),
+      '/api/public/set-status': setStatusHandler,
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
