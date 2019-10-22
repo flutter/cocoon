@@ -24,7 +24,7 @@ class UpdateAgentHealthHistory
   final BigqueryServiceProvider bigqueryApi;
 
   static const String agentIdParam = 'AgentID';
-  static const String statusParam = 'IsHealthy';
+  static const String statusParam = 'Status';
   static const String healthDetailsParam = 'HealthDetails';
 
   @override
