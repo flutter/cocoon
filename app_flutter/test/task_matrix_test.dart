@@ -38,15 +38,16 @@ void main() {
       final List<CommitStatus> statusesAB = <CommitStatus>[statusA, statusB];
       final TaskMatrix matrix = TaskMatrix(statuses: statusesAB);
 
-      print(matrix.task(0, 0));
-      print(matrix.task(0, 1));
-      print(matrix.task(1, 0));
-      print(matrix.task(1, 1));
-      
-      expect(matrix.task(0, 1), statusA.stages[0].tasks[0]);
-      expect(matrix.task(0, 0), isNull);
-      expect(matrix.task(1, 1), isNull);
-      expect(matrix.task(1, 0), statusB.stages[0].tasks[0]);
+      print('${matrix.task(0,0)?.stageName ?? 'null'}, ${matrix.task(0,1)?.stageName ?? 'null'}');
+      print('${matrix.task(1,0)?.stageName ?? 'null'}, ${matrix.task(1,1)?.stageName ?? 'null'}');
+
+      expect(matrix.task(0, 0), statusA.stages[0].tasks[0]);
+      expect(matrix.task(0, 1), isNull);
+      expect(matrix.task(1, 0), isNull);
+      expect(matrix.task(1, 1), statusB.stages[0].tasks[0]);
+
+      expect(matrix.sampleTask(0), statusA.stages[0].tasks[0]);
+      expect(matrix.sampleTask(1), statusB.stages[0].tasks[0]);
     });
 
     test('sorting by recently failed', () {});

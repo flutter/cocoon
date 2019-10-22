@@ -30,10 +30,19 @@ class TaskMatrix {
   /// A key, value table to find what column a [Task] is in.
   Map<String, int> _columnKeyIndex;
 
+  int get columns => _matrix.length;
+  int get rows => statuses.length;
+
   /// Return [Task] in [_matrix] for a row and col in [StatusGrid].
   Task task(int gridRow, int gridCol) {
     final int mapCol = _columnMap[gridCol];
     return _matrix[mapCol].tasks[gridRow];
+  }
+
+  /// Return a sample task from a column.
+  Task sampleTask(int gridCol) {
+    final int mapCol = _columnMap[gridCol];
+    return _matrix[mapCol].sampleTask;
   }
 
   void sort(int compare(Column a, Column b)) {}
@@ -133,7 +142,7 @@ class TaskMatrix {
           final int columnIndex = columnKeyIndex[_taskColumnKey(task)];
           final Column column = matrix[columnIndex];
           column.tasks[row] = task;
-          column.taskIcon = task;
+          column.sampleTask = task;
         }
       }
     }
@@ -143,10 +152,10 @@ class TaskMatrix {
 }
 
 class Column {
-  Column(int size) : tasks = List<Task>(size);
+  Column(int size) : tasks = List<Task>.filled(size, null);
 
   List<Task> tasks;
 
   /// Task for the task icon
-  Task taskIcon;
+  Task sampleTask;
 }
