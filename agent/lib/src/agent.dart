@@ -178,7 +178,7 @@ class Agent {
   Future<void> updateHealthStatusHistory(AgentHealth health) async {
     await _cocoon('update-agent-health-history', {
       'AgentID': agentId,
-      'IsHealthy': health.ok,
+      'Status': health.ok?'healthy':'unHealthy',
       'HealthDetails': '$health',
     });
   }
