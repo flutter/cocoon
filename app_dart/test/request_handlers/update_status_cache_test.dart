@@ -16,7 +16,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_build_status_provider.dart';
 
 void main() {
-  group('GetStatus', () {
+  group('UpdateStatusCache', () {
     FakeConfig config;
     FakeDatastoreDB db;
     FakeBuildStatusProvider buildStatusProvider;
