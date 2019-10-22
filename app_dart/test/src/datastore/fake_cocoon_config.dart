@@ -68,8 +68,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB get db => dbValue;
 
   @override
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async =>
-      deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
 
   @override
   Future<String> get forwardHost async => forwardHostValue;
@@ -90,16 +89,13 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  Future<String> get missingTestsPullRequestMessage async =>
-      missingTestsPullRequestMessageValue;
+  Future<String> get missingTestsPullRequestMessage async => missingTestsPullRequestMessageValue;
 
   @override
-  Future<String> get nonMasterPullRequestMessage async =>
-      nonMasterPullRequestMessageValue;
+  Future<String> get nonMasterPullRequestMessage async => nonMasterPullRequestMessageValue;
 
   @override
-  Future<String> get goldenBreakingChangeMessage async =>
-      goldenBreakingChangeMessageValue;
+  Future<String> get goldenBreakingChangeMessage async => goldenBreakingChangeMessageValue;
 
   @override
   Future<String> get goldenTriageMessage async => goldenTriageMessageValue;
@@ -111,12 +107,10 @@ class FakeConfig implements Config {
   Future<String> get cqLabelName async => cqLabelNameValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciBuilders async =>
-      luciBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciBuilders async => luciBuildersValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciTryBuilders async =>
-      luciTryBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
 
   @override
   Logging get loggingService => loggingServiceValue;
