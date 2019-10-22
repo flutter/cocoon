@@ -20,5 +20,5 @@ cron:
   url: /api/refresh-cirrus-status
   schedule: every 2 minutes
 - description: update memorystore get-status response
-  url: /api/public/set-status
+  url: /api/public/update-status
   schedule: every 1 minutes

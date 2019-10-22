@@ -57,7 +57,7 @@ Future<void> main() async {
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
 
       /// Cache updating cron job endpoints
-      '/api/public/set-status': updateStatusHandler,
+      '/api/public/update-status': updateStatusHandler,
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
