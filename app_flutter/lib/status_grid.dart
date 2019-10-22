@@ -106,24 +106,23 @@ class StatusGrid extends StatelessWidget {
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                final int iconIndex = taskColumnMap[gridIndex - 1];
-                return TaskIcon(task: taskIconRow[iconIndex]);
+                return TaskIcon(task: taskMatrix.sampleTask(gridIndex - 1));
               }
 
-              final int statusIndex = index ~/ columnCount;
+              final int row = index ~/ columnCount;
               if (index % columnCount == 0) {
-                return CommitBox(commit: statuses[statusIndex].commit);
+                return CommitBox(commit: statuses[row].commit);
               }
 
-              // We need to map the GridView taskIndex and to the taskMatrix column.
-              final int taskIndex = taskColumnMap[(index % columnCount) - 1];
-              if (taskMatrix[statusIndex][taskIndex] == null) {
+              final int column = (index % columnCount) - 1;
+              final Task task = taskMatrix.task(row, column);
+              if (task == null) {
                 /// [Task] was skipped so don't show anything.
                 return const SizedBox();
               }
 
               return TaskBox(
-                task: taskMatrix[statusIndex][taskIndex],
+                task: task,
               );
             },
           ),
