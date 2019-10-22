@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:app_flutter/task_matrix.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -46,83 +47,12 @@ class StatusGridContainer extends StatelessWidget {
           );
         }
 
-        final StatusGridHelper statusGridHelper =
-            StatusGridHelper(statuses: statuses);
         return StatusGrid(
           statuses: statuses,
-          taskColumnMap: statusGridHelper.taskColumnMap,
-          taskMatrix: statusGridHelper.taskMatrix,
-          taskIconRow: statusGridHelper.taskIconRow,
+          taskMatrix: TaskMatrix(statuses: statuses),
         );
       },
     );
-  }
-}
-
-/// Class to handle data operations on [List<CommitStatus>].
-///
-/// Flattens the mapping of one [CommitStatus] from many [Stage] objects,
-/// where each [Stage] object maps to many [Task] objects, to a 2D matrix.
-///
-// TODO(chillers): Support special ordering of taskMatrix. https://github.com/flutter/cocoon/issues/478
-class StatusGridHelper {
-  StatusGridHelper({@required this.statuses}) {
-    _taskMatrix = _createTaskMatrix(statuses, _columnKeyIndex);
-    _taskIconRow = _createTaskIconRow(_taskMatrix);
-
-    // Sorting does not touch the original matrix, instead it remaps
-    // what the order of the columns should be.
-    _taskColumnMap = sortByRecentlyFailed(_taskMatrix);
-  }
-
-  /// Return a new column mapping for [matrix] prioritizing columns that
-  /// have failed recently with indices closer to 0.
-  @visibleForTesting
-  Map<int, int> sortByRecentlyFailed(List<List<Task>> matrix,
-      {Map<String, int> keyIndex, List<Task> tasks}) {
-    keyIndex ??= _columnKeyIndex;
-    tasks ??= _taskIconRow;
-
-    final List<int> failWeights = calculateRecentlyFailedWeights(matrix);
-    final Map<String, int> sortedColumnKeyIndex =
-        sortColumnKeyIndex(keyIndex, failWeights);
-
-    final Map<int, int> taskColumnMap = <int, int>{};
-    for (int taskColumn = 0; taskColumn < matrix[0].length; taskColumn++) {
-      /// We can take advantage of the work done to calculate [_taskIconRow] to easily
-      /// find the [_taskColumnKey] for a column in [matrix].
-      final Task task = tasks[taskColumn];
-      final String key = _taskColumnKey(task);
-      taskColumnMap[taskColumn] = sortedColumnKeyIndex[key];
-    }
-
-    return taskColumnMap;
-  }
-
-  /// Generate [List<int>] of weights based on the given [matrix] using the most
-  /// recently errored formula.
-  ///
-  /// The most recently errored formula is based on the number of [Task] since failure.
-  ///
-  /// The lower the failWeight, the more recently failed. Lower failWeights should be
-  /// in the leftmost columns of [matrix].
-  @visibleForTesting
-  List<int> calculateRecentlyFailedWeights(List<List<Task>> matrix) {
-    /// Fill every column with the maximum value, which is the the number of rows.
-    final List<int> failWeights =
-        List<int>.filled(matrix[0].length, matrix.length);
-
-    for (int colIndex = 0; colIndex < matrix[0].length; colIndex++) {
-      for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
-        final Task task = matrix[rowIndex][colIndex];
-        if (task?.status == TaskBox.statusFailed) {
-          failWeights[colIndex] = rowIndex;
-          break;
-        }
-      }
-    }
-
-    return failWeights;
   }
 }
 
@@ -131,30 +61,23 @@ class StatusGridHelper {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class StatusGrid extends StatelessWidget {
-  const StatusGrid(
-      {Key key,
-      @required this.statuses,
-      @required this.taskMatrix,
-      @required this.taskIconRow,
-      @required this.taskColumnMap})
-      : super(key: key);
+  const StatusGrid({
+    Key key,
+    @required this.statuses,
+    @required this.taskMatrix,
+  }) : super(key: key);
 
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
-  final List<List<Task>> taskMatrix;
-
-  /// A list of [Task] objects that can be used for the row of [TaskIcon].
-  final List<Task> taskIconRow;
-
-  final Map<int, int> taskColumnMap;
+  final TaskMatrix taskMatrix;
 
   @override
   Widget build(BuildContext context) {
     /// The grid needs to know its dimensions. Column is based off how many tasks are
     /// in a row (+ 1 to account for [CommitBox]).
-    final int columnCount = taskMatrix[0].length + 1;
+    final int columnCount = taskMatrix.columns + 1;
 
     return Expanded(
       // The grid is wrapped with SingleChildScrollView to enable scrolling both
