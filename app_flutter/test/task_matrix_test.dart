@@ -107,6 +107,32 @@ void main() {
 
     test('sorting by recently failed', () {});
 
-    test('create column key index works', () {});
+    test('create column key index works', () {
+      final CommitStatus statusC = CommitStatus()
+        ..stages.insert(
+            0,
+            Stage()
+              ..tasks.insert(
+                  0,
+                  Task()
+                    ..status = TaskBox.statusSucceeded
+                    ..stageName = 'C'
+                    ..name = 'special task'));
+
+      final List<CommitStatus> statusesABC = <CommitStatus>[
+        statusA,
+        statusB,
+        statusC
+      ];
+      final TaskMatrix matrix = TaskMatrix(statuses: statusesABC);
+
+      final Map<String, int> expectedKeyIndex = <String, int>{
+        'A:1': 0,
+        'A:2': 1,
+        'C:special task': 2,
+      };
+
+      expect(matrix.createColumnKeyIndex(), expectedKeyIndex);
+    });
   });
 }
