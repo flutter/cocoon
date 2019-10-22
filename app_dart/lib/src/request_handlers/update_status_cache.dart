@@ -21,7 +21,7 @@ import '../service/datastore.dart';
 
 @immutable
 class UpdateStatusCache extends RequestHandler<Body> {
-  UpdateStatusCache(
+  const UpdateStatusCache(
     Config config, {
     this.cacheProvider,
     @visibleForTesting
