@@ -4,8 +4,10 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:meta/meta.dart';
+import 'package:neat_cache/neat_cache.dart';
+
+import 'package:cocoon_service/cocoon_service.dart';
 
 import 'body.dart';
 
@@ -27,6 +29,9 @@ class CacheResponseHandler extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final HttpResponse response = request.response;
+
+    final cacheProvider = Cache.redisCacheProvider(config.redisUrl);
+    final cache = Cache(cacheProvider);
 
     if (file.existsSync()) {
       // return cached response
