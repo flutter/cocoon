@@ -25,7 +25,7 @@ choco install -y git.install
 choco install -y poshgit
 
 # Dependencies of Cocoon agent
-choco install -y dart-sdk --version $(cat dart_version)
+choco install -y dart-sdk
 choco install -y android-sdk
 choco install -y sysinternals
 
@@ -33,6 +33,7 @@ choco install -y sysinternals
 choco install -y vscode
 choco install -y GoogleChrome
 choco install -y tightvnc
+choco install -y openssh
 
 # Run Cocoon agent by on startup
 $startup_path = "C:\Users\$env:username\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
