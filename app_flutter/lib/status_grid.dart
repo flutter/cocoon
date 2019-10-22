@@ -63,7 +63,7 @@ class StatusGridContainer extends StatelessWidget {
   }
 
   /// Return how many [Task] since the last failure for [Column].
-  /// 
+  ///
   /// If no failure has ever occurred, return the highest possible value for
   /// the matrix. This max would be the number of rows in the matrix.
   int _lastFailed(task_matrix.Column a) {

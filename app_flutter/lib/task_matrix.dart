@@ -6,6 +6,15 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
+/// Class to handle data operations on [List<CommitStatus>].
+///
+/// Flattens the mapping of one [CommitStatus] from many [Stage] objects,
+/// where each [Stage] object maps to many [Task] objects, to a 2D matrix.
+/// Simplifies logic further by moving related [Task] into a [Column], so the
+/// matrix is composed of just a list of columns.
+///
+/// After construction, the underlying matrix and statuses do not get modified.
+/// Only the column mapping is changed with additional operations.
 class TaskMatrix {
   TaskMatrix({@required this.statuses}) {
     _columnKeyIndex = createColumnKeyIndex();
@@ -39,7 +48,7 @@ class TaskMatrix {
   }
 
   /// Return a sample task from a column.
-  /// 
+  ///
   /// This is used for the [TaskIcon] widget row.
   Task sampleTask(int gridCol) {
     final int mapCol = _columnMap[gridCol];
@@ -47,7 +56,7 @@ class TaskMatrix {
   }
 
   /// Sort this matrix based on [compare].
-  /// 
+  ///
   /// This sort function does not change any of the underlying matrix.
   /// Instead, it remaps the column map to point to the correct order.
   void sort(int compare(Column a, Column b)) {
@@ -138,12 +147,12 @@ class Column {
   final String key;
 
   /// The rows of [Task].
-  /// 
+  ///
   /// There is guranteed to be one non-null entry.
   List<Task> tasks;
 
   /// The most recent [Task] that is not null.
-  /// 
+  ///
   /// Useful for show information about a [Column] that is true in
   /// the tasks of [List<Task>]. For example, when showing the
   /// [TaskIcon] row in [StatusGrid].
