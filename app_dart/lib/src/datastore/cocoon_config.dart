@@ -78,6 +78,9 @@ class Config {
   /// projects.
   Future<String> get redisUrl => _getSingleValue('RedisUrl');
 
+  /// The name of the subcache in the Redis instance that stores responses.
+  Future<String> get redisResponseSubcache => _getSingleValue('RedisResponseSubcache');
+
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return ServiceAccountInfo.fromJson(json.decode(rawValue));

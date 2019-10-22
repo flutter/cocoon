@@ -3,9 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pedantic/pedantic.dart';
 
 import 'package:cocoon_service/cocoon_service.dart';
 
@@ -28,13 +31,21 @@ class CacheResponseHandler extends RequestHandler<Body> {
   /// Services a request that is cached in redis.
   @override
   Future<Body> get() async {
-    final HttpResponse response = request.response;
+    final CacheProvider<List<int>> cacheProvider =
+        Cache.redisCacheProvider(await config.redisUrl);
+    final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
 
-    final cacheProvider = Cache.redisCacheProvider(config.redisUrl);
-    final cache = Cache(cacheProvider);
+    final Cache<String> statusCache =
+        cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
-    if (file.existsSync()) {
-      // return cached response
+    final String response = await statusCache[responseKey].get();
+
+    // Since this is just a read operation, waiting is an extra precaution
+    // that does not need to be taken.
+    unawaited(cacheProvider.close());
+
+    if (response != null) {
+      return Body.forJson(jsonDecode(response));
     } else {
       return fallbackHandler.get();
     }

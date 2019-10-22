@@ -33,6 +33,7 @@ class FakeConfig implements Config {
     this.luciTryBuildersValue,
     this.loggingServiceValue,
     this.redisUrlValue,
+    this.redisResponseSubcacheValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -55,6 +56,7 @@ class FakeConfig implements Config {
   List<Map<String, dynamic>> luciTryBuildersValue;
   Logging loggingServiceValue;
   String redisUrlValue;
+  String redisResponseSubcacheValue;
 
   @override
   int maxEntityGroups;
@@ -66,7 +68,8 @@ class FakeConfig implements Config {
   FakeDatastoreDB get db => dbValue;
 
   @override
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async =>
+      deviceLabServiceAccountValue;
 
   @override
   Future<String> get forwardHost async => forwardHostValue;
@@ -87,13 +90,16 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  Future<String> get missingTestsPullRequestMessage async => missingTestsPullRequestMessageValue;
+  Future<String> get missingTestsPullRequestMessage async =>
+      missingTestsPullRequestMessageValue;
 
   @override
-  Future<String> get nonMasterPullRequestMessage async => nonMasterPullRequestMessageValue;
+  Future<String> get nonMasterPullRequestMessage async =>
+      nonMasterPullRequestMessageValue;
 
   @override
-  Future<String> get goldenBreakingChangeMessage async => goldenBreakingChangeMessageValue;
+  Future<String> get goldenBreakingChangeMessage async =>
+      goldenBreakingChangeMessageValue;
 
   @override
   Future<String> get goldenTriageMessage async => goldenTriageMessageValue;
@@ -105,14 +111,19 @@ class FakeConfig implements Config {
   Future<String> get cqLabelName async => cqLabelNameValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciBuilders async => luciBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciBuilders async =>
+      luciBuildersValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciTryBuilders async =>
+      luciTryBuildersValue;
 
   @override
   Logging get loggingService => loggingServiceValue;
 
   @override
-  Future<String> get redisUrl => redisUrlValue;
+  Future<String> get redisUrl async => redisUrlValue;
+
+  @override
+  Future<String> get redisResponseSubcache async => redisResponseSubcacheValue;
 }
