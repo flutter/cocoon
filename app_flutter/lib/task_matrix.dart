@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_box.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
@@ -15,22 +14,6 @@ class TaskMatrix {
     _columnMap = List<int>.generate(_columnKeyIndex.length, (int i) => i);
 
     _matrix = createTaskMatrix(statuses);
-
-    sort(compareRecentlyFailed);
-  }
-
-  int compareRecentlyFailed(Column a, Column b) {
-    return _failScore(a).compareTo(_failScore(b));
-  }
-
-  int _failScore(Column a) {
-    for (int row = 0; row < a.tasks.length; row++) {
-      if (a.tasks[row]?.status == TaskBox.statusFailed) {
-        return row;
-      }
-    }
-
-    return a.tasks.length;
   }
 
   final List<CommitStatus> statuses;

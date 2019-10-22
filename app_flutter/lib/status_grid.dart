@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_matrix.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,6 +11,7 @@ import 'commit_box.dart';
 import 'state/flutter_build.dart';
 import 'task_box.dart';
 import 'task_icon.dart';
+import 'task_matrix.dart' as task_matrix;
 
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
@@ -45,12 +45,35 @@ class StatusGridContainer extends StatelessWidget {
           );
         }
 
+        final task_matrix.TaskMatrix matrix =
+            task_matrix.TaskMatrix(statuses: statuses);
+        matrix.sort(compareRecentlyFailed);
+
         return StatusGrid(
           statuses: statuses,
-          taskMatrix: TaskMatrix(statuses: statuses),
+          taskMatrix: matrix,
         );
       },
     );
+  }
+
+  /// Order columns by showing those that have failed reecently first.
+  int compareRecentlyFailed(task_matrix.Column a, task_matrix.Column b) {
+    return _lastFailed(a).compareTo(_lastFailed(b));
+  }
+
+  /// Return how many [Task] since the last failure for [Column].
+  /// 
+  /// If no failure has ever occurred, return the highest possible value for
+  /// the matrix. This max would be the number of rows in the matrix.
+  int _lastFailed(task_matrix.Column a) {
+    for (int row = 0; row < a.tasks.length; row++) {
+      if (a.tasks[row]?.status == TaskBox.statusFailed) {
+        return row;
+      }
+    }
+
+    return a.tasks.length;
   }
 }
 
@@ -68,8 +91,8 @@ class StatusGrid extends StatelessWidget {
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
-  /// Computed 2D array of [Task] to make it easy to retrieve and sort tasks.
-  final TaskMatrix taskMatrix;
+  /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
+  final task_matrix.TaskMatrix taskMatrix;
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +142,7 @@ class StatusGrid extends StatelessWidget {
                 return const SizedBox();
               }
 
-              return TaskBox(
-                task: task,
-              );
+              return TaskBox(task: task);
             },
           ),
         ),
