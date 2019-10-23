@@ -57,7 +57,7 @@ class StatusGridContainer extends StatelessWidget {
     );
   }
 
-  /// Order columns by showing those that have failed reecently first.
+  /// Order columns by showing those that have failed recently first.
   int compareRecentlyFailed(task_matrix.Column a, task_matrix.Column b) {
     return _lastFailed(a).compareTo(_lastFailed(b));
   }
@@ -107,6 +107,7 @@ class StatusGrid extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Container(
           width: columnCount * 50.0,
+          // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
           child: GridView.builder(
             itemCount: columnCount * statuses.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
