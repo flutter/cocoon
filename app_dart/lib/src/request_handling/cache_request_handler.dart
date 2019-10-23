@@ -31,10 +31,10 @@ class CachedRequestHandler extends RequestHandler<Body> {
   /// Services a cached request.
   @override
   Future<Body> get() async {
-    final Cache<String> statusCache =
+    final Cache<String> responseCache =
         cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
-    final String cachedResponse = await statusCache[responseKey].get();
+    final String cachedResponse = await responseCache[responseKey].get();
 
     if (cachedResponse != null) {
       final Map<String, dynamic> jsonResponse = jsonDecode(cachedResponse);

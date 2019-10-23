@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert' show utf8;
+import 'dart:convert';
 
 import 'package:mockito/mockito.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -23,8 +23,6 @@ void main() {
     CacheProvider<List<int>> cacheProvider;
     Cache<List<int>> cache;
 
-    CachedRequestHandler requestHandler;
-
     setUp(() {
       config = FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
       tester = RequestHandlerTester();
@@ -37,17 +35,38 @@ void main() {
       return utf8.decoder.bind(body.serialize()).first;
     }
 
-    test('returns response from cache', () {});
+    test('returns response from cache', () async {
+      final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
+
+      final Cache<String> responseCache =
+        cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
+      await responseCache['test'].set('{"hello": "world"}');
+      final Map<String, dynamic> expectedJsonResponse = <String, dynamic>{
+        'hello': 'world'
+      };
+
+      final CachedRequestHandler cacheRequestHandler = CachedRequestHandler(
+          'test', fallbackHandlerMock,
+          cache: cache, config: config);
+
+      final Body body = await tester.get(cacheRequestHandler);
+      final String response = await _decodeHandlerBody(body);
+      final Map<String, dynamic> jsonResponse = jsonDecode(response);
+
+      expect(jsonResponse, expectedJsonResponse);
+
+    });
 
     test('fallback handler called when cache is empty', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final CachedRequestHandler cacheResponseHandler = CachedRequestHandler(
+      final CachedRequestHandler cacheRequestHandler = CachedRequestHandler(
           'null-key', fallbackHandlerMock,
           cache: cache, config: config);
 
-      await tester.get(cacheResponseHandler);
+      await tester.get(cacheRequestHandler);
 
+      // ignore: invalid_use_of_protected_member
       verify(fallbackHandlerMock.get()).called(1);
     });
   });
