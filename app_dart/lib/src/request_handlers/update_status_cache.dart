@@ -8,7 +8,6 @@ import 'dart:convert' show jsonEncode, utf8;
 import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
-import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../datastore/cocoon_config.dart';

@@ -32,7 +32,7 @@ void main() {
     }
 
     setUp(() async {
-      config = FakeConfig();
+      config = FakeConfig(redisResponseSubcacheValue: 'responses-test');
       buildStatusProvider =
           FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
