@@ -4,8 +4,9 @@
 
 import 'dart:convert' show utf8;
 
-import 'package:cocoon_service/src/request_handling/cache_response_handler.dart';
 import 'package:mockito/mockito.dart';
+import 'package:neat_cache/cache_provider.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -15,13 +16,21 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
-  group('CacheResponseHandler', () {
+  group('CacheRequestHandler', () {
+    FakeConfig config;
     RequestHandlerTester tester;
 
-    final FakeConfig config = FakeConfig();
+    CacheProvider<List<int>> cacheProvider;
+    Cache<List<int>> cache;
+
+    CachedRequestHandler requestHandler;
 
     setUp(() {
+      config = FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
       tester = RequestHandlerTester();
+
+      cacheProvider = Cache.inMemoryCacheProvider(16);
+      cache = Cache<List<int>>(cacheProvider);
     });
 
     Future<String> _decodeHandlerBody(Body body) {
@@ -30,14 +39,14 @@ void main() {
 
     test('returns response from cache', () {});
 
-    test('fallback handler called when cache is empty', () {
+    test('fallback handler called when cache is empty', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final CacheResponseHandler cacheResponseHandler = CacheResponseHandler(
-          'null-cache', fallbackHandlerMock,
-          config: config);
+      final CachedRequestHandler cacheResponseHandler = CachedRequestHandler(
+          'null-key', fallbackHandlerMock,
+          cache: cache, config: config);
 
-      tester.get(cacheResponseHandler);
+      await tester.get(cacheResponseHandler);
 
       verify(fallbackHandlerMock.get()).called(1);
     });

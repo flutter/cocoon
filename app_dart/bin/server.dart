@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handling/cache_response_handler.dart';
 import 'package:gcloud/db.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -54,7 +53,7 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CacheResponseHandler('get-status', updateStatusHandler, config: config),
+      '/api/public/get-status': CachedRequestHandler('get-status', updateStatusHandler, config: config, cache: redisCache),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
 
       /// Cache updating cron job endpoints

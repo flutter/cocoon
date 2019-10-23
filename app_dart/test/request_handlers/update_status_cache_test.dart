@@ -32,16 +32,12 @@ void main() {
     }
 
     setUp(() async {
-      config = FakeConfig(redisResponseSubcacheValue: 'responses-test');
+      config = FakeConfig(redisResponseSubcacheValue: 'update_status_cache_test');
       buildStatusProvider =
           FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
       cacheProvider = Cache.inMemoryCacheProvider(16);
       cache = Cache<List<int>>(cacheProvider);
-
-      final Cache<String> responseCache =
-          cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
-      await responseCache['get-status'].set('i am a json response');
 
       handler = UpdateStatusCache(
         config,
