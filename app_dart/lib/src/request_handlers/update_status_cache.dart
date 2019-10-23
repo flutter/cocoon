@@ -61,19 +61,19 @@ class UpdateStatusCache extends RequestHandler<Body> {
     final Body response = Body.forJson(jsonResponse);
 
     if (cacheProvider != null) {
-      await updateCache(response);
+      await updateCache(jsonResponse);
     }
 
     return response;
   }
 
-  Future<void> updateCache(Body response) async {
+  Future<void> updateCache(Map<String, dynamic> jsonResponse) async {
     final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
     final Cache<String> statusCache =
         cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
     await statusCache['get-status']
-        .set(jsonEncode(response), const Duration(hours: 1));
+        .set(jsonEncode(jsonResponse), const Duration(hours: 1));
 
     await cacheProvider.close();
   }
