@@ -2,9 +2,9 @@
 # Runs a smoke test.
 #
 # This is useful to validate the runtime requirements of a Cocoon agent. It's intended to run
-# manually after provision.
+# manually after provision of a Mac or Linux host.
 #
-# Expectes current directory to be cocoon/agent.
+# Expectes the current directory to be cocoon/agent.
 set -e
 
 LOG_FILE=$(mktemp)
