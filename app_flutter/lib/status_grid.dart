@@ -198,6 +198,7 @@ class StatusGrid extends StatelessWidget {
         child: Container(
           width: columnCount * 50.0,
           child: GridView.builder(
+            addRepaintBoundaries: false,
             itemCount: columnCount * statuses.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
