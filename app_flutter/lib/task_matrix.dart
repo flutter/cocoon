@@ -6,15 +6,26 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
-/// Class to handle data operations on [List<CommitStatus>].
+/// Matrix to handle data operations on [List<CommitStatus>], such as retrieving
+/// a [Task] and ordering [List<CommitStatus>].
 ///
-/// Flattens the mapping of one [CommitStatus] from many [Stage] objects,
+/// An internal column map is maintained to allow easy reordering of [List<Column>].
+/// Additional operations after construction only modify this column map.
+///
+/// The columns of the matrix can be sorted by passing a custom comparator function.
+/// [Column] stores a list of [Task] and [Column.key] is the stage name and task name
+/// of the tasks in it. This comparator function will generate values for all of the
+/// columns, and compare them in O(nlogn) time where n is the number of columns.
+/// Note that the runtime of this sort is mostly the runtime of the comparator function
+/// performed O(nlogn) times.
+///
+/// On addition of a new [CommitStatus], or modification of an existing [CommitStatus],
+/// this needs to be rebuilt.
+///
+/// Construction flattens the list of [CommitStatus] from many [Stage] objects,
 /// where each [Stage] object maps to many [Task] objects, to a 2D matrix.
 /// Simplifies logic further by moving related [Task] into a [Column], so the
 /// matrix is composed of just a list of columns.
-///
-/// After construction, the underlying matrix and statuses do not get modified.
-/// Only the column mapping is changed with additional operations.
 class TaskMatrix {
   TaskMatrix({@required this.statuses}) {
     _columnKeyIndex = createColumnKeyIndex();
@@ -55,10 +66,12 @@ class TaskMatrix {
     return _matrix[mapCol].sampleTask;
   }
 
-  /// Sort this matrix based on [compare].
+  /// Sort the columns of this matrix based on [compare].
   ///
   /// This sort function does not change any of the underlying matrix.
   /// Instead, it remaps the column map to point to the correct order.
+  ///
+  /// This cannot sort the rows of the matrix.
   void sort(int compare(Column a, Column b)) {
     _columnMap.sort((int indexA, int indexB) {
       return compare(_matrix[indexA], _matrix[indexB]);
