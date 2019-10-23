@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show jsonEncode, utf8;
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
@@ -18,6 +18,10 @@ import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
 
+/// Cache writer for /api/public/get-status.
+/// 
+/// Queries datastore to get the latest information on the commits
+/// to flutter/flutter and the agents in the devicelab.
 @immutable
 class UpdateStatusCache extends RequestHandler<Body> {
   const UpdateStatusCache(
