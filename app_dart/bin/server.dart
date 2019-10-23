@@ -23,9 +23,10 @@ Future<void> main() async {
       accessTokenProvider: AccessTokenProvider(config),
     );
 
-    final CacheProvider<List<int>> cacheProvider = Cache.redisCacheProvider(await config.redisUrl);
+    final CacheProvider<List<int>> redisCacheProvider = Cache.redisCacheProvider(await config.redisUrl);
+    final Cache<List<int>> redisCache = Cache<List<int>>(redisCacheProvider);
 
-    final RequestHandler<dynamic> updateStatusHandler = UpdateStatusCache(config, cacheProvider: cacheProvider);
+    final RequestHandler<dynamic> updateStatusHandler = UpdateStatusCache(config, cache: redisCache);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -89,6 +90,7 @@ Future<void> main() async {
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
       if (handler != null) {
         await handler.service(request);
+        await redisCacheProvider.close();
       } else {
         await legacyBackendProxyHandler.service(request);
       }

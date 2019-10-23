@@ -23,7 +23,7 @@ import '../service/datastore.dart';
 class UpdateStatusCache extends RequestHandler<Body> {
   const UpdateStatusCache(
     Config config, {
-    this.cacheProvider,
+    this.cache,
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusProvider buildStatusProvider,
@@ -34,7 +34,7 @@ class UpdateStatusCache extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusProvider buildStatusProvider;
 
-  final CacheProvider<List<int>> cacheProvider;
+  final Cache<List<int>> cache;
 
   @override
   Future<Body> get() async {
@@ -60,22 +60,17 @@ class UpdateStatusCache extends RequestHandler<Body> {
 
     final Body response = Body.forJson(jsonResponse);
 
-    if (cacheProvider != null) {
-      await updateCache(jsonResponse);
-    }
+    await updateCache(jsonResponse);
 
     return response;
   }
 
   Future<void> updateCache(Map<String, dynamic> jsonResponse) async {
-    final Cache<List<int>> cache = Cache<List<int>>(cacheProvider);
-    final Cache<String> statusCache =
+    final Cache<String> responseCache =
         cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
-    await statusCache['get-status']
+    await responseCache['get-status']
         .set(jsonEncode(jsonResponse), const Duration(hours: 1));
-
-    await cacheProvider.close();
   }
 
   static bool _isVisible(Agent agent) => !agent.isHidden;

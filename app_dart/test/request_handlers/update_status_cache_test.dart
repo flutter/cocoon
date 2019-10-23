@@ -9,6 +9,8 @@ import 'package:cocoon_service/src/request_handlers/update_status_cache.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:neat_cache/cache_provider.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -21,21 +23,35 @@ void main() {
     FakeDatastoreDB db;
     FakeBuildStatusProvider buildStatusProvider;
     UpdateStatusCache handler;
+    CacheProvider<List<int>> cacheProvider;
+    Cache<List<int>> cache;
 
     Future<Object> decodeHandlerBody() async {
       final Body body = await handler.get();
       return utf8.decoder.bind(body.serialize()).transform(json.decoder).single;
     }
 
-    setUp(() {
+    setUp(() async {
       config = FakeConfig();
-      buildStatusProvider = FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
+      buildStatusProvider =
+          FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
+      cacheProvider = Cache.inMemoryCacheProvider(16);
+      cache = Cache<List<int>>(cacheProvider);
+
+      final Cache<String> responseCache = cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
+      await responseCache['get-status'].set('i am a json response');
+
       handler = UpdateStatusCache(
         config,
+        cache: cache,
         datastoreProvider: () => DatastoreService(db: db),
         buildStatusProvider: buildStatusProvider,
       );
+    });
+
+    tearDown(() async {
+      await cacheProvider.close();
     });
 
     test('no statuses or agents', () async {
