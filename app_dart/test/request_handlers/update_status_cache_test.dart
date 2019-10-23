@@ -39,7 +39,8 @@ void main() {
       cacheProvider = Cache.inMemoryCacheProvider(16);
       cache = Cache<List<int>>(cacheProvider);
 
-      final Cache<String> responseCache = cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
+      final Cache<String> responseCache =
+          cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
       await responseCache['get-status'].set('i am a json response');
 
       handler = UpdateStatusCache(
@@ -88,6 +89,33 @@ void main() {
       ];
 
       expect(result['AgentStatuses'], equals(expectedOrderedAgents));
+    });
+
+    test('stores response in cache', () async {
+      final Agent linux1 = Agent(agentId: 'linux1');
+      final Agent mac1 = Agent(agentId: 'mac1');
+      final Agent linux100 = Agent(agentId: 'linux100');
+      final Agent linux5 = Agent(agentId: 'linux5');
+      final Agent windows1 = Agent(agentId: 'windows1', isHidden: true);
+
+      final List<Agent> reportedAgents = <Agent>[
+        linux1,
+        mac1,
+        linux100,
+        linux5,
+        windows1,
+      ];
+
+      db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
+      final Map<String, dynamic> result = await decodeHandlerBody();
+
+      final Cache<String> responseCache =
+          cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
+
+      final String storedValue = await responseCache['get-status'].get();
+      final Map<String, dynamic> storedJsonResponse = jsonDecode(storedValue);
+
+      expect(storedJsonResponse, result);
     });
   });
 }
