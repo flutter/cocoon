@@ -12,7 +12,14 @@ import 'package:cocoon_service/cocoon_service.dart';
 
 import 'body.dart';
 
-/// A class based on [RequestHandler] for serving cached responses.
+/// A [RequestHandler] for serving cached responses.
+/// 
+/// High trafficked endpoints that have responses that do not change
+/// based on request are good for caching. Additionally, saves
+/// reading from Datastore which is expensive both timewise and monetarily.
+/// 
+/// Implementing requires a writer that will keep [responseKey] in the cache updated.
+/// This should be [fallbackHandler], but does not need to be.
 @immutable
 class CachedRequestHandler extends RequestHandler<Body> {
   /// Creates a new [CachedRequestHandler].
@@ -20,10 +27,10 @@ class CachedRequestHandler extends RequestHandler<Body> {
       {@required Config config, @required this.cache})
       : super(config: config);
 
-  /// The key in the subcache for responses that stores this cached response.
+  /// The key in the subcache for responses that stores this response.
   final String responseKey;
 
-  /// [RequestHandler] that updates the cache.
+  /// [RequestHandler] that queries Datastore for 
   final RequestHandler<Body> fallbackHandler;
 
   final Cache<List<int>> cache;

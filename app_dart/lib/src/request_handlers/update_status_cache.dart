@@ -57,13 +57,15 @@ class UpdateStatusCache extends RequestHandler<Body> {
       'AgentStatuses': agents,
     };
 
-    final Body response = Body.forJson(jsonResponse);
-
     await updateCache(jsonResponse);
 
+    final Body response = Body.forJson(jsonResponse);
+
+    // Return the response in case this is being used as a fallback
     return response;
   }
 
+  /// Store [jsonResponse] from [get] in the caching service.
   Future<void> updateCache(Map<String, dynamic> jsonResponse) async {
     final Cache<String> responseCache =
         cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
