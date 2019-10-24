@@ -17,9 +17,6 @@ import 'body.dart';
 /// High trafficked endpoints that have responses that do not change
 /// based on request are good for caching. Additionally, saves
 /// reading from Datastore which is expensive both timewise and monetarily.
-///
-/// Implementing requires a writer that will keep [responseKey] in the cache updated.
-/// This should be [fallbackDelegate], but does not need to be.
 @immutable
 class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CachedRequestHandler].
