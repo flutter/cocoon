@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -37,16 +37,35 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Services a cached request.
   @override
   Future<T> get() async {
-    final Cache<String> responseCache =
-        cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
+    final Cache<List<int>> responseCache =
+        cache.withPrefix(await config.redisResponseSubcache);
 
-    final String cachedResponse = await responseCache[request.uri.path].get();
+    final List<int> cachedResponse =
+        await responseCache[request.uri.path].get();
 
     if (cachedResponse != null) {
-      final Map<String, dynamic> jsonResponse = jsonDecode(cachedResponse);
-      return Body.forJson(jsonResponse);
+      final Stream<Uint8List> response =
+          Stream<Uint8List>.fromIterable(cachedResponse.cast<Uint8List>());
+      return Body.forStream(response);
     } else {
-      return fallbackDelegate.get();
+      final Body body = await fallbackDelegate.get();
+      await updateCache(body);
+
+      return body;
     }
+  }
+
+  /// Update cache with the latest response.
+  ///
+  /// This response will be served for the next minute of requests.
+  Future<void> updateCache(Body body) async {
+    final Cache<List<int>> responseCache =
+        cache.withPrefix(await config.redisResponseSubcache);
+
+    final List<int> serializedBody =
+        await body.serialize().cast<int>().toList();
+
+    await responseCache[request.uri.path]
+        .set(serializedBody, const Duration(minutes: 1));
   }
 }
