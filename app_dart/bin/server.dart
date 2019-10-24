@@ -7,8 +7,6 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:neat_cache/cache_provider.dart';
-import 'package:neat_cache/neat_cache.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
@@ -22,8 +20,7 @@ Future<void> main() async {
       accessTokenProvider: AccessTokenProvider(config),
     );
 
-    final CacheProvider<List<int>> redisCacheProvider = Cache.redisCacheProvider(await config.redisUrl);
-    final Cache<List<int>> redisCache = Cache<List<int>>(redisCacheProvider);
+    final CacheService cacheService = CacheService(config);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -51,7 +48,11 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CachedRequestHandler<Body>(delegate: GetStatus(config), config: config, cache: redisCache),
+      '/api/public/get-status': CachedRequestHandler<Body>(
+        cache: await cacheService.redisCache(),
+        config: config,
+        delegate: GetStatus(config), 
+      ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
 

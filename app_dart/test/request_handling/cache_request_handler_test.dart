@@ -2,11 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mockito/mockito.dart';
-import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
@@ -22,12 +20,11 @@ void main() {
     FakeConfig config;
     RequestHandlerTester tester;
 
-    CacheProvider<List<int>> cacheProvider;
-    Cache<List<int>> cache;
+    Cache<Uint8List> cache;
 
     const String testHttpPath = '/cache_request_handler_test';
 
-    setUp(() {
+    setUp(() async {
       config =
           FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
       tester = RequestHandlerTester(
@@ -35,35 +32,32 @@ void main() {
         path: testHttpPath,
       ));
 
-      cacheProvider = Cache.inMemoryCacheProvider(16);
-      cache = Cache<List<int>>(cacheProvider);
+      final CacheService cacheService = CacheService(config);
+      cache = await cacheService.inMemoryCache(4);
     });
-
-    Future<String> _decodeHandlerBody(Body body) {
-      return utf8.decoder.bind(body.serialize()).first;
-    }
 
     test('returns response from cache', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final Cache<List<int>> responseCache =
+      final Cache<Uint8List> responseCache =
           cache.withPrefix(await config.redisResponseSubcache);
 
       const String expectedResponse = 'Hello, World!';
       final Body expectedBody = Body.forString(expectedResponse);
 
-      final List<Uint8List> serializedBody =
-          await expectedBody.serialize().toList();
+      final Uint8List serializedBody =
+          await expectedBody.serialize().first;
 
-      await responseCache['$testHttpPath:'].set(serializedBody.cast<int>());
+      await responseCache['$testHttpPath:'].set(serializedBody);
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(
               delegate: fallbackHandlerMock, cache: cache, config: config);
 
       final Body body = await tester.get(cacheRequestHandler);
-      final String response = await _decodeHandlerBody(body);
-
+      Stream<Uint8List> stream = body.serialize();
+      final Uint8List serialized = await stream.first;
+      final String response = serialized.cast<String>().first;
       expect(response, expectedResponse);
     });
 
@@ -71,7 +65,7 @@ void main() {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
       // ignore: invalid_use_of_protected_member
       when(fallbackHandlerMock.get())
-          .thenAnswer((_) => Future<Body>.value(Body.forString('')));
+          .thenAnswer((_) => Future<Body>.value(Body.forString('hello!')));
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(

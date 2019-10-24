@@ -32,7 +32,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// [RequestHandler] to fallback on for cache misses.
   final RequestHandler<T> delegate;
 
-  final Cache<List<int>> cache;
+  final Cache<Uint8List> cache;
 
   /// The time to live for the response stored in the cache.
   final Duration ttl;
@@ -40,12 +40,11 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Services a cached request.
   @override
   Future<T> get() async {
-    final Cache<List<int>> responseCache =
+    final Cache<Uint8List> responseCache =
         cache.withPrefix(await config.redisResponseSubcache);
 
     final String responseKey = '${request.uri.path}:${request.uri.query}';
-    final List<int> cachedResponse =
-        await responseCache[responseKey].get();
+    final Uint8List cachedResponse = await responseCache[responseKey].get();
 
     if (cachedResponse != null) {
       final Stream<Uint8List> response =
@@ -63,10 +62,9 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   /// This response will be served for the next minute of requests.
   Future<void> updateCache(Cache<List<int>> responseCache, Body body) async {
-      final List<Uint8List> serializedBody =
-          await body.serialize().toList();
+    final Uint8List serializedBody = await body.serialize().first;
 
     final String responseKey = '${request.uri.path}:${request.uri.query}';
-    await responseCache[responseKey].set(serializedBody.cast<int>(), ttl);
+    await responseCache[responseKey].set(serializedBody, ttl);
   }
 }
