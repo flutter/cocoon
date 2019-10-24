@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pedantic/pedantic.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../request_handling/request_handler.dart';
@@ -46,7 +47,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
       return Body.forStream(response);
     } else {
       final Body body = await fallbackDelegate.get();
-      await updateCache(responseCache, body);
+      unawaited(updateCache(responseCache, body));
 
       return body;
     }
