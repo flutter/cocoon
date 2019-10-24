@@ -155,6 +155,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.10"
+  dartis:
+    dependency: transitive
+    description:
+      name: dartis
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   dbcrypt:
     dependency: "direct main"
     description:
@@ -358,6 +365,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  neat_cache:
+    dependency: "direct main"
+    description:
+      name: neat_cache
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   node_preamble:
     dependency: transitive
     description:
@@ -428,6 +442,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.5"
+  retry:
+    dependency: transitive
+    description:
+      name: retry
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0+1"
   shelf:
     dependency: transitive
     description:
