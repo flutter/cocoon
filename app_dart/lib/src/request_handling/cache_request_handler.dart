@@ -46,7 +46,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
       return Body.forStream(response);
     } else {
       final Body body = await fallbackDelegate.get();
-      await updateCache(body);
+      await updateCache(responseCache, body);
 
       return body;
     }
@@ -55,10 +55,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Update cache with the latest response.
   ///
   /// This response will be served for the next minute of requests.
-  Future<void> updateCache(Body body) async {
-    final Cache<List<int>> responseCache =
-        cache.withPrefix(await config.redisResponseSubcache);
-
+  Future<void> updateCache(Cache<List<int>> responseCache, Body body) async {
     final List<int> serializedBody =
         await body.serialize().cast<int>().toList();
 
