@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mockito/mockito.dart';
@@ -55,10 +56,9 @@ void main() {
               delegate: fallbackHandlerMock, cache: cache, config: config);
 
       final Body body = await tester.get(cacheRequestHandler);
-      Stream<Uint8List> stream = body.serialize();
-      final Uint8List serialized = await stream.first;
-      final String response = serialized.cast<String>().first;
-      expect(response, expectedResponse);
+      final Uint8List response = await body.serialize().first;
+      final String strResponse = String.fromCharCodes(response);
+      expect(strResponse, expectedResponse);
     });
 
     test('fallback handler called when cache is empty', () async {

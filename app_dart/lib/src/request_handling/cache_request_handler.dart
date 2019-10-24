@@ -48,7 +48,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
 
     if (cachedResponse != null) {
       final Stream<Uint8List> response =
-          Stream<Uint8List>.fromIterable(cachedResponse.cast<Uint8List>());
+          Stream<Uint8List>.value(cachedResponse);
       return Body.forStream(response);
     } else {
       final Body body = await delegate.get();
