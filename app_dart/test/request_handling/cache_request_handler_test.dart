@@ -69,6 +69,9 @@ void main() {
 
     test('fallback handler called when cache is empty', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
+      // ignore: invalid_use_of_protected_member
+      when(fallbackHandlerMock.get())
+          .thenReturn(Future<Body>.value(Body.forString('')));
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(
