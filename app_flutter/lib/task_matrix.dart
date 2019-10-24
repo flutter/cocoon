@@ -6,26 +6,25 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
-/// Matrix to handle data operations on [List<CommitStatus>], such as retrieving
-/// a [Task] and ordering [List<CommitStatus>].
+/// Simplify [List<CommitStatus>] for easy retrieval of tasks and ordering of columns.
 ///
-/// An internal column map is maintained to allow easy reordering of [List<Column>].
-/// Additional operations after construction only modify this column map.
+/// Construction performs the following steps:
+///   1. Scan through every [Task] in [List<CommitStatus>] to find all unique
+///      columns in the matrix. Uniqueness is defined by the key "[Task.stageName]:[Task.name]".
+///   2. Construct an empty [List<Column>] based on the size given from (1).
+///   3. Scan through [List<CommitStatus>] again, but insert every [Task] into
+///      their associated [Column] at the row they appear in.
+///      A. If a [Column.sampleTask] is null, set it to this [Task].
 ///
 /// The columns of the matrix can be sorted by passing a custom comparator function.
-/// [Column] stores a list of [Task] and [Column.key] is the stage name and task name
-/// of the tasks in it. This comparator function will generate values for all of the
-/// columns, and compare them in O(nlogn) time where n is the number of columns.
 /// Note that the runtime of this sort is mostly the runtime of the comparator function
 /// performed O(nlogn) times.
 ///
 /// On addition of a new [CommitStatus], or modification of an existing [CommitStatus],
 /// this needs to be rebuilt.
 ///
-/// Construction flattens the list of [CommitStatus] from many [Stage] objects,
-/// where each [Stage] object maps to many [Task] objects, to a 2D matrix.
-/// Simplifies logic further by moving related [Task] into a [Column], so the
-/// matrix is composed of just a list of columns.
+/// An internal column map is maintained to allow easy reordering of [List<Column>].
+/// Additional operations after construction only modify this column map.
 class TaskMatrix {
   TaskMatrix({@required this.statuses}) {
     _columnKeyIndex = createColumnKeyIndex();
