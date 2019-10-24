@@ -8,8 +8,8 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-import 'package:cocoon_service/cocoon_service.dart';
-
+import '../datastore/cocoon_config.dart';
+import '../request_handling/request_handler.dart';
 import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.
@@ -19,11 +19,11 @@ import 'body.dart';
 /// reading from Datastore which is expensive both timewise and monetarily.
 /// 
 /// Implementing requires a writer that will keep [responseKey] in the cache updated.
-/// This should be [fallbackHandler], but does not need to be.
+/// This should be [fallbackDelegate], but does not need to be.
 @immutable
 class CachedRequestHandler extends RequestHandler<Body> {
   /// Creates a new [CachedRequestHandler].
-  const CachedRequestHandler(this.responseKey, this.fallbackHandler,
+  const CachedRequestHandler(this.responseKey, this.fallbackDelegate,
       {@required Config config, @required this.cache})
       : super(config: config);
 
@@ -31,7 +31,7 @@ class CachedRequestHandler extends RequestHandler<Body> {
   final String responseKey;
 
   /// [RequestHandler] that queries Datastore for 
-  final RequestHandler<Body> fallbackHandler;
+  final RequestHandler<Body> fallbackDelegate;
 
   final Cache<List<int>> cache;
 
@@ -47,7 +47,7 @@ class CachedRequestHandler extends RequestHandler<Body> {
       final Map<String, dynamic> jsonResponse = jsonDecode(cachedResponse);
       return Body.forJson(jsonResponse);
     } else {
-      return fallbackHandler.get();
+      return fallbackDelegate.get();
     }
   }
 }
