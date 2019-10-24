@@ -25,8 +25,6 @@ Future<void> main() async {
     final CacheProvider<List<int>> redisCacheProvider = Cache.redisCacheProvider(await config.redisUrl);
     final Cache<List<int>> redisCache = Cache<List<int>>(redisCacheProvider);
 
-    final RequestHandler<dynamic> updateStatusHandler = UpdateStatusCache(config, cache: redisCache);
-
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
@@ -53,11 +51,8 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CachedRequestHandler<Body>(fallbackDelegate: updateStatusHandler, config: config, cache: redisCache),
+      '/api/public/get-status': CachedRequestHandler<Body>(fallbackDelegate: GetStatus(config), config: config, cache: redisCache),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
-
-      /// Cache updating cron job endpoints
-      '/api/public/update-status': updateStatusHandler,
     };
 
     final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
