@@ -53,7 +53,7 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CachedRequestHandler('get-status', updateStatusHandler, config: config, cache: redisCache),
+      '/api/public/get-status': CachedRequestHandler<Body>(fallbackDelegate: updateStatusHandler, config: config, cache: redisCache),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
 
       /// Cache updating cron job endpoints

@@ -74,7 +74,7 @@ class UpdateStatusCache extends RequestHandler<Body> {
     final Cache<String> responseCache =
         cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
 
-    await responseCache['get-status']
+    await responseCache[request.uri.path]
         .set(jsonEncode(jsonResponse), const Duration(hours: 1));
   }
 
