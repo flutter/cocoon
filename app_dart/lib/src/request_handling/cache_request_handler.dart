@@ -24,13 +24,17 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   const CachedRequestHandler(
       {@required this.fallbackDelegate,
       @required Config config,
-      @required this.cache})
-      : super(config: config);
+      @required this.cache,
+      Duration timeToLiveValue})
+      : timeToLive = timeToLiveValue ?? const Duration(minutes: 1),
+        super(config: config);
 
   /// [RequestHandler] that queries Datastore for the response.
   final RequestHandler<T> fallbackDelegate;
 
   final Cache<List<int>> cache;
+
+  final Duration timeToLive;
 
   /// Services a cached request.
   @override
@@ -60,7 +64,6 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
     final List<int> serializedBody =
         await body.serialize().cast<int>().toList();
 
-    await responseCache[request.uri.path]
-        .set(serializedBody, const Duration(minutes: 1));
+    await responseCache[request.uri.path].set(serializedBody, timeToLive);
   }
 }
