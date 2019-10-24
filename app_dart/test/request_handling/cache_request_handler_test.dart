@@ -76,6 +76,9 @@ void main() {
               cache: cache,
               config: config);
 
+      // ignore: invalid_use_of_protected_member
+      verifyNever(fallbackHandlerMock.get());
+
       await tester.get(cacheRequestHandler);
 
       // ignore: invalid_use_of_protected_member
