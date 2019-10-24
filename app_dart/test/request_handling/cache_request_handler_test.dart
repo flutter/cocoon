@@ -43,12 +43,16 @@ void main() {
     test('returns response from cache', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final Cache<String> responseCache =
-          cache.withPrefix(await config.redisResponseSubcache).withCodec(utf8);
-      await responseCache[testHttpPath].set('{"hello": "world"}');
+      final Cache<List<int>> responseCache =
+          cache.withPrefix(await config.redisResponseSubcache);
       final Map<String, dynamic> expectedJsonResponse = <String, dynamic>{
         'hello': 'world'
       };
+      final Body expectedBody = Body.forJson(expectedJsonResponse);
+      final List<int> serializedBody =
+          await expectedBody.serialize().cast<int>().toList();
+
+      await responseCache[testHttpPath].set(serializedBody);
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(
@@ -66,8 +70,11 @@ void main() {
     test('fallback handler called when cache is empty', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final CachedRequestHandler<Body> cacheRequestHandler = CachedRequestHandler<Body>(
-          fallbackDelegate: fallbackHandlerMock, cache: cache, config: config);
+      final CachedRequestHandler<Body> cacheRequestHandler =
+          CachedRequestHandler<Body>(
+              fallbackDelegate: fallbackHandlerMock,
+              cache: cache,
+              config: config);
 
       await tester.get(cacheRequestHandler);
 
