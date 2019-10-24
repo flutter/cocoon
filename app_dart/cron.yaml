@@ -19,4 +19,3 @@ cron:
 - description: refresh github CI status (cirrus)
   url: /api/refresh-cirrus-status
   schedule: every 2 minutes
-  
