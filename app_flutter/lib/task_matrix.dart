@@ -13,8 +13,11 @@ import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 ///      columns in the matrix. Uniqueness is defined by the key "[Task.stageName]:[Task.name]".
 ///   2. Construct an empty [List<Column>] based on the size given from (1).
 ///   3. Scan through [List<CommitStatus>] again, but insert every [Task] into
-///      their associated [Column] at the row they appear in.
-///      A. If a [Column.sampleTask] is null, set it to this [Task].
+///      their associated [Column]. Insert the task based on the row it appears in
+///      [List<CommitStatus>], which is just the index in the list it appears in.
+///      For example, a task from the 3rd row will be inserted into the 3rd row of [Column.tasks].
+///      A. If a [Column.sampleTask] is null, set it to the first [Task] found
+///         for that [Column].
 ///
 /// The columns of the matrix can be sorted by passing a custom comparator function.
 /// Note that the runtime of this sort is mostly the runtime of the comparator function
