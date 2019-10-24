@@ -51,7 +51,7 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CachedRequestHandler<Body>(fallbackDelegate: GetStatus(config), config: config, cache: redisCache),
+      '/api/public/get-status': CachedRequestHandler<Body>(delegate: GetStatus(config), config: config, cache: redisCache),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
 

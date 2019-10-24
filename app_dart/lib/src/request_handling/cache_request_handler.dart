@@ -15,26 +15,27 @@ import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.
 ///
-/// High trafficked endpoints that have responses that do not change
+/// High traffic endpoints that have responses that do not change
 /// based on request are good for caching. Additionally, saves
 /// reading from Datastore which is expensive both timewise and monetarily.
 @immutable
 class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CachedRequestHandler].
-  const CachedRequestHandler(
-      {@required this.fallbackDelegate,
-      @required Config config,
-      @required this.cache,
-      Duration timeToLiveValue})
-      : timeToLive = timeToLiveValue ?? const Duration(minutes: 1),
+  const CachedRequestHandler({
+    @required this.delegate,
+    @required Config config,
+    @required this.cache,
+    Duration ttlValue,
+  })  : ttl = ttlValue ?? const Duration(minutes: 1),
         super(config: config);
 
-  /// [RequestHandler] that queries Datastore for the response.
-  final RequestHandler<T> fallbackDelegate;
+  /// [RequestHandler] to fallback on for cache misses.
+  final RequestHandler<T> delegate;
 
   final Cache<List<int>> cache;
 
-  final Duration timeToLive;
+  /// The time to live for the response stored in the cache.
+  final Duration ttl;
 
   /// Services a cached request.
   @override
@@ -42,15 +43,16 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
     final Cache<List<int>> responseCache =
         cache.withPrefix(await config.redisResponseSubcache);
 
+    final String responseKey = '${request.uri.path}:${request.uri.query}';
     final List<int> cachedResponse =
-        await responseCache[request.uri.path].get();
+        await responseCache[responseKey].get();
 
     if (cachedResponse != null) {
       final Stream<Uint8List> response =
           Stream<Uint8List>.fromIterable(cachedResponse.cast<Uint8List>());
       return Body.forStream(response);
     } else {
-      final Body body = await fallbackDelegate.get();
+      final Body body = await delegate.get();
       unawaited(updateCache(responseCache, body));
 
       return body;
@@ -61,9 +63,10 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   /// This response will be served for the next minute of requests.
   Future<void> updateCache(Cache<List<int>> responseCache, Body body) async {
-    final List<int> serializedBody =
-        await body.serialize().cast<int>().toList();
+      final List<Uint8List> serializedBody =
+          await body.serialize().toList();
 
-    await responseCache[request.uri.path].set(serializedBody, timeToLive);
+    final String responseKey = '${request.uri.path}:${request.uri.query}';
+    await responseCache[responseKey].set(serializedBody.cast<int>(), ttl);
   }
 }

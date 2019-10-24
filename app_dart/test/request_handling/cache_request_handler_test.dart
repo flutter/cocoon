@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:mockito/mockito.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -29,8 +30,10 @@ void main() {
     setUp(() {
       config =
           FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
-      tester =
-          RequestHandlerTester(request: FakeHttpRequest(path: testHttpPath));
+      tester = RequestHandlerTester(
+          request: FakeHttpRequest(
+        path: testHttpPath,
+      ));
 
       cacheProvider = Cache.inMemoryCacheProvider(16);
       cache = Cache<List<int>>(cacheProvider);
@@ -45,26 +48,23 @@ void main() {
 
       final Cache<List<int>> responseCache =
           cache.withPrefix(await config.redisResponseSubcache);
-      final Map<String, dynamic> expectedJsonResponse = <String, dynamic>{
-        'hello': 'world'
-      };
-      final Body expectedBody = Body.forJson(expectedJsonResponse);
-      final List<int> serializedBody =
-          await expectedBody.serialize().cast<int>().toList();
 
-      await responseCache[testHttpPath].set(serializedBody);
+      const String expectedResponse = 'Hello, World!';
+      final Body expectedBody = Body.forString(expectedResponse);
+
+      final List<Uint8List> serializedBody =
+          await expectedBody.serialize().toList();
+
+      await responseCache['$testHttpPath:'].set(serializedBody.cast<int>());
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(
-              fallbackDelegate: fallbackHandlerMock,
-              cache: cache,
-              config: config);
+              delegate: fallbackHandlerMock, cache: cache, config: config);
 
       final Body body = await tester.get(cacheRequestHandler);
       final String response = await _decodeHandlerBody(body);
-      final Map<String, dynamic> jsonResponse = jsonDecode(response);
 
-      expect(jsonResponse, expectedJsonResponse);
+      expect(response, expectedResponse);
     });
 
     test('fallback handler called when cache is empty', () async {
@@ -75,9 +75,7 @@ void main() {
 
       final CachedRequestHandler<Body> cacheRequestHandler =
           CachedRequestHandler<Body>(
-              fallbackDelegate: fallbackHandlerMock,
-              cache: cache,
-              config: config);
+              delegate: fallbackHandlerMock, cache: cache, config: config);
 
       // ignore: invalid_use_of_protected_member
       verifyNever(fallbackHandlerMock.get());
