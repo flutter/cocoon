@@ -46,24 +46,17 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     final Uint8List cachedResponse = await responseCache[responseKey].get();
 
     if (cachedResponse != null) {
-      final Stream<Uint8List> response =
-          Stream<Uint8List>.value(cachedResponse);
-      return Body.forStream(response);
+      return Body.forStream(Stream<Uint8List>.value(cachedResponse));
     } else {
       final Body body = await delegate.get();
-      unawaited(updateCache(responseCache, body));
+      final List<int> rawBytes = await body
+          .serialize()
+          .expand<int>((Uint8List chunk) => chunk)
+          .toList();
+      final Uint8List bytes = Uint8List.fromList(rawBytes);
+      unawaited(responseCache[responseKey].set(bytes, ttl));
 
       return body;
     }
-  }
-
-  /// Update cache with the latest response.
-  ///
-  /// This response will be served for the next [ttl] duration of requests.
-  Future<void> updateCache(Cache<List<int>> responseCache, Body body) async {
-    final Uint8List serializedBody = await body.serialize().first;
-
-    final String responseKey = '${request.uri.path}:${request.uri.query}';
-    await responseCache[responseKey].set(serializedBody, ttl);
   }
 }

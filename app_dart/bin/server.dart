@@ -48,7 +48,7 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': CachedRequestHandler<Body>(
+      '/api/public/get-status': CacheRequestHandler<Body>(
         cache: await cacheService.redisCache(),
         config: config,
         delegate: GetStatus(config), 

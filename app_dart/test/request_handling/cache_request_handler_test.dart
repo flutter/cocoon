@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mockito/mockito.dart';
@@ -56,7 +57,7 @@ void main() {
 
       final Body body = await tester.get(cacheRequestHandler);
       final Uint8List response = await body.serialize().first;
-      final String strResponse = String.fromCharCodes(response);
+      final String strResponse = utf8.decode(response);
       expect(strResponse, expectedResponse);
     });
 
