@@ -50,8 +50,8 @@ void main() {
 
       await responseCache['$testHttpPath:'].set(serializedBody);
 
-      final CachedRequestHandler<Body> cacheRequestHandler =
-          CachedRequestHandler<Body>(
+      final CacheRequestHandler<Body> cacheRequestHandler =
+          CacheRequestHandler<Body>(
               delegate: fallbackHandlerMock, cache: cache, config: config);
 
       final Body body = await tester.get(cacheRequestHandler);
@@ -66,8 +66,8 @@ void main() {
       when(fallbackHandlerMock.get())
           .thenAnswer((_) => Future<Body>.value(Body.forString('hello!')));
 
-      final CachedRequestHandler<Body> cacheRequestHandler =
-          CachedRequestHandler<Body>(
+      final CacheRequestHandler<Body> cacheRequestHandler =
+          CacheRequestHandler<Body>(
               delegate: fallbackHandlerMock, cache: cache, config: config);
 
       // ignore: invalid_use_of_protected_member

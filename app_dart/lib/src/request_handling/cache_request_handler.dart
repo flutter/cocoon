@@ -19,15 +19,14 @@ import 'body.dart';
 /// based on request are good for caching. Additionally, saves
 /// reading from Datastore which is expensive both timewise and monetarily.
 @immutable
-class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
-  /// Creates a new [CachedRequestHandler].
-  const CachedRequestHandler({
+class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
+  /// Creates a new [CacheRequestHandler].
+  const CacheRequestHandler({
     @required this.delegate,
     @required Config config,
     @required this.cache,
-    Duration ttlValue,
-  })  : ttl = ttlValue ?? const Duration(minutes: 1),
-        super(config: config);
+    this.ttl = const Duration(minutes: 1),
+  }) : super(config: config);
 
   /// [RequestHandler] to fallback on for cache misses.
   final RequestHandler<T> delegate;
