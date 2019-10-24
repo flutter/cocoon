@@ -60,7 +60,7 @@ class CachedRequestHandler<T extends Body> extends RequestHandler<T> {
 
   /// Update cache with the latest response.
   ///
-  /// This response will be served for the next minute of requests.
+  /// This response will be served for the next [ttl] duration of requests.
   Future<void> updateCache(Cache<List<int>> responseCache, Body body) async {
     final Uint8List serializedBody = await body.serialize().first;
 
