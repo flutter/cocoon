@@ -15,6 +15,9 @@ task:
   
 task:
   name: app_flutter
+  upgrade_script:
+  - flutter channel dev
+  - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
   analyze_script: cd app_flutter && flutter analyze
   test_script: cd app_flutter && flutter test
