@@ -61,7 +61,7 @@ import 'exceptions.dart';
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is a whitelisted account in the Cocoon backend.
 ///
-/// If none of the three authentication methods yielded an authenticated
+/// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
 /// [authenticate] will throw an [Unauthenticated] exception.
 ///
