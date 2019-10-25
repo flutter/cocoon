@@ -34,5 +34,6 @@ export 'src/request_handling/body.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
 export 'src/request_handling/static_file_handler.dart';
+export 'src/service/access_client_provider.dart';
 export 'src/service/access_token_provider.dart';
 export 'src/service/buildbucket.dart';

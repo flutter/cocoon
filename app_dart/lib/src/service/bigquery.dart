@@ -8,19 +8,17 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
 import 'access_client_provider.dart';
 
 @immutable
 class BigqueryService {
-  const BigqueryService(this.config) : assert(config != null);
+  const BigqueryService(this.accessClientProvider) : assert(accessClientProvider != null);
 
   /// The Cocoon configuration.
-  final Config config;
+  final AccessClientProvider accessClientProvider;
 
   /// Return a [TabledataResourceApi] with an authenticated [client]
   Future<TabledataResourceApi> defaultTabledata() async {
-      final AccessClientProvider accessClientProvider = AccessClientProvider(config);
       final Client client = await accessClientProvider.createAccessClient(
       scopes: const <String>[
         BigqueryApi.BigqueryScope

@@ -11,16 +11,21 @@ import '../datastore/cocoon_config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 
 @immutable
 class UpdateAgentHealthHistory
     extends ApiRequestHandler<UpdateAgentHealthHistoryResponse> {
   UpdateAgentHealthHistory(
-      Config config, AuthenticationProvider authenticationProvider,
+      Config config,
+      AuthenticationProvider authenticationProvider,
+      AccessClientProvider accessClientProvider,
       {@visibleForTesting BigqueryService bigqueryApi})
-      : bigqueryApi = bigqueryApi ?? BigqueryService(config),
-        super(config: config, authenticationProvider: authenticationProvider);
+      : bigqueryApi = bigqueryApi ?? BigqueryService(accessClientProvider),
+        super(
+            config: config,
+            authenticationProvider: authenticationProvider);
 
   final BigqueryService bigqueryApi;
 
