@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -16,12 +17,13 @@ import '../service/bigquery.dart';
 @immutable
 class UpdateAgentHealthHistory
     extends ApiRequestHandler<UpdateAgentHealthHistoryResponse> {
-  const UpdateAgentHealthHistory(
+  UpdateAgentHealthHistory(
       Config config, AuthenticationProvider authenticationProvider,
-      {@visibleForTesting this.bigqueryApi = BigqueryService.defaultProvider})
-      : super(config: config, authenticationProvider: authenticationProvider);
+      {@visibleForTesting BigqueryService bigqueryApi})
+      : bigqueryApi = bigqueryApi ?? BigqueryService(config),
+        super(config: config, authenticationProvider: authenticationProvider);
 
-  final BigqueryServiceProvider bigqueryApi;
+  final BigqueryService bigqueryApi;
 
   static const String agentIdParam = 'AgentID';
   static const String statusParam = 'Status';
@@ -35,8 +37,8 @@ class UpdateAgentHealthHistory
     final String agentId = requestData[agentIdParam];
     final String status = requestData[statusParam];
     final String healthDetails = requestData[healthDetailsParam];
-    final BigqueryService bigquery = bigqueryApi();
-
+    final TabledataResourceApi tabledataResource =
+        await bigqueryApi.defaultTabledata();
     final TableDataInsertAllRequest rows =
         TableDataInsertAllRequest.fromJson(<String, Object>{
       'rows': <Map<String, Object>>[
@@ -51,10 +53,8 @@ class UpdateAgentHealthHistory
       ],
     });
 
-    final TableDataInsertAllResponse response = await bigquery.tabledataResource
+    final TableDataInsertAllResponse response = await tabledataResource
         .insertAll(rows, 'flutter-dashboard', 'cocoon', 'AgentStatus');
-    //final TableDataList list = await bigquery.tabledataResource
-    //    .list('flutter-dashboard', 'cocoon', 'checklist');
 
     return UpdateAgentHealthHistoryResponse(response);
   }

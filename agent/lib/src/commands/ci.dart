@@ -71,10 +71,14 @@ class ContinuousIntegrationCommand extends Command {
           // Check health before requesting a new task.
           health = await performHealthChecks(agent);
 
-          // Always upload health status whether succeeded or failed.
+          /// Always upload health status to [datastore] whether succeeded or failed.
+          ///
+          /// This keeps only latest status
           await agent.updateHealthStatus(health);
 
-          // Always upload health stats whether succeeded or failed.
+          /// Always upload health stats to [bigquery] whether succeeded or failed.
+          /// 
+          /// This keeps the whole status history
           await agent.updateHealthStatusHistory(health);
 
           if (!health.ok) {
