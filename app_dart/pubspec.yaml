@@ -23,6 +23,7 @@ dependencies:
   json_annotation: ^3.0.0
   meta: ^1.1.7
   mime: ^0.9.0
+  neat_cache: ^1.0.1
   protobuf: ^0.13.15
   yaml: ^2.1.16
 

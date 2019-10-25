@@ -20,6 +20,8 @@ Future<void> main() async {
       accessTokenProvider: AccessTokenProvider(config),
     );
 
+    final CacheService cacheService = CacheService(config);
+
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
@@ -46,7 +48,11 @@ Future<void> main() async {
 
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': GetBenchmarks(config),
-      '/api/public/get-status': GetStatus(config),
+      '/api/public/get-status': CacheRequestHandler<Body>(
+        cache: await cacheService.redisCache(),
+        config: config,
+        delegate: GetStatus(config), 
+      ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
 
