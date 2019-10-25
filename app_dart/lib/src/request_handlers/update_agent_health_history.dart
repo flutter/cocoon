@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
