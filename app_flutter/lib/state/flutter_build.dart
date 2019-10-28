@@ -25,6 +25,7 @@ class FlutterBuildState extends ChangeNotifier {
   /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService _cocoonService;
 
+  /// Authentication service for managing Google Sign In.
   final AuthenticationService authenticationService;
 
   /// How often to query the Cocoon backend for the current build state.
