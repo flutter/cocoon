@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/service/authentication.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in_all/google_sign_in_all.dart';
 import 'package:provider/provider.dart';
 
 import 'state/flutter_build.dart';
@@ -17,6 +17,7 @@ class BuildDashboardPage extends StatefulWidget {
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
   final FlutterBuildState buildState = FlutterBuildState();
+  final AuthenticationService authService = AuthenticationService();
 
   @override
   void initState() {
@@ -43,23 +44,6 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
-  final GoogleSignIn _googleSignIn = setupGoogleSignIn(
-    scopes: <String>[
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-    ],
-    webClientId: 'github blocks me from putting you here :(',
-  );
-
-  Future<void> onSignIn() async {
-    final AuthCredentials credentials = await _googleSignIn.signIn();
-    final GoogleAccount user = await _googleSignIn.getCurrentUser();
-
-    print(credentials.accessToken);
-    print(user.displayName);
-    print(user.email);
-  }
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -73,7 +57,7 @@ class BuildDashboard extends StatelessWidget {
           actions: <Widget>[
             RaisedButton(
               child: const Text('Sign In'),
-              onPressed: onSignIn,
+              onPressed: () {},
             )
           ],
         ),

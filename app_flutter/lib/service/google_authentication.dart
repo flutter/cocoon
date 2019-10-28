@@ -1,7 +1,12 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:app_flutter/service/authentication.dart';
 import 'package:google_sign_in_all/google_sign_in_all.dart';
 
-class GoogleAuthenticationService extends AuthenticationService {
+/// Authentication service class for authenticating with Google Sign In.
+class GoogleAuthenticationService implements AuthenticationService {
   GoogleAuthenticationService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             setupGoogleSignIn(
@@ -10,17 +15,31 @@ class GoogleAuthenticationService extends AuthenticationService {
                 'https://www.googleapis.com/auth/userinfo.profile',
               ],
               webClientId: 'github blocks me from putting you here :(',
-            ),
-        super();
+            );
 
-  GoogleSignIn _googleSignIn;
+  final GoogleSignIn _googleSignIn;
 
-  AuthCredentials credentials;
+  AuthCredentials _credentials;
 
-  GoogleAccount user;
+  GoogleAccount _user;
 
   @override
-  Future<bool> signIn() {
-    return null;
+  bool get isAuthenticated => _credentials.accessToken != null;
+
+  @override
+  String get avatarUrl => _user.photoUrl;
+
+  @override
+  String get email => _user.email;
+
+  @override
+  String get accessToken => _credentials.accessToken;
+
+  @override
+  Future<bool> signIn() async {
+    _credentials = await _googleSignIn.signIn();
+    _user = await _googleSignIn.getCurrentUser();
+
+    return _credentials != null && _user != null;
   }
 }
