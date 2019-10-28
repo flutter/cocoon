@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:app_flutter/service/authentication.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus;
@@ -15,11 +16,16 @@ class FlutterBuildState extends ChangeNotifier {
   /// Creates a new [FlutterBuildState].
   ///
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
-  FlutterBuildState({CocoonService cocoonService})
-      : _cocoonService = cocoonService ?? CocoonService();
+  FlutterBuildState({
+    CocoonService cocoonService,
+    AuthenticationService authService,
+  })  : authenticationService = authService ?? AuthenticationService(),
+        _cocoonService = cocoonService ?? CocoonService();
 
   /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService _cocoonService;
+
+  final AuthenticationService authenticationService;
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting

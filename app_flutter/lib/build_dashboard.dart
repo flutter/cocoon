@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/service/authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,7 +16,6 @@ class BuildDashboardPage extends StatefulWidget {
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
   final FlutterBuildState buildState = FlutterBuildState();
-  final AuthenticationService authService = AuthenticationService();
 
   @override
   void initState() {
@@ -57,7 +55,7 @@ class BuildDashboard extends StatelessWidget {
           actions: <Widget>[
             RaisedButton(
               child: const Text('Sign In'),
-              onPressed: () {},
+              onPressed: () => buildState.authenticationService.signIn(),
             )
           ],
         ),
