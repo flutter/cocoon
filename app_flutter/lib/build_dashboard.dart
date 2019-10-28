@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'service/authentication.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
 
@@ -53,10 +54,7 @@ class BuildDashboard extends StatelessWidget {
               ? theme.primaryColor
               : theme.errorColor,
           actions: <Widget>[
-            RaisedButton(
-              child: const Text('Sign In'),
-              onPressed: () => buildState.authenticationService.signIn(),
-            )
+            UserAvatar(buildState: buildState),
           ],
         ),
         body: Column(
@@ -65,6 +63,31 @@ class BuildDashboard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Widget for displaying sign in information for the current user.
+///
+/// If logged in, it will display the user's avatar. Otherwise, it will show
+/// a button for sign in.
+class UserAvatar extends StatelessWidget {
+  const UserAvatar({@required this.buildState, Key key}) : super(key: key);
+
+  final FlutterBuildState buildState;
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthenticationService authenticationService =
+        buildState.authenticationService;
+
+    if (authenticationService.isAuthenticated) {
+      return Image.network(authenticationService.avatarUrl);
+    }
+
+    return FlatButton(
+      child: const Text('Sign in'),
+      onPressed: () => buildState.signIn(),
     );
   }
 }

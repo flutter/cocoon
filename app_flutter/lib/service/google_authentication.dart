@@ -14,9 +14,11 @@ class GoogleAuthenticationService implements AuthenticationService {
                 'https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/userinfo.profile',
               ],
-              webClientId: 'github blocks me from putting you here :(',
+              webClientId:
+                  '308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com',
             );
 
+  // TODO(chillers): Switch to official Flutter plugin when it supports web.
   final GoogleSignIn _googleSignIn;
 
   AuthCredentials _credentials;
@@ -24,22 +26,20 @@ class GoogleAuthenticationService implements AuthenticationService {
   GoogleAccount _user;
 
   @override
-  bool get isAuthenticated => _credentials.accessToken != null;
+  bool get isAuthenticated => _credentials?.accessToken != null;
 
   @override
-  String get avatarUrl => _user.photoUrl;
+  String get avatarUrl => _user?.photoUrl;
 
   @override
-  String get email => _user.email;
+  String get email => _user?.email;
 
   @override
-  String get accessToken => _credentials.accessToken;
+  String get accessToken => _credentials?.accessToken;
 
   @override
-  Future<bool> signIn() async {
+  Future<void> signIn() async {
     _credentials = await _googleSignIn.signIn();
     _user = await _googleSignIn.getCurrentUser();
-
-    return _credentials != null && _user != null;
   }
 }

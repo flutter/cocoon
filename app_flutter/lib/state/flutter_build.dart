@@ -75,6 +75,11 @@ class FlutterBuildState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> signIn() async {
+    await authenticationService.signIn();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     refreshTimer?.cancel();
