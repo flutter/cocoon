@@ -46,8 +46,17 @@ Future<void> main() async {
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
 
-      '/api/public/build-status': GetBuildStatus(config),
-      '/api/public/get-benchmarks': GetBenchmarks(config),
+      '/api/public/build-status': CacheRequestHandler<Body>(
+        cache: await cacheService.redisCache(),
+        config: config,
+        delegate: GetBuildStatus(config),
+      ),
+      '/api/public/get-benchmarks': CacheRequestHandler<Body>(
+        cache: await cacheService.redisCache(),
+        config: config,
+        delegate: GetBenchmarks(config),
+        ttl: const Duration(minutes: 15),
+      ),
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: await cacheService.redisCache(),
         config: config,
