@@ -9,17 +9,24 @@ import 'package:flutter/foundation.dart';
 import 'package:cocoon_service/protos.dart' show CommitStatus;
 
 import '../service/cocoon.dart';
+import '../service/google_authentication.dart';
 
 /// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
   /// Creates a new [FlutterBuildState].
   ///
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
-  FlutterBuildState({CocoonService cocoonService})
-      : _cocoonService = cocoonService ?? CocoonService();
+  FlutterBuildState({
+    CocoonService cocoonService,
+    GoogleSignInService authService,
+  })  : authService = authService ?? GoogleSignInService(),
+        _cocoonService = cocoonService ?? CocoonService();
 
   /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService _cocoonService;
+
+  /// Authentication service for managing Google Sign In.
+  final GoogleSignInService authService;
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
@@ -66,6 +73,11 @@ class FlutterBuildState extends ChangeNotifier {
           .then((CocoonResponse<bool> response) => _isTreeBuilding = response),
     ]);
 
+    notifyListeners();
+  }
+
+  Future<void> signIn() async {
+    await authService.signIn();
     notifyListeners();
   }
 

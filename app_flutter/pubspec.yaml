@@ -30,6 +30,7 @@ dependencies:
 
   cocoon_service:
     path: ../app_dart
+  google_sign_in_all: ^0.0.3
   provider: ^3.0.0
   url_launcher: ^5.1.0
   url_launcher_web:

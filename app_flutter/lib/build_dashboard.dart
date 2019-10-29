@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -52,6 +53,9 @@ class BuildDashboard extends StatelessWidget {
           backgroundColor: buildState.isTreeBuilding.data
               ? theme.primaryColor
               : theme.errorColor,
+          actions: <Widget>[
+            UserAvatar(buildState: buildState),
+          ],
         ),
         body: Column(
           children: const <Widget>[
@@ -59,6 +63,30 @@ class BuildDashboard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Widget for displaying sign in information for the current user.
+///
+/// If logged in, it will display the user's avatar. Otherwise, it will show
+/// a button for sign in.
+class UserAvatar extends StatelessWidget {
+  const UserAvatar({@required this.buildState, Key key}) : super(key: key);
+
+  final FlutterBuildState buildState;
+
+  @override
+  Widget build(BuildContext context) {
+    final GoogleSignInService authService = buildState.authService;
+
+    if (authService.isAuthenticated) {
+      return Image.network(authService.avatarUrl);
+    }
+
+    return FlatButton(
+      child: const Text('Sign in'),
+      onPressed: () => buildState.signIn(),
     );
   }
 }
