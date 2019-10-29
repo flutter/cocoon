@@ -26,7 +26,7 @@ class TaskHelper {
   /// Devicelab tasks are stored in the flutter/flutter Github repository.
   /// Luci tasks are stored on Luci.
   /// Cirrus tasks are stored on Cirrus.
-  static String sourceConfigurationUrl(Task task) {
+  String sourceConfigurationUrl(Task task) {
     if (_isExternal(task)) {
       return _externalSourceConfigurationUrl(task);
     }
@@ -34,7 +34,7 @@ class TaskHelper {
     return '$flutterGithubSourceUrl/dev/devicelab/bin/tasks/${task.name}.dart';
   }
 
-  static String _externalSourceConfigurationUrl(Task task) {
+  String _externalSourceConfigurationUrl(Task task) {
     if (task.stageName == stageLuci) {
       return _luciSourceConfigurationUrl(task);
     } else if (task.stageName == stageCirrus) {
@@ -45,7 +45,7 @@ class TaskHelper {
         'Failed to get source configuration url for ${task.stageName}');
   }
 
-  static String _luciSourceConfigurationUrl(Task task) {
+  String _luciSourceConfigurationUrl(Task task) {
     switch (task.name) {
       case 'mac_bot':
         return '$luciUrl/builders/luci.flutter.prod/Mac';
@@ -61,6 +61,6 @@ class TaskHelper {
   /// Whether the information from [Task] is available publically.
   ///
   /// Only devicelab tasks are not available publically.
-  static bool _isExternal(Task task) =>
+  bool _isExternal(Task task) =>
       task.stageName == stageLuci || task.stageName == stageCirrus;
 }

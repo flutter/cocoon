@@ -34,7 +34,7 @@ class TaskIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => launch(TaskHelper.sourceConfigurationUrl(task)),
+      onTap: () => launch(TaskHelper().sourceConfigurationUrl(task)),
       child: Tooltip(
         message: task.name,
         child: Container(
