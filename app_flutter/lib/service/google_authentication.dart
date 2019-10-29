@@ -10,13 +10,21 @@ class GoogleSignInService {
   GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             setupGoogleSignIn(
-              scopes: <String>[
-                'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile',
-              ],
+              scopes: _googleScopes,
               webClientId:
                   '308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com',
             );
+
+  /// A list of Google API OAuth Scopes this project needs access to.
+  ///
+  /// Currently, the project shows just basic user profile information
+  /// when logged in.
+  /// 
+  /// See https://developers.google.com/identity/protocols/googlescopes
+  static const List<String> _googleScopes = <String>[
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+  ];
 
   // TODO(chillers): Switch to official Flutter plugin when it supports web.
   final GoogleSignIn _googleSignIn;
