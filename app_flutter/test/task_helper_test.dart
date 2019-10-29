@@ -15,7 +15,7 @@ void main() {
         ..stageName = 'devicelab'
         ..name = 'test';
 
-      expect(TaskHelper.sourceConfigurationUrl(devicelabTask),
+      expect(TaskHelper().sourceConfigurationUrl(devicelabTask),
           'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/test.dart');
     });
 
@@ -24,13 +24,13 @@ void main() {
         ..stageName = 'chromebot'
         ..name = 'mac_bot';
 
-      expect(TaskHelper.sourceConfigurationUrl(luciTask),
+      expect(TaskHelper().sourceConfigurationUrl(luciTask),
           'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
     });
     test('source configuration for cirrus', () {
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
-      expect(TaskHelper.sourceConfigurationUrl(cirrusTask),
+      expect(TaskHelper().sourceConfigurationUrl(cirrusTask),
           'https://cirrus-ci.com/github/flutter/flutter/master');
     });
   });
