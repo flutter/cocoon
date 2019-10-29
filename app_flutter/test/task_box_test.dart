@@ -26,8 +26,8 @@ void main() {
 
     testWidgets('shows loading indicator for In Progress task',
         (WidgetTester tester) async {
-      await tester
-          .pumpWidget(TaskBox(task: Task()..status = TaskBox.statusInProgress));
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(task: Task()..status = TaskBox.statusInProgress)));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -38,7 +38,7 @@ void main() {
         ..status = 'New'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -53,7 +53,7 @@ void main() {
         ..status = 'In Progress'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -68,7 +68,7 @@ void main() {
         ..status = 'Succeeded'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -132,7 +132,8 @@ void main() {
 
 Future<void> expectTaskBoxColorWithMessage(
     WidgetTester tester, String message, Color expectedColor) async {
-  await tester.pumpWidget(TaskBox(task: Task()..status = message));
+  await tester
+      .pumpWidget(MaterialApp(home: TaskBox(task: Task()..status = message)));
 
   final Container taskBoxWidget =
       find.byType(Container).evaluate().first.widget;
