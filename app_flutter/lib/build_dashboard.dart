@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'service/authentication.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
 
@@ -78,11 +78,10 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthenticationService authenticationService =
-        buildState.authenticationService;
+    final GoogleSignInService authService = buildState.authService;
 
-    if (authenticationService.isAuthenticated) {
-      return Image.network(authenticationService.avatarUrl);
+    if (authService.isAuthenticated) {
+      return Image.network(authService.avatarUrl);
     }
 
     return FlatButton(

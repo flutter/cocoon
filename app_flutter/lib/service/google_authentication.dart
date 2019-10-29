@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/service/authentication.dart';
 import 'package:google_sign_in_all/google_sign_in_all.dart';
 
-/// Authentication service class for authenticating with Google Sign In.
-class GoogleAuthenticationService implements AuthenticationService {
-  GoogleAuthenticationService({GoogleSignIn googleSignIn})
+/// Service class for interacting with Google Sign In authentication for Cocoon backend.
+class GoogleSignInService {
+  /// Creates a new [GoogleSignIn].
+  GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             setupGoogleSignIn(
               scopes: <String>[
@@ -25,19 +25,19 @@ class GoogleAuthenticationService implements AuthenticationService {
 
   GoogleAccount _user;
 
-  @override
+  /// Whether or not the application has been signed in to.
   bool get isAuthenticated => _credentials?.accessToken != null;
 
-  @override
+  /// The profile photo url of the current user signed in.
   String get avatarUrl => _user?.photoUrl;
 
-  @override
+  /// The email of the current user signed in.
   String get email => _user?.email;
 
-  @override
+  /// Authentication token to be sent to Cocoon Backend to verify API calls.
   String get accessToken => _credentials?.accessToken;
 
-  @override
+  /// Initiate the Google Sign In process.
   Future<void> signIn() async {
     _credentials = await _googleSignIn.signIn();
     _user = await _googleSignIn.getCurrentUser();

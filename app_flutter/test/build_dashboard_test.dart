@@ -8,16 +8,16 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart' as test;
 
 import 'package:app_flutter/build_dashboard.dart';
-import 'package:app_flutter/service/authentication.dart';
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
 void main() {
   group('UserAvatar', () {
-    AuthenticationService authService;
+    GoogleSignInService authService;
 
     setUp(() {
-      authService = MockAuthenticationService();
+      authService = MockGoogleSignInService();
     });
 
     testWidgets('shows sign in button when not signed in',
@@ -71,5 +71,5 @@ void main() {
   });
 }
 
-/// Mock [AuthenticationService] for testing interactions.
-class MockAuthenticationService extends Mock implements AuthenticationService {}
+/// Mock [GoogleSignInService] for testing interactions.
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}
