@@ -62,6 +62,30 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
+    testWidgets('shows question mark for task marked flaky',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(
+              task: Task()
+                ..status = TaskBox.statusSucceeded
+                ..isFlaky = true)));
+
+      expect(find.byIcon(Icons.help), findsOneWidget);
+    });
+
+    testWidgets(
+        'shows question mark and loading indicator for task marked flaky that is in progress',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(
+              task: Task()
+                ..status = TaskBox.statusInProgress
+                ..isFlaky = true)));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.help), findsOneWidget);
+    });
+
     testWidgets('show yellow when Succeeded but ran multiple times',
         (WidgetTester tester) async {
       final Task repeatTask = Task()
