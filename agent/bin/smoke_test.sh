@@ -9,6 +9,8 @@ set -e
 
 LOG_FILE=$(mktemp)
 
+pub get
+
 case "$1" in
   ios)
     security unlock-keychain login.keychain

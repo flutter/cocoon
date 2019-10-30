@@ -36,6 +36,8 @@ pub get
 
 dart bin/agent.dart ci -c "$CONFIG_FILE" 2>&1 >> "$LOG_FILE" &
 
+disown
+
 pid="$(pgrep -f bin/agent.dart)" || true
 
 if [[ -z "$pid" ]]; then
