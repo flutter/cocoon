@@ -34,7 +34,7 @@ fi
 
 pub get
 
-dart bin/agent.dart ci -c "$CONFIG_FILE" 2>&1 >> "$LOG_FILE" &
+dart bin/agent.dart ci -c "$CONFIG_FILE" >> "$LOG_FILE" 2>&1 &
 
 disown
 
