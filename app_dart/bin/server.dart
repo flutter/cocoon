@@ -24,10 +24,14 @@ Future<void> main() async {
 
     final CacheService cacheService = CacheService(config);
 <<<<<<< HEAD
+<<<<<<< HEAD
     final Cache<Uint8List> redisCache = await cacheService.redisCache();
 =======
     final AccessClientProvider accessClientProvider = AccessClientProvider(config);
 >>>>>>> implement /api/migrate-checklist from datastore to bigquery
+=======
+    final AccessClientProvider accessClientProvider = AccessClientProvider(config);
+>>>>>>> 85e96777c254714e4c0575aca01bec0045018345
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
