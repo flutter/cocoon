@@ -26,7 +26,8 @@ class AppEngineCocoonService implements CocoonService {
   /// The Cocoon API endpoint to query
   ///
   /// This is the base for all API requests to cocoon
-  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
+  static const String _cocoonHost = 'https://flutter-dashboard.appspot.com';
+  static const String _baseApiUrl = '$_cocoonHost/api';
 
   final http.Client _client;
 
@@ -85,10 +86,10 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     final http.Request request = http.Request(
-        'POST', Uri(host: '$_baseApiUrl', path: '/reset-devicelab-task'));
-    request.bodyFields = <String, String>{
-      'Key': task.key.toString(),
-    };
+        'POST', Uri(host: _cocoonHost, path: '/api/reset-devicelab-task'))
+      ..bodyFields = <String, String>{
+        'Key': task.key.toString(),
+      };
 
     // TODO(chillers): add auth token
 
