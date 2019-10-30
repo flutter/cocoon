@@ -4,63 +4,63 @@
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-/// A helper class for common utilities done with a [Task].
-class TaskHelper {
-  /// Base URLs for various endpoints that can relate to a [Task].
-  static const String flutterGithubSourceUrl =
-      'https://github.com/flutter/flutter/blob/master';
-  static const String cirrusUrl =
-      'https://cirrus-ci.com/github/flutter/flutter';
-  static const String luciUrl = 'https://ci.chromium.org/p/flutter';
+/// A collection of common utilities done with a [Task].
 
-  /// [Task.stageName] that maps to StageName enums.
-  // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
-  static const String stageCirrus = 'cirrus';
-  static const String stageLuci = 'chromebot';
-  static const String stageDevicelab = 'devicelab';
-  static const String stageDevicelabWin = 'devicelab_win';
-  static const String stageDevicelabIOs = 'devicelab_ios';
+/// Base URLs for various endpoints that can relate to a [Task].
+const String flutterGithubSourceUrl =
+    'https://github.com/flutter/flutter/blob/master';
+const String cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
+const String luciUrl = 'https://ci.chromium.org/p/flutter';
 
-  /// Get the URL for [Task] that shows its configuration.
-  ///
-  /// Devicelab tasks are stored in the flutter/flutter Github repository.
-  /// Luci tasks are stored on Luci.
-  /// Cirrus tasks are stored on Cirrus.
-  String sourceConfigurationUrl(Task task) {
-    if (_isExternal(task)) {
-      return _externalSourceConfigurationUrl(task);
-    }
+/// [Task.stageName] that maps to StageName enums.
+// TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
+const String stageCirrus = 'cirrus';
+const String stageLuci = 'chromebot';
+const String stageDevicelab = 'devicelab';
+const String stageDevicelabWin = 'devicelab_win';
+const String stageDevicelabIOs = 'devicelab_ios';
 
-    return '$flutterGithubSourceUrl/dev/devicelab/bin/tasks/${task.name}.dart';
+/// Get the URL for [Task] that shows its configuration.
+///
+/// Devicelab tasks are stored in the flutter/flutter Github repository.
+/// Luci tasks are stored on Luci.
+/// Cirrus tasks are stored on Cirrus.
+String sourceConfigurationUrl(Task task) {
+  if (_isExternal(task)) {
+    return _externalSourceConfigurationUrl(task);
   }
 
-  String _externalSourceConfigurationUrl(Task task) {
-    if (task.stageName == stageLuci) {
-      return _luciSourceConfigurationUrl(task);
-    } else if (task.stageName == stageCirrus) {
-      return '$cirrusUrl/master';
-    }
-
-    throw Exception(
-        'Failed to get source configuration url for ${task.stageName}');
-  }
-
-  String _luciSourceConfigurationUrl(Task task) {
-    switch (task.name) {
-      case 'mac_bot':
-        return '$luciUrl/builders/luci.flutter.prod/Mac';
-      case 'linux_bot':
-        return '$luciUrl/builders/luci.flutter.prod/Linux';
-      case 'windows_bot':
-        return '$luciUrl/builders/luci.flutter.prod/Windows';
-    }
-
-    return luciUrl;
-  }
-
-  /// Whether the information from [Task] is available publically.
-  ///
-  /// Only devicelab tasks are not available publically.
-  bool _isExternal(Task task) =>
-      task.stageName == stageLuci || task.stageName == stageCirrus;
+  return '$flutterGithubSourceUrl/dev/devicelab/bin/tasks/${task.name}.dart';
 }
+
+String _externalSourceConfigurationUrl(Task task) {
+  if (task.stageName == stageLuci) {
+    return _luciSourceConfigurationUrl(task);
+  } else if (task.stageName == stageCirrus) {
+    return '$cirrusUrl/master';
+  }
+
+  throw Exception(
+      'Failed to get source configuration url for ${task.stageName}');
+}
+
+String _luciSourceConfigurationUrl(Task task) {
+  switch (task.name) {
+    case 'mac_bot':
+      return '$luciUrl/builders/luci.flutter.prod/Mac';
+    case 'linux_bot':
+      return '$luciUrl/builders/luci.flutter.prod/Linux';
+    case 'windows_bot':
+      return '$luciUrl/builders/luci.flutter.prod/Windows';
+  }
+
+  return luciUrl;
+}
+
+/// Whether the information from [Task] is available publically.
+///
+/// Only devicelab tasks are not available publically.
+bool _isExternal(Task task) =>
+    task.stageName == stageLuci || task.stageName == stageCirrus;
+
+class TaskHelper {}

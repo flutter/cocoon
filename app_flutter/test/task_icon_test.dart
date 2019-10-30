@@ -58,7 +58,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': TaskHelper().sourceConfigurationUrl(devicelabTask),
+            'url': sourceConfigurationUrl(devicelabTask),
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,

@@ -24,17 +24,17 @@ class TaskIcon extends StatelessWidget {
   ///
   /// [stageName] is based on the backend.
   static final Map<String, Image> stageIcons = <String, Image>{
-    TaskHelper.stageCirrus: Image.asset('assets/cirrus.png'),
-    TaskHelper.stageLuci: Image.asset('assets/chromium.png'),
-    TaskHelper.stageDevicelab: Image.asset('assets/android.png'),
-    TaskHelper.stageDevicelabWin: Image.asset('assets/windows.png'),
-    TaskHelper.stageDevicelabIOs: Image.asset('assets/apple.png'),
+    stageCirrus: Image.asset('assets/cirrus.png'),
+    stageLuci: Image.asset('assets/chromium.png'),
+    stageDevicelab: Image.asset('assets/android.png'),
+    stageDevicelabWin: Image.asset('assets/windows.png'),
+    stageDevicelabIOs: Image.asset('assets/apple.png'),
   };
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => launch(TaskHelper().sourceConfigurationUrl(task)),
+      onTap: () => launch(sourceConfigurationUrl(task)),
       child: Tooltip(
         message: task.name,
         child: Container(
