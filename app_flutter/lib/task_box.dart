@@ -93,31 +93,26 @@ class _TaskBoxState extends State<TaskBox> {
   /// If [Task.isFlaky], show a question mark.
   /// If [status] is in progress, show an in progress indicator.
   Stack taskIndicators(Task task, String status) {
-    final List<Widget> indicators = <Widget>[];
-
-    if (task.isFlaky) {
-      indicators.add(const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(
-            Icons.help,
-            color: Colors.white60,
-            size: 25,
-          )));
-    }
-
-    if (status == TaskBox.statusInProgress ||
-        status == TaskBox.statusUnderperformedInProgress) {
-      indicators.add(const Padding(
-        padding: EdgeInsets.all(15.0),
-        child: CircularProgressIndicator(
-          strokeWidth: 3.0,
-          backgroundColor: Colors.white70,
-        ),
-      ));
-    }
-
     return Stack(
-      children: indicators,
+      children: <Widget>[
+        if (task.isFlaky)
+          const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: Icon(
+                Icons.help,
+                color: Colors.white60,
+                size: 25,
+              )),
+        if (status == TaskBox.statusInProgress ||
+            status == TaskBox.statusUnderperformedInProgress)
+          const Padding(
+            padding: EdgeInsets.all(15.0),
+            child: CircularProgressIndicator(
+              strokeWidth: 3.0,
+              backgroundColor: Colors.white70,
+            ),
+          ),
+      ],
     );
   }
 
