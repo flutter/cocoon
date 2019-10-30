@@ -3,8 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
+
+import 'task_helper.dart';
 
 /// Header icon for all [Task] that map to the same [task.stageName] and [task.name].
 ///
@@ -17,36 +20,31 @@ class TaskIcon extends StatelessWidget {
   /// [Task] to get information from.
   final Task task;
 
-  /// [stageName] that maps to StageName enums.
-  // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
-  static const String stageCirrus = 'cirrus';
-  static const String stageLuci = 'chromebot';
-  static const String stageDevicelab = 'devicelab';
-  static const String stageDevicelabWin = 'devicelab_win';
-  static const String stageDevicelabIOs = 'devicelab_ios';
-
   /// A lookup table for matching [stageName] to [Image].
   ///
   /// [stageName] is based on the backend.
   static final Map<String, Image> stageIcons = <String, Image>{
-    stageCirrus: Image.asset('assets/cirrus.png'),
-    stageLuci: Image.asset('assets/chromium.png'),
-    stageDevicelab: Image.asset('assets/android.png'),
-    stageDevicelabWin: Image.asset('assets/windows.png'),
-    stageDevicelabIOs: Image.asset('assets/apple.png'),
+    StageName.cirrus: Image.asset('assets/cirrus.png'),
+    StageName.luci: Image.asset('assets/chromium.png'),
+    StageName.devicelab: Image.asset('assets/android.png'),
+    StageName.devicelabWin: Image.asset('assets/windows.png'),
+    StageName.devicelabIOs: Image.asset('assets/apple.png'),
   };
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: task.name,
-      child: Container(
-        margin: const EdgeInsets.all(7.5),
-        child: stageIcons.containsKey(task.stageName)
-            ? stageIcons[task.stageName]
-            : const Icon(Icons.help),
-        width: 100,
-        height: 100,
+    return GestureDetector(
+      onTap: () => launch(sourceConfigurationUrl(task)),
+      child: Tooltip(
+        message: task.name,
+        child: Container(
+          margin: const EdgeInsets.all(7.5),
+          child: stageIcons.containsKey(task.stageName)
+              ? stageIcons[task.stageName]
+              : const Icon(Icons.help),
+          width: 100,
+          height: 100,
+        ),
       ),
     );
   }

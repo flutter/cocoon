@@ -103,32 +103,6 @@ void main() {
       expect(result.clientContext, same(clientContext));
     });
 
-    group('when X-AppEngine-User-Email is specified in header', () {
-      test('succeeds for google.com auth user', () async {
-        request.headers.set('X-AppEngine-User-Email', 'test@google.com');
-        final AuthenticatedContext result = await auth.authenticate(request);
-        expect(result.agent, isNull);
-        expect(result.clientContext, same(clientContext));
-      });
-
-      test('fails for non-whitelisted non-Google auth users', () async {
-        request.headers.set('X-AppEngine-User-Email', 'test@gmail.com');
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
-      });
-
-      test('succeeds for whitelisted non-Google auth users', () async {
-        final WhitelistedAccount account = WhitelistedAccount(
-          key: config.db.emptyKey.append(WhitelistedAccount, id: 123),
-          email: 'test@gmail.com',
-        );
-        request.headers.set('X-AppEngine-User-Email', account.email);
-        config.db.values[account.key] = account;
-        final AuthenticatedContext result = await auth.authenticate(request);
-        expect(result.agent, isNull);
-        expect(result.clientContext, same(clientContext));
-      });
-    });
-
     group('when X-Flutter-IdToken cookie is specified', () {
       FakeHttpClient httpClient;
       FakeHttpClientResponse verifyTokenResponse;

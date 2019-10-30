@@ -18,7 +18,7 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.3.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -30,8 +30,13 @@ dependencies:
 
   cocoon_service:
     path: ../app_dart
+  google_sign_in_all: ^0.0.3
   provider: ^3.0.0
   url_launcher: ^5.1.0
+  url_launcher_web:
+    git:
+      url: git://github.com/flutter/plugins.git
+      path: packages/url_launcher/url_launcher_web
 
 dev_dependencies:
   flutter_test:

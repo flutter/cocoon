@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:pedantic/pedantic.dart';
 
+const String flutterProjectDirectory = '../app_flutter';
+
 const String gcloudProjectIdFlag = 'project';
 const String gcloudProjectIdAbbrFlag = 'p';
 
@@ -40,9 +42,12 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
 
 /// Build app_flutter for web.
 Future<bool> _buildFlutterWebApp() async {
+  /// Clean up previous build files to ensure this codebase is deployed.
+  await Process.run('rm', <String>['-r', 'build/'], workingDirectory: flutterProjectDirectory);
+  
   final Process process = await Process.start(
       'flutter', <String>['build', 'web'],
-      workingDirectory: '../app_flutter');
+      workingDirectory: flutterProjectDirectory);
   await stdout.addStream(process.stdout);
 
   return await process.exitCode == 0;
@@ -50,8 +55,11 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app_flutter to this app_dart project.
 Future<bool> _copyFlutterApp() async {
+  /// Clean up previous build files to ensure this codebase is deployed.
+  await Process.run('rm', <String>['-r', 'build/']);
+
   final ProcessResult result =
-      await Process.run('cp', <String>['-r', '../app_flutter/build', 'build']);
+      await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build']);
 
   return result.exitCode == 0;
 }

@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:neat_cache/neat_cache.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
@@ -21,6 +23,7 @@ Future<void> main() async {
     );
 
     final CacheService cacheService = CacheService(config);
+    final Cache<Uint8List> redisCache = await cacheService.redisCache();
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -47,9 +50,14 @@ Future<void> main() async {
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
 
       '/api/public/build-status': GetBuildStatus(config),
-      '/api/public/get-benchmarks': GetBenchmarks(config),
+      '/api/public/get-benchmarks': CacheRequestHandler<Body>(
+        cache: redisCache,
+        config: config,
+        delegate: GetBenchmarks(config),
+        ttl: const Duration(minutes: 15),
+      ),
       '/api/public/get-status': CacheRequestHandler<Body>(
-        cache: await cacheService.redisCache(),
+        cache: redisCache,
         config: config,
         delegate: GetStatus(config), 
       ),
