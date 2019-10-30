@@ -20,4 +20,5 @@ task:
   - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
   analyze_script: cd app_flutter && flutter analyze
+  build_script: cd app_flutter && flutter config --enable-web && flutter build web
   test_script: cd app_flutter && flutter test
