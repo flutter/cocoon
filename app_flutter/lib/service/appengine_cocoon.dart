@@ -84,9 +84,15 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<bool> rerunTask(Task task, String accessToken) async {
+    final http.Request request = http.Request(
+        'POST', Uri(host: '$_baseApiUrl', path: '/reset-devicelab-task'));
+    request.bodyFields = <String, String>{
+      'Key': task.key.toString(),
+    };
+
     // TODO(chillers): add auth token
-    final http.Response response =
-        await _client.get('$_baseApiUrl/reset-devicelab-task');
+
+    final http.StreamedResponse response = await _client.send(request);
 
     return response.statusCode == 200;
   }
