@@ -14,11 +14,13 @@ const String luciUrl = 'https://ci.chromium.org/p/flutter';
 
 /// [Task.stageName] that maps to StageName enums.
 // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441
-const String stageCirrus = 'cirrus';
-const String stageLuci = 'chromebot';
-const String stageDevicelab = 'devicelab';
-const String stageDevicelabWin = 'devicelab_win';
-const String stageDevicelabIOs = 'devicelab_ios';
+class StageName {
+  static const String cirrus = 'cirrus';
+  static const String luci = 'chromebot';
+  static const String devicelab = 'devicelab';
+  static const String devicelabWin = 'devicelab_win';
+  static const String devicelabIOs = 'devicelab_ios';
+}
 
 /// Get the URL for [Task] that shows its configuration.
 ///
@@ -34,9 +36,9 @@ String sourceConfigurationUrl(Task task) {
 }
 
 String _externalSourceConfigurationUrl(Task task) {
-  if (task.stageName == stageLuci) {
+  if (task.stageName == StageName.luci) {
     return _luciSourceConfigurationUrl(task);
-  } else if (task.stageName == stageCirrus) {
+  } else if (task.stageName == StageName.cirrus) {
     return '$cirrusUrl/master';
   }
 
@@ -61,6 +63,6 @@ String _luciSourceConfigurationUrl(Task task) {
 ///
 /// Only devicelab tasks are not available publically.
 bool _isExternal(Task task) =>
-    task.stageName == stageLuci || task.stageName == stageCirrus;
+    task.stageName == StageName.luci || task.stageName == StageName.cirrus;
 
 class TaskHelper {}

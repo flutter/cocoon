@@ -24,11 +24,11 @@ class TaskIcon extends StatelessWidget {
   ///
   /// [stageName] is based on the backend.
   static final Map<String, Image> stageIcons = <String, Image>{
-    stageCirrus: Image.asset('assets/cirrus.png'),
-    stageLuci: Image.asset('assets/chromium.png'),
-    stageDevicelab: Image.asset('assets/android.png'),
-    stageDevicelabWin: Image.asset('assets/windows.png'),
-    stageDevicelabIOs: Image.asset('assets/apple.png'),
+    StageName.cirrus: Image.asset('assets/cirrus.png'),
+    StageName.luci: Image.asset('assets/chromium.png'),
+    StageName.devicelab: Image.asset('assets/android.png'),
+    StageName.devicelabWin: Image.asset('assets/windows.png'),
+    StageName.devicelabIOs: Image.asset('assets/apple.png'),
   };
 
   @override
