@@ -26,8 +26,8 @@ void main() {
 
     testWidgets('shows loading indicator for In Progress task',
         (WidgetTester tester) async {
-      await tester
-          .pumpWidget(TaskBox(task: Task()..status = TaskBox.statusInProgress));
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(task: Task()..status = TaskBox.statusInProgress)));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -38,7 +38,7 @@ void main() {
         ..status = 'New'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -53,7 +53,7 @@ void main() {
         ..status = 'In Progress'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -62,13 +62,37 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
+    testWidgets('shows question mark for task marked flaky',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(
+              task: Task()
+                ..status = TaskBox.statusSucceeded
+                ..isFlaky = true)));
+
+      expect(find.byIcon(Icons.help), findsOneWidget);
+    });
+
+    testWidgets(
+        'shows question mark and loading indicator for task marked flaky that is in progress',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+          home: TaskBox(
+              task: Task()
+                ..status = TaskBox.statusInProgress
+                ..isFlaky = true)));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.help), findsOneWidget);
+    });
+
     testWidgets('show yellow when Succeeded but ran multiple times',
         (WidgetTester tester) async {
       final Task repeatTask = Task()
         ..status = 'Succeeded'
         ..attempts = 2;
 
-      await tester.pumpWidget(TaskBox(task: repeatTask));
+      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -132,7 +156,8 @@ void main() {
 
 Future<void> expectTaskBoxColorWithMessage(
     WidgetTester tester, String message, Color expectedColor) async {
-  await tester.pumpWidget(TaskBox(task: Task()..status = message));
+  await tester
+      .pumpWidget(MaterialApp(home: TaskBox(task: Task()..status = message)));
 
   final Container taskBoxWidget =
       find.byType(Container).evaluate().first.widget;
