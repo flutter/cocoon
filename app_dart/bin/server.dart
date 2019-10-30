@@ -21,6 +21,7 @@ Future<void> main() async {
     );
 
     final CacheService cacheService = CacheService(config);
+    final AccessClientProvider accessClientProvider = AccessClientProvider(config);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -30,6 +31,9 @@ Future<void> main() async {
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(config, buildBucketClient),
       '/api/luci-status-handler': LuciStatusHandler(config),
+      '/api/migrate-checklist': MigrateChecklist(config, authProvider,
+          tabledataResourceApi:
+              await BigqueryService(accessClientProvider).defaultTabledata()),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),

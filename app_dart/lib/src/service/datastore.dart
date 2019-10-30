@@ -49,6 +49,19 @@ class DatastoreService {
     return query.run();
   }
 
+  /// Queries for recent unexported commits.
+  ///
+  /// The [limit] argument specifies the maximum number of commits to retrieve.
+  ///
+  /// The returned commits will be ordered by most recent [Commit.timestamp].
+  Stream<Commit> queryRecentUnexportedCommits({int limit = 10}) {
+    final Query<Commit> query = db.query<Commit>()
+      ..filter('isExported =', false)
+      ..limit(limit)
+      ..order('-timestamp');
+    return query.run();
+  }
+
   /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from 
   /// [startFrom] and up to a given [limit].
   ///

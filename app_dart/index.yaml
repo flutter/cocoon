@@ -4,6 +4,11 @@
 
 indexes:
 - kind: Checklist
+  properties:
+  - name: IsExported
+  - name: CreateTimestamp
+    direction: desc
+- kind: Checklist
   ancestor: yes
   properties:
   - name: CreateTimestamp

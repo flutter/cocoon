@@ -20,6 +20,7 @@ class Commit extends Model {
     this.author,
     this.authorAvatarUrl,
     this.repository,
+    this.isExported = false,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -50,6 +51,11 @@ class Commit extends Model {
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
   String repository;
 
+  /// True if the commit has been exported to [BigQuery].
+  @BoolProperty(propertyName: 'IsExported')
+  @JsonKey(name: 'IsExported')
+  bool isExported;
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
@@ -62,6 +68,7 @@ class Commit extends Model {
       ..write(', author: $author')
       ..write(', authorAvatarUrl: $authorAvatarUrl')
       ..write(', repository: $repository')
+      ..write(', ${(isExported ?? false) ? 'exported' : 'unexported'}')
       ..write(')');
     return buf.toString();
   }
