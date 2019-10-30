@@ -34,9 +34,7 @@ fi
 
 pub get
 
-dart bin/agent.dart ci -c "$CONFIG_FILE" >> "$LOG_FILE" 2>&1 &
-
-disown
+dart bin/agent.dart ci -c "$CONFIG_FILE" >> "$LOG_FILE" 2>&1 & disown
 
 pid="$(pgrep -f bin/agent.dart)" || true
 
