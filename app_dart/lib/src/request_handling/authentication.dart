@@ -22,7 +22,7 @@ import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are four types of authentication this class supports:
+/// There are three types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -45,15 +45,7 @@ import 'exceptions.dart';
 ///     runtime if the request originated from anything other than a cron job.
 ///     Thus, the header is safe to trust as an authentication indicator.
 ///
-///  3. If the App Engine runtime has authenticated the user as a signed-in
-///     Google account holder, it will set the `'X-AppEngine-User-Email'` HTTP
-///     header to the email address of the user making the request. If such a
-///     user exists and is either a "@google.com" account or a whitelisted
-///     account in the Cocoon backend, then the request will be authenticated
-///     as a user-request. The [RequestContext.agent] field will be null
-///     (unless the request _also_ contained the aforementioned headers).
-///
-///  4. If the request has the `'X-Flutter-IdToken'` HTTP cookie set to a valid
+///  3. If the request has the `'X-Flutter-IdToken'` HTTP cookie set to a valid
 ///     encrypted JWT token, then the request will be authenticated as a user
 ///     account. The [RequestContext.agent] field will be null (unless the
 ///     request _also_ contained the aforementioned headers).
@@ -114,7 +106,6 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String emailHeader = request.headers.value('X-AppEngine-User-Email');
     final String idToken = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
@@ -143,16 +134,6 @@ class AuthenticationProvider {
       return AuthenticatedContext._(agent: agent, clientContext: clientContext);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
-      return AuthenticatedContext._(clientContext: clientContext);
-    } else if (emailHeader != null) {
-      // Authenticate as a signed-in Google account.
-      if (!emailHeader.endsWith('@google.com')) {
-        final bool isWhitelisted = await _isWhitelisted(emailHeader);
-        if (!isWhitelisted) {
-          throw Unauthenticated('$emailHeader is not authorized to access the dashboard');
-        }
-      }
-
       return AuthenticatedContext._(clientContext: clientContext);
     } else if (idToken != null) {
       // Authenticate as a signed-in Google account via OAuth id token.
