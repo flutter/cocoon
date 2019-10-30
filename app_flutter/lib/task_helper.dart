@@ -27,6 +27,8 @@ class StageName {
 /// Devicelab tasks are stored in the flutter/flutter Github repository.
 /// Luci tasks are stored on Luci.
 /// Cirrus tasks are stored on Cirrus.
+///
+/// Throws [Exception] if [Task] does not match any of the above sources.
 String sourceConfigurationUrl(Task task) {
   if (_isExternal(task)) {
     return _externalSourceConfigurationUrl(task);
