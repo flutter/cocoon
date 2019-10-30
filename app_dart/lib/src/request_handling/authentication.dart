@@ -54,7 +54,7 @@ import 'exceptions.dart';
 ///     account or is a whitelisted account in the Cocoon backend.
 /// 
 ///  4. If the request has the `'X-Flutter-IdToken'` HTTP header set to a valid
-///     JWT token, then this will follow the same logic as #3.
+///     access token, then this will follow the same logic as #3.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -109,11 +109,11 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String idToken = request.headers.value('X-Flutter-IdToken') ??
-      request.cookies
+    final String idToken = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
+    final String accessToken = request.headers.value('X-Flutter-IdToken');
         
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
@@ -157,6 +157,50 @@ class AuthenticationProvider {
           final String body = await utf8.decodeStream(verifyTokenResponse);
           log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
           throw const Unauthenticated('Invalid ID token');
+        }
+
+        final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
+        TokenInfo token;
+        try {
+          token = TokenInfo.fromJson(json.decode(tokenJson));
+        } on FormatException {
+          throw InternalServerError('Invalid JSON: "$tokenJson"');
+        }
+
+        final String clientId = await _config.oauthClientId;
+        assert(clientId != null);
+        if (token.audience != clientId) {
+          log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
+          throw const Unauthenticated('Invalid ID token');
+        }
+
+        if (token.hostedDomain != 'google.com') {
+          final bool isWhitelisted = await _isWhitelisted(token.email);
+          if (!isWhitelisted) {
+            throw Unauthenticated('${token.email} is not authorized to access the dashboard');
+          }
+        }
+
+        return AuthenticatedContext._(clientContext: clientContext);
+      } finally {
+        client.close();
+      }
+    } else if (accessToken != null) {
+      final HttpClient client = _httpClientProvider();
+      try {
+        final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+          'googleapis.com',
+          '/oauth2/v1/tokeninfo',
+          <String, String>{
+            'access_token': accessToken,
+          },
+        ));
+        final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
+
+        if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+          final String body = await utf8.decodeStream(verifyTokenResponse);
+          log.warning('Access token verification failed: ${verifyTokenResponse.statusCode}; $body');
+          throw const Unauthenticated('Invalid access token');
         }
 
         final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
