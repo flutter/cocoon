@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
 import 'appengine_cocoon.dart';
 import 'fake_cocoon.dart';
@@ -34,6 +34,11 @@ abstract class CocoonService {
 
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<bool>> fetchTreeBuildStatus();
+
+  /// Send rerun [Task] command to devicelab.
+  ///
+  /// Will not rerun tasks that are outside of devicelab.
+  Future<bool> rerunTask(Task task, String accessToken);
 }
 
 /// Wrapper class for data this state serves.

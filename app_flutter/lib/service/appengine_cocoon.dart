@@ -82,6 +82,15 @@ class AppEngineCocoonService implements CocoonService {
       ..data = jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
   }
 
+  @override
+  Future<bool> rerunTask(Task task, String accessToken) async {
+    // TODO(chillers): add auth token
+    final http.Response response =
+        await _client.get('$_baseApiUrl/reset-devicelab-task');
+
+    return response.statusCode == 200;
+  }
+
   /// Check if [Map<String,Object>] follows the format for build-status.
   ///
   /// Template of the response it should receive:

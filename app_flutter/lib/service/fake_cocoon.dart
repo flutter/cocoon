@@ -30,6 +30,11 @@ class FakeCocoonService implements CocoonService {
     return CocoonResponse<bool>()..data = random.nextBool();
   }
 
+  @override
+  Future<bool> rerunTask(Task task, String accessToken) async {
+    return false;
+  }
+
   List<CommitStatus> _createFakeCommitStatuses() {
     final List<CommitStatus> stats = <CommitStatus>[];
 

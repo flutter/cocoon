@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/state/flutter_build.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
@@ -12,9 +13,11 @@ import 'package:cocoon_service/protos.dart' show Task;
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox({Key key, @required this.task})
+  const TaskBox({Key key, @required this.buildState, @required this.task})
       : assert(task != null),
         super(key: key);
+
+  final FlutterBuildState buildState;
 
   /// [Task] to show information from.
   final Task task;
@@ -145,6 +148,7 @@ class TaskOverlayContents extends StatelessWidget {
     @required this.task,
     @required this.taskStatus,
     @required this.closeCallback,
+    @required this.buildState,
   })  : assert(parentContext != null),
         assert(task != null),
         assert(closeCallback != null),
@@ -152,6 +156,8 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
+
+  final FlutterBuildState buildState;
 
   /// The [Task] to display in the overlay
   final Task task;
@@ -236,8 +242,10 @@ class TaskOverlayContents extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.redo),
-                      onPressed: () {
-                        // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
+                      onPressed: () async {
+                        final bool successful =
+                            await buildState.rerunTask(task);
+                        // TODO(chillers): Do something if it was not successful.
                       },
                     ),
                   ],
