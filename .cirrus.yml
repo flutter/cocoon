@@ -19,6 +19,6 @@ task:
   - flutter channel dev
   - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
-  build_script: cd app_flutter && flutter config --enable-web && flutter build web && rm lib/generated_plugin_registrant.dart
   analyze_script: cd app_flutter && flutter analyze
+  build_script: cd app_flutter && flutter config --enable-web && flutter build web
   test_script: cd app_flutter && flutter test
