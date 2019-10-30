@@ -22,7 +22,7 @@ import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are three types of authentication this class supports:
+/// There are four types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -52,6 +52,9 @@ import 'exceptions.dart';
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is a whitelisted account in the Cocoon backend.
+/// 
+///  4. If the request has the `'X-Flutter-IdToken'` HTTP header set to a valid
+///     JWT token, then this will follow the same logic as #3.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -106,10 +109,12 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String idToken = request.cookies
+    final String idToken = request.headers.value('X-Flutter-IdToken') ??
+      request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
+        
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
 
