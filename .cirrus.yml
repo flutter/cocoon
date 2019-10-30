@@ -19,6 +19,6 @@ task:
   - flutter channel dev
   - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
-  build_script: cd app_flutter && flutter build web
+  build_script: cd app_flutter && flutter config --enable-web && flutter build web
   analyze_script: cd app_flutter && flutter analyze
   test_script: cd app_flutter && flutter test
