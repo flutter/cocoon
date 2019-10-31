@@ -180,5 +180,94 @@ void main() {
         expect(result.clientContext, same(clientContext));
       });
     });
+
+    group('when X-Flutter-AccessToken header is specified', () {
+      FakeHttpClient httpClient;
+      FakeHttpClientResponse verifyTokenResponse;
+
+      setUp(() {
+        httpClient = FakeHttpClient();
+        verifyTokenResponse = httpClient.request.response;
+        auth = AuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+      });
+
+      test('fails if access token verification fails', () async {
+        request.headers.add('X-Flutter-AccessToken', 'failure');
+        verifyTokenResponse.statusCode = HttpStatus.badRequest;
+        verifyTokenResponse.body = 'Invalid access token: failure';
+        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(httpClient.requestCount, 1);
+        expect(log.records, hasLength(1));
+        expect(log.records.single.level, LogLevel.WARNING);
+        expect(log.records.single.message, contains('Invalid access token: failure'));
+      });
+
+      test('fails if access token verification returns invalid JSON', () async {
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = 'Not JSON';
+        await expectLater(auth.authenticate(request), throwsA(isA<InternalServerError>()));
+        expect(httpClient.requestCount, 1);
+        expect(log.records, isEmpty);
+      });
+
+      test('fails if access token verification yields forged token', () async {
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = '{"audience": "forgery"}';
+        config.oauthClientIdValue = 'expected-client-id';
+        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(httpClient.requestCount, 1);
+        expect(log.records, hasLength(1));
+        expect(log.records.single.level, LogLevel.WARNING);
+        expect(log.records.single.message, contains('forgery'));
+        expect(log.records.single.message, contains('expected-client-id'));
+      });
+
+      test('fails for unverified email', () async {
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = '{"audience": "client-id", "verified_email": "false", "email": "sundar-imposter@google.com"}';
+        config.oauthClientIdValue = 'client-id';
+        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(httpClient.requestCount, 1);
+        expect(log.records, hasLength(1));
+        expect(log.records.single.level, LogLevel.WARNING);
+        expect(log.records.single.message, contains('Unverified account'));
+      });
+
+      test('succeeds for google.com auth user', () async {
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = '{"audience": "client-id", "verified_email": "true", "email": "sundar@google.com"}';
+        config.oauthClientIdValue = 'client-id';
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.agent, isNull);
+        expect(result.clientContext, same(clientContext));
+      });
+
+      test('fails for non-whitelisted non-Google auth users', () async {
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = '{"audience": "client-id", "verified_email": "true",  "email": "sundar@gmail.com"}';
+        config.oauthClientIdValue = 'client-id';
+        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(httpClient.requestCount, 1);
+      });
+
+      test('succeeds for whitelisted non-Google auth users', () async {
+        final WhitelistedAccount account = WhitelistedAccount(
+          key: config.db.emptyKey.append(WhitelistedAccount, id: 123),
+          email: 'test@gmail.com',
+        );
+        config.db.values[account.key] = account;
+        request.headers.add('X-Flutter-AccessToken', 'abc123');
+        verifyTokenResponse.body = '{"audience": "client-id", "verified_email": "true",  "email": "test@gmail.com"}';
+        config.oauthClientIdValue = 'client-id';
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.agent, isNull);
+        expect(result.clientContext, same(clientContext));
+      });
+    });
   });
 }

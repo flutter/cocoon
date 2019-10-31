@@ -210,7 +210,6 @@ class AuthenticationProvider {
           'access_token': accessToken,
         },
       );
-      log.info(googleOauthTokenInfoUri.toString());
       final HttpClientRequest verifyAccessTokenRequest = await client.getUrl(googleOauthTokenInfoUri);
       final HttpClientResponse verifyAccessTokenResponse = await verifyAccessTokenRequest.close();
 
