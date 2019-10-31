@@ -89,9 +89,10 @@ class AppEngineCocoonService implements CocoonService {
         'POST', Uri(host: _cocoonHost, path: '/api/reset-devicelab-task'))
       ..bodyFields = <String, String>{
         'Key': task.key.toString(),
-      };
-
-    // TODO(chillers): add auth token
+      }
+      ..headers.addAll(<String, String>{
+        'X-Flutter-AccessToken': accessToken,
+      });
 
     final http.StreamedResponse response = await _client.send(request);
 
