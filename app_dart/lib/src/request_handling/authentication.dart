@@ -186,51 +186,75 @@ class AuthenticationProvider {
         client.close();
       }
     } else if (accessToken != null) {
-      final HttpClient client = _httpClientProvider();
-      try {
-        final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
-          'googleapis.com',
-          '/oauth2/v1/tokeninfo',
-          <String, String>{
-            'access_token': accessToken,
-          },
-        ));
-        final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
-
-        if (verifyTokenResponse.statusCode != HttpStatus.ok) {
-          final String body = await utf8.decodeStream(verifyTokenResponse);
-          log.warning('Access token verification failed: ${verifyTokenResponse.statusCode}; $body');
-          throw const Unauthenticated('Invalid access token');
-        }
-
-        final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
-        TokenInfo token;
-        try {
-          token = TokenInfo.fromJson(json.decode(tokenJson));
-        } on FormatException {
-          throw InternalServerError('Invalid JSON: "$tokenJson"');
-        }
-
-        final String clientId = await _config.oauthClientId;
-        assert(clientId != null);
-        if (token.audience != clientId) {
-          log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
-          throw const Unauthenticated('Invalid ID token');
-        }
-
-        if (token.hostedDomain != 'google.com') {
-          final bool isWhitelisted = await _isWhitelisted(token.email);
-          if (!isWhitelisted) {
-            throw Unauthenticated('${token.email} is not authorized to access the dashboard');
-          }
-        }
-
-        return AuthenticatedContext._(clientContext: clientContext);
-      } finally {
-        client.close();
-      }
+      return authenticateAccessToken(accessToken: accessToken, clientContext: clientContext, log: log);
     } else {
       throw const Unauthenticated('User is not signed in');
+    }
+  }
+
+  /// Verify [accessToken] with Google Auth, and return an [AuthenticatedContext] if
+  /// it is verified to have access to the Cocoon backend.
+  /// 
+  /// Otherwise, throw [Unauthenticated] exception.
+  Future<AuthenticatedContext> authenticateAccessToken({
+    @required String accessToken,
+    @required ClientContext clientContext,
+    @required Logging log,
+  }) async {
+    final HttpClient client = _httpClientProvider();
+    try {
+      final HttpClientRequest verifyAccessTokenRequest = await client.getUrl(Uri.https(
+        'googleapis.com',
+        '/oauth2/v1/tokeninfo',
+        <String, String>{
+          'access_token': accessToken,
+        },
+      ));
+      final HttpClientResponse verifyAccessTokenResponse = await verifyAccessTokenRequest.close();
+
+      if (verifyAccessTokenResponse.statusCode != HttpStatus.ok) {
+        final String body = await utf8.decodeStream(verifyAccessTokenResponse);
+        log.warning('Access token verification failed: ${verifyAccessTokenResponse.statusCode}; $body');
+        throw const Unauthenticated('Invalid access token');
+      }
+
+      final String accessTokenJson = await utf8.decodeStream(verifyAccessTokenResponse);
+      Map<String, dynamic> accessTokenData;
+      try {
+        accessTokenData = json.decode(accessTokenJson);
+      } on FormatException {
+        throw InternalServerError('Invalid JSON: "$accessTokenJson"');
+      }
+
+      final String clientId = await _config.oauthClientId;
+      assert(clientId != null);
+      if (accessTokenData['audience'] != clientId) {
+        log.warning('Possible forged token: "${accessTokenData['audience']}" (expected "$clientId")');
+        throw const Unauthenticated('Invalid ID token');
+      }
+
+      final String verified = accessTokenData['verified'];
+      assert(verified != null);
+      if (verified != 'true') {
+        log.warning('Unverified account attempted to authenticate');
+        throw const Unauthenticated('Account is not verified');
+      }
+
+      /// This assumes the hosted domain will always be after the last @ sign.
+      /// 
+      /// Trivially, 'sundar@google.com' will return 'google.com'.
+      /// A larger example is that 'sundarloves@signs@google.com' will also return 'google.com'.
+      final String hostedDomain = accessTokenData['email'].toString().split('@').last;
+      if (hostedDomain != 'google.com') {
+        final bool isWhitelisted = await _isWhitelisted(accessTokenData['email']);
+        if (!isWhitelisted) {
+          throw Unauthenticated('${accessTokenData['email']} is not authorized to access the dashboard');
+        }
+      }
+
+      return AuthenticatedContext._(clientContext: clientContext);
+    } finally {
+      client.close();
     }
   }
 
