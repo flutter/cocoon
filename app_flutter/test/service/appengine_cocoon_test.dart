@@ -8,7 +8,7 @@ import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+    show Commit, CommitStatus, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/cocoon.dart';
@@ -197,7 +197,35 @@ void main() {
     });
 
     group('AppEngine Cocoon Service rerun task', () {
-      test('should return true if succeeds', () async {});
+      AppEngineCocoonService service;
+
+      setUp(() {
+        service =
+            AppEngineCocoonService(client: MockClient((Request request) async {
+          return Response('', 200);
+        }));
+      });
+
+      test('should return true if request succeeds', () async {
+        expect(
+            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+            true);
+      });
+
+      test('should return false if request failed', () async {
+        service =
+            AppEngineCocoonService(client: MockClient((Request request) async {
+          return Response('', 500);
+        }));
+
+        expect(
+            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+            false);
+      });
+
+      test('should return false if task key is null', () async {
+        expect(service.rerunTask(Task(), null), throwsA(const TypeMatcher<AssertionError>()));
+      });
     });
   });
 }
