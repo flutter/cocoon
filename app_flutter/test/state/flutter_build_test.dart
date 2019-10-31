@@ -24,7 +24,8 @@ void main() {
 
       when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
-              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]));
+              CocoonResponse<List<CommitStatus>>()
+                ..data = <CommitStatus>[CommitStatus()]));
       when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
           Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..data = true));
@@ -59,6 +60,53 @@ void main() {
       // Since startFetching sends out requests on start, we need to wait
       // for them to finish before disposing of the state.
       await tester.pumpAndSettle();
+
+      // Tear down fails to cancel the timer before the test is over
+      buildState.dispose();
+    });
+
+    testWidgets('statuses error should not delete previous statuses data',
+        (WidgetTester tester) async {
+      buildState.startFetchingBuildStateUpdates();
+
+      // Periodic timers don't necessarily run at the same time in each interval.
+      // We double the refreshRate to gurantee a call would have been made.
+      await tester.pump(buildState.refreshRate * 2);
+      final List<CommitStatus> originalData = buildState.statuses.data;
+
+      when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(
+              CocoonResponse<List<CommitStatus>>()..error = 'error'));
+
+      await tester.pump(buildState.refreshRate * 2);
+      verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
+
+      expect(buildState.statuses.data, originalData);
+      expect(buildState.statuses.error, 'error');
+
+      // Tear down fails to cancel the timer before the test is over
+      buildState.dispose();
+    });
+
+    testWidgets(
+        'build status error should not delete previous build status data',
+        (WidgetTester tester) async {
+      buildState.startFetchingBuildStateUpdates();
+
+      // Periodic timers don't necessarily run at the same time in each interval.
+      // We double the refreshRate to gurantee a call would have been made.
+      await tester.pump(buildState.refreshRate * 2);
+      final bool originalData = buildState.isTreeBuilding.data;
+
+      when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
+          Future<CocoonResponse<bool>>.value(
+              CocoonResponse<bool>()..error = 'tree error'));
+
+      await tester.pump(buildState.refreshRate * 2);
+      verify(mockService.fetchTreeBuildStatus()).called(greaterThan(1));
+
+      expect(buildState.isTreeBuilding.data, originalData);
+      expect(buildState.isTreeBuilding.error, 'tree error');
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
