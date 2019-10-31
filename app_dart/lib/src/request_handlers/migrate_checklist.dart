@@ -31,14 +31,18 @@ class MigrateChecklist extends ApiRequestHandler<MigrateChecklistResponse> {
 
   @override
   Future<MigrateChecklistResponse> get() async {
-    const int maxRecords = 10;
+    /// Current daily commit number is at most of 30s
+    /// 
+    /// [maxRecord] 100 should be big enough for different scenarios
+    const int maxRecords = 100;
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'Checklist';
+
     final DatastoreService datastore = datastoreProvider();
     final List<Commit> commits = await datastore
         .queryRecentUnexportedCommits(limit: maxRecords)
         .toList();
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'Checklist';
 
     if (commits.isEmpty) {
       return const MigrateChecklistResponse(<Commit>[]);
