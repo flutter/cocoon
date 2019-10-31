@@ -53,7 +53,7 @@ import 'exceptions.dart';
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is a whitelisted account in the Cocoon backend.
 /// 
-///  4. If the request has the `'X-Flutter-IdToken'` HTTP header set to a valid
+///  4. If the request has the `'X-Flutter-AccessToken'` HTTP header set to a valid
 ///     access token, then this will follow the same logic as #3.
 ///
 /// If none of the above authentication methods yield an authenticated
@@ -113,7 +113,7 @@ class AuthenticationProvider {
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
-    final String accessToken = request.headers.value('X-Flutter-IdToken');
+    final String accessToken = request.headers.value('X-Flutter-AccessToken');
         
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
@@ -203,15 +203,18 @@ class AuthenticationProvider {
   }) async {
     final HttpClient client = _httpClientProvider();
     try {
-      final HttpClientRequest verifyAccessTokenRequest = await client.getUrl(Uri.https(
-        'googleapis.com',
+      final Uri googleOauthTokenInfoUri = Uri.https(
+        'www.googleapis.com',
         '/oauth2/v1/tokeninfo',
         <String, String>{
           'access_token': accessToken,
         },
-      ));
+      );
+      log.info(googleOauthTokenInfoUri.toString());
+      final HttpClientRequest verifyAccessTokenRequest = await client.getUrl(googleOauthTokenInfoUri);
       final HttpClientResponse verifyAccessTokenResponse = await verifyAccessTokenRequest.close();
 
+      /// This also checks for when an access token is expired.
       if (verifyAccessTokenResponse.statusCode != HttpStatus.ok) {
         final String body = await utf8.decodeStream(verifyAccessTokenResponse);
         log.warning('Access token verification failed: ${verifyAccessTokenResponse.statusCode}; $body');
@@ -233,9 +236,9 @@ class AuthenticationProvider {
         throw const Unauthenticated('Invalid ID token');
       }
 
-      final String verified = accessTokenData['verified'];
-      assert(verified != null);
-      if (verified != 'true') {
+      final String verifiedEmail = accessTokenData['verified_email'];
+      assert(verifiedEmail != null);
+      if (verifiedEmail != 'true') {
         log.warning('Unverified account attempted to authenticate');
         throw const Unauthenticated('Account is not verified');
       }
