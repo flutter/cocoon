@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
+import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_box.dart';
 
 void main() {
@@ -15,6 +16,11 @@ void main() {
       ..attempts = 3
       ..name = 'Tasky McTaskFace'
       ..reason = 'Because I said so';
+    FlutterBuildState buildState;
+
+    setUpAll(() {
+      buildState = FlutterBuildState();
+    });
 
     // Table Driven Approach to ensure every message does show the corresponding color
     TaskBox.statusColor.forEach((String message, Color color) {
@@ -27,7 +33,9 @@ void main() {
     testWidgets('shows loading indicator for In Progress task',
         (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
-          home: TaskBox(task: Task()..status = TaskBox.statusInProgress)));
+          home: TaskBox(
+              buildState: buildState,
+              task: Task()..status = TaskBox.statusInProgress)));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -38,7 +46,8 @@ void main() {
         ..status = 'New'
         ..attempts = 2;
 
-      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
+      await tester.pumpWidget(
+          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -53,7 +62,8 @@ void main() {
         ..status = 'In Progress'
         ..attempts = 2;
 
-      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
+      await tester.pumpWidget(
+          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -66,6 +76,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
           home: TaskBox(
+              buildState: buildState,
               task: Task()
                 ..status = TaskBox.statusSucceeded
                 ..isFlaky = true)));
@@ -78,6 +89,7 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
           home: TaskBox(
+              buildState: buildState,
               task: Task()
                 ..status = TaskBox.statusInProgress
                 ..isFlaky = true)));
@@ -92,7 +104,8 @@ void main() {
         ..status = 'Succeeded'
         ..attempts = 2;
 
-      await tester.pumpWidget(MaterialApp(home: TaskBox(task: repeatTask)));
+      await tester.pumpWidget(
+          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -108,6 +121,7 @@ void main() {
     testWidgets('shows overlay on click', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
         home: TaskBox(
+          buildState: buildState,
           task: expectedTask,
         ),
       ));
@@ -133,6 +147,7 @@ void main() {
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(
         home: TaskBox(
+          buildState: buildState,
           task: expectedTask,
         ),
       ));
@@ -156,8 +171,14 @@ void main() {
 
 Future<void> expectTaskBoxColorWithMessage(
     WidgetTester tester, String message, Color expectedColor) async {
-  await tester
-      .pumpWidget(MaterialApp(home: TaskBox(task: Task()..status = message)));
+  await tester.pumpWidget(
+    MaterialApp(
+      home: TaskBox(
+        buildState: FlutterBuildState(),
+        task: Task()..status = message,
+      ),
+    ),
+  );
 
   final Container taskBoxWidget =
       find.byType(Container).evaluate().first.widget;

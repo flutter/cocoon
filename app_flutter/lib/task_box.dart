@@ -17,6 +17,7 @@ class TaskBox extends StatefulWidget {
       : assert(task != null),
         super(key: key);
 
+  /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.
   final FlutterBuildState buildState;
 
   /// [Task] to show information from.
@@ -122,10 +123,12 @@ class _TaskBoxState extends State<TaskBox> {
   void _handleTap() {
     _taskOverlay = OverlayEntry(
       builder: (_) => TaskOverlayContents(
-          parentContext: context,
-          task: widget.task,
-          taskStatus: status,
-          closeCallback: _closeOverlay),
+        buildState: widget.buildState,
+        parentContext: context,
+        task: widget.task,
+        taskStatus: status,
+        closeCallback: _closeOverlay,
+      ),
     );
 
     Overlay.of(context).insert(_taskOverlay);

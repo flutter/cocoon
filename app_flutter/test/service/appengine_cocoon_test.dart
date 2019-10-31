@@ -195,5 +195,9 @@ void main() {
           await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
+
+    group('AppEngine Cocoon Service rerun task', () {
+      test('should return true if succeeds', () async {});
+    });
   });
 }

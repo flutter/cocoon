@@ -50,6 +50,7 @@ class StatusGridContainer extends StatelessWidget {
         matrix.sort(compareRecentlyFailed);
 
         return StatusGrid(
+          buildState: buildState,
           statuses: statuses,
           taskMatrix: matrix,
         );
@@ -84,6 +85,7 @@ class StatusGridContainer extends StatelessWidget {
 class StatusGrid extends StatelessWidget {
   const StatusGrid({
     Key key,
+    @required this.buildState,
     @required this.statuses,
     @required this.taskMatrix,
   }) : super(key: key);
@@ -93,6 +95,9 @@ class StatusGrid extends StatelessWidget {
 
   /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
   final task_matrix.TaskMatrix taskMatrix;
+
+  /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
+  final FlutterBuildState buildState;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +149,10 @@ class StatusGrid extends StatelessWidget {
                 return const SizedBox();
               }
 
-              return TaskBox(task: task);
+              return TaskBox(
+                task: task,
+                buildState: buildState,
+              );
             },
           ),
         ),
