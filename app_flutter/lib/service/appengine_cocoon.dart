@@ -99,7 +99,7 @@ class AppEngineCocoonService implements CocoonService {
 
     final http.StreamedResponse response = await _client.send(request);
 
-    return response.statusCode == 200;
+    return response.statusCode == HttpStatus.ok;
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.
