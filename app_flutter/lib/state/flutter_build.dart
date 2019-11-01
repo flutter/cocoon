@@ -65,12 +65,24 @@ class FlutterBuildState extends ChangeNotifier {
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      _cocoonService.fetchCommitStatuses().then(
-          (CocoonResponse<List<CommitStatus>> response) =>
-              _statuses = response),
+      _cocoonService
+          .fetchCommitStatuses()
+          .then((CocoonResponse<List<CommitStatus>> response) {
+        if (response.error != null) {
+          _statuses.error = response.error;
+        } else {
+          _statuses = response;
+        }
+      }),
       _cocoonService
           .fetchTreeBuildStatus()
-          .then((CocoonResponse<bool> response) => _isTreeBuilding = response),
+          .then((CocoonResponse<bool> response) {
+        if (response.error != null) {
+          _isTreeBuilding.error = response.error;
+        } else {
+          _isTreeBuilding = response;
+        }
+      }),
     ]);
 
     notifyListeners();
