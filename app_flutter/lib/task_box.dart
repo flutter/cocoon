@@ -192,6 +192,8 @@ class TaskOverlayContents extends StatelessWidget {
         Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
+  static const Key scaffoldKey = Key('build-dashbord-scaffold');
+
   @override
   Widget build(BuildContext context) {
     final RenderBox renderBox = parentContext.findRenderObject();
@@ -251,12 +253,18 @@ class TaskOverlayContents extends StatelessWidget {
                       width: 120,
                       height: 50,
                       onPressed: () async {
-                        await Future<void>.delayed(const Duration(seconds: 5));
                         final bool success = await buildState.rerunTask(task);
                         return () {
-                          if (!success) {
-                            print('Failed to rerun Task ${task.key}');
-                          }
+                          final Text snackbarText = success
+                              ? const Text(
+                                  'Rerunning task. This may take a minute to propagate.')
+                              : const Text('Failed to rerun task.');
+                          Scaffold.of(parentContext).showSnackBar(
+                            SnackBar(
+                              content: snackbarText,
+                              duration: const Duration(seconds: 12),
+                            ),
+                          );
                         };
                       },
                       animate: false,

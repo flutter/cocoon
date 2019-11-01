@@ -224,7 +224,8 @@ void main() {
       });
 
       test('should return false if task key is null', () async {
-        expect(service.rerunTask(Task(), null), throwsA(const TypeMatcher<AssertionError>()));
+        expect(service.rerunTask(Task(), null),
+            throwsA(const TypeMatcher<AssertionError>()));
       });
     });
   });
