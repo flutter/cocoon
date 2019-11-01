@@ -61,6 +61,9 @@ String _luciSourceConfigurationUrl(Task task) {
   return luciUrl;
 }
 
+/// Whether [Task] is run in the devicelab or not.
+bool isDevicelab(Task task) => task.stageName.contains(StageName.devicelab);
+
 /// Whether the information from [Task] is available publically.
 ///
 /// Only devicelab tasks are not available publically.
