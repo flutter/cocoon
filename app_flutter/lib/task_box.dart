@@ -6,6 +6,7 @@ import 'package:app_flutter/state/flutter_build.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 
 /// Displays information from a [Task].
 ///
@@ -243,13 +244,21 @@ class TaskOverlayContents extends StatelessWidget {
                         // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
                       },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.redo),
+                    ProgressButton(
+                      defaultWidget: const Text('Rerun task'),
+                      progressWidget: const CircularProgressIndicator(),
+                      width: 120,
+                      height: 50,
                       onPressed: () async {
-                        final bool successful =
-                            await buildState.rerunTask(task);
-                        // TODO(chillers): Do something if it was not successful.
+                        await Future<void>.delayed(const Duration(seconds: 5));
+                        final bool success = await buildState.rerunTask(task);
+                        return () {
+                          if (!success) {
+                            print('Failed to rerun Task ${task.key}');
+                          }
+                        };
                       },
+                      animate: false,
                     ),
                   ],
                 ),
