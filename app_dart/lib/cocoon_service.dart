@@ -34,6 +34,8 @@ export 'src/request_handling/cache_request_handler.dart';
 export 'src/request_handling/proxy_request_handler.dart';
 export 'src/request_handling/request_handler.dart';
 export 'src/request_handling/static_file_handler.dart';
+export 'src/service/access_client_provider.dart';
 export 'src/service/access_token_provider.dart';
+export 'src/service/bigquery.dart';
 export 'src/service/buildbucket.dart';
 export 'src/service/cache_service.dart';

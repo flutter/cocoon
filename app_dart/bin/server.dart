@@ -24,6 +24,7 @@ Future<void> main() async {
 
     final CacheService cacheService = CacheService(config);
     final Cache<Uint8List> redisCache = await cacheService.redisCache();
+    final AccessClientProvider accessClientProvider = AccessClientProvider(config);
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -36,7 +37,9 @@ Future<void> main() async {
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
-      '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
+      '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider,
+          tabledataResourceApi:
+              await BigqueryService(accessClientProvider).defaultTabledata()),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),

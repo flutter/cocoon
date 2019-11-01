@@ -11,7 +11,8 @@ import 'package:cocoon_service/src/request_handlers/refresh_github_commits.dart'
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
+import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -38,6 +39,7 @@ void main() {
     FakeHttpClient httpClient;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
+    MockTabledataResourceApi mockTabledataResourceApi;
 
     List<String> githubCommits;
     int yieldedCommitCount;
@@ -70,9 +72,13 @@ void main() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      mockTabledataResourceApi = MockTabledataResourceApi();
       when(github.repositories).thenReturn(repositories);
       when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
         return commitStream();
+      });
+      when(mockTabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
+        return Future<TableDataInsertAllResponse>.value(null);
       });
 
       yieldedCommitCount = 0;
@@ -87,6 +93,7 @@ void main() {
         datastoreProvider: () => DatastoreService(db: db),
         httpClientProvider: () => httpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        tabledataResourceApi: mockTabledataResourceApi,
       );
     });
 
@@ -128,7 +135,7 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
-      db.onCommit = (List<Model> inserts, List<Key> deletes) {
+      db.onCommit = (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '2').isNotEmpty) {
           throw StateError('Commit failed');
         }
@@ -177,7 +184,6 @@ void main() {
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
     });
   });
-
   group('GitHubBackoffCalculator', () {
     test('twoSecondLinearBackoff', () {
       expect(twoSecondLinearBackoff(0), const Duration(seconds: 2));
@@ -195,3 +201,5 @@ int toTimestamp(Commit commit) => commit.timestamp;
 class MockGitHub extends Mock implements GitHub {}
 
 class MockRepositoriesService extends Mock implements RepositoriesService {}
+
+class MockTabledataResourceApi extends Mock implements TabledataResourceApi {} 
