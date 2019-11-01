@@ -46,7 +46,7 @@ Duration twoSecondLinearBackoff(int attempt) {
 class RefreshGithubCommits extends ApiRequestHandler<Body> {
   const RefreshGithubCommits(
     Config config,
-    AuthenticationProvider authenticationProvider,{
+    AuthenticationProvider authenticationProvider, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
@@ -102,6 +102,9 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     log.debug('Found ${newCommits.length} new commits on GitHub');
 
     for (Commit commit in newCommits) {
+      /// Consolidate [commits] together 
+      /// 
+      /// Prepare for bigquery [insertAll]
       tableDataInsertAllRequestRows.add(<String, Object>{
         'json': <String, Object>{
           'ID': commit.id,
@@ -131,11 +134,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       }
     }
 
+    /// Final [rows] to be inserted to [BigQuery]
     final TableDataInsertAllRequest rows =
       TableDataInsertAllRequest.fromJson(<String, Object>{
       'rows': tableDataInsertAllRequestRows
     });
 
+    /// Insert [commits] to [BigQuery]
     await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
 
     return Body.empty;

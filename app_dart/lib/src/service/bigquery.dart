@@ -21,3 +21,4 @@ class BigqueryService {
     return BigqueryApi(client).tabledata;
   }
 }
+
