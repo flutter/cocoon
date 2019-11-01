@@ -49,10 +49,15 @@ class StatusGridContainer extends StatelessWidget {
             task_matrix.TaskMatrix(statuses: statuses);
         matrix.sort(compareRecentlyFailed);
 
-        return StatusGrid(
+        return Experiment(
           statuses: statuses,
           taskMatrix: matrix,
         );
+
+        // return StatusGrid(
+        //   statuses: statuses,
+        //   taskMatrix: matrix,
+        // );
       },
     );
   }
@@ -149,6 +154,59 @@ class StatusGrid extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Display results from flutter/flutter repository's continuous integration.
+///
+/// Results are displayed in a matrix format. Rows are commits and columns
+/// are the results from tasks.
+class Experiment extends StatelessWidget {
+  const Experiment({
+    Key key,
+    @required this.statuses,
+    @required this.taskMatrix,
+  }) : super(key: key);
+
+  /// The build status data to display in the grid.
+  final List<CommitStatus> statuses;
+
+  /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
+  final task_matrix.TaskMatrix taskMatrix;
+
+  @override
+  Widget build(BuildContext context) {
+    /// The grid needs to know its dimensions. Column is based off how many tasks are
+    /// in a row (+ 1 to account for [CommitBox]).
+    final int columnCount = taskMatrix.columns + 1;
+
+    final List<Widget> rows = <Widget>[];
+    final ScrollController horizontalController = ScrollController();
+
+    for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
+      final List<TaskBox> tasks = <TaskBox>[];
+      for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
+        tasks.add(TaskBox(
+          task: taskMatrix.task(rowIndex, colIndex),
+        ));
+      }
+
+      rows.add(
+        Container(
+          height: 50,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            controller: horizontalController,
+            children: tasks,
+            addRepaintBoundaries: false,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: rows,
     );
   }
 }
