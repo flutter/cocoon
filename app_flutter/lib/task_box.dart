@@ -305,25 +305,25 @@ class TaskOverlayContents extends StatelessWidget {
                   progressWidget: const CircularProgressIndicator(),
                   width: 120,
                   height: 50,
-                  onPressed: () async {
-                    final bool success = await buildState.rerunTask(task);
-                    return () {
-                      final Text snackbarText = success
-                          ? const Text(rerunSuccessMessage)
-                          : const Text(rerunErrorMessage);
-                      Scaffold.of(parentContext).showSnackBar(
-                        SnackBar(
-                          content: snackbarText,
-                          duration: rerunSnackbarDuration,
-                        ),
-                      );
-                    };
-                  },
+                  onPressed: _rerunTask,
                   animate: false,
                 ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _rerunTask() async {
+    final bool success = await buildState.rerunTask(task);
+    final Text snackbarText = success
+        ? const Text(rerunSuccessMessage)
+        : const Text(rerunErrorMessage);
+    Scaffold.of(parentContext).showSnackBar(
+      SnackBar(
+        content: snackbarText,
+        duration: rerunSnackbarDuration,
       ),
     );
   }
