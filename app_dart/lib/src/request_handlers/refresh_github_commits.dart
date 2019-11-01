@@ -141,7 +141,11 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     });
 
     /// Insert [commits] to [BigQuery]
-    await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+    try {
+      await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+    } catch (error) {
+      log.warning('Failed to add commits to BigQuery: $error');
+    }
 
     return Body.empty;
   }
