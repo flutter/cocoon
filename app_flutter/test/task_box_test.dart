@@ -194,13 +194,17 @@ void main() {
       // Click the rerun task button
       await tester.tap(find.byType(ProgressButton));
       await tester.pump();
+      await tester
+          .pump(const Duration(milliseconds: 750)); // 750ms open animation
 
       expect(
           find.text(TaskOverlayContents.rerunSuccessMessage), findsOneWidget);
 
-      // Snackbar should go away after its duration
-      await tester.pump(TaskOverlayContents.rerunSnackbarDuration);
-      await tester.pump();
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          TaskOverlayContents.rerunSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
     });
@@ -230,13 +234,17 @@ void main() {
       // Click the rerun task button
       await tester.tap(find.byType(ProgressButton));
       await tester.pump();
+      await tester
+          .pump(const Duration(milliseconds: 750)); // 750ms open animation
 
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsOneWidget);
 
       // Snackbar message should go away after its duration
-      await tester.pump(TaskOverlayContents.rerunSnackbarDuration);
-      await tester.pump();
+      await tester.pumpAndSettle(
+          TaskOverlayContents.rerunSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     });

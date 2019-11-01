@@ -201,8 +201,6 @@ class TaskOverlayContents extends StatelessWidget {
         Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
-  static const Key scaffoldKey = Key('build-dashbord-scaffold');
-
   @override
   Widget build(BuildContext context) {
     final RenderBox renderBox = parentContext.findRenderObject();
