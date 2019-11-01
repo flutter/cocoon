@@ -20,6 +20,6 @@ task:
   - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
   analyze_script: cd app_flutter && flutter analyze
-  format_script: cd app_flutter && flutter format --set-exit-if-changed
+  format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
   build_script: cd app_flutter && flutter config --enable-web && flutter build web
   test_script: cd app_flutter && flutter test
