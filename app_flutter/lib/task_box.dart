@@ -18,6 +18,7 @@ import 'state/flutter_build.dart';
 class TaskBox extends StatefulWidget {
   const TaskBox({Key key, @required this.buildState, @required this.task})
       : assert(task != null),
+        assert(buildState != null),
         super(key: key);
 
   /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.
@@ -153,6 +154,7 @@ class TaskOverlayEntry extends StatelessWidget {
     @required this.closeCallback,
     @required this.buildState,
   })  : assert(parentContext != null),
+        assert(buildState != null),
         assert(task != null),
         assert(closeCallback != null),
         super(key: key);
@@ -236,6 +238,7 @@ class TaskOverlayContents extends StatelessWidget {
     @required this.task,
     @required this.taskStatus,
   })  : assert(parentContext != null),
+        assert(buildState != null),
         assert(task != null),
         super(key: key);
 
