@@ -19,7 +19,7 @@ class GoogleSignInService {
   ///
   /// Currently, the project shows just basic user profile information
   /// when logged in.
-  /// 
+  ///
   /// See https://developers.google.com/identity/protocols/googlescopes
   static const List<String> _googleScopes = <String>[
     'https://www.googleapis.com/auth/userinfo.email',
