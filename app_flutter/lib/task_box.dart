@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/task_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 
@@ -177,6 +178,14 @@ class TaskOverlayContents extends StatelessWidget {
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
 
+  @visibleForTesting
+  static const String rerunErrorMessage = 'Failed to rerun task.';
+  @visibleForTesting
+  static const String rerunSuccessMessage =
+      'Devicelab is rerunning the task. This can take a minute to propagate.';
+  @visibleForTesting
+  static const Duration rerunSnackbarDuration = Duration(seconds: 15);
+
   /// A lookup table to define the [Icon] for this [Overlay].
   static const Map<String, Icon> statusIcon = <String, Icon>{
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
@@ -247,28 +256,28 @@ class TaskOverlayContents extends StatelessWidget {
                         // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
                       },
                     ),
-                    ProgressButton(
-                      defaultWidget: const Text('Rerun task'),
-                      progressWidget: const CircularProgressIndicator(),
-                      width: 120,
-                      height: 50,
-                      onPressed: () async {
-                        final bool success = await buildState.rerunTask(task);
-                        return () {
-                          final Text snackbarText = success
-                              ? const Text(
-                                  'Rerunning task. This may take a minute to propagate.')
-                              : const Text('Failed to rerun task.');
-                          Scaffold.of(parentContext).showSnackBar(
-                            SnackBar(
-                              content: snackbarText,
-                              duration: const Duration(seconds: 12),
-                            ),
-                          );
-                        };
-                      },
-                      animate: false,
-                    ),
+                    if (isDevicelab(task))
+                      ProgressButton(
+                        defaultWidget: const Text('Rerun task'),
+                        progressWidget: const CircularProgressIndicator(),
+                        width: 120,
+                        height: 50,
+                        onPressed: () async {
+                          final bool success = await buildState.rerunTask(task);
+                          return () {
+                            final Text snackbarText = success
+                                ? const Text(rerunSuccessMessage)
+                                : const Text(rerunErrorMessage);
+                            Scaffold.of(parentContext).showSnackBar(
+                              SnackBar(
+                                content: snackbarText,
+                                duration: rerunSnackbarDuration,
+                              ),
+                            );
+                          };
+                        },
+                        animate: false,
+                      ),
                   ],
                 ),
               ],
