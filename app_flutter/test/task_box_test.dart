@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
@@ -14,12 +16,13 @@ void main() {
   group('TaskBox', () {
     final Task expectedTask = Task()
       ..attempts = 3
+      ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reason = 'Because I said so';
     FlutterBuildState buildState;
 
     setUpAll(() {
-      buildState = FlutterBuildState();
+      buildState = MockFlutterBuildState();
     });
 
     // Table Driven Approach to ensure every message does show the corresponding color
@@ -166,6 +169,77 @@ void main() {
       // The task indicator should not show after the overlay has been closed
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
     });
+
+    testWidgets('successful rerun shows success snackbar message',
+        (WidgetTester tester) async {
+      when(buildState.rerunTask(any))
+          .thenAnswer((_) => Future<bool>.value(true));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
+
+      // Click the rerun task button
+      await tester.tap(find.byType(ProgressButton));
+      await tester.pump();
+
+      expect(
+          find.text(TaskOverlayContents.rerunSuccessMessage), findsOneWidget);
+
+      // Snackbar should go away after its duration
+      await tester.pump(TaskOverlayContents.rerunSnackbarDuration);
+      await tester.pump();
+
+      expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
+    });
+
+    testWidgets('failed rerun shows error snackbar message',
+        (WidgetTester tester) async {
+      when(buildState.rerunTask(any))
+          .thenAnswer((_) => Future<bool>.value(false));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
+      expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
+
+      // Click the rerun task button
+      await tester.tap(find.byType(ProgressButton));
+      await tester.pump();
+
+      expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
+      expect(find.text(TaskOverlayContents.rerunErrorMessage), findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pump(TaskOverlayContents.rerunSnackbarDuration);
+      await tester.pump();
+
+      expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
+    });
   });
 }
 
@@ -185,3 +259,5 @@ Future<void> expectTaskBoxColorWithMessage(
   final BoxDecoration decoration = taskBoxWidget.decoration;
   expect(decoration.color, expectedColor);
 }
+
+class MockFlutterBuildState extends Mock implements FlutterBuildState {}
