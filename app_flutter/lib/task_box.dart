@@ -213,7 +213,7 @@ class TaskOverlayEntry extends StatelessWidget {
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
           child: TaskOverlayContents(
-            parentContext: parentContext,
+            snackbarCallback: Scaffold.of(parentContext).showSnackBar,
             buildState: buildState,
             task: task,
             taskStatus: taskStatus,
@@ -233,17 +233,17 @@ class TaskOverlayEntry extends StatelessWidget {
 class TaskOverlayContents extends StatelessWidget {
   const TaskOverlayContents({
     Key key,
-    @required this.parentContext,
+    @required this.snackbarCallback,
     @required this.buildState,
     @required this.task,
     @required this.taskStatus,
-  })  : assert(parentContext != null),
+  })  : assert(snackbarCallback != null),
         assert(buildState != null),
         assert(task != null),
         super(key: key);
 
-  /// The parent context that has the size of the whole screen
-  final BuildContext parentContext;
+  final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
+      SnackBar) showSnackbarCallback;
 
   /// A reference to the [FlutterBuildState] for performing operations on this [Task].
   final FlutterBuildState buildState;
@@ -320,7 +320,7 @@ class TaskOverlayContents extends StatelessWidget {
     final Text snackbarText = success
         ? const Text(rerunSuccessMessage)
         : const Text(rerunErrorMessage);
-    Scaffold.of(parentContext).showSnackBar(
+    showSnackbarCallback(
       SnackBar(
         content: snackbarText,
         duration: rerunSnackbarDuration,
