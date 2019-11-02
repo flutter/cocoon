@@ -28,6 +28,7 @@ Future<void> main() async {
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
+      '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/create-agent': CreateAgent(config, authProvider),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
@@ -59,7 +60,7 @@ Future<void> main() async {
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: redisCache,
         config: config,
-        delegate: GetStatus(config), 
+        delegate: GetStatus(config),
       ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
@@ -72,7 +73,7 @@ Future<void> main() async {
     );
 
     /// Check if the requested URI is for the Flutter Application
-    /// 
+    ///
     /// Currently the Flutter application will run at
     /// https://flutter-dashboard.appspot.com/v2/
     bool isRequestForFlutterApplicationBeta(HttpRequest request) {
@@ -84,7 +85,7 @@ Future<void> main() async {
         String filePath = request.uri.toFilePath();
         // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
         filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
-        
+
         await StaticFileHandler(filePath, config: config).service(request);
 
         return;
