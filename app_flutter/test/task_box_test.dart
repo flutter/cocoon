@@ -267,7 +267,7 @@ void main() {
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
       });
-      final Task publicTask = Task()..stageName='cirrus';
+      final Task publicTask = Task()..stageName = 'cirrus';
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -372,4 +372,5 @@ Future<void> expectTaskBoxColorWithMessage(
 }
 
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}
+
 class MockGoogleSignInService extends Mock implements GoogleSignInService {}
