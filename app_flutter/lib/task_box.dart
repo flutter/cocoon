@@ -213,7 +213,7 @@ class TaskOverlayEntry extends StatelessWidget {
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
           child: TaskOverlayContents(
-            snackbarCallback: Scaffold.of(parentContext).showSnackBar,
+            showSnackbarCallback: Scaffold.of(parentContext).showSnackBar,
             buildState: buildState,
             task: task,
             taskStatus: taskStatus,
@@ -233,11 +233,11 @@ class TaskOverlayEntry extends StatelessWidget {
 class TaskOverlayContents extends StatelessWidget {
   const TaskOverlayContents({
     Key key,
-    @required this.snackbarCallback,
+    @required this.showSnackbarCallback,
     @required this.buildState,
     @required this.task,
     @required this.taskStatus,
-  })  : assert(snackbarCallback != null),
+  })  : assert(showSnackbarCallback != null),
         assert(buildState != null),
         assert(task != null),
         super(key: key);
