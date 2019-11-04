@@ -288,8 +288,9 @@ class TaskOverlayContents extends StatelessWidget {
             leading:
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
             title: Text(task.name),
-            subtitle: Text(
-                'Attempts: ${task.attempts}\nDuration: ${task.endTimestamp - task.startTimestamp} seconds\nAgent: ${task.reservedForAgentId}'),
+            subtitle: Text('Attempts: ${task.attempts}\n'
+                'Duration: ${task.endTimestamp - task.startTimestamp} seconds\n'
+                'Agent: ${task.reservedForAgentId}'),
           ),
           ButtonBar(
             children: <Widget>[
