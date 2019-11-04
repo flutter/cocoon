@@ -33,5 +33,12 @@ void main() {
       expect(sourceConfigurationUrl(cirrusTask),
           'https://cirrus-ci.com/github/flutter/flutter/master');
     });
+
+    test('is devicelab', () {
+      expect(isDevicelab(Task()..stageName = 'devicelab'), true);
+      expect(isDevicelab(Task()..stageName = 'devicelab_win'), true);
+
+      expect(isDevicelab(Task()..stageName = 'cirrus'), false);
+    });
   });
 }
