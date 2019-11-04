@@ -7,8 +7,6 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:http/http.dart' as http;
-import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -18,6 +16,59 @@ import '../foundation/typedefs.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+
+const String _labeledPullRequestsWithReviewsQuery = r'''
+query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
+  repository(owner: $sOwner, name: $sName) {
+    labels(first: 1, query: $sLabelName) {
+      nodes {
+        id
+        pullRequests(first: 100, states: OPEN) {
+          nodes {
+            id
+            number
+            mergeable
+            commits(last:1) {
+              nodes {
+                commit {
+                  abbreviatedOid
+                  oid
+                  status {
+                    state
+                  }
+                }
+              }
+            }
+            reviews(first: 100, states: [CHANGES_REQUESTED, APPROVED]) {
+              nodes {
+                state
+                author {
+                  login
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}''';
+
+const String _mergePullRequestMutation = r'''
+mutation MergePR($id: ID!, $oid: GitObjectID!) {
+  mergePullRequest(input: {
+    pullRequestId: $id,
+    expectedHeadOid: $oid,
+    mergeMethod: SQUASH,
+    commitBody: ""
+  }) {}
+}''';
+
+const String _removeLabelMutation = r'''
+mutation RemoveLabelAndComment($id: ID!, $sBody: String!, $labelId: ID!) {
+  addComment(input: { subjectId:$id, body: $sBody }) {}
+  removeLabelsFromLabelable(input: { labelableId: $id, labelIds: [$labelId] }) {}
+}''';
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
@@ -39,145 +90,115 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    await _checkPRs(log, RepositorySlug('flutter', 'flutter'));
-    await _checkPRs(log, RepositorySlug('flutter', 'engine'));
+    final GraphQLClient client = await config.createGitHubGraphQLClient();
+
+    await _checkPRs('flutter', 'flutter', log, client);
+    await _checkPRs('flutter', 'engine', log, client);
 
     return Body.empty;
   }
 
-  Future<void> _checkPRs(Logging log, RepositorySlug slug) async {
-    final Map<String, dynamic> data = await _queryGraphQL(slug, log);
+  Future<void> _checkPRs(
+    String owner,
+    String name,
+    Logging log,
+    GraphQLClient client,
+  ) async {
+    bool hasMerged = false;
+    final Map<String, dynamic> data = await _queryGraphQL(owner, name, log, client);
     for (_AutoMergeQueryResult queryResult in _parseQueryData(data)) {
-      if (queryResult.shouldMerge) {
-        await _mergePullRequest(
-          log,
-          RepositorySlug('flutter', 'flutter'),
-          queryResult.number,
+      if (!hasMerged && queryResult.shouldMerge) {
+        hasMerged = await _mergePullRequest(
+          owner,
+          name,
+          queryResult.graphQLId,
           queryResult.sha,
+          log,
+          client,
         );
       } else if (queryResult.shouldRemoveLabel) {
         await _removeLabel(
-          slug,
-          queryResult.number,
+          owner,
+          name,
+          queryResult.graphQLId,
           queryResult.removalMessage,
+          queryResult.labelId,
+          client,
         );
-      } else {
-        log.debug('Pull Request could be merged but tree is red: $queryResult');
       }
     }
   }
 
-  Future<Map<String, dynamic>> _queryGraphQL(RepositorySlug slug, Logging log) async {
-    final HttpLink _httpLink = HttpLink(
-      uri: 'https://api.github.com/graphql',
-    );
-
-    final String token = await config.githubOAuthToken;
-    final AuthLink _authLink = AuthLink(
-      getToken: () async => 'Bearer $token',
-    );
-
-    final Link _link = _authLink.concat(_httpLink);
-
-    final GraphQLClient _client = GraphQLClient(
-      cache: InMemoryCache(),
-      link: _link,
-    );
-
-    final String graphQLDocument = await _graphQLDocumentForSlug(slug);
-
-    final QueryResult result = await _client.query(
+  Future<Map<String, dynamic>> _queryGraphQL(
+    String owner,
+    String name,
+    Logging log,
+    GraphQLClient client,
+  ) async {
+    final String labelName = await config.waitingForTreeToGoGreenLabelName;
+    final QueryResult result = await client.query(
       QueryOptions(
-        document: graphQLDocument,
-        fetchPolicy: FetchPolicy.noCache,
-      ),
+          document: _labeledPullRequestsWithReviewsQuery,
+          fetchPolicy: FetchPolicy.noCache,
+          variables: <String, dynamic>{
+            'sOwner': owner,
+            'sName': name,
+            'sLabelName': labelName,
+          }),
     );
 
     if (result.hasErrors) {
       log.error(jsonEncode(result.errors));
-      throw const InternalServerError();
+      throw const BadRequestException('GraphQL query failed');
     }
 
     return result.data;
   }
 
-  Future<String> _graphQLDocumentForSlug(RepositorySlug slug) async {
-    final String labelName = await config.waitingForTreeToGoGreenLabelName;
-    return '''query {
-repository(owner: "${slug.owner}", name: "${slug.name}") {
-  pullRequests(labels: "$labelName", first: 100, states: OPEN) {
-    nodes {
-      number
-      mergeable
-      commits(last:1) {
-        nodes {
-          commit {
-            abbreviatedOid
-            oid
-            status {
-              state
-            }
-          }
-        }
-      }
-      reviews(first: 100, states: [CHANGES_REQUESTED, APPROVED]) {
-        nodes {
-          state
-          author {
-            login
-          }
-        }
-      }
-    }
-  }
-}}''';
-  }
-
-  Future<void> _removeLabel(
-    RepositorySlug slug,
-    int number,
+  Future<bool> _removeLabel(
+    String owner,
+    String name,
+    String id,
     String message,
+    String labelId,
+    GraphQLClient client,
   ) async {
-    final GitHub client = await config.createGitHubClient();
-    await client.issues.createComment(slug, number, message);
-    await client.issues.removeLabelForIssue(
-      slug,
-      number,
-      await config.waitingForTreeToGoGreenLabelName,
-    );
+    final QueryResult result = await client.mutate(MutationOptions(
+      document: _removeLabelMutation,
+      variables: <String, dynamic>{
+        'id': id,
+        'sBody': message,
+        'labelId': labelId,
+      },
+    ));
+    if (result.hasErrors) {
+      log.error(jsonEncode(result.errors));
+      return false;
+    }
+    return true;
   }
 
-  Future<void> _mergePullRequest(
-    Logging log,
-    RepositorySlug slug,
-    int number,
+  Future<bool> _mergePullRequest(
+    String owner,
+    String name,
+    String id,
     String sha,
+    Logging log,
+    GraphQLClient client,
   ) async {
-    final GitHub client = await config.createGitHubClient();
-    // https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
-    final Map<String, dynamic> json = <String, dynamic>{
-      'commit_message': '',
-      'sha': sha,
-      'merge_method': 'squash',
-    };
-    final http.Response response = await client.request(
-      'PUT',
-      '/repos/${slug.fullName}/pulls/$number/merge',
-      body: jsonEncode(json),
-    );
-    switch (response.statusCode) {
-      case 200:
-        break;
-      case 409:
-        log.error('Failed to merge PR $number due to merge conflict.');
-        throw const BadRequestException();
-        break;
-      case 405:
-      default:
-        log.error(
-            'Failed to with merge with status code ${response.statusCode}: ${response.body}.');
-        throw const BadRequestException();
+    final QueryResult result = await client.mutate(MutationOptions(
+      document: _mergePullRequestMutation,
+      variables: <String, dynamic>{
+        'id': id,
+        'oid': sha,
+      },
+    ));
+
+    if (result.hasErrors) {
+      log.error(jsonEncode(result.errors));
+      return false;
     }
+    return true;
   }
 
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
@@ -188,9 +209,17 @@ repository(owner: "${slug.owner}", name: "${slug.name}") {
     if (repository == null || repository.isEmpty) {
       return <_AutoMergeQueryResult>[];
     }
-    return repository['pullRequests']['nodes']
+
+    final Map<String, dynamic> label = repository['labels']['nodes'].single;
+    if (label == null || label.isEmpty) {
+      return <_AutoMergeQueryResult>[];
+    }
+    final String labelId = label['id'];
+
+    return label['pullRequests']['nodes']
         .cast<Map<String, dynamic>>()
         .map<_AutoMergeQueryResult>((Map<String, dynamic> pullRequest) {
+      final String id = pullRequest['id'];
       final int number = pullRequest['number'];
       final bool mergeable = pullRequest['mergeable'] != 'MERGEABLE';
       final List<Map<String, dynamic>> reviews =
@@ -213,12 +242,14 @@ repository(owner: "${slug.owner}", name: "${slug.name}") {
       final bool ciSuccessful = commit['status']['state'] == 'SUCCESS';
 
       return _AutoMergeQueryResult(
+        graphQLId: id,
         ciSuccessful: ciSuccessful,
         hasApprovedReview: hasApproval,
         hasChangesRequested: hasChangesRequested,
         mergeable: mergeable,
         number: number,
         sha: sha,
+        labelId: labelId,
       );
     }).toList();
   }
@@ -229,18 +260,25 @@ repository(owner: "${slug.owner}", name: "${slug.name}") {
 @immutable
 class _AutoMergeQueryResult {
   const _AutoMergeQueryResult({
+    @required this.graphQLId,
     @required this.hasApprovedReview,
     @required this.hasChangesRequested,
     @required this.mergeable,
     @required this.ciSuccessful,
     @required this.number,
     @required this.sha,
-  })  : assert(hasApprovedReview != null),
+    @required this.labelId,
+  })  : assert(graphQLId != null),
+        assert(hasApprovedReview != null),
         assert(hasChangesRequested != null),
         assert(mergeable != null),
         assert(ciSuccessful != null),
         assert(number != null),
-        assert(sha != null);
+        assert(sha != null),
+        assert(labelId != null);
+
+  /// The GitHub GraphQL ID of this pull request.
+  final String graphQLId;
 
   /// Whether the pull request has at least one approved review.
   final bool hasApprovedReview;
@@ -259,6 +297,9 @@ class _AutoMergeQueryResult {
 
   /// The git SHA to be merged.
   final String sha;
+
+  /// The GitHub GraphQL ID of the waiting label.
+  final String labelId;
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
@@ -299,11 +340,13 @@ class _AutoMergeQueryResult {
   @override
   String toString() {
     return '$runtimeType{PR#$number, '
+        'id: $graphQLId, '
         'sha: $sha, '
         'ciSuccessful: $ciSuccessful, '
         'hasApprovedReview: $hasApprovedReview, '
         'hasChangesRequested: $hasChangesRequested, '
         'mergeable: $mergeable, '
+        'labelId: $labelId, '
         'shouldMerge: $shouldMerge}';
   }
 }

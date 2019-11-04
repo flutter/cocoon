@@ -9,14 +9,14 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
+import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/service_account_info.dart';
 
 @immutable
 class Config {
-  const Config(this._db)
-      : assert(_db != null);
+  const Config(this._db) : assert(_db != null);
 
   final DatastoreDB _db;
 
@@ -26,7 +26,8 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    final CocoonConfig result =
+        await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
     return result.value;
   }
 
@@ -51,16 +52,19 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  Future<String> get nonMasterPullRequestMessage => _getSingleValue('NonMasterPullRequestMessage');
+  Future<String> get nonMasterPullRequestMessage =>
+      _getSingleValue('NonMasterPullRequestMessage');
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
   Future<String> get missingTestsPullRequestMessage =>
       _getSingleValue('MissingTestsPullRequestMessage');
 
-  Future<String> get goldenBreakingChangeMessage => _getSingleValue('GoldenBreakingChangeMessage');
+  Future<String> get goldenBreakingChangeMessage =>
+      _getSingleValue('GoldenBreakingChangeMessage');
 
-  Future<String> get goldenTriageMessage => _getSingleValue('GoldenTriageMessage');
+  Future<String> get goldenTriageMessage =>
+      _getSingleValue('GoldenTriageMessage');
 
   Future<String> get forwardHost => _getSingleValue('ForwardHost');
 
@@ -68,7 +72,8 @@ class Config {
 
   Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
 
-  Future<int> get maxTaskRetries => _getSingleValue('MaxTaskRetries').then(int.parse);
+  Future<int> get maxTaskRetries =>
+      _getSingleValue('MaxTaskRetries').then(int.parse);
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
@@ -79,9 +84,11 @@ class Config {
   Future<String> get redisUrl => _getSingleValue('RedisConnectionSpec');
 
   /// The name of the subcache in the Redis instance that stores responses.
-  Future<String> get redisResponseSubcache => _getSingleValue('RedisResponseSubcache');
+  Future<String> get redisResponseSubcache =>
+      _getSingleValue('RedisResponseSubcache');
 
-  Future<String> get waitingForTreeToGoGreenLabelName => _getSingleValue('WaitingForTreeToGreenLabelName');
+  Future<String> get waitingForTreeToGoGreenLabelName =>
+      _getSingleValue('WaitingForTreeToGreenLabelName');
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
@@ -136,6 +143,24 @@ class Config {
     final String githubToken = await githubOAuthToken;
     return gh.createGitHubClient(
       auth: Authentication.withToken(githubToken),
+    );
+  }
+
+  Future<GraphQLClient> createGitHubGraphQLClient() async {
+    final HttpLink httpLink = HttpLink(
+      uri: 'https://api.github.com/graphql',
+    );
+
+    final String token = await githubOAuthToken;
+    final AuthLink _authLink = AuthLink(
+      getToken: () async => 'Bearer $token',
+    );
+
+    final Link link = _authLink.concat(httpLink);
+
+    return GraphQLClient(
+      cache: InMemoryCache(),
+      link: link,
     );
   }
 }
