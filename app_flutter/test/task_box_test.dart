@@ -2,15 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter_progress_button/flutter_progress_button.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_box.dart';
+import 'package:app_flutter/task_helper.dart';
 
 void main() {
   group('TaskBox', () {
@@ -200,7 +202,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.byType(ProgressButton));
+      await tester.tap(find.text('Rerun task'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -240,7 +242,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.byType(ProgressButton));
+      await tester.tap(find.text('Rerun task'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -255,6 +257,99 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
+    });
+
+    testWidgets('view log button opens log url for public log',
+        (WidgetTester tester) async {
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
+      final Task publicTask = Task()..stageName = 'cirrus';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: publicTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // View log
+      await tester.tap(find.text('View log'));
+      await tester.pump();
+
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': logUrl(publicTask),
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
+    });
+
+    testWidgets('view log button opens log url for devicelab log',
+        (WidgetTester tester) async {
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
+
+      final GoogleSignInService mockAuth = MockGoogleSignInService();
+      when(mockAuth.accessToken).thenReturn('abc123');
+      when(buildState.authService).thenReturn(mockAuth);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // View log
+      await tester.tap(find.text('View log'));
+      await tester.pump();
+
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': logUrl(expectedTask),
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{
+              'X-Flutter-AccessToken': 'abc123',
+            }
+          })
+        ],
+      );
     });
   });
 }
@@ -277,3 +372,5 @@ Future<void> expectTaskBoxColorWithMessage(
 }
 
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}
+
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}

@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
 import 'state/flutter_build.dart';
+import 'task_helper.dart';
 
 /// Displays information from a [Task].
 ///
@@ -294,11 +295,13 @@ class TaskOverlayContents extends StatelessWidget {
           ),
           ButtonBar(
             children: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.receipt),
-                onPressed: () {
-                  // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
-                },
+              ProgressButton(
+                defaultWidget: const Text('View log'),
+                progressWidget: const CircularProgressIndicator(),
+                width: 100,
+                height: 50,
+                onPressed: _viewLog,
+                animate: false,
               ),
               if (isDevicelab(task))
                 ProgressButton(
@@ -327,5 +330,15 @@ class TaskOverlayContents extends StatelessWidget {
         duration: rerunSnackbarDuration,
       ),
     );
+  }
+
+  Future<void> _viewLog() async {
+    // Only send access token for devicelab tasks since they require authentication
+    final Map<String, String> headers = isDevicelab(task)
+        ? <String, String>{
+            'X-Flutter-AccessToken': buildState.authService.accessToken,
+          }
+        : null;
+    launch(logUrl(task), headers: headers);
   }
 }

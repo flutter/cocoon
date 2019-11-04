@@ -9,6 +9,7 @@ import 'package:cocoon_service/protos.dart' show Task;
 /// Base URLs for various endpoints that can relate to a [Task].
 const String flutterGithubSourceUrl =
     'https://github.com/flutter/flutter/blob/master';
+const String flutterDashboardUrl = 'https://flutter-dashboard.appspot.com';
 const String cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String luciUrl = 'https://ci.chromium.org/p/flutter';
 
@@ -20,6 +21,18 @@ class StageName {
   static const String devicelab = 'devicelab';
   static const String devicelabWin = 'devicelab_win';
   static const String devicelabIOs = 'devicelab_ios';
+}
+
+/// Get the URL for [Task] to view its log.
+///
+/// Devicelab tasks can be retrieved via an authenticated API endpoint.
+/// Otherwise, we can redirect to the page that is closest to the logs for [Task].
+String logUrl(Task task) {
+  if (_isExternal(task)) {
+    return sourceConfigurationUrl(task);
+  }
+
+  return '$flutterDashboardUrl/api/get-log?ownerKey=${task.key}';
 }
 
 /// Get the URL for [Task] that shows its configuration.
