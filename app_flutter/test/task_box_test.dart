@@ -122,12 +122,16 @@ void main() {
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: TaskBox(
-          buildState: buildState,
-          task: expectedTask,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
         ),
-      ));
+      );
 
       final String expectedTaskInfoString =
           'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
@@ -148,12 +152,16 @@ void main() {
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: TaskBox(
-          buildState: buildState,
-          task: expectedTask,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
         ),
-      ));
+      );
 
       // Open the overlay
       await tester.tap(find.byType(TaskBox));
