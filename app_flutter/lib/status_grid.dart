@@ -163,7 +163,7 @@ class StatusGrid extends StatelessWidget {
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
 class Experiment extends StatelessWidget {
-  const Experiment({
+  Experiment({
     Key key,
     @required this.statuses,
     @required this.taskMatrix,
@@ -175,14 +175,11 @@ class Experiment extends StatelessWidget {
   /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
   final task_matrix.TaskMatrix taskMatrix;
 
+  static final ScrollController _horizontalController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
-    /// The grid needs to know its dimensions. Column is based off how many tasks are
-    /// in a row (+ 1 to account for [CommitBox]).
-    final int columnCount = taskMatrix.columns + 1;
-
     final List<Widget> rows = <Widget>[];
-    final ScrollController horizontalController = ScrollController();
 
     for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
       final List<TaskBox> tasks = <TaskBox>[];
@@ -194,19 +191,29 @@ class Experiment extends StatelessWidget {
 
       rows.add(
         Container(
-          height: 50,
-          child: ListView(
+          height: 60,
+          child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            controller: horizontalController,
-            children: tasks,
+            controller: _horizontalController,
+            itemBuilder: (BuildContext context, int colIndex) {
+              return TaskBox(task: taskMatrix.task(rowIndex, colIndex));
+            },
+            shrinkWrap: false,
             addRepaintBoundaries: false,
           ),
         ),
       );
     }
 
-    return Column(
-      children: rows,
+    return Expanded(
+      child: ListView.builder(
+        itemBuilder: (BuildContext context, int row) {
+          return rows[row];
+        },
+        itemCount: taskMatrix.rows,
+        shrinkWrap: false,
+        addRepaintBoundaries: false,
+      ),
     );
   }
 }

@@ -82,8 +82,8 @@ class _TaskBoxState extends State<TaskBox> {
             ? TaskBox.statusColor[status]
             : Colors.black,
         child: taskIndicators(widget.task, status),
-        width: 20,
-        height: 20,
+        width: 30,
+        height: 40,
       ),
     );
   }
