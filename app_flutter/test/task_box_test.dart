@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:app_flutter/task_helper.dart';
@@ -267,7 +267,7 @@ void main() {
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
       });
-      final Task publicTask = Task()..stageName = 'cirrus';
+      final Task publicTask = Task()..stageName='cirrus';
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -372,5 +372,4 @@ Future<void> expectTaskBoxColorWithMessage(
 }
 
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}
-
 class MockGoogleSignInService extends Mock implements GoogleSignInService {}
