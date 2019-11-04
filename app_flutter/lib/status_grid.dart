@@ -162,8 +162,8 @@ class StatusGrid extends StatelessWidget {
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
-class Experiment extends StatelessWidget {
-  Experiment({
+class Experiment extends StatefulWidget {
+  const Experiment({
     Key key,
     @required this.statuses,
     @required this.taskMatrix,
@@ -175,31 +175,55 @@ class Experiment extends StatelessWidget {
   /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
   final task_matrix.TaskMatrix taskMatrix;
 
-  static final ScrollController _horizontalController = ScrollController();
+  static SyncScrollController _horizontalController;
+
+  @override
+  _ExperimentState createState() => _ExperimentState();
+}
+
+class _ExperimentState extends State<Experiment> {
+  List<ScrollController> controllers;
+  SyncScrollController _syncScroller;
+  @override
+  void initState() {
+    controllers = List<ScrollController>.generate(
+        widget.taskMatrix.rows, (_) => ScrollController());
+    _syncScroller = SyncScrollController(controllers);
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> rows = <Widget>[];
 
-    for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
+    for (int rowIndex = 0; rowIndex < widget.taskMatrix.rows; rowIndex++) {
       final List<TaskBox> tasks = <TaskBox>[];
-      for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
+      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
         tasks.add(TaskBox(
-          task: taskMatrix.task(rowIndex, colIndex),
+          task: widget.taskMatrix.task(rowIndex, colIndex),
         ));
       }
 
       rows.add(
         Container(
           height: 60,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            controller: _horizontalController,
-            itemBuilder: (BuildContext context, int colIndex) {
-              return TaskBox(task: taskMatrix.task(rowIndex, colIndex));
+          child: NotificationListener<ScrollNotification>(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              controller: controllers[rowIndex],
+              itemBuilder: (BuildContext context, int colIndex) {
+                return TaskBox(
+                    task: widget.taskMatrix.task(rowIndex, colIndex));
+              },
+              shrinkWrap: false,
+              addRepaintBoundaries: false,
+            ),
+            onNotification: (ScrollNotification scrollInfo) {
+              _syncScroller.processNotification(
+                  scrollInfo, controllers[rowIndex]);
+              return true;
             },
-            shrinkWrap: false,
-            addRepaintBoundaries: false,
           ),
         ),
       );
@@ -210,10 +234,52 @@ class Experiment extends StatelessWidget {
         itemBuilder: (BuildContext context, int row) {
           return rows[row];
         },
-        itemCount: taskMatrix.rows,
+        itemCount: widget.taskMatrix.rows,
         shrinkWrap: false,
         addRepaintBoundaries: false,
       ),
     );
+  }
+}
+
+// https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
+class SyncScrollController {
+  List<ScrollController> _registeredScrollControllers =
+      new List<ScrollController>();
+
+  ScrollController _scrollingController;
+  bool _scrollingActive = false;
+
+  SyncScrollController(List<ScrollController> controllers) {
+    controllers.forEach((controller) => registerScrollController(controller));
+  }
+
+  void registerScrollController(ScrollController controller) {
+    _registeredScrollControllers.add(controller);
+  }
+
+  void processNotification(
+      ScrollNotification notification, ScrollController sender) {
+    if (notification is ScrollStartNotification && !_scrollingActive) {
+      _scrollingController = sender;
+      _scrollingActive = true;
+      return;
+    }
+
+    if (identical(sender, _scrollingController) && _scrollingActive) {
+      if (notification is ScrollEndNotification) {
+        _scrollingController = null;
+        _scrollingActive = false;
+        return;
+      }
+
+      if (notification is ScrollUpdateNotification) {
+        _registeredScrollControllers.forEach((controller) => {
+              if (!identical(_scrollingController, controller))
+                controller..jumpTo(_scrollingController.offset)
+            });
+        return;
+      }
+    }
   }
 }
