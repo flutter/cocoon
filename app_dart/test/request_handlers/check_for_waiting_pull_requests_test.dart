@@ -9,6 +9,7 @@ import 'package:graphql/client.dart';
 import 'package:graphql/src/core/observable_query.dart';
 import 'package:graphql/src/link/fetch_result.dart';
 import 'package:graphql/src/link/operation.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -130,6 +131,35 @@ void main() {
       );
     });
 
+    test('Ignores PRs that are too new', () async {
+      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now()));
+      flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
+      engineRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs.last.id,
+              'oid': 'deadbeef',
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
+              'oid': 'deadbeef',
+            },
+          ),
+        ],
+      );
+    });
+
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
         hasApprovedReview: false,
@@ -139,9 +169,8 @@ void main() {
         hasApprovedReview: true,
         hasChangeRequestReview: true,
       );
-      final PullRequestHelper prNoReviews = PullRequestHelper(
-        hasApprovedReview: false
-      );
+      final PullRequestHelper prNoReviews =
+          PullRequestHelper(hasApprovedReview: false);
       final PullRequestHelper prMergeConflict = PullRequestHelper(
         mergeable: false,
       );
@@ -299,6 +328,7 @@ class PullRequestHelper {
     this.hasChangeRequestReview = false,
     this.lastCommitHash = 'deadbeef',
     this.lastCommitSuccess = true,
+    this.dateTime,
   }) : _count = _counter++;
 
   static int _counter = 0;
@@ -311,6 +341,7 @@ class PullRequestHelper {
   final bool hasChangeRequestReview;
   final String lastCommitHash;
   final bool lastCommitSuccess;
+  final DateTime dateTime;
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
@@ -336,6 +367,7 @@ class PullRequestHelper {
           <String, dynamic>{
             'commit': <String, dynamic>{
               'oid': lastCommitHash,
+              'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
               'status': <String, dynamic>{
                 'state': lastCommitSuccess ? 'SUCCESS' : 'FAILURE',
               },

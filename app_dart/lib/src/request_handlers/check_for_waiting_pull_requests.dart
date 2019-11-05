@@ -157,19 +157,24 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       return <_AutoMergeQueryResult>[];
     }
     final String labelId = label['id'];
-
-    return label['pullRequests']['nodes']
-        .cast<Map<String, dynamic>>()
-        .map<_AutoMergeQueryResult>((Map<String, dynamic> pullRequest) {
+    final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
+    final Iterable<Map<String, dynamic>> pullRequests = label['pullRequests']['nodes'].cast<Map<String, dynamic>>();
+    for (Map<String, dynamic> pullRequest in pullRequests) {
+      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
+      // Skip commits that are less than an hour old.
+      // Use the committedDate if pushedDate is null (commitedDate cannot be null).
+      final DateTime utcDate = DateTime.parse(commit['pushedDate'] ?? commit['committedDate']);
+      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
+        continue;
+      }
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
       final bool mergeable = pullRequest['mergeable'] == 'MERGEABLE';
       final bool hasApproval = pullRequest['approvedReviews']['nodes'].isNotEmpty;
       final bool hasChangesRequested = pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
-      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
       final String sha = commit['oid'];
       final bool ciSuccessful = commit['status']['state'] == 'SUCCESS';
-      return _AutoMergeQueryResult(
+      list.add(_AutoMergeQueryResult(
         graphQLId: id,
         ciSuccessful: ciSuccessful,
         hasApprovedReview: hasApproval,
@@ -178,8 +183,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         number: number,
         sha: sha,
         labelId: labelId,
-      );
-    }).toList();
+      ));
+    }
+    return list;
   }
 }
 

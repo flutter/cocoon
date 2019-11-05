@@ -18,6 +18,8 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
                 commit {
                   abbreviatedOid
                   oid
+                  committedDate
+                  pushedDate
                   status {
                     state
                   }
