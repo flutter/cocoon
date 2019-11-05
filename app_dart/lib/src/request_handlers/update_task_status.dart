@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -35,11 +36,17 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'Task';
+
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
     final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
     final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     Key taskKey;
     try {
@@ -79,6 +86,40 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       transaction.queueMutations(inserts: <Task>[task]);
       await transaction.commit();
     });
+
+    /// Insert data to [BigQuery] when task status is fianlized
+    /// 
+    /// [endTimestamp] greater than 0 is a good final-status flag 
+    if (task.endTimestamp>0) {
+      /// Prepare for bigquery [insertAll]
+      tableDataInsertAllRequestRows.add(<String, Object>{
+        'json': <String, Object>{
+          'ID': commit.sha,
+          'CreateTimestamp': task.createTimestamp,
+          'StartTimestamp': task.startTimestamp,
+          'EndTimestamp': task.endTimestamp,
+          'Name': task.name,
+          'Attempts': task.attempts,
+          'IsFlaky': task.isFlaky,
+          'TimeoutInMinutes': task.timeoutInMinutes,
+          'RequiredCapabilities': task.requiredCapabilities.join(','),
+          'StageName': task.stageName,
+          'Status': task.status,
+        },
+      });
+
+      /// Final [rows] to be inserted to [BigQuery]
+      final TableDataInsertAllRequest rows =
+        TableDataInsertAllRequest.fromJson(<String, Object>{
+        'rows': tableDataInsertAllRequestRows
+      });
+
+      try {
+        await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+      } catch(ApiRequestError){
+        log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
+      }
+    }
 
     // TODO(tvolkert): PushBuildStatusToGithub
 
