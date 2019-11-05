@@ -17,7 +17,9 @@ import 'task_matrix.dart' as task_matrix;
 ///
 /// If there's no data for [StatusGrid], it shows [CircularProgressIndicator].
 class StatusGridContainer extends StatelessWidget {
-  const StatusGridContainer({Key key}) : super(key: key);
+  const StatusGridContainer({Key key, @required this.gridImplementation}) : super(key: key);
+
+  final String gridImplementation;
 
   @visibleForTesting
   static const String errorCocoonBackend = 'Cocoon Backend is having issues';
@@ -49,15 +51,15 @@ class StatusGridContainer extends StatelessWidget {
             task_matrix.TaskMatrix(statuses: statuses);
         matrix.sort(compareRecentlyFailed);
 
-        return Experiment(
-          statuses: statuses,
-          taskMatrix: matrix,
-        );
-
-        // return StatusGrid(
+        // return Experiment(
         //   statuses: statuses,
         //   taskMatrix: matrix,
         // );
+
+        return StatusGrid(
+          statuses: statuses,
+          taskMatrix: matrix,
+        );
       },
     );
   }

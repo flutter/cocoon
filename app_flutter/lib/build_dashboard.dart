@@ -18,6 +18,8 @@ class BuildDashboardPage extends StatefulWidget {
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
   final FlutterBuildState buildState = FlutterBuildState();
 
+  String gridImplementation = 'GridView.builder';
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +44,17 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 ///
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
-class BuildDashboard extends StatelessWidget {
+class BuildDashboard extends StatefulWidget {
+  const BuildDashboard({Key key, this.gridImplementation = 'GridView.builder'})
+      : super(key: key);
+
+  final String gridImplementation;
+
+  @override
+  _BuildDashboardState createState() => _BuildDashboardState();
+}
+
+class _BuildDashboardState extends State<BuildDashboard> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -54,12 +66,27 @@ class BuildDashboard extends StatelessWidget {
               ? theme.primaryColor
               : theme.errorColor,
           actions: <Widget>[
+            DropdownButton<String>(
+              value: widget.gridImplementation,
+              onChanged: (String newValue) {
+                setState(() {
+                  widget.gridImplementation = newValue;
+                });
+              },
+              items: <String>['GridView.builder', 'ListView<ListView>']
+                  .map<DropdownMenuItem<String>>((String value) =>
+                      DropdownMenuItem<String>(
+                          value: value, child: Text(value)))
+                  .toList(),
+            ),
             UserAvatar(buildState: buildState),
           ],
         ),
         body: Column(
           children: const <Widget>[
-            StatusGridContainer(),
+            StatusGridContainer(
+              gridImplementation: widget.gridImplementation,
+            ),
           ],
         ),
       ),
