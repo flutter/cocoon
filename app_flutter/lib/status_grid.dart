@@ -59,7 +59,7 @@ class StatusGridContainer extends StatelessWidget {
           return StatusGridListViewListView(
             statuses: statuses,
             taskMatrix: matrix,
-            addRepaintBoundaries: addRepaintBoundaries,
+            addRepaintBoundariesValue: addRepaintBoundaries,
           );
         }
 
@@ -172,12 +172,12 @@ class StatusGrid extends StatelessWidget {
 }
 
 /// StatusGrid built using a ListView<ListView> approach.
-class StatusGridListViewListView extends StatefulWidget {
+class StatusGridListViewListView extends StatelessWidget {
   const StatusGridListViewListView({
     Key key,
     @required this.statuses,
     @required this.taskMatrix,
-    this.addRepaintBoundaries = false,
+    this.addRepaintBoundariesValue = false,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -188,24 +188,16 @@ class StatusGridListViewListView extends StatefulWidget {
 
   /// It is more efficient to not add repaint boundaries since the grid cells
   /// are very simple to draw.
-  final bool addRepaintBoundaries;
-
-  @override
-  _StatusGridListViewListViewState createState() =>
-      _StatusGridListViewListViewState();
-}
-
-class _StatusGridListViewListViewState
-    extends State<StatusGridListViewListView> {
+  final bool addRepaintBoundariesValue;
   @override
   Widget build(BuildContext context) {
     final List<Widget> rows = <Widget>[];
 
-    for (int rowIndex = 0; rowIndex < widget.taskMatrix.rows; rowIndex++) {
+    for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
       final List<TaskBox> tasks = <TaskBox>[];
-      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
+      for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
         tasks.add(TaskBox(
-          task: widget.taskMatrix.task(rowIndex, colIndex),
+          task: taskMatrix.task(rowIndex, colIndex),
         ));
       }
 
@@ -218,12 +210,12 @@ class _StatusGridListViewListViewState
               return Container(
                 width: 50,
                 child: TaskBox(
-                  task: widget.taskMatrix.task(rowIndex, colIndex),
+                  task: taskMatrix.task(rowIndex, colIndex),
                 ),
               );
             },
             shrinkWrap: false,
-            addRepaintBoundaries: widget.addRepaintBoundaries,
+            addRepaintBoundaries: addRepaintBoundariesValue,
           ),
         ),
       );
@@ -233,7 +225,7 @@ class _StatusGridListViewListViewState
       child: ListView(
         children: rows,
         shrinkWrap: false,
-        addRepaintBoundaries: widget.addRepaintBoundaries,
+        addRepaintBoundaries: addRepaintBoundariesValue,
       ),
     );
   }

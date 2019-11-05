@@ -38,7 +38,9 @@ void main() {
             children: <Widget>[
               ChangeNotifierProvider<FlutterBuildState>(
                 builder: (_) => FlutterBuildState(),
-                child: const StatusGridContainer(),
+                child: const StatusGridContainer(
+                  gridImplementation: 'GridView.builder',
+                ),
               ),
             ],
           ),
