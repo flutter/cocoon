@@ -65,7 +65,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
         'Timestamp': agent.healthCheckTimestamp,
         'AgentID': agentId,
         // TODO(keyonghan): add more detailed states https://github.com/flutter/flutter/issues/44213
-        'Status': isHealthy?'healthy':'unHealthy',
+        'Status': isHealthy?'Healthy':'Unhealthy',
         'Detail': healthDetails,
       },
     });
