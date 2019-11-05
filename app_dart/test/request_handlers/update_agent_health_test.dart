@@ -5,6 +5,8 @@
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handlers/update_agent_health.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -18,7 +20,13 @@ void main() {
     UpdateAgentHealth handler;
 
     setUp(() {
-      config = FakeConfig();
+      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
+
+      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
+        return Future<TableDataInsertAllResponse>.value(null);
+      });
+
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       tester = ApiRequestHandlerTester();
       tester.requestData = <String, dynamic>{
         'AgentID': 'test',
@@ -49,3 +57,6 @@ void main() {
     });
   });
 }
+
+class MockTabledataResourceApi extends Mock implements TabledataResourceApi {} 
+

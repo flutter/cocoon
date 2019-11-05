@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -34,6 +35,10 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   Future<UpdateAgentHealthResponse> post() async {
     checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
 
+    const String projectId = 'tvolkert-test';
+    const String dataset = 'cocoon';
+    const String table = 'AgentStatus';
+
     final String agentId = requestData[agentIdParam];
     final bool isHealthy = requestData[isHealthyParam];
     final String healthDetails = requestData[healthDetailsParam];
@@ -45,12 +50,36 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
         throw BadRequestException('Invalid agent ID: $agentId');
       },
     );
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
     agent.healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
+
+    /// Insert data to [BigQuery] whenever updating data in [Datastore] 
+    tableDataInsertAllRequestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'Timestamp': agent.healthCheckTimestamp,
+        'AgentID': agentId,
+        'Status': isHealthy?'healthy':'unHealthy',
+        'Detail': healthDetails,
+      },
+    });
+
+    /// Final [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest rows =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': tableDataInsertAllRequestRows
+    });
+
+    try {
+      await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add $agentId status to BigQuery: $ApiRequestError');
+    }
 
     return UpdateAgentHealthResponse(agent);
   }
