@@ -9,7 +9,6 @@ import 'package:graphql/client.dart';
 import 'package:graphql/src/core/observable_query.dart';
 import 'package:graphql/src/link/fetch_result.dart';
 import 'package:graphql/src/link/operation.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
