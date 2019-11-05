@@ -24,12 +24,14 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
                 }
               }
             }
-            reviews(first: 100, states: [CHANGES_REQUESTED, APPROVED]) {
+            changeRequestReviews: reviews(first: 1, states: [CHANGES_REQUESTED]) {
               nodes {
                 state
-                author {
-                  login
-                }
+              }
+            }
+            approvedReviews: reviews(first: 1, states: [APPROVED]) {
+              nodes {
+                state
               }
             }
           }
