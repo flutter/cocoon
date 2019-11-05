@@ -10,6 +10,28 @@ import 'package:app_flutter/task_helper.dart';
 
 void main() {
   group('TaskHelper', () {
+    test('log url for external tasks redirects to source configuration', () {
+      final Task luciTask = Task()
+        ..stageName = 'chromebot'
+        ..name = 'mac_bot';
+
+      expect(logUrl(luciTask),
+          'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+      final Task cirrusTask = Task()..stageName = 'cirrus';
+
+      expect(logUrl(cirrusTask),
+          'https://cirrus-ci.com/github/flutter/flutter/master');
+    });
+
+    test('log url for devicelab tasks redirects to cocoon backend', () {
+      final Task devicelabTask = Task()
+        ..stageName = 'devicelab'
+        ..name = 'test';
+
+      expect(logUrl(devicelabTask),
+          'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
+    });
+
     test('source configuration for devicelab', () {
       final Task devicelabTask = Task()
         ..stageName = 'devicelab'
@@ -32,6 +54,13 @@ void main() {
 
       expect(sourceConfigurationUrl(cirrusTask),
           'https://cirrus-ci.com/github/flutter/flutter/master');
+    });
+
+    test('is devicelab', () {
+      expect(isDevicelab(Task()..stageName = 'devicelab'), true);
+      expect(isDevicelab(Task()..stageName = 'devicelab_win'), true);
+
+      expect(isDevicelab(Task()..stageName = 'cirrus'), false);
     });
   });
 }

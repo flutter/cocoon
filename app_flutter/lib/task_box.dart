@@ -3,8 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
+
+import 'state/flutter_build.dart';
+import 'task_helper.dart';
 
 /// Displays information from a [Task].
 ///
@@ -12,9 +17,13 @@ import 'package:cocoon_service/protos.dart' show Task;
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox({Key key, @required this.task})
+  const TaskBox({Key key, @required this.buildState, @required this.task})
       : assert(task != null),
+        assert(buildState != null),
         super(key: key);
+
+  /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.
+  final FlutterBuildState buildState;
 
   /// [Task] to show information from.
   final Task task;
@@ -118,11 +127,13 @@ class _TaskBoxState extends State<TaskBox> {
 
   void _handleTap() {
     _taskOverlay = OverlayEntry(
-      builder: (_) => TaskOverlayContents(
-          parentContext: context,
-          task: widget.task,
-          taskStatus: status,
-          closeCallback: _closeOverlay),
+      builder: (_) => TaskOverlayEntry(
+        buildState: widget.buildState,
+        parentContext: context,
+        task: widget.task,
+        taskStatus: status,
+        closeCallback: _closeOverlay,
+      ),
     );
 
     Overlay.of(context).insert(_taskOverlay);
@@ -135,23 +146,25 @@ class _TaskBoxState extends State<TaskBox> {
 ///
 /// This is intended to be inserted in an [OverlayEntry] as it requires
 /// [closeCallback] that will remove the widget from the tree.
-///
-/// Offers the functionality of opening the log for this [Task] and rerunning
-/// this [Task] through the build system.
-class TaskOverlayContents extends StatelessWidget {
-  const TaskOverlayContents({
+class TaskOverlayEntry extends StatelessWidget {
+  const TaskOverlayEntry({
     Key key,
     @required this.parentContext,
     @required this.task,
     @required this.taskStatus,
     @required this.closeCallback,
+    @required this.buildState,
   })  : assert(parentContext != null),
+        assert(buildState != null),
         assert(task != null),
         assert(closeCallback != null),
         super(key: key);
 
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
+
+  /// A reference to the [FlutterBuildState] for performing operations on this [Task].
+  final FlutterBuildState buildState;
 
   /// The [Task] to display in the overlay
   final Task task;
@@ -165,21 +178,6 @@ class TaskOverlayContents extends StatelessWidget {
   /// On a click that is outside the area of the overlay (the rest of the screen),
   /// this callback is called closing the overlay.
   final void Function() closeCallback;
-
-  /// A lookup table to define the [Icon] for this [Overlay].
-  static const Map<String, Icon> statusIcon = <String, Icon>{
-    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
-    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress:
-        Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded:
-        Icon(Icons.check_circle, color: Colors.green, size: 32),
-    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
-    TaskBox.statusUnderperformed:
-        Icon(Icons.new_releases, color: Colors.orange, size: 32),
-    TaskBox.statusUnderperformedInProgress:
-        Icon(Icons.autorenew, color: Colors.orange, size: 32),
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -215,38 +213,132 @@ class TaskOverlayContents extends StatelessWidget {
           // Move this overlay to be where the parent is
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
-          child: Card(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                ListTile(
-                  leading: Tooltip(
-                      message: taskStatus, child: statusIcon[taskStatus]),
-                  title: Text(task.name),
-                  subtitle: Text(
-                      'Attempts: ${task.attempts}\nDuration: ${task.endTimestamp - task.startTimestamp} seconds\nAgent: ${task.reservedForAgentId}'),
-                ),
-                ButtonBar(
-                  children: <Widget>[
-                    IconButton(
-                      icon: const Icon(Icons.receipt),
-                      onPressed: () {
-                        // TODO(chillers): Open log in new window. https://github.com/flutter/cocoon/issues/436
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.redo),
-                      onPressed: () {
-                        // TODO(chillers): Rerun task. https://github.com/flutter/cocoon/issues/424
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          child: TaskOverlayContents(
+            showSnackbarCallback: Scaffold.of(parentContext).showSnackBar,
+            buildState: buildState,
+            task: task,
+            taskStatus: taskStatus,
           ),
         ),
       ],
     );
+  }
+}
+
+/// Displays the information from [Task] and allows interacting with a [Task].
+///
+/// This is intended to be inserted in [TaskOverlayEntry].
+///
+/// Offers the functionality of opening the log for this [Task] and rerunning
+/// this [Task] through the build system.
+class TaskOverlayContents extends StatelessWidget {
+  const TaskOverlayContents({
+    Key key,
+    @required this.showSnackbarCallback,
+    @required this.buildState,
+    @required this.task,
+    @required this.taskStatus,
+  })  : assert(showSnackbarCallback != null),
+        assert(buildState != null),
+        assert(task != null),
+        super(key: key);
+
+  final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
+      SnackBar) showSnackbarCallback;
+
+  /// A reference to the [FlutterBuildState] for performing operations on this [Task].
+  final FlutterBuildState buildState;
+
+  /// The [Task] to display in the overlay
+  final Task task;
+
+  /// [Task.status] modified to take into account [Task.attempts] to create
+  /// a more descriptive status.
+  final String taskStatus;
+
+  @visibleForTesting
+  static const String rerunErrorMessage = 'Failed to rerun task.';
+  @visibleForTesting
+  static const String rerunSuccessMessage =
+      'Devicelab is rerunning the task. This can take a minute to propagate.';
+  @visibleForTesting
+  static const Duration rerunSnackbarDuration = Duration(seconds: 15);
+
+  /// A lookup table to define the [Icon] for this [taskStatus].
+  static const Map<String, Icon> statusIcon = <String, Icon>{
+    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
+    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
+    TaskBox.statusInProgress:
+        Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskBox.statusSucceeded:
+        Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
+    TaskBox.statusUnderperformed:
+        Icon(Icons.new_releases, color: Colors.orange, size: 32),
+    TaskBox.statusUnderperformedInProgress:
+        Icon(Icons.autorenew, color: Colors.orange, size: 32),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          ListTile(
+            leading:
+                Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
+            title: Text(task.name),
+            subtitle: Text('Attempts: ${task.attempts}\n'
+                'Duration: ${task.endTimestamp - task.startTimestamp} seconds\n'
+                'Agent: ${task.reservedForAgentId}'),
+          ),
+          ButtonBar(
+            children: <Widget>[
+              ProgressButton(
+                defaultWidget: const Text('View log'),
+                progressWidget: const CircularProgressIndicator(),
+                width: 100,
+                height: 50,
+                onPressed: _viewLog,
+                animate: false,
+              ),
+              if (isDevicelab(task))
+                ProgressButton(
+                  defaultWidget: const Text('Rerun task'),
+                  progressWidget: const CircularProgressIndicator(),
+                  width: 120,
+                  height: 50,
+                  onPressed: _rerunTask,
+                  animate: false,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _rerunTask() async {
+    final bool success = await buildState.rerunTask(task);
+    final Text snackbarText = success
+        ? const Text(rerunSuccessMessage)
+        : const Text(rerunErrorMessage);
+    showSnackbarCallback(
+      SnackBar(
+        content: snackbarText,
+        duration: rerunSnackbarDuration,
+      ),
+    );
+  }
+
+  Future<void> _viewLog() async {
+    // Only send access token for devicelab tasks since they require authentication
+    final Map<String, String> headers = isDevicelab(task)
+        ? <String, String>{
+            'X-Flutter-AccessToken': buildState.authService.accessToken,
+          }
+        : null;
+    launch(logUrl(task), headers: headers);
   }
 }
