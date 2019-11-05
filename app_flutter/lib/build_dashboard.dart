@@ -72,7 +72,12 @@ class _BuildDashboardState extends State<BuildDashboard> {
                   _gridImplementation = newValue;
                 });
               },
-              items: <String>['GridView.builder', 'ListView<ListView>']
+              items: <String>[
+                'GridView.builder',
+                'GridView.builder addRepaintBoundaries',
+                'ListView<ListView>',
+                'ListView<ListView> addRepaintBoundaries'
+              ]
                   .map<DropdownMenuItem<String>>((String value) =>
                       DropdownMenuItem<String>(
                           value: value, child: Text(value)))

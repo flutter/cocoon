@@ -63,8 +63,8 @@ class FakeCocoonService implements CocoonService {
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(
-          List<Task>.generate(200, (int i) => _createFakeTask(i, 'devicelab'))));
+      ..tasks.addAll(List<Task>.generate(
+          200, (int i) => _createFakeTask(i, 'devicelab'))));
 
     stages.add(Stage()
       ..commit = commit
