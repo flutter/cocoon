@@ -164,8 +164,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
       final bool mergeable = pullRequest['mergeable'] == 'MERGEABLE';
-      final List<Map<String, dynamic>> reviews =
-          pullRequest['reviews']['nodes'].cast<Map<String, dynamic>>();
       final bool hasApproval = pullRequest['approvedReviews']['nodes'].isNotEmpty;
       final bool hasChangesRequested = pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
