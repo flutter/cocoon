@@ -76,7 +76,9 @@ class _BuildDashboardState extends State<BuildDashboard> {
                 'GridView.builder',
                 'GridView.builder addRepaintBoundaries',
                 'ListView<ListView>',
-                'ListView<ListView> addRepaintBoundaries'
+                'ListView<ListView> addRepaintBoundaries',
+                'ListView<ListView> sync scroller',
+                'ListView<ListView> sync scroller addRepaintBoundaries'
               ]
                   .map<DropdownMenuItem<String>>((String value) =>
                       DropdownMenuItem<String>(
