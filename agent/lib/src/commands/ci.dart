@@ -114,6 +114,9 @@ class ContinuousIntegrationCommand extends Command {
               // the task timeout.
               await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
               await _cleanBuildDirectories(agent, task);
+              // Ensure the phone's screen is on before running a task.
+              await _screensOn();
+
               await _runTask(task);
             } else {
               logger.info('No tasks available for this agent.');
@@ -198,6 +201,17 @@ class ContinuousIntegrationCommand extends Command {
     } catch (error, stackTrace) {
       // Best effort only.
       logger.warning('Failed to turn off screen: $error\n$stackTrace');
+    }
+  }
+
+  Future<Null> _screensOn() async {
+    try {
+      for (Device device in await devices.discoverDevices()) {
+        await device.wakeUp();
+      }
+    } catch (error, stackTrace) {
+      // Best effort only.
+      logger.warning('Failed to turn on screen: $error\n$stackTrace');
     }
   }
 

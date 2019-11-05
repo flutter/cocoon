@@ -55,6 +55,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
+                buildState: FlutterBuildState(),
                 statuses: statuses,
                 taskMatrix: taskMatrix,
               ),
@@ -81,6 +82,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
+                buildState: FlutterBuildState(),
                 statuses: statuses,
                 taskMatrix: taskMatrix,
               ),
@@ -100,6 +102,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
+                buildState: FlutterBuildState(),
                 statuses: statuses,
                 taskMatrix: taskMatrix,
               ),

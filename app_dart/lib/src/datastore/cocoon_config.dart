@@ -9,10 +9,16 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
+<<<<<<< HEAD
 import 'package:graphql/client.dart';
+=======
+import 'package:googleapis/bigquery/v2.dart' as bigquery;
+>>>>>>> upstream/master
 import 'package:meta/meta.dart';
 
 import '../model/appengine/service_account_info.dart';
+import '../service/access_client_provider.dart';
+import '../service/bigquery.dart';
 
 @immutable
 class Config {
@@ -156,6 +162,12 @@ class Config {
       cache: InMemoryCache(),
       link: link,
     );
+  }
+
+  Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
+    final AccessClientProvider accessClientProvider =
+        AccessClientProvider(await deviceLabServiceAccount);
+    return await BigqueryService(accessClientProvider).defaultTabledata();
   }
 }
 

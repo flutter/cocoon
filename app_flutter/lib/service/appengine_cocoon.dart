@@ -26,7 +26,8 @@ class AppEngineCocoonService implements CocoonService {
   /// The Cocoon API endpoint to query
   ///
   /// This is the base for all API requests to cocoon
-  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com/api';
+  static const String _appengineAuthority = 'flutter-dashboard.appspot.com';
+  static const String _baseApiUrl = 'https://$_appengineAuthority/api';
 
   final http.Client _client;
 
@@ -80,6 +81,25 @@ class AppEngineCocoonService implements CocoonService {
 
     return CocoonResponse<bool>()
       ..data = jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
+  }
+
+  @override
+  Future<bool> rerunTask(Task task, String accessToken) async {
+    assert(accessToken != null);
+
+    /// This endpoint only returns a status code.
+    final http.Request request = http.Request(
+        'POST', Uri.https(_appengineAuthority, '/api/reset-devicelab-task'))
+      ..bodyFields = <String, String>{
+        'Key': task.key.toString(),
+      }
+      ..headers.addAll(<String, String>{
+        'X-Flutter-AccessToken': accessToken,
+      });
+
+    final http.StreamedResponse response = await _client.send(request);
+
+    return response.statusCode == HttpStatus.ok;
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.

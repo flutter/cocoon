@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
@@ -60,12 +61,18 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'Checklist';
+
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
     final DatastoreService datastore = datastoreProvider();
-
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Commit> newCommits = <Commit>[];
+    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
+
     await for (RepositoryCommit commit in commits) {
       final String id = 'flutter/flutter/${commit.sha}';
       final Key key = datastore.db.emptyKey.append(Commit, id: id);
@@ -91,10 +98,22 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     }
 
     log.debug('Found ${newCommits.length} new commits on GitHub');
-    /// [newCommit] has commits from latest to oldest
-    /// However, oldest is expected to be inserted first into datastore. Thus we 
-    /// need to reverse the order. At the same time, we update [timestamp]
+
     for (Commit commit in newCommits) {
+      /// Consolidate [commits] together 
+      /// 
+      /// Prepare for bigquery [insertAll]
+      tableDataInsertAllRequestRows.add(<String, Object>{
+        'json': <String, Object>{
+          'ID': commit.id,
+          'CreateTimestamp': commit.timestamp,
+          'FlutterRepositoryPath': commit.repository,
+          'CommitSha': commit.sha,
+          'CommitAuthorLogin': commit.author,
+          'CommitAuthorAvatarURL': commit.authorAvatarUrl,
+        },
+      });
+
       final List<Task> tasks = await _createTasks(
         commitKey: commit.key,
         sha: commit.sha,
@@ -111,6 +130,19 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       } catch (error) {
         log.warning('Failed to add commit ${commit.sha}: $error');
       }
+    }
+
+    /// Final [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest rows =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': tableDataInsertAllRequestRows
+    });
+
+    /// Insert [commits] to [BigQuery]
+    try {
+      await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
 
     return Body.empty;

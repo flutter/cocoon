@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -91,6 +91,10 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> signIn() async {
     await authService.signIn();
     notifyListeners();
+  }
+
+  Future<bool> rerunTask(Task task) {
+    return _cocoonService.rerunTask(task, authService.accessToken);
   }
 
   @override
