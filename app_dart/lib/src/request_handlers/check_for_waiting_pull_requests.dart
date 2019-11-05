@@ -17,58 +17,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
-const String _labeledPullRequestsWithReviewsQuery = r'''
-query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
-  repository(owner: $sOwner, name: $sName) {
-    labels(first: 1, query: $sLabelName) {
-      nodes {
-        id
-        pullRequests(first: 100, states: OPEN) {
-          nodes {
-            id
-            number
-            mergeable
-            commits(last:1) {
-              nodes {
-                commit {
-                  abbreviatedOid
-                  oid
-                  status {
-                    state
-                  }
-                }
-              }
-            }
-            reviews(first: 100, states: [CHANGES_REQUESTED, APPROVED]) {
-              nodes {
-                state
-                author {
-                  login
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}''';
-
-const String _mergePullRequestMutation = r'''
-mutation MergePR($id: ID!, $oid: GitObjectID!) {
-  mergePullRequest(input: {
-    pullRequestId: $id,
-    expectedHeadOid: $oid,
-    mergeMethod: SQUASH,
-    commitBody: ""
-  }) {}
-}''';
-
-const String _removeLabelMutation = r'''
-mutation RemoveLabelAndComment($id: ID!, $sBody: String!, $labelId: ID!) {
-  addComment(input: { subjectId:$id, body: $sBody }) {}
-  removeLabelsFromLabelable(input: { labelableId: $id, labelIds: [$labelId] }) {}
-}''';
+import 'check_for_waiting_pull_requests_queries.dart';
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
@@ -84,12 +33,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
-
-    if (authContext.clientContext.isDevelopmentEnvironment) {
-      // Don't push GitHub status from the local dev server.
-      return Body.empty;
-    }
-
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
     await _checkPRs('flutter', 'flutter', log, client);
@@ -105,12 +48,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     bool hasMerged = false;
-    final Map<String, dynamic> data = await _queryGraphQL(owner, name, log, client);
+    final Map<String, dynamic> data = await _queryGraphQL(
+      owner,
+      name,
+      log,
+      client,
+    );
     for (_AutoMergeQueryResult queryResult in _parseQueryData(data)) {
       if (!hasMerged && queryResult.shouldMerge) {
         hasMerged = await _mergePullRequest(
-          owner,
-          name,
           queryResult.graphQLId,
           queryResult.sha,
           log,
@@ -118,8 +64,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         );
       } else if (queryResult.shouldRemoveLabel) {
         await _removeLabel(
-          owner,
-          name,
           queryResult.graphQLId,
           queryResult.removalMessage,
           queryResult.labelId,
@@ -136,15 +80,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     final String labelName = await config.waitingForTreeToGoGreenLabelName;
+
     final QueryResult result = await client.query(
       QueryOptions(
-          document: _labeledPullRequestsWithReviewsQuery,
-          fetchPolicy: FetchPolicy.noCache,
-          variables: <String, dynamic>{
-            'sOwner': owner,
-            'sName': name,
-            'sLabelName': labelName,
-          }),
+        document: labeledPullRequestsWithReviewsQuery,
+        fetchPolicy: FetchPolicy.noCache,
+        variables: <String, dynamic>{
+          'sOwner': owner,
+          'sName': name,
+          'sLabelName': labelName,
+        },
+      ),
     );
 
     if (result.hasErrors) {
@@ -156,15 +102,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   }
 
   Future<bool> _removeLabel(
-    String owner,
-    String name,
     String id,
     String message,
     String labelId,
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
-      document: _removeLabelMutation,
+      document: removeLabelMutation,
       variables: <String, dynamic>{
         'id': id,
         'sBody': message,
@@ -179,15 +123,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   }
 
   Future<bool> _mergePullRequest(
-    String owner,
-    String name,
     String id,
     String sha,
     Logging log,
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
-      document: _mergePullRequestMutation,
+      document: mergePullRequestMutation,
       variables: <String, dynamic>{
         'id': id,
         'oid': sha,
@@ -221,7 +163,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         .map<_AutoMergeQueryResult>((Map<String, dynamic> pullRequest) {
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
-      final bool mergeable = pullRequest['mergeable'] != 'MERGEABLE';
+      final bool mergeable = pullRequest['mergeable'] == 'MERGEABLE';
       final List<Map<String, dynamic>> reviews =
           pullRequest['reviews']['nodes'].cast<Map<String, dynamic>>();
       bool hasApproval = false;
@@ -236,11 +178,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
             break;
         }
       }
-      final Map<String, dynamic> commit =
-          pullRequest['commits']['nodes'].single['commit'];
+      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
       final String sha = commit['oid'];
       final bool ciSuccessful = commit['status']['state'] == 'SUCCESS';
-
       return _AutoMergeQueryResult(
         graphQLId: id,
         ciSuccessful: ciSuccessful,
@@ -302,12 +242,10 @@ class _AutoMergeQueryResult {
   final String labelId;
 
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge =>
-      ciSuccessful && mergeable && hasApprovedReview && !hasChangesRequested;
+  bool get shouldMerge => ciSuccessful && mergeable && hasApprovedReview && !hasChangesRequested;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel =>
-      !mergeable || !hasApprovedReview || hasChangesRequested;
+  bool get shouldRemoveLabel => !mergeable || !hasApprovedReview || hasChangesRequested;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {
@@ -315,23 +253,19 @@ class _AutoMergeQueryResult {
       return '';
     }
     final StringBuffer buffer = StringBuffer();
-    buffer.writeln(
-        'This pull request is not suitable for automatic merging in its '
+    buffer.writeln('This pull request is not suitable for automatic merging in its '
         'current state.');
     buffer.writeln();
     if (!mergeable) {
-      buffer.writeln(
-          '- Please resolve merge conflicts before re-applying this label.');
+      buffer.writeln('- Please resolve merge conflicts before re-applying this label.');
     }
     if (!hasApprovedReview) {
-      buffer.writeln(
-          '- Please get at least one approved review before re-applying this '
+      buffer.writeln('- Please get at least one approved review before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
     if (hasChangesRequested) {
-      buffer.writeln(
-          '- This pull request has changes requested. Please resolve those '
+      buffer.writeln('- This pull request has changes requested. Please resolve those '
           'before re-applying the label.');
     }
     return buffer.toString();
