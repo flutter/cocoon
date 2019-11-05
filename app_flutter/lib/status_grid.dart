@@ -193,6 +193,17 @@ class StatusGridListViewListView extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Widget> rows = <Widget>[];
 
+    final List<Widget> taskIcons = <Widget>[];
+    taskIcons.add(Container());
+    for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
+      taskIcons.add(
+        TaskIcon(
+          task: taskMatrix.sampleTask(colIndex),
+        ),
+      );
+    }
+    // rows.add(ListView(children: taskIcons, scrollDirection: Axis.horizontal,));
+
     for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
       final List<TaskBox> tasks = <TaskBox>[];
       for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
@@ -207,10 +218,15 @@ class StatusGridListViewListView extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemBuilder: (BuildContext context, int colIndex) {
+              if (colIndex == 0) {
+                return CommitBox(
+                  commit: statuses[rowIndex].commit,
+                );
+              }
               return Container(
                 width: 50,
                 child: TaskBox(
-                  task: taskMatrix.task(rowIndex, colIndex),
+                  task: taskMatrix.task(rowIndex, colIndex - 1),
                 ),
               );
             },
