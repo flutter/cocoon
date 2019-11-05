@@ -46,11 +46,13 @@ void main() {
       engineRepoPRs.clear();
       PullRequestHelper._counter = 0;
 
-      githubGraphQLClient._mutateResultForOptions = (MutationOptions options) => QueryResult();
+      githubGraphQLClient._mutateResultForOptions =
+          (MutationOptions options) => QueryResult();
 
       githubGraphQLClient._queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
-        expect(options.variables['sLabelName'], config.waitingForTreeToGoGreenLabelNameValue);
+        expect(options.variables['sLabelName'],
+            config.waitingForTreeToGoGreenLabelNameValue);
 
         final String repoName = options.variables['sName'];
         if (repoName == 'flutter') {
@@ -63,7 +65,8 @@ void main() {
       };
 
       tester = ApiRequestHandlerTester(request: request);
-      config.waitingForTreeToGoGreenLabelNameValue = 'waiting for tree to go green';
+      config.waitingForTreeToGoGreenLabelNameValue =
+          'waiting for tree to go green';
       config.githubGraphQLClient = githubGraphQLClient;
 
       handler = CheckForWaitingPullRequests(
@@ -129,13 +132,15 @@ void main() {
 
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
-        reviewStates: <bool>[false],
+        hasApprovedReview: false,
+        hasChangeRequestReview: true,
       );
       final PullRequestHelper prOneGoodOneBadReview = PullRequestHelper(
-        reviewStates: <bool>[true, false],
+        hasApprovedReview: true,
+        hasChangeRequestReview: true,
       );
       final PullRequestHelper prNoReviews = PullRequestHelper(
-        reviewStates: <bool>[],
+        hasApprovedReview: false
       );
       final PullRequestHelper prMergeConflict = PullRequestHelper(
         mergeable: false,
@@ -146,7 +151,8 @@ void main() {
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
         lastCommitSuccess: false,
         mergeable: false,
-        reviewStates: <bool>[false],
+        hasApprovedReview: false,
+        hasChangeRequestReview: true,
       );
 
       flutterRepoPRs.add(prOneBadReview);
@@ -289,7 +295,8 @@ class FakeGraphQLClient implements GraphQLClient {
 class PullRequestHelper {
   PullRequestHelper({
     this.mergeable = true,
-    this.reviewStates = const <bool>[true],
+    this.hasApprovedReview = true,
+    this.hasChangeRequestReview = false,
     this.lastCommitHash = 'deadbeef',
     this.lastCommitSuccess = true,
   }) : _count = _counter++;
@@ -300,7 +307,8 @@ class PullRequestHelper {
   String get id => _count.toString();
 
   final bool mergeable;
-  final List<bool> reviewStates;
+  final bool hasApprovedReview;
+  final bool hasChangeRequestReview;
   final String lastCommitHash;
   final bool lastCommitSuccess;
 
@@ -309,14 +317,19 @@ class PullRequestHelper {
       'id': id,
       'number': id.hashCode,
       'mergeable': mergeable ? 'MERGEABLE' : 'CONFLICT',
-      'reviews': <String, dynamic>{
-        'nodes': reviewStates.map<Map<String, dynamic>>(
-          (bool approved) {
-            return <String, dynamic>{
-              'state': approved ? 'APPROVED' : 'CHANGES_REQUESTED',
-            };
-          },
-        ).toList(),
+      'approvedReviews': <String, dynamic>{
+        'nodes': hasApprovedReview
+            ? <dynamic>[
+                <String, dynamic>{'state': 'APPROVED'},
+              ]
+            : <dynamic>[],
+      },
+      'changeRequestReviews': <String, dynamic>{
+        'nodes': hasChangeRequestReview
+            ? <dynamic>[
+                <String, dynamic>{'state': 'CHANGES_REQUESTED'},
+              ]
+            : <dynamic>[],
       },
       'commits': <String, dynamic>{
         'nodes': <dynamic>[
