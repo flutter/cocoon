@@ -18,9 +18,9 @@ abstract class CocoonService {
   /// Production uses the Cocoon backend running on AppEngine.
   /// Otherwise, it uses fake data populated from a fake service.
   factory CocoonService() {
-    // if (kReleaseMode) {
-    //   return AppEngineCocoonService();
-    // }
+    if (kReleaseMode) {
+      return AppEngineCocoonService();
+    }
 
     // TODO(chillers): LocalCocoonService. https://github.com/flutter/cocoon/issues/442
 
