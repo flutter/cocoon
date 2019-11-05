@@ -35,7 +35,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   Future<UpdateAgentHealthResponse> post() async {
     checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
 
-    const String projectId = 'tvolkert-test';
+    const String projectId = 'flutter-dashboard';
     const String dataset = 'cocoon';
     const String table = 'AgentStatus';
 
