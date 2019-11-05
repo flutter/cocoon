@@ -5,15 +5,13 @@
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
 
 class AccessClientProvider {
   /// Creates a new Access Client provider.
-  const AccessClientProvider(this.config) : assert(config != null);
+  const AccessClientProvider(this.serviceAccountInfo) : assert(serviceAccountInfo != null);
 
-  /// The Cocoon configuration.
-  final Config config;
+  final ServiceAccountInfo serviceAccountInfo;
 
   /// Returns an OAuth 2.0 authenticated access client for the device lab service account.
   Future<Client> createAccessClient({
@@ -21,10 +19,8 @@ class AccessClientProvider {
       'https://www.googleapis.com/auth/cloud-platform'
     ],
   }) async {
-    final ServiceAccountInfo serviceAccount =
-        await config.deviceLabServiceAccount;
     return clientViaServiceAccount(
-          serviceAccount.asServiceAccountCredentials(), scopes);
+          serviceAccountInfo.asServiceAccountCredentials(), scopes);
   }
 }
 

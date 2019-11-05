@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:github/server.dart';
+import 'package:googleapis/bigquery/v2.dart';
 
 import 'fake_datastore.dart';
 
@@ -34,10 +35,12 @@ class FakeConfig implements Config {
     this.loggingServiceValue,
     this.redisUrlValue,
     this.redisResponseSubcacheValue,
+    this.tabledataResourceApi,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
   GitHub githubClient;
+  TabledataResourceApi tabledataResourceApi;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
   String forwardHostValue;
@@ -63,6 +66,9 @@ class FakeConfig implements Config {
 
   @override
   Future<GitHub> createGitHubClient() async => githubClient;
+
+  @override
+  Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
   FakeDatastoreDB get db => dbValue;

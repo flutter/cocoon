@@ -50,17 +50,14 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-    TabledataResourceApi tabledataResourceApi,
   })  : assert(datastoreProvider != null),
         assert(httpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
-        tabledataResourceApi = tabledataResourceApi ?? TabledataResourceApi,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
-  final TabledataResourceApi tabledataResourceApi;
 
   @override
   Future<Body> get() async {
@@ -72,6 +69,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
     final DatastoreService datastore = datastoreProvider();
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Commit> newCommits = <Commit>[];
     final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
@@ -143,8 +141,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     /// Insert [commits] to [BigQuery]
     try {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
-    } catch (error) {
-      log.warning('Failed to add commits to BigQuery: $error');
+    } catch(ApiRequestError){
+      log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
 
     return Body.empty;

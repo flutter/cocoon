@@ -39,7 +39,6 @@ void main() {
     FakeHttpClient httpClient;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
-    MockTabledataResourceApi mockTabledataResourceApi;
 
     List<String> githubCommits;
     int yieldedCommitCount;
@@ -72,17 +71,17 @@ void main() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      mockTabledataResourceApi = MockTabledataResourceApi();
+      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
       when(github.repositories).thenReturn(repositories);
       when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
         return commitStream();
       });
-      when(mockTabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
+      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
       yieldedCommitCount = 0;
-      config = FakeConfig(githubClient: github);
+      config = FakeConfig(githubClient: github, tabledataResourceApi: tabledataResourceApi);
       auth = FakeAuthenticationProvider();
       db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
@@ -93,7 +92,6 @@ void main() {
         datastoreProvider: () => DatastoreService(db: db),
         httpClientProvider: () => httpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
-        tabledataResourceApi: mockTabledataResourceApi,
       );
     });
 
