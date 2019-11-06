@@ -2,36 +2,34 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# The Boxstarter scirpt for setting up Windows machine in Flutter device lab.
+# This script provisions a machine for Windows/Android testing in Flutter
+# devicelab.
 #
 # Instructions:
 # 1. Install Chocolatey (see https://chocolatey.org/install).
 # 2. Install Boxstarter with command `choco install -y boxstarter`.
-# 3. Run `boxstarter` which opens a Boxstarter shell
-# 4. Run `Install-BoxstarterPackage -PackageName setup_windows.ps1` to execute
-# this script
+# 3. Run `boxstarter` which opens a Boxstarter shell.
+# 4. In the shell, run `Install-BoxstarterPackage -PackageName windows_android.ps1`.
 
-# Show hidden files and file extensions
+# Shows hidden files and file extensions
 Set-WindowsExplorerOptions -EnableShowHiddenFilesFoldersDrives -EnableShowFileExtensions
 
-# Prevent UAC from interupting Cocoon agnet
+# Prevents UAC from interrupting a Cocoon agent
 Disable-UAC
 
-# Run Windows Update
+# Gets Windows update
 Install-WindowsUpdate -acceptEula
 
-# Git and Powershell integration
+# Installs Git and the Powershell integration
 choco install -y git.install
 choco install -y poshgit
 
-# Dependencies of Cocoon agent
+# Installs the dependencies of a Cocoon agent
 choco install -y dart-sdk
 choco install -y android-sdk
 choco install -y sysinternals
 
-# Useful tools
-choco install -y vscode
-choco install -y GoogleChrome
+# Installs a VNC server and a SSH server for remote management
 choco install -y tightvnc
 choco install -y openssh
 
