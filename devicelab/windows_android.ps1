@@ -30,7 +30,7 @@ choco install -y android-sdk
 choco install -y sysinternals
 
 # Installs a VNC server and a SSH server for remote management
-choco install -y tightvnc
+choco install -y tigervnc
 choco install -y openssh
 
 # Run Cocoon agent by on startup
@@ -38,5 +38,6 @@ $startup_path = "C:\Users\$env:username\AppData\Roaming\Microsoft\Windows\Start 
 echo "cd C:\src\cocoon\agent\ ; dart .\bin\agent.dart ci" > "$startup_path\start_cocoon_agent.bat"
 echo "Saved a script in startup directory to run Coocon agent on startup"
 
-# Final words
-echo "Next you need to clone https://github.com/flutter/cocoon and run an agent"
+# Clones the Cocoon repository
+cd C:\Users\flutter\
+git clone https://github.com/flutter/cocoon.git
