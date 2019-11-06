@@ -46,7 +46,7 @@ Future<bool> _buildAngularDartApp() async {
   /// Clean up previous build files to ensure this codebase is deployed.
   await Process.run(
     'rm',
-    <String>['-r', 'build/'],
+    <String>['-rf', 'build/'],
     workingDirectory: angularDartProjectDirectory,
   );
 
@@ -77,7 +77,7 @@ Future<bool> _buildAngularDartApp() async {
 /// Build app_flutter for web.
 Future<bool> _buildFlutterWebApp() async {
   /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run('rm', <String>['-r', 'build/'],
+  await Process.run('rm', <String>['-rf', 'build/'],
       workingDirectory: flutterProjectDirectory);
 
   final Process process = await Process.start(
@@ -99,8 +99,8 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
-  final ProcessResult result = await Process.run(
-      'cp', <String>['-r', '$angularDartProjectDirectory/build', 'build']);
+  final ProcessResult result = await Process.run('cp',
+      <String>['-r', '$angularDartProjectDirectory/build/web/', 'build/web']);
 
   return result.exitCode == 0;
 }
@@ -108,7 +108,7 @@ Future<bool> _copyAngularDartProject() async {
 /// Copy the built project from app_flutter to this app_dart project.
 Future<bool> _copyFlutterApp() async {
   final ProcessResult result = await Process.run(
-      'cp', <String>['-r', '$flutterProjectDirectory/build', 'build']);
+      'cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
 
   return result.exitCode == 0;
 }
@@ -163,20 +163,20 @@ Future<void> main(List<String> arguments) async {
   }
 
   /// Clean up previous build files to ensure the latest files are deployed.
-  await Process.run('rm', <String>['-r', 'build/']);
-
-  if (!await _copyAngularDartProject()) {
-    stderr.writeln('Failed to copy Angular Dart project over');
-    exit(1);
-  }
+  await Process.run('rm', <String>['-rf', 'build/']);
 
   if (!await _copyFlutterApp()) {
     stderr.writeln('Failed to copy Flutter app over');
     exit(1);
   }
 
-  if (!await _deployToAppEngine()) {
-    stderr.writeln('Failed to deploy to AppEngine');
+  if (!await _copyAngularDartProject()) {
+    stderr.writeln('Failed to copy Angular Dart project over');
     exit(1);
   }
+
+  // if (!await _deployToAppEngine()) {
+  //   stderr.writeln('Failed to deploy to AppEngine');
+  //   exit(1);
+  // }
 }
