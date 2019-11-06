@@ -12,10 +12,6 @@ import 'package:neat_cache/neat_cache.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
-    /// The location for the Flutter application
-    // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
-    const String flutterBetaUrlPrefix = '/v2';
-
     final Config config = Config(dbService);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
@@ -59,42 +55,19 @@ Future<void> main() async {
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: redisCache,
         config: config,
-        delegate: GetStatus(config), 
+        delegate: GetStatus(config),
       ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
     };
 
-    final ProxyRequestHandler legacyBackendProxyHandler = ProxyRequestHandler(
-      config: config,
-      scheme: await config.forwardScheme,
-      host: await config.forwardHost,
-      port: await config.forwardPort,
-    );
-
-    /// Check if the requested URI is for the Flutter Application
-    /// 
-    /// Currently the Flutter application will run at
-    /// https://flutter-dashboard.appspot.com/v2/
-    bool isRequestForFlutterApplicationBeta(HttpRequest request) {
-      return request.uri.path.startsWith(flutterBetaUrlPrefix);
-    }
-
     return await runAppEngine((HttpRequest request) async {
-      if (isRequestForFlutterApplicationBeta(request)) {
-        String filePath = request.uri.toFilePath();
-        // TODO(chillers): Remove this when deployed for production use. https://github.com/flutter/cocoon/issues/472
-        filePath = filePath.replaceFirst(flutterBetaUrlPrefix, '');
-        
-        await StaticFileHandler(filePath, config: config).service(request);
-
-        return;
-      }
-
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
       if (handler != null) {
         await handler.service(request);
       } else {
-        await legacyBackendProxyHandler.service(request);
+        final String filePath = request.uri.toFilePath();
+
+        await StaticFileHandler(filePath, config: config).service(request);
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {
       final String host = address.isLoopback ? 'localhost' : address.host;
