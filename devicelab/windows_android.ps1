@@ -1,4 +1,4 @@
-# Copyright (c) 2016, the Flutter project authors.  Please see the AUTHORS file
+# Copyright (c) 2019, the Flutter project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -35,6 +35,7 @@ choco install -y openssh
 
 # Installs convenient tools
 choco install -y vscode
+choco install -y vim
 choco install -y GoogleChrome
 
 # Clones the Cocoon repository
