@@ -8,8 +8,8 @@
 # Instructions:
 # 1. Install Chocolatey (see https://chocolatey.org/install).
 # 2. Install Boxstarter with command `choco install -y boxstarter`.
-# 3. Run `boxstarter` which opens a Boxstarter shell.
-# 4. In the shell, run `Install-BoxstarterPackage -PackageName windows_android.ps1`.
+# 3. Open a powershell with administrator privileges.
+# 4. In the shell, run `powershell <path to this script>`.
 
 # Allows this script to execute over SSH.
 Set-ExecutionPolicy Unrestricted
