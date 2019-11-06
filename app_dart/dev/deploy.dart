@@ -175,8 +175,8 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  // if (!await _deployToAppEngine()) {
-  //   stderr.writeln('Failed to deploy to AppEngine');
-  //   exit(1);
-  // }
+  if (!await _deployToAppEngine()) {
+    stderr.writeln('Failed to deploy to AppEngine');
+    exit(1);
+  }
 }
