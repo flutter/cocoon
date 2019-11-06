@@ -118,6 +118,13 @@ class AuthenticationProvider {
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
 
+    if (accessToken != null) {
+      // TODO(chillers): Remove when everything is in the Flutter app
+      try {
+        return authenticateAccessToken(accessToken: accessToken, clientContext: clientContext, log: log);
+      } catch (_) {}
+    }
+
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
@@ -185,8 +192,6 @@ class AuthenticationProvider {
       } finally {
         client.close();
       }
-    } else if (accessToken != null) {
-      return authenticateAccessToken(accessToken: accessToken, clientContext: clientContext, log: log);
     } else {
       throw const Unauthenticated('User is not signed in');
     }
@@ -235,9 +240,9 @@ class AuthenticationProvider {
         throw const Unauthenticated('Invalid ID token');
       }
 
-      final String verifiedEmail = accessTokenData['verified_email'];
+      final bool verifiedEmail = accessTokenData['verified_email'];
       assert(verifiedEmail != null);
-      if (verifiedEmail != 'true') {
+      if (verifiedEmail == false) {
         log.warning('Unverified account attempted to authenticate');
         throw const Unauthenticated('Account is not verified');
       }
