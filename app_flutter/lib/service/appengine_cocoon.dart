@@ -90,9 +90,9 @@ class AppEngineCocoonService implements CocoonService {
     /// This endpoint only returns a status code.
     final http.Request request = http.Request(
         'POST', Uri.https(_appengineAuthority, '/api/reset-devicelab-task'))
-      ..bodyFields = <String, String>{
-        'Key': task.key.toString(),
-      }
+      ..body = jsonEncode(<String, dynamic>{
+        'Key': task.key,
+      })
       ..headers.addAll(<String, String>{
         'X-Flutter-AccessToken': accessToken,
       });
