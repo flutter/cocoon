@@ -33,7 +33,7 @@ dependencies:
   flutter_progress_button: ^1.0.0
   google_sign_in_all: ^0.0.3
   provider: ^3.0.0
-  url_launcher: ^5.1.0
+  url_launcher: 5.2.4
   url_launcher_web:
     git:
       url: git://github.com/flutter/plugins.git
