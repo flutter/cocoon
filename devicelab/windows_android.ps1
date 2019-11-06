@@ -11,6 +11,9 @@
 # 3. Run `boxstarter` which opens a Boxstarter shell.
 # 4. In the shell, run `Install-BoxstarterPackage -PackageName windows_android.ps1`.
 
+# Allows this script to execute over SSH.
+Set-ExecutionPolicy Unrestricted
+
 # Shows hidden files and file extensions
 Set-WindowsExplorerOptions -EnableShowHiddenFilesFoldersDrives -EnableShowFileExtensions
 
