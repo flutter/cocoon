@@ -42,8 +42,10 @@ Future<void> main() async {
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
+
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
+
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': CacheRequestHandler<Body>(
         cache: redisCache,
