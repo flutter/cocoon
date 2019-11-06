@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
@@ -20,7 +21,13 @@ class StatusGridContainer extends StatelessWidget {
   const StatusGridContainer({Key key}) : super(key: key);
 
   @visibleForTesting
-  static const String errorCocoonBackend = 'Cocoon Backend is having issues';
+  static const String errorFetchCommitStatus =
+      'An error occurred fetching commit statuses from Cocoon';
+  @visibleForTesting
+  static const String errorFetchTreeStatus =
+      'An error occurred fetching the tree build status from Cocoon';
+  @visibleForTesting
+  static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +36,28 @@ class StatusGridContainer extends StatelessWidget {
         final List<CommitStatus> statuses = buildState.statuses.data;
 
         if (buildState.hasError) {
-          print('FlutterBuildState has an error');
           print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
           print('statuses: ${buildState.statuses.error}');
 
-          // TODO(chillers): Display the error
+          SchedulerBinding.instance.endOfFrame.then((_) {
+            final Row snackbarContent = Row(
+              children: <Widget>[
+                const Icon(Icons.error),
+                const SizedBox(width: 10),
+                if (buildState.statuses.error != null)
+                  const Text(errorFetchCommitStatus)
+                else
+                  const Text(errorFetchTreeStatus)
+              ],
+            );
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: snackbarContent,
+                backgroundColor: Theme.of(context).errorColor,
+                duration: errorSnackbarDuration,
+              ),
+            );
+          });
         }
 
         // Assume if there is no data that it is loading.

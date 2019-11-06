@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:test/test.dart' as test;
 
@@ -226,5 +227,51 @@ void main() {
         }
       }
     });
+
+    testWidgets('error snackbar shown for error fetching tree status',
+        (WidgetTester tester) async {
+      final FlutterBuildState buildState = MockFlutterBuildState();
+      when(buildState.isTreeBuilding)
+          .thenReturn(CocoonResponse<bool>()..error = 'tree error');
+      when(buildState.statuses).thenReturn(
+          CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]);
+      when(buildState.hasError).thenReturn(true);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              Scaffold(
+                body: ChangeNotifierProvider<FlutterBuildState>(
+                  builder: (_) => buildState,
+                  child: const StatusGridContainer(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.pump(const Duration(
+          milliseconds: 750)); // 750ms open animation for snackbar
+
+      expect(
+          find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
+      expect(
+          find.text(StatusGridContainer.errorFetchTreeStatus), findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          StatusGridContainer.errorSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      expect(
+          find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
+      expect(find.text(StatusGridContainer.errorFetchTreeStatus), findsNothing);
+    });
   });
 }
+
+class MockFlutterBuildState extends Mock implements FlutterBuildState {}
