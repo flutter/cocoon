@@ -82,7 +82,7 @@ class StatusGridContainer extends StatelessWidget {
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
-class StatusGrid extends StatelessWidget {
+class StatusGrid extends StatefulWidget {
   const StatusGrid({
     Key key,
     @required this.buildState,
@@ -90,73 +90,149 @@ class StatusGrid extends StatelessWidget {
     @required this.taskMatrix,
   }) : super(key: key);
 
+  final FlutterBuildState buildState;
+
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
   final task_matrix.TaskMatrix taskMatrix;
 
-  /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
-  final FlutterBuildState buildState;
+  @override
+  _StatusGridState createState() => _StatusGridState();
+}
+
+class _StatusGridState extends State<StatusGrid> {
+  List<ScrollController> controllers;
+  SyncScrollController _syncScroller;
 
   @override
   Widget build(BuildContext context) {
-    /// The grid needs to know its dimensions. Column is based off how many tasks are
-    /// in a row (+ 1 to account for [CommitBox]).
-    final int columnCount = taskMatrix.columns + 1;
+    controllers = List<ScrollController>.generate(
+        widget.taskMatrix.rows + 1, (_) => ScrollController());
+    _syncScroller = SyncScrollController(controllers);
 
-    return Expanded(
-      // The grid is wrapped with SingleChildScrollView to enable scrolling both
-      // horizontally and vertically
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          width: columnCount * 50.0,
-          // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
-          child: GridView.builder(
-            addRepaintBoundaries: false,
-            itemCount: columnCount * statuses.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount),
-            itemBuilder: (BuildContext context, int gridIndex) {
-              if (gridIndex == 0) {
-                /// The top left corner of the grid is nothing since
-                /// the left column is for [CommitBox] and the top
-                /// row is for [TaskIcon].
-                return const SizedBox();
-              }
+    final List<Widget> rows = <Widget>[];
 
-              /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
-              /// of [List<List<Task>>]. This allows the row of [TaskIcon] to align
-              /// with the column of [Task] that it maps to.
-              ///
-              /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
-              /// row of [TaskIcon] introduces.
-              final int index = gridIndex - columnCount;
-              if (index < 0) {
-                return TaskIcon(task: taskMatrix.sampleTask(gridIndex - 1));
-              }
-
-              final int row = index ~/ columnCount;
-              if (index % columnCount == 0) {
-                return CommitBox(commit: statuses[row].commit);
-              }
-
-              final int column = (index % columnCount) - 1;
-              final Task task = taskMatrix.task(row, column);
-              if (task == null) {
-                /// [Task] was skipped so don't show anything.
-                return const SizedBox();
-              }
-
-              return TaskBox(
-                task: task,
-                buildState: buildState,
-              );
-            },
+    final List<Widget> taskIcons = <Widget>[];
+    taskIcons.add(Container(width: 50));
+    for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
+      taskIcons.add(
+        Container(
+          width: 50,
+          child: TaskIcon(
+            task: widget.taskMatrix.sampleTask(colIndex),
           ),
+        ),
+      );
+    }
+    rows.add(
+      Container(
+        height: 50,
+        child: NotificationListener<ScrollNotification>(
+          child: ListView(
+            controller: controllers[0],
+            children: taskIcons,
+            scrollDirection: Axis.horizontal,
+          ),
+          onNotification: (ScrollNotification scrollInfo) {
+            _syncScroller.processNotification(scrollInfo, controllers[0]);
+            return;
+          },
         ),
       ),
     );
+
+    for (int rowIndex = 0; rowIndex < widget.taskMatrix.rows; rowIndex++) {
+      final List<TaskBox> tasks = <TaskBox>[];
+      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
+        tasks.add(TaskBox(
+          buildState: widget.buildState,
+          task: widget.taskMatrix.task(rowIndex, colIndex),
+        ));
+      }
+
+      rows.add(
+        Container(
+          height: 50,
+          child: NotificationListener<ScrollNotification>(
+            child: ListView.builder(
+              controller: controllers[rowIndex + 1],
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.taskMatrix.columns + 1,
+              itemBuilder: (BuildContext context, int colIndex) {
+                if (colIndex == 0) {
+                  return CommitBox(
+                    commit: widget.statuses[rowIndex].commit,
+                  );
+                }
+                return Container(
+                  width: 50,
+                  child: TaskBox(
+                    buildState: widget.buildState,
+                    task: widget.taskMatrix.task(rowIndex, colIndex - 1),
+                  ),
+                );
+              },
+              shrinkWrap: false,
+            ),
+            onNotification: (ScrollNotification scrollInfo) {
+              _syncScroller.processNotification(
+                  scrollInfo, controllers[rowIndex + 1]);
+              return;
+            },
+          ),
+        ),
+      );
+    }
+
+    return Expanded(
+      child: ListView(
+        children: rows,
+        shrinkWrap: false,
+      ),
+    );
+  }
+}
+
+// https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
+class SyncScrollController {
+  SyncScrollController(List<ScrollController> controllers) {
+    controllers.forEach((controller) => registerScrollController(controller));
+  }
+
+  final List<ScrollController> _registeredScrollControllers =
+      <ScrollController>[];
+
+  ScrollController _scrollingController;
+  bool _scrollingActive = false;
+
+  void registerScrollController(ScrollController controller) {
+    _registeredScrollControllers.add(controller);
+  }
+
+  void processNotification(
+      ScrollNotification notification, ScrollController sender) {
+    if (notification is ScrollStartNotification && !_scrollingActive) {
+      _scrollingController = sender;
+      _scrollingActive = true;
+      return;
+    }
+
+    if (identical(sender, _scrollingController) && _scrollingActive) {
+      if (notification is ScrollEndNotification) {
+        _scrollingController = null;
+        _scrollingActive = false;
+        return;
+      }
+
+      if (notification is ScrollUpdateNotification) {
+        _registeredScrollControllers.forEach((controller) => {
+              if (!identical(_scrollingController, controller))
+                controller..jumpTo(_scrollingController.offset)
+            });
+        return;
+      }
+    }
   }
 }

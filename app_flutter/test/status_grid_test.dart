@@ -94,30 +94,5 @@ void main() {
       final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, statuses[0].stages[0].tasks[0]);
     });
-
-    testWidgets('last task in grid is the last task given',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FlutterBuildState(),
-                statuses: statuses,
-                taskMatrix: taskMatrix,
-              ),
-            ],
-          ),
-        ),
-      );
-
-      final TaskBox lastTaskWidget =
-          find.byType(TaskBox).evaluate().last.widget;
-
-      final Task lastTask =
-          taskMatrix.task(taskMatrix.rows - 1, taskMatrix.columns - 1);
-
-      expect(lastTaskWidget.task, lastTask);
-    });
   });
 }
