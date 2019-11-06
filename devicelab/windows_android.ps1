@@ -33,6 +33,10 @@ choco install -y sysinternals
 choco install -y tigervnc
 choco install -y openssh
 
+# Installs convenient tools
+choco install -y vscode
+choco install -y GoogleChrome
+
 # Run Cocoon agent by on startup
 $startup_path = "C:\Users\$env:username\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
 echo "cd C:\src\cocoon\agent\ ; dart .\bin\agent.dart ci" > "$startup_path\start_cocoon_agent.bat"
