@@ -30,13 +30,16 @@ class _CommitBoxState extends State<CommitBox> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _handleTap,
-      child: Container(
-        margin: const EdgeInsets.all(1.0),
-        child: Image.network(
-          widget.commit.authorAvatarUrl,
-          height: 40,
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: GestureDetector(
+        onTap: _handleTap,
+        child: Container(
+          margin: const EdgeInsets.all(1.0),
+          child: Image.network(
+            widget.commit.authorAvatarUrl,
+          ),
         ),
       ),
     );

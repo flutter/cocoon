@@ -147,35 +147,23 @@ class _StatusGridState extends State<StatusGrid> {
     );
 
     for (int rowIndex = 0; rowIndex < widget.taskMatrix.rows; rowIndex++) {
-      final List<TaskBox> tasks = <TaskBox>[];
-      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
-        tasks.add(TaskBox(
-          buildState: widget.buildState,
-          task: widget.taskMatrix.task(rowIndex, colIndex),
-        ));
-      }
+      final List<Widget> tasks = <Widget>[
+        CommitBox(commit: widget.statuses[rowIndex].commit),
+        for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
+          TaskBox(
+            buildState: widget.buildState,
+            task: widget.taskMatrix.task(rowIndex, colIndex),
+          )
+      ];
 
       rows.add(
         Container(
           height: 50,
           child: NotificationListener<ScrollNotification>(
-            child: ListView.builder(
+            child: SingleChildScrollView(
               controller: controllers[rowIndex + 1],
               scrollDirection: Axis.horizontal,
-              itemCount: widget.taskMatrix.columns + 1,
-              itemExtent: 50,
-              itemBuilder: (BuildContext context, int colIndex) {
-                if (colIndex == 0) {
-                  return CommitBox(
-                    commit: widget.statuses[rowIndex].commit,
-                  );
-                }
-                return TaskBox(
-                  buildState: widget.buildState,
-                  task: widget.taskMatrix.task(rowIndex, colIndex - 1),
-                );
-              },
-              shrinkWrap: false,
+              child: Row(children: tasks),
             ),
             onNotification: (ScrollNotification scrollInfo) {
               _syncScroller.processNotification(
@@ -238,7 +226,7 @@ class SyncScrollController {
       } else if (notification is ScrollUpdateNotification) {
         for (ScrollController controller in _registeredScrollControllers) {
           if (!identical(_scrollingController, controller)) {
-            controller..jumpTo(_scrollingController.offset);
+            controller.jumpTo(_scrollingController.offset);
           }
         }
       }
