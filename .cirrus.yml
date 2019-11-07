@@ -16,9 +16,11 @@ task:
 task:
   name: app_flutter
   upgrade_script:
+  - sudo wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+  - sudo echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
+  - sudo apt-get install -y google-chrome-stable
   - flutter channel dev
   - flutter upgrade
-  - sudo apt-get install -y google-chrome-stable
   pub_script: cd app_flutter && flutter packages get
   analyze_script: cd app_flutter && flutter analyze
   format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
