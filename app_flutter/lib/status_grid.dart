@@ -170,12 +170,9 @@ class _StatusGridState extends State<StatusGrid> {
                     commit: widget.statuses[rowIndex].commit,
                   );
                 }
-                return Container(
-                  width: 50,
-                  child: TaskBox(
-                    buildState: widget.buildState,
-                    task: widget.taskMatrix.task(rowIndex, colIndex - 1),
-                  ),
+                return TaskBox(
+                  buildState: widget.buildState,
+                  task: widget.taskMatrix.task(rowIndex, colIndex - 1),
                 );
               },
               shrinkWrap: false,
@@ -238,17 +235,11 @@ class SyncScrollController {
     if (notification is ScrollStartNotification && !_scrollingActive) {
       _scrollingController = sender;
       _scrollingActive = true;
-      return;
-    }
-
-    if (identical(sender, _scrollingController) && _scrollingActive) {
+    } else if (identical(sender, _scrollingController) && _scrollingActive) {
       if (notification is ScrollEndNotification) {
         _scrollingController = null;
         _scrollingActive = false;
-        return;
-      }
-
-      if (notification is ScrollUpdateNotification) {
+      } else if (notification is ScrollUpdateNotification) {
         for (ScrollController controller in _registeredScrollControllers) {
           if (!identical(_scrollingController, controller)) {
             controller..jumpTo(_scrollingController.offset);

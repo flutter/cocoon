@@ -83,16 +83,18 @@ class _TaskBoxState extends State<TaskBox> {
       }
     }
 
-    return GestureDetector(
-      onTap: _handleTap,
-      child: Container(
-        margin: const EdgeInsets.all(1.0),
-        color: TaskBox.statusColor.containsKey(status)
-            ? TaskBox.statusColor[status]
-            : Colors.black,
-        child: taskIndicators(widget.task, status),
-        width: 20,
-        height: 20,
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: GestureDetector(
+        onTap: _handleTap,
+        child: Container(
+          margin: const EdgeInsets.all(1.0),
+          color: TaskBox.statusColor.containsKey(status)
+              ? TaskBox.statusColor[status]
+              : Colors.black,
+          child: taskIndicators(widget.task, status),
+        ),
       ),
     );
   }
