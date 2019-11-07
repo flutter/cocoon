@@ -35,10 +35,6 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   Future<UpdateAgentHealthResponse> post() async {
     checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
 
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'AgentStatus';
-
     final String agentId = requestData[agentIdParam];
     final bool isHealthy = requestData[isHealthyParam];
     final String healthDetails = requestData[healthDetailsParam];
@@ -51,7 +47,6 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
       },
     );
     final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
@@ -60,29 +55,39 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
     await datastore.db.commit(inserts: <Agent>[agent]);
 
     /// Insert data to [BigQuery] whenever updating data in [Datastore] 
-    tableDataInsertAllRequestRows.add(<String, Object>{
+    await _insertBigquery(agent, tabledataResourceApi);
+
+    return UpdateAgentHealthResponse(agent);
+  }
+
+  Future<void> _insertBigquery(Agent agent, TabledataResourceApi tabledataResourceApi) async {
+    const String projectId = 'tvolkert-test';
+    const String dataset = 'cocoon';
+    const String table = 'AgentStatus';
+
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+    
+    requestRows.add(<String, Object>{
       'json': <String, Object>{
         'Timestamp': agent.healthCheckTimestamp,
-        'AgentID': agentId,
+        'AgentID': agent.agentId,
         // TODO(keyonghan): add more detailed states https://github.com/flutter/flutter/issues/44213
-        'Status': isHealthy?'Healthy':'Unhealthy',
-        'Detail': healthDetails,
+        'Status': agent.isHealthy?'Healthy':'Unhealthy',
+        'Detail': agent.healthDetails,
       },
     });
 
-    /// Final [rows] to be inserted to [BigQuery]
-    final TableDataInsertAllRequest rows =
+    /// [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest request =
       TableDataInsertAllRequest.fromJson(<String, Object>{
-      'rows': tableDataInsertAllRequestRows
+      'rows': requestRows
     });
 
     try {
-      await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
     } catch(ApiRequestError){
-      log.warning('Failed to add $agentId status to BigQuery: $ApiRequestError');
+      log.warning('Failed to add ${agent.agentId} status to BigQuery: $ApiRequestError');
     }
-
-    return UpdateAgentHealthResponse(agent);
   }
 }
 
