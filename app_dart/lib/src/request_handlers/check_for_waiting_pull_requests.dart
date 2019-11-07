@@ -149,12 +149,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   List<_AutoMergeQueryResult> _parseQueryData(Map<String, dynamic> data) {
     final Map<String, dynamic> repository = data['repository'];
     if (repository == null || repository.isEmpty) {
-      return <_AutoMergeQueryResult>[];
+      throw StateError('Query did not return a repository.');
     }
 
     final Map<String, dynamic> label = repository['labels']['nodes'].single;
     if (label == null || label.isEmpty) {
-      return <_AutoMergeQueryResult>[];
+      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String labelId = label['id'];
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
