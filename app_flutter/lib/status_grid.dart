@@ -136,6 +136,7 @@ class _StatusGridState extends State<StatusGrid> {
         child: NotificationListener<ScrollNotification>(
           child: ListView(
             controller: controllers[0],
+            itemExtent: 50,
             children: _buildTaskIconRow(),
             scrollDirection: Axis.horizontal,
           ),
@@ -164,6 +165,7 @@ class _StatusGridState extends State<StatusGrid> {
               controller: controllers[rowIndex + 1],
               scrollDirection: Axis.horizontal,
               itemCount: widget.taskMatrix.columns + 1,
+              itemExtent: 50,
               itemBuilder: (BuildContext context, int colIndex) {
                 if (colIndex == 0) {
                   return CommitBox(
