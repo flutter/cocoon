@@ -102,9 +102,11 @@ class AppEngineCocoonService implements CocoonService {
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///
-  /// This function helps the Web app talks to the Cocoon service relative to
-  /// where it's running. On mobile, default to use the production
-  /// endpoint since no local Cocoon backend can be running.
+  /// This functions resolves the relative url endpoint to the production endpoint
+  /// that can be used on web to the production endpoint if running not on web.
+  /// This is because only on web a Cocoon backend can be running from the same
+  /// host as this Flutter application, but on mobile we need to ping a separate
+  /// production endpoint.
   ///
   /// The urlSuffix begins with a slash, e.g. "/api/public/get-status".
   String _apiEndpoint(String urlSuffix) {
