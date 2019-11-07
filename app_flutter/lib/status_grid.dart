@@ -117,11 +117,9 @@ class _StatusGridState extends State<StatusGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> rows = _buildRows();
-
     return Expanded(
       child: ListView(
-        children: rows,
+        children: _buildRows(),
         shrinkWrap: false,
       ),
     );
