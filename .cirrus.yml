@@ -25,4 +25,4 @@ task:
   test_script:
     - cd app_flutter
     - flutter test
-    - flutter test --platform=chrome test/service/appengine_cocoon_test.dart
+    # - flutter test --platform=chrome test/service/appengine_cocoon_test.dart # https://github.com/flutter/flutter/issues/44373
