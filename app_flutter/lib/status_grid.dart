@@ -132,9 +132,9 @@ class _StatusGridState extends State<StatusGrid> {
       Container(
         height: 50,
         child: NotificationListener<ScrollNotification>(
-          child: SingleChildScrollView(
+          child: ListView(
             controller: controllers[0],
-            child: _buildTaskIconRow(),
+            children: _buildTaskIcons(),
             scrollDirection: Axis.horizontal,
           ),
           onNotification: (ScrollNotification scrollInfo) {
@@ -159,10 +159,10 @@ class _StatusGridState extends State<StatusGrid> {
         Container(
           height: 50,
           child: NotificationListener<ScrollNotification>(
-            child: SingleChildScrollView(
+            child: ListView(
               controller: controllers[rowIndex + 1],
               scrollDirection: Axis.horizontal,
-              child: Row(children: tasks),
+              children: tasks,
             ),
             onNotification: (ScrollNotification scrollInfo) {
               _syncScroller.processNotification(
@@ -177,20 +177,18 @@ class _StatusGridState extends State<StatusGrid> {
     return rows;
   }
 
-  Row _buildTaskIconRow() {
-    return Row(
-      children: <Widget>[
-        /// The top left corner of the grid has nothing.
-        Container(width: 50),
-        for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
-          Container(
-            width: 50,
-            child: TaskIcon(
-              task: widget.taskMatrix.sampleTask(colIndex),
-            ),
+  List<Widget> _buildTaskIcons() {
+    return <Widget>[
+      /// The top left corner of the grid has nothing.
+      Container(width: 50),
+      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
+        Container(
+          width: 50,
+          child: TaskIcon(
+            task: widget.taskMatrix.sampleTask(colIndex),
           ),
-      ],
-    );
+        ),
+    ];
   }
 }
 
