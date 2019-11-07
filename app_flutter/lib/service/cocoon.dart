@@ -22,8 +22,6 @@ abstract class CocoonService {
       return AppEngineCocoonService();
     }
 
-    // TODO(chillers): LocalCocoonService. https://github.com/flutter/cocoon/issues/442
-
     return FakeCocoonService();
   }
 

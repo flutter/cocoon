@@ -281,6 +281,8 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int taskDurationMs =
+        (task.endTimestamp - task.startTimestamp).toInt();
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -290,7 +292,7 @@ class TaskOverlayContents extends StatelessWidget {
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
             title: Text(task.name),
             subtitle: Text('Attempts: ${task.attempts}\n'
-                'Duration: ${task.endTimestamp - task.startTimestamp} seconds\n'
+                'Duration: ${taskDurationMs / 100} seconds\n'
                 'Agent: ${task.reservedForAgentId}'),
           ),
           ButtonBar(

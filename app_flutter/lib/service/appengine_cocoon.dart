@@ -23,25 +23,17 @@ class AppEngineCocoonService implements CocoonService {
   AppEngineCocoonService({http.Client client})
       : _client = client ?? http.Client();
 
-  /// The Cocoon API endpoint to query
-  ///
-  /// This is the base for all API requests to cocoon
-  static const String _appengineAuthority = 'flutter-dashboard.appspot.com';
-  static const String _baseApiUrl = 'https://$_appengineAuthority/api';
-
   final http.Client _client;
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
-    final http.Response response =
-        await _client.get('$_baseApiUrl/public/get-status');
+    final http.Response response = await _client.get('/api/public/get-status');
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
       return CocoonResponse<List<CommitStatus>>()
-        ..error =
-            '$_baseApiUrl/public/get-status returned ${response.statusCode}';
+        ..error = '/api/public/get-status returned ${response.statusCode}';
     }
 
     try {
@@ -57,13 +49,12 @@ class AppEngineCocoonService implements CocoonService {
   Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response =
-        await _client.get('$_baseApiUrl/public/build-status');
+        await _client.get('/api/public/build-status');
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
       return CocoonResponse<bool>()
-        ..error =
-            '$_baseApiUrl/public/build-status returned ${response.statusCode}';
+        ..error = '/api/public/build-status returned ${response.statusCode}';
     }
 
     Map<String, Object> jsonResponse;
@@ -71,12 +62,12 @@ class AppEngineCocoonService implements CocoonService {
       jsonResponse = jsonDecode(response.body);
     } catch (error) {
       return CocoonResponse<bool>()
-        ..error = '$_baseApiUrl/public/build-status had a malformed response';
+        ..error = '/api/public/build-status had a malformed response';
     }
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
       return CocoonResponse<bool>()
-        ..error = '$_baseApiUrl/public/build-status had a malformed response';
+        ..error = '/api/public/build-status had a malformed response';
     }
 
     return CocoonResponse<bool>()
@@ -88,16 +79,12 @@ class AppEngineCocoonService implements CocoonService {
     assert(accessToken != null);
 
     /// This endpoint only returns a status code.
-    final http.Request request = http.Request(
-        'POST', Uri.https(_appengineAuthority, '/api/reset-devicelab-task'))
-      ..bodyFields = <String, String>{
-        'Key': task.key.toString(),
-      }
-      ..headers.addAll(<String, String>{
-        'X-Flutter-AccessToken': accessToken,
-      });
-
-    final http.StreamedResponse response = await _client.send(request);
+    final http.Response response = await _client
+        .post('/api/reset-devicelab-task', headers: <String, String>{
+      'X-Flutter-AccessToken': accessToken,
+    }, body: <String, String>{
+      'Key': task.key.toString(),
+    });
 
     return response.statusCode == HttpStatus.ok;
   }
