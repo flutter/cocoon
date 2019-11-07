@@ -108,11 +108,15 @@ class _StatusGridState extends State<StatusGrid> {
   SyncScrollController _syncScroller;
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
     controllers = List<ScrollController>.generate(
         widget.taskMatrix.rows + 1, (_) => ScrollController());
     _syncScroller = SyncScrollController(controllers);
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final List<Widget> rows = _buildRows();
 
     return Expanded(
@@ -207,7 +211,13 @@ class _StatusGridState extends State<StatusGrid> {
   }
 }
 
-// https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
+/// A ScrollController that makes all ScrollControllers added to it have the same state.
+///
+/// A ListView of ListViews by default has ScrollControllers that are independent of each other.
+/// To get around this, this helper class makes all the independent ScrollControllers
+/// keep each other updated.
+///
+/// Source: https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
 class SyncScrollController {
   SyncScrollController(List<ScrollController> controllers) {
     controllers.forEach(registerScrollController);
