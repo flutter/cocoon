@@ -36,17 +36,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'Task';
-
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
     final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
     final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
     final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     Key taskKey;
     try {
@@ -91,34 +86,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     /// 
     /// [endTimestamp] greater than 0 is a good final-status flag 
     if (task.endTimestamp>0) {
-      /// Prepare for bigquery [insertAll]
-      tableDataInsertAllRequestRows.add(<String, Object>{
-        'json': <String, Object>{
-          'ID': commit.sha,
-          'CreateTimestamp': task.createTimestamp,
-          'StartTimestamp': task.startTimestamp,
-          'EndTimestamp': task.endTimestamp,
-          'Name': task.name,
-          'Attempts': task.attempts,
-          'IsFlaky': task.isFlaky,
-          'TimeoutInMinutes': task.timeoutInMinutes,
-          'RequiredCapabilities': task.requiredCapabilities.join(','),
-          'StageName': task.stageName,
-          'Status': task.status,
-        },
-      });
-
-      /// Final [rows] to be inserted to [BigQuery]
-      final TableDataInsertAllRequest rows =
-        TableDataInsertAllRequest.fromJson(<String, Object>{
-        'rows': tableDataInsertAllRequestRows
-      });
-
-      try {
-        await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
-      } catch(ApiRequestError){
-        log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
-      }
+      await _insertBigquery(commit, task, tabledataResourceApi);
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
@@ -144,6 +112,42 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     return UpdateTaskStatusResponse(task);
+  }
+
+  Future<void> _insertBigquery(Commit commit, Task task, TabledataResourceApi tabledataResourceApi) async {
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'Task';
+
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+    
+    requestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'ID': commit.sha,
+        'CreateTimestamp': task.createTimestamp,
+        'StartTimestamp': task.startTimestamp,
+        'EndTimestamp': task.endTimestamp,
+        'Name': task.name,
+        'Attempts': task.attempts,
+        'IsFlaky': task.isFlaky,
+        'TimeoutInMinutes': task.timeoutInMinutes,
+        'RequiredCapabilities': task.requiredCapabilities.join(','),
+        'StageName': task.stageName,
+        'Status': task.status,
+      },
+    });
+
+    /// [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest request =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': requestRows
+    });
+
+    try {
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
+    }
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
