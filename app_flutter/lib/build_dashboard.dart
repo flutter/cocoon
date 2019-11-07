@@ -81,7 +81,8 @@ class UserAvatar extends StatelessWidget {
     final GoogleSignInService authService = buildState.authService;
 
     if (authService.isAuthenticated) {
-      return Image.network(authService.avatarUrl);
+      /// Size needs to be specified
+      return Image.network(authService.avatarUrl + '=s100');
     }
 
     return FlatButton(
