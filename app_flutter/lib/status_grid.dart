@@ -113,7 +113,7 @@ class _StatusGridState extends State<StatusGrid> {
         widget.taskMatrix.rows + 1, (_) => ScrollController());
     _syncScroller = SyncScrollController(controllers);
 
-    final List<ListView> rows = _buildRows();
+    final List<Widget> rows = _buildRows();
 
     return Expanded(
       child: ListView(
@@ -123,7 +123,7 @@ class _StatusGridState extends State<StatusGrid> {
     );
   }
 
-  List<ListView> _buildRows() {
+  List<Widget> _buildRows() {
     final List<Widget> rows = <Widget>[];
 
     rows.add(
@@ -210,7 +210,7 @@ class _StatusGridState extends State<StatusGrid> {
 // https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
 class SyncScrollController {
   SyncScrollController(List<ScrollController> controllers) {
-    controllers.forEach((controller) => registerScrollController(controller));
+    controllers.forEach(registerScrollController);
   }
 
   final List<ScrollController> _registeredScrollControllers =
@@ -239,11 +239,11 @@ class SyncScrollController {
       }
 
       if (notification is ScrollUpdateNotification) {
-        _registeredScrollControllers.forEach((controller) => {
-              if (!identical(_scrollingController, controller))
-                controller..jumpTo(_scrollingController.offset)
-            });
-        return;
+        for (ScrollController controller in _registeredScrollControllers) {
+          if (!identical(_scrollingController, controller)) {
+            controller..jumpTo(_scrollingController.offset);
+          }
+        }
       }
     }
   }
