@@ -13,7 +13,12 @@ class GoogleSignInService {
               scopes: _googleScopes,
               webClientId:
                   '308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com',
-            );
+            ) {
+    /// Try and see if the user is already signed in so they don't have to sign in again.
+    _googleSignIn
+        .getCurrentUser()
+        .then((GoogleAccount userValue) => _user = userValue);
+  }
 
   /// A list of Google API OAuth Scopes this project needs access to.
   ///
