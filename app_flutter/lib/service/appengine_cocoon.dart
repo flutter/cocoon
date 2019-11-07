@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
@@ -23,12 +24,21 @@ class AppEngineCocoonService implements CocoonService {
   AppEngineCocoonService({http.Client client})
       : _client = client ?? http.Client();
 
+  /// The Cocoon API endpoint to query
+  ///
+  /// This is the base for all API requests to cocoon
+  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+
   final http.Client _client;
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
+    final String getStatusUrl = kIsWeb
+        ? '/api/public/get-status'
+        : '$_baseApiUrl/api/public/get-status';
+
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
-    final http.Response response = await _client.get('/api/public/get-status');
+    final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
@@ -47,9 +57,12 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
+    final String getBuildStatusUrl = kIsWeb
+        ? '/api/public/build-status'
+        : '$_baseApiUrl/api/public/build-status';
+
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
-    final http.Response response =
-        await _client.get('/api/public/build-status');
+    final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
@@ -77,10 +90,13 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     assert(accessToken != null);
+    final String postResetTaskUrl = kIsWeb
+        ? '/api/reset-devicelab-task'
+        : '$_baseApiUrl/api/reset-devicelab-task';
 
     /// This endpoint only returns a status code.
-    final http.Response response = await _client
-        .post('/api/reset-devicelab-task', headers: <String, String>{
+    final http.Response response =
+        await _client.post(postResetTaskUrl, headers: <String, String>{
       'X-Flutter-AccessToken': accessToken,
     }, body: <String, String>{
       'Key': task.key.toString(),
