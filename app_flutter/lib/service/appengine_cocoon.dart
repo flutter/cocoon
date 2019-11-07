@@ -33,9 +33,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
-    final String getStatusUrl = kIsWeb
-        ? '/api/public/get-status'
-        : '$_baseApiUrl/api/public/get-status';
+    final String getStatusUrl = _apiEndpoint('/api/public/get-status');
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
@@ -57,9 +55,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
-    final String getBuildStatusUrl = kIsWeb
-        ? '/api/public/build-status'
-        : '$_baseApiUrl/api/public/build-status';
+    final String getBuildStatusUrl = _apiEndpoint('/api/public/build-status');
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
@@ -90,9 +86,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     assert(accessToken != null);
-    final String postResetTaskUrl = kIsWeb
-        ? '/api/reset-devicelab-task'
-        : '$_baseApiUrl/api/reset-devicelab-task';
+    final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
 
     /// This endpoint only returns a status code.
     final http.Response response =
@@ -103,6 +97,18 @@ class AppEngineCocoonService implements CocoonService {
     });
 
     return response.statusCode == HttpStatus.ok;
+  }
+
+  /// Construct the API endpoint based on the priority of using a local endpoint
+  /// before falling back to the production endpoint.
+  ///
+  /// This function helps the Web app talks to the Cocoon service relative to
+  /// where it's running. On mobile, default to use the production
+  /// endpoint since no local Cocoon backend can be running.
+  ///
+  /// The urlSuffix begins with a slash, e.g. "/api/public/get-status".
+  String _apiEndpoint(String urlSuffix) {
+    return kIsWeb ? urlSuffix : '$_baseApiUrl$urlSuffix';
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.
