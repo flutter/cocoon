@@ -191,20 +191,16 @@ class _StatusGridState extends State<StatusGrid> {
   }
 
   List<Widget> _buildTaskIconRow() {
-    final List<Widget> taskIcons = <Widget>[];
-    taskIcons.add(Container(width: 50));
-    for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
-      taskIcons.add(
+    return <Widget>[
+      Container(width: 50),
+      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
         Container(
           width: 50,
           child: TaskIcon(
             task: widget.taskMatrix.sampleTask(colIndex),
           ),
         ),
-      );
-    }
-
-    return taskIcons;
+    ];
   }
 }
 
