@@ -106,19 +106,21 @@ class _TaskBoxState extends State<TaskBox> {
       children: <Widget>[
         if (task.isFlaky)
           const Padding(
-              padding: EdgeInsets.all(12.0),
-              child: Icon(
-                Icons.help,
-                color: Colors.white60,
-                size: 25,
-              )),
+            padding: EdgeInsets.all(12.0),
+            child: Icon(
+              Icons.help,
+              color: Colors.white60,
+              size: 25,
+            ),
+          ),
         if (status == TaskBox.statusInProgress ||
             status == TaskBox.statusUnderperformedInProgress)
           const Padding(
-            padding: EdgeInsets.all(15.0),
-            child: CircularProgressIndicator(
-              strokeWidth: 3.0,
-              backgroundColor: Colors.white70,
+            padding: EdgeInsets.all(12.0),
+            child: Icon(
+              Icons.timelapse,
+              color: Colors.white60,
+              size: 25,
             ),
           ),
       ],

@@ -42,7 +42,7 @@ void main() {
               buildState: buildState,
               task: Task()..status = TaskBox.statusInProgress)));
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
 
     testWidgets('show orange when New but already attempted',
@@ -74,7 +74,7 @@ void main() {
           find.byType(Container).evaluate().first.widget;
       final BoxDecoration decoration = taskBoxWidget.decoration;
       expect(decoration.color, Colors.orange);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
 
     testWidgets('shows question mark for task marked flaky',
@@ -99,7 +99,7 @@ void main() {
                 ..status = TaskBox.statusInProgress
                 ..isFlaky = true)));
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.timelapse), findsOneWidget);
       expect(find.byIcon(Icons.help), findsOneWidget);
     });
 
