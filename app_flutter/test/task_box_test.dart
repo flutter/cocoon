@@ -136,7 +136,7 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\nDuration: 0.0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
+          'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
 
