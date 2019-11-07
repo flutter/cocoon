@@ -132,10 +132,9 @@ class _StatusGridState extends State<StatusGrid> {
       Container(
         height: 50,
         child: NotificationListener<ScrollNotification>(
-          child: ListView(
+          child: SingleChildScrollView(
             controller: controllers[0],
-            itemExtent: 50,
-            children: _buildTaskIconRow(),
+            child: _buildTaskIconRow(),
             scrollDirection: Axis.horizontal,
           ),
           onNotification: (ScrollNotification scrollInfo) {
@@ -178,17 +177,20 @@ class _StatusGridState extends State<StatusGrid> {
     return rows;
   }
 
-  List<Widget> _buildTaskIconRow() {
-    return <Widget>[
-      Container(width: 50),
-      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
-        Container(
-          width: 50,
-          child: TaskIcon(
-            task: widget.taskMatrix.sampleTask(colIndex),
+  Row _buildTaskIconRow() {
+    return Row(
+      children: <Widget>[
+        /// The top left corner of the grid has nothing.
+        Container(width: 50),
+        for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
+          Container(
+            width: 50,
+            child: TaskIcon(
+              task: widget.taskMatrix.sampleTask(colIndex),
+            ),
           ),
-        ),
-    ];
+      ],
+    );
   }
 }
 
@@ -225,7 +227,8 @@ class SyncScrollController {
         _scrollingActive = false;
       } else if (notification is ScrollUpdateNotification) {
         for (ScrollController controller in _registeredScrollControllers) {
-          if (!identical(_scrollingController, controller)) {
+          if (!identical(_scrollingController, controller) &&
+              controller.hasClients) {
             controller.jumpTo(_scrollingController.offset);
           }
         }
