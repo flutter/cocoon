@@ -90,14 +90,14 @@ class StatusGrid extends StatefulWidget {
     @required this.taskMatrix,
   }) : super(key: key);
 
-  /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
-  final FlutterBuildState buildState;
-
   /// The build status data to display in the grid.
   final List<CommitStatus> statuses;
 
   /// Computed matrix of [Task] to make it easy to retrieve and sort tasks.
   final task_matrix.TaskMatrix taskMatrix;
+
+  /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
+  final FlutterBuildState buildState;
 
   @override
   _StatusGridState createState() => _StatusGridState();
