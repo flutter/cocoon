@@ -18,7 +18,7 @@ task:
   upgrade_script:
   - flutter channel dev
   - flutter upgrade
-  - apt install -y google-chrome-stable
+  - sudo apt-get install -y google-chrome-stable
   pub_script: cd app_flutter && flutter packages get
   analyze_script: cd app_flutter && flutter analyze
   format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
