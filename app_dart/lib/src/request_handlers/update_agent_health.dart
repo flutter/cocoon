@@ -30,6 +30,9 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   static const String agentIdParam = 'AgentID';
   static const String isHealthyParam = 'IsHealthy';
   static const String healthDetailsParam = 'HealthDetails';
+  static const String projectId = 'flutter-dashboard';
+  static const String dataset = 'cocoon';
+  static const String table = 'AgentStatus';
 
   @override
   Future<UpdateAgentHealthResponse> post() async {
@@ -53,18 +56,15 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
     agent.healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
-
     /// Insert data to [BigQuery] whenever updating data in [Datastore] 
     await _insertBigquery(agent, tabledataResourceApi);
 
-    return UpdateAgentHealthResponse(agent);
+    final TableDataList tableDataList = await tabledataResourceApi.list(projectId, dataset, table);
+
+    return UpdateAgentHealthResponse(agent, tableDataList.totalRows);
   }
 
   Future<void> _insertBigquery(Agent agent, TabledataResourceApi tabledataResourceApi) async {
-    const String projectId = 'tvolkert-test';
-    const String dataset = 'cocoon';
-    const String table = 'AgentStatus';
-
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
     
     requestRows.add(<String, Object>{
@@ -93,9 +93,11 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
 
 @immutable
 class UpdateAgentHealthResponse extends JsonBody {
-  const UpdateAgentHealthResponse(this.agent) : assert(agent != null);
+  const UpdateAgentHealthResponse(this.agent, this.totalRows) : assert(agent != null);
 
   final Agent agent;
+  /// [totalRows] is for test purpose only.
+  final String totalRows;
 
   @override
   Map<String, dynamic> toJson() {
