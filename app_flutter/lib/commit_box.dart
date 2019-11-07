@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
+import 'status_grid.dart';
+
 /// Displays Git commit information.
 ///
 /// On click, it will open an [OverlayEntry] with [CommitOverlayContents]
@@ -31,8 +33,8 @@ class _CommitBoxState extends State<CommitBox> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 50,
-      height: 50,
+      width: StatusGrid.cellSize,
+      height: StatusGrid.cellSize,
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(

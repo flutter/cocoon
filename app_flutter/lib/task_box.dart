@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cocoon_service/protos.dart' show Task;
 
 import 'state/flutter_build.dart';
+import 'status_grid.dart';
 import 'task_helper.dart';
 
 /// Displays information from a [Task].
@@ -84,8 +85,8 @@ class _TaskBoxState extends State<TaskBox> {
     }
 
     return SizedBox(
-      width: 50,
-      height: 50,
+      width: StatusGrid.cellSize,
+      height: StatusGrid.cellSize,
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(

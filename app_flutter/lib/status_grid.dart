@@ -99,6 +99,8 @@ class StatusGrid extends StatefulWidget {
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final FlutterBuildState buildState;
 
+  static const double cellSize = 50;
+
   @override
   _StatusGridState createState() => _StatusGridState();
 }
@@ -130,7 +132,7 @@ class _StatusGridState extends State<StatusGrid> {
 
     rows.add(
       Container(
-        height: 50,
+        height: StatusGrid.cellSize,
         child: NotificationListener<ScrollNotification>(
           child: ListView(
             controller: controllers[0],
@@ -157,7 +159,7 @@ class _StatusGridState extends State<StatusGrid> {
 
       rows.add(
         Container(
-          height: 50,
+          height: StatusGrid.cellSize,
           child: NotificationListener<ScrollNotification>(
             child: ListView(
               controller: controllers[rowIndex + 1],
@@ -180,10 +182,10 @@ class _StatusGridState extends State<StatusGrid> {
   List<Widget> _buildTaskIcons() {
     return <Widget>[
       /// The top left corner of the grid has nothing.
-      Container(width: 50),
+      Container(width: StatusGrid.cellSize),
       for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
         Container(
-          width: 50,
+          width: StatusGrid.cellSize,
           child: TaskIcon(
             task: widget.taskMatrix.sampleTask(colIndex),
           ),
