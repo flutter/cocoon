@@ -90,6 +90,7 @@ class StatusGrid extends StatefulWidget {
     @required this.taskMatrix,
   }) : super(key: key);
 
+  /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final FlutterBuildState buildState;
 
   /// The build status data to display in the grid.
@@ -112,27 +113,26 @@ class _StatusGridState extends State<StatusGrid> {
         widget.taskMatrix.rows + 1, (_) => ScrollController());
     _syncScroller = SyncScrollController(controllers);
 
+    final List<ListView> rows = _buildRows();
+
+    return Expanded(
+      child: ListView(
+        children: rows,
+        shrinkWrap: false,
+      ),
+    );
+  }
+
+  List<ListView> _buildRows() {
     final List<Widget> rows = <Widget>[];
 
-    final List<Widget> taskIcons = <Widget>[];
-    taskIcons.add(Container(width: 50));
-    for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
-      taskIcons.add(
-        Container(
-          width: 50,
-          child: TaskIcon(
-            task: widget.taskMatrix.sampleTask(colIndex),
-          ),
-        ),
-      );
-    }
     rows.add(
       Container(
         height: 50,
         child: NotificationListener<ScrollNotification>(
           child: ListView(
             controller: controllers[0],
-            children: taskIcons,
+            children: _buildTaskIconRow(),
             scrollDirection: Axis.horizontal,
           ),
           onNotification: (ScrollNotification scrollInfo) {
@@ -186,12 +186,24 @@ class _StatusGridState extends State<StatusGrid> {
       );
     }
 
-    return Expanded(
-      child: ListView(
-        children: rows,
-        shrinkWrap: false,
-      ),
-    );
+    return rows;
+  }
+
+  List<Widget> _buildTaskIconRow() {
+    final List<Widget> taskIcons = <Widget>[];
+    taskIcons.add(Container(width: 50));
+    for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++) {
+      taskIcons.add(
+        Container(
+          width: 50,
+          child: TaskIcon(
+            task: widget.taskMatrix.sampleTask(colIndex),
+          ),
+        ),
+      );
+    }
+
+    return taskIcons;
   }
 }
 
