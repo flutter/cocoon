@@ -22,7 +22,7 @@ import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are four types of authentication this class supports:
+/// There are three types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -52,9 +52,6 @@ import 'exceptions.dart';
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is a whitelisted account in the Cocoon backend.
-/// 
-///  4. If the request has the `'X-Flutter-AccessToken'` HTTP header set to a valid
-///     access token, then this will follow the same logic as #3.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -113,8 +110,6 @@ class AuthenticationProvider {
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
-    final String accessToken = request.headers.value('X-Flutter-AccessToken');
-        
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
 
@@ -185,78 +180,8 @@ class AuthenticationProvider {
       } finally {
         client.close();
       }
-    } else if (accessToken != null) {
-      return authenticateAccessToken(accessToken: accessToken, clientContext: clientContext, log: log);
     } else {
       throw const Unauthenticated('User is not signed in');
-    }
-  }
-
-  /// Verify [accessToken] with Google Auth, and return an [AuthenticatedContext] if
-  /// it is verified to have access to the Cocoon backend.
-  /// 
-  /// Otherwise, throw [Unauthenticated] exception.
-  Future<AuthenticatedContext> authenticateAccessToken({
-    @required String accessToken,
-    @required ClientContext clientContext,
-    @required Logging log,
-  }) async {
-    final HttpClient client = _httpClientProvider();
-    try {
-      final Uri googleOauthTokenInfoUri = Uri.https(
-        'www.googleapis.com',
-        '/oauth2/v1/tokeninfo',
-        <String, String>{
-          'access_token': accessToken,
-        },
-      );
-      final HttpClientRequest verifyAccessTokenRequest = await client.getUrl(googleOauthTokenInfoUri);
-      final HttpClientResponse verifyAccessTokenResponse = await verifyAccessTokenRequest.close();
-
-      /// This also checks for when an access token is expired.
-      if (verifyAccessTokenResponse.statusCode != HttpStatus.ok) {
-        final String body = await utf8.decodeStream(verifyAccessTokenResponse);
-        log.warning('Access token verification failed: ${verifyAccessTokenResponse.statusCode}; $body');
-        throw const Unauthenticated('Invalid access token');
-      }
-
-      final String accessTokenJson = await utf8.decodeStream(verifyAccessTokenResponse);
-      Map<String, dynamic> accessTokenData;
-      try {
-        accessTokenData = json.decode(accessTokenJson);
-      } on FormatException {
-        throw InternalServerError('Invalid JSON: "$accessTokenJson"');
-      }
-
-      final String clientId = await _config.oauthClientId;
-      assert(clientId != null);
-      if (accessTokenData['audience'] != clientId) {
-        log.warning('Possible forged token: "${accessTokenData['audience']}" (expected "$clientId")');
-        throw const Unauthenticated('Invalid ID token');
-      }
-
-      final String verifiedEmail = accessTokenData['verified_email'];
-      assert(verifiedEmail != null);
-      if (verifiedEmail != 'true') {
-        log.warning('Unverified account attempted to authenticate');
-        throw const Unauthenticated('Account is not verified');
-      }
-
-      /// This assumes the hosted domain will always be after the last @ sign.
-      /// 
-      /// Trivially, 'sundar@google.com' will return 'google.com'.
-      /// A larger example is that 'sundarloves@signs@google.com' will also return 'google.com'.
-      final String hostedDomain = accessTokenData['email'].toString().split('@').last;
-      if (hostedDomain != 'google.com') {
-        final bool isWhitelisted = await _isWhitelisted(accessTokenData['email']);
-        if (!isWhitelisted) {
-          throw Unauthenticated('${accessTokenData['email']} is not authorized to access the dashboard');
-        }
-      }
-
-      return AuthenticatedContext._(clientContext: clientContext);
-    } finally {
-      client.close();
     }
   }
 

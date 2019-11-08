@@ -24,19 +24,6 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    if (request.headers.value('X-Flutter-AccessToken') != null) {
-      return authenticateAccessToken(accessToken: request.headers.value('X-Flutter-AccessToken'), clientContext: clientContext);
-    }
-    
-    if (authenticated) {
-      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
-    } else {
-      throw const Unauthenticated('Not authenticated');
-    }
-  }
-
-  @override
-  Future<AuthenticatedContext> authenticateAccessToken({String accessToken, ClientContext clientContext, Logging log}) async {
     if (authenticated) {
       return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
     } else {
