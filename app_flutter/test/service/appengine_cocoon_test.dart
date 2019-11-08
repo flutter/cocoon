@@ -10,7 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, RootKey, Stage, Task;
+    show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/cocoon.dart';
@@ -110,6 +110,7 @@ void main() {
           ..name = 'devicelab'
           ..taskStatus = 'Succeeded'
           ..tasks.add(Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
