@@ -22,4 +22,7 @@ task:
   analyze_script: cd app_flutter && flutter analyze
   format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
   build_script: cd app_flutter && flutter config --enable-web && flutter build web
-  test_script: cd app_flutter && flutter test
+  test_script:
+    - cd app_flutter
+    - flutter test
+    # - flutter test --platform=chrome test/service/appengine_cocoon_test.dart # https://github.com/flutter/flutter/issues/44373

@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
@@ -26,22 +27,21 @@ class AppEngineCocoonService implements CocoonService {
   /// The Cocoon API endpoint to query
   ///
   /// This is the base for all API requests to cocoon
-  static const String _appengineAuthority = 'flutter-dashboard.appspot.com';
-  static const String _baseApiUrl = 'https://$_appengineAuthority/api';
+  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
 
   final http.Client _client;
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
+    final String getStatusUrl = _apiEndpoint('/api/public/get-status');
+
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
-    final http.Response response =
-        await _client.get('$_baseApiUrl/public/get-status');
+    final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
       return CocoonResponse<List<CommitStatus>>()
-        ..error =
-            '$_baseApiUrl/public/get-status returned ${response.statusCode}';
+        ..error = '/api/public/get-status returned ${response.statusCode}';
     }
 
     try {
@@ -55,15 +55,15 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
+    final String getBuildStatusUrl = _apiEndpoint('/api/public/build-status');
+
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
-    final http.Response response =
-        await _client.get('$_baseApiUrl/public/build-status');
+    final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
       print(response.body);
       return CocoonResponse<bool>()
-        ..error =
-            '$_baseApiUrl/public/build-status returned ${response.statusCode}';
+        ..error = '/api/public/build-status returned ${response.statusCode}';
     }
 
     Map<String, Object> jsonResponse;
@@ -71,12 +71,12 @@ class AppEngineCocoonService implements CocoonService {
       jsonResponse = jsonDecode(response.body);
     } catch (error) {
       return CocoonResponse<bool>()
-        ..error = '$_baseApiUrl/public/build-status had a malformed response';
+        ..error = '/api/public/build-status had a malformed response';
     }
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
       return CocoonResponse<bool>()
-        ..error = '$_baseApiUrl/public/build-status had a malformed response';
+        ..error = '/api/public/build-status had a malformed response';
     }
 
     return CocoonResponse<bool>()
@@ -86,20 +86,31 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     assert(accessToken != null);
+    final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
 
     /// This endpoint only returns a status code.
-    final http.Request request = http.Request(
-        'POST', Uri.https(_appengineAuthority, '/api/reset-devicelab-task'))
-      ..bodyFields = <String, String>{
-        'Key': task.key.toString(),
-      }
-      ..headers.addAll(<String, String>{
-        'X-Flutter-AccessToken': accessToken,
-      });
-
-    final http.StreamedResponse response = await _client.send(request);
+    final http.Response response =
+        await _client.post(postResetTaskUrl, headers: <String, String>{
+      'X-Flutter-AccessToken': accessToken,
+    }, body: <String, String>{
+      'Key': task.key.toString(),
+    });
 
     return response.statusCode == HttpStatus.ok;
+  }
+
+  /// Construct the API endpoint based on the priority of using a local endpoint
+  /// before falling back to the production endpoint.
+  ///
+  /// This functions resolves the relative url endpoint to the production endpoint
+  /// that can be used on web to the production endpoint if running not on web.
+  /// This is because only on web a Cocoon backend can be running from the same
+  /// host as this Flutter application, but on mobile we need to ping a separate
+  /// production endpoint.
+  ///
+  /// The urlSuffix begins with a slash, e.g. "/api/public/get-status".
+  String _apiEndpoint(String urlSuffix) {
+    return kIsWeb ? urlSuffix : '$_baseApiUrl$urlSuffix';
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.
