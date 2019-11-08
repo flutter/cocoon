@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cocoon_service/protos.dart' show Task;
 
 import 'state/flutter_build.dart';
+import 'status_grid.dart';
 import 'task_helper.dart';
 
 /// Displays information from a [Task].
@@ -83,16 +84,18 @@ class _TaskBoxState extends State<TaskBox> {
       }
     }
 
-    return GestureDetector(
-      onTap: _handleTap,
-      child: Container(
-        margin: const EdgeInsets.all(1.0),
-        color: TaskBox.statusColor.containsKey(status)
-            ? TaskBox.statusColor[status]
-            : Colors.black,
-        child: taskIndicators(widget.task, status),
-        width: 20,
-        height: 20,
+    return SizedBox(
+      width: StatusGrid.cellSize,
+      height: StatusGrid.cellSize,
+      child: GestureDetector(
+        onTap: _handleTap,
+        child: Container(
+          margin: const EdgeInsets.all(1.0),
+          color: TaskBox.statusColor.containsKey(status)
+              ? TaskBox.statusColor[status]
+              : Colors.black,
+          child: taskIndicators(widget.task, status),
+        ),
       ),
     );
   }
@@ -106,19 +109,21 @@ class _TaskBoxState extends State<TaskBox> {
       children: <Widget>[
         if (task.isFlaky)
           const Padding(
-              padding: EdgeInsets.all(12.0),
-              child: Icon(
-                Icons.help,
-                color: Colors.white60,
-                size: 25,
-              )),
+            padding: EdgeInsets.all(12.0),
+            child: Icon(
+              Icons.help,
+              color: Colors.white60,
+              size: 25,
+            ),
+          ),
         if (status == TaskBox.statusInProgress ||
             status == TaskBox.statusUnderperformedInProgress)
           const Padding(
-            padding: EdgeInsets.all(15.0),
-            child: CircularProgressIndicator(
-              strokeWidth: 3.0,
-              backgroundColor: Colors.white70,
+            padding: EdgeInsets.all(12.0),
+            child: Icon(
+              Icons.timelapse,
+              color: Colors.white60,
+              size: 25,
             ),
           ),
       ],

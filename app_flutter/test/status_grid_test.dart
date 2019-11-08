@@ -5,8 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:test/test.dart' as test;
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -92,11 +93,43 @@ void main() {
       );
 
       final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
-      expect(firstTask.task, statuses[0].stages[0].tasks[0]);
+      expect(firstTask.task, taskMatrix.task(0, 0));
     });
 
-    testWidgets('last task in grid is the last task given',
+    testWidgets('skipped tasks do not break the grid',
         (WidgetTester tester) async {
+      /// Matrix Diagram:
+      /// ✓☐☐
+      /// ☐✓☐
+      /// ☐☐✓
+      final List<CommitStatus> statuses = <CommitStatus>[
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '1'
+                ..status = TaskBox.statusSucceeded
+            ])),
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '2'
+                ..status = TaskBox.statusSucceeded
+            ])),
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '3'
+                ..status = TaskBox.statusSucceeded
+            ]))
+      ];
+      final TaskMatrix taskMatrix = TaskMatrix(statuses: statuses);
+
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -110,14 +143,20 @@ void main() {
           ),
         ),
       );
+      expect(tester.takeException(),
+          const test.TypeMatcher<NetworkImageLoadException>());
 
-      final TaskBox lastTaskWidget =
-          find.byType(TaskBox).evaluate().last.widget;
+      expect(find.byType(TaskBox), findsNWidgets(3));
 
-      final Task lastTask =
-          taskMatrix.task(taskMatrix.rows - 1, taskMatrix.columns - 1);
+      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
+      expect(firstTask.task, statuses[0].stages[0].tasks[0]);
 
-      expect(lastTaskWidget.task, lastTask);
+      final TaskBox secondTask =
+          find.byType(TaskBox).evaluate().skip(1).first.widget;
+      expect(secondTask.task, statuses[1].stages[0].tasks[0]);
+
+      final TaskBox lastTask = find.byType(TaskBox).evaluate().last.widget;
+      expect(lastTask.task, statuses[2].stages[0].tasks[0]);
     });
   });
 }
