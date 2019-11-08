@@ -93,8 +93,8 @@ class FlutterBuildState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> rerunTask(Task task) {
-    return _cocoonService.rerunTask(task, authService.accessToken);
+  Future<bool> rerunTask(Task task) async {
+    return _cocoonService.rerunTask(task, await authService.idToken);
   }
 
   @override

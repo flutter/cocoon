@@ -341,7 +341,7 @@ class TaskOverlayContents extends StatelessWidget {
     // Only send access token for devicelab tasks since they require authentication
     final Map<String, String> headers = isDevicelab(task)
         ? <String, String>{
-            'X-Flutter-AccessToken': buildState.authService.accessToken,
+            'X-Flutter-IdToken': await buildState.authService.idToken,
           }
         : null;
     launch(logUrl(task), headers: headers);

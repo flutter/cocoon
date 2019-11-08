@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart' as test;
 
@@ -47,7 +48,7 @@ void main() {
 
       verifyNever(authService.signIn());
 
-      await tester.tap(find.byType(UserAvatar));
+      await tester.tap(find.byType(GoogleUserCircleAvatar));
 
       verify(authService.signIn()).called(1);
     });
@@ -55,7 +56,7 @@ void main() {
     testWidgets('shows user avatar when signed in',
         (WidgetTester tester) async {
       when(authService.isAuthenticated).thenReturn(true);
-      when(authService.avatarUrl).thenReturn('https://flutter.dev');
+      when(authService.user).thenReturn(null);
       final FlutterBuildState buildState = FlutterBuildState(
           authService: authService, cocoonService: FakeCocoonService());
       await tester.pumpWidget(MaterialApp(

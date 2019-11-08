@@ -313,7 +313,7 @@ void main() {
       });
 
       final GoogleSignInService mockAuth = MockGoogleSignInService();
-      when(mockAuth.accessToken).thenReturn('abc123');
+      when(mockAuth.idToken).thenReturn(Future<String>.value('abc123'));
       when(buildState.authService).thenReturn(mockAuth);
       await tester.pumpWidget(
         MaterialApp(

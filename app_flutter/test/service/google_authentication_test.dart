@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:google_sign_in_all/google_sign_in_all.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -21,9 +21,8 @@ void main() {
     });
 
     test('no user information', () {
-      expect(authService.avatarUrl, null);
-      expect(authService.email, null);
-      expect(authService.accessToken, null);
+      expect(authService.user, null);
+      expect(authService.idToken, null);
     });
   });
 
@@ -52,23 +51,20 @@ void main() {
     test('there is user information after successful sign in', () async {
       await authService.signIn();
 
-      expect(authService.email, 'fake@fake.com');
-      expect(authService.avatarUrl, 'fake://fake.png');
-      expect(authService.accessToken, 'fake');
+      expect(authService.idToken, 'fake id token');
     });
 
     test('is not authenticated after failure in sign in', () async {
+      when(mockSignIn.signInSilently())
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
       when(mockSignIn.signIn())
-          .thenAnswer((_) => Future<AuthCredentials>.value(null));
-      when(mockSignIn.getCurrentUser())
-          .thenAnswer((_) => Future<GoogleAccount>.value(null));
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
 
       await authService.signIn();
 
       expect(authService.isAuthenticated, false);
-      expect(authService.email, null);
-      expect(authService.avatarUrl, null);
-      expect(authService.accessToken, null);
+      expect(authService.user, null);
+      expect(authService.idToken, null);
     });
   });
 }

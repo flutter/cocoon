@@ -18,7 +18,7 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.3.0 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -31,7 +31,10 @@ dependencies:
   cocoon_service:
     path: ../app_dart
   flutter_progress_button: ^1.0.0
-  google_sign_in_all: ^0.0.3
+  google_sign_in:
+    path: /usr/local/google/home/chillers/plugins-ditman/packages/google_sign_in/google_sign_in/
+  google_sign_in_web:
+        path: /usr/local/google/home/chillers/plugins-ditman/packages/google_sign_in/google_sign_in_web/
   provider: ^3.0.0
   url_launcher: 5.2.4
   url_launcher_web:

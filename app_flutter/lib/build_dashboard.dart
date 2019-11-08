@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
 
 import 'service/google_authentication.dart';
@@ -81,12 +82,20 @@ class UserAvatar extends StatelessWidget {
     final GoogleSignInService authService = buildState.authService;
 
     if (authService.isAuthenticated) {
-      /// Size needs to be specified
-      return Image.network(authService.avatarUrl + '=s100');
+      return SizedBox(
+        width: 50,
+        height: 50,
+        child: GoogleUserCircleAvatar(
+          identity: authService.user,
+        ),
+      );
     }
 
     return FlatButton(
-      child: const Text('Sign in'),
+      child: const Text(
+        'Sign in',
+        style: TextStyle(color: Colors.white),
+      ),
       onPressed: () => buildState.signIn(),
     );
   }
