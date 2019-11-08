@@ -32,9 +32,9 @@ dependencies:
     path: ../app_dart
   flutter_progress_button: ^1.0.0
   google_sign_in:
-    path: /usr/local/google/home/chillers/plugins-ditman/packages/google_sign_in/google_sign_in/
+    path: ../../plugins-ditman/packages/google_sign_in/google_sign_in/
   google_sign_in_web:
-        path: /usr/local/google/home/chillers/plugins-ditman/packages/google_sign_in/google_sign_in_web/
+        path: ../../plugins-ditman/packages/google_sign_in/google_sign_in_web/
   provider: ^3.0.0
   url_launcher: 5.2.4
   url_launcher_web:
