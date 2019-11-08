@@ -151,10 +151,13 @@ class _StatusGridState extends State<StatusGrid> {
       final List<Widget> tasks = <Widget>[
         CommitBox(commit: widget.statuses[rowIndex].commit),
         for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
-          TaskBox(
-            buildState: widget.buildState,
-            task: widget.taskMatrix.task(rowIndex, colIndex),
-          )
+          if (widget.taskMatrix.task(rowIndex, colIndex) != null)
+            TaskBox(
+              buildState: widget.buildState,
+              task: widget.taskMatrix.task(rowIndex, colIndex),
+            )
+          else
+            const SizedBox()
       ];
 
       rows.add(
