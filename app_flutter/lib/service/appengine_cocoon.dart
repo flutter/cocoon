@@ -190,7 +190,7 @@ class AppEngineCocoonService implements CocoonService {
     final List<Task> tasks = <Task>[];
 
     for (Map<String, Object> jsonTask in json) {
-      tasks.add(_taskFromJson(jsonTask));
+      tasks.add(_taskFromJson(jsonTask['Task']));
     }
 
     return tasks;
