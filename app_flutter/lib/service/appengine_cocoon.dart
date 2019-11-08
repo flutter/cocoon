@@ -91,7 +91,7 @@ class AppEngineCocoonService implements CocoonService {
     /// This endpoint only returns a status code.
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
-          'X-Flutter-AccessToken': accessToken,
+          'X-Flutter-IdToken': accessToken,
         },
         body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
