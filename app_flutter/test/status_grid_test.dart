@@ -5,8 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:test/test.dart' as test;
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -92,7 +93,70 @@ void main() {
       );
 
       final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
+      expect(firstTask.task, taskMatrix.task(0, 0));
+    });
+
+    testWidgets('skipped tasks do not break the grid',
+        (WidgetTester tester) async {
+      /// Matrix Diagram:
+      /// ✓☐☐
+      /// ☐✓☐
+      /// ☐☐✓
+      final List<CommitStatus> statuses = <CommitStatus>[
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '1'
+                ..status = TaskBox.statusSucceeded
+            ])),
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '2'
+                ..status = TaskBox.statusSucceeded
+            ])),
+        CommitStatus()
+          ..stages.add(Stage()
+            ..name = 'A'
+            ..tasks.addAll(<Task>[
+              Task()
+                ..name = '3'
+                ..status = TaskBox.statusSucceeded
+            ]))
+      ];
+      final TaskMatrix taskMatrix = TaskMatrix(statuses: statuses);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StatusGrid(
+                buildState: FlutterBuildState(),
+                statuses: statuses,
+                taskMatrix: taskMatrix,
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(tester.takeException(),
+          const test.TypeMatcher<NetworkImageLoadException>());
+
+      expect(find.byType(TaskBox), findsNWidgets(3));
+
+      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, statuses[0].stages[0].tasks[0]);
+
+      final TaskBox secondTask =
+          find.byType(TaskBox).evaluate().skip(1).first.widget;
+      expect(secondTask.task, statuses[1].stages[0].tasks[0]);
+
+      final TaskBox lastTask = find.byType(TaskBox).evaluate().last.widget;
+      expect(lastTask.task, statuses[2].stages[0].tasks[0]);
     });
   });
 }
