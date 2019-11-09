@@ -66,6 +66,7 @@ class RunCommand extends Command {
     } catch (error, stackTrace) {
       logger.error('ERROR: $error\n$stackTrace');
     } finally {
+      await flutter('clean');
       await forceQuitRunningProcesses();
     }
     section('Task result');

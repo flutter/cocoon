@@ -131,6 +131,7 @@ class ContinuousIntegrationCommand extends Command {
           stderr.writeln('ERROR: $error\n$stackTrace');
         } finally {
           await _screensOff();
+          await flutter('clean');
           await forceQuitRunningProcesses();
         }
 
