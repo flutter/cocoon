@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
@@ -106,10 +107,11 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final String idToken = request.cookies
+    final String idTokenFromCookie = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
+    final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
     final ClientContext clientContext = _clientContextProvider();
     final Logging log = _loggingProvider();
 
@@ -117,14 +119,16 @@ class AuthenticationProvider {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
       final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Agent agent =
+          await _config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
       if (!clientContext.isDevelopmentEnvironment) {
         final String agentAuthToken = request.headers.value('Agent-Auth-Token');
         if (agentAuthToken == null) {
-          throw const Unauthenticated('Missing required HTTP header: Agent-Auth-Token');
+          throw const Unauthenticated(
+              'Missing required HTTP header: Agent-Auth-Token');
         }
         if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
           throw Unauthenticated('Invalid agent: $agentId');
@@ -135,60 +139,90 @@ class AuthenticationProvider {
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
       return AuthenticatedContext._(clientContext: clientContext);
-    } else if (idToken != null) {
-      // Authenticate as a signed-in Google account via OAuth id token.
-      final HttpClient client = _httpClientProvider();
-      try {
-        final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
-          'oauth2.googleapis.com',
-          '/tokeninfo',
-          <String, String>{
-            'id_token': idToken,
-          },
-        ));
-        final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
-
-        if (verifyTokenResponse.statusCode != HttpStatus.ok) {
-          final String body = await utf8.decodeStream(verifyTokenResponse);
-          log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
-          throw const Unauthenticated('Invalid ID token');
-        }
-
-        final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
-        TokenInfo token;
+    } else if (idTokenFromCookie != null || idTokenFromHeader != null) {
+      /// There are two possible sources for an id token:
+      ///
+      /// 1. Angular Dart app sends it as a Cookie
+      /// 2. Flutter app sends it as an HTTP header
+      ///
+      /// The Flutter application sends both since the client cookies are forwarded
+      /// in the request. One of these may be unauthenticated, so we need to try
+      /// authenticating both.
+      if (idTokenFromCookie != null) {
         try {
-          token = TokenInfo.fromJson(json.decode(tokenJson));
-        } on FormatException {
-          throw InternalServerError('Invalid JSON: "$tokenJson"');
-        }
-
-        final String clientId = await _config.oauthClientId;
-        assert(clientId != null);
-        if (token.audience != clientId) {
-          log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
-          throw const Unauthenticated('Invalid ID token');
-        }
-
-        if (token.hostedDomain != 'google.com') {
-          final bool isWhitelisted = await _isWhitelisted(token.email);
-          if (!isWhitelisted) {
-            throw Unauthenticated('${token.email} is not authorized to access the dashboard');
-          }
-        }
-
-        return AuthenticatedContext._(clientContext: clientContext);
-      } finally {
-        client.close();
+          return await authenticateIdToken(idTokenFromCookie,
+              clientContext: clientContext, log: log);
+        } catch (_) {}
       }
-    } else {
-      throw const Unauthenticated('User is not signed in');
+
+      if (idTokenFromHeader != null) {
+        return authenticateIdToken(idTokenFromHeader,
+            clientContext: clientContext, log: log);
+      }
+    }
+
+    throw const Unauthenticated('User is not signed in');
+  }
+
+  @visibleForTesting
+  Future<AuthenticatedContext> authenticateIdToken(String idToken,
+      {ClientContext clientContext, Logging log}) async {
+    // Authenticate as a signed-in Google account via OAuth id token.
+    final HttpClient client = _httpClientProvider();
+    try {
+      final HttpClientRequest verifyTokenRequest =
+          await client.getUrl(Uri.https(
+        'oauth2.googleapis.com',
+        '/tokeninfo',
+        <String, String>{
+          'id_token': idToken,
+        },
+      ));
+      final HttpClientResponse verifyTokenResponse =
+          await verifyTokenRequest.close();
+
+      if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+        final String body = await utf8.decodeStream(verifyTokenResponse);
+        log.warning(
+            'Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        throw const Unauthenticated('Invalid ID token');
+      }
+
+      final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
+      TokenInfo token;
+      try {
+        token = TokenInfo.fromJson(json.decode(tokenJson));
+      } on FormatException {
+        throw InternalServerError('Invalid JSON: "$tokenJson"');
+      }
+
+      final String clientId = await _config.oauthClientId;
+      assert(clientId != null);
+      if (token.audience != clientId) {
+        log.warning(
+            'Possible forged token: "${token.audience}" (expected "$clientId")');
+        throw const Unauthenticated('Invalid ID token');
+      }
+
+      if (token.hostedDomain != 'google.com') {
+        final bool isWhitelisted = await _isWhitelisted(token.email);
+        if (!isWhitelisted) {
+          throw Unauthenticated(
+              '${token.email} is not authorized to access the dashboard');
+        }
+      }
+
+      return AuthenticatedContext._(clientContext: clientContext);
+    } finally {
+      client.close();
     }
   }
 
   Future<bool> _isWhitelisted(String email) async {
-    final Query<WhitelistedAccount> query = _config.db.query<WhitelistedAccount>()
-      ..filter('Email =', email)
-      ..limit(20);
+    final Query<WhitelistedAccount> query =
+        _config.db.query<WhitelistedAccount>()
+          ..filter('Email =', email)
+          ..limit(20);
 
     return !(await query.run().isEmpty);
   }
@@ -196,7 +230,8 @@ class AuthenticationProvider {
   // This method is expensive (run time of ~1,500ms!). If the server starts
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
+  static bool _compareHashAndPassword(
+      List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
     try {
