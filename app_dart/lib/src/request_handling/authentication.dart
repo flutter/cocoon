@@ -145,9 +145,8 @@ class AuthenticationProvider {
       /// 1. Angular Dart app sends it as a Cookie
       /// 2. Flutter app sends it as an HTTP header
       ///
-      /// The Flutter application sends both since the client cookies are forwarded
-      /// in the request. One of these may be unauthenticated, so we need to try
-      /// authenticating both.
+      /// As long as one of these two id tokens are authenticated, the 
+      /// request is authenticated.
       if (idTokenFromCookie != null) {
         try {
           return await authenticateIdToken(idTokenFromCookie,
