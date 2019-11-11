@@ -34,7 +34,8 @@ choco install -y sysinternals
 
 # Installs a VNC server and a SSH server for remote management
 choco install -y tigervnc
-choco install -y openssh
+choco install -y openssh -params '"/SSHServerFeature /KeyBasedAuthenticationFeature"'
+
 
 # Installs convenient tools
 choco install -y vscode
