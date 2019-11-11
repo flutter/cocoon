@@ -233,28 +233,28 @@ void main() {
       final FlutterBuildState buildState = MockFlutterBuildState();
       when(buildState.isTreeBuilding)
           .thenReturn(CocoonResponse<bool>()..error = 'tree error');
-      when(buildState.statuses).thenReturn(
-          CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]);
-      when(buildState.hasError).thenReturn(true);
+      when(buildState.statuses).thenReturn(CocoonResponse<List<CommitStatus>>()
+        ..data = <CommitStatus>[CommitStatus()]);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Column(
+      // Only return an error on the first call
+      int hasErrorCallCount = 1;
+      when(buildState.hasError).thenAnswer((_) => hasErrorCallCount++ == 1);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Column(
             children: <Widget>[
-              Scaffold(
-                body: ChangeNotifierProvider<FlutterBuildState>(
-                  builder: (_) => buildState,
-                  child: const StatusGridContainer(),
-                ),
+              ChangeNotifierProvider<FlutterBuildState>.value(
+                value: buildState,
+                child: const StatusGridContainer(),
               ),
             ],
           ),
         ),
-      );
-      await tester.pumpAndSettle();
+      ));
 
-      await tester.pump(const Duration(
-          milliseconds: 750)); // 750ms open animation for snackbar
+      await tester.pump(
+          const Duration(milliseconds: 750)); // open animation for snackbar
 
       expect(
           find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);

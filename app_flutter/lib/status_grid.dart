@@ -22,10 +22,10 @@ class StatusGridContainer extends StatelessWidget {
 
   @visibleForTesting
   static const String errorFetchCommitStatus =
-      'An error occurred fetching commit statuses from Cocoon';
+      'An error occurred fetching commit statuses';
   @visibleForTesting
   static const String errorFetchTreeStatus =
-      'An error occurred fetching the tree build status from Cocoon';
+      'An error occurred fetching tree build status';
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
