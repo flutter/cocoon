@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -230,15 +233,56 @@ void main() {
 
     testWidgets('error snackbar shown for error fetching tree status',
         (WidgetTester tester) async {
-      final FlutterBuildState buildState = MockFlutterBuildState();
-      when(buildState.isTreeBuilding)
-          .thenReturn(CocoonResponse<bool>()..error = 'tree error');
-      when(buildState.statuses).thenReturn(CocoonResponse<List<CommitStatus>>()
-        ..data = <CommitStatus>[CommitStatus()]);
+      final FlutterBuildState buildState = TestFlutterBuildState(
+          isTreeBuildingValue: CocoonResponse<bool>()..error = 'tree error',
+          statusesValue: CocoonResponse<List<CommitStatus>>()
+            ..data = <CommitStatus>[CommitStatus()]);
 
-      // Only return an error on the first call
-      int hasErrorCallCount = 1;
-      when(buildState.hasError).thenAnswer((_) => hasErrorCallCount++ == 1);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: <Widget>[
+              ChangeNotifierProvider<FlutterBuildState>.value(
+                value: buildState,
+                child: const StatusGridContainer(),
+              ),
+            ],
+          ),
+        ),
+      ));
+      await tester.pump(
+          const Duration(milliseconds: 750)); // open animation for snackbar
+
+      expect(
+          find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
+      expect(
+          find.text(StatusGridContainer.errorFetchTreeStatus), findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          StatusGridContainer.errorSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      /// Update state to no longer have errors
+      buildState.notifyListeners();
+
+      // Wait another snackbar duration to prevent a race condition and ensure it clears
+      await tester.pumpAndSettle(StatusGridContainer.errorSnackbarDuration);
+
+      expect(
+          find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
+      expect(find.text(StatusGridContainer.errorFetchTreeStatus), findsNothing);
+    });
+
+    testWidgets('error snackbar shown for error fetching commit statuses',
+        (WidgetTester tester) async {
+      final FlutterBuildState buildState = TestFlutterBuildState(
+        isTreeBuildingValue: CocoonResponse<bool>()..data = true,
+        statusesValue: CocoonResponse<List<CommitStatus>>()
+          ..data = <CommitStatus>[CommitStatus()]
+          ..error = 'statuses error',
+      );
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -256,16 +300,21 @@ void main() {
       await tester.pump(
           const Duration(milliseconds: 750)); // open animation for snackbar
 
-      expect(
-          find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
-      expect(
-          find.text(StatusGridContainer.errorFetchTreeStatus), findsOneWidget);
+      expect(find.text(StatusGridContainer.errorFetchTreeStatus), findsNothing);
+      expect(find.text(StatusGridContainer.errorFetchCommitStatus),
+          findsOneWidget);
 
       // Snackbar message should go away after its duration
       await tester.pumpAndSettle(
           StatusGridContainer.errorSnackbarDuration); // wait the duration
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      /// Update state to no longer have errors
+      buildState.notifyListeners();
+
+      // Wait another snackbar duration to prevent a race condition and ensure it clears
+      await tester.pumpAndSettle(StatusGridContainer.errorSnackbarDuration);
 
       expect(
           find.text(StatusGridContainer.errorFetchCommitStatus), findsNothing);
@@ -274,4 +323,41 @@ void main() {
   });
 }
 
-class MockFlutterBuildState extends Mock implements FlutterBuildState {}
+/// A [ChangeNotifier] for testing the interactions with error handling.
+class TestFlutterBuildState extends ChangeNotifier
+    implements FlutterBuildState {
+  TestFlutterBuildState(
+      {@required this.isTreeBuildingValue, @required this.statusesValue});
+
+  // Only return an error on the first call
+  int hasErrorCallCount = 1;
+
+  @override
+  bool get hasError => hasErrorCallCount++ == 1;
+
+  @override
+  CocoonResponse<bool> get isTreeBuilding => isTreeBuildingValue;
+  CocoonResponse<bool> isTreeBuildingValue;
+
+  @override
+  CocoonResponse<List<CommitStatus>> get statuses => statusesValue;
+  CocoonResponse<List<CommitStatus>> statusesValue;
+
+  @override
+  Timer refreshTimer;
+
+  @override
+  GoogleSignInService get authService => null;
+
+  @override
+  Duration get refreshRate => null;
+
+  @override
+  Future<bool> rerunTask(Task task) => null;
+
+  @override
+  Future<void> signIn() => null;
+
+  @override
+  Future<void> startFetchingBuildStateUpdates() => null;
+}
