@@ -12,9 +12,12 @@ class GoogleSignInService {
             GoogleSignIn(
               scopes: _googleScopes,
             ) {
-    _googleSignIn
-        .signInSilently()
-        .then((GoogleSignInAccount accountValue) => user = accountValue);
+    user = _googleSignIn.currentUser;
+    if (user == null) {
+      _googleSignIn
+          .signInSilently()
+          .then((GoogleSignInAccount accountValue) => user = accountValue);
+    }
   }
 
   /// A list of Google API OAuth Scopes this project needs access to.
