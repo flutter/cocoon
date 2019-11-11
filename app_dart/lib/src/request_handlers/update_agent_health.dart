@@ -59,9 +59,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
     /// Insert data to [BigQuery] whenever updating data in [Datastore] 
     await _insertBigquery(agent, tabledataResourceApi);
 
-    final TableDataList tableDataList = await tabledataResourceApi.list(projectId, dataset, table);
-
-    return UpdateAgentHealthResponse(agent, tableDataList.totalRows);
+    return UpdateAgentHealthResponse(agent);
   }
 
   Future<void> _insertBigquery(Agent agent, TabledataResourceApi tabledataResourceApi) async {
@@ -93,11 +91,9 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
 
 @immutable
 class UpdateAgentHealthResponse extends JsonBody {
-  const UpdateAgentHealthResponse(this.agent, this.totalRows) : assert(agent != null);
+  const UpdateAgentHealthResponse(this.agent) : assert(agent != null);
 
   final Agent agent;
-  /// [totalRows] is for test purpose only.
-  final String totalRows;
 
   @override
   Map<String, dynamic> toJson() {

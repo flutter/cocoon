@@ -17,10 +17,9 @@ void main() {
     FakeConfig config;
     ApiRequestHandlerTester tester;
     UpdateAgentHealth handler;
+    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
 
     setUp(() {
-      final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
-
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       tester = ApiRequestHandlerTester();
       tester.requestData = <String, dynamic>{
@@ -49,7 +48,7 @@ void main() {
       expect(agent.agentId, 'test');
       expect(response.agent.isHealthy, true);
       expect(agent.healthDetails, 'bar detail');
-      expect(int.parse(response.totalRows), 1);
+      expect(tabledataResourceApi.rows, 1);
     });
   });
 }
