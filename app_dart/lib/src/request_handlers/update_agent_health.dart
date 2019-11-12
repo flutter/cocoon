@@ -49,20 +49,20 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
         throw BadRequestException('Invalid agent ID: $agentId');
       },
     );
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-
+    
     agent.isHealthy = isHealthy;
     agent.healthDetails = healthDetails;
     agent.healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     await datastore.db.commit(inserts: <Agent>[agent]);
     /// Insert data to [BigQuery] whenever updating data in [Datastore] 
-    await _insertBigquery(agent, tabledataResourceApi);
+    await _insertBigquery(agent);
 
     return UpdateAgentHealthResponse(agent);
   }
 
-  Future<void> _insertBigquery(Agent agent, TabledataResourceApi tabledataResourceApi) async {
+  Future<void> _insertBigquery(Agent agent) async {
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
     
     requestRows.add(<String, Object>{
