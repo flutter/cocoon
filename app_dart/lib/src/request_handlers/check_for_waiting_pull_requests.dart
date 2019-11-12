@@ -163,7 +163,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate = DateTime.parse(commit['pushedDate'] ?? commit['committedDate']);
+      final DateTime utcDate = DateTime.parse(commit['pushedDate'] ?? commit['committedDate']).toUtc();
       if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
         continue;
       }

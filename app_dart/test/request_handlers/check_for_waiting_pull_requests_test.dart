@@ -18,6 +18,7 @@ import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 
 const String base64LabelId = 'base_64_label_id';
+const String oid = 'deadbeef';
 
 void main() {
   group('check for waiting pull requests', () {
@@ -116,14 +117,14 @@ void main() {
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
               'id': flutterRepoPRs.first.id,
-              'oid': 'deadbeef',
+              'oid': oid,
             },
           ),
           MutationOptions(
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
               'id': engineRepoPRs.first.id,
-              'oid': 'deadbeef',
+              'oid': oid,
             },
           ),
         ],
@@ -131,9 +132,9 @@ void main() {
     });
 
     test('Ignores PRs that are too new', () async {
-      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now()));
-      flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
-      engineRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -50)))); // too new
+      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -70)))); // ok
+      engineRepoPRs.add(PullRequestHelper()); // default is two hours for this ctor.
 
       await tester.get(handler);
 
@@ -145,14 +146,14 @@ void main() {
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
               'id': flutterRepoPRs.last.id,
-              'oid': 'deadbeef',
+              'oid': oid,
             },
           ),
           MutationOptions(
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
               'id': engineRepoPRs.first.id,
-              'oid': 'deadbeef',
+              'oid': oid,
             },
           ),
         ],
@@ -303,21 +304,19 @@ class FakeGraphQLClient implements GraphQLClient {
     throw UnimplementedError();
   }
 
-  void verifyQueries(List<QueryOptions> expectedQueries) {
-    expect(queries.length, expectedQueries.length);
-    for (int i = 0; i < queries.length; i++) {
-      expect(queries[i].toKey(), expectedQueries[i].toKey());
-      expect(queries[i].fetchPolicy, expectedQueries[i].fetchPolicy);
+  void verify(List<BaseOptions> expected, List<BaseOptions> actual) {
+    expect(actual.length, expected.length);
+    for (int i = 0; i < actual.length; i++) {
+      /// [BaseOptions.toKey] serializes all of the relevant parts of the query
+      /// or mutation for us, except the fetch policy.
+      expect(actual[i].toKey(), expected[i].toKey());
+      expect(actual[i].fetchPolicy, expected[i].fetchPolicy);
     }
   }
 
-  void verifyMutations(List<MutationOptions> expectedMutations) {
-    expect(mutations.length, expectedMutations.length);
-    for (int i = 0; i < mutations.length; i++) {
-      expect(mutations[i].toKey(), expectedMutations[i].toKey());
-      expect(mutations[i].fetchPolicy, expectedMutations[i].fetchPolicy);
-    }
-  }
+  void verifyQueries(List<QueryOptions> expected) => verify(expected, queries);
+
+  void verifyMutations(List<MutationOptions> expected) => verify(expected, mutations);
 }
 
 class PullRequestHelper {
@@ -325,7 +324,7 @@ class PullRequestHelper {
     this.mergeable = true,
     this.hasApprovedReview = true,
     this.hasChangeRequestReview = false,
-    this.lastCommitHash = 'deadbeef',
+    this.lastCommitHash = oid,
     this.lastCommitSuccess = true,
     this.dateTime,
   }) : _count = _counter++;
