@@ -232,10 +232,13 @@ void main() {
 
     testWidgets('error snackbar shown for error fetching tree status',
         (WidgetTester tester) async {
-      final FlutterBuildState buildState = TestFlutterBuildState(
-          isTreeBuildingValue: CocoonResponse<bool>()..error = 'tree error',
-          statusesValue: CocoonResponse<List<CommitStatus>>()
-            ..data = <CommitStatus>[CommitStatus()]);
+      final TestFlutterBuildState buildState = TestFlutterBuildState(
+        isTreeBuildingValue: CocoonResponse<bool>()..error = 'tree error',
+        statusesValue: CocoonResponse<List<CommitStatus>>()
+          ..data = <CommitStatus>[CommitStatus()],
+        hasError: true,
+      );
+      buildState.hasError = true;
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
@@ -263,6 +266,8 @@ void main() {
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
+      buildState.hasError = false;
+
       /// Update state to no longer have errors
       buildState.notifyListeners();
 
@@ -276,11 +281,12 @@ void main() {
 
     testWidgets('error snackbar shown for error fetching commit statuses',
         (WidgetTester tester) async {
-      final FlutterBuildState buildState = TestFlutterBuildState(
+      final TestFlutterBuildState buildState = TestFlutterBuildState(
         isTreeBuildingValue: CocoonResponse<bool>()..data = true,
         statusesValue: CocoonResponse<List<CommitStatus>>()
           ..data = <CommitStatus>[CommitStatus()]
           ..error = 'statuses error',
+        hasError: true,
       );
 
       await tester.pumpWidget(MaterialApp(
@@ -309,6 +315,8 @@ void main() {
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
+      buildState.hasError = false;
+
       /// Update state to no longer have errors
       buildState.notifyListeners();
 
@@ -326,13 +334,12 @@ void main() {
 class TestFlutterBuildState extends ChangeNotifier
     implements FlutterBuildState {
   TestFlutterBuildState(
-      {@required this.isTreeBuildingValue, @required this.statusesValue});
-
-  // Only return an error on the first call
-  int hasErrorCallCount = 1;
+      {@required this.isTreeBuildingValue,
+      @required this.statusesValue,
+      this.hasError});
 
   @override
-  bool get hasError => hasErrorCallCount++ == 1;
+  bool hasError = false;
 
   @override
   CocoonResponse<bool> get isTreeBuilding => isTreeBuildingValue;
