@@ -31,6 +31,10 @@ dependencies:
   cocoon_service:
     path: ../app_dart
   flutter_progress_button: ^1.0.0
+  # TODO(chillers): https://github.com/ditman/plugins/pull/101 and the Google Sign In plugin
+  # publishes the update switch to the latest version.
+  # For now, locally clone this branch and have it in the same folder as the
+  # Cocoon parent folder.
   google_sign_in:
     path: ../../plugins-ditman/packages/google_sign_in/google_sign_in/
   google_sign_in_web:
