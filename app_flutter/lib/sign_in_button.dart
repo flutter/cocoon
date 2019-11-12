@@ -7,7 +7,7 @@ import 'state/flutter_build.dart';
 
 /// Widget for displaying sign in information for the current user.
 ///
-/// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logout.
+/// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, it a sign in button will show.
 class SignInButton extends StatefulWidget {
   const SignInButton({@required this.buildState, Key key}) : super(key: key);
@@ -24,12 +24,16 @@ class _SignInButtonState extends State<SignInButton> {
     final GoogleSignInService authService = widget.buildState.authService;
 
     if (authService.isAuthenticated) {
-      return SizedBox(
-        width: 50,
-        height: 50,
+      return PopupMenuButton<Future<void>>(
         child: GoogleUserCircleAvatar(
           identity: authService.user,
         ),
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<Future<void>>>[
+          PopupMenuItem<Future<void>>(
+            value: widget.buildState.signOut(),
+            child: const Text('Log out'),
+          ),
+        ],
       );
     }
 
