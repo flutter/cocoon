@@ -5,12 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+    show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'cocoon.dart';
 
@@ -89,12 +89,13 @@ class AppEngineCocoonService implements CocoonService {
     final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
 
     /// This endpoint only returns a status code.
-    final http.Response response =
-        await _client.post(postResetTaskUrl, headers: <String, String>{
-      'X-Flutter-AccessToken': accessToken,
-    }, body: <String, String>{
-      'Key': task.key.toString(),
-    });
+    final http.Response response = await _client.post(postResetTaskUrl,
+        headers: <String, String>{
+          'X-Flutter-AccessToken': accessToken,
+        },
+        body: jsonEncode(<String, String>{
+          'Key': task.key.child.name,
+        }));
 
     return response.statusCode == HttpStatus.ok;
   }
@@ -189,7 +190,7 @@ class AppEngineCocoonService implements CocoonService {
     final List<Task> tasks = <Task>[];
 
     for (Map<String, Object> jsonTask in json) {
-      tasks.add(_taskFromJson(jsonTask['Task']));
+      tasks.add(_taskFromJson(jsonTask));
     }
 
     return tasks;
@@ -198,21 +199,23 @@ class AppEngineCocoonService implements CocoonService {
   Task _taskFromJson(Map<String, Object> json) {
     assert(json != null);
 
+    final Map<String, Object> taskData = json['Task'];
     final List<Object> objectRequiredCapabilities =
-        json['RequiredCapabilities'];
+        taskData['RequiredCapabilities'];
 
     return Task()
-      ..createTimestamp = Int64(json['CreateTimestamp'])
-      ..startTimestamp = Int64(json['StartTimestamp'])
-      ..endTimestamp = Int64(json['EndTimestamp'])
-      ..name = json['Name']
-      ..attempts = json['Attempts']
-      ..isFlaky = json['Flaky']
-      ..timeoutInMinutes = json['TimeoutInMinutes']
-      ..reason = json['Reason']
+      ..key = (RootKey()..child = (Key()..name = json['Key']))
+      ..createTimestamp = Int64(taskData['CreateTimestamp'])
+      ..startTimestamp = Int64(taskData['StartTimestamp'])
+      ..endTimestamp = Int64(taskData['EndTimestamp'])
+      ..name = taskData['Name']
+      ..attempts = taskData['Attempts']
+      ..isFlaky = taskData['Flaky']
+      ..timeoutInMinutes = taskData['TimeoutInMinutes']
+      ..reason = taskData['Reason']
       ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = json['ReservedForAgentID']
-      ..stageName = json['StageName']
-      ..status = json['Status'];
+      ..reservedForAgentId = taskData['ReservedForAgentID']
+      ..stageName = taskData['StageName']
+      ..status = taskData['Status'];
   }
 }
