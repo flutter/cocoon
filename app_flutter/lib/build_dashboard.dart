@@ -54,7 +54,7 @@ class BuildDashboard extends StatelessWidget {
               ? theme.primaryColor
               : theme.errorColor,
           actions: <Widget>[
-            SignInButton(buildState: buildState),
+            SignInButton(authService: buildState.authService),
           ],
         ),
         body: Column(
