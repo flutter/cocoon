@@ -13,6 +13,8 @@ import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
+import 'utils/fake_google_account.dart';
+
 void main() {
   GoogleSignInService mockAuthService;
 
@@ -65,7 +67,7 @@ void main() {
   testWidgets('shows avatar when authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
-    final GoogleSignInAccount user = TestGoogleSignInAccount();
+    final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
@@ -88,7 +90,7 @@ void main() {
       (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
-    final GoogleSignInAccount user = TestGoogleSignInAccount();
+    final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
@@ -112,30 +114,6 @@ void main() {
 
     verify(mockAuthService.signOut()).called(1);
   });
-}
-
-class TestGoogleSignInAccount implements GoogleSignInAccount {
-  @override
-  String get displayName => 'Dr. Test';
-
-  @override
-  String get email => 'test@flutter.dev';
-
-  @override
-  String get id => 'test123';
-
-  @override
-  String get photoUrl =>
-      'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID';
-
-  @override
-  Future<Map<String, String>> get authHeaders => null;
-
-  @override
-  Future<GoogleSignInAuthentication> get authentication => null;
-
-  @override
-  Future<void> clearAuthCache() => null;
 }
 
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}

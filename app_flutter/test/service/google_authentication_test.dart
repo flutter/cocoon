@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 
 import 'package:app_flutter/service/google_authentication.dart';
 
+import '../utils/fake_google_account.dart';
+
 void main() {
   group('GoogleSignInService not signed in', () {
     GoogleSignInService authService;
@@ -30,13 +32,15 @@ void main() {
     GoogleSignInService authService;
     GoogleSignIn mockSignIn;
 
+    final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
+
     setUp(() {
       mockSignIn = MockGoogleSignIn();
-      when(mockSignIn.signIn()).thenAnswer(
-          (_) => Future<GoogleSignInAccount>.value(fakeCredentials));
-      when(mockSignIn.currentUser).thenAnswer((_) =>
-          Future<GoogleSignInAccount>.value(GoogleSignInAccount(
-              email: 'fake@fake.com', photoUrl: 'fake://fake.png')));
+      when(mockSignIn.signIn())
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn.currentUser).thenReturn(testAccount);
+      when(mockSignIn.onCurrentUserChanged)
+          .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
@@ -50,7 +54,23 @@ void main() {
     test('there is user information after successful sign in', () async {
       await authService.signIn();
 
+      expect(authService.user.displayName, 'Dr. Test');
+      expect(authService.user.email, 'test@flutter.dev');
+      expect(authService.user.id, 'test123');
+      expect(authService.user.photoUrl,
+          'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID');
+
       expect(authService.idToken, 'fake id token');
+    });
+
+    test('id token available with logged in user', () async {
+      final GoogleSignInAccount testAccountWithAuthentication =
+          FakeGoogleSignInAccount()
+            ..authentication = Future<GoogleSignInAuthentication>.value(
+                FakeGoogleSignInAuthentication());
+      authService.user = testAccountWithAuthentication;
+
+      expect(await authService.idToken, 'id123');
     });
 
     test('is not authenticated after failure in sign in', () async {
@@ -70,3 +90,11 @@ void main() {
 
 /// Mock [GoogleSignIn] for testing interactions.
 class MockGoogleSignIn extends Mock implements GoogleSignIn {}
+
+class FakeGoogleSignInAuthentication implements GoogleSignInAuthentication {
+  @override
+  String get accessToken => 'access123';
+
+  @override
+  String get idToken => 'id123';
+}

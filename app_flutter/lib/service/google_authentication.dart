@@ -41,9 +41,9 @@ class GoogleSignInService {
   /// Whether or not the application has been signed in to.
   bool get isAuthenticated => user != null;
 
-  /// The Google Account for the signed in user,
+  /// The Google Account for the signed in user, null if no user is signed in.
   ///
-  /// Null if no user is signed in.
+  /// Read only object with only access to clear client auth tokens.
   GoogleSignInAccount user;
 
   /// Authentication token to be sent to Cocoon Backend to verify API calls.
