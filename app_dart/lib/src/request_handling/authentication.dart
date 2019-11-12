@@ -46,10 +46,10 @@ import 'exceptions.dart';
 ///     runtime if the request originated from anything other than a cron job.
 ///     Thus, the header is safe to trust as an authentication indicator.
 ///
-///  3. If the request has the `'X-Flutter-IdToken'` HTTP cookie set to a valid
-///     encrypted JWT token, then the request will be authenticated as a user
-///     account. The [RequestContext.agent] field will be null (unless the
-///     request _also_ contained the aforementioned headers).
+///  3. If the request has the `'X-Flutter-IdToken'` HTTP cookie or HTTP header
+///     set to a valid encrypted JWT token, then the request will be authenticated
+///     as a user account. The [RequestContext.agent] field will be null
+///     (unless the request _also_ contained the aforementioned headers).
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is a whitelisted account in the Cocoon backend.
@@ -145,13 +145,17 @@ class AuthenticationProvider {
       /// 1. Angular Dart app sends it as a Cookie
       /// 2. Flutter app sends it as an HTTP header
       ///
-      /// As long as one of these two id tokens are authenticated, the 
+      /// As long as one of these two id tokens are authenticated, the
       /// request is authenticated.
       if (idTokenFromCookie != null) {
+        /// The case where [idTokenFromCookie] is not valid but [idTokenFromHeader]
+        /// is requires us to catch the throw [Unauthenticated] exception.
         try {
           return await authenticateIdToken(idTokenFromCookie,
               clientContext: clientContext, log: log);
-        } catch (_) {}
+        } on Unauthenticated {
+          log.debug('Failed to authenticate cookie id token');
+        }
       }
 
       if (idTokenFromHeader != null) {
@@ -181,6 +185,8 @@ class AuthenticationProvider {
           await verifyTokenRequest.close();
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+        /// Google Auth API returns a message in the response body explaining why
+        /// the request failed. Such as "Invalid Token".
         final String body = await utf8.decodeStream(verifyTokenResponse);
         log.warning(
             'Token verification failed: ${verifyTokenResponse.statusCode}; $body');
