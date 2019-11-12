@@ -149,7 +149,7 @@ class AuthenticationProvider {
       /// request is authenticated.
       if (idTokenFromCookie != null) {
         /// The case where [idTokenFromCookie] is not valid but [idTokenFromHeader]
-        /// is requires us to catch the throw [Unauthenticated] exception.
+        /// is requires us to catch the thrown [Unauthenticated] exception.
         try {
           return await authenticateIdToken(idTokenFromCookie,
               clientContext: clientContext, log: log);
