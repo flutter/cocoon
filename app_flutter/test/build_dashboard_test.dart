@@ -27,7 +27,7 @@ void main() {
       final FlutterBuildState buildState = FlutterBuildState(
           authService: authService, cocoonService: FakeCocoonService());
       await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
+        home: SignInButton(
           buildState: buildState,
         ),
       ));
@@ -41,7 +41,7 @@ void main() {
       final FlutterBuildState buildState = FlutterBuildState(
           authService: authService, cocoonService: FakeCocoonService());
       await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
+        home: SignInButton(
           buildState: buildState,
         ),
       ));
@@ -60,7 +60,7 @@ void main() {
       final FlutterBuildState buildState = FlutterBuildState(
           authService: authService, cocoonService: FakeCocoonService());
       await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
+        home: SignInButton(
           buildState: buildState,
         ),
       ));

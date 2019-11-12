@@ -32,11 +32,10 @@ void main() {
 
     setUp(() {
       mockSignIn = MockGoogleSignIn();
-      final AuthCredentials fakeCredentials = FakeAuthCredentials();
-      when(mockSignIn.signIn())
-          .thenAnswer((_) => Future<AuthCredentials>.value(fakeCredentials));
-      when(mockSignIn.getCurrentUser()).thenAnswer((_) =>
-          Future<GoogleAccount>.value(GoogleAccount(
+      when(mockSignIn.signIn()).thenAnswer(
+          (_) => Future<GoogleSignInAccount>.value(fakeCredentials));
+      when(mockSignIn.currentUser).thenAnswer((_) =>
+          Future<GoogleSignInAccount>.value(GoogleSignInAccount(
               email: 'fake@fake.com', photoUrl: 'fake://fake.png')));
 
       authService = GoogleSignInService(googleSignIn: mockSignIn);
@@ -71,12 +70,3 @@ void main() {
 
 /// Mock [GoogleSignIn] for testing interactions.
 class MockGoogleSignIn extends Mock implements GoogleSignIn {}
-
-/// Fake [AuthCredentials] for [MockGoogleSignIn].
-class FakeAuthCredentials implements AuthCredentials {
-  @override
-  final String accessToken = 'fake';
-
-  @override
-  final String idToken = 'faker';
-}
