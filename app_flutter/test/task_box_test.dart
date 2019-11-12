@@ -313,7 +313,7 @@ void main() {
       });
 
       final GoogleSignInService mockAuth = MockGoogleSignInService();
-      when(mockAuth.idToken).thenReturn(Future<String>.value('abc123'));
+      when(mockAuth.idToken).thenAnswer((_) => Future<String>.value('abc123'));
       when(buildState.authService).thenReturn(mockAuth);
       await tester.pumpWidget(
         MaterialApp(
@@ -345,7 +345,7 @@ void main() {
             'enableDomStorage': false,
             'universalLinksOnly': false,
             'headers': <String, String>{
-              'X-Flutter-AccessToken': 'abc123',
+              'X-Flutter-IdToken': 'abc123',
             }
           })
         ],
