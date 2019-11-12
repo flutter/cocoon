@@ -10,7 +10,7 @@ import 'service/google_authentication.dart';
 /// Widget for displaying sign in information for the current user.
 ///
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
-/// Otherwise, it a sign in button will show.
+/// Otherwise, a sign in button will show.
 class SignInButton extends StatefulWidget {
   const SignInButton({@required this.authService, Key key}) : super(key: key);
 
