@@ -186,10 +186,10 @@ void main() {
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
 
-        // check log for one warning
-        expect(log.records, hasLength(1));
-        expect(
-            log.records.single.message, contains('Invalid token: bad-cookie'));
+        // check log for debug statement and warning
+        expect(log.records, hasLength(2));
+        expect(log.records.first.message,
+            contains('Token verification failed: 401; Invalid token: bad-cookie'));
       });
 
       test('fails if token verification fails', () async {
