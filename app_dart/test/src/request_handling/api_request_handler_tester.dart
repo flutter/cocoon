@@ -25,6 +25,8 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
         super(request: request, log: log);
 
   FakeAuthenticatedContext context;
+
+  /// POST body data sent in an HTTP request.
   Map<String, dynamic> requestData;
 
   @override

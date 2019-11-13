@@ -33,10 +33,12 @@ class GetLog extends ApiRequestHandler<Body> {
 
   final DatastoreServiceProvider datastoreProvider;
 
+  static const String downloadParam = 'download';
   static const String ownerKeyParam = 'ownerKey';
 
   @override
   Future<Body> get() async {
+    print(request.uri.toString());
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
       throw const BadRequestException('Missing required query parameter: $ownerKeyParam');
@@ -51,16 +53,24 @@ class GetLog extends ApiRequestHandler<Body> {
       throw const BadRequestException('Invalid owner key. Owner entity does not exist.');
     }
 
-    response.headers.set(HttpHeaders.contentTypeHeader, 'text/html; charset=utf-8');
+    final bool download = request.uri.queryParameters[downloadParam] == 'true';
+    if (download) {
+      response.headers.set('Content-Disposition', 'attachment; filename=${encodedOwnerKey}_${task.attempts}_${task.endTimestamp}.log');
+      response.headers.set(HttpHeaders.contentTypeHeader, 'text/plain; charset=utf-8');
+    } else {
+      response.headers.set(HttpHeaders.contentTypeHeader, 'text/html; charset=utf-8');
+    }
 
-    return Body.forStream(_getResponse(datastore, task, ownerKey));
+    return Body.forStream(_getResponse(datastore, task, ownerKey, download));
   }
 
-  Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key ownerKey) async* {
-    yield utf8.encode('<!DOCTYPE html>');
-    yield utf8.encode('<html><body><pre>');
+  Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key ownerKey, bool download) async* {
+    if (!download) {
+      yield utf8.encode('<!DOCTYPE html>');
+      yield utf8.encode('<html><body><pre>\n\n');
+    }
 
-    yield utf8.encode('\n\n------------ TASK ------------\n');
+    yield utf8.encode('------------ TASK ------------\n');
     yield utf8.encode(task.toString());
 
     yield utf8.encode('\n\n------------ LOG ------------\n');
@@ -69,7 +79,9 @@ class GetLog extends ApiRequestHandler<Body> {
       ..order('createTimestamp');
     yield* query.run().map<Uint8List>((LogChunk chunk) => chunk.data);
 
-    yield utf8.encode('<EOF>');
-    yield utf8.encode('</pre></body></html>');
+    if (!download) {
+      yield utf8.encode('<EOF>');
+      yield utf8.encode('</pre></body></html>');
+    }
   }
 }
