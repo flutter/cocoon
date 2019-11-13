@@ -38,7 +38,6 @@ class GetLog extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    print(request.uri.toString());
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
       throw const BadRequestException('Missing required query parameter: $ownerKeyParam');
