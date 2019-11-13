@@ -4,73 +4,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart' as test;
 
 import 'package:app_flutter/build_dashboard.dart';
-import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/service/fake_cocoon.dart';
-import 'package:app_flutter/state/flutter_build.dart';
+import 'package:app_flutter/sign_in_button.dart';
 
 void main() {
-  group('UserAvatar', () {
-    GoogleSignInService authService;
+  testWidgets('shows sign in button', (WidgetTester tester) async {
+    final BuildDashboardPage buildDashboard = BuildDashboardPage();
+    await tester.pumpWidget(MaterialApp(
+      home: buildDashboard,
+    ));
 
-    setUp(() {
-      authService = MockGoogleSignInService();
-    });
+    expect(find.byType(SignInButton), findsOneWidget);
 
-    testWidgets('shows sign in button when not signed in',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(false);
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: SignInButton(
-          buildState: buildState,
-        ),
-      ));
-
-      expect(find.text('Sign in'), findsOneWidget);
-    });
-
-    testWidgets('sign in button activates google sign in when pressed',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(false);
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: SignInButton(
-          buildState: buildState,
-        ),
-      ));
-
-      verifyNever(authService.signIn());
-
-      await tester.tap(find.byType(GoogleUserCircleAvatar));
-
-      verify(authService.signIn()).called(1);
-    });
-
-    testWidgets('shows user avatar when signed in',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(true);
-      when(authService.user).thenReturn(null);
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: SignInButton(
-          buildState: buildState,
-        ),
-      ));
-
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
-      expect(find.byType(Image), findsOneWidget);
-    });
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 100));
   });
 }
-
-/// Mock [GoogleSignInService] for testing interactions.
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}
