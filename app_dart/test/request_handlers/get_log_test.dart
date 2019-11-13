@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/request_handlers/get_log.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
@@ -39,6 +36,23 @@ void main() {
       expect(tester.get(handler), throwsA(isA<BadRequestException>()));
     });
 
+    test('owner key is only valid if it exists', () async {
+      final FakeHttpRequest request = FakeHttpRequest(
+          uri: Uri(
+        path: '/public/get-log',
+        queryParameters: <String, String>{
+          GetLog.ownerKeyParam: 'owner123',
+          GetLog.downloadParam: 'true',
+        },
+      ));
+      final ApiRequestHandlerTester tester =
+          ApiRequestHandlerTester(request: request);
+
+      expect(tester.get(handler), throwsA(isA<BadRequestException>()));
+      // we need a more specific check on the message
+      // expect(tester.get(handler), throwsA(predicate(e) => e is BadRequestException && e.message.contains('Missing required query parameter: '));
+    });
+
     test('successful log request', () async {});
 
     test('download param sends content disposition header', () async {
@@ -50,11 +64,11 @@ void main() {
           GetLog.downloadParam: 'true',
         },
       ));
-      final ApiRequestHandlerTester tester = ApiRequestHandlerTester()
-        ..request = request;
+      final ApiRequestHandlerTester tester =
+          ApiRequestHandlerTester(request: request);
 
       await tester.get(handler);
-      
+
       expect(request.response.headers.value('Content-Disposition'), '');
     });
   });

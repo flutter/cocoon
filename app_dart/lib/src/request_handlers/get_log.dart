@@ -22,6 +22,8 @@ import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
 /// Serves a log file to the user as a text file.
+/// 
+/// If the query [downloadParam] is specified, the file will be sent as a download.
 @immutable
 class GetLog extends ApiRequestHandler<Body> {
   const GetLog(
