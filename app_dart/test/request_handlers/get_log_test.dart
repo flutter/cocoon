@@ -33,7 +33,11 @@ void main() {
     test('owner key param required', () async {
       final ApiRequestHandlerTester tester = ApiRequestHandlerTester();
 
-      expect(tester.get(handler), throwsA(isA<BadRequestException>()));
+      try {
+        await tester.get(handler);
+      } on BadRequestException catch (e) {
+        expect(e.message.contains('Missing required query parameter: '), true);
+      }
     });
 
     test('owner key is only valid if it exists', () async {
@@ -48,9 +52,15 @@ void main() {
       final ApiRequestHandlerTester tester =
           ApiRequestHandlerTester(request: request);
 
+      try {
+        await tester.get(handler);
+      } on BadRequestException catch (e) {
+        expect(e.message, 'Invalid owner key. Owner entity does not exist.');
+      }
+
       expect(tester.get(handler), throwsA(isA<BadRequestException>()));
       // we need a more specific check on the message
-      // expect(tester.get(handler), throwsA(predicate(e) => e is BadRequestException && e.message.contains('Missing required query parameter: '));
+      // expect(tester.get(handler), throwsA(predicate(e) => e is BadRequestException && );
     });
 
     test('successful log request', () async {});
