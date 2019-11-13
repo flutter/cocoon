@@ -102,8 +102,6 @@ void main() {
         ),
       ),
     );
-    expect(tester.takeException(),
-        const test.TypeMatcher<NetworkImageLoadException>());
 
     await tester.tap(find.byType(Image));
     await tester.pumpAndSettle();
