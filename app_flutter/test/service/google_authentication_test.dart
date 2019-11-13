@@ -13,9 +13,13 @@ import '../utils/fake_google_account.dart';
 void main() {
   group('GoogleSignInService not signed in', () {
     GoogleSignInService authService;
+    GoogleSignIn mockSignIn;
 
     setUp(() {
-      authService = GoogleSignInService(googleSignIn: MockGoogleSignIn());
+      mockSignIn = MockGoogleSignIn();
+      when(mockSignIn.onCurrentUserChanged)
+          .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
     test('not authenticated', () {
