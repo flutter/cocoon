@@ -11,29 +11,28 @@ import 'service/google_authentication.dart';
 ///
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
-class SignInButton extends StatefulWidget {
+class SignInButton extends StatelessWidget {
   const SignInButton({@required this.authService, Key key}) : super(key: key);
 
   final GoogleSignInService authService;
 
   @override
-  _SignInButtonState createState() => _SignInButtonState();
-}
-
-class _SignInButtonState extends State<SignInButton> {
-  @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = widget.authService;
-
     if (authService.isAuthenticated) {
-      return PopupMenuButton<Future<void>>(
+      return PopupMenuButton<String>(
         child: Image.network(authService.user.photoUrl),
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<Future<void>>>[
-          PopupMenuItem<Future<void>>(
-            value: authService.signOut(),
-            child: const Text('Log out'),
+        offset: const Offset(0, 50),
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(
+            value: 'logout',
+            child: Text('Log out'),
           ),
         ],
+        onSelected: (String value) {
+          if (value == 'logout') {
+            authService.signOut();
+          }
+        },
       );
     }
 
