@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/request_handlers/get_log.dart';
@@ -20,6 +21,10 @@ void main() {
     FakeDatastoreDB db;
     GetLog handler;
 
+    final List<LogChunk> expectedLogChunks = <LogChunk>[
+      LogChunk(createTimestamp: 12345, data: <int>[1, 2, 3, 4, 5, 6])
+    ];
+
     setUp(() {
       config = FakeConfig();
       db = FakeDatastoreDB();
@@ -33,39 +38,37 @@ void main() {
     test('owner key param required', () async {
       final ApiRequestHandlerTester tester = ApiRequestHandlerTester();
 
-      try {
-        await tester.get(handler);
-      } on BadRequestException catch (e) {
-        expect(e.message.contains('Missing required query parameter: '), true);
-      }
+      expect(
+          await tester.get(handler),
+          throwsA(const TypeMatcher<BadRequestException>().having(
+              (BadRequestException e) => e.message,
+              'error message',
+              contains('Missing required query parameter'))));
     });
 
-    test('owner key is only valid if it exists', () async {
+    test('bad request if owner key does not exist', () {
       final FakeHttpRequest request = FakeHttpRequest(
           uri: Uri(
         path: '/public/get-log',
         queryParameters: <String, String>{
-          GetLog.ownerKeyParam: 'owner123',
+          GetLog.ownerKeyParam: config.db.emptyKey.id.toString(),
           GetLog.downloadParam: 'true',
         },
       ));
       final ApiRequestHandlerTester tester =
           ApiRequestHandlerTester(request: request);
 
-      try {
-        await tester.get(handler);
-      } on BadRequestException catch (e) {
-        expect(e.message, 'Invalid owner key. Owner entity does not exist.');
-      }
-
-      expect(tester.get(handler), throwsA(isA<BadRequestException>()));
-      // we need a more specific check on the message
-      // expect(tester.get(handler), throwsA(predicate(e) => e is BadRequestException && );
+      expect(
+          () => tester.get(handler),
+          throwsA(const TypeMatcher<BadRequestException>().having(
+              (BadRequestException e) => e.message,
+              'error message',
+              contains('Invalid owner key. Owner entity does not exist.'))));
     });
 
     test('successful log request', () async {});
 
-    test('download param sends content disposition header', () async {
+    test('download=true sends content disposition header', () async {
       final FakeHttpRequest request = FakeHttpRequest(
           uri: Uri(
         path: '/public/get-log',
@@ -76,10 +79,15 @@ void main() {
       ));
       final ApiRequestHandlerTester tester =
           ApiRequestHandlerTester(request: request);
+
+      db.addOnQuery<LogChunk>(
+          (Iterable<LogChunk> logChunks) => expectedLogChunks);
 
       await tester.get(handler);
 
       expect(request.response.headers.value('Content-Disposition'), '');
     });
+
+    test('download!=true does not send for download', () async {});
   });
 }
