@@ -48,7 +48,8 @@ void main() {
       setUp(() {
         agent = Agent(
           key: config.db.emptyKey.append(Agent, id: 'aid'),
-          authToken: ascii.encode(r'$2a$10$4UicEmMSoqzUtWTQAR1s/.qUrmh7oQTyz1MI.f7qt6.jJ6kPipdKq'),
+          authToken: ascii.encode(
+              r'$2a$10$4UicEmMSoqzUtWTQAR1s/.qUrmh7oQTyz1MI.f7qt6.jJ6kPipdKq'),
         );
         request.headers.set('Agent-ID', agent.key.id);
       });
@@ -75,18 +76,21 @@ void main() {
           clientContext.isDevelopmentEnvironment = false;
         });
 
-        test('fails if agent lookup succeeds but auth token is not provided', () async {
+        test('fails if agent lookup succeeds but auth token is not provided',
+            () async {
           config.db.values[agent.key] = agent;
           expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
         });
 
-        test('fails if agent lookup succeeds but auth token is invalid', () async {
+        test('fails if agent lookup succeeds but auth token is invalid',
+            () async {
           config.db.values[agent.key] = agent;
           request.headers.set('Agent-Auth-Token', 'invalid_token');
           expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
         });
 
-        test('succeeds if agent lookup succeeds and valid auth token provided', () async {
+        test('succeeds if agent lookup succeeds and valid auth token provided',
+            () async {
           config.db.values[agent.key] = agent;
           request.headers.set('Agent-Auth-Token', 'password');
           final AuthenticatedContext result = await auth.authenticate(request);
@@ -103,7 +107,7 @@ void main() {
       expect(result.clientContext, same(clientContext));
     });
 
-    group('when X-Flutter-IdToken cookie is specified', () {
+    group('when id token is given', () {
       FakeHttpClient httpClient;
       FakeHttpClientResponse verifyTokenResponse;
 
@@ -118,11 +122,83 @@ void main() {
         );
       });
 
+      test('auth succeeds with authenticated cookie but unauthenticated header',
+          () async {
+        httpClient =
+            FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.queryParameters['id_token'] == 'bad-header') {
+            return verifyTokenResponse
+              ..statusCode = HttpStatus.unauthorized
+              ..body = 'Invalid token: bad-header';
+          }
+          return verifyTokenResponse
+            ..statusCode = HttpStatus.ok
+            ..body = '{"aud": "client-id", "hd": "google.com"}';
+        });
+        verifyTokenResponse = httpClient.request.response;
+        auth = AuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        config.oauthClientIdValue = 'client-id';
+
+        request.cookies
+            .add(FakeCookie(name: 'X-Flutter-IdToken', value: 'authenticated'));
+        request.headers.add('X-Flutter-IdToken', 'bad-header');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.agent, isNull);
+        expect(result.clientContext, same(clientContext));
+
+        // check log to ensure auth was not run on header token
+        expect(log.records, hasLength(0));
+      });
+
+      test('auth succeeds with authenticated header but unauthenticated cookie',
+          () async {
+        httpClient =
+            FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+          if (request.uri.queryParameters['id_token'] == 'bad-cookie') {
+            return verifyTokenResponse
+              ..statusCode = HttpStatus.unauthorized
+              ..body = 'Invalid token: bad-cookie';
+          }
+          return verifyTokenResponse
+            ..statusCode = HttpStatus.ok
+            ..body = '{"aud": "client-id", "hd": "google.com"}';
+        });
+        verifyTokenResponse = httpClient.request.response;
+        auth = AuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+        config.oauthClientIdValue = 'client-id';
+
+        request.cookies
+            .add(FakeCookie(name: 'X-Flutter-IdToken', value: 'bad-cookie'));
+        request.headers.add('X-Flutter-IdToken', 'authenticated');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.agent, isNull);
+        expect(result.clientContext, same(clientContext));
+
+        // check log for debug statement and warning
+        expect(log.records, hasLength(2));
+        expect(log.records.first.message,
+            contains('Token verification failed: 401; Invalid token: bad-cookie'));
+      });
+
       test('fails if token verification fails', () async {
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
         verifyTokenResponse.statusCode = HttpStatus.badRequest;
         verifyTokenResponse.body = 'Invalid token: abc123';
-        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateIdToken('abc123',
+                clientContext: clientContext, log: log),
+            throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
         expect(log.records.single.level, LogLevel.WARNING);
@@ -130,18 +206,22 @@ void main() {
       });
 
       test('fails if token verification returns invalid JSON', () async {
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
         verifyTokenResponse.body = 'Not JSON';
-        await expectLater(auth.authenticate(request), throwsA(isA<InternalServerError>()));
+        await expectLater(
+            auth.authenticateIdToken('abc123',
+                clientContext: clientContext, log: log),
+            throwsA(isA<InternalServerError>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, isEmpty);
       });
 
       test('fails if token verification yields forged token', () async {
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
         verifyTokenResponse.body = '{"aud": "forgery"}';
         config.oauthClientIdValue = 'expected-client-id';
-        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateIdToken('abc123',
+                clientContext: clientContext, log: log),
+            throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
         expect(log.records.single.level, LogLevel.WARNING);
@@ -150,19 +230,23 @@ void main() {
       });
 
       test('succeeds for google.com auth user', () async {
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "google.com"}';
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticate(request);
+        final AuthenticatedContext result = await auth.authenticateIdToken(
+            'abc123',
+            clientContext: clientContext,
+            log: log);
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
       });
 
       test('fails for non-whitelisted non-Google auth users', () async {
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "gmail.com"}';
         config.oauthClientIdValue = 'client-id';
-        await expectLater(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        await expectLater(
+            auth.authenticateIdToken('abc123',
+                clientContext: clientContext, log: log),
+            throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
       });
 
@@ -172,10 +256,13 @@ void main() {
           email: 'test@gmail.com',
         );
         config.db.values[account.key] = account;
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'abc123'));
-        verifyTokenResponse.body = '{"aud": "client-id", "email": "test@gmail.com"}';
+        verifyTokenResponse.body =
+            '{"aud": "client-id", "email": "test@gmail.com"}';
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticate(request);
+        final AuthenticatedContext result = await auth.authenticateIdToken(
+            'abc123',
+            clientContext: clientContext,
+            log: log);
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
       });

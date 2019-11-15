@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:github/server.dart';
+import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
 import 'fake_datastore.dart';
@@ -40,6 +41,7 @@ class FakeConfig implements Config {
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
   GitHub githubClient;
+  GraphQLClient githubGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
@@ -60,12 +62,16 @@ class FakeConfig implements Config {
   Logging loggingServiceValue;
   String redisUrlValue;
   String redisResponseSubcacheValue;
+  String waitingForTreeToGoGreenLabelNameValue;
 
   @override
   int maxEntityGroups;
 
   @override
   Future<GitHub> createGitHubClient() async => githubClient;
+
+  @override
+  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
 
   @override
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
@@ -126,4 +132,8 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get redisResponseSubcache async => redisResponseSubcacheValue;
+
+  @override
+  Future<String> get waitingForTreeToGoGreenLabelName async =>
+      waitingForTreeToGoGreenLabelNameValue;
 }

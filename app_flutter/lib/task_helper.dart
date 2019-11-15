@@ -32,7 +32,7 @@ String logUrl(Task task) {
     return sourceConfigurationUrl(task);
   }
 
-  return '$flutterDashboardUrl/api/get-log?ownerKey=${task.key}';
+  return '$flutterDashboardUrl/api/get-log?ownerKey=${task.key.child.name}';
 }
 
 /// Get the URL for [Task] that shows its configuration.

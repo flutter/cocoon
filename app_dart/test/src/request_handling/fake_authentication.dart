@@ -30,6 +30,15 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
       throw const Unauthenticated('Not authenticated');
     }
   }
+
+  @override
+  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
+    if (authenticated) {
+      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+    } else {
+      throw const Unauthenticated('Not authenticated');
+    }
+  }
 }
 
 // ignore: must_be_immutable

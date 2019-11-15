@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
+import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
 
@@ -18,8 +19,7 @@ import '../service/bigquery.dart';
 
 @immutable
 class Config {
-  const Config(this._db)
-      : assert(_db != null);
+  const Config(this._db) : assert(_db != null);
 
   final DatastoreDB _db;
 
@@ -76,13 +76,16 @@ class Config {
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
   /// The URL to connect to the Redis instance for this Cocoon instance.
-  /// 
+  ///
   /// For example, "redis://10.0.0.4:6379" is the default URL on AppEngine
   /// projects.
   Future<String> get redisUrl => _getSingleValue('RedisConnectionSpec');
 
   /// The name of the subcache in the Redis instance that stores responses.
   Future<String> get redisResponseSubcache => _getSingleValue('RedisResponseSubcache');
+
+  Future<String> get waitingForTreeToGoGreenLabelName =>
+      _getSingleValue('WaitingForTreeToGreenLabelName');
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
@@ -137,6 +140,24 @@ class Config {
     final String githubToken = await githubOAuthToken;
     return gh.createGitHubClient(
       auth: Authentication.withToken(githubToken),
+    );
+  }
+
+  Future<GraphQLClient> createGitHubGraphQLClient() async {
+    final HttpLink httpLink = HttpLink(
+      uri: 'https://api.github.com/graphql',
+    );
+
+    final String token = await githubOAuthToken;
+    final AuthLink _authLink = AuthLink(
+      getToken: () async => 'Bearer $token',
+    );
+
+    final Link link = _authLink.concat(httpLink);
+
+    return GraphQLClient(
+      cache: InMemoryCache(),
+      link: link,
     );
   }
 

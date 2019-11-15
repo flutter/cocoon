@@ -28,6 +28,7 @@ Future<void> main() async {
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
+      '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/create-agent': CreateAgent(config, authProvider),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
@@ -45,10 +46,8 @@ Future<void> main() async {
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
-
       '/api/debug/get-task-by-id': DebugGetTaskById(config, authProvider),
       '/api/debug/reset-pending-tasks': DebugResetPendingTasks(config, authProvider),
-
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': CacheRequestHandler<Body>(
         cache: redisCache,

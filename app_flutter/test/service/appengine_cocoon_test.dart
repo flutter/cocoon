@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:fixnum/fixnum.dart';
-import 'package:http/http.dart' show Request, Response;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' show Client, Request, Response;
 import 'package:http/testing.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, RootKey, Stage, Task;
+    show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/cocoon.dart';
@@ -108,6 +110,7 @@ void main() {
           ..name = 'devicelab'
           ..taskStatus = 'Succeeded'
           ..tasks.add(Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
@@ -123,6 +126,23 @@ void main() {
 
       expect(statuses.data.length, 1);
       expect(statuses.data.first, expectedStatus);
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchCommitStatuses();
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-status'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+      }
     });
 
     test('should have error if given non-200 response', () async {
@@ -178,6 +198,23 @@ void main() {
       expect(treeBuildStatus.data, false);
     });
 
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchTreeBuildStatus();
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/build-status'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/build-status'));
+      }
+    });
+
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('', 404)));
@@ -227,6 +264,34 @@ void main() {
         expect(service.rerunTask(Task(), null),
             throwsA(const TypeMatcher<AssertionError>()));
       });
+
+      /// This requires a separate test run on the web platform.
+      test('should query correct endpoint whether web or mobile', () async {
+        final Client mockClient = MockHttpClient();
+        when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
+                headers: captureAnyNamed('headers'),
+                body: captureAnyNamed('body')))
+            .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+        service = AppEngineCocoonService(client: mockClient);
+
+        await service.rerunTask(Task(), '');
+
+        if (kIsWeb) {
+          verify(mockClient.post(
+            '/api/reset-devicelab-task',
+            headers: captureAnyNamed('headers'),
+            body: captureAnyNamed('body'),
+          ));
+        } else {
+          verify(mockClient.post(
+            'https://flutter-dashboard.appspot.com/api/reset-devicelab-task',
+            headers: captureAnyNamed('headers'),
+            body: captureAnyNamed('body'),
+          ));
+        }
+      });
     });
   });
 }
+
+class MockHttpClient extends Mock implements Client {}
