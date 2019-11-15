@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
@@ -20,9 +21,9 @@ void main() {
     FakeConfig config;
     ApiRequestHandlerTester tester;
     UpdateTaskStatus handler;
+    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
 
     setUp(() {
-      final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       config = FakeConfig(dbValue: datastoreDB, tabledataResourceApi: tabledataResourceApi);
       tester = ApiRequestHandlerTester();
@@ -51,11 +52,12 @@ void main() {
 
       expect(task.status, null);
 
-      final UpdateTaskStatusResponse response = await tester.post(handler);
+      await tester.post(handler);
+      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
 
       expect(task.status, 'Succeeded');
       /// Test for [BigQuery] insert
-      expect(int.parse(response.totalRows), 1);
+      expect(tableDataList.totalRows, '1');
     });
   });
 }

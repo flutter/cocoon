@@ -52,7 +52,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String newStatus = requestData[newStatusParam];
     final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
     final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
 
     Key taskKey;
     try {
@@ -98,10 +97,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     /// Insert data to [BigQuery] when task status is fianlized
     /// 
     /// [endTimestamp] greater than 0 is a good final-status flag 
-    TableDataList tableDataList;
     if (task.endTimestamp>0) {
-      await _insertBigquery(commit, task, tabledataResourceApi);
-      tableDataList = await tabledataResourceApi.list(projectId, dataset, table);
+      await _insertBigquery(commit, task);
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
@@ -126,10 +123,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       }
     }
 
-    return UpdateTaskStatusResponse(task, tableDataList.totalRows);
+    return UpdateTaskStatusResponse(task);
   }
 
-  Future<void> _insertBigquery(Commit commit, Task task, TabledataResourceApi tabledataResourceApi) async {
+  Future<void> _insertBigquery(Commit commit, Task task) async {
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
     
     requestRows.add(<String, Object>{
@@ -187,10 +185,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
 @immutable
 class UpdateTaskStatusResponse extends JsonBody {
-  const UpdateTaskStatusResponse(this.task, this.totalRows) : assert(task != null);
+  const UpdateTaskStatusResponse(this.task) : assert(task != null);
 
   final Task task;
-  final String totalRows;
 
   @override
   Map<String, dynamic> toJson() {
