@@ -20,6 +20,7 @@ class SignInButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (authService.isAuthenticated) {
       return PopupMenuButton<String>(
+        // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
         child: Image.network(authService.user.photoUrl),
         offset: const Offset(0, 50),
         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
