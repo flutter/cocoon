@@ -18,31 +18,36 @@ class SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (authService.isAuthenticated) {
-      return PopupMenuButton<String>(
-        // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
-        child: Image.network(authService.user.photoUrl),
-        offset: const Offset(0, 50),
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(
-            value: 'logout',
-            child: Text('Log out'),
-          ),
-        ],
-        onSelected: (String value) {
-          if (value == 'logout') {
-            authService.signOut();
-          }
-        },
-      );
-    }
-
-    return FlatButton(
-      child: const Text(
-        'Sign in',
-        style: TextStyle(color: Colors.white),
-      ),
-      onPressed: () => authService.signIn(),
+    return FutureBuilder<bool>(
+      future: authService.isAuthenticated,
+      builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
+        /// On sign out, there's a second where the user is null before isAuthenticated catches up.
+        if (isAuthenticated.data && authService.user != null)
+          return PopupMenuButton<String>(
+            // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
+            child: Image.network(authService.user?.photoUrl),
+            offset: const Offset(0, 50),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Log out'),
+              ),
+            ],
+            onSelected: (String value) {
+              if (value == 'logout') {
+                authService.signOut();
+              }
+            },
+          );
+        else
+          return FlatButton(
+            child: const Text(
+              'Sign in',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () => authService.signIn(),
+          );
+      },
     );
   }
 }

@@ -39,7 +39,7 @@ class GoogleSignInService {
   final GoogleSignIn _googleSignIn;
 
   /// Whether or not the application has been signed in to.
-  bool get isAuthenticated => user != null;
+  Future<bool> get isAuthenticated => _googleSignIn.isSignedIn();
 
   /// The Google Account for the signed in user, null if no user is signed in.
   ///
@@ -57,6 +57,5 @@ class GoogleSignInService {
 
   Future<void> signOut() async {
     await _googleSignIn.signOut();
-    user = null;
   }
 }
