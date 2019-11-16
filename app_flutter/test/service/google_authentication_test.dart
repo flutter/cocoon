@@ -19,7 +19,13 @@ void main() {
       mockSignIn = MockGoogleSignIn();
       when(mockSignIn.onCurrentUserChanged)
           .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn.isSignedIn())
+          .thenAnswer((_) => Future<bool>.value(false));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
+    });
+
+    test('not authenticated', () async {
+      expect(await authService.isAuthenticated, false);
     });
 
     test('no user information', () {
@@ -39,6 +45,7 @@ void main() {
       when(mockSignIn.signIn())
           .thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn.currentUser).thenReturn(testAccount);
+      when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
       when(mockSignIn.onCurrentUserChanged)
           .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
@@ -48,6 +55,7 @@ void main() {
     test('is authenticated after successful sign in', () async {
       await authService.signIn();
 
+      expect(await authService.isAuthenticated, true);
       expect(authService.user, testAccount);
     });
 
