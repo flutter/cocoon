@@ -29,7 +29,7 @@ void main() {
   testWidgets('shows sign in when not authenticated',
       (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) => Future<bool>.value(false));
+        .thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -48,7 +48,7 @@ void main() {
   testWidgets('calls sign in on tap when not authenticated',
       (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) => Future<bool>.value(false));
+        .thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -70,7 +70,7 @@ void main() {
 
   testWidgets('shows avatar when authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) => Future<bool>.value(true));
+        .thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -95,7 +95,7 @@ void main() {
   testWidgets('calls sign out on tap when authenticated',
       (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) => Future<bool>.value(true));
+        .thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
