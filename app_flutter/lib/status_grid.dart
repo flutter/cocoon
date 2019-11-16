@@ -157,7 +157,7 @@ class _StatusGridState extends State<StatusGrid> {
               task: widget.taskMatrix.task(rowIndex, colIndex),
             )
           else
-            const SizedBox()
+            const SizedBox(width: StatusGrid.cellSize)
       ];
 
       rows.add(
