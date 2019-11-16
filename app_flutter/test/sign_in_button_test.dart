@@ -28,7 +28,8 @@ void main() {
 
   testWidgets('shows sign in when not authenticated',
       (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenReturn(false);
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -38,6 +39,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     expect(find.byType(GoogleUserCircleAvatar), findsNothing);
     expect(find.text('Sign in'), findsOneWidget);
@@ -45,7 +47,8 @@ void main() {
 
   testWidgets('calls sign in on tap when not authenticated',
       (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenReturn(false);
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -55,6 +58,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     verifyNever(mockAuthService.signIn());
 
@@ -65,7 +69,8 @@ void main() {
   });
 
   testWidgets('shows avatar when authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenReturn(true);
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -79,6 +84,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
     expect(tester.takeException(),
         const test.TypeMatcher<NetworkImageLoadException>());
 
@@ -88,7 +94,8 @@ void main() {
 
   testWidgets('calls sign out on tap when authenticated',
       (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenReturn(true);
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -102,6 +109,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     await tester.tap(find.byType(Image));
     await tester.pumpAndSettle();

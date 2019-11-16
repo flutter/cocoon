@@ -20,9 +20,9 @@ class SignInButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: authService.isAuthenticated,
-      builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
+      builder: (_, AsyncSnapshot<bool> isAuthenticated) {
         /// On sign out, there's a second where the user is null before isAuthenticated catches up.
-        if (isAuthenticated.data && authService.user != null)
+        if (isAuthenticated.data == true && authService.user != null) {
           return PopupMenuButton<String>(
             // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
             child: Image.network(authService.user?.photoUrl),
@@ -39,14 +39,14 @@ class SignInButton extends StatelessWidget {
               }
             },
           );
-        else
-          return FlatButton(
-            child: const Text(
-              'Sign in',
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () => authService.signIn(),
-          );
+        }
+        return FlatButton(
+          child: const Text(
+            'Sign in',
+            style: TextStyle(color: Colors.white),
+          ),
+          onPressed: () => authService.signIn(),
+        );
       },
     );
   }

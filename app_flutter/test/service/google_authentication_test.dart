@@ -22,10 +22,6 @@ void main() {
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
-    test('not authenticated', () {
-      expect(authService.isAuthenticated, false);
-    });
-
     test('no user information', () {
       expect(authService.user, null);
       expect(authService.idToken, null);
@@ -52,7 +48,7 @@ void main() {
     test('is authenticated after successful sign in', () async {
       await authService.signIn();
 
-      expect(authService.isAuthenticated, true);
+      expect(authService.user, testAccount);
     });
 
     test('there is user information after successful sign in', () async {
@@ -83,7 +79,6 @@ void main() {
 
       await authService.signIn();
 
-      expect(authService.isAuthenticated, false);
       expect(authService.user, null);
       expect(authService.idToken, null);
     });
