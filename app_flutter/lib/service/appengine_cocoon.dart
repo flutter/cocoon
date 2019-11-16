@@ -84,14 +84,14 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String accessToken) async {
-    assert(accessToken != null);
+  Future<bool> rerunTask(Task task, String idToken) async {
+    assert(idToken != null);
     final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
 
     /// This endpoint only returns a status code.
     final http.Response response = await _client.post(postResetTaskUrl,
         headers: <String, String>{
-          'X-Flutter-AccessToken': accessToken,
+          'X-Flutter-IdToken': idToken,
         },
         body: jsonEncode(<String, String>{
           'Key': task.key.child.name,
