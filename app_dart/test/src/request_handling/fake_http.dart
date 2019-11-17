@@ -616,10 +616,11 @@ class FakeHttpRequest extends FakeInbound implements HttpRequest {
   FakeHttpRequest({
     this.method = 'GET',
     String body,
-    Uri uri,
+    String path = '/',
     FakeHttpResponse response,
   })  : assert(method != null),
-        uri = uri ?? Uri(path: '/'),
+        assert(path != null),
+        uri = Uri(path: path),
         response = response ?? FakeHttpResponse(),
         super(body);
 

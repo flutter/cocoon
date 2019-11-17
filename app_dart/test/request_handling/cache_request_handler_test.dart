@@ -30,7 +30,7 @@ void main() {
           FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
       tester = RequestHandlerTester(
           request: FakeHttpRequest(
-        uri: Uri(path: testHttpPath),
+        path: testHttpPath,
       ));
 
       final CacheService cacheService = CacheService(config);
