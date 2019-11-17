@@ -100,6 +100,13 @@ class AppEngineCocoonService implements CocoonService {
     return response.statusCode == HttpStatus.ok;
   }
 
+  /// Writes the log for [Task] to local storage of the current device.
+  /// Returns true if successful, false if failed.
+  @override
+  Future<bool> downloadLog(Task task, String idToken) {
+
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///
