@@ -268,6 +268,10 @@ class TaskOverlayContents extends StatelessWidget {
       'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
   static const Duration rerunSnackbarDuration = Duration(seconds: 15);
+  @visibleForTesting
+  static const String downloadLogErrorMessage = 'Failed to download task log.';
+  @visibleForTesting
+  static const Duration downloadLogSnackbarDuration = Duration(seconds: 15);
 
   /// A lookup table to define the [Icon] for this [taskStatus].
   static const Map<String, Icon> statusIcon = <String, Icon>{
@@ -301,7 +305,7 @@ class TaskOverlayContents extends StatelessWidget {
           ButtonBar(
             children: <Widget>[
               ProgressButton(
-                defaultWidget: const Text('View log'),
+                defaultWidget: const Text('Download log'),
                 progressWidget: const CircularProgressIndicator(),
                 width: 100,
                 height: 50,
@@ -337,13 +341,26 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
+  ///
   Future<void> _viewLog() async {
-    // Only send access token for devicelab tasks since they require authentication
-    final Map<String, String> headers = isDevicelab(task)
-        ? <String, String>{
-            'X-Flutter-IdToken': await buildState.authService.idToken,
-          }
-        : null;
-    launch(logUrl(task), headers: headers);
+    if (isDevicelab(task)) {
+      final bool success = await buildState.downloadLog(task);
+
+      if (!success) {
+        /// Only show [Snackbar] on failure since the user's device will
+        /// indicate a download has been made.
+        showSnackbarCallback(
+          const SnackBar(
+            content: Text(downloadLogErrorMessage),
+            duration: rerunSnackbarDuration,
+          ),
+        );
+      }
+
+      return;
+    }
+
+    /// Tasks outside of devicelab have public logs that we just redirect to.
+    launch(logUrl(task));
   }
 }

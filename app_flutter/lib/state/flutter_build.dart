@@ -97,6 +97,10 @@ class FlutterBuildState extends ChangeNotifier {
     return _cocoonService.rerunTask(task, await authService.idToken);
   }
 
+  Future<bool> downloadLog(Task task) async {
+    return _cocoonService.downloadLog(task, await authService.idToken);
+  }
+
   @override
   void dispose() {
     refreshTimer?.cancel();

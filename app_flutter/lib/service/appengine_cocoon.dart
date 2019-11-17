@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:html';
+import 'dart:io' hide File;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
@@ -100,11 +101,38 @@ class AppEngineCocoonService implements CocoonService {
     return response.statusCode == HttpStatus.ok;
   }
 
-  /// Writes the log for [Task] to local storage of the current device.
-  /// Returns true if successful, false if failed.
+  /// Downloads the log for [task] and writes the bytes to the local storage of
+  /// the current device. Returns true if write was successful, and false if
+  /// there was a failure.
+  ///
+  /// Steps to download the log:
+  /// 1. Make an authenticated request to the Cocoon backend for the bytes
+  /// of the log.
+  /// 2. Write the bytes from Cocoon to an in memory file.
+  /// 3. Write the in memory file to the local storage system.
   @override
-  Future<bool> downloadLog(Task task, String idToken) {
+  Future<bool> downloadLog(Task task, String idToken) async {
+    assert(task != null);
+    assert(idToken != null);
 
+    final String getTaskLogUrl =
+        _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
+
+    /// This endpoint only returns a status code.
+    final http.Response response = await _client.get(
+      getTaskLogUrl,
+      headers: <String, String>{
+        'X-Flutter-IdToken': idToken,
+      },
+    );
+
+    final String logEncodedContent = Uri.encodeComponent(response.body);
+    final AnchorElement element =
+        AnchorElement(href: 'data:text/plain;charset=utf8,$logEncodedContent')
+          ..setAttribute('download', '${task.key.child.name}.log')
+          ..click();
+
+    return element != null;
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
