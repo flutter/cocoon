@@ -96,42 +96,43 @@ void main() {
       expect(firstTask.task, taskMatrix.task(0, 0));
     });
 
+    /// Matrix Diagram:
+    /// ✓☐☐
+    /// ☐✓☐
+    /// ☐☐✓
+    /// To construct the matrix from this diagram, each [CommitStatus] must have a unique [Task]
+    /// that does not share its name with any other [Task]. This will make that [CommitStatus] have
+    /// its task on its own unique row and column.
+    final List<CommitStatus> statusesWithSkips = <CommitStatus>[
+      CommitStatus()
+        ..stages.add(Stage()
+          ..name = 'A'
+          ..tasks.addAll(<Task>[
+            Task()
+              ..name = '1'
+              ..status = TaskBox.statusSucceeded
+          ])),
+      CommitStatus()
+        ..stages.add(Stage()
+          ..name = 'A'
+          ..tasks.addAll(<Task>[
+            Task()
+              ..name = '2'
+              ..status = TaskBox.statusSucceeded
+          ])),
+      CommitStatus()
+        ..stages.add(Stage()
+          ..name = 'A'
+          ..tasks.addAll(<Task>[
+            Task()
+              ..name = '3'
+              ..status = TaskBox.statusSucceeded
+          ]))
+    ];
+
     testWidgets('skipped tasks do not break the grid',
         (WidgetTester tester) async {
-      /// Matrix Diagram:
-      /// ✓☐☐
-      /// ☐✓☐
-      /// ☐☐✓
-      /// To construct the matrix from this diagram, each [CommitStatus] must have a unique [Task]
-      /// that does not share its name with any other [Task]. This will make that [CommitStatus] have
-      /// its task on its own unique row and column.
-      final List<CommitStatus> statuses = <CommitStatus>[
-        CommitStatus()
-          ..stages.add(Stage()
-            ..name = 'A'
-            ..tasks.addAll(<Task>[
-              Task()
-                ..name = '1'
-                ..status = TaskBox.statusSucceeded
-            ])),
-        CommitStatus()
-          ..stages.add(Stage()
-            ..name = 'A'
-            ..tasks.addAll(<Task>[
-              Task()
-                ..name = '2'
-                ..status = TaskBox.statusSucceeded
-            ])),
-        CommitStatus()
-          ..stages.add(Stage()
-            ..name = 'A'
-            ..tasks.addAll(<Task>[
-              Task()
-                ..name = '3'
-                ..status = TaskBox.statusSucceeded
-            ]))
-      ];
-      final TaskMatrix taskMatrix = TaskMatrix(statuses: statuses);
+      final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -139,8 +140,9 @@ void main() {
             children: <Widget>[
               StatusGrid(
                 buildState: FlutterBuildState(),
-                statuses: statuses,
+                statuses: statusesWithSkips,
                 taskMatrix: taskMatrix,
+                insertCellKeys: true,
               ),
             ],
           ),
@@ -151,15 +153,78 @@ void main() {
 
       expect(find.byType(TaskBox), findsNWidgets(3));
 
-      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
-      expect(firstTask.task, statuses[0].stages[0].tasks[0]);
+      // Row 1: ✓☐☐
+      final TaskBox firstTask =
+          find.byKey(const Key('cell-0-0')).evaluate().first.widget;
+      expect(firstTask.task, statusesWithSkips[0].stages[0].tasks[0]);
+
+      final SizedBox skippedTaskRow1Col2 =
+          find.byKey(const Key('cell-0-1')).evaluate().first.widget;
+      expect(skippedTaskRow1Col2, isNotNull);
+
+      final SizedBox skippedTaskRow1Col3 =
+          find.byKey(const Key('cell-0-2')).evaluate().first.widget;
+      expect(skippedTaskRow1Col3, isNotNull);
+
+      // Row 2: ☐✓☐
+      final SizedBox skippedTaskRow2Col1 =
+          find.byKey(const Key('cell-1-0')).evaluate().first.widget;
+      expect(skippedTaskRow2Col1, isNotNull);
 
       final TaskBox secondTask =
-          find.byType(TaskBox).evaluate().skip(1).first.widget;
-      expect(secondTask.task, statuses[1].stages[0].tasks[0]);
+          find.byKey(const Key('cell-1-1')).evaluate().first.widget;
+      expect(secondTask.task, statusesWithSkips[1].stages[0].tasks[0]);
 
-      final TaskBox lastTask = find.byType(TaskBox).evaluate().last.widget;
-      expect(lastTask.task, statuses[2].stages[0].tasks[0]);
+      final SizedBox skippedTaskRow2Col3 =
+          find.byKey(const Key('cell-1-2')).evaluate().first.widget;
+      expect(skippedTaskRow2Col3, isNotNull);
+
+      // Row 3: ☐☐✓
+      final SizedBox skippedTaskRow3Col1 =
+          find.byKey(const Key('cell-2-0')).evaluate().first.widget;
+      expect(skippedTaskRow3Col1, isNotNull);
+
+      final SizedBox skippedTaskRow3Col2 =
+          find.byKey(const Key('cell-2-1')).evaluate().first.widget;
+      expect(skippedTaskRow3Col2, isNotNull);
+
+      final TaskBox lastTask =
+          find.byKey(const Key('cell-2-2')).evaluate().first.widget;
+      expect(lastTask.task, statusesWithSkips[2].stages[0].tasks[0]);
+    });
+
+    testWidgets('all cells in the grid have the same size',
+        (WidgetTester tester) async {
+      /// Use [statusesWithSkips] to check edge cases with skipped tasks.
+      final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StatusGrid(
+                buildState: FlutterBuildState(),
+                statuses: statusesWithSkips,
+                taskMatrix: taskMatrix,
+                insertCellKeys: true,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      // Compare all the cells to the first cell to check they all have
+      // the same size
+      final Element taskBox =
+          find.byKey(const Key('cell-0-0')).evaluate().first;
+      for (int rowIndex = 0; rowIndex < statusesWithSkips.length; rowIndex++) {
+        for (int colIndex = 0; colIndex < 3; colIndex++) {
+          final Element cell =
+              find.byKey(Key('cell-$rowIndex-$colIndex')).evaluate().first;
+
+          expect(taskBox.size, cell.size);
+        }
+      }
     });
   });
 }
