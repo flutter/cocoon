@@ -115,7 +115,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
-    /// This is a web only solution to downloading logs.
+    /// This is a web only solution for downloading logs.
     if (!kIsWeb) {
       return false;
     }
@@ -123,7 +123,7 @@ class AppEngineCocoonService implements CocoonService {
     final String getTaskLogUrl =
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
 
-    /// This endpoint only returns a status code.
+    /// This API endpoint returns the log in the body of the response.
     final http.Response response = await _client.get(
       getTaskLogUrl,
       headers: <String, String>{
