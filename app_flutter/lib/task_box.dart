@@ -341,7 +341,10 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
+  /// If [task] is in the devicelab, download the log. Otherwise, open the
+  /// url closest to where the log will be.
   ///
+  /// If a devicelab log fails to download, show an error snackbar.
   Future<void> _viewLog() async {
     if (isDevicelab(task)) {
       final bool success = await buildState.downloadLog(task);

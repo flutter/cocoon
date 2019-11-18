@@ -291,6 +291,27 @@ void main() {
         }
       });
     });
+
+    group('AppEngine Cocoon Service download log', () {
+      AppEngineCocoonService service;
+
+      setUp(() {
+        service =
+            AppEngineCocoonService(client: MockClient((Request request) async {
+          return Response('', 200);
+        }));
+      });
+
+      test('should throw assertion error if task is null', () async {
+        expect(service.downloadLog(null, 'abc123'),
+            throwsA(const TypeMatcher<AssertionError>()));
+      });
+
+      test('should throw assertion error if id token is null', () async {
+        expect(service.downloadLog(Task()..key = RootKey(), null),
+            throwsA(const TypeMatcher<AssertionError>()));
+      });
+    });
   });
 }
 
