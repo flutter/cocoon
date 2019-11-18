@@ -307,7 +307,7 @@ class TaskOverlayContents extends StatelessWidget {
               ProgressButton(
                 defaultWidget: const Text('Download log'),
                 progressWidget: const CircularProgressIndicator(),
-                width: 100,
+                width: 120,
                 height: 50,
                 onPressed: _viewLog,
                 animate: false,

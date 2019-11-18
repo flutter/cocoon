@@ -103,17 +103,21 @@ class AppEngineCocoonService implements CocoonService {
 
   /// Downloads the log for [task] and writes the bytes to the local storage of
   /// the current device. Returns true if write was successful, and false if
-  /// there was a failure.
+  /// there was a failure. Only works on the web platform.
   ///
   /// Steps to download the log:
-  /// 1. Make an authenticated request to the Cocoon backend for the bytes
-  /// of the log.
-  /// 2. Write the bytes from Cocoon to an in memory file.
-  /// 3. Write the in memory file to the local storage system.
+  /// 1. Make an authenticated request to the Cocoon backend for the task log.
+  /// 2. Encode the log to be uri safe.
+  /// 3. Create an anchor elemtn with the encoded log data for downloading.
   @override
   Future<bool> downloadLog(Task task, String idToken) async {
     assert(task != null);
     assert(idToken != null);
+
+    /// This is a web only solution to downloading logs.
+    if (!kIsWeb) {
+      return false;
+    }
 
     final String getTaskLogUrl =
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
@@ -126,13 +130,17 @@ class AppEngineCocoonService implements CocoonService {
       },
     );
 
-    final String logEncodedContent = Uri.encodeComponent(response.body);
-    final AnchorElement element =
-        AnchorElement(href: 'data:text/plain;charset=utf8,$logEncodedContent')
-          ..setAttribute('download', '${task.key.child.name}.log')
-          ..click();
+    if (response.statusCode != HttpStatus.ok) {
+      print(response.body);
+      return false;
+    }
 
-    return element != null;
+    final String logEncodedContent = Uri.encodeComponent(response.body);
+    AnchorElement(href: 'data:text/plain;charset=utf8,$logEncodedContent')
+      ..setAttribute('download', '${task.name}_${task.endTimestamp}.log')
+      ..click();
+
+    return true;
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
