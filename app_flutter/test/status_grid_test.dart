@@ -353,7 +353,7 @@ class TestFlutterBuildState extends ChangeNotifier
   Timer refreshTimer;
 
   @override
-  GoogleSignInService get authService => null;
+  GoogleSignInService authService;
 
   @override
   Duration get refreshRate => null;
@@ -363,6 +363,8 @@ class TestFlutterBuildState extends ChangeNotifier
 
   @override
   Future<void> signIn() => null;
+  @override
+  Future<void> signOut() => null;
 
   @override
   Future<void> startFetchingBuildStateUpdates() => null;
