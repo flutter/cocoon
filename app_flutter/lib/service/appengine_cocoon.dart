@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:html';
 import 'dart:io' hide File;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
+import 'package:universal_html/prefer_universal/html.dart';
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
@@ -136,7 +136,8 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     final String logEncodedContent = Uri.encodeComponent(response.body);
-    AnchorElement(href: 'data:text/plain;charset=utf8,$logEncodedContent')
+    AnchorElement()
+      ..href = 'data:text/plain;charset=utf8,$logEncodedContent'
       ..setAttribute('download', '${task.name}_${task.endTimestamp}.log')
       ..click();
 

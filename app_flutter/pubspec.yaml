@@ -39,6 +39,7 @@ dependencies:
     git:
       url: git://github.com/flutter/plugins.git
       path: packages/url_launcher/url_launcher_web
+  universal_html: ^1.1.0
 
 dev_dependencies:
   flutter_test:
