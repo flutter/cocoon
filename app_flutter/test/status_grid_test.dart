@@ -102,7 +102,7 @@ void main() {
       /// ✓☐☐
       /// ☐✓☐
       /// ☐☐✓
-      /// To construct the matrix from this diagram, each [CommitStatus] must have a unique [Task] 
+      /// To construct the matrix from this diagram, each [CommitStatus] must have a unique [Task]
       /// that does not share its name with any other [Task]. This will make that [CommitStatus] have
       /// its task on its own unique row and column.
       final List<CommitStatus> statuses = <CommitStatus>[
