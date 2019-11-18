@@ -33,32 +33,7 @@ class StatusGridContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
-        final List<CommitStatus> statuses = buildState.statuses.data;
-
-        if (buildState.hasError) {
-          print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
-          print('statuses: ${buildState.statuses.error}');
-
-          SchedulerBinding.instance.endOfFrame.then((_) {
-            final Row snackbarContent = Row(
-              children: <Widget>[
-                const Icon(Icons.error),
-                const SizedBox(width: 10),
-                if (buildState.statuses.error != null)
-                  const Text(errorFetchCommitStatus)
-                else
-                  const Text(errorFetchTreeStatus)
-              ],
-            );
-            Scaffold.of(context).showSnackBar(
-              SnackBar(
-                content: snackbarContent,
-                backgroundColor: Theme.of(context).errorColor,
-                duration: errorSnackbarDuration,
-              ),
-            );
-          });
-        }
+        final List<CommitStatus> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {

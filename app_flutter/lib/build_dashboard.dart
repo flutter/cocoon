@@ -11,6 +11,8 @@ import 'status_grid.dart';
 
 /// [BuildDashboard] parent widget that manages the state of the dashboard.
 class BuildDashboardPage extends StatefulWidget {
+  @visibleForTesting
+  static const Duration errorSnackbarDuration = Duration(seconds: 8);
   @override
   _BuildDashboardPageState createState() => _BuildDashboardPageState();
 }
@@ -27,6 +29,23 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    buildState.errors.addListener(() {
+      print(buildState.errors.message);
+      final Row snackbarContent = Row(
+        children: <Widget>[
+          const Icon(Icons.error),
+          const SizedBox(width: 10),
+          Text(buildState.errors.message)
+        ],
+      );
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: snackbarContent,
+          backgroundColor: Theme.of(context).errorColor,
+          duration: BuildDashboardPage.errorSnackbarDuration,
+        ),
+      );
+    });
     return ChangeNotifierProvider<FlutterBuildState>(
         builder: (_) => buildState, child: BuildDashboard());
   }
@@ -48,11 +67,12 @@ class BuildDashboard extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
+        key: const Key('build-dashboard-scaffold'),
         appBar: AppBar(
-          title: buildState.isTreeBuilding.data
+          title: buildState.isTreeBuilding
               ? const Text('Tree is Open')
               : const Text('Tree is Closed'),
-          backgroundColor: buildState.isTreeBuilding.data
+          backgroundColor: buildState.isTreeBuilding
               ? theme.appBarTheme.color
               : theme.errorColor,
           actions: <Widget>[
