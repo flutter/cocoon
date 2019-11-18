@@ -94,9 +94,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await transaction.commit();
     });
 
-    /// Insert data to [BigQuery] when task status is fianlized
-    /// 
-    /// [endTimestamp] greater than 0 is a good final-status flag 
     if (task.endTimestamp>0) {
       await _insertBigquery(commit, task);
     }

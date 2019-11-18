@@ -50,7 +50,7 @@ void main() {
           TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'cubic_bezier_perf__timeline_summary.90th_percentile_frame_build_time_millis'));
       config.db.values[timeSeries.key] = timeSeries;
 
-      expect(task.status, null);
+      expect(task.status, isNull);
 
       await tester.post(handler);
       final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
