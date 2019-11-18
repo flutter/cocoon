@@ -263,8 +263,14 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     });
 
-    testWidgets('log button calls build state download log',
+    testWidgets('log button opens log url for public log',
         (WidgetTester tester) async {
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      channel.setMockMethodCallHandler((MethodCall methodCall) async {
+        log.add(methodCall);
+      });
       final Task publicTask = Task()..stageName = 'cirrus';
       await tester.pumpWidget(
         MaterialApp(
@@ -281,13 +287,92 @@ void main() {
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
+      // View log
+      await tester.tap(find.text('Log'));
+      await tester.pump();
+
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': logUrl(publicTask),
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
+    });
+
+    testWidgets('log button calls build state to download devicelab log',
+        (WidgetTester tester) async {
+      when(buildState.downloadLog(any))
+          .thenAnswer((_) => Future<bool>.value(true));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
       verifyNever(buildState.downloadLog(any));
 
-      // Download log
+      // Click log button
       await tester.tap(find.text('Log'));
       await tester.pump();
 
       verify(buildState.downloadLog(any)).called(1);
+    });
+
+    testWidgets('failing to download devicelab log shows error snackbar',
+        (WidgetTester tester) async {
+      when(buildState.downloadLog(any))
+          .thenAnswer((_) => Future<bool>.value(false));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
+      );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // Click log button
+      await tester.tap(find.text('Log'));
+      await tester.pump();
+
+      // expect error snackbar to be shown
+      await tester
+          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+
+      expect(find.text(TaskOverlayContents.downloadLogErrorMessage),
+          findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          TaskOverlayContents.downloadLogSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      expect(
+          find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
     });
   });
 }
