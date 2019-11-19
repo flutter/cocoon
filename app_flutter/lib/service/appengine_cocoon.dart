@@ -25,7 +25,7 @@ class AppEngineCocoonService implements CocoonService {
   AppEngineCocoonService({http.Client client, Downloader downloader})
       : _client = client ?? http.Client(),
         _downloader =
-            downloader ?? Downloader(); // ignore: new_with_abstract_class
+            downloader ?? Downloader();
 
   /// The Cocoon API endpoint to query
   ///
