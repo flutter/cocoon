@@ -24,7 +24,8 @@ class AppEngineCocoonService implements CocoonService {
   /// If a [client] is not specified, a new [http.Client] instance is created.
   AppEngineCocoonService({http.Client client, Downloader downloader})
       : _client = client ?? http.Client(),
-        _downloader = downloader ?? Downloader();
+        _downloader =
+            downloader ?? Downloader(); // ignore: new_with_abstract_class
 
   /// The Cocoon API endpoint to query
   ///
