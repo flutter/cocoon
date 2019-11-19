@@ -4,9 +4,10 @@
 
 import 'downloader_interface.dart' as i;
 
+/// Mobile implementation of [Downloader]. Not implemented.
 class Downloader implements i.Downloader {
   @override
-  Future<bool> download(String href, String fileName, String idToken) async {
+  Future<bool> download(String href, String fileName, {String idToken}) async {
     return false;
   }
 }

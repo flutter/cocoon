@@ -122,12 +122,13 @@ class AppEngineCocoonService implements CocoonService {
     final String getTaskLogUrl =
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
 
-    // Only show the first 7 characters of the commit sha.
+    // Only show the first 7 characters of the commit sha. This amount is unique
+    // enough to allow lookup of a commit.
     final String shortSha = commitSha.substring(0, 7);
 
     final String fileName = '${task.name}_${shortSha}_${task.attempts}.log';
 
-    return _downloader.download(getTaskLogUrl, fileName, idToken);
+    return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
