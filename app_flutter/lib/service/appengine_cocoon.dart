@@ -3,13 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:html' as html;
 import 'dart:io' hide File;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
-import 'package:universal_html/prefer_sdk/html.dart';
+import 'package:universal_html/prefer_sdk/html.dart' as html;
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
@@ -130,7 +129,7 @@ class AppEngineCocoonService implements CocoonService {
     // to write the cookie back to the browser before the request can be made.
     await Future<void>.delayed(const Duration(milliseconds: 500));
 
-    AnchorElement()
+    html.AnchorElement()
       ..href = getTaskLogUrl
       ..setAttribute('download', '${task.name}_${task.endTimestamp}.log')
       ..click();
