@@ -13,7 +13,7 @@ import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
-import 'package:app_flutter/service/downloader_mobile.dart';
+import 'package:app_flutter/service/downloader_interface.dart';
 import 'package:app_flutter/service/cocoon.dart';
 
 // This is based off data the Cocoon backend sends out from v1.

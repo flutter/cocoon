@@ -2,6 +2,4 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export 'downloader_interface.dart'
-    if (dart.library.js) 'downloader_web.dart'
-    if (dart.library.io) 'downloader_mobile.dart';
+export 'downloader_interface.dart' if (dart.library.js) 'downloader_web.dart';
