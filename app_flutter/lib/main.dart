@@ -8,7 +8,7 @@ import 'build_dashboard.dart';
 
 void main() => runApp(MyApp());
 
-ThemeData theme = ThemeData(
+final ThemeData theme = ThemeData(
   appBarTheme: AppBarTheme(color: Colors.green),
   primarySwatch: Colors.blue,
 );
