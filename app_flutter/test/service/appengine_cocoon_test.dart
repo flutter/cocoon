@@ -303,12 +303,12 @@ void main() {
       });
 
       test('should throw assertion error if task is null', () async {
-        expect(service.downloadLog(null, 'abc123'),
+        expect(service.downloadLog(null, 'abc123', 'shashank'),
             throwsA(const TypeMatcher<AssertionError>()));
       });
 
       test('should throw assertion error if id token is null', () async {
-        expect(service.downloadLog(Task()..key = RootKey(), null),
+        expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
             throwsA(const TypeMatcher<AssertionError>()));
       });
     });

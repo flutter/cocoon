@@ -111,7 +111,7 @@ class AppEngineCocoonService implements CocoonService {
   /// 3. Create an anchor element with the encoded log data for downloading.
   /// 4. Click the anchor element to trigger the browser to download the log.
   @override
-  Future<bool> downloadLog(Task task, String idToken) async {
+  Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     assert(task != null);
     assert(idToken != null);
 
@@ -126,12 +126,17 @@ class AppEngineCocoonService implements CocoonService {
     // This line is dangerous as it fails silently. Be careful.
     html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
     // This wait is a hack as the above line is not synchronous. It takes time
-    // to write the cookie back to the browser before the request can be made.
+    // to write the cookie back to the browser. This is required before making
+    // the download request.
     await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    // Only show the first 7 characters of the commit sha.
+    final String shortSha = commitSha.substring(0, 6);
 
     html.AnchorElement()
       ..href = getTaskLogUrl
-      ..setAttribute('download', '${task.name}_${task.endTimestamp}.log')
+      ..setAttribute(
+          'download', '${task.name}_${shortSha}_${task.attempts}.log')
       ..click();
 
     return true;

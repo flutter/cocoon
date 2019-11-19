@@ -27,7 +27,8 @@ void main() {
     });
 
     test('200 get log response is successful', () async {
-      final bool result = await service.downloadLog(devicelabTask, 'abc123');
+      final bool result =
+          await service.downloadLog(devicelabTask, 'abc123', 'shashank');
 
       expect(result, isTrue);
     });
@@ -38,7 +39,8 @@ void main() {
         return Response('', 401);
       }));
 
-      final bool result = await service.downloadLog(devicelabTask, 'abc123');
+      final bool result =
+          await service.downloadLog(devicelabTask, 'abc123', 'shashank');
 
       expect(result, isFalse);
     });

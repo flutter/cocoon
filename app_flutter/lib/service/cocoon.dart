@@ -40,7 +40,7 @@ abstract class CocoonService {
 
   /// Writes the log for [Task] to local storage of the current device.
   /// Returns true if successful, false if failed.
-  Future<bool> downloadLog(Task task, String idToken);
+  Future<bool> downloadLog(Task task, String idToken, String commitSha);
 }
 
 /// Wrapper class for data this state serves.

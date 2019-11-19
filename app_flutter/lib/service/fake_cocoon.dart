@@ -36,7 +36,7 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> downloadLog(Task task, String idToken) async {
+  Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     return false;
   }
 
