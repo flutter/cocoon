@@ -8,12 +8,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
-import 'package:universal_html/prefer_sdk/html.dart' as html;
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'cocoon.dart';
+import 'downloader.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.
 ///
@@ -22,8 +22,9 @@ class AppEngineCocoonService implements CocoonService {
   /// Creates a new [AppEngineCocoonService].
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
-  AppEngineCocoonService({http.Client client})
-      : _client = client ?? http.Client();
+  AppEngineCocoonService({http.Client client, Downloader downloader})
+      : _client = client ?? http.Client(),
+        _downloader = downloader ?? Downloader();
 
   /// The Cocoon API endpoint to query
   ///
@@ -31,6 +32,8 @@ class AppEngineCocoonService implements CocoonService {
   static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
 
   final http.Client _client;
+
+  final Downloader _downloader;
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
@@ -115,31 +118,15 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
-    /// This is a web only solution for downloading logs.
-    if (!kIsWeb) {
-      return false;
-    }
-
     final String getTaskLogUrl =
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
 
-    // This line is dangerous as it fails silently. Be careful.
-    html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
-    // This wait is a hack as the above line is not synchronous. It takes time
-    // to write the cookie back to the browser. This is required before making
-    // the download request.
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-
     // Only show the first 7 characters of the commit sha.
-    final String shortSha = commitSha.substring(0, 6);
+    final String shortSha = commitSha.substring(0, 7);
 
-    html.AnchorElement()
-      ..href = getTaskLogUrl
-      ..setAttribute(
-          'download', '${task.name}_${shortSha}_${task.attempts}.log')
-      ..click();
+    final String fileName = '${task.name}_${shortSha}_${task.attempts}.log';
 
-    return true;
+    return _downloader.download(getTaskLogUrl, fileName, idToken);
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
