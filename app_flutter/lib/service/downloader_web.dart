@@ -14,7 +14,7 @@ class Downloader implements i.Downloader {
   /// that can be authenticated with the Cocoon backend.
   ///
   /// Steps to download a file on web in Flutter:
-  /// 1. Ensure authentication is up to date.
+  /// 1. Ensure authentication is up to date (for Cocoon logs).
   /// 2. Create an anchor element with the url to fetch and the name of the file
   ///    it will be downloaded to.
   /// 3. Click the anchor element to trigger the browser to download the file.
@@ -26,10 +26,12 @@ class Downloader implements i.Downloader {
     if (idToken != null) {
       // This line is dangerous as it fails silently. Be careful.
       html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
-      // This wait is a hack as the above line is not synchronous. It takes time
-      // to write the cookie back to the browser. This is required before making
-      // the download request.
 
+      // This wait is a work around as the above line is not synchronous.
+      // The cookie needs to be set for the request to be authenticated.
+      //
+      // dart:html will say the cookie has been written, but the browser
+      // is still writing it.
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
 
