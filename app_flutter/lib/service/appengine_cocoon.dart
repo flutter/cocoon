@@ -105,15 +105,10 @@ class AppEngineCocoonService implements CocoonService {
     return response.statusCode == HttpStatus.ok;
   }
 
-  /// Downloads the log for [task] and writes the bytes to the local storage of
-  /// the current device. Returns true if write was successful, and false if
-  /// there was a failure. Only works on the web platform.
+  /// Downloads the log for [task] to the local storage of the current device.
+  /// Returns true if write was successful, and false if there was a failure.
   ///
-  /// Steps to download the log:
-  /// 1. Make an authenticated request to the Cocoon backend for the task log.
-  /// 2. Encode the log to be uri safe.
-  /// 3. Create an anchor element with the encoded log data for downloading.
-  /// 4. Click the anchor element to trigger the browser to download the log.
+  /// Only works on the web platform.
   @override
   Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     assert(task != null);

@@ -98,6 +98,8 @@ class FlutterBuildState extends ChangeNotifier {
   }
 
   Future<bool> downloadLog(Task task) async {
+    // In production use, this usually goes through the last 5 CommitStatus.
+    // Worst case it can be O(N), but it is inexpensive.
     final Commit commit = statuses.data
         .firstWhere(
             (CommitStatus status) => status.commit.key == task.commitKey)
