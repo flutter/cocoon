@@ -193,7 +193,8 @@ void main() {
       expect(lastTask.task, statusesWithSkips[2].stages[0].tasks[0]);
     });
 
-    testWidgets('all cells in the grid have the same size even when grid has skipped tasks',
+    testWidgets(
+        'all cells in the grid have the same size even when grid has skipped tasks',
         (WidgetTester tester) async {
       final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
 
@@ -216,8 +217,8 @@ void main() {
       // the same size
       final Element taskBox =
           find.byKey(const Key('cell-0-0')).evaluate().first;
-      for (int rowIndex = 0; rowIndex < statusesWithSkips.length; rowIndex++) {
-        for (int colIndex = 0; colIndex < 3; colIndex++) {
+      for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
+        for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
           final Element cell =
               find.byKey(Key('cell-$rowIndex-$colIndex')).evaluate().first;
 
