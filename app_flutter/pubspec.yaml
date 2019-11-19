@@ -41,10 +41,7 @@ dependencies:
       path: packages/google_sign_in/google_sign_in_web
   provider: ^3.0.0
   url_launcher: 5.2.4
-  url_launcher_web:
-    git:
-      url: git://github.com/flutter/plugins.git
-      path: packages/url_launcher/url_launcher_web
+  url_launcher_web: ^0.8.0
 
 dev_dependencies:
   flutter_test:
