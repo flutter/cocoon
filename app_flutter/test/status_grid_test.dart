@@ -193,9 +193,8 @@ void main() {
       expect(lastTask.task, statusesWithSkips[2].stages[0].tasks[0]);
     });
 
-    testWidgets('all cells in the grid have the same size',
+    testWidgets('all cells in the grid have the same size even when grid has skipped tasks',
         (WidgetTester tester) async {
-      /// Use [statusesWithSkips] to check edge cases with skipped tasks.
       final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
 
       await tester.pumpWidget(
