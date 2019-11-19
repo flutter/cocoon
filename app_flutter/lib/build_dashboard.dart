@@ -49,9 +49,11 @@ class BuildDashboard extends StatelessWidget {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
         appBar: AppBar(
-          title: const Text('Flutter Build Dashboard v2'),
+          title: buildState.isTreeBuilding.data
+              ? const Text('Tree is Open')
+              : const Text('Tree is Closed'),
           backgroundColor: buildState.isTreeBuilding.data
-              ? theme.primaryColor
+              ? theme.appBarTheme.color
               : theme.errorColor,
           actions: <Widget>[
             SignInButton(authService: buildState.authService),
