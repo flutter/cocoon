@@ -8,7 +8,7 @@ import 'dart:io' hide File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
-import 'package:universal_html/prefer_sdk/html.dart' as html;
+import 'package:universal_html/prefer_universal/html.dart' as html;
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
@@ -124,7 +124,9 @@ class AppEngineCocoonService implements CocoonService {
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
 
     // This line is dangerous as it fails silently. Be careful.
-    html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
+    html.document.window.cookieStore
+        .set('X-Flutter-IdToken', idToken, <String, String>{'path': '/'});
+    // html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
     // This wait is a hack as the above line is not synchronous. It takes time
     // to write the cookie back to the browser. This is required before making
     // the download request.
