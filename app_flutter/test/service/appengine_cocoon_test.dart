@@ -13,6 +13,7 @@ import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
+import 'package:app_flutter/service/downloader_mobile.dart';
 import 'package:app_flutter/service/cocoon.dart';
 
 // This is based off data the Cocoon backend sends out from v1.
@@ -311,8 +312,33 @@ void main() {
         expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
             throwsA(const TypeMatcher<AssertionError>()));
       });
+
+      test('should send correct request to downloader service', () async {
+        final Downloader mockDownloader = MockDownloader();
+        when(mockDownloader.download(
+                argThat(contains('/api/get-log?ownerKey=')),
+                'test_task_shashan_1.log',
+                idToken: 'abc123'))
+            .thenAnswer((_) => Future<bool>.value(true));
+        service = AppEngineCocoonService(
+            client: MockClient((Request request) async {
+              return Response('', 200);
+            }),
+            downloader: mockDownloader);
+
+        expect(
+            await service.downloadLog(
+                Task()
+                  ..name = 'test_task'
+                  ..attempts = 1,
+                'abc123',
+                'shashankabcdefghijklmno'),
+            isTrue);
+      });
     });
   });
 }
 
 class MockHttpClient extends Mock implements Client {}
+
+class MockDownloader extends Mock implements Downloader {}
