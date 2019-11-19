@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:html' as html;
 import 'dart:io' hide File;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
-import 'package:universal_html/prefer_universal/html.dart';
+import 'package:universal_html/prefer_sdk/html.dart';
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
@@ -123,22 +124,14 @@ class AppEngineCocoonService implements CocoonService {
     final String getTaskLogUrl =
         _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
 
-    /// This API endpoint returns the log in the body of the response.
-    final http.Response response = await _client.get(
-      getTaskLogUrl,
-      headers: <String, String>{
-        'X-Flutter-IdToken': idToken,
-      },
-    );
+    // This line is dangerous as it fails silently. Be careful.
+    html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
+    // This wait is a hack as the above line is not synchronous. It takes time
+    // to write the cookie back to the browser before the request can be made.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
-    if (response.statusCode != HttpStatus.ok) {
-      print(response.body);
-      return false;
-    }
-
-    final String logEncodedContent = Uri.encodeComponent(response.body);
     AnchorElement()
-      ..href = 'data:text/plain;charset=utf8,$logEncodedContent'
+      ..href = getTaskLogUrl
       ..setAttribute('download', '${task.name}_${task.endTimestamp}.log')
       ..click();
 
