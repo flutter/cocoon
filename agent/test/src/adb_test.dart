@@ -10,7 +10,49 @@ import 'package:collection/collection.dart';
 import 'package:cocoon_agent/src/adb.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
+
 void main() {
+  group('AndroidDeviceDiscovery', () {
+    FakeAndroidDeviceDiscovery deviceDiscovery;
+
+    setUp(() {
+      deviceDiscovery = FakeAndroidDeviceDiscovery();
+    });
+
+    test('deviceDiscovery no retries', () async {
+      deviceDiscovery.outputs = <dynamic>['List of devices attached'];
+      expect(await deviceDiscovery.discoverDevices(), isEmpty);
+      StringBuffer sb = new StringBuffer();
+      sb.writeln('List of devices attached');
+      sb.writeln('ZY223JQNMR      device');
+      deviceDiscovery.outputs = <dynamic>[sb.toString()];
+      List<Device> devices = await deviceDiscovery.discoverDevices();
+      expect(devices.length, equals(1));
+      expect(devices[0].deviceId, equals('ZY223JQNMR'));
+    });
+
+    test('deviceDiscovery retries', () async {
+      StringBuffer sb = new StringBuffer();
+      sb.writeln('List of devices attached');
+      sb.writeln('ZY223JQNMR      device');
+      deviceDiscovery.outputs = <dynamic>[
+        new TimeoutException('a'), new TimeoutException('b'),
+        sb.toString()];
+      List<Device> devices = await deviceDiscovery.discoverDevices(retriesDelay: 1);
+      expect(devices.length, equals(1));
+      expect(devices[0].deviceId, equals('ZY223JQNMR'));
+    });
+
+    test('deviceDiscovery fails', () async {
+      deviceDiscovery.outputs = <dynamic>[
+        new TimeoutException('a'), new TimeoutException('b'),
+        new TimeoutException('c')];
+      expect(() => deviceDiscovery.discoverDevices(
+        retriesDelay: 1),
+        throwsA(TypeMatcher<TimeoutException>()));
+    });
+  });
+
   group('Android device', () {
     AndroidDevice device;
 
@@ -241,4 +283,30 @@ class FakeDevice extends AndroidDevice {
     dynamic exitError = exitErrorFactory();
     if (exitError != null) throw exitError;
   }
+}
+
+class FakeAndroidDeviceDiscovery extends AndroidDeviceDiscovery {
+
+  FakeAndroidDeviceDiscovery():super.testing();
+
+  List<dynamic> _outputs;
+  int _pos = 0;
+
+  set outputs(List<dynamic> outputs) {
+    _pos = 0;
+    _outputs = outputs;
+  }
+
+  @override
+  Future<String> deviceListOutput() async {
+    _pos++;
+    if (_outputs[_pos - 1] is String) {
+      return _outputs[_pos - 1] as String;
+    } else {
+      throw _outputs[_pos - 1];
+    }
+  }
+
+  @override
+  void killAdbServer() async {}
 }

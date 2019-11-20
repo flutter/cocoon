@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show LineSplitter;
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 
@@ -30,7 +31,7 @@ abstract class DeviceDiscovery {
   }
 
   /// Lists all available devices' IDs.
-  Future<List<Device>> discoverDevices();
+  Future<List<Device>> discoverDevices({int retriesDelay=10000});
 
   /// Checks the health of the available devices.
   Future<Map<String, HealthCheckResult>> checkDevices();
@@ -88,6 +89,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
   AndroidDeviceDiscovery._();
 
+  @visibleForTesting
+  AndroidDeviceDiscovery.testing();
+
   // Parses information about a device. Example:
   //
   // 015d172c98400a03       device usb:340787200X product:nakasi model:Nexus_7 device:grouper
@@ -95,12 +99,38 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   static AndroidDeviceDiscovery _instance;
 
+  Future<String> deviceListOutput() async {
+    return eval(config.adbPath, <String>['devices', '-l'], canFail: false).timeout(
+      Duration(seconds: 15));
+  }
+
+  void killAdbServer() async {
+    if (Platform.isWindows) {
+      await killAllRunningProcessesOnWindows('adb');
+    } else {
+      await exec(config.adbPath, <String>['kill-server'], canFail: false);
+    }
+  }
+
   @override
-  Future<List<Device>> discoverDevices() async {
-    List<String> output =
-        (await eval(config.adbPath, ['devices', '-l'], canFail: false))
-            .trim()
-            .split('\n');
+  Future<List<Device>> discoverDevices({int retriesDelay=10000}) async {
+    int retry = 0;
+    bool adbOk = false;
+    List<String> output;
+    do {
+      retry++;
+      try {
+        String result = await deviceListOutput();
+        output = result.trim().split('\n');
+        adbOk = true;
+      } on TimeoutException {
+        if (retry >= 3) {
+          throw new TimeoutException('Can not get devices data');
+        }
+        killAdbServer();
+        await Future<void>.delayed(Duration(milliseconds: retriesDelay));
+      }
+    } while (!adbOk && retry < 3);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
@@ -121,7 +151,6 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
         throw 'Failed to parse device from adb output: $line';
       }
     }
-
     return results.map((String id) => AndroidDevice(deviceId: id)).toList();
   }
 
@@ -151,17 +180,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     // Restarting `adb` helps with keeping device connections alive. When `adb`
     // runs non-stop for too long it loses connections to devices. There may be
     // a better method, but so far that's the best one I've found.
-    await exec(config.adbPath, <String>['kill-server'], canFail: false);
-
+    killAdbServer();
     // Immediately after killing the `adb` server, the server may deny connections.
     // So we wait until first successful `adb devices -l`.
-    int retry = 0;
-    bool adbOk = false;
-    do {
-      retry++;
-      await Future<void>.delayed(const Duration(seconds: 1));
-      adbOk = await exec(config.adbPath, <String>['devices', '-l'], canFail: true) == 0;
-    } while (!adbOk && retry < 3);
+    await discoverDevices();
   }
 }
 
@@ -277,7 +299,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices() async {
+  Future<List<Device>> discoverDevices({int retriesDelay=10000}) async {
     List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
     if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds
