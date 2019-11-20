@@ -60,4 +60,34 @@ void main() {
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
     expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
   });
+
+  testWidgets('show error snackbar when error occurs',
+      (WidgetTester tester) async {
+    final FakeFlutterBuildState buildState = FakeFlutterBuildState();
+    buildState.errors.message = 'ERRROR';
+
+    await tester.pumpWidget(
+        MaterialApp(home: BuildDashboardPage(buildState: buildState)));
+
+    expect(find.text(buildState.errors.message), findsNothing);
+
+    // propagate the error message
+    buildState.errors.notifyListeners();
+
+    await tester
+        .pump(const Duration(milliseconds: 750)); // open animation for snackbar
+
+    expect(find.text(buildState.errors.message), findsOneWidget);
+
+    // Snackbar message should go away after its duration
+    await tester.pumpAndSettle(
+        BuildDashboardPage.errorSnackbarDuration); // wait the duration
+    await tester.pump(); // schedule animation
+    await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+    // Wait another snackbar duration to prevent a race condition and ensure it clears
+    await tester.pumpAndSettle(BuildDashboardPage.errorSnackbarDuration);
+
+    expect(find.text(buildState.errors.message), findsNothing);
+  });
 }

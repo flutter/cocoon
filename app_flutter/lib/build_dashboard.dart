@@ -11,6 +11,11 @@ import 'status_grid.dart';
 
 /// [BuildDashboard] parent widget that manages the state of the dashboard.
 class BuildDashboardPage extends StatefulWidget {
+  BuildDashboardPage({FlutterBuildState buildState})
+      : buildState = buildState ?? FlutterBuildState();
+
+  final FlutterBuildState buildState;
+
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
   @override
@@ -18,12 +23,15 @@ class BuildDashboardPage extends StatefulWidget {
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  final FlutterBuildState buildState = FlutterBuildState();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  FlutterBuildState buildState;
 
   @override
   void initState() {
     super.initState();
+
+    buildState = widget.buildState;
 
     buildState.startFetchingBuildStateUpdates();
 
