@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
@@ -121,24 +122,20 @@ class CommitOverlayContents extends StatelessWidget {
                     backgroundColor: Colors.transparent,
                   ),
                   // TODO(chillers): Show commit message here instead: https://github.com/flutter/cocoon/issues/435
-                  title: Text(commit.sha),
+                  // Shorten the SHA as we only need first 7 digits to be able
+                  // to lookup the commit.
+                  title: SelectableText(commit.sha.substring(0, 7)),
                   subtitle: Text(commit.author),
                 ),
                 ButtonBar(
                   children: <Widget>[
-                    IconButton(
-                      icon: const Icon(Icons.repeat),
-                      onPressed: () {
-                        // TODO(chillers): rerun all tests for this commit
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.open_in_new),
-                      onPressed: () async {
-                        final String githubUrl =
-                            'https://github.com/${commit.repository}/commit/${commit.sha}';
-                        launch(githubUrl);
-                      },
+                    ProgressButton(
+                      defaultWidget: const Text('GitHub'),
+                      progressWidget: const CircularProgressIndicator(),
+                      width: 100,
+                      height: 50,
+                      onPressed: _openGithub,
+                      animate: false,
                     ),
                   ],
                 ),
@@ -148,5 +145,11 @@ class CommitOverlayContents extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _openGithub() async {
+    final String githubUrl =
+        'https://github.com/${commit.repository}/commit/${commit.sha}';
+    launch(githubUrl);
   }
 }

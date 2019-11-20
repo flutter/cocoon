@@ -40,13 +40,14 @@ void main() {
         ),
       ));
 
-      expect(find.text(expectedCommit.sha), findsNothing);
+      final String shortSha = expectedCommit.sha.substring(0, 7);
+      expect(find.text(shortSha), findsNothing);
       expect(find.text(expectedCommit.author), findsNothing);
 
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
 
-      expect(find.text(expectedCommit.sha), findsOneWidget);
+      expect(find.text(shortSha), findsOneWidget);
       expect(find.text(expectedCommit.author), findsOneWidget);
     });
 
@@ -69,7 +70,7 @@ void main() {
       expect(find.text(expectedCommit.sha), findsNothing);
     });
 
-    testWidgets('tapping redirect button should redirect to Github',
+    testWidgets('tapping GitHub button should redirect to GitHub',
         (WidgetTester tester) async {
       // The url_launcher calls get logged in this channel
       const MethodChannel channel =
@@ -90,7 +91,7 @@ void main() {
       await tester.pump();
 
       // Tap the redirect button
-      await tester.tap(find.byIcon(Icons.open_in_new));
+      await tester.tap(find.text('GitHub'));
       await tester.pump();
 
       expect(

@@ -140,7 +140,7 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
+          'Attempts: ${expectedTask.attempts}\nDuration: 0 minutes\nAgent: ${expectedTask.reservedForAgentId}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -155,6 +155,34 @@ void main() {
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
+    });
+
+    testWidgets('overlay message for nondevicelab tasks',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'cirrus'
+                ..status = 'Succeeeded',
+            ),
+          ),
+        ),
+      );
+
+      const String expectedTaskInfoString = 'Task was run outside of devicelab';
+      expect(find.text(expectedTask.name), findsNothing);
+      expect(find.text(expectedTaskInfoString), findsNothing);
+
+      // Ensure the task indicator isn't showing when overlay is not shown
+      expect(find.byKey(const Key('task-overlay-key')), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTaskInfoString), findsOneWidget);
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
@@ -206,7 +234,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -246,7 +274,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
