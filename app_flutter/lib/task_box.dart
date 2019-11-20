@@ -323,7 +323,7 @@ class TaskOverlayContents extends StatelessWidget {
                 ProgressButton(
                   defaultWidget: const Text('Rerun'),
                   progressWidget: const CircularProgressIndicator(),
-                  width: 120,
+                  width: 70,
                   height: 50,
                   onPressed: _rerunTask,
                   animate: false,
