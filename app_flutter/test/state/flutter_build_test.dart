@@ -82,7 +82,7 @@ void main() {
       verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
 
       expect(buildState.statuses, originalData);
-      expect(buildState.statuses.error, 'error');
+      expect(buildState.errors.message, 'error');
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
@@ -96,7 +96,7 @@ void main() {
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      final bool originalData = buildState.isTreeBuilding.data;
+      final bool originalData = buildState.isTreeBuilding;
 
       when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
           Future<CocoonResponse<bool>>.value(
@@ -105,8 +105,8 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       verify(mockService.fetchTreeBuildStatus()).called(greaterThan(1));
 
-      expect(buildState.isTreeBuilding.data, originalData);
-      expect(buildState.isTreeBuilding.error, 'tree error');
+      expect(buildState.isTreeBuilding, originalData);
+      expect(buildState.errors.message, 'tree error');
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();

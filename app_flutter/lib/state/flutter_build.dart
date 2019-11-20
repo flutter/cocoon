@@ -106,6 +106,7 @@ class FlutterBuildState extends ChangeNotifier {
   @override
   void dispose() {
     refreshTimer?.cancel();
+    errors.dispose();
     super.dispose();
   }
 }
