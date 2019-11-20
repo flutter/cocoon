@@ -59,7 +59,7 @@ Future<bool> _buildAngularDartApp() async {
 
   final Process buildProcess = await Process.start(
     'pub',
-    <String>['run', 'build_runner', 'build', '--release', '--output', 'build'],
+    <String>['run', 'build_runner', 'build', '--release', '--output', 'build', '--delete-conflicting-outputs'],
     workingDirectory: angularDartProjectDirectory,
   );
   await stdout.addStream(buildProcess.stdout);
@@ -100,7 +100,7 @@ Future<bool> _buildFlutterWebApp() async {
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
   final ProcessResult result = await Process.run('cp',
-      <String>['-r', '$angularDartProjectDirectory/build/web/', 'build/web']);
+      <String>['-r', '$angularDartProjectDirectory/build/web/', 'build/']);
 
   return result.exitCode == 0;
 }
