@@ -72,7 +72,7 @@ void main() {
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      final List<CommitStatus> originalData = buildState.statuses.data;
+      final List<CommitStatus> originalData = buildState.statuses;
 
       when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
@@ -81,7 +81,7 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
 
-      expect(buildState.statuses.data, originalData);
+      expect(buildState.statuses, originalData);
       expect(buildState.statuses.error, 'error');
 
       // Tear down fails to cancel the timer before the test is over

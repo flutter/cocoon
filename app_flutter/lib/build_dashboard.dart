@@ -19,16 +19,14 @@ class BuildDashboardPage extends StatefulWidget {
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
   final FlutterBuildState buildState = FlutterBuildState();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
 
     buildState.startFetchingBuildStateUpdates();
-  }
 
-  @override
-  Widget build(BuildContext context) {
     buildState.errors.addListener(() {
       print(buildState.errors.message);
       final Row snackbarContent = Row(
@@ -38,7 +36,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
           Text(buildState.errors.message)
         ],
       );
-      Scaffold.of(context).showSnackBar(
+      _scaffoldKey.currentState.showSnackBar(
         SnackBar(
           content: snackbarContent,
           backgroundColor: Theme.of(context).errorColor,
@@ -46,8 +44,13 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
       );
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ChangeNotifierProvider<FlutterBuildState>(
-        builder: (_) => buildState, child: BuildDashboard());
+        builder: (_) => buildState,
+        child: BuildDashboard(scaffoldKey: _scaffoldKey));
   }
 
   @override
@@ -62,12 +65,16 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
+  const BuildDashboard({this.scaffoldKey});
+
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
-        key: const Key('build-dashboard-scaffold'),
+        key: scaffoldKey,
         appBar: AppBar(
           title: buildState.isTreeBuilding
               ? const Text('Tree is Open')
