@@ -35,6 +35,11 @@ class FakeCocoonService implements CocoonService {
     return false;
   }
 
+  @override
+  Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
+    return false;
+  }
+
   List<CommitStatus> _createFakeCommitStatuses() {
     final List<CommitStatus> stats = <CommitStatus>[];
 

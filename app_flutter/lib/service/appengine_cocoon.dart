@@ -13,6 +13,7 @@ import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'cocoon.dart';
+import 'downloader.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.
 ///
@@ -21,8 +22,9 @@ class AppEngineCocoonService implements CocoonService {
   /// Creates a new [AppEngineCocoonService].
   ///
   /// If a [client] is not specified, a new [http.Client] instance is created.
-  AppEngineCocoonService({http.Client client})
-      : _client = client ?? http.Client();
+  AppEngineCocoonService({http.Client client, Downloader downloader})
+      : _client = client ?? http.Client(),
+        _downloader = downloader ?? Downloader();
 
   /// The Cocoon API endpoint to query
   ///
@@ -30,6 +32,8 @@ class AppEngineCocoonService implements CocoonService {
   static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
 
   final http.Client _client;
+
+  final Downloader _downloader;
 
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
@@ -98,6 +102,27 @@ class AppEngineCocoonService implements CocoonService {
         }));
 
     return response.statusCode == HttpStatus.ok;
+  }
+
+  /// Downloads the log for [task] to the local storage of the current device.
+  /// Returns true if write was successful, and false if there was a failure.
+  ///
+  /// Only works on the web platform.
+  @override
+  Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
+    assert(task != null);
+    assert(idToken != null);
+
+    final String getTaskLogUrl =
+        _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
+
+    // Only show the first 7 characters of the commit sha. This amount is unique
+    // enough to allow lookup of a commit.
+    final String shortSha = commitSha.substring(0, 7);
+
+    final String fileName = '${task.name}_${shortSha}_${task.attempts}.log';
+
+    return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint

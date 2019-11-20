@@ -98,4 +98,7 @@ class FakeFlutterBuildState extends ChangeNotifier
   @override
   CocoonResponse<List<CommitStatus>> statuses =
       CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
+
+  @override
+  Future<bool> downloadLog(Task task) => null;
 }

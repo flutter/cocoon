@@ -27,6 +27,10 @@ void main() {
       buildState = MockFlutterBuildState();
     });
 
+    tearDown(() {
+      clearInteractions(buildState);
+    });
+
     // Table Driven Approach to ensure every message does show the corresponding color
     TaskBox.statusColor.forEach((String message, Color color) {
       testWidgets('is the color $color when given the message $message',
@@ -259,7 +263,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     });
 
-    testWidgets('view log button opens log url for public log',
+    testWidgets('log button opens log url for public log',
         (WidgetTester tester) async {
       const MethodChannel channel =
           MethodChannel('plugins.flutter.io/url_launcher');
@@ -284,7 +288,7 @@ void main() {
       await tester.pump();
 
       // View log
-      await tester.tap(find.text('View log'));
+      await tester.tap(find.text('Log'));
       await tester.pump();
 
       expect(
@@ -303,18 +307,10 @@ void main() {
       );
     });
 
-    testWidgets('view log button opens log url for devicelab log',
+    testWidgets('log button calls build state to download devicelab log',
         (WidgetTester tester) async {
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      channel.setMockMethodCallHandler((MethodCall methodCall) async {
-        log.add(methodCall);
-      });
-
-      final GoogleSignInService mockAuth = MockGoogleSignInService();
-      when(mockAuth.idToken).thenAnswer((_) => Future<String>.value('abc123'));
-      when(buildState.authService).thenReturn(mockAuth);
+      when(buildState.downloadLog(any))
+          .thenAnswer((_) => Future<bool>.value(true));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -330,26 +326,53 @@ void main() {
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
-      // View log
-      await tester.tap(find.text('View log'));
+      verifyNever(buildState.downloadLog(any));
+
+      // Click log button
+      await tester.tap(find.text('Log'));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': logUrl(expectedTask),
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{
-              'X-Flutter-IdToken': 'abc123',
-            }
-          })
-        ],
+      verify(buildState.downloadLog(any)).called(1);
+    });
+
+    testWidgets('failing to download devicelab log shows error snackbar',
+        (WidgetTester tester) async {
+      when(buildState.downloadLog(any))
+          .thenAnswer((_) => Future<bool>.value(false));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
       );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // Click log button
+      await tester.tap(find.text('Log'));
+      await tester.pump();
+
+      // expect error snackbar to be shown
+      await tester
+          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+
+      expect(find.text(TaskOverlayContents.downloadLogErrorMessage),
+          findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          TaskOverlayContents.downloadLogSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      expect(
+          find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
     });
   });
 }

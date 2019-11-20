@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -95,6 +95,17 @@ class FlutterBuildState extends ChangeNotifier {
 
   Future<bool> rerunTask(Task task) async {
     return _cocoonService.rerunTask(task, await authService.idToken);
+  }
+
+  Future<bool> downloadLog(Task task) async {
+    // In production use, this usually goes through the last 5 CommitStatus.
+    // Worst case it can be O(N), but it is inexpensive.
+    final Commit commit = statuses.data
+        .firstWhere(
+            (CommitStatus status) => status.commit.key == task.commitKey)
+        .commit;
+    return _cocoonService.downloadLog(
+        task, await authService.idToken, commit.sha);
   }
 
   @override

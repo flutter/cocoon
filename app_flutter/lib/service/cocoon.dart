@@ -36,7 +36,11 @@ abstract class CocoonService {
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.
-  Future<bool> rerunTask(Task task, String accessToken);
+  Future<bool> rerunTask(Task task, String idToken);
+
+  /// Writes the log for [Task] to local storage of the current device.
+  /// Returns true if successful, false if failed.
+  Future<bool> downloadLog(Task task, String idToken, String commitSha);
 }
 
 /// Wrapper class for data this state serves.
