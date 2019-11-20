@@ -68,7 +68,7 @@ Future<bool> _buildAngularDartApp() async {
   // version. There are some administrative features missing in the Flutter
   // version so we still offer the old build dashboard.
   await Process.run(
-      'mv', <String>['build/web/build.html', 'build/web/build-old.html'],
+      'mv', <String>['build/web/build.html', 'build/web/old_build.html'],
       workingDirectory: angularDartProjectDirectory);
 
   return await buildProcess.exitCode == 0;
