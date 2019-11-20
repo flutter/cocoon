@@ -292,6 +292,8 @@ class TaskOverlayContents extends StatelessWidget {
   Widget build(BuildContext context) {
     final int taskDurationInSeconds =
         (task.endTimestamp - task.startTimestamp).toInt() ~/ 100;
+    final int taskDurationInMinutes = taskDurationInSeconds ~/ 60;
+
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -300,9 +302,11 @@ class TaskOverlayContents extends StatelessWidget {
             leading:
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
             title: Text(task.name),
-            subtitle: Text('Attempts: ${task.attempts}\n'
-                'Duration: $taskDurationInSeconds seconds\n'
-                'Agent: ${task.reservedForAgentId}'),
+            subtitle: isDevicelab(task)
+                ? Text('Attempts: ${task.attempts}\n'
+                    'Duration: $taskDurationInMinutes minutes\n'
+                    'Agent: ${task.reservedForAgentId}')
+                : const Text('Task was run outside of devicelab'),
             contentPadding: const EdgeInsets.all(16.0),
           ),
           ButtonBar(
