@@ -206,7 +206,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -246,7 +246,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation

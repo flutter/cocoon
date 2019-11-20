@@ -290,6 +290,8 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int taskDurationInSeconds =
+        (task.endTimestamp - task.startTimestamp).toInt() ~/ 100;
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -299,8 +301,9 @@ class TaskOverlayContents extends StatelessWidget {
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
             title: Text(task.name),
             subtitle: Text('Attempts: ${task.attempts}\n'
-                'Duration: ${task.endTimestamp - task.startTimestamp} seconds\n'
+                'Duration: $taskDurationInSeconds seconds\n'
                 'Agent: ${task.reservedForAgentId}'),
+            contentPadding: const EdgeInsets.all(16.0),
           ),
           ButtonBar(
             children: <Widget>[
@@ -314,7 +317,7 @@ class TaskOverlayContents extends StatelessWidget {
               ),
               if (isDevicelab(task))
                 ProgressButton(
-                  defaultWidget: const Text('Rerun task'),
+                  defaultWidget: const Text('Rerun'),
                   progressWidget: const CircularProgressIndicator(),
                   width: 120,
                   height: 50,
