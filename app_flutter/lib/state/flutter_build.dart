@@ -75,6 +75,7 @@ class FlutterBuildState extends ChangeNotifier {
         } else {
           _statuses = response;
         }
+        notifyListeners();
       }),
       _cocoonService
           .fetchTreeBuildStatus()
@@ -84,10 +85,9 @@ class FlutterBuildState extends ChangeNotifier {
         } else {
           _isTreeBuilding = response;
         }
+        notifyListeners();
       }),
     ]);
-
-    notifyListeners();
   }
 
   Future<void> signIn() => authService.signIn();
