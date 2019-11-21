@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
@@ -300,12 +300,14 @@ void main() {
         log.add(methodCall);
       });
       final Task publicTask = Task()..stageName = 'cirrus';
+      final Commit commit = Commit()..sha = 'github123';
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: TaskBox(
               buildState: buildState,
               task: publicTask,
+              commit: commit,
             ),
           ),
         ),
@@ -323,7 +325,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': logUrl(publicTask),
+            'url': logUrl(publicTask, commit: commit),
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,
@@ -337,7 +339,7 @@ void main() {
 
     testWidgets('log button calls build state to download devicelab log',
         (WidgetTester tester) async {
-      when(buildState.downloadLog(any))
+      when(buildState.downloadLog(any, any))
           .thenAnswer((_) => Future<bool>.value(true));
       await tester.pumpWidget(
         MaterialApp(
@@ -354,18 +356,18 @@ void main() {
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
-      verifyNever(buildState.downloadLog(any));
+      verifyNever(buildState.downloadLog(any, any));
 
       // Click log button
       await tester.tap(find.text('Log'));
       await tester.pump();
 
-      verify(buildState.downloadLog(any)).called(1);
+      verify(buildState.downloadLog(any, any)).called(1);
     });
 
     testWidgets('failing to download devicelab log shows error snackbar',
         (WidgetTester tester) async {
-      when(buildState.downloadLog(any))
+      when(buildState.downloadLog(any, any))
           .thenAnswer((_) => Future<bool>.value(false));
       await tester.pumpWidget(
         MaterialApp(

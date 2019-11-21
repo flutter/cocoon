@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/task_helper.dart';
 
@@ -18,6 +18,9 @@ void main() {
       expect(logUrl(luciTask),
           'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
       final Task cirrusTask = Task()..stageName = 'cirrus';
+
+      expect(logUrl(cirrusTask, commit: Commit()..sha = 'abc123'),
+          'https://cirrus-ci.com/build/flutter/flutter/abc123');
 
       expect(logUrl(cirrusTask),
           'https://cirrus-ci.com/github/flutter/flutter/master');
