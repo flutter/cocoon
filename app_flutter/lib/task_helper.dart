@@ -28,10 +28,11 @@ class StageName {
 /// Devicelab tasks can be retrieved via an authenticated API endpoint.
 /// Cirrus logs are located via their [Commit.sha].
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
-String logUrl(Task task, Commit commit) {
-  if (task.stageName == StageName.cirrus) {
+String logUrl(Task task, {Commit commit}) {
+  if (task.stageName == StageName.cirrus && commit != null) {
     return '$cirrusUrl/${commit.sha}';
   } else if (_isExternal(task)) {
+    // Currently this is just LUCI, but is a catch all if new stages are added.
     return sourceConfigurationUrl(task);
   }
 

@@ -325,7 +325,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': logUrl(publicTask, commit),
+            'url': logUrl(publicTask, commit: commit),
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,

@@ -15,11 +15,11 @@ void main() {
         ..stageName = 'chromebot'
         ..name = 'mac_bot';
 
-      expect(logUrl(luciTask, Commit()),
+      expect(logUrl(luciTask),
           'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
-      expect(logUrl(cirrusTask, Commit()..sha = 'abc123'),
+      expect(logUrl(cirrusTask, commit: Commit()..sha = 'abc123'),
           'https://cirrus-ci.com/github/flutter/flutter/abc123');
     });
 
@@ -28,7 +28,7 @@ void main() {
         ..stageName = 'devicelab'
         ..name = 'test';
 
-      expect(logUrl(devicelabTask, Commit()),
+      expect(logUrl(devicelabTask),
           'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
     });
 

@@ -385,6 +385,6 @@ class TaskOverlayContents extends StatelessWidget {
     }
 
     /// Tasks outside of devicelab have public logs that we just redirect to.
-    launch(logUrl(task, commit));
+    launch(logUrl(task, commit: commit));
   }
 }
