@@ -169,7 +169,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
-      final bool mergeable = pullRequest['mergeable'] == 'MERGEABLE';
       final bool hasApproval = pullRequest['approvedReviews']['nodes'].isNotEmpty;
       final bool hasChangesRequested = pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
       final String sha = commit['oid'];
@@ -179,7 +178,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         ciSuccessful: ciSuccessful,
         hasApprovedReview: hasApproval,
         hasChangesRequested: hasChangesRequested,
-        mergeable: mergeable,
         number: number,
         sha: sha,
         labelId: labelId,
@@ -197,7 +195,6 @@ class _AutoMergeQueryResult {
     @required this.graphQLId,
     @required this.hasApprovedReview,
     @required this.hasChangesRequested,
-    @required this.mergeable,
     @required this.ciSuccessful,
     @required this.number,
     @required this.sha,
@@ -205,7 +202,6 @@ class _AutoMergeQueryResult {
   })  : assert(graphQLId != null),
         assert(hasApprovedReview != null),
         assert(hasChangesRequested != null),
-        assert(mergeable != null),
         assert(ciSuccessful != null),
         assert(number != null),
         assert(sha != null),
@@ -220,9 +216,6 @@ class _AutoMergeQueryResult {
   /// Whether the pull request has at least one change request review.
   final bool hasChangesRequested;
 
-  /// Whether the pull request is mergeable, i.e. has merge conflicts or not.
-  final bool mergeable;
-
   /// Whether CI has run successfully on the pull request.
   final bool ciSuccessful;
 
@@ -236,10 +229,10 @@ class _AutoMergeQueryResult {
   final String labelId;
 
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge => ciSuccessful && mergeable && hasApprovedReview && !hasChangesRequested;
+  bool get shouldMerge => ciSuccessful && hasApprovedReview && !hasChangesRequested;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel => !mergeable || !hasApprovedReview || hasChangesRequested;
+  bool get shouldRemoveLabel => !hasApprovedReview || hasChangesRequested;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {
@@ -250,9 +243,6 @@ class _AutoMergeQueryResult {
     buffer.writeln('This pull request is not suitable for automatic merging in its '
         'current state.');
     buffer.writeln();
-    if (!mergeable) {
-      buffer.writeln('- Please resolve merge conflicts before re-applying this label.');
-    }
     if (!hasApprovedReview) {
       buffer.writeln('- Please get at least one approved review before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
@@ -273,7 +263,6 @@ class _AutoMergeQueryResult {
         'ciSuccessful: $ciSuccessful, '
         'hasApprovedReview: $hasApprovedReview, '
         'hasChangesRequested: $hasChangesRequested, '
-        'mergeable: $mergeable, '
         'labelId: $labelId, '
         'shouldMerge: $shouldMerge}';
   }

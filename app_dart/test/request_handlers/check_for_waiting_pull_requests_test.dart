@@ -171,15 +171,11 @@ void main() {
       );
       final PullRequestHelper prNoReviews =
           PullRequestHelper(hasApprovedReview: false);
-      final PullRequestHelper prMergeConflict = PullRequestHelper(
-        mergeable: false,
-      );
       final PullRequestHelper prRed = PullRequestHelper(
         lastCommitSuccess: false,
       );
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
         lastCommitSuccess: false,
-        mergeable: false,
         hasApprovedReview: false,
         hasChangeRequestReview: true,
       );
@@ -187,7 +183,6 @@ void main() {
       flutterRepoPRs.add(prOneBadReview);
       flutterRepoPRs.add(prOneGoodOneBadReview);
       flutterRepoPRs.add(prNoReviews);
-      flutterRepoPRs.add(prMergeConflict);
       flutterRepoPRs.add(prRed); // ignored.
       flutterRepoPRs.add(prEverythingWrong);
 
@@ -237,23 +232,10 @@ void main() {
           MutationOptions(
             document: removeLabelMutation,
             variables: <String, dynamic>{
-              'id': prMergeConflict.id,
-              'sBody':
-                  '''This pull request is not suitable for automatic merging in its current state.
-
-- Please resolve merge conflicts before re-applying this label.
-''',
-              'labelId': base64LabelId,
-            },
-          ),
-          MutationOptions(
-            document: removeLabelMutation,
-            variables: <String, dynamic>{
               'id': prEverythingWrong.id,
               'sBody':
                   '''This pull request is not suitable for automatic merging in its current state.
 
-- Please resolve merge conflicts before re-applying this label.
 - Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 - This pull request has changes requested. Please resolve those before re-applying the label.
 ''',
@@ -321,7 +303,6 @@ class FakeGraphQLClient implements GraphQLClient {
 
 class PullRequestHelper {
   PullRequestHelper({
-    this.mergeable = true,
     this.hasApprovedReview = true,
     this.hasChangeRequestReview = false,
     this.lastCommitHash = oid,
@@ -334,7 +315,6 @@ class PullRequestHelper {
   final int _count;
   String get id => _count.toString();
 
-  final bool mergeable;
   final bool hasApprovedReview;
   final bool hasChangeRequestReview;
   final String lastCommitHash;
@@ -345,7 +325,6 @@ class PullRequestHelper {
     return <String, dynamic>{
       'id': id,
       'number': id.hashCode,
-      'mergeable': mergeable ? 'MERGEABLE' : 'CONFLICT',
       'approvedReviews': <String, dynamic>{
         'nodes': hasApprovedReview
             ? <dynamic>[
