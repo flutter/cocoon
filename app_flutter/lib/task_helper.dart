@@ -11,6 +11,7 @@ const String flutterGithubSourceUrl =
     'https://github.com/flutter/flutter/blob/master';
 const String flutterDashboardUrl = 'https://flutter-dashboard.appspot.com';
 const String cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
+const String cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
 const String luciUrl = 'https://ci.chromium.org/p/flutter';
 
 /// [Task.stageName] that maps to StageName enums.
@@ -30,7 +31,7 @@ class StageName {
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
 String logUrl(Task task, {Commit commit}) {
   if (task.stageName == StageName.cirrus && commit != null) {
-    return '$cirrusUrl/${commit.sha}';
+    return '$cirrusLogUrl/${commit.sha}';
   } else if (_isExternal(task)) {
     // Currently this is just LUCI, but is a catch all if new stages are added.
     return sourceConfigurationUrl(task);

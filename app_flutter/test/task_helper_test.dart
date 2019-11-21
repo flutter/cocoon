@@ -20,7 +20,10 @@ void main() {
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
       expect(logUrl(cirrusTask, commit: Commit()..sha = 'abc123'),
-          'https://cirrus-ci.com/github/flutter/flutter/abc123');
+          'https://cirrus-ci.com/build/flutter/flutter/abc123');
+
+      expect(logUrl(cirrusTask),
+          'https://cirrus-ci.com/github/flutter/flutter/master');
     });
 
     test('log url for devicelab tasks redirects to cocoon backend', () {
