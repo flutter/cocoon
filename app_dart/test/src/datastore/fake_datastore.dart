@@ -217,7 +217,7 @@ class FakeTransaction implements Transaction {
 
   @override
   Future<List<T>> lookup<T extends Model>(List<Key> keys) async {
-    final List<T> results = List<T>(keys.length);
+    final List<T> results = <T>[];
     for (Key key in keys) {
       if (deletes.contains(key)) {
         results.add(null);
