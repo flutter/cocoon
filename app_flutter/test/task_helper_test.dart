@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/task_helper.dart';
 
@@ -15,12 +15,12 @@ void main() {
         ..stageName = 'chromebot'
         ..name = 'mac_bot';
 
-      expect(logUrl(luciTask),
+      expect(logUrl(luciTask, Commit()),
           'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
-      expect(logUrl(cirrusTask),
-          'https://cirrus-ci.com/github/flutter/flutter/master');
+      expect(logUrl(cirrusTask, Commit()..sha = 'abc123'),
+          'https://cirrus-ci.com/github/flutter/flutter/abc123');
     });
 
     test('log url for devicelab tasks redirects to cocoon backend', () {
@@ -28,7 +28,7 @@ void main() {
         ..stageName = 'devicelab'
         ..name = 'test';
 
-      expect(logUrl(devicelabTask),
+      expect(logUrl(devicelabTask, Commit()),
           'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
     });
 

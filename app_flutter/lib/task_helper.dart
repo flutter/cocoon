@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 /// A collection of common utilities done with a [Task].
 
@@ -26,9 +26,12 @@ class StageName {
 /// Get the URL for [Task] to view its log.
 ///
 /// Devicelab tasks can be retrieved via an authenticated API endpoint.
+/// Cirrus logs are located via their [Commit.sha].
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
-String logUrl(Task task) {
-  if (_isExternal(task)) {
+String logUrl(Task task, Commit commit) {
+  if (task.stageName == StageName.cirrus) {
+    return '$cirrusUrl/${commit.sha}';
+  } else if (_isExternal(task)) {
     return sourceConfigurationUrl(task);
   }
 

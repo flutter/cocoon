@@ -163,6 +163,7 @@ class _StatusGridState extends State<StatusGrid> {
                   : null,
               buildState: widget.buildState,
               task: widget.taskMatrix.task(rowIndex, colIndex),
+              commit: widget.statuses[rowIndex].commit,
             )
           else
             SizedBox(

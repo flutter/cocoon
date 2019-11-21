@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/build_dashboard.dart';
@@ -100,5 +100,5 @@ class FakeFlutterBuildState extends ChangeNotifier
       CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
 
   @override
-  Future<bool> downloadLog(Task task) => null;
+  Future<bool> downloadLog(Task task, Commit commit) => null;
 }

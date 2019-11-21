@@ -97,13 +97,7 @@ class FlutterBuildState extends ChangeNotifier {
     return _cocoonService.rerunTask(task, await authService.idToken);
   }
 
-  Future<bool> downloadLog(Task task) async {
-    // In production use, this usually goes through the last 5 CommitStatus.
-    // Worst case it can be O(N), but it is inexpensive.
-    final Commit commit = statuses.data
-        .firstWhere(
-            (CommitStatus status) => status.commit.key == task.commitKey)
-        .commit;
+  Future<bool> downloadLog(Task task, Commit commit) async {
     return _cocoonService.downloadLog(
         task, await authService.idToken, commit.sha);
   }
