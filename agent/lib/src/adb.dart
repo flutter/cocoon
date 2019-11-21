@@ -115,7 +115,6 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<List<Device>> discoverDevices({int retriesDelayMs=10000}) async {
     int retry = 0;
-    bool adbOk = false;
     List<String> output;
     while (true) {
       try {
