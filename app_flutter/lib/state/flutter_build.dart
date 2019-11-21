@@ -49,6 +49,14 @@ class FlutterBuildState extends ChangeNotifier {
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
   FlutterBuildStateErrors errors = FlutterBuildStateErrors();
 
+  @visibleForTesting
+  static const String errorMessageFetchingStatuses =
+      'An error occured fetching build statuses from Cocoon';
+
+  @visibleForTesting
+  static const String errorMessageFetchingTreeStatus =
+      'An error occured fetching tree status from Cocoon';
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {
     if (refreshTimer != null) {
@@ -70,7 +78,8 @@ class FlutterBuildState extends ChangeNotifier {
           .fetchCommitStatuses()
           .then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
-          errors.message = response.error;
+          print(response.error);
+          errors.message = errorMessageFetchingStatuses;
           errors.notifyListeners();
         } else {
           _statuses = response.data;
@@ -81,7 +90,8 @@ class FlutterBuildState extends ChangeNotifier {
           .fetchTreeBuildStatus()
           .then((CocoonResponse<bool> response) {
         if (response.error != null) {
-          errors.message = response.error;
+          print(response.error);
+          errors.message = errorMessageFetchingTreeStatus;
           errors.notifyListeners();
         } else {
           _isTreeBuilding = response.data;
@@ -106,7 +116,6 @@ class FlutterBuildState extends ChangeNotifier {
   @override
   void dispose() {
     refreshTimer?.cancel();
-    errors.dispose();
     super.dispose();
   }
 }

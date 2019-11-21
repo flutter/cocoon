@@ -35,23 +35,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
     buildState.startFetchingBuildStateUpdates();
 
-    buildState.errors.addListener(() {
-      print(buildState.errors.message);
-      final Row snackbarContent = Row(
-        children: <Widget>[
-          const Icon(Icons.error),
-          const SizedBox(width: 10),
-          Text(buildState.errors.message)
-        ],
-      );
-      _scaffoldKey.currentState.showSnackBar(
-        SnackBar(
-          content: snackbarContent,
-          backgroundColor: Theme.of(context).errorColor,
-          duration: BuildDashboardPage.errorSnackbarDuration,
-        ),
-      );
-    });
+    buildState.errors.addListener(_showErrorSnackbar);
   }
 
   @override
@@ -61,9 +45,26 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
         child: BuildDashboard(scaffoldKey: _scaffoldKey));
   }
 
+  void _showErrorSnackbar() {
+    final Row snackbarContent = Row(
+      children: <Widget>[
+        const Icon(Icons.error),
+        const SizedBox(width: 10),
+        Text(buildState.errors.message)
+      ],
+    );
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: snackbarContent,
+        backgroundColor: Theme.of(context).errorColor,
+        duration: BuildDashboardPage.errorSnackbarDuration,
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    buildState.dispose();
+    buildState.errors.removeListener(_showErrorSnackbar);
     super.dispose();
   }
 }
