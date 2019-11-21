@@ -20,7 +20,7 @@ void main() {
 
     setUp(() {
       mockService = MockCocoonService();
-      buildState = FlutterBuildState(cocoonService: mockService);
+      buildState = FlutterBuildState(cocoonServiceValue: mockService);
 
       when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(

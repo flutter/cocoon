@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
@@ -18,7 +18,8 @@ import 'task_helper.dart';
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox({Key key, @required this.buildState, @required this.task})
+  const TaskBox(
+      {Key key, @required this.buildState, @required this.task, this.commit})
       : assert(task != null),
         assert(buildState != null),
         super(key: key);
@@ -28,6 +29,9 @@ class TaskBox extends StatefulWidget {
 
   /// [Task] to show information from.
   final Task task;
+
+  /// [Commit] for cirrus tasks to show log.
+  final Commit commit;
 
   /// Status messages that map to TaskStatus enums.
   // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
@@ -138,6 +142,7 @@ class _TaskBoxState extends State<TaskBox> {
         task: widget.task,
         taskStatus: status,
         closeCallback: _closeOverlay,
+        commit: widget.commit,
       ),
     );
 
@@ -159,6 +164,7 @@ class TaskOverlayEntry extends StatelessWidget {
     @required this.taskStatus,
     @required this.closeCallback,
     @required this.buildState,
+    this.commit,
   })  : assert(parentContext != null),
         assert(buildState != null),
         assert(task != null),
@@ -173,6 +179,9 @@ class TaskOverlayEntry extends StatelessWidget {
 
   /// The [Task] to display in the overlay
   final Task task;
+
+  /// [Commit] for cirrus tasks to show log.
+  final Commit commit;
 
   /// [Task.status] modified to take into account [Task.attempts] to create
   /// a more descriptive status.
@@ -223,6 +232,7 @@ class TaskOverlayEntry extends StatelessWidget {
             buildState: buildState,
             task: task,
             taskStatus: taskStatus,
+            commit: commit,
           ),
         ),
       ],
@@ -243,6 +253,7 @@ class TaskOverlayContents extends StatelessWidget {
     @required this.buildState,
     @required this.task,
     @required this.taskStatus,
+    this.commit,
   })  : assert(showSnackbarCallback != null),
         assert(buildState != null),
         assert(task != null),
@@ -261,6 +272,9 @@ class TaskOverlayContents extends StatelessWidget {
   /// a more descriptive status.
   final String taskStatus;
 
+  /// [Commit] for cirrus tasks to show log.
+  final Commit commit;
+
   @visibleForTesting
   static const String rerunErrorMessage = 'Failed to rerun task.';
   @visibleForTesting
@@ -268,6 +282,10 @@ class TaskOverlayContents extends StatelessWidget {
       'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
   static const Duration rerunSnackbarDuration = Duration(seconds: 15);
+  @visibleForTesting
+  static const String downloadLogErrorMessage = 'Failed to download task log.';
+  @visibleForTesting
+  static const Duration downloadLogSnackbarDuration = Duration(seconds: 15);
 
   /// A lookup table to define the [Icon] for this [taskStatus].
   static const Map<String, Icon> statusIcon = <String, Icon>{
@@ -286,6 +304,10 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int taskDurationInSeconds =
+        (task.endTimestamp - task.startTimestamp).toInt() ~/ 100;
+    final int taskDurationInMinutes = taskDurationInSeconds ~/ 60;
+
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -294,25 +316,28 @@ class TaskOverlayContents extends StatelessWidget {
             leading:
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
             title: Text(task.name),
-            subtitle: Text('Attempts: ${task.attempts}\n'
-                'Duration: ${task.endTimestamp - task.startTimestamp} seconds\n'
-                'Agent: ${task.reservedForAgentId}'),
+            subtitle: isDevicelab(task)
+                ? Text('Attempts: ${task.attempts}\n'
+                    'Duration: $taskDurationInMinutes minutes\n'
+                    'Agent: ${task.reservedForAgentId}')
+                : const Text('Task was run outside of devicelab'),
+            contentPadding: const EdgeInsets.all(16.0),
           ),
           ButtonBar(
             children: <Widget>[
               ProgressButton(
-                defaultWidget: const Text('View log'),
+                defaultWidget: const Text('Log'),
                 progressWidget: const CircularProgressIndicator(),
-                width: 100,
+                width: 60,
                 height: 50,
                 onPressed: _viewLog,
                 animate: false,
               ),
               if (isDevicelab(task))
                 ProgressButton(
-                  defaultWidget: const Text('Rerun task'),
+                  defaultWidget: const Text('Rerun'),
                   progressWidget: const CircularProgressIndicator(),
-                  width: 120,
+                  width: 70,
                   height: 50,
                   onPressed: _rerunTask,
                   animate: false,
@@ -337,13 +362,29 @@ class TaskOverlayContents extends StatelessWidget {
     );
   }
 
+  /// If [task] is in the devicelab, download the log. Otherwise, open the
+  /// url closest to where the log will be.
+  ///
+  /// If a devicelab log fails to download, show an error snackbar.
   Future<void> _viewLog() async {
-    // Only send access token for devicelab tasks since they require authentication
-    final Map<String, String> headers = isDevicelab(task)
-        ? <String, String>{
-            'X-Flutter-AccessToken': buildState.authService.accessToken,
-          }
-        : null;
-    launch(logUrl(task), headers: headers);
+    if (isDevicelab(task)) {
+      final bool success = await buildState.downloadLog(task, commit);
+
+      if (!success) {
+        /// Only show [Snackbar] on failure since the user's device will
+        /// indicate a download has been made.
+        showSnackbarCallback(
+          const SnackBar(
+            content: Text(downloadLogErrorMessage),
+            duration: rerunSnackbarDuration,
+          ),
+        );
+      }
+
+      return;
+    }
+
+    /// Tasks outside of devicelab have public logs that we just redirect to.
+    launch(logUrl(task, commit: commit));
   }
 }

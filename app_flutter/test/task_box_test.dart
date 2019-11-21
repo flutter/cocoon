@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
@@ -25,6 +25,10 @@ void main() {
 
     setUpAll(() {
       buildState = MockFlutterBuildState();
+    });
+
+    tearDown(() {
+      clearInteractions(buildState);
     });
 
     // Table Driven Approach to ensure every message does show the corresponding color
@@ -136,7 +140,7 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\nDuration: 0 seconds\nAgent: ${expectedTask.reservedForAgentId}';
+          'Attempts: ${expectedTask.attempts}\nDuration: 0 minutes\nAgent: ${expectedTask.reservedForAgentId}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -151,6 +155,34 @@ void main() {
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
+    });
+
+    testWidgets('overlay message for nondevicelab tasks',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'cirrus'
+                ..status = 'Succeeeded',
+            ),
+          ),
+        ),
+      );
+
+      const String expectedTaskInfoString = 'Task was run outside of devicelab';
+      expect(find.text(expectedTask.name), findsNothing);
+      expect(find.text(expectedTaskInfoString), findsNothing);
+
+      // Ensure the task indicator isn't showing when overlay is not shown
+      expect(find.byKey(const Key('task-overlay-key')), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTaskInfoString), findsOneWidget);
     });
 
     testWidgets('closes overlay on click out', (WidgetTester tester) async {
@@ -202,7 +234,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -242,7 +274,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun task'));
+      await tester.tap(find.text('Rerun'));
       await tester.pump();
       await tester
           .pump(const Duration(milliseconds: 750)); // 750ms open animation
@@ -259,7 +291,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     });
 
-    testWidgets('view log button opens log url for public log',
+    testWidgets('log button opens log url for public log',
         (WidgetTester tester) async {
       const MethodChannel channel =
           MethodChannel('plugins.flutter.io/url_launcher');
@@ -268,12 +300,14 @@ void main() {
         log.add(methodCall);
       });
       final Task publicTask = Task()..stageName = 'cirrus';
+      final Commit commit = Commit()..sha = 'github123';
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: TaskBox(
               buildState: buildState,
               task: publicTask,
+              commit: commit,
             ),
           ),
         ),
@@ -284,14 +318,14 @@ void main() {
       await tester.pump();
 
       // View log
-      await tester.tap(find.text('View log'));
+      await tester.tap(find.text('Log'));
       await tester.pump();
 
       expect(
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': logUrl(publicTask),
+            'url': logUrl(publicTask, commit: commit),
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,
@@ -303,18 +337,10 @@ void main() {
       );
     });
 
-    testWidgets('view log button opens log url for devicelab log',
+    testWidgets('log button calls build state to download devicelab log',
         (WidgetTester tester) async {
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      channel.setMockMethodCallHandler((MethodCall methodCall) async {
-        log.add(methodCall);
-      });
-
-      final GoogleSignInService mockAuth = MockGoogleSignInService();
-      when(mockAuth.accessToken).thenReturn('abc123');
-      when(buildState.authService).thenReturn(mockAuth);
+      when(buildState.downloadLog(any, any))
+          .thenAnswer((_) => Future<bool>.value(true));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -330,26 +356,53 @@ void main() {
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
-      // View log
-      await tester.tap(find.text('View log'));
+      verifyNever(buildState.downloadLog(any, any));
+
+      // Click log button
+      await tester.tap(find.text('Log'));
       await tester.pump();
 
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': logUrl(expectedTask),
-            'useSafariVC': true,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{
-              'X-Flutter-AccessToken': 'abc123',
-            }
-          })
-        ],
+      verify(buildState.downloadLog(any, any)).called(1);
+    });
+
+    testWidgets('failing to download devicelab log shows error snackbar',
+        (WidgetTester tester) async {
+      when(buildState.downloadLog(any, any))
+          .thenAnswer((_) => Future<bool>.value(false));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+            ),
+          ),
+        ),
       );
+
+      // Open the overlay
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      // Click log button
+      await tester.tap(find.text('Log'));
+      await tester.pump();
+
+      // expect error snackbar to be shown
+      await tester
+          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+
+      expect(find.text(TaskOverlayContents.downloadLogErrorMessage),
+          findsOneWidget);
+
+      // Snackbar message should go away after its duration
+      await tester.pumpAndSettle(
+          TaskOverlayContents.downloadLogSnackbarDuration); // wait the duration
+      await tester.pump(); // schedule animation
+      await tester.pump(const Duration(milliseconds: 1500)); // close animation
+
+      expect(
+          find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
     });
   });
 }

@@ -8,14 +8,17 @@ import 'build_dashboard.dart';
 
 void main() => runApp(MyApp());
 
+final ThemeData theme = ThemeData(
+  appBarTheme: AppBarTheme(color: Colors.green),
+  primarySwatch: Colors.blue,
+);
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Build Dashboard',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: theme,
       home: BuildDashboardPage(),
     );
   }

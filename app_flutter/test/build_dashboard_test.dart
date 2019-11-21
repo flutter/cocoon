@@ -2,74 +2,103 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart' as test;
+import 'package:provider/provider.dart';
 
-import 'package:app_flutter/build_dashboard.dart';
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+
 import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/service/fake_cocoon.dart';
+import 'package:app_flutter/build_dashboard.dart';
+import 'package:app_flutter/main.dart' as app show theme;
+import 'package:app_flutter/service/cocoon.dart';
+import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
 void main() {
-  group('UserAvatar', () {
-    GoogleSignInService authService;
+  testWidgets('shows sign in button', (WidgetTester tester) async {
+    final FlutterBuildState buildState = FlutterBuildState();
 
-    setUp(() {
-      authService = MockGoogleSignInService();
-    });
+    await tester.pumpWidget(MaterialApp(
+        home: ChangeNotifierProvider<FlutterBuildState>(
+      builder: (_) => buildState,
+      child: BuildDashboard(),
+    )));
 
-    testWidgets('shows sign in button when not signed in',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(false);
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
-          buildState: buildState,
-        ),
-      ));
+    expect(find.byType(SignInButton), findsOneWidget);
+  });
 
-      expect(find.text('Sign in'), findsOneWidget);
-    });
+  testWidgets('shows tree closed when fetch tree status is false',
+      (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState();
 
-    testWidgets('sign in button activates google sign in when pressed',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(false);
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
-          buildState: buildState,
-        ),
-      ));
+    await tester.pumpWidget(MaterialApp(
+        theme: app.theme,
+        home: ChangeNotifierProvider<FlutterBuildState>(
+          builder: (_) => fakeBuildState,
+          child: BuildDashboard(),
+        )));
 
-      verifyNever(authService.signIn());
+    expect(find.text('Tree is Closed'), findsOneWidget);
 
-      await tester.tap(find.byType(UserAvatar));
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    expect(appbarWidget.backgroundColor, app.theme.errorColor);
+  });
 
-      verify(authService.signIn()).called(1);
-    });
+  testWidgets('shows tree open when fetch tree status is true',
+      (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
+      ..isTreeBuilding = (CocoonResponse<bool>()..data = true);
 
-    testWidgets('shows user avatar when signed in',
-        (WidgetTester tester) async {
-      when(authService.isAuthenticated).thenReturn(true);
-      when(authService.avatarUrl).thenReturn('https://flutter.dev');
-      final FlutterBuildState buildState = FlutterBuildState(
-          authService: authService, cocoonService: FakeCocoonService());
-      await tester.pumpWidget(MaterialApp(
-        home: UserAvatar(
-          buildState: buildState,
-        ),
-      ));
+    await tester.pumpWidget(MaterialApp(
+        theme: app.theme,
+        home: ChangeNotifierProvider<FlutterBuildState>(
+          builder: (_) => fakeBuildState,
+          child: BuildDashboard(),
+        )));
 
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
-      expect(find.byType(Image), findsOneWidget);
-    });
+    expect(find.text('Tree is Open'), findsOneWidget);
+
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
   });
 }
 
-/// Mock [GoogleSignInService] for testing interactions.
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}
+class FakeFlutterBuildState extends ChangeNotifier
+    implements FlutterBuildState {
+  @override
+  GoogleSignInService authService = GoogleSignInService();
+
+  @override
+  Timer refreshTimer;
+
+  @override
+  bool hasError = false;
+
+  @override
+  CocoonResponse<bool> isTreeBuilding = CocoonResponse<bool>()..data = false;
+
+  @override
+  Duration get refreshRate => null;
+
+  @override
+  Future<bool> rerunTask(Task task) => null;
+
+  @override
+  Future<void> signIn() => null;
+
+  @override
+  Future<void> signOut() => null;
+
+  @override
+  Future<void> startFetchingBuildStateUpdates() => null;
+
+  @override
+  CocoonResponse<List<CommitStatus>> statuses =
+      CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
+
+  @override
+  Future<bool> downloadLog(Task task, Commit commit) => null;
+}

@@ -88,6 +88,7 @@ class StatusGrid extends StatefulWidget {
     @required this.buildState,
     @required this.statuses,
     @required this.taskMatrix,
+    this.insertCellKeys = false,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -98,6 +99,10 @@ class StatusGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final FlutterBuildState buildState;
+
+  /// Used for testing to lookup the widget corresponding to a position in [StatusGrid].
+  @visibleForTesting
+  final bool insertCellKeys;
 
   static const double cellSize = 50;
 
@@ -153,11 +158,20 @@ class _StatusGridState extends State<StatusGrid> {
         for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
           if (widget.taskMatrix.task(rowIndex, colIndex) != null)
             TaskBox(
+              key: widget.insertCellKeys
+                  ? Key('cell-$rowIndex-$colIndex')
+                  : null,
               buildState: widget.buildState,
               task: widget.taskMatrix.task(rowIndex, colIndex),
+              commit: widget.statuses[rowIndex].commit,
             )
           else
-            const SizedBox()
+            SizedBox(
+              key: widget.insertCellKeys
+                  ? Key('cell-$rowIndex-$colIndex')
+                  : null,
+              width: StatusGrid.cellSize,
+            )
       ];
 
       rows.add(

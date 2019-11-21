@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -18,23 +19,34 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/datastore.dart';
 
 @immutable
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
     Config config,
-    AuthenticationProvider authenticationProvider,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+    AuthenticationProvider authenticationProvider,{
+    @visibleForTesting
+        this.datastoreProvider = DatastoreService.defaultProvider,
+    }) : super(config: config, authenticationProvider: authenticationProvider);
+
+  final DatastoreServiceProvider datastoreProvider;
 
   static const String taskKeyParam = 'TaskKey';
   static const String newStatusParam = 'NewStatus';
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
+  
+  /// const variables for [BigQuery] operations
+  static const String projectId = 'flutter-dashboard';
+  static const String dataset = 'cocoon';
+  static const String table = 'Task';
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
+    final DatastoreService datastore = datastoreProvider();
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
@@ -52,11 +64,13 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
-    final Task task = await config.db.lookupValue<Task>(taskKey, orElse: () {
+    final Task task = await datastore.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
     });
 
-    final Commit commit = await config.db.lookupValue<Commit>(task.commitKey);
+    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+      throw BadRequestException('No such task: ${task.commitKey}');
+    });
 
     if (newStatus == Task.statusFailed) {
       // Attempt to de-flake the test.
@@ -75,16 +89,20 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     }
 
-    await config.db.withTransaction<void>((Transaction transaction) async {
+    await datastore.db.withTransaction<void>((Transaction transaction) async {
       transaction.queueMutations(inserts: <Task>[task]);
       await transaction.commit();
     });
+
+    if (task.endTimestamp>0) {
+      await _insertBigquery(commit, task);
+    }
 
     // TODO(tvolkert): PushBuildStatusToGithub
 
     if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
       for (String scoreKey in scoreKeys) {
-        await config.db.withTransaction<void>((Transaction transaction) async {
+        await datastore.db.withTransaction<void>((Transaction transaction) async {
           final TimeSeries series = await _getOrCreateTimeSeries(transaction, task, scoreKey);
           final num value = resultData[scoreKey];
 
@@ -103,6 +121,39 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     return UpdateTaskStatusResponse(task);
+  }
+
+  Future<void> _insertBigquery(Commit commit, Task task) async {
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+    
+    requestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'ID': commit.sha,
+        'CreateTimestamp': task.createTimestamp,
+        'StartTimestamp': task.startTimestamp,
+        'EndTimestamp': task.endTimestamp,
+        'Name': task.name,
+        'Attempts': task.attempts,
+        'IsFlaky': task.isFlaky,
+        'TimeoutInMinutes': task.timeoutInMinutes,
+        'RequiredCapabilities': task.requiredCapabilities?.join(','),
+        'StageName': task.stageName,
+        'Status': task.status,
+      },
+    });
+
+    /// [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest request =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': requestRows
+    });
+
+    try {
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
+    }
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
