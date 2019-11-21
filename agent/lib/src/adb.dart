@@ -31,7 +31,7 @@ abstract class DeviceDiscovery {
   }
 
   /// Lists all available devices' IDs.
-  Future<List<Device>> discoverDevices({int retriesDelay=10000});
+  Future<List<Device>> discoverDevices({int retriesDelayMs=10000});
 
   /// Checks the health of the available devices.
   Future<Map<String, HealthCheckResult>> checkDevices();
@@ -113,24 +113,24 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<List<Device>> discoverDevices({int retriesDelay=10000}) async {
+  Future<List<Device>> discoverDevices({int retriesDelayMs=10000}) async {
     int retry = 0;
     bool adbOk = false;
     List<String> output;
-    do {
-      retry++;
+    while (true) {
       try {
         String result = await deviceListOutput();
         output = result.trim().split('\n');
-        adbOk = true;
+        break;
       } on TimeoutException {
+        retry++;
         if (retry >= 3) {
           throw new TimeoutException('Can not get devices data');
         }
         killAdbServer();
-        await Future<void>.delayed(Duration(milliseconds: retriesDelay));
+        await Future<void>.delayed(Duration(milliseconds: retriesDelayMs));
       }
-    } while (!adbOk && retry < 3);
+    }
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
@@ -299,7 +299,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({int retriesDelay=10000}) async {
+  Future<List<Device>> discoverDevices({int retriesDelayMs=10000}) async {
     List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
     if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds
