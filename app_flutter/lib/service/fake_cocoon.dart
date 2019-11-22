@@ -27,11 +27,7 @@ class FakeCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
-    return CocoonResponse<bool>()
-      ..data = false
-      ..error = 'random error';
-
-    // return CocoonResponse<bool>()..data = random.nextBool();
+    return CocoonResponse<bool>()..data = random.nextBool();
   }
 
   @override
