@@ -1,32 +1,20 @@
-Cocoon is a hybrid Go App Engine (backend) and an Angular 2 Dart (client) app
-used to coordinate and aggregate the results of Flutter's builds. It is not
-designed to help developers build Flutter apps. More importantly, *Cocoon is not
-a Google product*.
+Cocoon is a Dart App Engine custom runtime (backend) with a frontend of Flutter
+apps (build and repository dashboard) and Angular 2 Dart (performance dashboard)
+apps. Cocoon coordinates and aggregates the results of [flutter/flutter](https://github.com/flutter/flutter) 
+builds. It is not designed to help developers build Flutter apps. More 
+importantly, *Cocoon is not a Google product*.
 
 # Developing cocoon
 
-* Learn [App Engine for Go](https://blog.golang.org/the-app-engine-sdk-and-workspaces-gopath)
+* Install Google Cloud SDK
+* Install Flutter
+* Learn [App Engine for Dart](https://github.com/dart-lang/appengine_samples)
+* Learn [Flutter](https://flutter.dev/docs/get-started/codelab)
 * Learn [Angular 2 for Dart](https://angular.io/docs/dart/latest/quickstart.html)
-* Create `$GOPATH/src` where `$GOPATH` can be anywhere
-* `git clone` this repository into `$GOPATH/src` so that you have `$GOPATH/src/cocoon`
-* Install Google App Engine for Go
-* Install Go SDK
-* Install Dart SDK
 
 # Running local dev server
 
-The following command will start a local Go App Engine server and a Dart pub
-server.
-
-```sh
-cd app
-pub get
-go get
-dart bin/dev_server.dart
-```
-
-Once the log messages quiet down you should be able to open http://localhost:8080
-and see the status dashboard backed by a fake local datastore.
+TODO: Port the Go dev server to work with the Dart AppEngine system. https://github.com/flutter/flutter/issues/45410
 
 # Testing Angular changes with production data
 
@@ -40,11 +28,11 @@ The following command will run tests and build the app, and provide instructions
 for deploying to Google App Engine.
 
 ```sh
-cd app
-bin/build_and_test.sh
+cd app_dart
+dart dev/deploy.dart --project {PROJECT} --version {VERSION}
 ```
 
-You can test the new version by accessing {VERSION}-dot-flutter-dashboard.appspot.com in your
+You can test the new version by accessing `{VERSION}-dot-flutter-dashboard.appspot.com` in your
 browser. If the result is satisfactory, the new version can be activated by using the Cloud Console
 UI: https://pantheon.corp.google.com/appengine/versions?project=flutter-dashboard&serviceId=default
 
@@ -61,6 +49,8 @@ may share the same capability. Cocoon will distribute tasks amongst agents.
 That's how Cocoon scales.
 
 # In-browser CLI
+
+*Accessible on on the [Angular Dart build dashboard](https://flutter-dashboard.appspot.com/old_build.html)*
 
 Cocoon browser interface includes a small CLI. To access it open Chrome Dev
 Tools > Console. Commands are entered directly into the console like this:
