@@ -64,7 +64,6 @@ void main() {
   testWidgets('show error snackbar when error occurs',
       (WidgetTester tester) async {
     final FakeFlutterBuildState buildState = FakeFlutterBuildState();
-    buildState.errors.message = 'ERROR';
 
     final BuildDashboardPage buildDashboardPage =
         BuildDashboardPage(buildState: buildState);
@@ -73,6 +72,7 @@ void main() {
     expect(find.text(buildState.errors.message), findsNothing);
 
     // propagate the error message
+    buildState.errors.message = 'ERROR';
     buildState.errors.notifyListeners();
     await tester.pump();
 
