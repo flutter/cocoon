@@ -104,6 +104,23 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       Duration(seconds: 15));
   }
 
+  Future<List<String>> deviceListOutputWithRetries(int retriesDelayMs) async {
+    int retry = 0;
+    while (true) {
+      try {
+        String result = await deviceListOutput();
+        return result.trim().split('\n');
+      } on TimeoutException {
+        retry++;
+        if (retry >= 3) {
+          throw new TimeoutException('Can not get devices data');
+        }
+        killAdbServer();
+        await Future<void>.delayed(Duration(milliseconds: retriesDelayMs));
+      }
+    }
+  }
+
   void killAdbServer() async {
     if (Platform.isWindows) {
       await killAllRunningProcessesOnWindows('adb');
@@ -114,22 +131,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<Device>> discoverDevices({int retriesDelayMs=10000}) async {
-    int retry = 0;
-    List<String> output;
-    while (true) {
-      try {
-        String result = await deviceListOutput();
-        output = result.trim().split('\n');
-        break;
-      } on TimeoutException {
-        retry++;
-        if (retry >= 3) {
-          throw new TimeoutException('Can not get devices data');
-        }
-        killAdbServer();
-        await Future<void>.delayed(Duration(milliseconds: retriesDelayMs));
-      }
-    }
+    List<String> output = await deviceListOutputWithRetries(retriesDelayMs);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
@@ -173,16 +175,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<void> performPreflightTasks() async {
-    // Kills the `adb` server causing it to start a new instance upon next
-    // command.
-    //
-    // Restarting `adb` helps with keeping device connections alive. When `adb`
-    // runs non-stop for too long it loses connections to devices. There may be
-    // a better method, but so far that's the best one I've found.
-    killAdbServer();
-    // Immediately after killing the `adb` server, the server may deny connections.
-    // So we wait until first successful `adb devices -l`.
-    await discoverDevices();
+    // Checks required for the agent to start.
   }
 }
 
