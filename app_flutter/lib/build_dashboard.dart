@@ -72,7 +72,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
 /// Shows information about the current build status of flutter/flutter.
 ///
-/// The tree's current build status is reflected in the color of [AppBar].
+/// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
   const BuildDashboard({this.scaffoldKey});
@@ -82,16 +82,27 @@ class BuildDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+
+    /// Color of [AppBar] based on [buildState.isTreeBuilding].
+    final Map<bool, Color> colorTable = <bool, Color>{
+      null: Colors.grey,
+      false: theme.errorColor,
+      true: theme.appBarTheme.color,
+    };
+
+    /// Message to show on [AppBar] based on [buildState.isTreeBuilding].
+    const Map<bool, Text> statusTable = <bool, Text>{
+      null: Text('Loading...'),
+      false: Text('Tree is Closed'),
+      true: Text('Tree is Open'),
+    };
+
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
-          title: buildState.isTreeBuilding
-              ? const Text('Tree is Open')
-              : const Text('Tree is Closed'),
-          backgroundColor: buildState.isTreeBuilding
-              ? theme.appBarTheme.color
-              : theme.errorColor,
+          title: statusTable[buildState.isTreeBuilding],
+          backgroundColor: colorTable[buildState.isTreeBuilding],
           actions: <Widget>[
             SignInButton(authService: buildState.authService),
           ],
