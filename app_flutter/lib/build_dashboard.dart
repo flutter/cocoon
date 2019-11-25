@@ -31,18 +31,19 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
   void initState() {
     super.initState();
 
-    buildState = widget.buildState;
+    widget.buildState.startFetchingBuildStateUpdates();
 
-    buildState.startFetchingBuildStateUpdates();
-
-    buildState.errors.addListener(_showErrorSnackbar);
+    widget.buildState.errors.addListener(_showErrorSnackbar);
   }
 
   @override
   Widget build(BuildContext context) {
+    buildState = widget.buildState;
+
     return ChangeNotifierProvider<FlutterBuildState>(
-        builder: (_) => buildState,
-        child: BuildDashboard(scaffoldKey: _scaffoldKey));
+      builder: (_) => buildState,
+      child: BuildDashboard(scaffoldKey: _scaffoldKey),
+    );
   }
 
   void _showErrorSnackbar() {
