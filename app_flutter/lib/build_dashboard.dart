@@ -83,12 +83,14 @@ class BuildDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
+    /// Color of [AppBar] based on [buildState.isTreeBuilding].
     final Map<bool, Color> colorTable = <bool, Color>{
       null: Colors.grey,
       false: theme.errorColor,
       true: theme.appBarTheme.color,
     };
 
+    /// Message to show on [AppBar] based on [buildState.isTreeBuilding].
     const Map<bool, Text> statusTable = <bool, Text>{
       null: Text('Loading...'),
       false: Text('Tree is Closed'),

@@ -26,6 +26,24 @@ void main() {
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
+  testWidgets('shows loading when fetch tree status is null',
+      (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
+      ..isTreeBuilding = null;
+
+    await tester.pumpWidget(MaterialApp(
+        theme: app.theme,
+        home: ChangeNotifierProvider<FlutterBuildState>(
+          builder: (_) => fakeBuildState,
+          child: const BuildDashboard(),
+        )));
+
+    expect(find.text('Loading...'), findsOneWidget);
+
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    expect(appbarWidget.backgroundColor, Colors.grey);
+  });
+
   testWidgets('shows tree closed when fetch tree status is false',
       (WidgetTester tester) async {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState();
