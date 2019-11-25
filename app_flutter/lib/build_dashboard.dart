@@ -72,7 +72,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
 /// Shows information about the current build status of flutter/flutter.
 ///
-/// The tree's current build status is reflected in the color of [AppBar].
+/// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
   const BuildDashboard({this.scaffoldKey});
