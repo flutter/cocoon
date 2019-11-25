@@ -20,21 +20,19 @@ class StatusGridContainer extends StatelessWidget {
   const StatusGridContainer({Key key}) : super(key: key);
 
   @visibleForTesting
-  static const String errorCocoonBackend = 'Cocoon Backend is having issues';
+  static const String errorFetchCommitStatus =
+      'An error occurred fetching commit statuses';
+  @visibleForTesting
+  static const String errorFetchTreeStatus =
+      'An error occurred fetching tree build status';
+  @visibleForTesting
+  static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
   @override
   Widget build(BuildContext context) {
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) {
-        final List<CommitStatus> statuses = buildState.statuses.data;
-
-        if (buildState.hasError) {
-          print('FlutterBuildState has an error');
-          print('isTreeBuilding: ${buildState.isTreeBuilding.error}');
-          print('statuses: ${buildState.statuses.error}');
-
-          // TODO(chillers): Display the error
-        }
+        final List<CommitStatus> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {

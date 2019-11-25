@@ -11,29 +11,61 @@ import 'status_grid.dart';
 
 /// [BuildDashboard] parent widget that manages the state of the dashboard.
 class BuildDashboardPage extends StatefulWidget {
+  BuildDashboardPage({FlutterBuildState buildState})
+      : buildState = buildState ?? FlutterBuildState();
+
+  final FlutterBuildState buildState;
+
+  @visibleForTesting
+  static const Duration errorSnackbarDuration = Duration(seconds: 8);
   @override
   _BuildDashboardPageState createState() => _BuildDashboardPageState();
 }
 
 class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  final FlutterBuildState buildState = FlutterBuildState();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  FlutterBuildState buildState;
 
   @override
   void initState() {
     super.initState();
 
-    buildState.startFetchingBuildStateUpdates();
+    widget.buildState.startFetchingBuildStateUpdates();
+
+    widget.buildState.errors.addListener(_showErrorSnackbar);
   }
 
   @override
   Widget build(BuildContext context) {
+    buildState = widget.buildState;
+
     return ChangeNotifierProvider<FlutterBuildState>(
-        builder: (_) => buildState, child: BuildDashboard());
+      builder: (_) => buildState,
+      child: BuildDashboard(scaffoldKey: _scaffoldKey),
+    );
+  }
+
+  void _showErrorSnackbar() {
+    final Row snackbarContent = Row(
+      children: <Widget>[
+        const Icon(Icons.error),
+        const SizedBox(width: 10),
+        Text(buildState.errors.message)
+      ],
+    );
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: snackbarContent,
+        backgroundColor: Theme.of(context).errorColor,
+        duration: BuildDashboardPage.errorSnackbarDuration,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    buildState.dispose();
+    buildState.errors.removeListener(_showErrorSnackbar);
     super.dispose();
   }
 }
@@ -43,16 +75,21 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in the color of [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
+  const BuildDashboard({this.scaffoldKey});
+
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Consumer<FlutterBuildState>(
       builder: (_, FlutterBuildState buildState, Widget child) => Scaffold(
+        key: scaffoldKey,
         appBar: AppBar(
-          title: buildState.isTreeBuilding.data
+          title: buildState.isTreeBuilding
               ? const Text('Tree is Open')
               : const Text('Tree is Closed'),
-          backgroundColor: buildState.isTreeBuilding.data
+          backgroundColor: buildState.isTreeBuilding
               ? theme.appBarTheme.color
               : theme.errorColor,
           actions: <Widget>[

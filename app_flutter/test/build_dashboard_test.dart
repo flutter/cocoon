@@ -2,20 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
-
-import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/build_dashboard.dart';
 import 'package:app_flutter/main.dart' as app show theme;
-import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';
+
+import 'utils/fake_flutter_build.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
@@ -24,7 +20,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         home: ChangeNotifierProvider<FlutterBuildState>(
       builder: (_) => buildState,
-      child: BuildDashboard(),
+      child: const BuildDashboard(),
     )));
 
     expect(find.byType(SignInButton), findsOneWidget);
@@ -38,7 +34,7 @@ void main() {
         theme: app.theme,
         home: ChangeNotifierProvider<FlutterBuildState>(
           builder: (_) => fakeBuildState,
-          child: BuildDashboard(),
+          child: const BuildDashboard(),
         )));
 
     expect(find.text('Tree is Closed'), findsOneWidget);
@@ -50,13 +46,13 @@ void main() {
   testWidgets('shows tree open when fetch tree status is true',
       (WidgetTester tester) async {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
-      ..isTreeBuilding = (CocoonResponse<bool>()..data = true);
+      ..isTreeBuilding = true;
 
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
         home: ChangeNotifierProvider<FlutterBuildState>(
           builder: (_) => fakeBuildState,
-          child: BuildDashboard(),
+          child: const BuildDashboard(),
         )));
 
     expect(find.text('Tree is Open'), findsOneWidget);
@@ -64,41 +60,33 @@ void main() {
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
     expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
   });
-}
 
-class FakeFlutterBuildState extends ChangeNotifier
-    implements FlutterBuildState {
-  @override
-  GoogleSignInService authService = GoogleSignInService();
+  testWidgets('show error snackbar when error occurs',
+      (WidgetTester tester) async {
+    final FakeFlutterBuildState buildState = FakeFlutterBuildState();
 
-  @override
-  Timer refreshTimer;
+    final BuildDashboardPage buildDashboardPage =
+        BuildDashboardPage(buildState: buildState);
+    await tester.pumpWidget(MaterialApp(home: buildDashboardPage));
 
-  @override
-  bool hasError = false;
+    expect(find.text(buildState.errors.message), findsNothing);
 
-  @override
-  CocoonResponse<bool> isTreeBuilding = CocoonResponse<bool>()..data = false;
+    // propagate the error message
+    buildState.errors.message = 'ERROR';
+    buildState.errors.notifyListeners();
+    await tester.pump();
 
-  @override
-  Duration get refreshRate => null;
+    await tester
+        .pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
-  @override
-  Future<bool> rerunTask(Task task) => null;
+    expect(find.text(buildState.errors.message), findsOneWidget);
 
-  @override
-  Future<void> signIn() => null;
+    // Snackbar message should go away after its duration
+    await tester
+        .pump(BuildDashboardPage.errorSnackbarDuration); // wait the duration
+    await tester.pump(); // schedule animation
+    await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-  @override
-  Future<void> signOut() => null;
-
-  @override
-  Future<void> startFetchingBuildStateUpdates() => null;
-
-  @override
-  CocoonResponse<List<CommitStatus>> statuses =
-      CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
-
-  @override
-  Future<bool> downloadLog(Task task, Commit commit) => null;
+    expect(find.text(buildState.errors.message), findsNothing);
+  });
 }
