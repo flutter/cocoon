@@ -39,16 +39,23 @@ class FlutterBuildState extends ChangeNotifier {
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
-  CocoonResponse<List<CommitStatus>> _statuses =
-      CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
-  CocoonResponse<List<CommitStatus>> get statuses => _statuses;
+  List<CommitStatus> _statuses = <CommitStatus>[];
+  List<CommitStatus> get statuses => _statuses;
 
   /// Whether or not flutter/flutter currently passes tests.
-  CocoonResponse<bool> _isTreeBuilding = CocoonResponse<bool>()..data = false;
-  CocoonResponse<bool> get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding;
+  bool get isTreeBuilding => _isTreeBuilding;
 
-  /// Whether an error occured getting the latest data for the fields of this state.
-  bool get hasError => _isTreeBuilding.error != null || _statuses.error != null;
+  /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
+  FlutterBuildStateErrors errors = FlutterBuildStateErrors();
+
+  @visibleForTesting
+  static const String errorMessageFetchingStatuses =
+      'An error occured fetching build statuses from Cocoon';
+
+  @visibleForTesting
+  static const String errorMessageFetchingTreeStatus =
+      'An error occured fetching tree status from Cocoon';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {
@@ -71,9 +78,11 @@ class FlutterBuildState extends ChangeNotifier {
           .fetchCommitStatuses()
           .then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
-          _statuses.error = response.error;
+          print(response.error);
+          errors.message = errorMessageFetchingStatuses;
+          errors.notifyListeners();
         } else {
-          _statuses = response;
+          _statuses = response.data;
         }
         notifyListeners();
       }),
@@ -81,9 +90,11 @@ class FlutterBuildState extends ChangeNotifier {
           .fetchTreeBuildStatus()
           .then((CocoonResponse<bool> response) {
         if (response.error != null) {
-          _isTreeBuilding.error = response.error;
+          print(response.error);
+          errors.message = errorMessageFetchingTreeStatus;
+          errors.notifyListeners();
         } else {
-          _isTreeBuilding = response;
+          _isTreeBuilding = response.data;
         }
         notifyListeners();
       }),
@@ -107,4 +118,8 @@ class FlutterBuildState extends ChangeNotifier {
     refreshTimer?.cancel();
     super.dispose();
   }
+}
+
+class FlutterBuildStateErrors extends ChangeNotifier {
+  String message;
 }
