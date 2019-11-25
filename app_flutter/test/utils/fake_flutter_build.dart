@@ -23,7 +23,7 @@ class FakeFlutterBuildState extends ChangeNotifier
   FlutterBuildStateErrors errors = FlutterBuildStateErrors();
 
   @override
-  bool isTreeBuilding = false;
+  bool isTreeBuilding;
 
   @override
   Duration get refreshRate => null;

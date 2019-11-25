@@ -43,7 +43,7 @@ class FlutterBuildState extends ChangeNotifier {
   List<CommitStatus> get statuses => _statuses;
 
   /// Whether or not flutter/flutter currently passes tests.
-  bool _isTreeBuilding = false;
+  bool _isTreeBuilding;
   bool get isTreeBuilding => _isTreeBuilding;
 
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].

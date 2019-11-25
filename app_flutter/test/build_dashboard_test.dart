@@ -46,7 +46,8 @@ void main() {
 
   testWidgets('shows tree closed when fetch tree status is false',
       (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState();
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
+      ..isTreeBuilding = false;
 
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
