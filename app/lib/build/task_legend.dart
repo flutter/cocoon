@@ -16,5 +16,6 @@ class TaskLegend extends ComponentState {
 
   void toggleVisibility() {
     legendVisible = !legendVisible;
+    deliverStateChanges(); // ignore: deprecated_member_use
   }
 }
