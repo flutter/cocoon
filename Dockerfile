@@ -33,17 +33,6 @@ RUN apt-get install -y --no-install-recommends \
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
 
-# Add repo for gcloud sdk and install it
-RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | \
-    tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-
-RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
-    apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-
-RUN apt-get update && apt-get install -y google-cloud-sdk && \
-    gcloud config set core/disable_usage_reporting true && \
-    gcloud config set component_manager/disable_update_check true
-
 # Add nodejs repository to apt sources and install it.
 ENV NODEJS_INSTALL="/opt/nodejs_install"
 RUN mkdir -p "${NODEJS_INSTALL}"
@@ -109,5 +98,5 @@ ENV LANG en_US.UTF-8
 
 # Install Flutter
 RUN wget https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_v1.9.1+hotfix.6-stable.tar.xz
-RUN tar xf flutter_linux_v1.9.1+hotfix.6-stable.tar.xz
-ENV PATH="`pwd`/flutter/bin"
+RUN tar xf flutter_linux_v1.9.1+hotfix.6-stable.tar.xz /usr/bin/
+ENV PATH="usr/bin/flutter/bin:$PATH"
