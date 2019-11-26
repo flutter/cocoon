@@ -91,5 +91,3 @@ ENV PATH="$GRADLE_ROOT/bin:$PATH"
 # Set locale to en_US
 RUN locale-gen en_US "en_US.UTF-8" && dpkg-reconfigure locales
 ENV LANG en_US.UTF-8
-
-RUN bundle install --system
