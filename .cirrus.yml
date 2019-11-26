@@ -24,5 +24,5 @@ task:
   build_script: cd app_flutter && flutter config --enable-web && flutter build web
   test_script:
     - cd app_flutter
-    - flutter test
     - flutter test --platform=chrome test/service/appengine_cocoon_test.dart # https://github.com/flutter/flutter/issues/44373
+    - flutter test
