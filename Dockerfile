@@ -26,10 +26,17 @@ RUN apt-get install -y --no-install-recommends \
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
 
+# Add nodejs repository to apt sources and install it.
+ENV NODEJS_INSTALL="/opt/nodejs_install"
+RUN mkdir -p "${NODEJS_INSTALL}"
+RUN wget -q https://deb.nodesource.com/setup_10.x -O "${NODEJS_INSTALL}/nodejs_install.sh"
+RUN bash "${NODEJS_INSTALL}/nodejs_install.sh"
+
 # Install the rest of the dependencies.
 RUN apt-get install -y --no-install-recommends \
   locales \
   gcc \
+  nodejs \
   lib32stdc++6 \
   libstdc++6 \
   libglu1-mesa \
