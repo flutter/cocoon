@@ -106,11 +106,3 @@ RUN dpkg-query -L nodejs
 # Set locale to en_US
 RUN locale-gen en_US "en_US.UTF-8" && dpkg-reconfigure locales
 ENV LANG en_US.UTF-8
-
-# Skip all the documentation (-N) since it's just on CI.
-RUN gem install bundler -N
-
-COPY Gemfile /Gemfile
-COPY Gemfile.lock /Gemfile.lock
-
-RUN bundle install --system
