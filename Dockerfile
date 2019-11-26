@@ -99,4 +99,4 @@ ENV LANG en_US.UTF-8
 # Install Flutter
 RUN wget https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_v1.9.1+hotfix.6-stable.tar.xz
 RUN tar xf flutter_linux_v1.9.1+hotfix.6-stable.tar.xz -C /usr/bin/
-ENV PATH="usr/bin/flutter/bin:$PATH"
+ENV PATH="/usr/bin/flutter/bin:$PATH"
