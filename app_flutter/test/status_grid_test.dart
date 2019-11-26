@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -153,9 +154,10 @@ void main() {
       );
 
       // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
-      // expect(tester.takeException(),
-      //     const test.TypeMatcher<NetworkImageLoadException>());
-
+      // if (kIsWeb) {
+      //   expect(tester.takeException(),
+      //       const test.TypeMatcher<NetworkImageLoadException>());
+      // }
       expect(find.byType(TaskBox), findsNWidgets(3));
 
       // Row 1: ✓☐☐
