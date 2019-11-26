@@ -16,8 +16,6 @@ RUN apt-get install -y --no-install-recommends \
   git \
   wget \
   curl \
-  zip \
-  unzip \
   apt-transport-https \
   ca-certificates \
   gnupg
@@ -26,19 +24,10 @@ RUN apt-get install -y --no-install-recommends \
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 RUN echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' | tee /etc/apt/sources.list.d/google-chrome.list
 
-# Add nodejs repository to apt sources and install it.
-ENV NODEJS_INSTALL="/opt/nodejs_install"
-RUN mkdir -p "${NODEJS_INSTALL}"
-RUN wget -q https://deb.nodesource.com/setup_10.x -O "${NODEJS_INSTALL}/nodejs_install.sh"
-RUN bash "${NODEJS_INSTALL}/nodejs_install.sh"
-
 # Install the rest of the dependencies.
 RUN apt-get install -y --no-install-recommends \
   locales \
   gcc \
-  ruby \
-  ruby-dev \
-  nodejs \
   lib32stdc++6 \
   libstdc++6 \
   libglu1-mesa \
@@ -71,19 +60,6 @@ ENV PATH="${ANDROID_TOOLS_ROOT}/tools/bin:${PATH}"
 # Silence warnings when accepting android licenses.
 RUN mkdir -p ~/.android
 RUN touch ~/.android/repositories.cfg
-
-# Setup gradle
-ENV GRADLE_ROOT="/opt/gradle"
-RUN mkdir -p "${GRADLE_ROOT}"
-ENV GRADLE_ARCHIVE="${GRADLE_ROOT}/gradle.zip"
-ENV GRADLE_URL="http://services.gradle.org/distributions/gradle-4.4-bin.zip"
-RUN wget --progress=dot:giga "$GRADLE_URL" -O "${GRADLE_ARCHIVE}"
-RUN unzip -q -d "${GRADLE_ROOT}" "${GRADLE_ARCHIVE}"
-ENV PATH="$GRADLE_ROOT/bin:$PATH"
-
-# Add npm to path.
-ENV PATH="/usr/bin:${PATH}"
-RUN dpkg-query -L nodejs
 
 # Set locale to en_US
 RUN locale-gen en_US "en_US.UTF-8" && dpkg-reconfigure locales
