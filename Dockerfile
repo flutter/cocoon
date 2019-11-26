@@ -1,5 +1,6 @@
 FROM cirrusci/flutter:latest-web
 
+RUN sudo apt install gpg-agent
 RUN sudo apt-get update -y
 RUN sudo apt-get upgrade -y
 
