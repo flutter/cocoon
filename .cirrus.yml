@@ -8,8 +8,8 @@ task:
       - CWD: app
       - CWD: app_dart
       - CWD: agent
-  install_tuneup_script: pub global activate tuneup
-  pub_script: cd $CWD && pub get
+  install_tuneup_script: flutter pub global activate tuneup
+  pub_script: cd $CWD && flutter pub get
   build_analyze_script: ./build_and_analyze.sh $CWD
   test_script: ./test.sh $CWD
   
