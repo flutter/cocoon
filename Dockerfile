@@ -1,17 +1,10 @@
-# Flutter (https://flutter.dev) Development Environment for Linux
+# Flutter (https://flutter.dev) for Linux
 # ===============================================================
 #
 # This environment passes all Linux Flutter Doctor checks and is sufficient
-# for building Android applications and running Flutter tests.
+# for building Android and Web applications and running Flutter tests.
 #
-# To build iOS applications, a Mac development environment is necessary.
-#
-# This includes applications and sdks that are needed only by the CI system
-# for performing pushes to production, and so this image is quite a bit larger
-# than strictly needed for just building Flutter apps.
-
-# Note: updating past stretch (Debian 9) will bump Java past version 8,
-# which will break the Android SDK.
+# Note: This is based on the Docker image for https://github.com/flutter/flutter
 FROM debian:stretch
 MAINTAINER Flutter Developers <flutter-dev@googlegroups.com>
 
