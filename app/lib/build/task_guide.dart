@@ -15,6 +15,7 @@ class TaskGuideComponent extends ComponentState {
   set headerRow(HeaderRow value) {
     if (value == _headerRow) return;
     _headerRow = value;
+    deliverStateChanges(); // ignore: deprecated_member_use
   }
 
   List<BuildStatus> get headerCol => _headerCol;
@@ -23,5 +24,6 @@ class TaskGuideComponent extends ComponentState {
   set headerCol(List<BuildStatus> value) {
     if (value == headerCol) return;
     _headerCol = value;
+    deliverStateChanges(); // ignore: deprecated_member_use
   }
 }
