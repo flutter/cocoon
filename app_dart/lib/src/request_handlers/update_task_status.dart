@@ -137,7 +137,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         'Attempts': task.attempts,
         'IsFlaky': task.isFlaky,
         'TimeoutInMinutes': task.timeoutInMinutes,
-        'RequiredCapabilities': task.requiredCapabilities?.join(','),
+        'RequiredCapabilities': task.requiredCapabilities,
         'StageName': task.stageName,
         'Status': task.status,
       },
