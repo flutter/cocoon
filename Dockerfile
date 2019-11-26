@@ -16,6 +16,8 @@ RUN apt-get install -y --no-install-recommends \
   git \
   wget \
   curl \
+  zip \
+  unzip \
   apt-transport-https \
   ca-certificates \
   gnupg
