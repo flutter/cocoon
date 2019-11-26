@@ -1,0 +1,12 @@
+name: global_test_runner
+author: Flutter Authors <flutter-dev@googlegroups.com>
+description: Flutter continuous integration agent (Cocoon agent)
+homepage: https://github.com/flutter/cocoon
+
+environment:
+  sdk: '>=2.2.0'
+
+dev_dependencies:
+  args: ^1.5.2
+  yaml: ^2.2.0
+  path: any
