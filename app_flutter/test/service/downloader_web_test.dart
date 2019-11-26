@@ -25,24 +25,5 @@ void main() {
       });
       service = AppEngineCocoonService(client: mockClient);
     });
-
-    test('200 get log response is successful', () async {
-      final bool result =
-          await service.downloadLog(devicelabTask, 'abc123', 'shashank');
-
-      expect(result, isTrue);
-    });
-
-    test('non-200 get log response fails call', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 401);
-      }));
-
-      final bool result =
-          await service.downloadLog(devicelabTask, 'abc123', 'shashank');
-
-      expect(result, isFalse);
-    });
   });
 }
