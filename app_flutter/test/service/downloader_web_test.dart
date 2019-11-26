@@ -5,25 +5,17 @@
 @TestOn('browser')
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' show Client, Request, Response;
-import 'package:http/testing.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
-
-import 'package:app_flutter/service/appengine_cocoon.dart';
+import 'package:app_flutter/service/downloader_web.dart';
 
 void main() {
-  group('download log', () {
-    AppEngineCocoonService service;
-    final Task devicelabTask = Task()..stageName = 'devicelab';
+  group('Web Downloader', () {
+    final Downloader downloader = Downloader();
 
-    Client mockClient;
+    test('stub', () async {
+      downloader.download('https://flutter.dev', 'dash');
 
-    setUp(() {
-      mockClient = MockClient((Request request) async {
-        return Response('', 200);
-      });
-      service = AppEngineCocoonService(client: mockClient);
+      expect(true, true);
     });
   });
 }
