@@ -106,3 +106,8 @@ RUN dpkg-query -L nodejs
 # Set locale to en_US
 RUN locale-gen en_US "en_US.UTF-8" && dpkg-reconfigure locales
 ENV LANG en_US.UTF-8
+
+# Install Flutter
+RUN wget https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_v1.9.1+hotfix.6-stable.tar.xz
+RUN tar xf flutter_linux_v1.9.1+hotfix.6-stable.tar.xz
+ENV PATH="`pwd`/flutter/bin"
