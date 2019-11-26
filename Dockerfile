@@ -102,23 +102,6 @@ ENV PATH="$GRADLE_ROOT/bin:$PATH"
 # Add npm to path.
 ENV PATH="/usr/bin:${PATH}"
 RUN dpkg-query -L nodejs
-# Install Firebase
-# This is why we need nodejs installed.
-RUN /usr/bin/npm --verbose install -g firebase-tools
-# TODO(dnfield): Remove this once Firebase has a fix upstream for
-# https://github.com/flutter/flutter/issues/34435
-COPY patch_firebase.sh /root/patch_firebase.sh
-RUN /root/patch_firebase.sh
-
-# Install golang more recent than in repo (necessary for dashing to build)
-RUN curl 'https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz' | tar xvz
-ENV GOBINARY=/go/bin/go
-
-# Install dashing
-RUN mkdir -p /opt/gopath/bin
-ENV GOPATH=/opt/gopath
-ENV PATH="${GOPATH}/bin:${PATH}"
-RUN $GOBINARY get -u github.com/technosophos/dashing
 
 # Set locale to en_US
 RUN locale-gen en_US "en_US.UTF-8" && dpkg-reconfigure locales
