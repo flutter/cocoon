@@ -15,6 +15,7 @@ flutter packages get
 # Remove the " || true" portion when https://github.com/flutter/flutter/issues/44370
 # is fixed.
 flutter analyze || true
+flutter format --set-exit-if-changed lib/ test/
 flutter config --enable-web
 flutter build web
 flutter test
