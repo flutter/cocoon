@@ -7,8 +7,7 @@ packages
 .pub
 app/build
 config.yaml
-.flutter-plugin-dependencies
-
+.flutter-plugins-dependencies
 # IntelliJ
 .idea
 *.iml
