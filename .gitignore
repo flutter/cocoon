@@ -11,3 +11,6 @@ config.yaml
 # IntelliJ
 .idea
 *.iml
+
+# VSCode
+.vscode/
