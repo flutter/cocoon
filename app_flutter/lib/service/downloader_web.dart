@@ -12,12 +12,6 @@ class Downloader implements i.Downloader {
   ///
   /// If [idToken] is given, it will write an HTML cookie at `X-Flutter-IdToken`
   /// that can be authenticated with the Cocoon backend.
-  ///
-  /// Steps to download a file on web in Flutter:
-  /// 1. Ensure authentication is up to date (for Cocoon logs).
-  /// 2. Create an anchor element with the url to fetch and the name of the file
-  ///    it will be downloaded to.
-  /// 3. Click the anchor element to trigger the browser to download the file.
   @override
   Future<bool> download(String href, String fileName, {String idToken}) async {
     assert(href != null);
