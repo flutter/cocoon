@@ -10,8 +10,7 @@ import 'package:googleapis/bigquery/v2.dart';
 /// where we focus on the number of rows inserted. This can be
 /// easily extended for other test cases.
 class FakeTabledataResourceApi implements TabledataResourceApi {
-  int rows = 0;
-  
+  List<TableDataInsertAllRequestRows> rows;
   @override
   Future<TableDataInsertAllResponse> insertAll(
       TableDataInsertAllRequest request,
@@ -19,7 +18,7 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       String datasetId,
       String tableId,
       {String $fields}) async {
-    rows += request.rows.length;
+    rows = request.rows;
     return TableDataInsertAllResponse.fromJson(<String, String>{});
   }
 
@@ -30,8 +29,15 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       String startIndex,
       String pageToken,
       String $fields}) async {
-    return TableDataList.fromJson(
-        <String, String>{'totalRows': rows.toString()});
+    final Map<String, Object> value = rows[0].json;
+    final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
+    tableCellList.add(<String, Object>{'v': value});
+    final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
+    tableRowList.add(<String, Object>{'f': tableCellList});
+
+    return TableDataList.fromJson(<String, Object>{
+      'totalRows': rows.length.toString(),
+      'rows': tableRowList
+    });
   }
 }
-

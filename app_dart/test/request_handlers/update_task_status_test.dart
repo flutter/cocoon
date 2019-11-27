@@ -42,7 +42,10 @@ void main() {
 
     test('updates datastore/bigquery entry for Task/TimeSeriesValue', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
-      final Task task = Task(key: commit.key.append(Task, id: 4590522719010816), commitKey: commit.key);
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          requiredCapabilities: <String>['ios']);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -54,10 +57,12 @@ void main() {
 
       await tester.post(handler);
       final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+      final Map<String, Object> value = tableDataList.rows[0].f[0].v;
 
       expect(task.status, 'Succeeded');
       /// Test for [BigQuery] insert
       expect(tableDataList.totalRows, '1');
+      expect(value['RequiredCapabilities'], <String>['ios']);
     });
   });
 }
