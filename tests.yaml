@@ -1,0 +1,23 @@
+# Copyright 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Tests configuration file. 
+#
+# It is used to define the tests that will be run on this repository
+# it uses a very simple schema:
+#
+# tasks:
+#   - task: <folder name>
+#     script: <relative path to the runner script> 
+
+tasks:
+  - task: app_dart
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: agent
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: app_flutter
+    script: test_utilities/bin/flutter_test_runner.sh
+
