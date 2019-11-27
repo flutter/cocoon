@@ -12,10 +12,14 @@ void main() {
   group('Web Downloader', () {
     final Downloader downloader = Downloader();
 
-    test('stub', () async {
-      downloader.download('https://flutter.dev', 'dash');
+    test('null href throws assertion error', () async {
+      expect(() => downloader.download(null, 'dash'),
+          throwsA(isA<AssertionError>()));
+    });
 
-      expect(true, true);
+    test('null filename throws assertion error', () async {
+      expect(() => downloader.download('https://flutter.dev', null),
+          throwsA(isA<AssertionError>()));
     });
   });
 }
