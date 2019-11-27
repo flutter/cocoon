@@ -27,8 +27,10 @@ Future<Null> main(List<String> rawArgs) async {
     String scriptPath = join(baseDir, task['script']);
     String taskPath = join(baseDir, task['task']);
     Process.run('sh', <String>[scriptPath, taskPath]).then((result) {
-      stdout.write(result.stdout);
-      stderr.write(result.stderr);
+      stdout.writeln('.. stdout ..');
+      stdout.writeln(result.stdout);
+      stdout.writeln('.. stderr ..');
+      stderr.writeln(result.stderr);
       if (result.exitCode != 0) {
         String taskName = task['task'];
         stderr.writeln('There were failures running tests from $taskName');
