@@ -124,7 +124,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          RepositorySlug('flutter', 'flutter'),
+          const RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -147,7 +147,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          RepositorySlug('flutter', 'flutter'),
+          const RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -166,7 +166,7 @@ void main() {
 
       await tester.post(handler);
       verifyNever(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
+        const RepositorySlug('flutter', 'flutter'),
         ref,
         any,
       ));
@@ -187,7 +187,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          RepositorySlug('flutter', 'flutter'),
+          const RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -206,7 +206,7 @@ void main() {
 
       await tester.post(handler);
       verifyNever(
-          mockRepositoriesService.createStatus(RepositorySlug('flutter', 'flutter'), ref, any));
+          mockRepositoriesService.createStatus(const RepositorySlug('flutter', 'flutter'), ref, any));
     });
   });
 
@@ -217,7 +217,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
+        const RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -232,7 +232,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
+        const RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -247,7 +247,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
+        const RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -266,7 +266,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'engine'),
+        const RepositorySlug('flutter', 'engine'),
         ref,
         captureAny,
       )).captured.single.toJSON(),

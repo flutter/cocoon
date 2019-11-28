@@ -66,7 +66,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const String table = 'Checklist';
 
     final GitHub github = await config.createGitHubClient();
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
     final DatastoreService datastore = datastoreProvider();
     final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();

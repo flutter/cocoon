@@ -70,7 +70,7 @@ void main() {
     setUp(() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
       final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
       when(github.repositories).thenReturn(repositories);
       when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
