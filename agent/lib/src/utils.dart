@@ -404,6 +404,7 @@ class Config {
     @required this.authToken,
     @required this.flutterDirectory,
     @required this.deviceOperatingSystem,
+    @required this.hostType,
   });
 
   static void initialize(ArgResults args) {
@@ -433,9 +434,24 @@ class Config {
       case 'ios':
         deviceOperatingSystem = DeviceOperatingSystem.ios;
         break;
+      case 'none':
+        deviceOperatingSystem = DeviceOperatingSystem.none;
+        break;
       default:
         throw BuildFailedError(
             'Unrecognized device_os value: ${agentConfig['device_os']}');
+    }
+
+    HostType hostType;
+    switch (agentConfig['host_type'] as String) {
+      case 'physical':
+        hostType = HostType.physical;
+        break;
+      case 'vm':
+        hostType = HostType.vm;
+        break;
+      default:
+        hostType = HostType.physical;
     }
 
     _config = Config(
@@ -444,6 +460,7 @@ class Config {
       authToken: authToken,
       flutterDirectory: flutterDirectory,
       deviceOperatingSystem: deviceOperatingSystem,
+      hostType: hostType,
     );
   }
 
@@ -452,6 +469,7 @@ class Config {
   final String authToken;
   final Directory flutterDirectory;
   final DeviceOperatingSystem deviceOperatingSystem;
+  final HostType hostType;
 
   String get adbPath {
     String androidHome = Platform.environment['ANDROID_HOME'];
@@ -474,6 +492,7 @@ agentId: $agentId
 flutterDirectory: $flutterDirectory
 adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
 deviceOperatingSystem: $deviceOperatingSystem
+hostType: $hostType
 '''
       .trim();
 }

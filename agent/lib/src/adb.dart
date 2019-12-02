@@ -14,7 +14,10 @@ import 'utils.dart';
 DeviceDiscovery get devices => DeviceDiscovery();
 
 /// Operating system on the devices that this agent is configured to test.
-enum DeviceOperatingSystem { android, ios }
+enum HostType { vm, physical }
+
+/// Operating system on the devices that this agent is configured to test.
+enum DeviceOperatingSystem { android, ios, none }
 
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
@@ -24,6 +27,8 @@ abstract class DeviceDiscovery {
         return AndroidDeviceDiscovery();
       case DeviceOperatingSystem.ios:
         return IosDeviceDiscovery();
+      case DeviceOperatingSystem.none:
+        return NoOpDeviceDiscovery();
       default:
         throw StateError(
             'Unsupported device operating system: {config.deviceOperatingSystem}');
@@ -312,6 +317,34 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<void> performPreflightTasks() async {
     // Currently we do not have preflight tasks for iOS.
+    return null;
+  }
+}
+
+class NoOpDeviceDiscovery implements DeviceDiscovery {
+  factory NoOpDeviceDiscovery() {
+    return _instance ??= NoOpDeviceDiscovery._();
+  }
+
+  NoOpDeviceDiscovery._();
+
+  static NoOpDeviceDiscovery _instance;
+
+  @override
+  Future<List<Device>> discoverDevices({int retriesDelayMs=10000}) async {
+    return [];
+  }
+
+  @override
+  Future<Map<String, HealthCheckResult>> checkDevices() async {
+    Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
+    results['no-device'] = HealthCheckResult.success();
+    return results;
+  }
+
+  @override
+  Future<void> performPreflightTasks() async {
+    // Currently we do not have preflight tasks for hosts without attached devices.
     return null;
   }
 }

@@ -6,9 +6,11 @@ packages
 .packages
 .pub
 app/build
-pubspec.lock
 config.yaml
-
+.flutter-plugins-dependencies
 # IntelliJ
 .idea
 *.iml
+
+# VSCode
+.vscode/

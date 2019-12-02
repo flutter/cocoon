@@ -41,7 +41,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
     buildState = widget.buildState;
 
     return ChangeNotifierProvider<FlutterBuildState>(
-      builder: (_) => buildState,
+      create: (_) => buildState,
       child: BuildDashboard(scaffoldKey: _scaffoldKey),
     );
   }

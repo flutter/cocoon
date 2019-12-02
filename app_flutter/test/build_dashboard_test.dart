@@ -19,7 +19,7 @@ void main() {
 
     await tester.pumpWidget(MaterialApp(
         home: ChangeNotifierProvider<FlutterBuildState>(
-      builder: (_) => buildState,
+      create: (_) => buildState,
       child: const BuildDashboard(),
     )));
 
@@ -34,7 +34,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
         home: ChangeNotifierProvider<FlutterBuildState>(
-          builder: (_) => fakeBuildState,
+          create: (_) => fakeBuildState,
           child: const BuildDashboard(),
         )));
 
@@ -52,7 +52,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
         home: ChangeNotifierProvider<FlutterBuildState>(
-          builder: (_) => fakeBuildState,
+          create: (_) => fakeBuildState,
           child: const BuildDashboard(),
         )));
 
@@ -70,7 +70,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
         home: ChangeNotifierProvider<FlutterBuildState>(
-          builder: (_) => fakeBuildState,
+          create: (_) => fakeBuildState,
           child: const BuildDashboard(),
         )));
 
