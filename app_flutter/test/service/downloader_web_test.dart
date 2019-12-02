@@ -23,13 +23,5 @@ void main() {
       expect(() => downloader.download('https://flutter.dev', null),
           throwsA(isA<AssertionError>()));
     });
-
-    test('anchor element created', () async {
-      await downloader.download('https://flutter.dev', 'testfile');
-
-      final Element anchor = querySelector('a');
-
-      expect(anchor, isNotNull);
-    });
   });
 }
