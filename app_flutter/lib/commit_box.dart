@@ -39,6 +39,7 @@ class _CommitBoxState extends State<CommitBox> {
       height: StatusGrid.cellSize,
       child: GestureDetector(
         onTap: _handleTap,
+        // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
         // CanvasKit currently cannot render a NetworkImage because of CORS issues.
         // As a work around, we just show the first letter of the contributor's username.
         child: Container(

@@ -153,6 +153,7 @@ void main() {
         ),
       );
 
+      // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
       // expect(tester.takeException(),
       //     const test.TypeMatcher<NetworkImageLoadException>());
 
