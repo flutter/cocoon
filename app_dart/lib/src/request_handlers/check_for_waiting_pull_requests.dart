@@ -137,7 +137,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     ));
 
     if (result.hasErrors) {
-      log.error(jsonEncode(result.errors));
+      for (GraphQLError error in result.errors) {
+        log.error(error.toString());
+      }
       return false;
     }
     return true;
