@@ -39,7 +39,7 @@ class GetTimeSeriesHistory
   Future<GetTimeSeriesHistoryResponse> post() async {
     checkRequiredParameters(<String>[timeSeriesKeyParam]);
     // This number inherites from earlier GO backend. Up to change if necessary.
-    const int maxRecords = 1500;
+    const int maxRecords = 6000;
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper = KeyHelper(
         applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
