@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show jsonEncode;
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -94,7 +93,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
 
     if (result.hasErrors) {
-      log.error(jsonEncode(result.errors));
+      for (GraphQLError error in result.errors) {
+        log.error(error.toString());
+      }
       throw const BadRequestException('GraphQL query failed');
     }
 
@@ -116,7 +117,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       },
     ));
     if (result.hasErrors) {
-      log.error(jsonEncode(result.errors));
+      for (GraphQLError error in result.errors) {
+        log.error(error.toString());
+      }
       return false;
     }
     return true;
