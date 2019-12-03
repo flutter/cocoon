@@ -115,11 +115,11 @@ class StatusGrid extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Container(
-          width: columnCount * 50.0,
+          width: columnCount * cellSize,
           // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
           child: GridView.builder(
             addRepaintBoundaries: false,
-            itemCount: columnCount * statuses.length,
+            itemCount: columnCount * (statuses.length + 1),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
