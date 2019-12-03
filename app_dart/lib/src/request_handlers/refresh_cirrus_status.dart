@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show json;
 
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
@@ -14,12 +15,13 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
+import '../service/github_service.dart';
 
 const List<String> _failedStates = <String>['error', 'failure'];
 const List<String> _inProgressStates = <String>['pending'];
 
 @immutable
-class RefreshCirrusStatus extends ApiRequestHandler<Body> {
+class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse> {
   const RefreshCirrusStatus(
     Config config,
     AuthenticationProvider authenticationProvider, {
@@ -30,17 +32,29 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
 
   @override
-  Future<Body> get() async {
+  Future<RefreshCirrusStatusResponse> get() async {
     final DatastoreService datastore = datastoreProvider();
     final GitHub github = await config.createGitHubClient();
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final GithubService githubService = GithubService(github, slug);
+
+    int number = 0;
+    int iter = 0;
+    //Map<String, dynamic> statusJson;
 
     await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
       final String existingTaskStatus = task.task.status;
       log.debug('Found Cirrus task for commit $sha with existing status $existingTaskStatus');
       final Map<String, RepositoryStatus> mostRecentStatuses = <String, RepositoryStatus>{};
+
+      //String test = githubService.helper(sha);
+      //statusJson = json.decode(await githubService.checkRuns(slug, sha));
+      number = (await githubService.checkRuns(slug, sha)).length;
+      return RefreshCirrusStatusResponse(number);
+      
       await for (RepositoryStatus status in github.repositories.listStatuses(slug, sha)) {
+        iter += 1;
         final bool isCirrusStatus = status.targetUrl.contains('cirrus-ci.com');
         if (isCirrusStatus) {
           final String taskName = status.context;
@@ -50,6 +64,11 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
             mostRecentStatuses[taskName] = status;
           }
         }
+      }
+
+      if (number == 0) {
+        number = iter;
+        return RefreshCirrusStatusResponse(number);
       }
 
       final Iterable<String> states =
@@ -74,6 +93,25 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       }
     }
 
-    return Body.empty;
+    //return Body.empty;
+    return RefreshCirrusStatusResponse(number);
+  }
+}
+
+
+@immutable
+class RefreshCirrusStatusResponse extends JsonBody {
+  const RefreshCirrusStatusResponse(this.number) : assert(number != null);
+
+  final int number;
+  //final Map<String, dynamic> statusJson;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'Number': number,
+      //'total_count': statusJson['total_count'],
+      //'check_runs': statusJson['check_runs']
+    };
   }
 }
