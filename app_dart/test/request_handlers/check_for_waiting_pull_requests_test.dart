@@ -102,6 +102,20 @@ void main() {
       );
     }
 
+    test('Errors can be logged', () async {
+      flutterRepoPRs.add(PullRequestHelper());
+      final List<GraphQLError> errors = <GraphQLError>[
+        GraphQLError(raw: <String, String>{}, message: 'message'),
+      ];
+      githubGraphQLClient._mutateResultForOptions = (_) => QueryResult(errors: errors);
+
+      await tester.get(handler);
+      expect(log.records.length, errors.length);
+      for (int i = 0; i < errors.length; i++) {
+        expect(log.records[i].message, errors[i].toString());
+      }
+    });
+
     test('Merges first PR in list, all successful', () async {
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper()); // will be ignored.

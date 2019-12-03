@@ -93,7 +93,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
 
     if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
+    for (GraphQLError error in result.errors) {
         log.error(error.toString());
       }
       throw const BadRequestException('GraphQL query failed');
@@ -117,9 +117,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       },
     ));
     if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
+      log.error(jsonEncode(result.errors));
       return false;
     }
     return true;
