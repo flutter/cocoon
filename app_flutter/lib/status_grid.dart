@@ -80,7 +80,7 @@ class StatusGridContainer extends StatelessWidget {
 ///
 /// Results are displayed in a matrix format. Rows are commits and columns
 /// are the results from tasks.
-class StatusGrid extends StatefulWidget {
+class StatusGrid extends StatelessWidget {
   const StatusGrid({
     Key key,
     @required this.buildState,
@@ -105,149 +105,66 @@ class StatusGrid extends StatefulWidget {
   static const double cellSize = 50;
 
   @override
-  _StatusGridState createState() => _StatusGridState();
-}
-
-class _StatusGridState extends State<StatusGrid> {
-  List<ScrollController> controllers;
-  SyncScrollController _syncScroller;
-
-  @override
-  void initState() {
-    controllers = List<ScrollController>.generate(
-        widget.taskMatrix.rows + 1, (_) => ScrollController());
-    _syncScroller = SyncScrollController(controllers);
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    /// The grid needs to know its dimensions. Column is based off how many tasks are
+    /// in a row (+ 1 to account for [CommitBox]).
+    final int columnCount = taskMatrix.columns + 1;
     return Expanded(
-      child: ListView(
-        children: _buildRows(),
-        shrinkWrap: false,
-      ),
-    );
-  }
+      // The grid is wrapped with SingleChildScrollView to enable scrolling both
+      // horizontally and vertically
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          width: columnCount * cellSize,
+          // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
+          child: GridView.builder(
+            addRepaintBoundaries: false,
+            itemCount: columnCount * (statuses.length + 1),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount),
+            itemBuilder: (BuildContext context, int gridIndex) {
+              if (gridIndex == 0) {
+                /// The top left corner of the grid is nothing since
+                /// the left column is for [CommitBox] and the top
+                /// row is for [TaskIcon].
+                return const SizedBox();
+              }
 
-  List<Widget> _buildRows() {
-    final List<Widget> rows = <Widget>[];
+              /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
+              /// of [List<List<Task>>]. This allows the row of [TaskIcon] to align
+              /// with the column of [Task] that it maps to.
+              ///
+              /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
+              /// row of [TaskIcon] introduces.
+              final int index = gridIndex - columnCount;
+              if (index < 0) {
+                return TaskIcon(task: taskMatrix.sampleTask(gridIndex - 1));
+              }
 
-    rows.add(
-      Container(
-        height: StatusGrid.cellSize,
-        child: NotificationListener<ScrollNotification>(
-          child: ListView(
-            controller: controllers[0],
-            children: _buildTaskIcons(),
-            scrollDirection: Axis.horizontal,
-          ),
-          onNotification: (ScrollNotification scrollInfo) {
-            _syncScroller.processNotification(scrollInfo, controllers[0]);
-            return;
-          },
-        ),
-      ),
-    );
+              final int row = index ~/ columnCount;
+              if (index % columnCount == 0) {
+                return CommitBox(commit: statuses[row].commit);
+              }
 
-    for (int rowIndex = 0; rowIndex < widget.taskMatrix.rows; rowIndex++) {
-      final List<Widget> tasks = <Widget>[
-        CommitBox(commit: widget.statuses[rowIndex].commit),
-        for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
-          if (widget.taskMatrix.task(rowIndex, colIndex) != null)
-            TaskBox(
-              key: widget.insertCellKeys
-                  ? Key('cell-$rowIndex-$colIndex')
-                  : null,
-              buildState: widget.buildState,
-              task: widget.taskMatrix.task(rowIndex, colIndex),
-              commit: widget.statuses[rowIndex].commit,
-            )
-          else
-            SizedBox(
-              key: widget.insertCellKeys
-                  ? Key('cell-$rowIndex-$colIndex')
-                  : null,
-              width: StatusGrid.cellSize,
-            )
-      ];
+              final int column = (index % columnCount) - 1;
+              final Task task = taskMatrix.task(row, column);
+              if (task == null) {
+                /// [Task] was skipped so don't show anything.
+                return SizedBox(
+                  key: insertCellKeys ? Key('cell-$row-$column') : null,
+                  width: StatusGrid.cellSize,
+                );
+              }
 
-      rows.add(
-        Container(
-          height: StatusGrid.cellSize,
-          child: NotificationListener<ScrollNotification>(
-            child: ListView(
-              controller: controllers[rowIndex + 1],
-              scrollDirection: Axis.horizontal,
-              children: tasks,
-            ),
-            onNotification: (ScrollNotification scrollInfo) {
-              _syncScroller.processNotification(
-                  scrollInfo, controllers[rowIndex + 1]);
-              return;
+              return TaskBox(
+                key: insertCellKeys ? Key('cell-$row-$column') : null,
+                task: task,
+                buildState: buildState,
+              );
             },
           ),
         ),
-      );
-    }
-
-    return rows;
-  }
-
-  List<Widget> _buildTaskIcons() {
-    return <Widget>[
-      /// The top left corner of the grid has nothing.
-      Container(width: StatusGrid.cellSize),
-      for (int colIndex = 0; colIndex < widget.taskMatrix.columns; colIndex++)
-        Container(
-          width: StatusGrid.cellSize,
-          child: TaskIcon(
-            task: widget.taskMatrix.sampleTask(colIndex),
-          ),
-        ),
-    ];
-  }
-}
-
-/// A ScrollController that makes all ScrollControllers added to it have the same state.
-///
-/// A ListView of ListViews by default has ScrollControllers that are independent of each other.
-/// To get around this, this helper class makes all the independent ScrollControllers
-/// keep each other updated.
-///
-/// Source: https://stackoverflow.com/questions/54859779/scroll-multiple-scrollable-widgets-in-sync
-class SyncScrollController {
-  SyncScrollController(List<ScrollController> controllers) {
-    controllers.forEach(registerScrollController);
-  }
-
-  final List<ScrollController> _registeredScrollControllers =
-      <ScrollController>[];
-
-  ScrollController _scrollingController;
-  bool _scrollingActive = false;
-
-  void registerScrollController(ScrollController controller) {
-    _registeredScrollControllers.add(controller);
-  }
-
-  void processNotification(
-      ScrollNotification notification, ScrollController sender) {
-    if (notification is ScrollStartNotification && !_scrollingActive) {
-      _scrollingController = sender;
-      _scrollingActive = true;
-    } else if (identical(sender, _scrollingController) && _scrollingActive) {
-      if (notification is ScrollEndNotification) {
-        _scrollingController = null;
-        _scrollingActive = false;
-      } else if (notification is ScrollUpdateNotification) {
-        for (ScrollController controller in _registeredScrollControllers) {
-          if (!identical(_scrollingController, controller) &&
-              controller.hasClients) {
-            controller.jumpTo(_scrollingController.offset);
-          }
-        }
-      }
-    }
+      ),
+    );
   }
 }

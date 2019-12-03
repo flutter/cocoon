@@ -108,7 +108,7 @@ void main() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -153,7 +153,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -198,7 +198,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -237,7 +237,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
@@ -296,7 +296,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
@@ -328,7 +328,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -369,7 +369,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber))
           .thenAnswer((_) => Stream<PullRequestFile>.value(
@@ -423,7 +423,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       await tester.post(webhook);
 
@@ -447,7 +447,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber))
           .thenAnswer((_) => Stream<PullRequestFile>.value(
@@ -479,7 +479,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
         return Stream<IssueLabel>.fromIterable(<IssueLabel>[
@@ -504,7 +504,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber))
           .thenAnswer((_) => Stream<PullRequestFile>.value(
@@ -541,7 +541,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber))
           .thenAnswer((_) => Stream<PullRequestFile>.value(
@@ -579,7 +579,7 @@ void main() {
       final Uint8List key = utf8.encode(keyString);
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
@@ -632,7 +632,7 @@ void main() {
 
       await tester.post(webhook);
 
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
       verifyNever(gitHubClient.postJSON<List<dynamic>, List<IssueLabel>>(
         '/repos/${slug.fullName}/issues/$issueNumber/labels',
