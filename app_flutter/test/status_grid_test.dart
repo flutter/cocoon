@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:test/test.dart' as test;
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
