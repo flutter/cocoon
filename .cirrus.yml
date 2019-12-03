@@ -25,4 +25,6 @@ task:
   test_script:
     - cd app_flutter
     - flutter test
+  web_test_script:
+    - cd app_flutter
     - flutter test --platform=chrome
