@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
 
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
@@ -17,8 +16,8 @@ import '../request_handling/body.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
 
-const List<String> _failedStates = <String>['error', 'failure'];
-const List<String> _inProgressStates = <String>['pending'];
+const List<String> _failedStates = <String>['cancelled', 'timed_out', 'action_required', 'failure'];
+const List<String> _inProgressStates = <String>['queued', 'in_progress'];
 
 @immutable
 class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse> {
@@ -41,46 +40,34 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
       final String sha = task.commit.sha;
       final String existingTaskStatus = task.task.status;
       log.debug('Found Cirrus task for commit $sha with existing status $existingTaskStatus');
-      final Map<String, RepositoryStatus> mostRecentStatuses = <String, RepositoryStatus>{};
 
-      //String test = githubService.helper(sha);
-      //statusJson = json.decode(await githubService.checkRuns(slug, sha));
-      number = (await githubService.checkRuns(slug, sha)).length;
-      return RefreshCirrusStatusResponse(number);
-      
-      await for (RepositoryStatus status in github.repositories.listStatuses(slug, sha)) {
-        iter += 1;
-        final bool isCirrusStatus = status.targetUrl.contains('cirrus-ci.com');
-        if (isCirrusStatus) {
-          final String taskName = status.context;
-          log.debug('Found Cirrus build status for $sha: $taskName (${status.state})');
-          final RepositoryStatus existingStatus = mostRecentStatuses[taskName];
-          if (existingStatus == null || existingStatus.updatedAt.isBefore(status.updatedAt)) {
-            mostRecentStatuses[taskName] = status;
-          }
-        }
+      final List<String> statuses = <String>[];
+      final List<String> conclusions = <String>[];
+      for (dynamic runStatus in await githubService.checkRuns(slug, sha)) {
+        final String status = runStatus['status'];
+        final String conclusion = runStatus['conclusion'];
+        final String taskName = runStatus['name'];
+        log.debug('Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
+        statuses.add(status);
+        conclusions.add(conclusion);
       }
 
-      if (number == 0) {
-        number = iter;
-        return RefreshCirrusStatusResponse(number);
-      }
-
-      final Iterable<String> states =
-          mostRecentStatuses.values.map<String>((RepositoryStatus status) => status.state);
       String newTaskStatus;
-      if (states.isEmpty) {
+      if (conclusions.isEmpty) {
         newTaskStatus = Task.statusNew;
-      } else if (states.any(_failedStates.contains)) {
+      } else if (conclusions.any(_failedStates.contains)) {
         newTaskStatus = Task.statusFailed;
-      } else if (states.any(_inProgressStates.contains)) {
+        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+      } else if (statuses.any(_inProgressStates.contains)) {
         newTaskStatus = Task.statusInProgress;
       } else {
         newTaskStatus = Task.statusSucceeded;
+        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
 
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
+        tasks.add(task.task);
         await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
@@ -88,25 +75,22 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
       }
     }
 
-    //return Body.empty;
-    return RefreshCirrusStatusResponse(number);
+    return RefreshCirrusStatusResponse(tasks);
   }
 }
 
 
 @immutable
 class RefreshCirrusStatusResponse extends JsonBody {
-  const RefreshCirrusStatusResponse(this.number) : assert(number != null);
+  const RefreshCirrusStatusResponse(this.tasks)
+      : assert(tasks != null);
 
-  final int number;
-  //final Map<String, dynamic> statusJson;
+  final List<Task> tasks;
 
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Number': number,
-      //'total_count': statusJson['total_count'],
-      //'check_runs': statusJson['check_runs']
+      'Updated Task Number': tasks.length,
     };
   }
 }
