@@ -1,5 +1,6 @@
 container:
   dockerfile: "Dockerfile"
+  memory: 1024Mi
 
 task:
   name: $CWD
