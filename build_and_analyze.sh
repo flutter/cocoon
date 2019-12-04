@@ -9,11 +9,11 @@ pushd $1 > /dev/null
 
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
-  flutter pub run build_runner build --delete-conflicting-outputs
+  pub run build_runner build --delete-conflicting-outputs
 fi
 
 # See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
 
-flutter pub global run tuneup check
+pub global run tuneup check
 
 popd > /dev/null

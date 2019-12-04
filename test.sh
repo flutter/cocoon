@@ -12,6 +12,6 @@ fi
 
 pushd $1 > /dev/null
 
-flutter pub run test
+pub run test
 
 popd > /dev/null

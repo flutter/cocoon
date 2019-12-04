@@ -1,6 +1,5 @@
 container:
-  dockerfile: "Dockerfile"
-  memory: 2048Mi
+  image: cirrusci/flutter:latest
 
 task:
   name: $CWD
@@ -9,8 +8,8 @@ task:
       - CWD: app
       - CWD: app_dart
       - CWD: agent
-  install_tuneup_script: flutter pub global activate tuneup
-  pub_script: cd $CWD && flutter pub get
+  install_tuneup_script: pub global activate tuneup
+  pub_script: cd $CWD && pub get
   build_analyze_script: ./build_and_analyze.sh $CWD
   test_script: ./test.sh $CWD
   
@@ -20,19 +19,10 @@ task:
   - flutter channel dev
   - flutter upgrade
   pub_script: cd app_flutter && flutter packages get
-  analyze_script: 
-    - cd app_flutter
-    - flutter analyze
-  format_script: 
-    - cd app_flutter
-    - flutter format --set-exit-if-changed lib/ test/
-  build_script: 
-    - cd app_flutter
-    - flutter config --enable-web
-    - flutter build web
+  analyze_script: cd app_flutter && flutter analyze
+  format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
+  build_script: cd app_flutter && flutter config --enable-web && flutter build web
   test_script:
     - cd app_flutter
     - flutter test
-  web_test_script:
-    - cd app_flutter
-    - flutter test --platform=chrome -v
+    # - flutter test --platform=chrome test/service/appengine_cocoon_test.dart # https://github.com/flutter/flutter/issues/44373
