@@ -88,7 +88,7 @@ void main() {
     await tester.pump();
     // TODO(chillers): Uncomment when resolved. https://github.com/flutter/flutter/issues/45955
     // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-    // if (kIsWeb) {
+    // if (!kIsWeb) {
     //   expect(tester.takeException(),
     //       const test.TypeMatcher<NetworkImageLoadException>());
     // }
