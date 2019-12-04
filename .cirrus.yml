@@ -21,7 +21,10 @@ task:
   - flutter upgrade
   - flutter config --enable-web
   pub_script: cd app_flutter && flutter packages get
-  analyze_script: cd app_flutter && flutter analyze
+  analyze_script: 
+    - cd app_flutter
+    - rm lib/generated_plugin_registrant.dart
+    - flutter analyze
   format_script: cd app_flutter && flutter format --set-exit-if-changed lib/ test/
   build_script: cd app_flutter && && flutter build web
   test_script:
