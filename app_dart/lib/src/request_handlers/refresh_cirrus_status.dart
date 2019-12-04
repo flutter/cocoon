@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show json;
 
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
