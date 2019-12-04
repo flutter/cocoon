@@ -153,9 +153,10 @@ void main() {
       );
 
       // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
-      // expect(tester.takeException(),
-      //     const test.TypeMatcher<NetworkImageLoadException>());
-
+      // if (kIsWeb) {
+      //   expect(tester.takeException(),
+      //       const test.TypeMatcher<NetworkImageLoadException>());
+      // }
       expect(find.byType(TaskBox), findsNWidgets(3));
 
       // Row 1: ✓☐☐

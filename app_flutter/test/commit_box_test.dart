@@ -29,8 +29,10 @@ void main() {
       // Image.Network throws a 400 exception in tests
       // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
       // expect(find.byType(Image), findsOneWidget);
-      // expect(tester.takeException(),
-      //     const test.TypeMatcher<NetworkImageLoadException>());
+      // if (kIsWeb) {
+      //   expect(tester.takeException(),
+      //       const test.TypeMatcher<NetworkImageLoadException>());
+      // }
       expect(find.text('A'), findsOneWidget);
     });
 

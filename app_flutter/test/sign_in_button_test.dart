@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,8 +86,12 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(tester.takeException(),
-        const test.TypeMatcher<NetworkImageLoadException>());
+
+    // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+    if (!kIsWeb) {
+      expect(tester.takeException(),
+          const test.TypeMatcher<NetworkImageLoadException>());
+    }
 
     expect(find.text('Sign in'), findsNothing);
     expect(find.byType(Image), findsOneWidget);
