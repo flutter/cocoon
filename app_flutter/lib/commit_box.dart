@@ -33,15 +33,32 @@ class _CommitBoxState extends State<CommitBox> {
 
   @override
   Widget build(BuildContext context) {
+    int authorHash = widget.commit.author.hashCode;
     return SizedBox(
       width: StatusGrid.cellSize,
       height: StatusGrid.cellSize,
       child: GestureDetector(
         onTap: _handleTap,
+        // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
+        // CanvasKit currently cannot render a NetworkImage because of CORS issues.
+        // As a work around, we just show the first letter of the contributor's username.
         child: Container(
           margin: const EdgeInsets.all(1.0),
-          child: Image.network(
-            widget.commit.authorAvatarUrl,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color.fromRGBO(authorHash & 255, authorHash >>= 8 & 255,
+                authorHash >>= 8 & 255, 1),
+          ),
+          child: Center(
+            child: Text(
+              widget.commit.author.substring(0, 1).toUpperCase(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
       ),

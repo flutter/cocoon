@@ -26,11 +26,12 @@ void main() {
         textDirection: TextDirection.ltr,
       ));
 
-      expect(find.byType(Image), findsOneWidget);
-
       // Image.Network throws a 400 exception in tests
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
+      // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
+      // expect(find.byType(Image), findsOneWidget);
+      // expect(tester.takeException(),
+      //     const test.TypeMatcher<NetworkImageLoadException>());
+      expect(find.text('A'), findsOneWidget);
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {
@@ -46,6 +47,9 @@ void main() {
 
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
+
+      expect(tester.takeException(),
+          const test.TypeMatcher<NetworkImageLoadException>());
 
       expect(find.text(shortSha), findsOneWidget);
       expect(find.text(expectedCommit.author), findsOneWidget);

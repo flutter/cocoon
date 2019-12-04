@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:test/test.dart' as test;
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -105,6 +105,7 @@ void main() {
     /// its task on its own unique row and column.
     final List<CommitStatus> statusesWithSkips = <CommitStatus>[
       CommitStatus()
+        ..commit = (Commit()..author = 'Author')
         ..stages.add(Stage()
           ..name = 'A'
           ..tasks.addAll(<Task>[
@@ -113,6 +114,7 @@ void main() {
               ..status = TaskBox.statusSucceeded
           ])),
       CommitStatus()
+        ..commit = (Commit()..author = 'Author')
         ..stages.add(Stage()
           ..name = 'A'
           ..tasks.addAll(<Task>[
@@ -121,6 +123,7 @@ void main() {
               ..status = TaskBox.statusSucceeded
           ])),
       CommitStatus()
+        ..commit = (Commit()..author = 'Author')
         ..stages.add(Stage()
           ..name = 'A'
           ..tasks.addAll(<Task>[
@@ -148,8 +151,10 @@ void main() {
           ),
         ),
       );
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
+
+      // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
+      // expect(tester.takeException(),
+      //     const test.TypeMatcher<NetworkImageLoadException>());
 
       expect(find.byType(TaskBox), findsNWidgets(3));
 

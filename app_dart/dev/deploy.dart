@@ -16,8 +16,12 @@ const String gcloudProjectIdAbbrFlag = 'p';
 const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
+const String flutterProfileModeFlag = 'profile';
+
 String _gcloudProjectId;
 String _gcloudProjectVersion;
+
+bool _flutterProfileMode;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -27,6 +31,7 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
 
   _gcloudProjectId = args[gcloudProjectIdFlag];
   _gcloudProjectVersion = args[gcloudProjectVersionFlag];
+  _flutterProfileMode = args[flutterProfileModeFlag];
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -81,7 +86,7 @@ Future<bool> _buildFlutterWebApp() async {
       workingDirectory: flutterProjectDirectory);
 
   final Process process = await Process.start(
-      'flutter', <String>['build', 'web'],
+      'flutter', <String>['build', 'web', '--dart-define', 'FLUTTER_WEB_USE_SKIA=true', _flutterProfileMode ? '--profile' : '--release'],
       workingDirectory: flutterProjectDirectory);
   await stdout.addStream(process.stdout);
 
@@ -146,7 +151,8 @@ Future<bool> _deployToAppEngine() async {
 Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
-    ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag);
+    ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
+    ..addFlag(flutterProfileModeFlag);
 
   if (!_getArgs(argParser, arguments)) {
     exit(1);
