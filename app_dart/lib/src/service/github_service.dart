@@ -8,13 +8,56 @@ import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 @immutable
+<<<<<<< HEAD
 class GithubService {
+=======
+<<<<<<< HEAD
+class GithubService {
+=======
+class GithubService{
+
+>>>>>>> 2f3aef4... initial investigation
+>>>>>>> changed to check API
   const GithubService(this.github, this.slug);
 
   final GitHub github;
   final RepositorySlug slug;
 
+<<<<<<< HEAD
   Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+=======
+<<<<<<< HEAD
+  String helper(String sha) {
+    return sha;
+  }
+
+  Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+    final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
+    //final Response response = await github.request('GET', path,
+    //    headers: <String, String>{
+    //      'Accept': 'application/vnd.github.antiope-preview+json'
+    //    });
+    final PaginationHelper paginationHelper = PaginationHelper(github);
+    final List<dynamic> checkRuns = <dynamic>[];
+    await for (Response response in paginationHelper.fetchStreamed('GET', path,
+        headers: <String, String>{
+          'Accept': 'application/vnd.github.antiope-preview+json'
+        })) {
+      final Map<String, dynamic> jsonStatus = json.decode(response.body);
+      checkRuns.addAll(jsonStatus['check_runs']);
+    }
+    return checkRuns;
+  }
+}
+=======
+  String helper(String sha){
+    return sha;
+  }
+
+  Future<List<dynamic>> checkRuns(
+    RepositorySlug slug, String sha
+  ) async {
+>>>>>>> changed to check API
     final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
     final PaginationHelper paginationHelper = PaginationHelper(github);
     final List<dynamic> runStatus = <dynamic>[];
@@ -28,4 +71,8 @@ class GithubService {
     return runStatus;
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2f3aef4... initial investigation
+>>>>>>> changed to check API
