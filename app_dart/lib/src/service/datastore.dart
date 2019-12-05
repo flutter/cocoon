@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -103,6 +105,15 @@ class DatastoreService {
       }
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
+  }
+
+  Future<List<LogChunk>> getLog({Task task}) async {
+    final Query<LogChunk> query = db.query<LogChunk>()
+      ..filter('ownerKey =', task.key)
+      ..order('createTimestamp');
+
+    
+    return await query.run().toList();
   }
 
   /// Finds all tasks owned by the specified [commit] and partitions them into

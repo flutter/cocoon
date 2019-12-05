@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
@@ -101,6 +103,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
+      await _uploadLogToGcs(task: task);
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
@@ -161,6 +164,16 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     } catch (ApiRequestError) {
       log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
     }
+  }
+
+  /// This is run when completed so no need to worry about uploading logs that happen in the middle.
+  Future<void> _uploadLogToGcs({Task task, DatastoreService datastore}) async {
+    final List<LogChunk> logChunks = await datastore.getLog(task: task);
+
+    final List<LogChunk> log = logChunks.where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp);
+
+    // pipe to GCS
+
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
