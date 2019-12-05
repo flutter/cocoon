@@ -9,15 +9,24 @@ import 'package:meta/meta.dart';
 
 @immutable
 <<<<<<< HEAD
+<<<<<<< HEAD
 class GithubService {
 =======
+=======
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
 <<<<<<< HEAD
 class GithubService {
 =======
 class GithubService{
 
 >>>>>>> 2f3aef4... initial investigation
+<<<<<<< HEAD
 >>>>>>> changed to check API
+=======
+=======
+class GithubService {
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
   const GithubService(this.github, this.slug);
 
   final GitHub github;
@@ -25,10 +34,13 @@ class GithubService{
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
 =======
 =======
 >>>>>>> add test
+=======
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
 <<<<<<< HEAD
   String helper(String sha) {
     return sha;
@@ -59,7 +71,13 @@ class GithubService{
   Future<List<dynamic>> checkRuns(
     RepositorySlug slug, String sha
   ) async {
+<<<<<<< HEAD
 >>>>>>> changed to check API
+=======
+=======
+  Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
     final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
     final PaginationHelper paginationHelper = PaginationHelper(github);
     final List<dynamic> runStatus = <dynamic>[];
@@ -74,6 +92,7 @@ class GithubService{
   }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 2f3aef4... initial investigation
@@ -84,3 +103,12 @@ class GithubService{
 
 >>>>>>> cf8adcb... add test
 >>>>>>> add test
+=======
+>>>>>>> 2f3aef4... initial investigation
+=======
+
+>>>>>>> cf8adcb... add test
+=======
+
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
