@@ -23,6 +23,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/storage.dart';
 
 @immutable
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
@@ -31,9 +32,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.storageProvider = StorageService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+  final StorageServiceProvider storageProvider;
 
   static const String taskKeyParam = 'TaskKey';
   static const String newStatusParam = 'NewStatus';
@@ -50,6 +53,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
     final DatastoreService datastore = datastoreProvider();
+    final StorageService storage = storageProvider();
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
@@ -104,7 +108,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
-      await _uploadLogToGcs(task: task);
+      await _uploadLogToGcs(task: task, datastore: datastore, storage: storage);
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
@@ -168,19 +172,27 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }
 
   /// This is run when completed so no need to worry about uploading logs that happen in the middle.
-  Future<void> _uploadLogToGcs({Task task, DatastoreService datastore}) async {
+  Future<void> _uploadLogToGcs({
+    Task task,
+    DatastoreService datastore,
+    StorageService storage,
+  }) async {
     final List<LogChunk> logChunks = await datastore.getLog(task: task);
 
     /// This assumes there is only ever one run for a task being run at a time.
-    final List<LogChunk> logChunksForThisAttempt = logChunks.where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp);
+    final List<LogChunk> logChunksForThisAttempt = logChunks
+        .where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp)
+        .toList();
 
-    final Uint8List logBytes = logChunksForThisAttempt.expand((LogChunk chunk) => chunk.data);
+    final Uint8List logBytes = Uint8List.fromList(logChunksForThisAttempt
+        .expand((LogChunk chunk) => chunk.data)
+        .toList());
+
+    final String fileName = '${task.key}_${task.attempts}.log';
 
     // pipe to GCS
-    final Bucket devicelabLogBucket = storageService.bucket('flutter-task-logs');
-    final ObjectInfo info = await devicelabLogBucket.writeBytes('${task.key}_${task.attempts}.log', logBytes);
-
-    log.info('Uploaded ${task.key}_${task.attempts}.log at ${info.updated}');
+    final ObjectInfo uploadInfo = await storage.writeTaskLog(fileName, logBytes);
+    log.info('Uploaded $fileName at ${uploadInfo.updated}');
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
