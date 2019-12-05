@@ -160,6 +160,7 @@ class StatusGrid extends StatelessWidget {
                 key: insertCellKeys ? Key('cell-$row-$column') : null,
                 task: task,
                 buildState: buildState,
+                commit: statuses[row].commit,
               );
             },
           ),

@@ -19,9 +19,13 @@ import 'task_helper.dart';
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
   const TaskBox(
-      {Key key, @required this.buildState, @required this.task, this.commit})
+      {Key key,
+      @required this.buildState,
+      @required this.task,
+      @required this.commit})
       : assert(task != null),
         assert(buildState != null),
+        assert(commit != null),
         super(key: key);
 
   /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.

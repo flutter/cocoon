@@ -41,10 +41,15 @@ void main() {
 
     testWidgets('shows loading indicator for In Progress task',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(
+        MaterialApp(
           home: TaskBox(
-              buildState: buildState,
-              task: Task()..status = TaskBox.statusInProgress)));
+            buildState: buildState,
+            task: Task()..status = TaskBox.statusInProgress,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
@@ -56,7 +61,14 @@ void main() {
         ..attempts = 2;
 
       await tester.pumpWidget(
-          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
+        MaterialApp(
+          home: TaskBox(
+            buildState: buildState,
+            task: repeatTask,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -72,7 +84,14 @@ void main() {
         ..attempts = 2;
 
       await tester.pumpWidget(
-          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
+        MaterialApp(
+          home: TaskBox(
+            buildState: buildState,
+            task: repeatTask,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -83,12 +102,17 @@ void main() {
 
     testWidgets('shows question mark for task marked flaky',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(
+        MaterialApp(
           home: TaskBox(
-              buildState: buildState,
-              task: Task()
-                ..status = TaskBox.statusSucceeded
-                ..isFlaky = true)));
+            buildState: buildState,
+            task: Task()
+              ..status = TaskBox.statusSucceeded
+              ..isFlaky = true,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       expect(find.byIcon(Icons.help), findsOneWidget);
     });
@@ -96,12 +120,17 @@ void main() {
     testWidgets(
         'shows question mark and loading indicator for task marked flaky that is in progress',
         (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(
+        MaterialApp(
           home: TaskBox(
-              buildState: buildState,
-              task: Task()
-                ..status = TaskBox.statusInProgress
-                ..isFlaky = true)));
+            buildState: buildState,
+            task: Task()
+              ..status = TaskBox.statusInProgress
+              ..isFlaky = true,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
       expect(find.byIcon(Icons.help), findsOneWidget);
@@ -114,7 +143,14 @@ void main() {
         ..attempts = 2;
 
       await tester.pumpWidget(
-          MaterialApp(home: TaskBox(buildState: buildState, task: repeatTask)));
+        MaterialApp(
+          home: TaskBox(
+            buildState: buildState,
+            task: repeatTask,
+            commit: Commit(),
+          ),
+        ),
+      );
 
       final Container taskBoxWidget =
           find.byType(Container).evaluate().first.widget;
@@ -134,6 +170,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -167,6 +204,7 @@ void main() {
               task: Task()
                 ..stageName = 'cirrus'
                 ..status = 'Succeeeded',
+              commit: Commit(),
             ),
           ),
         ),
@@ -192,6 +230,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -222,6 +261,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -261,6 +301,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -347,6 +388,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -375,6 +417,7 @@ void main() {
             body: TaskBox(
               buildState: buildState,
               task: expectedTask,
+              commit: Commit(),
             ),
           ),
         ),
@@ -414,6 +457,7 @@ Future<void> expectTaskBoxColorWithMessage(
       home: TaskBox(
         buildState: FlutterBuildState(),
         task: Task()..status = message,
+        commit: Commit(),
       ),
     ),
   );
