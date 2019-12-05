@@ -17,11 +17,13 @@ const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
 const String flutterProfileModeFlag = 'profile';
+const String flutterUseSkiaFlag = 'useSkia';
 
 String _gcloudProjectId;
 String _gcloudProjectVersion;
 
 bool _flutterProfileMode;
+bool _flutterUseSkia;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -32,6 +34,7 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   _gcloudProjectId = args[gcloudProjectIdFlag];
   _gcloudProjectVersion = args[gcloudProjectVersionFlag];
   _flutterProfileMode = args[flutterProfileModeFlag];
+  _flutterUseSkia = args[flutterUseSkiaFlag];
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -64,7 +67,15 @@ Future<bool> _buildAngularDartApp() async {
 
   final Process buildProcess = await Process.start(
     'pub',
-    <String>['run', 'build_runner', 'build', '--release', '--output', 'build', '--delete-conflicting-outputs'],
+    <String>[
+      'run',
+      'build_runner',
+      'build',
+      '--release',
+      '--output',
+      'build',
+      '--delete-conflicting-outputs'
+    ],
     workingDirectory: angularDartProjectDirectory,
   );
   await stdout.addStream(buildProcess.stdout);
@@ -86,7 +97,14 @@ Future<bool> _buildFlutterWebApp() async {
       workingDirectory: flutterProjectDirectory);
 
   final Process process = await Process.start(
-      'flutter', <String>['build', 'web', '--dart-define', 'FLUTTER_WEB_USE_SKIA=true', _flutterProfileMode ? '--profile' : '--release'],
+      'flutter',
+      <String>[
+        'build',
+        'web',
+        '--dart-define',
+        'FLUTTER_WEB_USE_SKIA=$_flutterUseSkia',
+        _flutterProfileMode ? '--profile' : '--release'
+      ],
       workingDirectory: flutterProjectDirectory);
   await stdout.addStream(process.stdout);
 
@@ -104,8 +122,8 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
-  final ProcessResult result = await Process.run('cp',
-      <String>['-r', '$angularDartProjectDirectory/build/web', 'build/']);
+  final ProcessResult result = await Process.run(
+      'cp', <String>['-r', '$angularDartProjectDirectory/build/web', 'build/']);
 
   return result.exitCode == 0;
 }
@@ -152,7 +170,8 @@ Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
-    ..addFlag(flutterProfileModeFlag);
+    ..addFlag(flutterProfileModeFlag)
+    ..addFlag(flutterUseSkiaFlag);
 
   if (!_getArgs(argParser, arguments)) {
     exit(1);

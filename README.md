@@ -36,6 +36,12 @@ You can test the new version by accessing `{VERSION}-dot-flutter-dashboard.appsp
 browser. If the result is satisfactory, the new version can be activated by using the Cloud Console
 UI: https://pantheon.corp.google.com/appengine/versions?project=flutter-dashboard&serviceId=default
 
+## Optional flags
+
+`--profile`: Deploy a profile mode of `app_flutter` application for debugging purposes.
+
+`--useSkia`: Deploy `app_flutter` using CanvasKit.
+
 # Design
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is made of
