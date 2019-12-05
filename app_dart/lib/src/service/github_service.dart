@@ -14,11 +14,19 @@ import 'package:meta/meta.dart';
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class GithubService {
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> c913cd0... changed to check API
+=======
+class GithubService {
+=======
+=======
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
+<<<<<<< HEAD
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
 class GithubService {
 =======
 class GithubService{
@@ -27,6 +35,7 @@ class GithubService{
 <<<<<<< HEAD
 >>>>>>> changed to check API
 =======
+<<<<<<< HEAD
 class GithubService{
 
 >>>>>>> 627c61a... initial investigation
@@ -43,6 +52,12 @@ class GithubService{
 class GithubService{
 
 >>>>>>> 2f3aef4... initial investigation
+=======
+=======
+class GithubService {
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
   const GithubService(this.github, this.slug);
 
   final GitHub github;
@@ -56,24 +71,37 @@ class GithubService{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
   Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
 =======
 =======
 >>>>>>> add test
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c913cd0... changed to check API
+=======
+=======
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
+<<<<<<< HEAD
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
   String helper(String sha) {
     return sha;
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
 =======
 >>>>>>> cf8adcb... add test
   Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
     final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
     final PaginationHelper paginationHelper = PaginationHelper(github);
     final List<dynamic> runStatus = <dynamic>[];
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> cf8adcb... add test
@@ -86,6 +114,8 @@ class GithubService{
 =======
     final List<dynamic> runStatus = <dynamic>[];
 >>>>>>> cf8adcb... add test
+=======
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
     await for (Response response in paginationHelper.fetchStreamed('GET', path,
         headers: <String, String>{
           'Accept': 'application/vnd.github.antiope-preview+json'
@@ -93,6 +123,9 @@ class GithubService{
       final Map<String, dynamic> jsonStatus = json.decode(response.body);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
       runStatus.addAll(jsonStatus['check_runs']);
     }
     return runStatus;
@@ -100,6 +133,7 @@ class GithubService{
 }
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 627c61a... initial investigation
 =======
@@ -118,6 +152,8 @@ class GithubService{
 >>>>>>> 73a3106... initial investigation
 =======
 >>>>>>> 2f3aef4... initial investigation
+=======
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
   String helper(String sha){
     return sha;
   }
@@ -128,7 +164,16 @@ class GithubService{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> changed to check API
+=======
+>>>>>>> changed to check API
+=======
+=======
+  Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
     final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
     final PaginationHelper paginationHelper = PaginationHelper(github);
     final List<dynamic> runStatus = <dynamic>[];
@@ -143,6 +188,10 @@ class GithubService{
   }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
 
 =======
 >>>>>>> 2f3aef4... initial investigation
@@ -154,6 +203,7 @@ class GithubService{
 >>>>>>> cf8adcb... add test
 >>>>>>> add test
 =======
+<<<<<<< HEAD
 =======
   String helper(String sha) {
     return sha;
@@ -211,3 +261,13 @@ class GithubService{
 =======
 
 >>>>>>> cf8adcb... add test
+=======
+>>>>>>> 2f3aef4... initial investigation
+=======
+
+>>>>>>> cf8adcb... add test
+=======
+
+>>>>>>> 5660acf1acd1319b9816fae6b1352363f1da110e
+>>>>>>> 8b065a0e0074c947bbbed1a9909a673781e6ba4f
+>>>>>>> 0566862076413d185a26ae5bc48d94df11814485
