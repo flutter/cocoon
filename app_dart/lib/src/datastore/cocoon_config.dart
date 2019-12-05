@@ -169,7 +169,7 @@ class Config {
   }
 
   Future<GithubService> createGithubService() async {
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GitHub github = await createGitHubClient();
     return GithubService(github, slug);
   }
