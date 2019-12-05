@@ -19,7 +19,7 @@ const List<String> _failedStates = <String>['cancelled', 'timed_out', 'action_re
 const List<String> _inProgressStates = <String>['queued', 'in_progress'];
 
 @immutable
-class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse> {
+class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   const RefreshCirrusStatus(
     Config config,
     AuthenticationProvider authenticationProvider, {
@@ -30,7 +30,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
   final DatastoreServiceProvider datastoreProvider;
 
   @override
-  Future<RefreshCirrusStatusResponse> get() async {
+  Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
     final GitHub github = await config.createGitHubClient();
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -47,7 +47,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
         final String status = runStatus['status'];
         final String conclusion = runStatus['conclusion'];
         final String taskName = runStatus['name'];
-        //log.debug('Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
+        log.debug('Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
         statuses.add(status);
         conclusions.add(conclusion);
       }
@@ -68,31 +68,14 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
         tasks.add(task.task);
-        //await config.db.withTransaction<void>((Transaction transaction) async {
-        //  transaction.queueMutations(inserts: <Task>[task.task]);
-        //  await transaction.commit();
-        //});
+        await config.db.withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(inserts: <Task>[task.task]);
+          await transaction.commit();
+        });
       }
-      log.debug('Final status: $newTaskStatus');
     }
-    log.debug(DateTime.now().toString());
 
-    return RefreshCirrusStatusResponse(tasks);
+    return Body.empty;
   }
 }
 
-
-@immutable
-class RefreshCirrusStatusResponse extends JsonBody {
-  const RefreshCirrusStatusResponse(this.tasks)
-      : assert(tasks != null);
-
-  final List<Task> tasks;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Updated Task Number': tasks.length,
-    };
-  }
-}

@@ -22,3 +22,4 @@ class FakeGithubService implements GithubService {
     return statuses;
   }
 }
+
