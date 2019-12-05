@@ -3,10 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -34,11 +32,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
   @override
   Future<RefreshCirrusStatusResponse> get() async {
     final DatastoreService datastore = datastoreProvider();
-    final GitHub github = await config.createGitHubClient();
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GithubService githubService = GithubService(github, slug);
+    final GithubService githubService = await config.createGithubService();
+    final List<Task> tasks = <Task>[];
 
-    final List<Task> tasks = [];
+    log.debug(DateTime.now().toString());
 
     await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
@@ -47,11 +44,12 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
 
       final List<String> statuses = <String>[];
       final List<String> conclusions = <String>[];
-      for (dynamic runStatus in await githubService.checkRuns(slug, sha)) {
+
+      for (dynamic runStatus in await githubService.checkRuns(githubService.slug, sha)) {
         final String status = runStatus['status'];
         final String conclusion = runStatus['conclusion'];
         final String taskName = runStatus['name'];
-        log.debug('Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
+        //log.debug('Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
         statuses.add(status);
         conclusions.add(conclusion);
       }
@@ -72,12 +70,14 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
         tasks.add(task.task);
-        await config.db.withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(inserts: <Task>[task.task]);
-          await transaction.commit();
-        });
+        //await config.db.withTransaction<void>((Transaction transaction) async {
+        //  transaction.queueMutations(inserts: <Task>[task.task]);
+        //  await transaction.commit();
+        //});
       }
+      log.debug('Final status: $newTaskStatus');
     }
+    log.debug(DateTime.now().toString());
 
     return RefreshCirrusStatusResponse(tasks);
   }
