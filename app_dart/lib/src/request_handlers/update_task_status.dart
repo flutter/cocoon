@@ -174,7 +174,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     /// This assumes there is only ever one run for a task being run at a time.
     final List<LogChunk> logChunksForThisAttempt = logChunks.where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp);
 
-    final List<int> logBytes = logChunksForThisAttempt.expand((LogChunk chunk) => chunk.data);
+    final Uint8List logBytes = logChunksForThisAttempt.expand((LogChunk chunk) => chunk.data);
 
     // pipe to GCS
     final Bucket devicelabLogBucket = storageService.bucket('devicelab-logs');
