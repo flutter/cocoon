@@ -33,7 +33,6 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
     final GithubService githubService = await config.createGithubService();
-    final List<Task> tasks = <Task>[];
 
     await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
@@ -67,7 +66,6 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
 
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
-        tasks.add(task.task);
         await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
