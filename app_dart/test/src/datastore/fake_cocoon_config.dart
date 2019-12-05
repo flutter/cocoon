@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -37,12 +38,14 @@ class FakeConfig implements Config {
     this.redisUrlValue,
     this.redisResponseSubcacheValue,
     this.tabledataResourceApi,
+    this.githubService,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
   GitHub githubClient;
   GraphQLClient githubGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
+  GithubService githubService;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
   String forwardHostValue;
@@ -75,6 +78,9 @@ class FakeConfig implements Config {
 
   @override
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
+
+  @override
+  Future<GithubService> createGithubService() async => githubService;
 
   @override
   FakeDatastoreDB get db => dbValue;
