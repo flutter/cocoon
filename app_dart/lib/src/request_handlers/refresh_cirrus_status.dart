@@ -67,7 +67,6 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
 
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
-        tasks.add(task.task);
         await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
