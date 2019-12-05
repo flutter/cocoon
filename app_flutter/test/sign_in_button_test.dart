@@ -2,13 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
-import 'package:test/test.dart' as test;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
@@ -86,15 +84,17 @@ void main() {
       ),
     );
     await tester.pump();
-
+    // TODO(chillers): Uncomment when resolved. https://github.com/flutter/flutter/issues/45955
     // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-    if (!kIsWeb) {
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
-    }
+    // if (!kIsWeb) {
+    //   expect(tester.takeException(),
+    //       const test.TypeMatcher<NetworkImageLoadException>());
+    // }
 
     expect(find.text('Sign in'), findsNothing);
-    expect(find.byType(Image), findsOneWidget);
+    // TODO(chillers): Uncomment when resolved. https://github.com/flutter/flutter/issues/45955
+    // expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(Icon), findsOneWidget);
   });
 
   testWidgets('calls sign out on tap when authenticated',
@@ -116,7 +116,9 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byType(Image));
+    // TODO(chillers): Uncomment when resolved. https://github.com/flutter/flutter/issues/45955
+    // await tester.tap(find.byType(Image));
+    await tester.tap(find.byIcon(Icons.account_circle));
     await tester.pumpAndSettle();
 
     verifyNever(mockAuthService.signOut());

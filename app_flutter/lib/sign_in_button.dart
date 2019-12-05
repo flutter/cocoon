@@ -25,7 +25,13 @@ class SignInButton extends StatelessWidget {
         if (isAuthenticated.data == true && authService.user != null) {
           return PopupMenuButton<String>(
             // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
-            child: Image.network(authService.user?.photoUrl),
+            // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
+            // CanvasKit currently cannot render a NetworkImage because of CORS issues.
+            // child: Image.network(authService.user?.photoUrl),
+            child: Icon(
+              Icons.account_circle,
+              size: 42,
+            ),
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               const PopupMenuItem<String>(
