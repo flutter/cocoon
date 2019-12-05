@@ -177,7 +177,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final Uint8List logBytes = logChunksForThisAttempt.expand((LogChunk chunk) => chunk.data);
 
     // pipe to GCS
-    final Bucket devicelabLogBucket = storageService.bucket('devicelab-logs');
+    final Bucket devicelabLogBucket = storageService.bucket('flutter-task-logs');
     final ObjectInfo info = await devicelabLogBucket.writeBytes('${task.key}_${task.attempts}.log', logBytes);
 
     log.info('Uploaded ${task.key}_${task.attempts}.log at ${info.updated}');
