@@ -57,10 +57,6 @@ class GetLog extends ApiRequestHandler<Body> {
   }
 
   Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key ownerKey) async* {
-    // TODO(chillers): Remove HTML tags when v2 is deployed. https://github.com/flutter/flutter/issues/43095
-    yield utf8.encode('<!DOCTYPE html>');
-    yield utf8.encode('<html><body><pre>');
-
     yield utf8.encode('\n\n------------ TASK ------------\n');
     yield utf8.encode(task.toString());
 
@@ -69,8 +65,5 @@ class GetLog extends ApiRequestHandler<Body> {
       ..filter('ownerKey =', ownerKey)
       ..order('createTimestamp');
     yield* query.run().map<Uint8List>((LogChunk chunk) => chunk.data);
-
-    yield utf8.encode('<EOF>');
-    yield utf8.encode('</pre></body></html>');
   }
 }
