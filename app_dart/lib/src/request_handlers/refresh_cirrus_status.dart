@@ -3,10 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -21,7 +19,7 @@ const List<String> _failedStates = <String>['cancelled', 'timed_out', 'action_re
 const List<String> _inProgressStates = <String>['queued', 'in_progress'];
 
 @immutable
-class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse> {
+class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   const RefreshCirrusStatus(
     Config config,
     AuthenticationProvider authenticationProvider, {
@@ -32,13 +30,9 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
   final DatastoreServiceProvider datastoreProvider;
 
   @override
-  Future<RefreshCirrusStatusResponse> get() async {
+  Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
-    final GitHub github = await config.createGitHubClient();
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GithubService githubService = GithubService(github, slug);
-
-    final List<Task> tasks = [];
+    final GithubService githubService = await config.createGithubService();
 
     await for (FullTask task in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
@@ -47,7 +41,8 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
 
       final List<String> statuses = <String>[];
       final List<String> conclusions = <String>[];
-      for (dynamic runStatus in await githubService.checkRuns(slug, sha)) {
+
+      for (dynamic runStatus in await githubService.checkRuns(githubService.slug, sha)) {
         final String status = runStatus['status'];
         final String conclusion = runStatus['conclusion'];
         final String taskName = runStatus['name'];
@@ -71,7 +66,6 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
 
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
-        tasks.add(task.task);
         await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
@@ -79,22 +73,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<RefreshCirrusStatusResponse>
       }
     }
 
-    return RefreshCirrusStatusResponse(tasks);
+    return Body.empty;
   }
 }
 
-
-@immutable
-class RefreshCirrusStatusResponse extends JsonBody {
-  const RefreshCirrusStatusResponse(this.tasks)
-      : assert(tasks != null);
-
-  final List<Task> tasks;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Updated Task Number': tasks.length,
-    };
-  }
-}
