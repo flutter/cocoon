@@ -57,7 +57,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
 
-    final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+    const RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider();
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];

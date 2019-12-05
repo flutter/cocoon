@@ -17,7 +17,7 @@ dependencies:
   file: ^5.1.0
   fixnum: ^0.10.9
   gcloud: ^0.6.3
-  github: ^5.1.0
+  github: ^5.5.0
   googleapis_auth: ^0.2.10
   googleapis: ^0.54.0
   graphql: ^2.1.0
