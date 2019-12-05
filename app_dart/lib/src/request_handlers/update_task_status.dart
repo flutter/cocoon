@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/storage.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
@@ -170,10 +171,16 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<void> _uploadLogToGcs({Task task, DatastoreService datastore}) async {
     final List<LogChunk> logChunks = await datastore.getLog(task: task);
 
-    final List<LogChunk> log = logChunks.where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp);
+    /// This assumes there is only ever one run for a task being run at a time.
+    final List<LogChunk> logChunksForThisAttempt = logChunks.where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp);
+
+    final List<int> logBytes = logChunksForThisAttempt.expand((LogChunk chunk) => chunk.data);
 
     // pipe to GCS
+    final Bucket devicelabLogBucket = storageService.bucket('devicelab-logs');
+    final ObjectInfo info = await devicelabLogBucket.writeBytes('${task.key}_${task.attempts}.log', logBytes);
 
+    log.info('Uploaded ${task.key}_${task.attempts}.log at ${info.updated}');
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
