@@ -111,6 +111,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       try {
         await _uploadLogToGcs(task: task, datastore: datastore, storage: storage);
       } catch (e) {
+        log.info('Failed to upload log to GCS');
         log.error(e);
       }
     }
@@ -194,8 +195,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final String fileName = '${task.key}_${task.attempts}.log';
 
-    // pipe to GCS
     final ObjectInfo uploadInfo = await storage.writeTaskLog(fileName, logBytes);
+
     log.info('Uploaded $fileName at ${uploadInfo.updated}');
   }
 
