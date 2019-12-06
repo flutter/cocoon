@@ -108,7 +108,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
-      await _uploadLogToGcs(task: task, datastore: datastore, storage: storage);
+      try {
+        await _uploadLogToGcs(task: task, datastore: datastore, storage: storage);
+      } catch (e) {
+        log.error(e);
+      }
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
