@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pedantic/pedantic.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../request_handling/request_handler.dart';
