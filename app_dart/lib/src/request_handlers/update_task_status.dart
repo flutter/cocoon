@@ -193,11 +193,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         .expand((LogChunk chunk) => chunk.data)
         .toList());
 
-    final String fileName = '${task.key}_${task.attempts}.log';
+    final String fileName = '${task.key.id}_${task.attempts}.log';
 
     final ObjectInfo uploadInfo = await storage.writeTaskLog(fileName, logBytes);
 
-    log.info('Uploaded $fileName at ${uploadInfo.updated}');
+    log.debug('Uploaded $fileName at ${uploadInfo.updated}');
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
