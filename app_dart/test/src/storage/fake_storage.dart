@@ -19,15 +19,15 @@ class FakeStorage implements Storage {
   Future<BucketInfo> bucketInfo(String bucketName) => null;
 
   @override
-  Future copyObject(String src, String dest) => null;
+  Future<void> copyObject(String src, String dest) => null;
 
   @override
-  Future createBucket(String bucketName,
+  Future<void> createBucket(String bucketName,
           {PredefinedAcl predefinedAcl, Acl acl}) =>
       null;
 
   @override
-  Future deleteBucket(String bucketName) => null;
+  Future<void> deleteBucket(String bucketName) => null;
 
   @override
   Stream<String> listBucketNames() => null;
@@ -41,11 +41,10 @@ class FakeBucket implements Bucket {
   String absoluteObjectName(String objectName) => null;
 
   @override
-  // TODO: implement bucketName
   String get bucketName => null;
 
   @override
-  Future delete(String name) => null;
+  Future<void> delete(String name) => null;
 
   @override
   Future<ObjectInfo> info(String name) => null;
@@ -60,7 +59,7 @@ class FakeBucket implements Bucket {
   Stream<List<int>> read(String objectName, {int offset, int length}) => null;
 
   @override
-  Future updateMetadata(String objectName, ObjectMetadata metadata) => null;
+  Future<void> updateMetadata(String objectName, ObjectMetadata metadata) => null;
 
   @override
   StreamSink<List<int>> write(String objectName,
@@ -82,38 +81,29 @@ class FakeBucket implements Bucket {
 
 class FakeObjectInfo implements ObjectInfo {
   @override
-  // TODO: implement crc32CChecksum
   int get crc32CChecksum => null;
 
   @override
-  // TODO: implement downloadLink
   Uri get downloadLink => null;
 
   @override
-  // TODO: implement etag
   String get etag => null;
 
   @override
-  // TODO: implement generation
   ObjectGeneration get generation => null;
 
   @override
-  // TODO: implement length
   int get length => null;
 
   @override
-  // TODO: implement md5Hash
   List<int> get md5Hash => null;
 
   @override
-  // TODO: implement metadata
   ObjectMetadata get metadata => null;
 
   @override
-  // TODO: implement name
   String get name => null;
 
   @override
-  // TODO: implement updated
   DateTime get updated => null;
 }

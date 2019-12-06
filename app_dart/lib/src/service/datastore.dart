@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:gcloud/db.dart';
