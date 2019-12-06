@@ -183,7 +183,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }) async {
     final List<LogChunk> logChunks = await datastore.getLog(task: task);
 
-    /// This assumes there is only ever one run for a task being run at a time.
+    /// There is only ever a max of one running instance for a task at a time.
     final List<LogChunk> logChunksForThisAttempt = logChunks
         .where((LogChunk chunk) => chunk.createTimestamp >= task.startTimestamp)
         .toList();
