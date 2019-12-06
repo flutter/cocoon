@@ -54,7 +54,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
           .expand<int>((Uint8List chunk) => chunk)
           .toList();
       final Uint8List bytes = Uint8List.fromList(rawBytes);
-      unawaited(responseCache[responseKey].set(bytes, ttl));
+      await responseCache[responseKey].set(bytes, ttl);
 
       return body;
     }

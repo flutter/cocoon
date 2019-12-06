@@ -5,27 +5,31 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../datastore/cocoon_config.dart';
 
-@immutable
 class CacheService {
-  const CacheService(this.config);
+  CacheService(this.config);
 
   final Config config;
 
+  CacheProvider<List<int>> _provider;
+
   Future<Cache<Uint8List>> redisCache() async {
-    final CacheProvider<List<int>> provider =
+    _provider =
         Cache.redisCacheProvider(await config.redisUrl);
-    return Cache<List<int>>(provider).withCodec<Uint8List>(const _CacheCodec());
+    return Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
   }
 
   Future<Cache<Uint8List>> inMemoryCache(int size) async {
-    final CacheProvider<List<int>> provider = Cache.inMemoryCacheProvider(size);
-    return Cache<List<int>>(provider).withCodec<Uint8List>(const _CacheCodec());
+    _provider = Cache.inMemoryCacheProvider(size);
+    return Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+  }
+
+  void dispose() {
+    _provider.close();
   }
 }
 
