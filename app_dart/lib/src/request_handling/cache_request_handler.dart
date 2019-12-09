@@ -7,7 +7,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pedantic/pedantic.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../request_handling/request_handler.dart';
@@ -54,7 +53,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
           .expand<int>((Uint8List chunk) => chunk)
           .toList();
       final Uint8List bytes = Uint8List.fromList(rawBytes);
-      unawaited(responseCache[responseKey].set(bytes, ttl));
+      await responseCache[responseKey].set(bytes, ttl);
 
       return body;
     }
