@@ -16,6 +16,7 @@ import 'package:meta/meta.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
+import '../service/github_service.dart';
 
 @immutable
 class Config {
@@ -165,6 +166,11 @@ class Config {
     final AccessClientProvider accessClientProvider =
         AccessClientProvider(await deviceLabServiceAccount);
     return await BigqueryService(accessClientProvider).defaultTabledata();
+  }
+
+  Future<GithubService> createGithubService() async {
+    final GitHub github = await createGitHubClient();
+    return GithubService(github);
   }
 }
 
