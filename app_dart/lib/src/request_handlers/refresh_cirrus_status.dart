@@ -42,7 +42,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       final List<String> statuses = <String>[];
       final List<String> conclusions = <String>[];
 
-      for (dynamic runStatus in await githubService.checkRuns(githubService.slug, sha)) {
+      for (dynamic runStatus in await githubService.checkRuns(sha)) {
         final String status = runStatus['status'];
         final String conclusion = runStatus['conclusion'];
         final String taskName = runStatus['name'];

@@ -9,12 +9,12 @@ import 'package:meta/meta.dart';
 
 @immutable
 class GithubService {
-  const GithubService(this.github, this.slug);
+  const GithubService(this.github);
 
   final GitHub github;
-  final RepositorySlug slug;
 
-  Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+  Future<List<dynamic>> checkRuns(String sha) async {
+    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
     final PaginationHelper paginationHelper = PaginationHelper(github);
     final List<dynamic> checkRuns = <dynamic>[];

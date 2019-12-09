@@ -15,10 +15,7 @@ class FakeGithubService implements GithubService {
   final GitHub github = null;
 
   @override
-  final RepositorySlug slug = null;
-
-  @override
-  Future<List<dynamic>> checkRuns(RepositorySlug slug, String sha) async {
+  Future<List<dynamic>> checkRuns(String sha) async {
     return statuses;
   }
 }
