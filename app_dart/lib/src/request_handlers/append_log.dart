@@ -5,10 +5,8 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/service/stackdriver_logger.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/logging/v2.dart';
-import 'package:googleapis_auth/auth_io.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -22,10 +20,15 @@ import '../request_handling/exceptions.dart';
 
 @immutable
 class AppendLog extends ApiRequestHandler<Body> {
-  const AppendLog(
+  AppendLog(
     Config config,
-    AuthenticationProvider authenticationProvider,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+    AuthenticationProvider authenticationProvider, {
+    StackdriverLoggerService stackdriverLoggerValue,
+  })  : stackdriverLogger =
+            stackdriverLoggerValue ?? StackdriverLoggerService(config: config),
+        super(config: config, authenticationProvider: authenticationProvider);
+
+  final StackdriverLoggerService stackdriverLogger;
 
   static const String ownerKeyParam = 'ownerKey';
 
@@ -58,22 +61,10 @@ class AppendLog extends ApiRequestHandler<Body> {
       await transaction.commit();
     });
 
-    final Client httpClient = await clientViaServiceAccount(
-      await config.taskLogServiceAccount,
-      const <String>[
-        'https://www.googleapis.com/auth/logging.write',
-      ],
-    );
-
-    final LoggingApi _api = LoggingApi(httpClient);
-
+    /// Push this [LogChunk] to the Stackdriver log.
     final List<String> lines = String.fromCharCodes(requestBody).split('\n');
-
-    final WriteLogEntriesRequest logRequest = WriteLogEntriesRequest()
-      ..entries = lines.map((String line) => LogEntry()..textPayload = line).toList()
-      ..logName = 'projects/flutter-dashboard/logs/${encodedOwnerKey}_${task.attempts}'
-      ..resource = (MonitoredResource()..type = 'global');
-    await _api.entries.write(logRequest);
+    await stackdriverLogger.writeLines(
+        '{$encodedOwnerKey}_${task.attempts}', lines);
 
     return Body.empty;
   }
