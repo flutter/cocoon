@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
+import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
@@ -97,6 +98,11 @@ class Config {
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
     return ServiceAccountInfo.fromJson(json.decode(rawValue));
+  }
+
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async {
+    final String rawValue = await _getSingleValue('TaskLogServiceAccount');
+    return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
   /// A List of builders, i.e.:

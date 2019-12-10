@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/server.dart';
+import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
@@ -39,6 +40,7 @@ class FakeConfig implements Config {
     this.redisResponseSubcacheValue,
     this.tabledataResourceApi,
     this.githubService,
+    this.taskLogServiceAccountValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -66,6 +68,7 @@ class FakeConfig implements Config {
   String redisUrlValue;
   String redisResponseSubcacheValue;
   String waitingForTreeToGoGreenLabelNameValue;
+  ServiceAccountCredentials taskLogServiceAccountValue;
 
   @override
   int maxEntityGroups;
@@ -150,4 +153,8 @@ class FakeConfig implements Config {
   @override
   Future<String> get waitingForTreeToGoGreenLabelName async =>
       waitingForTreeToGoGreenLabelNameValue;
+
+  @override
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async => 
+      taskLogServiceAccountValue;
 }
