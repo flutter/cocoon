@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -21,15 +20,12 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
     FakeLogging log,
     FakeAuthenticatedContext context,
     Map<String, dynamic> requestData,
-    Uint8List requestBody,
   })  : context = context ?? FakeAuthenticatedContext(),
         requestData = requestData ?? <String, dynamic>{},
-        requestBody = requestBody ?? Uint8List(0),
         super(request: request, log: log);
 
   FakeAuthenticatedContext context;
   Map<String, dynamic> requestData;
-  Uint8List requestBody;
 
   @override
   @protected
