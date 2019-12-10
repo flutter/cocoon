@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/service/stackdriver_logger.dart';
@@ -18,19 +19,23 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 
-@immutable
+// ignore: must_be_immutable
 class AppendLog extends ApiRequestHandler<Body> {
   AppendLog(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    StackdriverLoggerService stackdriverLoggerValue,
+    StackdriverLoggerService stackdriverLogger,
   })  : stackdriverLogger =
-            stackdriverLoggerValue ?? StackdriverLoggerService(config: config),
+            stackdriverLogger ?? StackdriverLoggerService(config: config),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final StackdriverLoggerService stackdriverLogger;
 
   static const String ownerKeyParam = 'ownerKey';
+
+  @visibleForOverriding
+  @override
+  Uint8List requestBody;
 
   @override
   Future<Body> post() async {
@@ -61,11 +66,13 @@ class AppendLog extends ApiRequestHandler<Body> {
       await transaction.commit();
     });
 
-    /// Push this [LogChunk] to the Stackdriver log.
-    final List<String> lines = String.fromCharCodes(requestBody).split('\n');
-    await stackdriverLogger.writeLines(
-        '{$encodedOwnerKey}_${task.attempts}', lines);
+    await writeToStackdriver('${encodedOwnerKey}_${task.attempts}');
 
     return Body.empty;
+  }
+
+  Future<void> writeToStackdriver(String logName) async {
+    final List<String> lines = String.fromCharCodes(requestBody).split('\n');
+    await stackdriverLogger.writeLines(logName, lines);
   }
 }
