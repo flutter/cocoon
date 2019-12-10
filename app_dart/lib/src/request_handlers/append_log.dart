@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/logging/v2.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -41,7 +42,7 @@ class AppendLog extends ApiRequestHandler<Body> {
         KeyHelper(applicationContext: clientContext.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
-    await config.db.lookupValue<Model>(ownerKey, orElse: () {
+    final Task task = await config.db.lookupValue<Model>(ownerKey, orElse: () {
       throw const InternalServerError(
           'Invalid owner key. Owner entity does not exist');
     });
@@ -52,10 +53,10 @@ class AppendLog extends ApiRequestHandler<Body> {
       data: requestBody,
     );
 
-    // await config.db.withTransaction<void>((Transaction transaction) async {
-    //   transaction.queueMutations(inserts: <LogChunk>[logChunk]);
-    //   await transaction.commit();
-    // });
+    await config.db.withTransaction<void>((Transaction transaction) async {
+      transaction.queueMutations(inserts: <LogChunk>[logChunk]);
+      await transaction.commit();
+    });
 
     final Client httpClient = await clientViaServiceAccount(
       await config.taskLogServiceAccount,
@@ -69,8 +70,8 @@ class AppendLog extends ApiRequestHandler<Body> {
     final List<String> lines = String.fromCharCodes(requestBody).split('\n');
 
     final WriteLogEntriesRequest logRequest = WriteLogEntriesRequest()
-      ..entries = lines.map((String line) => LogEntry()..textPayload = line)
-      ..logName = 'projects/flutter-dashboard/logs/$encodedOwnerKey'
+      ..entries = lines.map((String line) => LogEntry()..textPayload = line).toList()
+      ..logName = 'projects/flutter-dashboard/logs/${encodedOwnerKey}_${task.attempts}'
       ..resource = (MonitoredResource()..type = 'global');
     await _api.entries.write(logRequest);
 
