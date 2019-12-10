@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/logging/v2.dart';
 import 'package:googleapis_auth/auth_io.dart';
@@ -15,6 +14,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/log_chunk.dart';
+import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
