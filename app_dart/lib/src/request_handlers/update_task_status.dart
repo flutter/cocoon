@@ -109,7 +109,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
       try {
-        await _uploadLogToGcs(task: task, datastore: datastore, storage: storage);
+        await _uploadLogToGcs(
+            task: task, datastore: datastore, storage: storage);
       } catch (e) {
         log.info('Failed to upload log to GCS');
         log.error(e);
@@ -195,7 +196,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final String fileName = '${task.key.id}_${task.attempts}.log';
 
-    final ObjectInfo uploadInfo = await storage.writeTaskLog(fileName, logBytes);
+    final ObjectInfo uploadInfo =
+        await storage.writeTaskLog(fileName, logBytes);
 
     log.debug('Uploaded $fileName at ${uploadInfo.updated}');
   }
