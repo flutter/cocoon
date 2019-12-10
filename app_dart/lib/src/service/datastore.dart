@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -50,17 +49,15 @@ class DatastoreService {
     return query.run();
   }
 
-  /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from
+  /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from 
   /// [startFrom] and up to a given [limit].
   ///
   /// If startFrom is nil, starts from the latest available record.
   /// [startFrom] to be implemented...
-  Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries,
-      {int limit = 1500, String startFrom}) {
-    final Query<TimeSeriesValue> query =
-        db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
-          ..limit(limit)
-          ..order('-createTimestamp');
+  Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries, {int limit = 1500, String startFrom}) {
+    final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
+      ..limit(limit)
+      ..order('-createTimestamp');
     return query.run();
   }
 
@@ -106,23 +103,13 @@ class DatastoreService {
     }
   }
 
-  Future<List<LogChunk>> getLog({Task task}) async {
-    final Query<LogChunk> query = db.query<LogChunk>()
-      ..filter('ownerKey =', task.key)
-      ..order('createTimestamp');
-
-    
-    return await query.run().toList();
-  }
-
   /// Finds all tasks owned by the specified [commit] and partitions them into
   /// stages.
   ///
   /// The returned list of stages will be ordered by the natural ordering of
   /// [Stage].
   Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
-    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-      ..order('-stageName');
+    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-stageName');
     final Map<String, StageBuilder> stages = <String, StageBuilder>{};
     await for (Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
@@ -132,9 +119,8 @@ class DatastoreService {
       }
       stages[task.stageName].tasks.add(task);
     }
-    final List<Stage> result = stages.values
-        .map<Stage>((StageBuilder stage) => stage.build())
-        .toList();
+    final List<Stage> result =
+        stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
     return result..sort();
   }
 
@@ -142,13 +128,11 @@ class DatastoreService {
     RepositorySlug slug,
     PullRequest pr,
   ) async {
-    final Query<GithubBuildStatusUpdate> query = db
-        .query<GithubBuildStatusUpdate>()
-          ..filter('repository =', slug.fullName)
-          ..filter('pr =', pr.number)
-          ..filter('head =', pr.head.sha);
-    final List<GithubBuildStatusUpdate> previousStatusUpdates =
-        await query.run().toList();
+    final Query<GithubBuildStatusUpdate> query = db.query<GithubBuildStatusUpdate>()
+      ..filter('repository =', slug.fullName)
+      ..filter('pr =', pr.number)
+      ..filter('head =', pr.head.sha);
+    final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
@@ -164,3 +148,4 @@ class DatastoreService {
     }
   }
 }
+

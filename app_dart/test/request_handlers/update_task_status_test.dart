@@ -7,7 +7,6 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/storage.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
@@ -16,7 +15,6 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/storage/fake_storage.dart';
 
 void main() {
   group('UpdateTaskStatus', () {
@@ -46,7 +44,6 @@ void main() {
         config,
         FakeAuthenticationProvider(),
         datastoreProvider: () => DatastoreService(db: config.db),
-        storageProvider: () => StorageService(storage: FakeStorage()),
       );
     });
 
