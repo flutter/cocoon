@@ -69,7 +69,7 @@ class Agent extends Model {
   /// health check.
   ///
   /// This will include information such as the agent's host IP address.
-  @StringProperty(propertyName: 'HealthDetails')
+  @StringProperty(propertyName: 'HealthDetails', indexed: false)
   @JsonKey(name: 'HealthDetails')
   String healthDetails;
 
