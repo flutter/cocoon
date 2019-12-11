@@ -37,28 +37,24 @@ class Config {
   Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
-    /// First try and get the config value from the cache.
-    final Uint8List cacheValue = await _cache.get(configCacheName, id);
-    if (cacheValue != null) {
-      return String.fromCharCodes(cacheValue);
-    }
+    final Uint8List cacheValue = await _cache.get(
+      configCacheName,
+      id,
+      createFn: () => _getValueFromDatastore(id),
+      ttl: configCacheTtl,
+    );
 
-    /// On cache miss, load the config value from Datastore.
+    return String.fromCharCodes(cacheValue);
+  }
+
+  Future<Uint8List> _getValueFromDatastore(String id) async {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
     final CocoonConfig result =
         await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
 
-    /// Update the cache to have this value.
-    await _cache.set(
-      configCacheName,
-      id,
-      Uint8List.fromList(result.value.codeUnits),
-      ttl: configCacheTtl,
-    );
-
-    return result.value;
+    return Uint8List.fromList(result.value.codeUnits);
   }
 
   Future<List<T>> _getJsonList<T>(String id) async {
