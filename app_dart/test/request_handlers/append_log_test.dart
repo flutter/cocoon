@@ -44,6 +44,7 @@ Deleting build/ directories, if any.
     tearDown(() {
       clearInteractions(mockStackdriverLoggerService);
     });
+
     test('pushes log data to stackdriver for writing', () async {
       verifyNever(mockStackdriverLoggerService.writeLines(any, any));
       await handler.writeToStackdriver('log123');
