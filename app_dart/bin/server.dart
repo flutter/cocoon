@@ -3,27 +3,22 @@
 // found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
-import 'package:neat_cache/neat_cache.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
-    final Config config = Config(dbService);
+    final CacheService cache = CacheService();
+
+    final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenProvider: AccessTokenProvider(config),
     );
 
-    final CacheService cacheService = CacheService(config);
-    final Cache<Uint8List> redisCache = await cacheService.redisCache();
-    config.cache = redisCache;
-
-    final Map<String, RequestHandler<dynamic>> handlers =
-        <String, RequestHandler<dynamic>>{
+    final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests':
@@ -58,13 +53,13 @@ Future<void> main() async {
           DebugResetPendingTasks(config, authProvider),
       '/api/public/build-status': GetBuildStatus(config),
       '/api/public/get-benchmarks': CacheRequestHandler<Body>(
-        cache: redisCache,
+        cache: cache,
         config: config,
         delegate: GetBenchmarks(config),
         ttl: const Duration(minutes: 15),
       ),
       '/api/public/get-status': CacheRequestHandler<Body>(
-        cache: redisCache,
+        cache: cache,
         config: config,
         delegate: GetStatus(config),
       ),

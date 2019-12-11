@@ -8,25 +8,64 @@ import 'dart:typed_data';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-import '../datastore/cocoon_config.dart';
+typedef Function<Uint8List> = Uint8List Function();
 
 class CacheService {
-  CacheService(this.config);
+  CacheService({bool inMemory = false, int inMemoryMaxSize = 256})
+      : _provider = inMemory
+            ? Cache.inMemoryCacheProvider(inMemoryMaxSize)
+            : Cache.redisCacheProvider(memorystoreUrl);
 
-  final Config config;
+  final CacheProvider<List<int>> _provider;
 
-  CacheProvider<List<int>> _provider;
+  Cache<Uint8List> get _cache =>
+      Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
 
-  Future<Cache<Uint8List>> redisCache() async {
-    _provider = Cache.redisCacheProvider(await config.redisUrl);
-    return Cache<List<int>>(_provider)
-        .withCodec<Uint8List>(const _CacheCodec());
+  /// Google Cloud Memorystore default url.
+  static const String memorystoreUrl = 'redis://10.0.0.4:6379';
+
+  /// An arbritary number for how many times we should try to get from cache
+  /// before giving up.
+  ///
+  /// Writing to the cache creates a racy condition for when another operation
+  /// is trying to get the same key. This race condition throws an exception.
+  static const int maxCacheGetAttempts = 3;
+
+  /// Get value of [key] from the subcache [subcacheName].
+  /// 
+  /// The underlying cache get function is inherently racy as if there is a
+  /// write operation while a read operation, getting the value can fail. To
+  /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
+  /// times before giving up. This is because the cache is magnitudes faster
+  /// than the fallback operation (usually a Datastore query).
+  Future<Uint8List> get(
+    String subcacheName,
+    String key, {
+    int attempt = 0,
+  }) async {
+    final Cache<Uint8List> subcache = _cache.withPrefix(subcacheName);
+    
+    try {
+      return subcache[key].get();
+    } catch (e) {
+      if (attempt < maxCacheGetAttempts) {
+        return get(subcacheName, key, attempt: attempt++);
+      } else {
+        // Give up on trying to get the value from the cache.
+        return null;
+      }
+    }
   }
 
-  Future<Cache<Uint8List>> inMemoryCache(int size) async {
-    _provider = Cache.inMemoryCacheProvider(size);
-    return Cache<List<int>>(_provider)
-        .withCodec<Uint8List>(const _CacheCodec());
+  /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
+  Future<Uint8List> set(
+    String subcacheName,
+    String key,
+    Uint8List value, {
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    final Cache<Uint8List> subcache = _cache.withPrefix(subcacheName);
+    return subcache[key].set(value);
   }
 
   void dispose() {

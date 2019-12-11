@@ -14,19 +14,19 @@ import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
-import 'package:neat_cache/neat_cache.dart';
 
+import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
 
 class Config {
-  Config(this._db) : assert(_db != null);
+  Config(this._db, this._cache) : assert(_db != null);
 
   final DatastoreDB _db;
 
-  Cache<Uint8List> cache;
+  final CacheService _cache;
 
   @visibleForTesting
   static const String configCacheName = 'config';
@@ -37,22 +37,26 @@ class Config {
   Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
-    final Cache<Uint8List> configCache = cache.withPrefix(configCacheName);
-
     /// First try and get the config value from the cache.
-    final String cacheValue = String.fromCharCodes(await configCache[id].get());
+    final Uint8List cacheValue = await _cache.get(configCacheName, id);
     if (cacheValue != null) {
-      return cacheValue;
+      return String.fromCharCodes(cacheValue);
     }
 
     /// On cache miss, load the config value from Datastore.
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    final CocoonConfig result =
+        await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
 
     /// Update the cache to have this value.
-    await configCache[id].set(Uint8List.fromList(result.value.codeUnits), configCacheTtl);
+    await _cache.set(
+      configCacheName,
+      id,
+      Uint8List.fromList(result.value.codeUnits),
+      ttl: configCacheTtl,
+    );
 
     return result.value;
   }
