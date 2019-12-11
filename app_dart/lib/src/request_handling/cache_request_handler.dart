@@ -42,21 +42,17 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   @override
   Future<T> get() async {
     final String responseKey = '${request.uri.path}:${request.uri.query}';
-    final Uint8List cachedResponse =
-        await cache.get(responseSubcacheName, responseKey);
+    final Uint8List cachedResponse = await cache.get(
+        responseSubcacheName, responseKey,
+        createFn: () => getBodyBytesFromDelegate(delegate), ttl: ttl);
 
-    if (cachedResponse != null) {
-      return Body.forStream(Stream<Uint8List>.value(cachedResponse));
-    } else {
-      final Body body = await delegate.get();
-      final List<int> rawBytes = await body
-          .serialize()
-          .expand<int>((Uint8List chunk) => chunk)
-          .toList();
-      final Uint8List bytes = Uint8List.fromList(rawBytes);
-      await cache.set(responseSubcacheName, responseKey, bytes, ttl: ttl);
+    return Body.forStream(Stream<Uint8List>.value(cachedResponse));
+  }
 
-      return body;
-    }
+  Future<Uint8List> getBodyBytesFromDelegate(RequestHandler<T> delegate) async {
+    final Body body = await delegate.get();
+    final List<int> rawBytes =
+        await body.serialize().expand<int>((Uint8List chunk) => chunk).toList();
+    return Uint8List.fromList(rawBytes);
   }
 }
