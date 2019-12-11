@@ -5,21 +5,28 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 typedef Function<Uint8List> = Uint8List Function();
 
 class CacheService {
-  CacheService({bool inMemory = false, int inMemoryMaxSize = 256})
-      : _provider = inMemory
+  CacheService({
+    bool inMemory = false,
+    int inMemoryMaxSize = 256,
+  }) : _provider = inMemory
             ? Cache.inMemoryCacheProvider(inMemoryMaxSize)
             : Cache.redisCacheProvider(memorystoreUrl);
 
   final CacheProvider<List<int>> _provider;
 
-  Cache<Uint8List> get _cache =>
+  Cache<Uint8List> get cache =>
+      cacheValue ??
       Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+
+  @visibleForTesting
+  Cache<Uint8List> cacheValue;
 
   /// Google Cloud Memorystore default url.
   static const String memorystoreUrl = 'redis://10.0.0.4:6379';
@@ -29,10 +36,12 @@ class CacheService {
   ///
   /// Writing to the cache creates a racy condition for when another operation
   /// is trying to get the same key. This race condition throws an exception.
+  @visibleForTesting
   static const int maxCacheGetAttempts = 3;
 
-  /// Get value of [key] from the subcache [subcacheName].
-  /// 
+  /// Get value of [key] from the subcache [subcacheName]. If the key has no
+  /// value, call [createFn] to create a value for it, set it, and return it.
+  ///
   /// The underlying cache get function is inherently racy as if there is a
   /// write operation while a read operation, getting the value can fail. To
   /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
@@ -41,20 +50,31 @@ class CacheService {
   Future<Uint8List> get(
     String subcacheName,
     String key, {
-    int attempt = 0,
+    int attempt = 1,
+    Future<Uint8List> Function() createFn,
+    Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = _cache.withPrefix(subcacheName);
-    
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List value;
+
     try {
-      return subcache[key].get();
+      value = await subcache[key].get();
     } catch (e) {
       if (attempt < maxCacheGetAttempts) {
-        return get(subcacheName, key, attempt: attempt++);
+        return get(subcacheName, key, attempt: ++attempt);
       } else {
         // Give up on trying to get the value from the cache.
-        return null;
+        value = null;
       }
     }
+
+    if (value == null && createFn != null) {
+      // Try creating the value
+      value = await createFn();
+      await set(subcacheName, key, value, ttl: ttl);
+    }
+
+    return value;
   }
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
@@ -64,7 +84,7 @@ class CacheService {
     Uint8List value, {
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    final Cache<Uint8List> subcache = _cache.withPrefix(subcacheName);
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     return subcache[key].set(value);
   }
 

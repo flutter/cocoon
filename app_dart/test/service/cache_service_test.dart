@@ -4,6 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:mockito/mockito.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -49,11 +51,81 @@ void main() {
 
       final Uint8List value2 = await cache.get(testSubcacheName, testKey2);
       expect(value2, expectedValue2);
-    });    
+    });
 
-    test('retries when get throws exception', () async {});
+    test('retries when get throws exception', () async {
+      final Cache<Uint8List> mockMainCache = MockCache();
+      final Cache<Uint8List> mockTestSubcache = MockCache();
+      when<Cache<Uint8List>>(mockMainCache.withPrefix(any))
+          .thenReturn(mockTestSubcache);
 
-    test('returns null if reaches max attempts of retries', () async {});
-    
+      int getCallCount = 0;
+      final Entry<Uint8List> entry = FakeEntry();
+      // Only on the first call do we want it to throw the exception.
+      when(mockTestSubcache[any]).thenAnswer((Invocation invocation) =>
+          getCallCount++ < 1
+              ? throw Exception('simulate stream sink error')
+              : entry);
+
+      cache.cacheValue = mockMainCache;
+
+      final Uint8List value =
+          await cache.get(testSubcacheName, 'does not matter');
+      verify(mockTestSubcache[any]).called(2);
+      expect(value, Uint8List.fromList('abc123'.codeUnits));
+    });
+
+    test('returns null if reaches max attempts of retries', () async {
+      final Cache<Uint8List> mockMainCache = MockCache();
+      final Cache<Uint8List> mockTestSubcache = MockCache();
+      when<Cache<Uint8List>>(mockMainCache.withPrefix(any))
+          .thenReturn(mockTestSubcache);
+
+      int getCallCount = 0;
+      final Entry<Uint8List> entry = FakeEntry();
+      // Always throw exception until max retries
+      when(mockTestSubcache[any]).thenAnswer((Invocation invocation) =>
+          getCallCount++ < CacheService.maxCacheGetAttempts
+              ? throw Exception('simulate stream sink error')
+              : entry);
+
+      cache.cacheValue = mockMainCache;
+
+      final Uint8List value =
+          await cache.get(testSubcacheName, 'does not matter');
+      verify(mockTestSubcache[any]).called(CacheService.maxCacheGetAttempts);
+      expect(value, isNull);
+    });
+
+    test('creates value if given createFn', () async {
+      final Uint8List cat = Uint8List.fromList('cat'.codeUnits);
+      Future<Uint8List> createCat() async => cat;
+
+      final Uint8List value =
+          await cache.get(testSubcacheName, 'dog', createFn: createCat);
+
+      expect(value, cat);
+    });
   });
+}
+
+class MockCache extends Mock implements Cache<Uint8List> {}
+
+class FakeEntry extends Entry<Uint8List> {
+  Uint8List value = Uint8List.fromList('abc123'.codeUnits);
+
+  @override
+  Future<Uint8List> get(
+          [Future<Uint8List> Function() create, Duration ttl]) async =>
+      value;
+
+  @override
+  Future<void> purge({int retries = 0}) => throw UnimplementedError();
+
+  @override
+  Future<Uint8List> set(Uint8List value, [Duration ttl]) async {
+    value = value;
+
+    return value;
+  }
 }
