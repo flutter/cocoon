@@ -28,7 +28,7 @@ void main() {
 
     setUp(() async {
       config =
-          FakeConfig(redisResponseSubcacheValue: 'cache_request_handler_test');
+          FakeConfig();
       tester = RequestHandlerTester(
           request: FakeHttpRequest(
         path: testHttpPath,

@@ -107,10 +107,6 @@ class Config {
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
-  /// The name of the subcache in the Redis instance that stores responses.
-  Future<String> get redisResponseSubcache =>
-      _getSingleValue('RedisResponseSubcache');
-
   Future<String> get waitingForTreeToGoGreenLabelName =>
       _getSingleValue('WaitingForTreeToGreenLabelName');
 
