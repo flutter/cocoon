@@ -6,11 +6,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:mockito/mockito.dart';
-import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/cache_request_handler.dart';
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
@@ -21,7 +22,7 @@ void main() {
     FakeConfig config;
     RequestHandlerTester tester;
 
-    Cache<Uint8List> cache;
+    CacheService cache;
 
     const String testHttpPath = '/cache_request_handler_test';
 
@@ -33,22 +34,19 @@ void main() {
         path: testHttpPath,
       ));
 
-      final CacheService cacheService = CacheService(config);
-      cache = await cacheService.inMemoryCache(4);
+      cache = CacheService(inMemory: true);
     });
 
     test('returns response from cache', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
 
-      final Cache<Uint8List> responseCache =
-          cache.withPrefix(await config.redisResponseSubcache);
-
+      const String responseKey = '$testHttpPath:';
       const String expectedResponse = 'Hello, World!';
       final Body expectedBody = Body.forString(expectedResponse);
 
       final Uint8List serializedBody = await expectedBody.serialize().first;
 
-      await responseCache['$testHttpPath:'].set(serializedBody);
+      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
 
       final CacheRequestHandler<Body> cacheRequestHandler =
           CacheRequestHandler<Body>(
