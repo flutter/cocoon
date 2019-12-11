@@ -20,6 +20,7 @@ Future<void> main() async {
 
     final CacheService cacheService = CacheService(config);
     final Cache<Uint8List> redisCache = await cacheService.redisCache();
+    config.cache = redisCache;
 
     final Map<String, RequestHandler<dynamic>> handlers =
         <String, RequestHandler<dynamic>>{

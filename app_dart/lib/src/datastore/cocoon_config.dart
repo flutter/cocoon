@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -10,29 +11,49 @@ import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
 import 'package:github/server.dart' as gh show createGitHubClient;
 import 'package:googleapis_auth/auth.dart';
-import 'package:graphql/client.dart';
+import 'package:graphql/client.dart' hide Cache;
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
+import 'package:neat_cache/neat_cache.dart';
 
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
 
-@immutable
 class Config {
-  const Config(this._db) : assert(_db != null);
+  Config(this._db) : assert(_db != null);
 
   final DatastoreDB _db;
+
+  Cache<Uint8List> cache;
+
+  @visibleForTesting
+  static const String configCacheName = 'config';
+
+  @visibleForTesting
+  static const Duration configCacheTtl = Duration(hours: 12);
 
   Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
+    final Cache<Uint8List> configCache = cache.withPrefix(configCacheName);
+
+    /// First try and get the config value from the cache.
+    final String cacheValue = String.fromCharCodes(await configCache[id].get());
+    if (cacheValue != null) {
+      return cacheValue;
+    }
+
+    /// On cache miss, load the config value from Datastore.
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final CocoonConfig result =
-        await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+
+    /// Update the cache to have this value.
+    await configCache[id].set(Uint8List.fromList(result.value.codeUnits), configCacheTtl);
+
     return result.value;
   }
 
