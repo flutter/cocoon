@@ -27,8 +27,7 @@ void main() {
     const String testHttpPath = '/cache_request_handler_test';
 
     setUp(() async {
-      config =
-          FakeConfig();
+      config = FakeConfig();
       tester = RequestHandlerTester(
           request: FakeHttpRequest(
         path: testHttpPath,
@@ -46,7 +45,8 @@ void main() {
 
       final Uint8List serializedBody = await expectedBody.serialize().first;
 
-      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
+      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey,
+          serializedBody);
 
       final CacheRequestHandler<Body> cacheRequestHandler =
           CacheRequestHandler<Body>(

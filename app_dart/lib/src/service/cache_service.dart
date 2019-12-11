@@ -9,8 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-typedef Function<Uint8List> = Uint8List Function();
-
 class CacheService {
   CacheService({
     bool inMemory = false,
