@@ -237,7 +237,8 @@ class ContinuousIntegrationCommand extends Command {
     if (Platform.isMacOS) {
       await exec(
         'security',
-        <String>['unlock-keychain', '-p', '\$SECRET', 'login.keychain'],
+        <String>['unlock-keychain', '-p', '\$FLUTTER_USER_SECRET',
+                 'login.keychain'],
         canFail: false);
     }
   }
