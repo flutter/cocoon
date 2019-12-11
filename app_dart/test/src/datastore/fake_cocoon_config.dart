@@ -36,8 +36,6 @@ class FakeConfig implements Config {
     this.luciBuildersValue,
     this.luciTryBuildersValue,
     this.loggingServiceValue,
-    this.redisUrlValue,
-    this.redisResponseSubcacheValue,
     this.tabledataResourceApi,
     this.githubService,
     this.taskLogServiceAccountValue,
@@ -65,8 +63,6 @@ class FakeConfig implements Config {
   List<Map<String, dynamic>> luciBuildersValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
   Logging loggingServiceValue;
-  String redisUrlValue;
-  String redisResponseSubcacheValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
 
@@ -143,12 +139,6 @@ class FakeConfig implements Config {
 
   @override
   Logging get loggingService => loggingServiceValue;
-
-  @override
-  Future<String> get redisUrl async => redisUrlValue;
-
-  @override
-  Future<String> get redisResponseSubcache async => redisResponseSubcacheValue;
 
   @override
   Future<String> get waitingForTreeToGoGreenLabelName async =>

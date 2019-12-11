@@ -107,12 +107,6 @@ class Config {
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
-  /// The URL to connect to the Redis instance for this Cocoon instance.
-  ///
-  /// For example, "redis://10.0.0.4:6379" is the default URL on AppEngine
-  /// projects.
-  Future<String> get redisUrl => _getSingleValue('RedisConnectionSpec');
-
   /// The name of the subcache in the Redis instance that stores responses.
   Future<String> get redisResponseSubcache =>
       _getSingleValue('RedisResponseSubcache');
