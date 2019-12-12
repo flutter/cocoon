@@ -39,6 +39,8 @@ class ContinuousIntegrationCommand extends Command {
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
+    // Ensure keychain is unlocked before running health checks.
+    await _unlockKeyChain();
     health
         .toString()
         .split('\n')
@@ -66,6 +68,7 @@ class ContinuousIntegrationCommand extends Command {
         // console.
         try {
           section('Preflight checks');
+          
           await devices.performPreflightTasks();
 
           // Check health before requesting a new task.
@@ -114,6 +117,8 @@ class ContinuousIntegrationCommand extends Command {
               // the task timeout.
               await getFlutterAt(task.revision).timeout(_kInstallationTimeout);
               await _cleanBuildDirectories(agent, task);
+              // Ensure keychain is unlocked before running task.
+              await _unlockKeyChain();
               // Ensure the phone's screen is on before running a task.
               await _screensOn();
 
@@ -225,6 +230,19 @@ class ContinuousIntegrationCommand extends Command {
         logger.info('\nReceived SIGTERM. Shutting down.');
         _stop(ProcessSignal.sigterm);
       }));
+    }
+  }
+
+  Future<Null> _unlockKeyChain() async {
+    // Unlocking the keychain is required to:
+    //   * Enable Xcode to access the certificate for code signing.
+    //   * Mitigate "Your session has expired" issue. See flutter/flutter#17860.
+    if (Platform.isMacOS) {
+      await exec(
+        'security',
+        <String>['unlock-keychain', '-p', '\$FLUTTER_USER_SECRET',
+                 'login.keychain'],
+        canFail: false);
     }
   }
 
