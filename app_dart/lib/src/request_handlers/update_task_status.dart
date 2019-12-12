@@ -129,7 +129,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     
     requestRows.add(<String, Object>{
       'json': <String, Object>{
-        'ID': commit.sha,
+        'ID': 'flutter/flutter/${commit.sha}',
         'CreateTimestamp': task.createTimestamp,
         'StartTimestamp': task.startTimestamp,
         'EndTimestamp': task.endTimestamp,
