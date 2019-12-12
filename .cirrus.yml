@@ -1,5 +1,5 @@
 container:
-  image: cirrusci/flutter:latest
+  image: cirrusci/flutter:v1.9.1-hotfix.6
 
 task:
   name: $CWD
