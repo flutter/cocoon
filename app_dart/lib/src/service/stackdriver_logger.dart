@@ -18,7 +18,7 @@ import '../datastore/cocoon_config.dart';
 /// to write logs to Stackdriver.
 ///
 /// The logs are located at:
-/// https://console.cloud.google.com/logs/viewer?project=flutter-dashboard&logName=projects%2Fflutter-dashboard%2Flogs%2F[encoded task key]_[attempt number]
+/// See https://console.cloud.google.com/logs/viewer?project=flutter-dashboard&logName=projects%2Fflutter-dashboard%2Flogs%2F[encoded task key]_[attempt number]
 class StackdriverLoggerService {
   /// Creates a new [StackdriverLoggerService].
   ///
@@ -54,6 +54,8 @@ class StackdriverLoggerService {
   /// 
   /// These logs are considered global since they should not be tied to any services
   /// in the Google Cloud project.
+  ///
+  // TODO(chillers): Stackdriver only supports UTF8 characters. https://github.com/flutter/flutter/issues/46899
   Future<void> writeLines(String logName, List<String> lines) async {
     if (_api == null) {
       await create();

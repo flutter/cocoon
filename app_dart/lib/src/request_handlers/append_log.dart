@@ -19,7 +19,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 
-// ignore: must_be_immutable
+// ignore: must_be_immutable, for tests we need to inject the requestBody, https://github.com/flutter/flutter/issues/46902
 class AppendLog extends ApiRequestHandler<Body> {
   AppendLog(
     Config config,
@@ -71,6 +71,12 @@ class AppendLog extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
+  /// Write the log data from this request to Stackdriver under [logName].
+  ///
+  /// [logName] must follow the format `[encodedOwnerKey]_[task.attempt]` so each
+  /// attempt for a task can be located.
+  ///
+  /// This will write the log to the global path `projects/flutter-dashboard/logs/[logName]` on Google Cloud.
   Future<void> writeToStackdriver(String logName) async {
     final List<String> lines = String.fromCharCodes(requestBody).split('\n');
     await stackdriverLogger.writeLines(logName, lines);
