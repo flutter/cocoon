@@ -6,8 +6,10 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_cirrus_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
+import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -20,6 +22,7 @@ void main() {
     ApiRequestHandlerTester tester;
     RefreshCirrusStatus handler;
     final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
+    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
     tester = ApiRequestHandlerTester();
 
     test('update cirrus status when all tasks succeeded', () async {
@@ -37,7 +40,10 @@ void main() {
       ];
       final FakeGithubService githubService = FakeGithubService(statuses);
 
-      config = FakeConfig(dbValue: datastoreDB, githubService: githubService);
+      config = FakeConfig(
+          dbValue: datastoreDB,
+          githubService: githubService,
+          tabledataResourceApi: tabledataResourceApi);
       handler = RefreshCirrusStatus(
         config,
         FakeAuthenticationProvider(),
@@ -56,7 +62,9 @@ void main() {
 
       expect(task.status, 'New');
       await tester.get(handler);
+      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
       expect(task.status, 'Succeeded');
+      expect(tableDataList.totalRows, '1');
     });
 
     test('update cirrus status when some tasks in process', () async {
