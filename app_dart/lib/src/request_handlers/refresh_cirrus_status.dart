@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -34,6 +35,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+
+  static const String projectId = 'flutter-dashboard';
+  static const String dataset = 'cocoon';
+  static const String table = 'BuildStatus';
 
   @override
   Future<Body> get() async {
@@ -65,16 +70,21 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
         newTaskStatus = Task.statusNew;
       } else if (conclusions.any(_failedStates.contains)) {
         newTaskStatus = Task.statusFailed;
-        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
       } else if (statuses.any(_inProgressStates.contains)) {
         newTaskStatus = Task.statusInProgress;
+        if (existingTaskStatus != Task.statusInProgress) {
+          task.task.startTimestamp = DateTime.now().millisecondsSinceEpoch;
+        }
       } else {
         newTaskStatus = Task.statusSucceeded;
-        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
 
       if (newTaskStatus != existingTaskStatus) {
         task.task.status = newTaskStatus;
+        if (newTaskStatus == Task.statusSucceeded || newTaskStatus == Task.statusFailed) {
+          task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+          await _insertBigquery(task);
+        }
         await config.db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Task>[task.task]);
           await transaction.commit();
@@ -83,5 +93,38 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     }
 
     return Body.empty;
+  }
+
+  Future<void> _insertBigquery(FullTask task) async {
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+    
+    requestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'ID': 'flutter/flutter/${task.commit.sha}',
+        'CreateTimestamp': task.task.createTimestamp,
+        'StartTimestamp': task.task.startTimestamp,
+        'EndTimestamp': task.task.endTimestamp,
+        'Name': task.task.name,
+        'Attempts': task.task.attempts,
+        'IsFlaky': task.task.isFlaky,
+        'TimeoutInMinutes': task.task.timeoutInMinutes,
+        'RequiredCapabilities': task.task.requiredCapabilities,
+        'StageName': task.task.stageName,
+        'Status': task.task.status,
+      },
+    });
+
+    /// [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest request =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': requestRows
+    });
+
+    try {
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add ${task.task.name} to BigQuery: $ApiRequestError');
+    }
   }
 }
