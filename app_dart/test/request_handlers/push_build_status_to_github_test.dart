@@ -8,12 +8,14 @@ import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
+import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:github/server.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -32,13 +34,15 @@ void main() {
     FakeBuildStatusProvider buildStatusProvider;
     ApiRequestHandlerTester tester;
     PushBuildStatusToGithub handler;
+    FakeTabledataResourceApi tabledataResourceApi;
 
     setUp(() {
-      config = FakeConfig();
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       buildStatusProvider = FakeBuildStatusProvider();
+      tabledataResourceApi = FakeTabledataResourceApi();
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       db = FakeDatastoreDB();
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
@@ -59,7 +63,7 @@ void main() {
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
         db.onCommit =
-            (List<Model> insert, List<Key> deletes) => throw AssertionError();
+            (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
         db.addOnQuery<GithubBuildStatusUpdate>(
             (Iterable<GithubBuildStatusUpdate> results) {
           throw AssertionError();
@@ -108,7 +112,7 @@ void main() {
       group('does not update anything', () {
         setUp(() {
           db.onCommit =
-              (List<Model> insert, List<Key> deletes) => throw AssertionError();
+              (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
           when(repositoriesService.createStatus(any, any, any))
               .thenThrow(AssertionError());
         });
@@ -117,9 +121,12 @@ void main() {
           prsFromGitHub = <PullRequest>[];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
           final Body body = await tester.get<Body>(handler);
+          final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
           expect(body, same(Body.empty));
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          /// Test for [BigQuery] insert
+          expect(tableDataList.totalRows, '1');
         });
 
         test('if status has not changed since last update', () async {

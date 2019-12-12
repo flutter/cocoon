@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -38,6 +39,11 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   final LoggingProvider loggingProvider;
   final BuildStatusProvider buildStatusProvider;
 
+  /// const variables for [BigQuery] operations
+  static const String projectId = 'flutter-dashboard';
+  static const String dataset = 'cocoon';
+  static const String table = 'BuildStatus';
+
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
@@ -54,6 +60,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     log.debug('Computed build result of $buildStatus');
+
+    // insert build status to bigquery
+    await _insertBigquery(buildStatus);
 
     await for (PullRequest pr in github.pullRequests.list(slug)) {
       final GithubBuildStatusUpdate update =
@@ -94,5 +103,29 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     log.debug('Committed all updates');
 
     return Body.empty;
+  }
+
+  Future<void> _insertBigquery(BuildStatus buildStatus) async {
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+    
+    requestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'Timestamp': DateTime.now().millisecondsSinceEpoch,
+        'Status': buildStatus.value,
+      },
+    });
+
+    /// [rows] to be inserted to [BigQuery]
+    final TableDataInsertAllRequest request =
+      TableDataInsertAllRequest.fromJson(<String, Object>{
+      'rows': requestRows
+    });
+
+    try {
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+    } catch(ApiRequestError){
+      log.warning('Failed to add build status to BigQuery: $ApiRequestError');
+    }
   }
 }
