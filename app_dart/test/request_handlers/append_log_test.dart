@@ -38,7 +38,8 @@ Deleting build/ directories, if any.
         config,
         FakeAuthenticationProvider(),
         stackdriverLogger: mockStackdriverLoggerService,
-      )..requestBody = Uint8List.fromList(logData.codeUnits);
+        requestBodyValue: Uint8List.fromList(logData.codeUnits),
+      );
     });
 
     tearDown(() {
@@ -60,7 +61,8 @@ Deleting build/ directories, if any.
         '',
         '2019-12-05T12:55:28.473920: RunningProcesses{pid: 497, commandLine: dart bin/agent.dart ci -c',
       ];
-      verify(mockStackdriverLoggerService.writeLines('log123', expectedLines)).called(1);
+      verify(mockStackdriverLoggerService.writeLines('log123', expectedLines))
+          .called(1);
     });
   });
 }

@@ -19,23 +19,20 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 
-// ignore: must_be_immutable, for tests we need to inject the requestBody, https://github.com/flutter/flutter/issues/46902
+@immutable
 class AppendLog extends ApiRequestHandler<Body> {
   AppendLog(
     Config config,
     AuthenticationProvider authenticationProvider, {
     StackdriverLoggerService stackdriverLogger,
+    @visibleForTesting Uint8List requestBodyValue,
   })  : stackdriverLogger =
             stackdriverLogger ?? StackdriverLoggerService(config: config),
-        super(config: config, authenticationProvider: authenticationProvider);
+        super(config: config, authenticationProvider: authenticationProvider, requestBodyValue: requestBodyValue);
 
   final StackdriverLoggerService stackdriverLogger;
 
   static const String ownerKeyParam = 'ownerKey';
-
-  @visibleForOverriding
-  @override
-  Uint8List requestBody;
 
   @override
   Future<Body> post() async {
