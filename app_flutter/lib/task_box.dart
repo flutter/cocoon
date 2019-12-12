@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/stackdriver_log_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -335,6 +336,7 @@ class TaskOverlayContents extends StatelessWidget {
                 : const Text('Task was run outside of devicelab'),
             contentPadding: const EdgeInsets.all(16.0),
           ),
+          if (isDevicelab(task)) TaskAttemptSummary(task: task),
           ButtonBar(
             children: <Widget>[
               ProgressButton(

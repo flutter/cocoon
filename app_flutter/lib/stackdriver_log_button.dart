@@ -6,44 +6,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
+import 'package:url_launcher/url_launcher.dart';
 
-class StackdriverLogButton extends StatefulWidget {
-  const StackdriverLogButton(this.task);
+class TaskAttemptSummary extends StatelessWidget {
+  const TaskAttemptSummary({this.task});
 
   final Task task;
 
-  @override
-  _StackdriverLogButtonState createState() => _StackdriverLogButtonState();
-}
+  static const String _cloudProjectId = 'flutter-dashboard';
 
-class _StackdriverLogButtonState extends State<StackdriverLogButton> {
-  int attemptNumberValue = 1;
+  @visibleForTesting
+
+  /// explain the breakdown of this url
+  /// resource=global
+  /// expandAll=false
+  /// minLogLevel=false
+  /// interval=NO_LIMIT
+  /// dateRangeUnbound=backwardInTime
+  static const String stackdriverLogUrlBase =
+      'https://console.cloud.google.com/logs/viewer?project=$_cloudProjectId&resource=global&minLogLevel=0&expandAll=false&interval=NO_LIMIT&dateRangeUnbound=backwardInTime&logName=projects%2F$_cloudProjectId%2Flogs%2F';
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<int>(
-      value: attemptNumberValue,
-      icon: Icon(Icons.receipt),
-      iconSize: 24,
-      elevation: 16,
-      style: TextStyle(color: Colors.deepPurple),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
+    return Container(
+      height: task.attempts * 50.0,
+      child: ListView(
+        children: List<Widget>.generate(task.attempts, (int i) {
+          final int attemptNumber = i + 1; // attempts start at 1, not 0
+          return FlatButton(
+            child: Text('Log for Attempt #$attemptNumber'),
+            // If the given task attempt does not exist, such as in profile mode, it will redirect to show all logs.
+            onPressed: () => launch(_stackdriverUrl(task, attemptNumber)),
+          );
+        }),
       ),
-      onChanged: (int newValue) {
-        setState(() {
-          attemptNumberValue = newValue;
-        });
-      },
-      items: List<int>.generate(widget.task.attempts, (int i) => i)
-          .map<DropdownMenuItem<int>>(
-            (int value) => DropdownMenuItem<int>(
-              value: value,
-              child: Text('Attempt $value'),
-            ),
-          )
-          .toList(),
     );
+  }
+
+  String _stackdriverUrl(Task task, int attemptNumber) {
+    return '$stackdriverLogUrlBase${task.key.namespace}_$attemptNumber';
   }
 }
