@@ -234,6 +234,9 @@ class ContinuousIntegrationCommand extends Command {
   }
 
   Future<Null> _unlockKeyChain() async {
+    // Unlocking the keychain is required to:
+    //   * Enable Xcode to access the certificate for code signing.
+    //   * Mitigate "Your session has expired" issue. See flutter/flutter#17860.
     if (Platform.isMacOS) {
       await exec(
         'security',
