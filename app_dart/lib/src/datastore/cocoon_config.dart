@@ -57,16 +57,6 @@ class Config {
     return Uint8List.fromList(result.value.codeUnits);
   }
 
-  Future<List<T>> _getJsonList<T>(String id) async {
-    final String rawValue = await _getSingleValue(id);
-    try {
-      return json.decode(rawValue).cast<T>();
-    } on FormatException {
-      loggingService.error('Invalid JSON format for property "$id": $rawValue');
-      throw InvalidConfigurationException(id);
-    }
-  }
-
   /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
   /// be touched in any given transaction, or the backing datastore will throw
   /// an error.
@@ -78,33 +68,37 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  Future<String> get nonMasterPullRequestMessage =>
-      _getSingleValue('NonMasterPullRequestMessage');
+  String get nonMasterPullRequestMessage =>
+      '''This pull request was opened against a branch other than _master_. Since Flutter pull requests should not normally be opened against branches other than master, I have changed the base to master. If this was intended, you may modify the base back to {{branch}}. See the [Release Process](https://github.com/flutter/flutter/wiki/Release-process) for information about how other branches get updated.
+
+ __Reviewers__: Use caution before merging pull requests to branches other than master. The circumstances where this is valid are very rare.
+
+ /cc @dnfield''';
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
-  Future<String> get missingTestsPullRequestMessage =>
-      _getSingleValue('MissingTestsPullRequestMessage');
+  String get missingTestsPullRequestMessage =>
+      '''It looks like this pull request may not have tests. Please make sure to add tests before merging. If you need an exemption to this rule, contact Hixie.
 
-  Future<String> get goldenBreakingChangeMessage =>
-      _getSingleValue('GoldenBreakingChangeMessage');
+__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) and make sure this patch meets those guidelines before LGTMing.''';
 
-  Future<String> get goldenTriageMessage =>
-      _getSingleValue('GoldenTriageMessage');
+  String get goldenBreakingChangeMessage =>
+      '''It looks like this pull request includes a golden file change. Please make sure to follow [Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes). While there are exceptions to this rule, if this patch modifies an existing golden file, it is probably not an exception. Only new golden files are not considered breaking changes.
 
-  Future<String> get forwardHost => _getSingleValue('ForwardHost');
+[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter) may also provide guidance for this change.
 
-  Future<int> get forwardPort => _getSingleValue('ForwardPort').then(int.parse);
+__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) and make sure this patch meets those guidelines before LGTMing.''';
 
-  Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
+  String get goldenTriageMessage => '''Nice merge! 🎉
+It looks like this PR made changes to golden files. Be sure to visit [Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) to triage the results when post-submit testing has completed. The status of these tests can be seen on the [Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).
 
-  Future<int> get maxTaskRetries =>
-      _getSingleValue('MaxTaskRetries').then(int.parse);
+For more information about working with golden files, see the wiki page [Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).''';
 
-  Future<String> get cqLabelName => _getSingleValue('CqLabelName');
+  int get maxTaskRetries => 2;
 
-  Future<String> get waitingForTreeToGoGreenLabelName =>
-      _getSingleValue('WaitingForTreeToGreenLabelName');
+  String get cqLabelName => 'CQ+1';
+
+  String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
@@ -116,49 +110,114 @@ class Config {
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
-  /// A List of builders, i.e.:
-  ///
-  /// ```json
-  /// [
-  ///   {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
-  ///   {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
-  ///   {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
-  ///   {"name": "Linux Coverage", "repo": "flutter"},
-  ///   {"name": "Linux Host Engine", "repo": "engine"},
-  ///   {"name": "Linux Android AOT Engine", "repo": "engine"},
-  ///   {"name": "Linux Android Debug Engine", "repo": "engine"},
-  ///   {"name": "Mac Host Engine", "repo": "engine"},
-  ///   {"name": "Mac Android AOT Engine", "repo": "engine"},
-  ///   {"name": "Mac Android Debug Engine", "repo": "engine"},
-  ///   {"name": "Mac iOS Engine", "repo": "engine"},
-  ///   {"name": "Windows Host Engine", "repo": "engine"},
-  ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
-  /// ]
-  /// ```
-  Future<List<Map<String, dynamic>>> get luciBuilders =>
-      _getJsonList<Map<String, dynamic>>('LuciBuilders');
+  /// A List of builders for LUCI
+  List<Map<String, dynamic>> get luciBuilders => <Map<String, String>>[
+        <String, String>{
+          'name': 'Linux',
+          'repo': 'flutter',
+          'taskName': 'linux_bot',
+        },
+        <String, String>{
+          'name': 'Mac',
+          'repo': 'flutter',
+          'taskName': 'mac_bot',
+        },
+        <String, String>{
+          'name': 'Windows',
+          'repo': 'flutter',
+          'taskName': 'windows_bot',
+        },
+        <String, String>{
+          'name': 'Linux Coverage',
+          'repo': 'flutter',
+        },
+        <String, String>{
+          'name': 'Linux Host Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Fuchsia',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Android AOT Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Android Debug Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac Host Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac Android AOT Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac Android Debug Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac iOS Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac iOS Engine Profile',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac iOS Engine Release',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Host Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Android AOT Engine',
+          'repo': 'engine',
+        }
+      ];
 
-  /// A List of try builders, i.e.:
-  ///
-  /// ```json
-  /// [
-  ///   {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
-  ///   {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
-  ///   {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
-  ///   {"name": "Linux Coverage", "repo": "flutter"},
-  ///   {"name": "Linux Host Engine", "repo": "engine"},
-  ///   {"name": "Linux Android AOT Engine", "repo": "engine"},
-  ///   {"name": "Linux Android Debug Engine", "repo": "engine"},
-  ///   {"name": "Mac Host Engine", "repo": "engine"},
-  ///   {"name": "Mac Android AOT Engine", "repo": "engine"},
-  ///   {"name": "Mac Android Debug Engine", "repo": "engine"},
-  ///   {"name": "Mac iOS Engine", "repo": "engine"},
-  ///   {"name": "Windows Host Engine", "repo": "engine"},
-  ///   {"name": "Windows Android AOT Engine", "repo": "engine"}
-  /// ]
-  /// ```
-  Future<List<Map<String, dynamic>>> get luciTryBuilders =>
-      _getJsonList<Map<String, dynamic>>('LuciTryBuilders');
+  /// A List of try builders for LUCI
+  List<Map<String, dynamic>> get luciTryBuilders => <Map<String, String>>[
+        <String, String>{
+          'name': 'Linux',
+          'repo': 'flutter',
+          'taskName': 'linux_bot',
+        },
+        <String, String>{
+          'name': 'Windows',
+          'repo': 'flutter',
+          'taskName': 'windows_bot',
+        },
+        <String, String>{
+          'name': 'Linux Host Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Fuchsia',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Android AOT Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Linux Android Debug Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Host Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Android AOT Engine',
+          'repo': 'engine',
+        }
+      ];
 
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;

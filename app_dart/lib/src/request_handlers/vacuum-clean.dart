@@ -38,7 +38,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final int maxRetries = await config.maxTaskRetries;
+    final int maxRetries = config.maxTaskRetries;
     final List<Task> tasks = await datastoreProvider()
         .queryRecentTasks(taskStatus: Task.statusInProgress)
         .map<Task>((FullTask fullTask) => fullTask.task)

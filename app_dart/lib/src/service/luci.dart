@@ -140,7 +140,7 @@ class LuciBuilder {
 
   /// Loads and returns the list of known builders from the Cocoon [config].
   static Future<List<LuciBuilder>> getBuilders(Config config) async {
-    final List<dynamic> builders = await config.luciBuilders;
+    final List<dynamic> builders = config.luciBuilders;
     return builders
         .map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json))
         .toList();

@@ -21,9 +21,6 @@ class FakeConfig implements Config {
     this.maxEntityGroups = 5,
     this.githubClient,
     this.deviceLabServiceAccountValue,
-    this.forwardHostValue,
-    this.forwardPortValue,
-    this.forwardSchemeValue,
     this.maxTaskRetriesValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
@@ -48,9 +45,6 @@ class FakeConfig implements Config {
   GithubService githubService;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
-  String forwardHostValue;
-  int forwardPortValue;
-  String forwardSchemeValue;
   int maxTaskRetriesValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
@@ -91,16 +85,7 @@ class FakeConfig implements Config {
       deviceLabServiceAccountValue;
 
   @override
-  Future<String> get forwardHost async => forwardHostValue;
-
-  @override
-  Future<int> get forwardPort async => forwardPortValue;
-
-  @override
-  Future<String> get forwardScheme async => forwardSchemeValue;
-
-  @override
-  Future<int> get maxTaskRetries async => maxTaskRetriesValue;
+  int get maxTaskRetries => maxTaskRetriesValue;
 
   @override
   Future<String> get oauthClientId async => oauthClientIdValue;
@@ -109,39 +94,34 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  Future<String> get missingTestsPullRequestMessage async =>
-      missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
 
   @override
-  Future<String> get nonMasterPullRequestMessage async =>
-      nonMasterPullRequestMessageValue;
+  String get nonMasterPullRequestMessage => nonMasterPullRequestMessageValue;
 
   @override
-  Future<String> get goldenBreakingChangeMessage async =>
-      goldenBreakingChangeMessageValue;
+  String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
 
   @override
-  Future<String> get goldenTriageMessage async => goldenTriageMessageValue;
+  String get goldenTriageMessage => goldenTriageMessageValue;
 
   @override
   Future<String> get webhookKey async => webhookKeyValue;
 
   @override
-  Future<String> get cqLabelName async => cqLabelNameValue;
+  String get cqLabelName => cqLabelNameValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciBuilders async =>
-      luciBuildersValue;
+  List<Map<String, dynamic>> get luciBuilders => luciBuildersValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciTryBuilders async =>
-      luciTryBuildersValue;
+  List<Map<String, dynamic>> get luciTryBuilders => luciTryBuildersValue;
 
   @override
   Logging get loggingService => loggingServiceValue;
 
   @override
-  Future<String> get waitingForTreeToGoGreenLabelName async =>
+  String get waitingForTreeToGoGreenLabelName =>
       waitingForTreeToGoGreenLabelNameValue;
 
   @override
