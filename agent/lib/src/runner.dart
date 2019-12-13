@@ -195,7 +195,8 @@ Future<VMIsolateRef> _connectToRunnerIsolate(int vmServicePort) async {
       VMServiceClient client = VMServiceClient.connect(url);
       VM vm = await client.getVM();
       VMIsolateRef isolate = vm.isolates.single;
-      String response = await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
+      String response =
+          await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
       if (response != 'ready') throw 'not ready yet';
       return isolate;
     } catch (error) {

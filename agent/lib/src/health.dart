@@ -42,23 +42,27 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
         results['cocoon-authentication'] = HealthCheckResult.success();
       }
     });
-    if (Platform.isMacOS && config.deviceOperatingSystem==DeviceOperatingSystem.ios) {
+    if (Platform.isMacOS &&
+        config.deviceOperatingSystem == DeviceOperatingSystem.ios) {
       results['ios'] = await _captureErrors(() async {
-        final Directory tempDir = Directory.systemTemp.createTempSync('health_tmp');
-        final Directory projectDir = Directory(path.join(tempDir.path, 'hello'));
+        final Directory tempDir =
+            Directory.systemTemp.createTempSync('health_tmp');
+        final Directory projectDir =
+            Directory(path.join(tempDir.path, 'hello'));
         try {
           await inDirectory(tempDir, () async {
             await flutter('create', options: <String>['hello']);
           });
 
           await inDirectory(projectDir, () async {
-             int exitCode = await flutter('build', options: <String>['ios']);
-             if (exitCode == 0) {
-               results['able-to-build-and-sign'] = HealthCheckResult.success();
-             } else {
-               results['able-to-build-and-sign'] = HealthCheckResult.failure(
-                   'Failed to build and sign iOS app.');
-             }});
+            int exitCode = await flutter('build', options: <String>['ios']);
+            if (exitCode == 0) {
+              results['able-to-build-and-sign'] = HealthCheckResult.success();
+            } else {
+              results['able-to-build-and-sign'] = HealthCheckResult.failure(
+                  'Failed to build and sign iOS app.');
+            }
+          });
         } finally {
           rrm(tempDir);
         }
@@ -72,7 +76,8 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
 /// Catches all exceptions and turns them into [HealthCheckResult] error.
 ///
 /// Null callback results are turned into [HealthCheckResult] success.
-Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) async {
+Future<HealthCheckResult> _captureErrors(
+    Future<dynamic> healthCheckCallback()) async {
   Completer<HealthCheckResult> completer = Completer<HealthCheckResult>();
 
   // We intentionally ignore the future returned by the Chain because we're
@@ -107,10 +112,12 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
   } else if (Platform.isLinux) {
     if (config.hostType == HostType.vm) {
       // Use hostname for VMs
-      ip  = (await eval('hostname', <String>[], canFail: true)).trim();
+      ip = (await eval('hostname', <String>[], canFail: true)).trim();
     } else {
       // Expect: 3: eno1    inet 123.45.67.89/26 brd ...
-      final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eno1'], canFail: true)).trim();
+      final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eno1'],
+              canFail: true))
+          .trim();
       final Match match = _kLinuxIpAddrExp.firstMatch(out);
       ip = match?.group(1) ?? '';
     }
