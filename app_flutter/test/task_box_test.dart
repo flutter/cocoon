@@ -12,6 +12,7 @@ import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
+import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:app_flutter/task_helper.dart';
 
@@ -328,6 +329,57 @@ void main() {
 
       // The task indicator should not show after the overlay has been closed
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
+    });
+
+    testWidgets('overlay shows TaskAttemptSummary for devicelab tasks',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'devicelab'
+                ..status = 'Succeeeded'
+                ..attempts = 1,
+              commit: Commit(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(TaskAttemptSummary), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.byType(TaskAttemptSummary), findsOneWidget);
+    });
+
+    testWidgets(
+        'overlay does not show TaskAttemptSummary for tasks outside of devicelab',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: Task()
+                ..stageName = 'cirrus'
+                ..status = 'Succeeeded'
+                ..attempts = 1,
+              commit: Commit(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(TaskAttemptSummary), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.byType(TaskAttemptSummary), findsNothing);
     });
 
     testWidgets('successful rerun shows success snackbar message',

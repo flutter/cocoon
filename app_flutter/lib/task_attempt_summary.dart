@@ -8,9 +8,11 @@ import 'package:flutter/widgets.dart';
 import 'package:cocoon_service/protos.dart' show Task;
 import 'package:url_launcher/url_launcher.dart';
 
+///
 class TaskAttemptSummary extends StatelessWidget {
   const TaskAttemptSummary({this.task});
 
+  /// The task to show information from.
   final Task task;
 
   static const String _cloudProjectId = 'flutter-dashboard';
