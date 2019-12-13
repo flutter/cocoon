@@ -18,7 +18,8 @@ Future<void> main() async {
       accessTokenProvider: AccessTokenProvider(config),
     );
 
-    final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+    final Map<String, RequestHandler<dynamic>> handlers =
+        <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests':

@@ -94,7 +94,8 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage =>
+      missingTestsPullRequestMessageValue;
 
   @override
   String get nonMasterPullRequestMessage => nonMasterPullRequestMessageValue;
