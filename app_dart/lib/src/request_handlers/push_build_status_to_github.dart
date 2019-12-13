@@ -39,11 +39,6 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   final LoggingProvider loggingProvider;
   final BuildStatusProvider buildStatusProvider;
 
-  /// const variables for [BigQuery] operations
-  static const String projectId = 'flutter-dashboard';
-  static const String dataset = 'cocoon';
-  static const String table = 'BuildStatus';
-
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
@@ -61,7 +56,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     log.debug('Computed build result of $buildStatus');
 
-    // insert build status to bigquery
+    // Insert build status to bigquery.
     await _insertBigquery(buildStatus);
 
     await for (PullRequest pr in github.pullRequests.list(slug)) {
@@ -106,6 +101,11 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   }
 
   Future<void> _insertBigquery(BuildStatus buildStatus) async {
+    // Define const variables for [BigQuery] operations.
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'BuildStatus';
+
     final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
     
@@ -116,7 +116,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       },
     });
 
-    /// [rows] to be inserted to [BigQuery]
+    // Obtain [rows] to be inserted to [BigQuery].
     final TableDataInsertAllRequest request =
       TableDataInsertAllRequest.fromJson(<String, Object>{
       'rows': requestRows
