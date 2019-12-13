@@ -12,7 +12,6 @@ set -e
 echo "Running tests from $1"
 pushd $1 > /dev/null
 pub get
-pub upgrade
 
 dartfmt --set-exit-if-changed .
 
