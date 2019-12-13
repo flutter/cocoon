@@ -28,7 +28,10 @@ class AppendLog extends ApiRequestHandler<Body> {
     @visibleForTesting Uint8List requestBodyValue,
   })  : stackdriverLogger =
             stackdriverLogger ?? StackdriverLoggerService(config: config),
-        super(config: config, authenticationProvider: authenticationProvider, requestBodyValue: requestBodyValue);
+        super(
+            config: config,
+            authenticationProvider: authenticationProvider,
+            requestBodyValue: requestBodyValue);
 
   final StackdriverLoggerService stackdriverLogger;
 

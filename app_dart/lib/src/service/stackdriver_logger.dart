@@ -23,8 +23,7 @@ class StackdriverLoggerService {
   /// Creates a new [StackdriverLoggerService].
   ///
   /// The [config] argument must not be null.
-  StackdriverLoggerService({@required this.config})
-      : assert(config != null);
+  StackdriverLoggerService({@required this.config}) : assert(config != null);
 
   /// The Cocoon configuration. Guaranteed to be non-null.
   final Config config;
@@ -51,7 +50,7 @@ class StackdriverLoggerService {
   }
 
   /// Write [lines] to Stackdriver under the log [logName].
-  /// 
+  ///
   /// These logs are considered global since they should not be tied to any services
   /// in the Google Cloud project.
   ///

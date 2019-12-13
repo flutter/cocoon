@@ -155,6 +155,6 @@ class FakeConfig implements Config {
       waitingForTreeToGoGreenLabelNameValue;
 
   @override
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async => 
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async =>
       taskLogServiceAccountValue;
 }
