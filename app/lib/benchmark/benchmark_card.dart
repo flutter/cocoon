@@ -54,28 +54,26 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   /// We must perform better than the baseline. Otherwise, we consider it a
   /// regression, paint it in red and must work to fix as soon as possible.
   double get baseline => _data.timeseries.timeseries.baseline > goal
-    ? _data.timeseries.timeseries.baseline
-    : goal;
+      ? _data.timeseries.timeseries.baseline
+      : goal;
 
   String get id => _data.timeseries.timeseries.id;
-  
+
   String get taskName => _data.timeseries.timeseries.taskName;
-  
+
   String get label => _data.timeseries.timeseries.label;
-  
+
   String get unit => _data.timeseries.timeseries.unit;
 
   String get latestValue {
-    if (_data.values == null || _data.values.isEmpty)
-      return null;
+    if (_data.values == null || _data.values.isEmpty) return null;
 
     TimeseriesValue timeseriesValue = _data.values.firstWhere(
       (TimeseriesValue value) => !value.isDataMissing,
       orElse: () => null,
     );
 
-    if (timeseriesValue == null)
-      return null;
+    if (timeseriesValue == null) return null;
 
     num value = timeseriesValue.value;
     if (value < 10) {
@@ -94,14 +92,13 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
   @override
   void ngAfterViewInit() {
     if (_data.values.isEmpty) return;
-    double maxValue = _data.values
-      .map((TimeseriesValue v) => v.value)
-      .fold(goal, math.max);
+    double maxValue =
+        _data.values.map((TimeseriesValue v) => v.value).fold(goal, math.max);
 
     // Leave a bit of room so bars don't fill the height of the card
     maxValue = maxValue > 0.0
-      ? maxValue * 1.1
-      : 1.0;  // if everything is 0.0, use an artificial chart height
+        ? maxValue * 1.1
+        : 1.0; // if everything is 0.0, use an artificial chart height
 
     int goalHeight = (_kChartHeight * goal) ~/ maxValue;
     int baselineHeight = (_kChartHeight * baseline) ~/ maxValue;
@@ -111,32 +108,27 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
       baselineHeight += 1;
     }
 
-    chartContainer.children.add(
-        new DivElement()
-          ..classes.add('metric-goal')
-          ..style.height = '${goalHeight}px'
-    );
+    chartContainer.children.add(new DivElement()
+      ..classes.add('metric-goal')
+      ..style.height = '${goalHeight}px');
 
-    chartContainer.children.add(
-        new DivElement()
-          ..classes.add('metric-baseline')
-          ..style.height = '${baselineHeight}px'
-    );
+    chartContainer.children.add(new DivElement()
+      ..classes.add('metric-baseline')
+      ..style.height = '${baselineHeight}px');
 
     for (TimeseriesValue value in _data.values.reversed) {
       // For missing values create a greyed out bar that takes the full height
       // of the chart.
       final double valueHeight = !value.isDataMissing
-        ? _kChartHeight * value.value / maxValue
-        : _kChartHeight;
+          ? _kChartHeight * value.value / maxValue
+          : _kChartHeight;
 
       DivElement bar = new DivElement()
         ..classes.add('metric-value-bar')
         ..style.height = '${_kChartHeight - valueHeight}px'
         ..style.borderWidth = '0 0 ${valueHeight}px 0';
 
-      if (barWidth == 'narrow')
-        bar.classes.add('metric-value-bar-narrow');
+      if (barWidth == 'narrow') bar.classes.add('metric-value-bar-narrow');
 
       if (value.isDataMissing) {
         bar.classes.add('metric-value-bar-missing');
@@ -160,14 +152,13 @@ class BenchmarkCard implements AfterViewInit, OnDestroy {
             dragHappened = true;
           })
           ..onClick.listen((_) {
-              if (!dragHappened)
-                tooltip.remove();
-            });
+            if (!dragHappened) tooltip.remove();
+          });
 
-        final String revisionLink = 'https://github.com/flutter/flutter/commit/${value.revision}';
-        final String formattedValue = !value.isDataMissing
-          ? '${value.value}$unit'
-          : 'Value missing';
+        final String revisionLink =
+            'https://github.com/flutter/flutter/commit/${value.revision}';
+        final String formattedValue =
+            !value.isDataMissing ? '${value.value}$unit' : 'Value missing';
 
         tooltip.setInnerHtml(
           '${formattedValue}\n'
@@ -215,5 +206,6 @@ class _NullValidator implements NodeValidator {
   bool allowsElement(Element element) => true;
 
   @override
-  bool allowsAttribute(Element element, String attributeName, String value) => true;
+  bool allowsAttribute(Element element, String attributeName, String value) =>
+      true;
 }

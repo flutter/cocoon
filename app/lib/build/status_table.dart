@@ -143,15 +143,15 @@ class StatusTableComponent implements OnInit, OnDestroy {
     _pendingSha = sha;
     _pendingTaskName = taskName;
     _pendingStageName = stageName;
-    _pendingEvent = new Timer(const Duration(seconds: 1, milliseconds: 500), () {
+    _pendingEvent =
+        new Timer(const Duration(seconds: 1, milliseconds: 500), () {
       tryToResetTask(sha, taskName);
       _pendingEvent = null;
     });
   }
 
   void handleMouseupOrLeave() {
-    if (_pendingEvent == null)
-      return;
+    if (_pendingEvent == null) return;
     _pendingEvent.cancel();
     if (_pendingSha != null)
       openLog(_pendingSha, _pendingTaskName, _pendingStageName);
@@ -161,8 +161,7 @@ class StatusTableComponent implements OnInit, OnDestroy {
   }
 
   Future<void> tryToResetTask(String sha, String taskName) async {
-    if (!userIsAuthenticated || !canBeReset(sha, taskName))
-      return;
+    if (!userIsAuthenticated || !canBeReset(sha, taskName)) return;
     final TaskEntity entity = _findTask(sha, taskName);
     if (entity == null || !entity.task.stageName.contains('devicelab')) return;
     final String request = json.encode(<String, String>{
@@ -317,7 +316,8 @@ class StatusTableComponent implements OnInit, OnDestroy {
       // We cannot serve the log file from an external system directly, but we
       // can redirect the user closer to where they can find it.
       window.open(
-          SourceUrlPipe._computeLinkToExternalBuildHistory(taskName, taskStage, sha),
+          SourceUrlPipe._computeLinkToExternalBuildHistory(
+              taskName, taskStage, sha),
           '_blank');
     } else if (taskEntity != null) {
       window.open('/api/get-log?ownerKey=${taskEntity.key}', '_blank');
@@ -350,7 +350,8 @@ class SourceUrlPipe extends PipeTransform {
     return 'https://github.com/flutter/flutter/blob/master/dev/devicelab/bin/tasks/$taskName.dart';
   }
 
-  static String _computeLinkToExternalBuildHistory(String taskName, String taskStage, String sha) {
+  static String _computeLinkToExternalBuildHistory(
+      String taskName, String taskStage, String sha) {
     if (taskStage == 'travis') {
       return 'https://travis-ci.org/flutter/flutter/builds';
     } else if (taskStage == 'appveyor') {

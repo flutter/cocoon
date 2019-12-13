@@ -15,18 +15,17 @@ import 'package:cocoon/build/status_table.dart';
 
 void main() {
   final ComponentRef<StatusTableComponent> componentRef = runApp(
-    ng.StatusTableComponentNgFactory,
-    createInjector: ([Injector injector]) {
-      final client = new browser_http.BrowserClient();
-      return new Injector.map({
-        Logger: new HtmlLogger(),
-        http.Client: new browser_http.BrowserClient(),
-        CreateAgentCommand: new CreateAgentCommand(client),
-        AuthorizeAgentCommand: new AuthorizeAgentCommand(client),
-        RefreshGithubCommitsCommand: new RefreshGithubCommitsCommand(client),
-        ReserveTaskCommand: new ReserveTaskCommand(client),
-        RawHttpCommand: new RawHttpCommand(client),
-      }, injector);
+      ng.StatusTableComponentNgFactory, createInjector: ([Injector injector]) {
+    final client = new browser_http.BrowserClient();
+    return new Injector.map({
+      Logger: new HtmlLogger(),
+      http.Client: new browser_http.BrowserClient(),
+      CreateAgentCommand: new CreateAgentCommand(client),
+      AuthorizeAgentCommand: new AuthorizeAgentCommand(client),
+      RefreshGithubCommitsCommand: new RefreshGithubCommitsCommand(client),
+      ReserveTaskCommand: new ReserveTaskCommand(client),
+      RawHttpCommand: new RawHttpCommand(client),
+    }, injector);
   });
   Cli.install(componentRef.injector);
 }

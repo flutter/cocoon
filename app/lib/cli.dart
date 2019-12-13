@@ -34,8 +34,7 @@ class Cli {
     for (Type commandType in commandTypes) {
       CliCommand command = injector.get(commandType);
 
-      if (command == null)
-        throw 'Failed to register ${commandType}';
+      if (command == null) throw 'Failed to register ${commandType}';
 
       print('  ${command.name}');
       commandMap[command.name] = (List<String> args) {
@@ -67,19 +66,14 @@ class AuthorizeAgentCommand extends CliCommand {
   @override
   ArgParser get argParser {
     return new ArgParser()
-      ..addOption(
-        'agent-id',
-        abbr: 'a',
-        help: 'Unique agent ID.'
-      );
+      ..addOption('agent-id', abbr: 'a', help: 'Unique agent ID.');
   }
 
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/authorize-agent', body: json.encode({
-      'AgentID': agentId
-    }));
+    http.Response resp = await httpClient.post('/api/authorize-agent',
+        body: json.encode({'AgentID': agentId}));
     print(resp.body);
   }
 }
@@ -92,27 +86,23 @@ class CreateAgentCommand extends CliCommand {
   @override
   ArgParser get argParser {
     return new ArgParser()
-      ..addOption(
-        'agent-id',
-        abbr: 'a',
-        help: 'Unique agent ID.'
-      )
-      ..addMultiOption(
-        'capability',
-        abbr: 'c',
-        splitCommas: true,
-        help: 'An agent capability. May be repeated to supply multiple capabilities.'
-      );
+      ..addOption('agent-id', abbr: 'a', help: 'Unique agent ID.')
+      ..addMultiOption('capability',
+          abbr: 'c',
+          splitCommas: true,
+          help:
+              'An agent capability. May be repeated to supply multiple capabilities.');
   }
 
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
     List<String> capabilities = args['capability'];
-    http.Response resp = await httpClient.post('/api/create-agent', body: json.encode({
-      'AgentID': agentId,
-      'Capabilities': capabilities,
-    }));
+    http.Response resp = await httpClient.post('/api/create-agent',
+        body: json.encode({
+          'AgentID': agentId,
+          'Capabilities': capabilities,
+        }));
     print(resp.body);
   }
 }
@@ -140,19 +130,15 @@ class ReserveTaskCommand extends CliCommand {
   @override
   ArgParser get argParser {
     return new ArgParser()
-      ..addOption(
-        'agent-id',
-        abbr: 'a',
-        help: 'Identifies the agent to reserve a task for.'
-      );
+      ..addOption('agent-id',
+          abbr: 'a', help: 'Identifies the agent to reserve a task for.');
   }
 
   @override
   Future<Null> run(ArgResults args) async {
     String agentId = args['agent-id'];
-    http.Response resp = await httpClient.post('/api/reserve-task', body: json.encode({
-      'AgentID': agentId
-    }));
+    http.Response resp = await httpClient.post('/api/reserve-task',
+        body: json.encode({'AgentID': agentId}));
     print(resp.body);
   }
 }

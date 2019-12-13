@@ -19,14 +19,13 @@ import 'models/tab_state.dart' as tab;
 const String kTitle = 'Flutter Dashboard';
 
 class RepositoryDashboardApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: kTitle,
       home: const _RepositoryDashboardWidget(),
       debugShowCheckedModeBanner: false,
-      routes: <String, WidgetBuilder> {
+      routes: <String, WidgetBuilder>{
         '/settings': (BuildContext context) => const SettingsPage()
       },
       theme: ThemeData.dark(),
@@ -37,48 +36,55 @@ class RepositoryDashboardApp extends StatelessWidget {
 class _RepositoryDashboardWidget extends StatefulWidget {
   const _RepositoryDashboardWidget();
   @override
-  _RepositoryDashboardWidgetState createState() => _RepositoryDashboardWidgetState();
+  _RepositoryDashboardWidgetState createState() =>
+      _RepositoryDashboardWidgetState();
 }
 
-class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> with SingleTickerProviderStateMixin {
+class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget>
+    with SingleTickerProviderStateMixin {
   List<_RepositoryTabMapper> get _dashboardTabs {
     const double tabIconSize = 36.0;
-    final RepositoryDetails flutterRepositoryDetails = const RepositoryDetails<FlutterRepositoryStatus>(
+    final RepositoryDetails flutterRepositoryDetails =
+        const RepositoryDetails<FlutterRepositoryStatus>(
       icon: FlutterLogo(),
     );
-    final RepositoryDetails engineRepositoryDetails = const RepositoryDetails<FlutterEngineRepositoryStatus>(
+    final RepositoryDetails engineRepositoryDetails =
+        const RepositoryDetails<FlutterEngineRepositoryStatus>(
       icon: Icon(Icons.layers),
     );
-    final RepositoryDetails pluginsRepositoryDetails = const RepositoryDetails<FlutterPluginsRepositoryStatus>(
+    final RepositoryDetails pluginsRepositoryDetails =
+        const RepositoryDetails<FlutterPluginsRepositoryStatus>(
       icon: Icon(Icons.extension),
     );
     return <_RepositoryTabMapper>[
       _RepositoryTabMapper(
-        tab: const Tab(text: 'Flutter', icon: FlutterLogo(size: tabIconSize)),
-        tabContents: flutterRepositoryDetails
-      ),
+          tab: const Tab(text: 'Flutter', icon: FlutterLogo(size: tabIconSize)),
+          tabContents: flutterRepositoryDetails),
       _RepositoryTabMapper(
-        tab: const Tab(text: 'Engine', icon: Icon(Icons.layers, size: tabIconSize)),
+        tab: const Tab(
+            text: 'Engine', icon: Icon(Icons.layers, size: tabIconSize)),
         tabContents: ModelBinding<FlutterEngineRepositoryStatus>(
           initialModel: FlutterEngineRepositoryStatus(),
           child: engineRepositoryDetails,
         ),
       ),
       _RepositoryTabMapper(
-        tab: const Tab(text: 'Plugins', icon: Icon(Icons.extension, size: tabIconSize)),
+        tab: const Tab(
+            text: 'Plugins', icon: Icon(Icons.extension, size: tabIconSize)),
         tabContents: ModelBinding<FlutterPluginsRepositoryStatus>(
-          initialModel: FlutterPluginsRepositoryStatus(),
-          child: pluginsRepositoryDetails
-        ),
+            initialModel: FlutterPluginsRepositoryStatus(),
+            child: pluginsRepositoryDetails),
       ),
       _RepositoryTabMapper(
-        tab: Tab(text: 'Infrastructure', icon: Icon(Icons.build, size: tabIconSize)),
-        tabContents: const InfrastructureDetails()
-      ),
+          tab: Tab(
+              text: 'Infrastructure',
+              icon: Icon(Icons.build, size: tabIconSize)),
+          tabContents: const InfrastructureDetails()),
       _RepositoryTabMapper(
-        tab: Tab(text: 'Roll History', icon: Icon(Icons.merge_type, size: tabIconSize)),
-        tabContents: const RollDetails()
-      ),
+          tab: Tab(
+              text: 'Roll History',
+              icon: Icon(Icons.merge_type, size: tabIconSize)),
+          tabContents: const RollDetails()),
     ];
   }
 
@@ -98,7 +104,8 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
 
     int pausedTabIndex = tab.pausedTabIndex ?? 0;
     pausedTabIndex = math.min<int>(pausedTabIndex, tabCount - 1);
-    _tabController = TabController(initialIndex: pausedTabIndex, vsync: this, length: tabCount);
+    _tabController = TabController(
+        initialIndex: pausedTabIndex, vsync: this, length: tabCount);
     _tabController.addListener(_storeTabSelection);
   }
 
@@ -135,74 +142,70 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
     TextStyle currentHeadline = Theme.of(context).textTheme.headline;
     TextStyle headline = currentHeadline.copyWith(fontWeight: FontWeight.bold);
     return Scaffold(
-        appBar: AppBar(
-          actions: <Widget>[
-            IconButton(
-              icon: (tab.isPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
-              tooltip: (tab.isPaused ? 'Switch tabs' : 'Stop switching tabs'),
-              onPressed: () {
-                setState(() {
-                  bool isPaused = !tab.isPaused;
-                  if (isPaused) {
-                    tab.pause(_tabController.index);
-                  } else {
-                    tab.play();
-                  }
-                });
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Settings',
-              onPressed: () {
-                Navigator.of(context).pushNamed('/settings');
-              },
-            ),
-          ],
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => window.location.href = '/'
+      appBar: AppBar(
+        actions: <Widget>[
+          IconButton(
+            icon: (tab.isPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
+            tooltip: (tab.isPaused ? 'Switch tabs' : 'Stop switching tabs'),
+            onPressed: () {
+              setState(() {
+                bool isPaused = !tab.isPaused;
+                if (isPaused) {
+                  tab.pause(_tabController.index);
+                } else {
+                  tab.play();
+                }
+              });
+            },
           ),
-          bottom: TabBar(
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/settings');
+            },
+          ),
+        ],
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => window.location.href = '/'),
+        bottom: TabBar(
             controller: _tabController,
-            labelStyle: Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
+            labelStyle:
+                Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
             indicatorWeight: 4.0,
             tabs: <Tab>[
               for (_RepositoryTabMapper tabMapper in _dashboardTabs)
                 tabMapper.tab
-            ]
-          ),
-        ),
-        body: Theme(
-          data: ThemeData(
+            ]),
+      ),
+      body: Theme(
+        data: ThemeData(
             textTheme: Theme.of(context).textTheme.copyWith(
-              body1: currentHeadline,
-              subhead: headline.copyWith(fontWeight: FontWeight.normal),
-              headline: headline,
-            ),
-            dividerColor: Theme.of(context).accentColor,
-            iconTheme: IconTheme.of(context).copyWith(size: 30.0)
-          ),
-          child: ListTileTheme(
-            contentPadding: const EdgeInsets.only(bottom: 46.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 50.0),
-
-              // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository.
-              // Rebuild all widgets when that model changes.
-              child: ModelBinding<FlutterRepositoryStatus>(
-                initialModel: FlutterRepositoryStatus(),
-                child: TabBarView(
-                  controller: _tabController,
-                  children: <Widget>[
-                    for (_RepositoryTabMapper tabMapper in _dashboardTabs)
-                      tabMapper.tabContents
-                  ]
+                  body1: currentHeadline,
+                  subhead: headline.copyWith(fontWeight: FontWeight.normal),
+                  headline: headline,
                 ),
-              ),
+            dividerColor: Theme.of(context).accentColor,
+            iconTheme: IconTheme.of(context).copyWith(size: 30.0)),
+        child: ListTileTheme(
+          contentPadding: const EdgeInsets.only(bottom: 46.0),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 40.0, horizontal: 50.0),
+
+            // The RepositoryDetails widgets are dependent on data fetched from the flutter/flutter FlutterRepositoryStatus repository.
+            // Rebuild all widgets when that model changes.
+            child: ModelBinding<FlutterRepositoryStatus>(
+              initialModel: FlutterRepositoryStatus(),
+              child: TabBarView(controller: _tabController, children: <Widget>[
+                for (_RepositoryTabMapper tabMapper in _dashboardTabs)
+                  tabMapper.tabContents
+              ]),
             ),
           ),
         ),
+      ),
     );
   }
 }

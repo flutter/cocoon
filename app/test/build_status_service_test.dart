@@ -20,31 +20,39 @@ void main() {
               <String, dynamic>{
                 'AgentID': 'linux1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 1))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'linux2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 1))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 11))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 11))
+                    .millisecondsSinceEpoch
               },
             ],
             'Statuses': <Map<String, dynamic>>[
               <String, dynamic>{
-                'Checklist': <String, dynamic> {
-                  'Checklist': <String, dynamic> {
-                    'Commit': <String, dynamic> {
+                'Checklist': <String, dynamic>{
+                  'Checklist': <String, dynamic>{
+                    'Commit': <String, dynamic>{
                       'Sha': '1234567890',
-                      'Author': <String, dynamic> {
+                      'Author': <String, dynamic>{
                         'Login': 'smith',
                         'avatar_url': 'https://www.google.com'
                       }
@@ -124,7 +132,9 @@ void main() {
 
     test('Unexpected fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
-        final Map<String, dynamic> mapJson = <String, dynamic>{'bogus': 'Failure'};
+        final Map<String, dynamic> mapJson = <String, dynamic>{
+          'bogus': 'Failure'
+        };
         return http.Response(json.encode(mapJson), 200);
       });
       final BuildStatus status = await fetchBuildStatus(client: client);
@@ -142,22 +152,30 @@ void main() {
               <String, dynamic>{
                 'AgentID': 'linux1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 1))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'linux2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 1))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 11))
+                    .millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now()
+                    .subtract(const Duration(minutes: 11))
+                    .millisecondsSinceEpoch
               },
             ]
           };

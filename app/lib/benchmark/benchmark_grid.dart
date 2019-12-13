@@ -45,6 +45,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   set taskTextFilter(String value) {
     applyTextFilter(value);
   }
+
   bool get isShowArchived => _isShowArchived;
 
   bool get userIsAuthenticated => _userIsAuthenticated;
@@ -69,8 +70,9 @@ class BenchmarkGrid implements OnInit, OnDestroy {
 
   @override
   void ngOnInit() {
-    reloadData(initialLoad : true);
-    _reloadTimer = new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
+    reloadData(initialLoad: true);
+    _reloadTimer =
+        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
     getAuthenticationStatus('/').then((AuthenticationStatus status) {
       _userIsAuthenticated = status.isAuthenticated;
     });
@@ -81,13 +83,15 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _reloadTimer?.cancel();
   }
 
-  Future<Null> reloadData({bool initialLoad : false}) async {
+  Future<Null> reloadData({bool initialLoad: false}) async {
     isLoading = true;
-    Map<String, dynamic> statusJson = json.decode((await _httpClient.get('/api/public/get-benchmarks')).body);
+    Map<String, dynamic> statusJson =
+        json.decode((await _httpClient.get('/api/public/get-benchmarks')).body);
     _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
-      Map<String, String> parameters = Uri.parse(window.location.href).queryParameters;
+      Map<String, String> parameters =
+          Uri.parse(window.location.href).queryParameters;
       _taskTextFilter = parameters != null ? parameters['filter'] : null;
     }
     applyTextFilter(_taskTextFilter);
@@ -108,13 +112,20 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     List<_BenchmarkPredicate> filters = <_BenchmarkPredicate>[];
     if (_taskTextFilter != null && _taskTextFilter.trim().isNotEmpty) {
       filters.add((BenchmarkData data) {
-        bool labelMatches = data?.timeseries?.timeseries?.label?.toLowerCase()?.contains(_taskTextFilter) == true;
-        bool taskNameMatches = data?.timeseries?.timeseries?.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool labelMatches = data?.timeseries?.timeseries?.label
+                ?.toLowerCase()
+                ?.contains(_taskTextFilter) ==
+            true;
+        bool taskNameMatches = data?.timeseries?.timeseries?.taskName
+                ?.toLowerCase()
+                ?.contains(_taskTextFilter) ==
+            true;
         return labelMatches || taskNameMatches;
       });
     }
     if (!_isShowArchived) {
-      filters.add((BenchmarkData data) => !(data?.timeseries?.timeseries?.isArchived ?? true));
+      filters.add((BenchmarkData data) =>
+          !(data?.timeseries?.timeseries?.isArchived ?? true));
     }
     visibleBenchmarks = _benchmarks;
     for (_BenchmarkPredicate filter in filters) {

@@ -29,15 +29,16 @@ Future<AuthenticationStatus> getAuthenticationStatus(String returnPage) async {
   );
 }
 
-Future<http.Client> getAuthenticatedClientOrRedirectToSignIn(String returnPage) async {
+Future<http.Client> getAuthenticatedClientOrRedirectToSignIn(
+    String returnPage) async {
   final AuthenticationStatus status = await getAuthenticationStatus(returnPage);
 
-  if (status.isAuthenticated)
-    return new browser_http.BrowserClient();
+  if (status.isAuthenticated) return new browser_http.BrowserClient();
 
   document.body.append(new DivElement()
-    ..text = 'You are not signed in, or signed in under an unauthorized account, '
-        'and will be redirected to a Google sign in page.');
+    ..text =
+        'You are not signed in, or signed in under an unauthorized account, '
+            'and will be redirected to a Google sign in page.');
 
   window.open(status.loginUrl, '_self');
   return null;
