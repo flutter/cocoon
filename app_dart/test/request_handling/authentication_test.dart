@@ -188,8 +188,10 @@ void main() {
 
         // check log for debug statement and warning
         expect(log.records, hasLength(2));
-        expect(log.records.first.message,
-            contains('Token verification failed: 401; Invalid token: bad-cookie'));
+        expect(
+            log.records.first.message,
+            contains(
+                'Token verification failed: 401; Invalid token: bad-cookie'));
       });
 
       test('fails if token verification fails', () async {

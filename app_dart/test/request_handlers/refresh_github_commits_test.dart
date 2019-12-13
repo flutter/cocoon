@@ -52,8 +52,7 @@ void main() {
             'Username',
             'Username@abc.com',
             DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
-        final GitCommit gitCommit = GitCommit()
-          ..committer = committer;
+        final GitCommit gitCommit = GitCommit()..committer = committer;
         final RepositoryCommit commit = RepositoryCommit()
           ..sha = sha
           ..author = author
@@ -64,14 +63,17 @@ void main() {
     }
 
     Commit shaToCommit(String sha) {
-      return Commit(key: db.emptyKey.append(Commit, id: 'flutter/flutter/$sha'), sha: sha);
+      return Commit(
+          key: db.emptyKey.append(Commit, id: 'flutter/flutter/$sha'),
+          sha: sha);
     }
 
     setUp(() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
+      final MockTabledataResourceApi tabledataResourceApi =
+          MockTabledataResourceApi();
       when(github.repositories).thenReturn(repositories);
       when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
         return commitStream();
@@ -81,7 +83,8 @@ void main() {
       });
 
       yieldedCommitCount = 0;
-      config = FakeConfig(githubClient: github, tabledataResourceApi: tabledataResourceApi);
+      config = FakeConfig(
+          githubClient: github, tabledataResourceApi: tabledataResourceApi);
       auth = FakeAuthenticationProvider();
       db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
@@ -105,7 +108,8 @@ void main() {
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
     });
 
-    test('stops requesting GitHub commits when it finds an existing commit', () async {
+    test('stops requesting GitHub commits when it finds an existing commit',
+        () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
       for (String sha in dbCommits) {
@@ -133,8 +137,12 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
-      db.onCommit = (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
-        if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '2').isNotEmpty) {
+      db.onCommit =
+          (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
+        if (inserts
+            .whereType<Commit>()
+            .where((Commit commit) => commit.sha == '2')
+            .isNotEmpty) {
           throw StateError('Commit failed');
         }
       };
@@ -142,8 +150,10 @@ void main() {
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 2);
       expect(db.values.values.whereType<Task>().length, 10);
-      expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '3']);
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 3]);
+      expect(db.values.values.whereType<Commit>().map<String>(toSha),
+          <String>['1', '3']);
+      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
+          <int>[1, 3]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
@@ -152,7 +162,8 @@ void main() {
     test('retries manifest download upon HTTP failure', () async {
       int retry = 0;
       httpClient.onIssueRequest = (FakeHttpClientRequest request) {
-        request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
+        request.response.statusCode =
+            retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
         retry++;
       };
 
@@ -174,7 +185,8 @@ void main() {
       githubCommits = <String>['1'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-      await expectLater(tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
+      await expectLater(
+          tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
       expect(retry, 3);
       expect(db.values.values.whereType<Commit>(), isEmpty);
       expect(db.values.values.whereType<Task>(), isEmpty);
@@ -200,5 +212,4 @@ class MockGitHub extends Mock implements GitHub {}
 
 class MockRepositoriesService extends Mock implements RepositoriesService {}
 
-class MockTabledataResourceApi extends Mock implements TabledataResourceApi {} 
-
+class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}

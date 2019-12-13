@@ -48,7 +48,8 @@ void main() {
 
     Future<HttpClientResponse> issueRequest({String body}) async {
       final HttpClient client = HttpClient();
-      final Uri url = Uri(scheme: 'http', host: 'localhost', port: server.port, path: '/path');
+      final Uri url = Uri(
+          scheme: 'http', host: 'localhost', port: server.port, path: '/path');
       final HttpClientRequest request = await client.getUrl(url);
       if (body != null) {
         request.contentLength = body.length;
@@ -78,7 +79,8 @@ void main() {
 
     test('JSON request body yields valid requestData', () async {
       handler = ReadParams();
-      final HttpClientResponse response = await issueRequest(body: '{"param1":"value1"}');
+      final HttpClientResponse response =
+          await issueRequest(body: '{"param1":"value1"}');
       expect(response.headers.value('X-Test-RequestBody'), isNotEmpty);
       expect(response.headers.value('X-Test-RequestData'), '{param1: value1}');
       expect(response.statusCode, HttpStatus.ok);
@@ -105,7 +107,8 @@ void main() {
       expect(log.records, isEmpty);
     });
 
-    test('missing required request parameters yields HTTP bad request', () async {
+    test('missing required request parameters yields HTTP bad request',
+        () async {
       handler = NeedsParams();
       HttpClientResponse response = await issueRequest();
       expect(response.statusCode, HttpStatus.badRequest);
@@ -113,9 +116,11 @@ void main() {
       expect(response.statusCode, HttpStatus.badRequest);
       response = await issueRequest(body: '{"param2":"value2"}');
       expect(response.statusCode, HttpStatus.badRequest);
-      response = await issueRequest(body: '{"param1":"value1","param2":"value2"}');
+      response =
+          await issueRequest(body: '{"param1":"value1","param2":"value2"}');
       expect(response.statusCode, HttpStatus.ok);
-      response = await issueRequest(body: '{"param1":"value1","param2":"value2","extra":"yes"}');
+      response = await issueRequest(
+          body: '{"param1":"value1","param2":"value2","extra":"yes"}');
       expect(response.statusCode, HttpStatus.ok);
       expect(log.records, isEmpty);
     });
@@ -126,7 +131,8 @@ class Unauth extends ApiRequestHandler<Body> {
   Unauth()
       : super(
           config: FakeConfig(),
-          authenticationProvider: FakeAuthenticationProvider(authenticated: false),
+          authenticationProvider:
+              FakeAuthenticationProvider(authenticated: false),
         );
 
   @override
@@ -134,14 +140,20 @@ class Unauth extends ApiRequestHandler<Body> {
 }
 
 class Auth extends ApiRequestHandler<Body> {
-  Auth() : super(config: FakeConfig(), authenticationProvider: FakeAuthenticationProvider());
+  Auth()
+      : super(
+            config: FakeConfig(),
+            authenticationProvider: FakeAuthenticationProvider());
 
   @override
   Future<Body> get() async => Body.empty;
 }
 
 class ReadParams extends ApiRequestHandler<Body> {
-  ReadParams() : super(config: FakeConfig(), authenticationProvider: FakeAuthenticationProvider());
+  ReadParams()
+      : super(
+            config: FakeConfig(),
+            authenticationProvider: FakeAuthenticationProvider());
 
   @override
   Future<Body> get() async {
@@ -152,7 +164,10 @@ class ReadParams extends ApiRequestHandler<Body> {
 }
 
 class NeedsParams extends ApiRequestHandler<Body> {
-  NeedsParams() : super(config: FakeConfig(), authenticationProvider: FakeAuthenticationProvider());
+  NeedsParams()
+      : super(
+            config: FakeConfig(),
+            authenticationProvider: FakeAuthenticationProvider());
 
   @override
   Future<Body> get() async {
@@ -162,12 +177,16 @@ class NeedsParams extends ApiRequestHandler<Body> {
 }
 
 class AccessAuth extends ApiRequestHandler<Body> {
-  AccessAuth() : super(config: FakeConfig(), authenticationProvider: FakeAuthenticationProvider());
+  AccessAuth()
+      : super(
+            config: FakeConfig(),
+            authenticationProvider: FakeAuthenticationProvider());
 
   @override
   Future<Body> get() async {
     response.headers.add('X-Test-IsAgent', authContext.agent != null);
-    response.headers.add('X-Test-IsDev', authContext.clientContext.isDevelopmentEnvironment);
+    response.headers.add(
+        'X-Test-IsDev', authContext.clientContext.isDevelopmentEnvironment);
     return Body.empty;
   }
 }

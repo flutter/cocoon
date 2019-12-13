@@ -17,7 +17,8 @@ import 'package:gcloud/db.dart';
 /// from the callback.
 ///
 /// The callback must not return null.
-typedef QueryCallback<T extends Model> = Iterable<T> Function(Iterable<T> results);
+typedef QueryCallback<T extends Model> = Iterable<T> Function(
+    Iterable<T> results);
 
 /// Signature for a callback function that will be notified whenever `commit()`
 /// is called, either via [FakeDatastoreDB.commit] or [FakeTransaction.commit].
@@ -63,7 +64,8 @@ class FakeDatastoreDB implements DatastoreDB {
     inserts ??= <Model>[];
     deletes ??= <Key>[];
     if (onCommit != null) {
-      onCommit(List<Model>.unmodifiable(inserts), List<Key>.unmodifiable(deletes));
+      onCommit(
+          List<Model>.unmodifiable(inserts), List<Key>.unmodifiable(deletes));
     }
     deletes.forEach(values.remove);
     for (Model model in inserts) {
@@ -156,7 +158,8 @@ class FakeQuery<T extends Model> implements Query<T> {
   @override
   void order(String orderString) {
     if (orderString.startsWith('-')) {
-      orders.add(FakeOrderSpec._(orderString.substring(1), OrderDirection.Decending));
+      orders.add(
+          FakeOrderSpec._(orderString.substring(1), OrderDirection.Decending));
     } else {
       orders.add(FakeOrderSpec._(orderString, OrderDirection.Ascending));
     }
@@ -206,7 +209,8 @@ class FakeTransaction implements Transaction {
       throw StateError('Transaction sealed');
     }
     if (db.onCommit != null) {
-      db.onCommit(List<Model>.unmodifiable(inserts.values), List<Key>.unmodifiable(deletes));
+      db.onCommit(List<Model>.unmodifiable(inserts.values),
+          List<Key>.unmodifiable(deletes));
     }
     for (MapEntry<Key, Model> entry in inserts.entries) {
       db.values[entry.key] = entry.value;

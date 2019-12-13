@@ -48,7 +48,8 @@ void main() {
 
     Future<HttpClientResponse> issueRequest(String method) async {
       final HttpClient client = HttpClient();
-      final Uri url = Uri(scheme: 'http', host: 'localhost', port: server.port, path: '/path');
+      final Uri url = Uri(
+          scheme: 'http', host: 'localhost', port: server.port, path: '/path');
       final HttpClientRequest request = await client.openUrl(method, url);
       return await request.close();
     }
@@ -98,11 +99,13 @@ void main() {
       expect(log.records, isEmpty);
     });
 
-    test('throwing general exception yields HTTP 500 and logs to server logs', () async {
+    test('throwing general exception yields HTTP 500 and logs to server logs',
+        () async {
       handler = ThrowsStateError();
       final HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.internalServerError);
-      expect(await utf8.decoder.bind(response).join(), contains('error message'));
+      expect(
+          await utf8.decoder.bind(response).join(), contains('error message'));
       expect(log.records.single.message, contains('error message'));
     });
 

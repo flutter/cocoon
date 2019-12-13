@@ -107,7 +107,8 @@ void main() {
       final List<GraphQLError> errors = <GraphQLError>[
         GraphQLError(raw: <String, String>{}, message: 'message'),
       ];
-      githubGraphQLClient._mutateResultForOptions = (_) => QueryResult(errors: errors);
+      githubGraphQLClient._mutateResultForOptions =
+          (_) => QueryResult(errors: errors);
 
       await tester.get(handler);
       expect(log.records.length, errors.length);
@@ -146,9 +147,13 @@ void main() {
     });
 
     test('Ignores PRs that are too new', () async {
-      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -50)))); // too new
-      flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -70)))); // ok
-      engineRepoPRs.add(PullRequestHelper()); // default is two hours for this ctor.
+      flutterRepoPRs.add(PullRequestHelper(
+          dateTime:
+              DateTime.now().add(const Duration(minutes: -50)))); // too new
+      flutterRepoPRs.add(PullRequestHelper(
+          dateTime: DateTime.now().add(const Duration(minutes: -70)))); // ok
+      engineRepoPRs
+          .add(PullRequestHelper()); // default is two hours for this ctor.
 
       await tester.get(handler);
 
@@ -312,7 +317,8 @@ class FakeGraphQLClient implements GraphQLClient {
 
   void verifyQueries(List<QueryOptions> expected) => verify(expected, queries);
 
-  void verifyMutations(List<MutationOptions> expected) => verify(expected, mutations);
+  void verifyMutations(List<MutationOptions> expected) =>
+      verify(expected, mutations);
 }
 
 class PullRequestHelper {
@@ -358,7 +364,10 @@ class PullRequestHelper {
           <String, dynamic>{
             'commit': <String, dynamic>{
               'oid': lastCommitHash,
-              'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
+              'pushedDate':
+                  (dateTime ?? DateTime.now().add(const Duration(hours: -2)))
+                      .toUtc()
+                      .toIso8601String(),
               'status': <String, dynamic>{
                 'state': lastCommitSuccess ? 'SUCCESS' : 'FAILURE',
               },

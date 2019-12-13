@@ -34,8 +34,9 @@ void main() {
     });
 
     test('updates datastore entry for benchmark targets', () async {
-      final TimeSeries timeSeries =
-          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey
+              .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
 
       expect(timeSeries.goal, isNot(-2.3));
@@ -50,4 +51,3 @@ void main() {
     });
   });
 }
-

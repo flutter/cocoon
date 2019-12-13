@@ -24,7 +24,8 @@ const String ref = 'deadbeef';
 void main() {
   const String authToken = '123';
   const String authHeader = 'Bearer $authToken';
-  const String deviceLabEmail = 'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
+  const String deviceLabEmail =
+      'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
 
   LuciStatusHandler handler;
   FakeConfig config;
@@ -109,7 +110,8 @@ void main() {
       repositoryStatuses = null;
     });
 
-    test('Handles a scheduled status as pending and pending is not most recent', () async {
+    test('Handles a scheduled status as pending and pending is not most recent',
+        () async {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
@@ -132,7 +134,9 @@ void main() {
       );
     });
 
-    test('Handles a scheduled status as pending and pending is not most recent with query param', () async {
+    test(
+        'Handles a scheduled status as pending and pending is not most recent with query param',
+        () async {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
@@ -141,7 +145,8 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar'));
+      request.bodyBytes =
+          utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar'));
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -155,7 +160,8 @@ void main() {
       );
     });
 
-    test('Handles a scheduled status as pending and pending already set', () async {
+    test('Handles a scheduled status as pending and pending already set',
+        () async {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
@@ -172,7 +178,8 @@ void main() {
       ));
     });
 
-    test('Handles a started status as pending and most recent is not pending', () async {
+    test('Handles a started status as pending and most recent is not pending',
+        () async {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
@@ -195,7 +202,8 @@ void main() {
       );
     });
 
-    test('Handles a started status as pending and pending already set', () async {
+    test('Handles a started status as pending and pending already set',
+        () async {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
@@ -205,13 +213,14 @@ void main() {
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
-      verifyNever(
-          mockRepositoriesService.createStatus(const RepositorySlug('flutter', 'flutter'), ref, any));
+      verifyNever(mockRepositoriesService.createStatus(
+          const RepositorySlug('flutter', 'flutter'), ref, any));
     });
   });
 
   test('Handles a completed/failure status/result as failure', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE'));
+    request.bodyBytes =
+        utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE'));
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -226,7 +235,8 @@ void main() {
   });
 
   test('Handles a completed/canceled status/result as failure', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED'));
+    request.bodyBytes =
+        utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED'));
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -241,7 +251,8 @@ void main() {
   });
 
   test('Handles a completed/success status/result as sucess', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS'));
+    request.bodyBytes =
+        utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS'));
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -296,7 +307,9 @@ String pushMessageJson(
 }
 
 String buildPushMessageJson(String status,
-        {String result, String builderName = 'Linux Coverage', String urlParam = ''}) =>
+        {String result,
+        String builderName = 'Linux Coverage',
+        String urlParam = ''}) =>
     base64.encode(
       utf8.encode('''{
   "build": {

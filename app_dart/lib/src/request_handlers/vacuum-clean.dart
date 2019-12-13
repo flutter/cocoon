@@ -30,7 +30,8 @@ class VacuumClean extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider =
+            datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -43,7 +44,8 @@ class VacuumClean extends ApiRequestHandler<Body> {
         .map<Task>((FullTask fullTask) => fullTask.task)
         .where(isOverAnHourOld)
         .toList();
-    log.debug('Found ${tasks.length} in progress tasks that have been stranded');
+    log.debug(
+        'Found ${tasks.length} in progress tasks that have been stranded');
     for (Task task in tasks) {
       if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;
@@ -56,7 +58,8 @@ class VacuumClean extends ApiRequestHandler<Body> {
     }
 
     /// Partition the tasks into buckets grouped by parent commit.
-    final Map<Key, List<Task>> updatesByCommit = tasks.fold<Map<Key, List<Task>>>(
+    final Map<Key, List<Task>> updatesByCommit =
+        tasks.fold<Map<Key, List<Task>>>(
       <Key, List<Task>>{},
       (Map<Key, List<Task>> map, Task task) {
         map[task.commitKey] ??= <Task>[];
@@ -71,7 +74,8 @@ class VacuumClean extends ApiRequestHandler<Body> {
     for (int i = 0; i < updates.length; i += config.maxEntityGroups) {
       await config.db.withTransaction<void>((Transaction transaction) async {
         try {
-          for (List<Task> inserts in updates.skip(i).take(config.maxEntityGroups)) {
+          for (List<Task> inserts
+              in updates.skip(i).take(config.maxEntityGroups)) {
             transaction.queueMutations(inserts: inserts);
           }
 

@@ -118,4 +118,3 @@ class UpdateTimeSeriesResponse extends JsonBody {
     };
   }
 }
-

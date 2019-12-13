@@ -25,16 +25,19 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+      return FakeAuthenticatedContext(
+          agent: agent, clientContext: clientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }
   }
 
   @override
-  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateIdToken(String idToken,
+      {ClientContext clientContext, Logging log}) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+      return FakeAuthenticatedContext(
+          agent: agent, clientContext: clientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }

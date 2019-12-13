@@ -57,7 +57,8 @@ class PushMessage extends JsonBody {
     this.messageId,
   });
 
-  static PushMessage fromJson(Map<String, dynamic> json) => _$PushMessageFromJson(json);
+  static PushMessage fromJson(Map<String, dynamic> json) =>
+      _$PushMessageFromJson(json);
 
   /// PubSub attributes on the message.
   final Map<String, String> attributes;
@@ -82,7 +83,8 @@ class BuildPushMessage extends JsonBody {
     this.userData,
   });
 
-  static BuildPushMessage fromJson(Map<String, dynamic> json) => _$BuildPushMessageFromJson(json);
+  static BuildPushMessage fromJson(Map<String, dynamic> json) =>
+      _$BuildPushMessageFromJson(json);
 
   /// The Build this message is for.
   final Build build;

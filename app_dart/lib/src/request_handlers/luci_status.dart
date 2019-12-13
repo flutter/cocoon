@@ -94,14 +94,16 @@ class LuciStatusHandler extends RequestHandler<Body> {
     if (info.expiresIn == null || info.expiresIn < 1) {
       return false;
     }
-    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
+    final ServiceAccountInfo devicelabServiceAccount =
+        await config.deviceLabServiceAccount;
     return info.email == devicelabServiceAccount.email;
   }
 
   Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
     final List<Map<String, dynamic>> builders = await config.luciBuilders;
-    final String repoName = builders
-        .firstWhere((Map<String, dynamic> builder) => builder['name'] == builderName)['repo'];
+    final String repoName = builders.firstWhere(
+        (Map<String, dynamic> builder) =>
+            builder['name'] == builderName)['repo'];
     return RepositorySlug('flutter', repoName);
   }
 
@@ -146,7 +148,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
     // We have to check for both because sometimes one or the other might come
     // in.
     // However, we should keep going if the _most recent_ status is not pending.
-    await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
+    await for (RepositoryStatus status
+        in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
         if (status.state == 'pending') {
           return;

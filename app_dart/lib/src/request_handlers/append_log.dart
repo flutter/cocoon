@@ -29,15 +29,18 @@ class AppendLog extends ApiRequestHandler<Body> {
   Future<Body> post() async {
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
-      throw const BadRequestException('Missing required query parameter: $ownerKeyParam');
+      throw const BadRequestException(
+          'Missing required query parameter: $ownerKeyParam');
     }
 
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper =
+        KeyHelper(applicationContext: clientContext.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
     await config.db.lookupValue<Model>(ownerKey, orElse: () {
-      throw const InternalServerError('Invalid owner key. Owner entity does not exist');
+      throw const InternalServerError(
+          'Invalid owner key. Owner entity does not exist');
     });
 
     final LogChunk logChunk = LogChunk(

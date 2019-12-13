@@ -34,7 +34,8 @@ class GithubWebhook extends RequestHandler<Body> {
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
-    if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
+    if (gitHubEvent == null ||
+        request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
 
@@ -130,7 +131,8 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
-    if (event.pullRequest.mergeable != false && await _checkForCqLabel(labels)) {
+    if (event.pullRequest.mergeable != false &&
+        await _checkForCqLabel(labels)) {
       await _scheduleLuci(
         number: event.number,
         sha: event.pullRequest.head.sha,
@@ -147,7 +149,8 @@ class GithubWebhook extends RequestHandler<Body> {
     BuildBucketClient buildBucketClient,
     ServiceAccountInfo serviceAccount,
   ) async {
-    final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
+    final BatchResponse batch =
+        await buildBucketClient.batch(BatchRequest(requests: <Request>[
       Request(
         searchBuilds: SearchBuildsRequest(
           predicate: BuildPredicate(
@@ -158,7 +161,9 @@ class GithubWebhook extends RequestHandler<Body> {
             createdBy: serviceAccount.email,
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number'],
-              'github_link': <String>['https://github.com/flutter/$repositoryName/pull/$number'],
+              'github_link': <String>[
+                'https://github.com/flutter/$repositoryName/pull/$number'
+              ],
               'user_agent': const <String>['flutter-cocoon'],
             },
           ),
@@ -197,9 +202,11 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(skipRunningCheck != null);
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
       log.error('Unsupported repo on webhook: $repositoryName');
-      throw BadRequestException('Repository $repositoryName is not supported by this service.');
+      throw BadRequestException(
+          'Repository $repositoryName is not supported by this service.');
     }
-    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final ServiceAccountInfo serviceAccount =
+        await config.deviceLabServiceAccount;
 
     if (!skipRunningCheck) {
       final List<Build> builds = await _buildsForRepositoryAndPr(
@@ -211,7 +218,8 @@ class GithubWebhook extends RequestHandler<Body> {
       );
       if (builds != null &&
           builds.any((Build build) {
-            return build.status == Status.scheduled || build.status == Status.started;
+            return build.status == Status.scheduled ||
+                build.status == Status.started;
           })) {
         return false;
       }
@@ -219,7 +227,8 @@ class GithubWebhook extends RequestHandler<Body> {
 
     final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
     final List<String> builderNames = builders
-        .where((Map<String, dynamic> builder) => builder['repo'] == repositoryName)
+        .where(
+            (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
         .map<String>((Map<String, dynamic> builder) => builder['name'])
         .toList();
 
@@ -237,7 +246,9 @@ class GithubWebhook extends RequestHandler<Body> {
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
               'user_agent': const <String>['flutter-cocoon'],
-              'github_link': <String>['https://github.com/flutter/$repositoryName/pull/$number'],
+              'github_link': <String>[
+                'https://github.com/flutter/$repositoryName/pull/$number'
+              ],
             },
             properties: <String, String>{
               'git_url': 'https://github.com/flutter/$repositoryName',
@@ -272,11 +283,14 @@ class GithubWebhook extends RequestHandler<Body> {
     return decodedPr[property];
   }
 
-  Future<void> _cancelLuci(String repositoryName, int number, String sha, String reason) async {
+  Future<void> _cancelLuci(
+      String repositoryName, int number, String sha, String reason) async {
     if (repositoryName != 'flutter' && repositoryName != 'engine') {
-      throw BadRequestException('This service does not support repository $repositoryName.');
+      throw BadRequestException(
+          'This service does not support repository $repositoryName.');
     }
-    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final ServiceAccountInfo serviceAccount =
+        await config.deviceLabServiceAccount;
     final List<Build> builds = await _buildsForRepositoryAndPr(
       repositoryName,
       number,
@@ -286,7 +300,8 @@ class GithubWebhook extends RequestHandler<Body> {
     );
     if (builds == null ||
         !builds.any((Build build) {
-          return build.status == Status.scheduled || build.status == Status.started;
+          return build.status == Status.scheduled ||
+              build.status == Status.started;
         })) {
       return;
     }
@@ -294,7 +309,8 @@ class GithubWebhook extends RequestHandler<Body> {
     for (Build build in builds) {
       requests.add(
         Request(
-          cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: reason),
+          cancelBuild:
+              CancelBuildRequest(id: build.id, summaryMarkdown: reason),
         ),
       );
     }
@@ -305,8 +321,8 @@ class GithubWebhook extends RequestHandler<Body> {
     bool ignored = false;
     String rawResponse;
     try {
-      final HttpClientRequest request =
-          await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
+      final HttpClientRequest request = await skiaClient
+          .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
       final HttpClientResponse response = await request.close();
       rawResponse = await utf8.decodeStream(response);
       final List<dynamic> ignores = jsonDecode(rawResponse);
@@ -336,7 +352,8 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<String> labelNames =
         List<String>.generate(labels.length, (int index) => labels[index].name);
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-        (labelNames.contains('will affect goldens') || await _isIgnoredForGold(event))) {
+        (labelNames.contains('will affect goldens') ||
+            await _isIgnoredForGold(event))) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
@@ -346,7 +363,8 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  Future<void> _pingForTriage(GitHub gitHubClient, PullRequestEvent event) async {
+  Future<void> _pingForTriage(
+      GitHub gitHubClient, PullRequestEvent event) async {
     final String body = await config.goldenTriageMessage;
     final RepositorySlug slug = event.repository.slug();
     await gitHubClient.issues.createComment(slug, event.number, body);
@@ -376,7 +394,8 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
     final RepositorySlug slug = event.repository.slug();
-    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, event.number);
+    final Stream<PullRequestFile> files =
+        gitHubClient.pullRequests.listFiles(slug, event.number);
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
@@ -405,7 +424,8 @@ class GithubWebhook extends RequestHandler<Body> {
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
       }
-      if (file.filename == 'bin/internal/goldens.version' || await _isIgnoredForGold(event)) {
+      if (file.filename == 'bin/internal/goldens.version' ||
+          await _isIgnoredForGold(event)) {
         isGoldenChange = true;
         labels.add('will affect goldens');
         labels.add('severe: API break');
@@ -433,7 +453,8 @@ class GithubWebhook extends RequestHandler<Body> {
         labels.add('a: tests');
       }
 
-      if (file.filename.contains('semantics') || file.filename.contains('accessibilty')) {
+      if (file.filename.contains('semantics') ||
+          file.filename.contains('accessibilty')) {
         labels.add('a: accessibility');
       }
 
@@ -451,7 +472,8 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     if (labels.isNotEmpty) {
-      await gitHubClient.issues.addLabelsToIssue(slug, event.number, labels.toList());
+      await gitHubClient.issues
+          .addLabelsToIssue(slug, event.number, labels.toList());
     }
 
     if (!hasTests && needsTests && !isDraft) {
@@ -475,7 +497,8 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequestEvent event,
   ) async {
     if (event.pullRequest.base.ref != 'master') {
-      final String body = await _getWrongBaseComment(event.pullRequest.base.ref);
+      final String body =
+          await _getWrongBaseComment(event.pullRequest.base.ref);
       final RepositorySlug slug = event.repository.slug();
       if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
         await gitHubClient.pullRequests.edit(
@@ -526,7 +549,8 @@ class GithubWebhook extends RequestHandler<Body> {
       return null;
     }
     try {
-      final PullRequestEvent event = PullRequestEvent.fromJSON(json.decode(request));
+      final PullRequestEvent event =
+          PullRequestEvent.fromJSON(json.decode(request));
 
       if (event == null) {
         return null;

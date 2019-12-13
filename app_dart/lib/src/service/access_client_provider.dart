@@ -9,7 +9,8 @@ import '../model/appengine/service_account_info.dart';
 
 class AccessClientProvider {
   /// Creates a new Access Client provider.
-  const AccessClientProvider(this.serviceAccountInfo) : assert(serviceAccountInfo != null);
+  const AccessClientProvider(this.serviceAccountInfo)
+      : assert(serviceAccountInfo != null);
 
   final ServiceAccountInfo serviceAccountInfo;
 
@@ -20,7 +21,6 @@ class AccessClientProvider {
     ],
   }) async {
     return clientViaServiceAccount(
-          serviceAccountInfo.asServiceAccountCredentials(), scopes);
+        serviceAccountInfo.asServiceAccountCredentials(), scopes);
   }
 }
-

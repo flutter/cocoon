@@ -11,7 +11,8 @@ Stage buildStage({
   String name = 'stage',
   List<String> statuses = const <String>[Task.statusNew],
 }) {
-  final Iterable<Task> tasks = statuses.map<Task>((String status) => Task(status: status));
+  final Iterable<Task> tasks =
+      statuses.map<Task>((String status) => Task(status: status));
   final StageBuilder builder = StageBuilder()
     ..name = name
     ..commit = Commit()
@@ -138,7 +139,8 @@ void main() {
     test('validates state of the stage', () {
       expect(() => StageBuilder().build(), throwsStateError);
       expect(() => (StageBuilder()..name = 'name').build(), throwsStateError);
-      expect(() => (StageBuilder()..commit = Commit()).build(), throwsStateError);
+      expect(
+          () => (StageBuilder()..commit = Commit()).build(), throwsStateError);
       expect(
           () => (StageBuilder()
                 ..name = 'name'

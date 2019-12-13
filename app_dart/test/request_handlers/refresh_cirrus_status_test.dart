@@ -24,8 +24,16 @@ void main() {
 
     test('update cirrus status when all tasks succeeded', () async {
       final List<dynamic> statuses = <dynamic>[
-        <String, String>{'status': 'completed', 'conclusion': 'success', 'name': 'test1'},
-        <String, String>{'status': 'completed', 'conclusion': 'success', 'name': 'test2'}
+        <String, String>{
+          'status': 'completed',
+          'conclusion': 'success',
+          'name': 'test1'
+        },
+        <String, String>{
+          'status': 'completed',
+          'conclusion': 'success',
+          'name': 'test2'
+        }
       ];
       final FakeGithubService githubService = FakeGithubService(statuses);
 
@@ -53,8 +61,16 @@ void main() {
 
     test('update cirrus status when some tasks in process', () async {
       final List<dynamic> statuses = <dynamic>[
-        <String, String>{'status': 'in_progress', 'conclusion': null, 'name': 'test1'},
-        <String, String>{'status': 'completed', 'conclusion': 'success', 'name': 'test2'}
+        <String, String>{
+          'status': 'in_progress',
+          'conclusion': null,
+          'name': 'test1'
+        },
+        <String, String>{
+          'status': 'completed',
+          'conclusion': 'success',
+          'name': 'test2'
+        }
       ];
       final FakeGithubService githubService = FakeGithubService(statuses);
 
@@ -82,11 +98,19 @@ void main() {
 
     test('update cirrus status when some tasks failed', () async {
       final List<dynamic> statuses = <dynamic>[
-        <String, String>{'status': 'completed', 'conclusion': 'failure', 'name': 'test1'},
-        <String, String>{'status': 'completed', 'conclusion': 'success', 'name': 'test2'}
+        <String, String>{
+          'status': 'completed',
+          'conclusion': 'failure',
+          'name': 'test1'
+        },
+        <String, String>{
+          'status': 'completed',
+          'conclusion': 'success',
+          'name': 'test2'
+        }
       ];
       final FakeGithubService githubService = FakeGithubService(statuses);
-      
+
       config = FakeConfig(dbValue: datastoreDB, githubService: githubService);
       handler = RefreshCirrusStatus(
         config,
@@ -110,4 +134,3 @@ void main() {
     });
   });
 }
-

@@ -39,7 +39,8 @@ void main() {
       String expectedPath,
       Future<T> Function(BuildBucketClient) requestCallback,
     ) async {
-      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(
+              scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
@@ -49,23 +50,29 @@ void main() {
         accessTokenProvider: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(response));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(response));
       when(mockHttpResponse.statusCode).thenReturn(202);
-      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
-          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close())
-          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockHttpClient.postUrl(
+              argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
+          .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       final T result = await requestCallback(client);
 
       expect(mockHttpRequest.headers.value('content-type'), 'application/json');
       expect(mockHttpRequest.headers.value('accept'), 'application/json');
       expect(mockHttpRequest.headers.value('authorization'), 'Bearer data');
-      verify(mockHttpRequest.write(argThat(equals(json.encode(request.toJson()))))).called(1);
+      verify(mockHttpRequest
+              .write(argThat(equals(json.encode(request.toJson())))))
+          .called(1);
       return result;
     }
 
     test('Throws the right exception', () async {
-      when(mockAccessTokenProvider.createAccessToken(scopes: anyNamed('scopes')))
+      when(mockAccessTokenProvider.createAccessToken(
+              scopes: anyNamed('scopes')))
           .thenAnswer((_) async {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
@@ -75,12 +82,15 @@ void main() {
         accessTokenProvider: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode('Error'));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode('Error'));
       when(mockHttpResponse.statusCode).thenReturn(403);
-      when(mockHttpClient.postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))
-          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close())
-          .thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockHttpClient
+              .postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))
+          .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
       try {
         await client.batch(const BatchRequest());
       } on BuildBucketException catch (ex) {
@@ -134,10 +144,12 @@ void main() {
 
     test('Batch', () async {
       const BatchRequest request = BatchRequest(requests: <Request>[
-        Request(getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
+        Request(
+            getBuild: GetBuildRequest(builderId: builderId, buildNumber: 123)),
       ]);
 
-      final BatchResponse response = await _httpTest<BatchRequest, BatchResponse>(
+      final BatchResponse response =
+          await _httpTest<BatchRequest, BatchResponse>(
         request,
         batchJson,
         'Batch',
@@ -293,7 +305,8 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
     bool cancelOnError,
   }) {
     return Stream<Uint8List>.fromFuture(Future<Uint8List>.value(response))
-        .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        .listen(onData,
+            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
 

@@ -15,7 +15,8 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
   List<CommitStatus> commitStatuses;
 
   @override
-  DatastoreServiceProvider get datastoreProvider => throw UnsupportedError('Unsupported');
+  DatastoreServiceProvider get datastoreProvider =>
+      throw UnsupportedError('Unsupported');
 
   @override
   Future<BuildStatus> calculateCumulativeStatus() async {

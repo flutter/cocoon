@@ -22,14 +22,16 @@ class GetBuildStatus extends RequestHandler<Body> {
   const GetBuildStatus(
     Config config, {
     @visibleForTesting BuildStatusProvider buildStatusProvider,
-  })  : buildStatusProvider = buildStatusProvider ?? const BuildStatusProvider(),
+  })  : buildStatusProvider =
+            buildStatusProvider ?? const BuildStatusProvider(),
         super(config: config);
 
   final BuildStatusProvider buildStatusProvider;
 
   @override
   Future<Body> get() async {
-    final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+    final BuildStatus status =
+        await buildStatusProvider.calculateCumulativeStatus();
 
     return Body.forJson(<String, dynamic>{
       'AnticipatedBuildStatus': _buildStatusLookup[status],

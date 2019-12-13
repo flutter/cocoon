@@ -24,7 +24,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
-        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        datastoreProvider =
+            datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciServiceProvider luciServiceProvider;
@@ -41,7 +42,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider();
-    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(
+    final Map<LuciBuilder, List<LuciTask>> luciTasks =
+        await luciService.getRecentTasks(
       repo: 'flutter',
       requireTaskName: true,
     );
@@ -49,7 +51,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     for (LuciBuilder builder in luciTasks.keys) {
       await config.db.withTransaction<void>((Transaction transaction) async {
         try {
-          await for (FullTask task in datastore.queryRecentTasks(taskName: builder.taskName)) {
+          await for (FullTask task
+              in datastore.queryRecentTasks(taskName: builder.taskName)) {
             for (LuciTask luciTask in luciTasks[builder]) {
               if (luciTask.commitSha == task.commit.sha) {
                 final Task update = task.task;

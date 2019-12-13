@@ -34,7 +34,8 @@ class TokenInfo {
   });
 
   /// Create a new [TokenInfo] object from its JSON representation.
-  factory TokenInfo.fromJson(Map<dynamic, dynamic> json) => _$TokenInfoFromJson(json);
+  factory TokenInfo.fromJson(Map<dynamic, dynamic> json) =>
+      _$TokenInfoFromJson(json);
 
   /// The issuer of the token (e.g. "accounts.google.com").
   @JsonKey(name: 'iss')

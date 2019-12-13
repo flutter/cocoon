@@ -25,10 +25,10 @@ import '../service/datastore.dart';
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
     Config config,
-    AuthenticationProvider authenticationProvider,{
+    AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-    }) : super(config: config, authenticationProvider: authenticationProvider);
+  }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -36,7 +36,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   static const String newStatusParam = 'NewStatus';
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
-  
+
   /// const variables for [BigQuery] operations
   static const String projectId = 'flutter-dashboard';
   static const String dataset = 'cocoon';
@@ -48,10 +48,13 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final DatastoreService datastore = datastoreProvider();
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper =
+        KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam];
-    final Map<String, dynamic> resultData = requestData[resultsParam] ?? const <String, dynamic>{};
-    final List<String> scoreKeys = requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
+    final Map<String, dynamic> resultData =
+        requestData[resultsParam] ?? const <String, dynamic>{};
+    final List<String> scoreKeys =
+        requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
 
     Key taskKey;
     try {
@@ -61,14 +64,16 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
+      throw const BadRequestException(
+          'NewStatus can be one of "Succeeded", "Failed"');
     }
 
     final Task task = await datastore.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
     });
 
-    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+    final Commit commit =
+        await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
       throw BadRequestException('No such task: ${task.commitKey}');
     });
 
@@ -94,7 +99,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await transaction.commit();
     });
 
-    if (task.endTimestamp>0) {
+    if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
     }
 
@@ -102,8 +107,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
       for (String scoreKey in scoreKeys) {
-        await datastore.db.withTransaction<void>((Transaction transaction) async {
-          final TimeSeries series = await _getOrCreateTimeSeries(transaction, task, scoreKey);
+        await datastore.db
+            .withTransaction<void>((Transaction transaction) async {
+          final TimeSeries series =
+              await _getOrCreateTimeSeries(transaction, task, scoreKey);
           final num value = resultData[scoreKey];
 
           final TimeSeriesValue seriesValue = TimeSeriesValue(
@@ -124,9 +131,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi =
+        await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
-    
+
     requestRows.add(<String, Object>{
       'json': <String, Object>{
         'ID': 'flutter/flutter/${commit.sha}',
@@ -145,13 +153,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     /// [rows] to be inserted to [BigQuery]
     final TableDataInsertAllRequest request =
-      TableDataInsertAllRequest.fromJson(<String, Object>{
-      'rows': requestRows
-    });
+        TableDataInsertAllRequest.fromJson(
+            <String, Object>{'rows': requestRows});
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } catch(ApiRequestError){
+    } catch (ApiRequestError) {
       log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
     }
   }
@@ -162,8 +169,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     String scoreKey,
   ) async {
     final String id = '${task.name}.$scoreKey';
-    final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    TimeSeries series = (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
+    final Key timeSeriesKey =
+        Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
+    TimeSeries series =
+        (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(

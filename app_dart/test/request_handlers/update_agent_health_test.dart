@@ -18,7 +18,8 @@ void main() {
     FakeConfig config;
     ApiRequestHandlerTester tester;
     UpdateAgentHealth handler;
-    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
+    final FakeTabledataResourceApi tabledataResourceApi =
+        FakeTabledataResourceApi();
 
     setUp(() {
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
@@ -45,7 +46,8 @@ void main() {
       expect(agent.healthDetails, isNot('bar detail'));
 
       final UpdateAgentHealthResponse response = await tester.post(handler);
-      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+      final TableDataList tableDataList =
+          await tabledataResourceApi.list('test', 'test', 'test');
 
       expect(agent.agentId, 'test');
       expect(response.agent.isHealthy, true);
@@ -54,4 +56,3 @@ void main() {
     });
   });
 }
-

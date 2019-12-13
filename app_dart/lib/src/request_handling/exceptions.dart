@@ -31,8 +31,8 @@ class BadRequestException extends HttpStatusException {
 /// Exception that will trigger an HTTP 404 not found
 class NotFoundException extends HttpStatusException {
   const NotFoundException(String missing)
-      : assert(missing != null), 
-      super(HttpStatus.notFound, 'Not found: $missing');
+      : assert(missing != null),
+        super(HttpStatus.notFound, 'Not found: $missing');
 }
 
 /// Exception that will trigger an HTTP 405 method not allowed.
@@ -49,12 +49,14 @@ class InternalServerError extends HttpStatusException {
 
 /// Exception that will trigger an HTTP 401 not authorized.
 class Unauthorized extends HttpStatusException {
-  const Unauthorized([String message = 'Unauthorized']) : super(HttpStatus.unauthorized, message);
+  const Unauthorized([String message = 'Unauthorized'])
+      : super(HttpStatus.unauthorized, message);
 }
 
 /// Exception that will trigger an HTTP 403 forbidden.
 class Forbidden extends HttpStatusException {
-  const Forbidden([String message = 'Forbidden']) : super(HttpStatus.forbidden, message);
+  const Forbidden([String message = 'Forbidden'])
+      : super(HttpStatus.forbidden, message);
 }
 
 /// Exception thrown when attempting to authenticate a request that cannot be

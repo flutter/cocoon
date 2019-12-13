@@ -91,4 +91,3 @@ class UpdateBenchmarkTargetsResponse extends JsonBody {
     };
   }
 }
-

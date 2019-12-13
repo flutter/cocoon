@@ -159,23 +159,32 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     final Map<String, dynamic> label = repository['labels']['nodes'].single;
     if (label == null || label.isEmpty) {
-      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
+      throw StateError(
+          'Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String labelId = label['id'];
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    final Iterable<Map<String, dynamic>> pullRequests = label['pullRequests']['nodes'].cast<Map<String, dynamic>>();
+    final Iterable<Map<String, dynamic>> pullRequests =
+        label['pullRequests']['nodes'].cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
-      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'];
+      final Map<String, dynamic> commit =
+          pullRequest['commits']['nodes'].single['commit'];
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate = DateTime.parse(commit['pushedDate'] ?? commit['committedDate']).toUtc();
-      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
+      final DateTime utcDate =
+          DateTime.parse(commit['pushedDate'] ?? commit['committedDate'])
+              .toUtc();
+      if (utcDate
+          .add(const Duration(hours: 1))
+          .isAfter(DateTime.now().toUtc())) {
         continue;
       }
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
-      final bool hasApproval = pullRequest['approvedReviews']['nodes'].isNotEmpty;
-      final bool hasChangesRequested = pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
+      final bool hasApproval =
+          pullRequest['approvedReviews']['nodes'].isNotEmpty;
+      final bool hasChangesRequested =
+          pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
       final String sha = commit['oid'];
       final bool ciSuccessful = commit['status']['state'] == 'SUCCESS';
       list.add(_AutoMergeQueryResult(
@@ -234,7 +243,8 @@ class _AutoMergeQueryResult {
   final String labelId;
 
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge => ciSuccessful && hasApprovedReview && !hasChangesRequested;
+  bool get shouldMerge =>
+      ciSuccessful && hasApprovedReview && !hasChangesRequested;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel => !hasApprovedReview || hasChangesRequested;
@@ -245,16 +255,19 @@ class _AutoMergeQueryResult {
       return '';
     }
     final StringBuffer buffer = StringBuffer();
-    buffer.writeln('This pull request is not suitable for automatic merging in its '
+    buffer.writeln(
+        'This pull request is not suitable for automatic merging in its '
         'current state.');
     buffer.writeln();
     if (!hasApprovedReview) {
-      buffer.writeln('- Please get at least one approved review before re-applying this '
+      buffer.writeln(
+          '- Please get at least one approved review before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
     if (hasChangesRequested) {
-      buffer.writeln('- This pull request has changes requested. Please resolve those '
+      buffer.writeln(
+          '- This pull request has changes requested. Please resolve those '
           'before re-applying the label.');
     }
     return buffer.toString();

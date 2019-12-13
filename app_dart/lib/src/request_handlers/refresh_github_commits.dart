@@ -47,7 +47,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   const RefreshGithubCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+        this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
@@ -67,17 +68,21 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     final GitHub github = await config.createGitHubClient();
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final Stream<RepositoryCommit> commits = github.repositories.listCommits(slug);
+    final Stream<RepositoryCommit> commits =
+        github.repositories.listCommits(slug);
     final DatastoreService datastore = datastoreProvider();
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi =
+        await config.createTabledataResourceApi();
     final List<Commit> newCommits = <Commit>[];
-    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
+    final List<Map<String, Object>> tableDataInsertAllRequestRows =
+        <Map<String, Object>>[];
 
     await for (RepositoryCommit commit in commits) {
       final String id = 'flutter/flutter/${commit.sha}';
       final Key key = datastore.db.emptyKey.append(Commit, id: id);
 
-      if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) == null) {
+      if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) ==
+          null) {
         newCommits.add(Commit(
           key: key,
           timestamp: commit.commit.committer.date.millisecondsSinceEpoch,
@@ -100,8 +105,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     log.debug('Found ${newCommits.length} new commits on GitHub');
 
     for (Commit commit in newCommits) {
-      /// Consolidate [commits] together 
-      /// 
+      /// Consolidate [commits] together
+      ///
       /// Prepare for bigquery [insertAll]
       tableDataInsertAllRequestRows.add(<String, Object>{
         'json': <String, Object>{
@@ -121,11 +126,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       );
 
       try {
-        await datastore.db.withTransaction<void>((Transaction transaction) async {
+        await datastore.db
+            .withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: <Commit>[commit]);
           transaction.queueMutations(inserts: tasks);
           await transaction.commit();
-          log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
+          log.debug(
+              'Committed ${tasks.length} new tasks for commit ${commit.sha}');
         });
       } catch (error) {
         log.warning('Failed to add commit ${commit.sha}: $error');
@@ -133,15 +140,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     }
 
     /// Final [rows] to be inserted to [BigQuery]
-    final TableDataInsertAllRequest rows =
-      TableDataInsertAllRequest.fromJson(<String, Object>{
-      'rows': tableDataInsertAllRequestRows
-    });
+    final TableDataInsertAllRequest rows = TableDataInsertAllRequest.fromJson(
+        <String, Object>{'rows': tableDataInsertAllRequestRows});
 
     /// Insert [commits] to [BigQuery]
     try {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
-    } catch(ApiRequestError){
+    } catch (ApiRequestError) {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
 
@@ -179,9 +184,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final List<Task> tasks = <Task>[
       // These built-in tasks are not listed in the manifest.
       newTask('cirrus', 'cirrus', <String>['can-update-github'], false, 0),
-      newTask('mac_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
-      newTask('linux_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
-      newTask('windows_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
+      newTask(
+          'mac_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
+      newTask('linux_bot', 'chromebot', <String>['can-update-chromebots'],
+          false, 0),
+      newTask('windows_bot', 'chromebot', <String>['can-update-chromebots'],
+          false, 0),
     ];
 
     final YamlMap yaml = await _loadDevicelabManifest(sha);
@@ -213,13 +221,16 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           final int status = clientResponse.statusCode;
 
           if (status == HttpStatus.ok) {
-            final String content = await utf8.decoder.bind(clientResponse).join();
+            final String content =
+                await utf8.decoder.bind(clientResponse).join();
             return loadYaml(content);
           } else {
-            log.warning('Attempt to download manifest.yaml failed (HTTP $status)');
+            log.warning(
+                'Attempt to download manifest.yaml failed (HTTP $status)');
           }
         } catch (error, stackTrace) {
-          log.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
+          log.error(
+              'Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
         }
 
         await Future<void>.delayed(gitHubBackoffCalculator(attempt));
@@ -230,7 +241,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     log.error('GitHub not responding; giving up');
     response.headers.set(HttpHeaders.retryAfterHeader, '120');
-    throw HttpStatusException(HttpStatus.serviceUnavailable, 'GitHub not responding');
+    throw HttpStatusException(
+        HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }
-
