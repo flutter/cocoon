@@ -47,7 +47,8 @@ class KeyHelper {
   KeyHelper({
     AppEngineContext applicationContext,
     Set<Type> types = _defaultTypes,
-  })  : applicationContext = applicationContext ?? gae.context.applicationContext,
+  })  : applicationContext =
+            applicationContext ?? gae.context.applicationContext,
         types = _populateTypes(types);
 
   /// Metadata about the App Engine application.
@@ -71,7 +72,8 @@ class KeyHelper {
     final Reference reference = Reference()
       ..app = applicationContext.applicationID
       ..path = _asPath(key);
-    if (applicationContext.partition != null && applicationContext.partition.isNotEmpty) {
+    if (applicationContext.partition != null &&
+        applicationContext.partition.isNotEmpty) {
       reference.nameSpace = applicationContext.partition;
     }
     final Uint8List buffer = reference.writeToBuffer();
@@ -96,17 +98,20 @@ class KeyHelper {
     final Uint8List decoded = base64Url.decode(encoded);
     final Reference reference = Reference.fromBuffer(decoded);
     return reference.path.element.fold<Key>(
-      Key.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
+      Key.emptyKey(
+          Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
       (Key previous, Path_Element element) {
-        final Iterable<MapEntry<Type, Kind>> entries =
-            types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
+        final Iterable<MapEntry<Type, Kind>> entries = types.entries.where(
+            (MapEntry<Type, Kind> entry) => entry.value.name == element.type);
         if (entries.isEmpty) {
           throw StateError('Unknown type: ${element.type}');
         }
         final MapEntry<Type, Kind> entry = entries.single;
         return previous.append(
           entry.key,
-          id: entry.value.idType == IdType.String ? element.name : element.id.toInt(),
+          id: entry.value.idType == IdType.String
+              ? element.name
+              : element.id.toInt(),
         );
       },
     );
@@ -119,7 +124,8 @@ class KeyHelper {
       final ClassMirror classMirror = reflectClass(type);
       final List<InstanceMirror> kindAnnotations = classMirror.metadata
           .where((InstanceMirror annotation) => annotation.hasReflectee)
-          .where((InstanceMirror annotation) => annotation.reflectee.runtimeType == Kind)
+          .where((InstanceMirror annotation) =>
+              annotation.reflectee.runtimeType == Kind)
           .toList();
       if (kindAnnotations.isEmpty) {
         throw StateError('Class $type has no @Kind annotation');
@@ -136,14 +142,18 @@ class KeyHelper {
 
   Path _asPath(Key key) {
     final List<Key> path = <Key>[];
-    for (Key current = key; current != null && !current.isEmpty; current = current.parent) {
+    for (Key current = key;
+        current != null && !current.isEmpty;
+        current = current.parent) {
       path.insert(0, current);
     }
     return Path()
       ..element.addAll(path.map<Path_Element>((Key key) {
         final Path_Element element = Path_Element();
         if (key.type != null) {
-          element.type = types.containsKey(key.type) ? types[key.type].name : key.type.toString();
+          element.type = types.containsKey(key.type)
+              ? types[key.type].name
+              : key.type.toString();
         }
         if (key.id != null) {
           if (key.id is String) {

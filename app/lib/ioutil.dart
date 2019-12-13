@@ -11,14 +11,12 @@ import 'package:path/path.dart' as path;
 String cwd = Directory.current.path;
 
 void rm(FileSystemEntity entity) {
-  if (entity.existsSync())
-    entity.deleteSync();
+  if (entity.existsSync()) entity.deleteSync();
 }
 
 /// Remove recursively.
 void rrm(FileSystemEntity entity) {
-  if (entity.existsSync())
-    entity.deleteSync(recursive: true);
+  if (entity.existsSync()) entity.deleteSync(recursive: true);
 }
 
 List<FileSystemEntity> ls(Directory directory) => directory.listSync();
@@ -27,13 +25,16 @@ Directory dir(String path) => new Directory(path);
 
 File file(String path) => new File(path);
 
-void copy(File sourceFile, Directory targetDirectory, { String name }) {
-  File target = file(path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
+void copy(File sourceFile, Directory targetDirectory, {String name}) {
+  File target = file(
+      path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
   target.writeAsBytesSync(sourceFile.readAsBytesSync());
 }
 
-FileSystemEntity move(FileSystemEntity whatToMove, { Directory to, String name }) {
-  return whatToMove.renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
+FileSystemEntity move(FileSystemEntity whatToMove,
+    {Directory to, String name}) {
+  return whatToMove
+      .renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
 }
 
 /// Equivalent of `mkdir directory`.
@@ -55,7 +56,8 @@ void section(String title) {
 
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, Future<Null> onKill}) async {
-  Process proc = await Process.start(executable, arguments, environment: env, workingDirectory: cwd);
+  Process proc = await Process.start(executable, arguments,
+      environment: env, workingDirectory: cwd);
 
   if (onKill != null) {
     bool processExited = false;
@@ -68,9 +70,11 @@ Future<Process> startProcess(String executable, List<String> arguments,
     // ignore: unawaited_futures
     onKill.then((_) {
       if (!processExited) {
-        print('Caught signal to kill process (PID: ${proc.pid}): $executable ${arguments.join(' ')}');
+        print(
+            'Caught signal to kill process (PID: ${proc.pid}): $executable ${arguments.join(' ')}');
         bool killed = proc.kill(ProcessSignal.sigkill);
-        print('Process ${killed ? "was killed successfully" : "could not be killed"}.');
+        print(
+            'Process ${killed ? "was killed successfully" : "could not be killed"}.');
       }
     });
   }

@@ -19,7 +19,8 @@ typedef LabelEvaluator = bool Function(String labelName);
 ///
 /// [name] is the GitHub ":repo" parameter in GitHub APIs. See <https://developer.github.com/v3/repos>
 abstract class RepositoryStatus {
-  RepositoryStatus({@required this.name, this.labelEvaluation, this.triageLabels});
+  RepositoryStatus(
+      {@required this.name, this.labelEvaluation, this.triageLabels});
 
   final String name;
 
@@ -41,6 +42,7 @@ abstract class RepositoryStatus {
 
   int issueCount = 0;
   int missingLabelsIssuesCount = 0;
+
   /// Number of issues that have been unmodified in [staleIssueThresholdInDays] days.
   int staleIssueCount = 0;
 
@@ -48,6 +50,7 @@ abstract class RepositoryStatus {
 
   /// Number of pull requests that have been unmodified in [stalePullRequestThresholdInDays] days.
   int stalePullRequestCount = 0;
+
   /// Total age in days. Used to find average age: [totalAgeOfAllPullRequests] / [pullRequestCount].
   int totalAgeOfAllPullRequests = 0;
 
@@ -58,13 +61,15 @@ abstract class RepositoryStatus {
   /// - framework: 10
   /// - tool: 10
   /// - bug: 9
-  SplayTreeMap<String, int> pullRequestCountByLabelName = SplayTreeMap<String, int>();
+  SplayTreeMap<String, int> pullRequestCountByLabelName =
+      SplayTreeMap<String, int>();
 
   /// Pull requests titles are sometimes prefixed by topics between square brackets.
   /// Primary sort is count descending, secondary sort is topic ascending alphabetically.
   ///
   /// See [pullRequestCountByLabelName] sorted example.
-  SplayTreeMap<String, int> pullRequestCountByTitleTopic = SplayTreeMap<String, int>();
+  SplayTreeMap<String, int> pullRequestCountByTitleTopic =
+      SplayTreeMap<String, int>();
 
   /// Number of issues labels with [triageLabels].
   Map<String, int> issuesByTriageLabelName = <String, int>{};
@@ -100,50 +105,53 @@ abstract class RepositoryStatus {
       return false;
     }
     final RepositoryStatus typedOther = other;
-    return typedOther.name == name
-      && typedOther.labelEvaluation == labelEvaluation
-      && typedOther.watchersCount == watchersCount
-      && typedOther.subscribersCount == subscribersCount
-      && typedOther.issuesEnabled == issuesEnabled
-      && typedOther.todoCount == todoCount
-      && typedOther.issueCount == issueCount
-      && typedOther.missingLabelsIssuesCount == missingLabelsIssuesCount
-      && typedOther.staleIssueCount == staleIssueCount
-      && typedOther.pullRequestCount == pullRequestCount
-      && typedOther.stalePullRequestCount == stalePullRequestCount
-      && typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests
-      && typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName
-      && typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic
-      && const MapEquality().equals(typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
+    return typedOther.name == name &&
+        typedOther.labelEvaluation == labelEvaluation &&
+        typedOther.watchersCount == watchersCount &&
+        typedOther.subscribersCount == subscribersCount &&
+        typedOther.issuesEnabled == issuesEnabled &&
+        typedOther.todoCount == todoCount &&
+        typedOther.issueCount == issueCount &&
+        typedOther.missingLabelsIssuesCount == missingLabelsIssuesCount &&
+        typedOther.staleIssueCount == staleIssueCount &&
+        typedOther.pullRequestCount == pullRequestCount &&
+        typedOther.stalePullRequestCount == stalePullRequestCount &&
+        typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests &&
+        typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName &&
+        typedOther.pullRequestCountByTitleTopic ==
+            pullRequestCountByTitleTopic &&
+        const MapEquality().equals(
+            typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
   }
 
   @override
   int get hashCode => hashValues(
-    name,
-    labelEvaluation,
-    pullRequestCountByLabelName,
-    pullRequestCountByTitleTopic,
-    issuesByTriageLabelName,
-    watchersCount,
-    subscribersCount,
-    issuesEnabled,
-    todoCount,
-    issueCount,
-    missingLabelsIssuesCount,
-    staleIssueCount,
-    pullRequestCount,
-    stalePullRequestCount,
-    totalAgeOfAllPullRequests);
+      name,
+      labelEvaluation,
+      pullRequestCountByLabelName,
+      pullRequestCountByTitleTopic,
+      issuesByTriageLabelName,
+      watchersCount,
+      subscribersCount,
+      issuesEnabled,
+      todoCount,
+      issueCount,
+      missingLabelsIssuesCount,
+      staleIssueCount,
+      pullRequestCount,
+      stalePullRequestCount,
+      totalAgeOfAllPullRequests);
 }
 
 class FlutterRepositoryStatus extends RepositoryStatus {
   /// See <https://github.com/flutter/flutter/wiki/Triage#critical-issue-triage>
-  FlutterRepositoryStatus() : super(name: 'flutter', triageLabels: <String>[
-    '⚠ TODAY',
-    'severe: customer critical',
-    'severe: customer blocker',
-    'will need additional triage',
-  ]);
+  FlutterRepositoryStatus()
+      : super(name: 'flutter', triageLabels: <String>[
+          '⚠ TODAY',
+          'severe: customer critical',
+          'severe: customer blocker',
+          'will need additional triage',
+        ]);
 
   @override
   FlutterRepositoryStatus statusFactory() {
@@ -152,11 +160,13 @@ class FlutterRepositoryStatus extends RepositoryStatus {
 }
 
 class FlutterEngineRepositoryStatus extends RepositoryStatus {
-  FlutterEngineRepositoryStatus() : super(
-    name: 'engine',
-    labelEvaluation: (String labelName) => labelName == 'engine'
-      || labelName == 'severe: rendering'
-      || labelName.startsWith('e:'));
+  FlutterEngineRepositoryStatus()
+      : super(
+            name: 'engine',
+            labelEvaluation: (String labelName) =>
+                labelName == 'engine' ||
+                labelName == 'severe: rendering' ||
+                labelName.startsWith('e:'));
 
   @override
   FlutterEngineRepositoryStatus statusFactory() {
@@ -165,11 +175,13 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
 }
 
 class FlutterPluginsRepositoryStatus extends RepositoryStatus {
-  FlutterPluginsRepositoryStatus() : super(
-    name: 'plugins',
-    labelEvaluation: (String labelName) => labelName == 'plugin'
-      || labelName == 'package'
-      || labelName.startsWith('p:'));
+  FlutterPluginsRepositoryStatus()
+      : super(
+            name: 'plugins',
+            labelEvaluation: (String labelName) =>
+                labelName == 'plugin' ||
+                labelName == 'package' ||
+                labelName.startsWith('p:'));
 
   @override
   FlutterPluginsRepositoryStatus statusFactory() {
@@ -188,7 +200,9 @@ class RefreshRepository<T extends RepositoryStatus> extends StatefulWidget {
   }
 }
 
-class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository<T>> with AutomaticKeepAliveClientMixin<RefreshRepository<T>> {
+class _RefreshRepositoryState<T extends RepositoryStatus>
+    extends State<RefreshRepository<T>>
+    with AutomaticKeepAliveClientMixin<RefreshRepository<T>> {
   Timer _refreshTimer;
   bool _isLoaded = false;
 
@@ -216,7 +230,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     try {
       final List<Future<void>> futuresToFetch = <Future<void>>[
         _updatePullRequests(repositoryStatus),
-        _updateToDoCount(repositoryStatus)];
+        _updateToDoCount(repositoryStatus)
+      ];
 
       // Not every repository has issues enabled. Avoid unnecessary traffic.
       if (repositoryStatus.issuesEnabled) {
@@ -225,7 +240,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
           _updateIssueCount(repositoryStatus),
           _updateStaleIssueCount(repositoryStatus),
           _updateIssuesWithoutLabels(repositoryStatus),
-          _updateTriageIssues(repositoryStatus)]);
+          _updateTriageIssues(repositoryStatus)
+        ]);
       }
       await Future.wait(futuresToFetch, eagerError: true);
     } catch (error) {
@@ -258,7 +274,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     if (!mounted) {
       return;
     }
-    final int staleIssueCount = await fetchStaleIssueCount(repositoryStatus.name);
+    final int staleIssueCount =
+        await fetchStaleIssueCount(repositoryStatus.name);
     if (staleIssueCount != null) {
       repositoryStatus.staleIssueCount = staleIssueCount;
     }
@@ -268,7 +285,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     if (!mounted) {
       return;
     }
-    final int missingLabelsIssuesCount = await fetchIssuesWithoutLabels(repositoryStatus.name);
+    final int missingLabelsIssuesCount =
+        await fetchIssuesWithoutLabels(repositoryStatus.name);
     if (missingLabelsIssuesCount != null) {
       repositoryStatus.missingLabelsIssuesCount = missingLabelsIssuesCount;
     }
@@ -278,7 +296,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
     if (!mounted) {
       return;
     }
-    final Map<String, int> issuesByTriageLabelName = await fetchTriageIssues(repositoryStatus.name, repositoryStatus.triageLabels);
+    final Map<String, int> issuesByTriageLabelName = await fetchTriageIssues(
+        repositoryStatus.name, repositoryStatus.triageLabels);
     if (issuesByTriageLabelName != null) {
       repositoryStatus.issuesByTriageLabelName = issuesByTriageLabelName;
     }
@@ -305,6 +324,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _isLoaded ? widget.child : const Center(child: CircularProgressIndicator());
+    return _isLoaded
+        ? widget.child
+        : const Center(child: CircularProgressIndicator());
   }
 }

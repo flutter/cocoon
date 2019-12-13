@@ -10,7 +10,8 @@ import '../models/skia_autoroll.dart';
 
 /// See https://autoroll.skia.org/r/flutter-engine-flutter-autoroll
 ///     https://autoroll.skia.org/r/skia-flutter-autoroll
-Future<SkiaAutoRoll> fetchSkiaAutoRollModeStatus(String url, {http.Client client}) async {
+Future<SkiaAutoRoll> fetchSkiaAutoRollModeStatus(String url,
+    {http.Client client}) async {
   client ??= http.Client();
   final Map<String, dynamic> fetchedStatus = await _getStatusBody(url, client);
   if (fetchedStatus == null) {

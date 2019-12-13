@@ -42,7 +42,8 @@ void main() {
     });
 
     test('updates datastore entry for task', () async {
-      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Commit commit =
+          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(key: commit.key.append(Task, id: 123));
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
@@ -55,7 +56,8 @@ void main() {
           const LuciTask(commitSha: 'abc', status: Task.statusNew),
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getRecentTasks(
+              repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });

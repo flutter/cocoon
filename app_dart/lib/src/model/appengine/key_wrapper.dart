@@ -65,6 +65,7 @@ class KeyWrapper {
 
   static Type _typeFromString(String value) {
     final KeyHelper keyHelper = KeyHelper();
-    return keyHelper.types.keys.singleWhere((Type type) => type.toString() == value);
+    return keyHelper.types.keys
+        .singleWhere((Type type) => type.toString() == value);
   }
 }

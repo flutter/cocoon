@@ -12,7 +12,10 @@ import '../services/build_status_service.dart';
 import 'providers.dart';
 
 class BuildStatus {
-  const BuildStatus({this.anticipatedBuildStatus, this.failingAgents = const <String>[], this.commitTestResults = const <CommitTestResult>[]});
+  const BuildStatus(
+      {this.anticipatedBuildStatus,
+      this.failingAgents = const <String>[],
+      this.commitTestResults = const <CommitTestResult>[]});
 
   final String anticipatedBuildStatus;
   final List<String> failingAgents;
@@ -27,9 +30,10 @@ class BuildStatus {
       return false;
     }
     final BuildStatus otherStatus = other;
-    return otherStatus.anticipatedBuildStatus == anticipatedBuildStatus
-      && const ListEquality().equals(otherStatus.failingAgents, failingAgents)
-      && const DeepCollectionEquality().equals(otherStatus.commitTestResults, commitTestResults);
+    return otherStatus.anticipatedBuildStatus == anticipatedBuildStatus &&
+        const ListEquality().equals(otherStatus.failingAgents, failingAgents) &&
+        const DeepCollectionEquality()
+            .equals(otherStatus.commitTestResults, commitTestResults);
   }
 
   @override
@@ -37,7 +41,16 @@ class BuildStatus {
 }
 
 class CommitTestResult {
-  const CommitTestResult({this.sha, this.authorName, this.avatarImageURL, this.createDateTime, this.inProgressTestCount, this.succeededTestCount, this.failedFlakyTestCount, this.failedTestCount, this.failingTests = const <String>[]});
+  const CommitTestResult(
+      {this.sha,
+      this.authorName,
+      this.avatarImageURL,
+      this.createDateTime,
+      this.inProgressTestCount,
+      this.succeededTestCount,
+      this.failedFlakyTestCount,
+      this.failedTestCount,
+      this.failingTests = const <String>[]});
   final String sha;
   final String authorName;
   final String avatarImageURL;
@@ -57,19 +70,28 @@ class CommitTestResult {
       return false;
     }
     final CommitTestResult otherResult = other;
-    return (otherResult.sha == sha)
-      && (otherResult.authorName == authorName)
-      && (otherResult.avatarImageURL == avatarImageURL)
-      && (otherResult.createDateTime == createDateTime)
-      && (otherResult.inProgressTestCount == inProgressTestCount)
-      && (otherResult.succeededTestCount == succeededTestCount)
-      && (otherResult.failedFlakyTestCount == failedFlakyTestCount)
-      && (otherResult.failedTestCount == failedTestCount)
-      && const ListEquality().equals(otherResult.failingTests, failingTests);
+    return (otherResult.sha == sha) &&
+        (otherResult.authorName == authorName) &&
+        (otherResult.avatarImageURL == avatarImageURL) &&
+        (otherResult.createDateTime == createDateTime) &&
+        (otherResult.inProgressTestCount == inProgressTestCount) &&
+        (otherResult.succeededTestCount == succeededTestCount) &&
+        (otherResult.failedFlakyTestCount == failedFlakyTestCount) &&
+        (otherResult.failedTestCount == failedTestCount) &&
+        const ListEquality().equals(otherResult.failingTests, failingTests);
   }
 
   @override
-  int get hashCode => hashValues(sha, authorName, avatarImageURL, createDateTime, inProgressTestCount, succeededTestCount, failedFlakyTestCount, failedTestCount, failingTests);
+  int get hashCode => hashValues(
+      sha,
+      authorName,
+      avatarImageURL,
+      createDateTime,
+      inProgressTestCount,
+      succeededTestCount,
+      failedFlakyTestCount,
+      failedTestCount,
+      failingTests);
 }
 
 class RefreshBuildStatus extends StatefulWidget {
@@ -83,7 +105,8 @@ class RefreshBuildStatus extends StatefulWidget {
   }
 }
 
-class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> with AutomaticKeepAliveClientMixin<RefreshBuildStatus> {
+class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus>
+    with AutomaticKeepAliveClientMixin<RefreshBuildStatus> {
   Timer _refreshTimer;
 
   @override
@@ -119,4 +142,3 @@ class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus> with Aut
     return widget.child;
   }
 }
-

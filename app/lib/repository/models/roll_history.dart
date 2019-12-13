@@ -36,16 +36,22 @@ class RollHistory {
       return false;
     }
     final RollHistory otherHistory = other;
-    return otherHistory.lastSkiaAutoRoll == lastSkiaAutoRoll
-      && otherHistory.lastEngineRoll == lastEngineRoll
-      && otherHistory.lastDevBranchRoll == lastDevBranchRoll
-      && otherHistory.lastBetaBranchRoll == lastBetaBranchRoll
-      && otherHistory.lastStableBranchRoll == lastStableBranchRoll
-      && otherHistory.lastFlutterWebCommit == lastFlutterWebCommit;
+    return otherHistory.lastSkiaAutoRoll == lastSkiaAutoRoll &&
+        otherHistory.lastEngineRoll == lastEngineRoll &&
+        otherHistory.lastDevBranchRoll == lastDevBranchRoll &&
+        otherHistory.lastBetaBranchRoll == lastBetaBranchRoll &&
+        otherHistory.lastStableBranchRoll == lastStableBranchRoll &&
+        otherHistory.lastFlutterWebCommit == lastFlutterWebCommit;
   }
 
   @override
-  int get hashCode => hashValues(lastSkiaAutoRoll, lastEngineRoll, lastDevBranchRoll, lastBetaBranchRoll, lastStableBranchRoll, lastFlutterWebCommit);
+  int get hashCode => hashValues(
+      lastSkiaAutoRoll,
+      lastEngineRoll,
+      lastDevBranchRoll,
+      lastBetaBranchRoll,
+      lastStableBranchRoll,
+      lastFlutterWebCommit);
 }
 
 class RefreshRollHistory extends StatefulWidget {
@@ -59,7 +65,8 @@ class RefreshRollHistory extends StatefulWidget {
   }
 }
 
-class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticKeepAliveClientMixin<RefreshRollHistory> {
+class _RefreshRollHistoryState extends State<RefreshRollHistory>
+    with AutomaticKeepAliveClientMixin<RefreshRollHistory> {
   Timer _refreshTimer;
 
   @override
@@ -79,7 +86,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
   bool get wantKeepAlive => true;
 
   Future<void> _refresh(Timer timer) async {
-    final RollHistory rollHistory = ModelBinding.of<RollHistory>(context).copy();
+    final RollHistory rollHistory =
+        ModelBinding.of<RollHistory>(context).copy();
     await Future.wait([
       _updateLastSkiaAutoRoll(rollHistory),
       _updateLastEngineAutoRoll(rollHistory),
@@ -97,7 +105,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
       return;
     }
     try {
-      final DateTime fetchedDate = await lastCommitFromAuthor('engine', 'skia-flutter-autoroll');
+      final DateTime fetchedDate =
+          await lastCommitFromAuthor('engine', 'skia-flutter-autoroll');
       if (fetchedDate != null) {
         history.lastSkiaAutoRoll = fetchedDate;
       }
@@ -111,7 +120,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
       return;
     }
     try {
-      final DateTime fetchedDate = await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll');
+      final DateTime fetchedDate =
+          await lastCommitFromAuthor('flutter', 'engine-flutter-autoroll');
       if (fetchedDate != null) {
         history.lastEngineRoll = fetchedDate;
       }
@@ -125,7 +135,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
       return;
     }
     try {
-      final DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'dev');
+      final DateTime fetchedDate =
+          await fetchBranchLastCommitDate('flutter', 'dev');
       if (fetchedDate != null) {
         history.lastDevBranchRoll = fetchedDate;
       }
@@ -139,7 +150,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
       return;
     }
     try {
-      final DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'beta');
+      final DateTime fetchedDate =
+          await fetchBranchLastCommitDate('flutter', 'beta');
       if (fetchedDate != null) {
         history.lastBetaBranchRoll = fetchedDate;
       }
@@ -153,7 +165,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
       return;
     }
     try {
-      final DateTime fetchedDate = await fetchBranchLastCommitDate('flutter', 'stable');
+      final DateTime fetchedDate =
+          await fetchBranchLastCommitDate('flutter', 'stable');
       if (fetchedDate != null) {
         history.lastStableBranchRoll = fetchedDate;
       }
@@ -168,7 +181,8 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory> with AutomaticK
     }
 
     try {
-      final DateTime fetchedDate = await fetchBranchLastCommitDate('flutter_web', 'master');
+      final DateTime fetchedDate =
+          await fetchBranchLastCommitDate('flutter_web', 'master');
       if (fetchedDate != null) {
         history.lastFlutterWebCommit = fetchedDate;
       }

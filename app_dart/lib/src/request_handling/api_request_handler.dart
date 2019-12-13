@@ -43,9 +43,11 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// from [requestData].
   @protected
   void checkRequiredParameters(List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData.containsKey);
+    final Iterable<String> missingParams = requiredParameters
+      ..removeWhere(requestData.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException(
+          'Missing required parameter: ${missingParams.join(', ')}');
     }
   }
 
@@ -54,7 +56,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   /// This is guaranteed to be non-null. If the request was unauthenticated,
   /// the request will be denied.
   @protected
-  AuthenticatedContext get authContext => getValue<AuthenticatedContext>(ApiKey.authContext);
+  AuthenticatedContext get authContext =>
+      getValue<AuthenticatedContext>(ApiKey.authContext);
 
   /// The raw byte contents of the HTTP request body.
   ///
@@ -78,7 +81,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
-  Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(ApiKey.requestData);
+  Map<String, dynamic> get requestData =>
+      getValue<Map<String, dynamic>>(ApiKey.requestData);
 
   @override
   Future<void> service(HttpRequest request) async {
@@ -140,7 +144,8 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(String name) : super(name);
 
-  static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._('requestBody');
+  static const ApiKey<Uint8List> requestBody =
+      ApiKey<Uint8List>._('requestBody');
   static const ApiKey<AuthenticatedContext> authContext =
       ApiKey<AuthenticatedContext>._('authenticatedContext');
   static const ApiKey<Map<String, dynamic>> requestData =

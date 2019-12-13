@@ -30,7 +30,8 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    final CocoonConfig result =
+        await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
     return result.value;
   }
 
@@ -55,16 +56,19 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  Future<String> get nonMasterPullRequestMessage => _getSingleValue('NonMasterPullRequestMessage');
+  Future<String> get nonMasterPullRequestMessage =>
+      _getSingleValue('NonMasterPullRequestMessage');
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
   Future<String> get missingTestsPullRequestMessage =>
       _getSingleValue('MissingTestsPullRequestMessage');
 
-  Future<String> get goldenBreakingChangeMessage => _getSingleValue('GoldenBreakingChangeMessage');
+  Future<String> get goldenBreakingChangeMessage =>
+      _getSingleValue('GoldenBreakingChangeMessage');
 
-  Future<String> get goldenTriageMessage => _getSingleValue('GoldenTriageMessage');
+  Future<String> get goldenTriageMessage =>
+      _getSingleValue('GoldenTriageMessage');
 
   Future<String> get forwardHost => _getSingleValue('ForwardHost');
 
@@ -72,7 +76,8 @@ class Config {
 
   Future<String> get forwardScheme => _getSingleValue('ForwardScheme');
 
-  Future<int> get maxTaskRetries => _getSingleValue('MaxTaskRetries').then(int.parse);
+  Future<int> get maxTaskRetries =>
+      _getSingleValue('MaxTaskRetries').then(int.parse);
 
   Future<String> get cqLabelName => _getSingleValue('CqLabelName');
 
@@ -83,7 +88,8 @@ class Config {
   Future<String> get redisUrl => _getSingleValue('RedisConnectionSpec');
 
   /// The name of the subcache in the Redis instance that stores responses.
-  Future<String> get redisResponseSubcache => _getSingleValue('RedisResponseSubcache');
+  Future<String> get redisResponseSubcache =>
+      _getSingleValue('RedisResponseSubcache');
 
   Future<String> get waitingForTreeToGoGreenLabelName =>
       _getSingleValue('WaitingForTreeToGreenLabelName');

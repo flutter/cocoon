@@ -22,51 +22,44 @@ class InfrastructureDetails extends StatelessWidget {
       data: Theme.of(context).copyWith(
         textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.8),
         chipTheme: ChipTheme.of(context).copyWith(
-          labelPadding: const EdgeInsets.fromLTRB(10.0, 3.0, 20.0, 3.0),
-          labelStyle: ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)
-        ),
+            labelPadding: const EdgeInsets.fromLTRB(10.0, 3.0, 20.0, 3.0),
+            labelStyle:
+                ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)),
       ),
       child: ModelBinding<BuildStatus>(
         initialModel: const BuildStatus(),
         child: RefreshBuildStatus(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: const <Widget>[
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(children: const <Widget>[
                     BuildStatusWidget(),
                     ModelBinding<StatusPageStatus>(
-                      initialModel: StatusPageStatus(),
-                      child: RefreshGitHubStatus(
-                        child: StatusPageWidget(
+                        initialModel: StatusPageStatus(),
+                        child: RefreshGitHubStatus(
+                            child: StatusPageWidget(
                           name: 'GitHub',
                           serviceIcon: Icons.compare_arrows,
                           url: 'https://www.githubstatus.com',
-                        )
-                      )
-                    ),
+                        ))),
                     ModelBinding<StatusPageStatus>(
-                      initialModel: StatusPageStatus(),
-                      child: RefreshCoverallsStatus(
-                        child: StatusPageWidget(
+                        initialModel: StatusPageStatus(),
+                        child: RefreshCoverallsStatus(
+                            child: StatusPageWidget(
                           name: 'Coveralls',
                           serviceIcon: Icons.code,
                           url: 'https://status.coveralls.io/',
-                        )
-                      )
-                    )
-                  ]
+                        )))
+                  ]),
                 ),
-              ),
-              const Expanded(
-                child: FailingAgentWidget(),
-              ),
-              const Expanded(
-                child: CommitResultsWidget(),
-              )
-            ]
-          ),
+                const Expanded(
+                  child: FailingAgentWidget(),
+                ),
+                const Expanded(
+                  child: CommitResultsWidget(),
+                )
+              ]),
         ),
       ),
     );
@@ -74,7 +67,8 @@ class InfrastructureDetails extends StatelessWidget {
 }
 
 class StatusPageWidget extends StatelessWidget {
-  const StatusPageWidget({@required this.name, @required this.serviceIcon, @required this.url});
+  const StatusPageWidget(
+      {@required this.name, @required this.serviceIcon, @required this.url});
 
   final String name;
   final IconData serviceIcon;
@@ -82,7 +76,8 @@ class StatusPageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final StatusPageStatus githubStatus = ModelBinding.of<StatusPageStatus>(context);
+    final StatusPageStatus githubStatus =
+        ModelBinding.of<StatusPageStatus>(context);
     IconData icon;
     Color backgroundColor;
     switch (githubStatus.indicator) {
@@ -108,23 +103,21 @@ class StatusPageWidget extends StatelessWidget {
         backgroundColor = Colors.grey;
     }
     return ListTile(
-      leading: CircleAvatar(
-        child: Icon(serviceIcon),
-        radius: _kAvatarRadius,
-      ),
-      title: Text(name),
-      subtitle: Semantics(
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: Chip(
-            avatar: Icon(icon),
-            backgroundColor: backgroundColor,
-            label: Text(githubStatus.status ?? 'Unknown')
+        leading: CircleAvatar(
+          child: Icon(serviceIcon),
+          radius: _kAvatarRadius,
+        ),
+        title: Text(name),
+        subtitle: Semantics(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Chip(
+                avatar: Icon(icon),
+                backgroundColor: backgroundColor,
+                label: Text(githubStatus.status ?? 'Unknown')),
           ),
         ),
-      ),
-      onTap: () => window.open(url, '_blank')
-    );
+        onTap: () => window.open(url, '_blank'));
   }
 }
 
@@ -152,24 +145,22 @@ class BuildStatusWidget extends StatelessWidget {
     }
 
     return ListTile(
-      leading: CircleAvatar(
-        child: Icon(Icons.devices),
-        radius: _kAvatarRadius,
-      ),
-      title: const Text('Last Flutter Commit'),
-      subtitle: Semantics(
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: Chip(
-            avatar: Icon(icon),
-            backgroundColor: backgroundColor,
-            label: Text(status.anticipatedBuildStatus ?? 'Unknown')
-          ),
+        leading: CircleAvatar(
+          child: Icon(Icons.devices),
+          radius: _kAvatarRadius,
         ),
-        hint: 'Build Status',
-      ),
-      onTap: () => window.open('/build.html', '_blank')
-    );
+        title: const Text('Last Flutter Commit'),
+        subtitle: Semantics(
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Chip(
+                avatar: Icon(icon),
+                backgroundColor: backgroundColor,
+                label: Text(status.anticipatedBuildStatus ?? 'Unknown')),
+          ),
+          hint: 'Build Status',
+        ),
+        onTap: () => window.open('/build.html', '_blank'));
   }
 }
 
@@ -184,16 +175,15 @@ class FailingAgentWidget extends StatelessWidget {
       return const SizedBox();
     }
 
-    return Column(
-      children: <Widget>[
-        ListTile(
-          title: Text('Failing Agents',
+    return Column(children: <Widget>[
+      ListTile(
+        title: Text('Failing Agents',
             style: Theme.of(context).textTheme.headline.copyWith(
-              color: Theme.of(context).primaryColor,
-            )),
-        ),
-        for (String agentName in failingAgents)
-          ListTile(
+                  color: Theme.of(context).primaryColor,
+                )),
+      ),
+      for (String agentName in failingAgents)
+        ListTile(
             leading: CircleAvatar(
               child: Icon(Icons.desktop_windows),
               radius: _kAvatarRadius,
@@ -201,10 +191,8 @@ class FailingAgentWidget extends StatelessWidget {
               backgroundColor: Colors.redAccent,
             ),
             title: Text(agentName),
-            onTap: () => window.open('/build.html', '_blank')
-          )
-      ]
-    );
+            onTap: () => window.open('/build.html', '_blank'))
+    ]);
   }
 }
 
@@ -219,12 +207,10 @@ class CommitResultsWidget extends StatelessWidget {
       return const SizedBox();
     }
 
-    return Column(
-      children: <Widget>[
-        for (CommitTestResult commitTestResult in commitTestResults)
-          _CommitResultWidget(commitTestResult: commitTestResult)
-      ]
-    );
+    return Column(children: <Widget>[
+      for (CommitTestResult commitTestResult in commitTestResults)
+        _CommitResultWidget(commitTestResult: commitTestResult)
+    ]);
   }
 }
 
@@ -254,33 +240,37 @@ class _CommitResultWidget extends StatelessWidget {
     }
 
     return ListTile(
-      leading: CircleAvatar(
-        child: icon,
-        radius: _kAvatarRadius,
-        foregroundColor: Colors.white,
-        backgroundColor: backgroundColor,
-      ),
-      title: Text('[$displaySha] ${DateFormat.jm().format(commitTestResult.createDateTime)}'),
-      subtitle: RichText(
-        text: TextSpan(
-          children: <TextSpan>[
-            if (commitTestResult.failedTestCount > 0)
-              TextSpan(text: 'Fail: ${commitTestResult.failingTests.length == 1 ? commitTestResult.failingTests.first : commitTestResult.failedTestCount}\n', style: TextStyle(color: Colors.redAccent)),
-            if (commitTestResult.failedFlakyTestCount > 0)
-              TextSpan(text: 'Flake: ${commitTestResult.failedFlakyTestCount}\n', style: TextStyle(color: Colors.orange)),
-            if (commitTestResult.inProgressTestCount > 0)
-              TextSpan(text: 'In progress: ${commitTestResult.inProgressTestCount}', style: TextStyle(color: Colors.grey)),
-          ],
-          style: Theme.of(context).textTheme.subtitle
+        leading: CircleAvatar(
+          child: icon,
+          radius: _kAvatarRadius,
+          foregroundColor: Colors.white,
+          backgroundColor: backgroundColor,
         ),
-      ),
-      trailing: CircleAvatar(
-        child: Image.network(commitTestResult.avatarImageURL),
-        radius: _kAvatarRadius,
-      ),
-      isThreeLine: true,
-      onTap: () => window.open('/build.html', '_blank')
-    );
+        title: Text(
+            '[$displaySha] ${DateFormat.jm().format(commitTestResult.createDateTime)}'),
+        subtitle: RichText(
+          text: TextSpan(children: <TextSpan>[
+            if (commitTestResult.failedTestCount > 0)
+              TextSpan(
+                  text:
+                      'Fail: ${commitTestResult.failingTests.length == 1 ? commitTestResult.failingTests.first : commitTestResult.failedTestCount}\n',
+                  style: TextStyle(color: Colors.redAccent)),
+            if (commitTestResult.failedFlakyTestCount > 0)
+              TextSpan(
+                  text: 'Flake: ${commitTestResult.failedFlakyTestCount}\n',
+                  style: TextStyle(color: Colors.orange)),
+            if (commitTestResult.inProgressTestCount > 0)
+              TextSpan(
+                  text: 'In progress: ${commitTestResult.inProgressTestCount}',
+                  style: TextStyle(color: Colors.grey)),
+          ], style: Theme.of(context).textTheme.subtitle),
+        ),
+        trailing: CircleAvatar(
+          child: Image.network(commitTestResult.avatarImageURL),
+          radius: _kAvatarRadius,
+        ),
+        isThreeLine: true,
+        onTap: () => window.open('/build.html', '_blank'));
   }
 }
 
@@ -293,13 +283,15 @@ class _PendingIcon extends StatefulWidget {
   _PendingIconState createState() => _PendingIconState();
 }
 
-class _PendingIconState extends State<_PendingIcon> with SingleTickerProviderStateMixin {
+class _PendingIconState extends State<_PendingIcon>
+    with SingleTickerProviderStateMixin {
   AnimationController _controller;
   Animation<double> _opacity;
 
   @override
   void initState() {
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _opacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
     _controller.repeat(reverse: true);
     super.initState();

@@ -42,7 +42,8 @@ class RefreshSheriffRotation extends StatefulWidget {
   }
 }
 
-class _RefreshSheriffRotationState extends State<RefreshSheriffRotation> with AutomaticKeepAliveClientMixin<RefreshSheriffRotation> {
+class _RefreshSheriffRotationState extends State<RefreshSheriffRotation>
+    with AutomaticKeepAliveClientMixin<RefreshSheriffRotation> {
   _RefreshSheriffRotationState();
 
   Timer _refreshTimer;
@@ -80,4 +81,3 @@ class _RefreshSheriffRotationState extends State<RefreshSheriffRotation> with Au
     return widget.child;
   }
 }
-

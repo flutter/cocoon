@@ -72,7 +72,8 @@ class BuildBucketClient {
         ],
       );
       if (token != null) {
-        httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+        httpRequest.headers.add(
+            HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
       }
     }
 
@@ -82,7 +83,8 @@ class BuildBucketClient {
 
     final String rawResponse = await utf8.decodeStream(response);
     if (response.statusCode < 300) {
-      return responseFromJson(json.decode(rawResponse.substring(kRpcResponseGarbage.length)));
+      return responseFromJson(
+          json.decode(rawResponse.substring(kRpcResponseGarbage.length)));
     }
     throw BuildBucketException(response.statusCode, rawResponse);
   }
@@ -111,7 +113,8 @@ class BuildBucketClient {
   /// line-item requests that were issued in [request]. If only a subset of
   /// responses were retrieved, a [BatchRequestException] will be thrown.
   Future<BatchResponse> batch(BatchRequest request) async {
-    final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
+    final BatchResponse response =
+        await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
       BatchResponse.fromJson,

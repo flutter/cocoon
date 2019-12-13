@@ -72,29 +72,34 @@ Future<Null> _start(ArgResults args) async {
   await _validateCwd();
 
   print('Running `goapp serve` on port $_goappServePort');
-  List<String> goappArgs = <String>['app.yaml', '--admin_port', '$_adminPort', '--port', '$_goappServePort'];
-  if (clearDatastore)
-    goappArgs.add('--clear_datastore');
+  List<String> goappArgs = <String>[
+    'app.yaml',
+    '--admin_port',
+    '$_adminPort',
+    '--port',
+    '$_goappServePort'
+  ];
+  if (clearDatastore) goappArgs.add('--clear_datastore');
 
   _childProcesses.add(new ManagedProcess(
-    'dev_appserver.py',
-    await startProcess('dev_appserver.py', goappArgs)
-  ));
+      'dev_appserver.py', await startProcess('dev_appserver.py', goappArgs)));
 
   print('Running `pub run build_runner server` on port $_pubServePort');
   _childProcesses.add(new ManagedProcess(
-    'pub run',
-    await startProcess('pub', ['run', 'build_runner', 'serve', 'web:${_pubServePort}'])
-  ));
+      'pub run',
+      await startProcess(
+          'pub', ['run', 'build_runner', 'serve', 'web:${_pubServePort}'])));
 
-  devServer = await HttpServer.bind(InternetAddress.loopbackIPv4, _devServerPort);
+  devServer =
+      await HttpServer.bind(InternetAddress.loopbackIPv4, _devServerPort);
   print('Listening on http://localhost:$_devServerPort');
 
   try {
     await _whenLocalPortIsListening(_goappServePort);
     await _whenLocalPortIsListening(_pubServePort);
-  } catch(_) {
-    print('\n[ERROR] Timed out waiting for goapp and pub ports to become available\n');
+  } catch (_) {
+    print(
+        '\n[ERROR] Timed out waiting for goapp and pub ports to become available\n');
     await _stop();
   }
 
@@ -106,7 +111,7 @@ Future<Null> _start(ArgResults args) async {
   await for (HttpRequest request in devServer) {
     try {
       await _dispatchRequest(request);
-    } catch(e, s) {
+    } catch (e, s) {
       print('Failed redirecting ${request.uri}');
       print(e);
       print(s);
@@ -144,7 +149,8 @@ ArgResults _parseArgs(List<String> rawArgs) {
 bool get _hasTestAgentAuth => _testAgentAuth != null;
 
 Future<Null> _dispatchRequest(HttpRequest request) async {
-  final bool isApiRequest = request.uri.path.contains('/api/') || request.uri.path.contains('/_ah/');
+  final bool isApiRequest =
+      request.uri.path.contains('/api/') || request.uri.path.contains('/_ah/');
 
   HttpClient proxy;
   Uri uri;
@@ -200,7 +206,8 @@ Future<Null> _dispatchRequest(HttpRequest request) async {
     'set-cookie',
   ]..addAll(HttpHeaders.responseHeaders);
   for (String headerName in copyHeaders) {
-    request.response.headers.set(headerName, proxyResponse.headers.value(headerName));
+    request.response.headers
+        .set(headerName, proxyResponse.headers.value(headerName));
   }
   await request.response.addStream(proxyResponse);
   await request.response.close();
@@ -212,10 +219,10 @@ Future<Null> _whenLocalPortIsListening(int port) async {
   dynamic lastError;
   dynamic lastStackTrace;
 
-  while(sw.elapsed < const Duration(seconds: 20) && socket == null) {
+  while (sw.elapsed < const Duration(seconds: 20) && socket == null) {
     try {
       socket = await Socket.connect('localhost', port);
-    } catch(error, stackTrace) {
+    } catch (error, stackTrace) {
       lastError = error;
       lastStackTrace = stackTrace;
       await Future.delayed(const Duration(milliseconds: 500));
@@ -243,11 +250,11 @@ class ManagedProcess {
 
   void _redirectIoStream(String label, Stream<List<int>> ioStream) {
     ioStream
-      .transform(const Utf8Decoder())
-      .transform(const LineSplitter())
-      .listen((String line) {
-        print('$label: $line');
-      });
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .listen((String line) {
+      print('$label: $line');
+    });
   }
 
   final String name;
@@ -266,22 +273,20 @@ Future<Null> _validateCwd() async {
 }
 
 Future<Null> _stop([ProcessSignal signal = ProcessSignal.sigint]) async {
-  if (_stopping)
-    return;
+  if (_stopping) return;
 
   _stopping = true;
   _streamSubscriptions.forEach((s) => s.cancel());
   await devServer.close(force: true);
 
   // ignore: unawaited_futures
-  Future
-    .wait(_childProcesses.map((p) => p.process.exitCode))
-    .timeout(const Duration(seconds: 5))
-    .whenComplete(() {
-      // TODO(yjbanov): something is preventing the Dart VM from exiting and I can't
-      // figure out what.
-      exit(0);
-    });
+  Future.wait(_childProcesses.map((p) => p.process.exitCode))
+      .timeout(const Duration(seconds: 5))
+      .whenComplete(() {
+    // TODO(yjbanov): something is preventing the Dart VM from exiting and I can't
+    // figure out what.
+    exit(0);
+  });
 
   while (_childProcesses.isNotEmpty) {
     ManagedProcess childProcess = _childProcesses.removeLast();

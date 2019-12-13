@@ -58,8 +58,10 @@ void main() {
 
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
-        db.onCommit = (List<Model> insert, List<Key> deletes) => throw AssertionError();
-        db.addOnQuery<GithubBuildStatusUpdate>((Iterable<GithubBuildStatusUpdate> results) {
+        db.onCommit =
+            (List<Model> insert, List<Key> deletes) => throw AssertionError();
+        db.addOnQuery<GithubBuildStatusUpdate>(
+            (Iterable<GithubBuildStatusUpdate> results) {
           throw AssertionError();
         });
         final Body body = await tester.get<Body>(handler);
@@ -86,7 +88,8 @@ void main() {
         clientContext.isDevelopmentEnvironment = false;
       });
 
-      GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
+      GithubBuildStatusUpdate newStatusUpdate(
+          PullRequest pr, BuildStatus status) {
         return GithubBuildStatusUpdate(
           key: db.emptyKey.append(GithubBuildStatusUpdate),
           status: status.githubStatus,
@@ -104,8 +107,10 @@ void main() {
 
       group('does not update anything', () {
         setUp(() {
-          db.onCommit = (List<Model> insert, List<Key> deletes) => throw AssertionError();
-          when(repositoriesService.createStatus(any, any, any)).thenThrow(AssertionError());
+          db.onCommit =
+              (List<Model> insert, List<Key> deletes) => throw AssertionError();
+          when(repositoriesService.createStatus(any, any, any))
+              .thenThrow(AssertionError());
         });
 
         test('if there are no PRs', () async {
@@ -121,7 +126,8 @@ void main() {
           final PullRequest pr = newPullRequest(id: 123, sha: 'abc');
           prsFromGitHub = <PullRequest>[pr];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.succeeded);
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -136,7 +142,8 @@ void main() {
           final PullRequest pr = newPullRequest(id: 123, sha: 'abc');
           prsFromGitHub = <PullRequest>[pr];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));

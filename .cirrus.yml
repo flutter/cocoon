@@ -10,9 +10,10 @@ task:
       - CWD: agent
   install_tuneup_script: pub global activate tuneup
   pub_script: cd $CWD && pub get
+  format_script: cd $CWD && dartfmt --set-exit-if-changed .
   build_analyze_script: ./build_and_analyze.sh $CWD
   test_script: ./test.sh $CWD
-  
+
 task:
   name: app_flutter
   upgrade_script:

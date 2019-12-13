@@ -18,12 +18,16 @@ class AccessTokenProvider {
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
   Future<AccessToken> createAccessToken({
-    List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
+    List<String> scopes = const <String>[
+      'https://www.googleapis.com/auth/cloud-platform'
+    ],
   }) async {
-    final ServiceAccountInfo serviceAccount = await config.deviceLabServiceAccount;
+    final ServiceAccountInfo serviceAccount =
+        await config.deviceLabServiceAccount;
     final http.Client httpClient = http.Client();
     try {
-      final AccessCredentials credentials = await obtainAccessCredentialsViaServiceAccount(
+      final AccessCredentials credentials =
+          await obtainAccessCredentialsViaServiceAccount(
         serviceAccount.asServiceAccountCredentials(),
         scopes,
         httpClient,

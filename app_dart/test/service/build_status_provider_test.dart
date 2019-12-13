@@ -12,12 +12,18 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_datastore.dart';
 
 List<Commit> oneCommit = <Commit>[
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
+  Commit(
+      key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
+      sha: 'sha1'),
 ];
 
 List<Commit> twoCommits = <Commit>[
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2'),
+  Commit(
+      key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
+      sha: 'sha1'),
+  Commit(
+      key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha2'),
+      sha: 'sha2'),
 ];
 
 List<Task> allGreen = <Task>[
@@ -34,7 +40,11 @@ List<Task> middleTaskFailed = <Task>[
 
 List<Task> middleTaskFlakyFailed = <Task>[
   Task(stageName: 'stage1', name: 'task1', status: Task.statusSucceeded),
-  Task(stageName: 'stage2', name: 'task2', isFlaky: true, status: Task.statusFailed),
+  Task(
+      stageName: 'stage2',
+      name: 'task2',
+      isFlaky: true,
+      status: Task.statusFailed),
   Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
 ];
 
@@ -51,63 +61,76 @@ void main() {
 
     setUp(() {
       db = FakeDatastoreDB();
-      buildStatusProvider = BuildStatusProvider(datastoreProvider: () => DatastoreService(db: db));
+      buildStatusProvider = BuildStatusProvider(
+          datastoreProvider: () => DatastoreService(db: db));
     });
 
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
       test('returns success if top commit is all green', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
-      test('returns success if top commit is all green followed by red commit', () async {
+      test('returns success if top commit is all green followed by red commit',
+          () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         int row = 0;
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? allGreen : middleTaskFailed;
         });
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
       test('returns failure if last commit contains any red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
       test('ignores failures on flaky commits', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
-      test('returns success if partial green, and all unfinished tasks were last green', () async {
+      test(
+          'returns success if partial green, and all unfinished tasks were last green',
+          () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         int row = 0;
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : allGreen;
         });
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
-      test('returns failure if partial green, and any unfinished task was last red', () async {
+      test(
+          'returns failure if partial green, and any unfinished task was last red',
+          () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         int row = 0;
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
-        final BuildStatus status = await buildStatusProvider.calculateCumulativeStatus();
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
     });

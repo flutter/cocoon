@@ -46,8 +46,7 @@ void main() {
       const String expectedResponse = 'Hello, World!';
       final Body expectedBody = Body.forString(expectedResponse);
 
-      final Uint8List serializedBody =
-          await expectedBody.serialize().first;
+      final Uint8List serializedBody = await expectedBody.serialize().first;
 
       await responseCache['$testHttpPath:'].set(serializedBody);
 

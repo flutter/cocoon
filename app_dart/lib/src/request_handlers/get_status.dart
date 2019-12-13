@@ -20,9 +20,11 @@ import '../service/datastore.dart';
 class GetStatus extends RequestHandler<Body> {
   const GetStatus(
     Config config, {
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+        this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusProvider buildStatusProvider,
-  })  : buildStatusProvider = buildStatusProvider ?? const BuildStatusProvider(),
+  })  : buildStatusProvider =
+            buildStatusProvider ?? const BuildStatusProvider(),
         super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -32,13 +34,17 @@ class GetStatus extends RequestHandler<Body> {
   Future<Body> get() async {
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
         .retrieveCommitStatus()
-        .map<SerializableCommitStatus>((CommitStatus status) => SerializableCommitStatus(status))
+        .map<SerializableCommitStatus>(
+            (CommitStatus status) => SerializableCommitStatus(status))
         .toList();
 
     final DatastoreService datastore = datastoreProvider();
-    final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
-    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
-    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
+    final Query<Agent> agentQuery = datastore.db.query<Agent>()
+      ..order('agentId');
+    final List<Agent> agents =
+        await agentQuery.run().where(_isVisible).toList();
+    agents.sort((Agent a, Agent b) =>
+        compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
     return Body.forJson(<String, dynamic>{
       'Statuses': statuses,

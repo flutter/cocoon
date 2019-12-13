@@ -18,14 +18,15 @@ class CacheService {
   CacheProvider<List<int>> _provider;
 
   Future<Cache<Uint8List>> redisCache() async {
-    _provider =
-        Cache.redisCacheProvider(await config.redisUrl);
-    return Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+    _provider = Cache.redisCacheProvider(await config.redisUrl);
+    return Cache<List<int>>(_provider)
+        .withCodec<Uint8List>(const _CacheCodec());
   }
 
   Future<Cache<Uint8List>> inMemoryCache(int size) async {
     _provider = Cache.inMemoryCacheProvider(size);
-    return Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+    return Cache<List<int>>(_provider)
+        .withCodec<Uint8List>(const _CacheCodec());
   }
 
   void dispose() {

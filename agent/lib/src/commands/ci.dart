@@ -68,7 +68,7 @@ class ContinuousIntegrationCommand extends Command {
         // console.
         try {
           section('Preflight checks');
-          
+
           await devices.performPreflightTasks();
 
           // Check health before requesting a new task.
@@ -239,10 +239,14 @@ class ContinuousIntegrationCommand extends Command {
     //   * Mitigate "Your session has expired" issue. See flutter/flutter#17860.
     if (Platform.isMacOS) {
       await exec(
-        'security',
-        <String>['unlock-keychain', '-p', '\$FLUTTER_USER_SECRET',
-                 'login.keychain'],
-        canFail: false);
+          'security',
+          <String>[
+            'unlock-keychain',
+            '-p',
+            '\$FLUTTER_USER_SECRET',
+            'login.keychain'
+          ],
+          canFail: false);
     }
   }
 

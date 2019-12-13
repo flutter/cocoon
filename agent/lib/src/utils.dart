@@ -210,7 +210,8 @@ void section(String title) {
 
 Future<String> getDartVersion() async {
   // The Dart VM returns the version text to stderr.
-  ProcessResult result = _processManager.runSync(<String>[dartBin, '--version']);
+  ProcessResult result =
+      _processManager.runSync(<String>[dartBin, '--version']);
   String version = result.stderr.trim() as String;
 
   // Convert:
@@ -281,8 +282,10 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
-  Process proc = await _processManager.start(<String>[executable]..addAll(arguments),
-      environment: env, workingDirectory: cwd);
+  Process proc = await _processManager.start(
+      <String>[executable]..addAll(arguments),
+      environment: env,
+      workingDirectory: cwd);
   ProcessInfo procInfo = ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
@@ -414,7 +417,8 @@ class Config {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    YamlMap agentConfig = loadYaml(agentConfigFile.readAsStringSync()) as YamlMap;
+    YamlMap agentConfig =
+        loadYaml(agentConfigFile.readAsStringSync()) as YamlMap;
     String baseCocoonUrl = agentConfig['base_cocoon_url'] as String ??
         'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
@@ -614,7 +618,8 @@ bool canRun(String path) => _processManager.canRun(path);
 final RegExp _whitespace = RegExp(r'\s+');
 
 List<String> runningProcessesOnWindows(String processName) {
-  final ProcessResult result = _processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
+  final ProcessResult result = _processManager
+      .runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {
     for (String rawProcess in result.stdout.split('\n')) {
@@ -637,7 +642,7 @@ List<String> runningProcessesOnWindows(String processName) {
 }
 
 Future<void> killAllRunningProcessesOnWindows(String processName) async {
-  while(true) {
+  while (true) {
     final pids = runningProcessesOnWindows(processName);
     if (pids.isEmpty) {
       return;

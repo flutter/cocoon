@@ -68,7 +68,8 @@ Future<List<ProcessListResult>> _listProcessesPosix() async {
 const String _handleUtil = 'handle64';
 final RegExp _pid = RegExp(r'.*pid: (\d+).*');
 
-Future<List<int>> _listFlutterProcessesWindows(Directory flutterDirectory) async {
+Future<List<int>> _listFlutterProcessesWindows(
+    Directory flutterDirectory) async {
   if (!canRun(_handleUtil))
     throw 'Please add Microsoft\'s Handle utility to your PATH: '
         'https://technet.microsoft.com/en-us/sysinternals/handle.aspx';

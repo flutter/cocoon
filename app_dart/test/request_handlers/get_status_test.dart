@@ -29,7 +29,8 @@ void main() {
 
     setUp(() {
       config = FakeConfig();
-      buildStatusProvider = FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
+      buildStatusProvider =
+          FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       db = FakeDatastoreDB();
       handler = GetStatus(
         config,

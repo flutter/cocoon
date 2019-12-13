@@ -19,7 +19,8 @@ import '../service/datastore.dart';
 class GetBenchmarks extends RequestHandler<Body> {
   const GetBenchmarks(
     Config config, {
-    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting
+        this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -31,13 +32,16 @@ class GetBenchmarks extends RequestHandler<Body> {
     final DatastoreDB db = datastore.db;
 
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
-    final Set<Commit> commits = await datastore.queryRecentCommits(limit: maxRecords).toSet();
+    final Set<Commit> commits =
+        await datastore.queryRecentCommits(limit: maxRecords).toSet();
     await for (TimeSeries series in db.query<TimeSeries>().run()) {
-      final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(ancestorKey: series.key)
-        ..order('-createTimestamp')
-        ..limit(maxRecords);
+      final Query<TimeSeriesValue> query =
+          db.query<TimeSeriesValue>(ancestorKey: series.key)
+            ..order('-createTimestamp')
+            ..limit(maxRecords);
 
-      final Map<String, TimeSeriesValue> valuesByCommit = <String, TimeSeriesValue>{};
+      final Map<String, TimeSeriesValue> valuesByCommit =
+          <String, TimeSeriesValue>{};
       await for (TimeSeriesValue value in query.run()) {
         valuesByCommit[value.revision] = value;
       }

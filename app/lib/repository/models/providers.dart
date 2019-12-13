@@ -5,11 +5,8 @@
 import 'package:flutter_web/material.dart';
 
 class _ModelBindingScope<T> extends InheritedWidget {
-  const _ModelBindingScope({
-    Key key,
-    this.modelBindingState,
-    Widget child
-  }) : super(key: key, child: child);
+  const _ModelBindingScope({Key key, this.modelBindingState, Widget child})
+      : super(key: key, child: child);
 
   final _ModelBindingState<T> modelBindingState;
 
@@ -22,7 +19,8 @@ class ModelBinding<T> extends StatefulWidget {
     Key key,
     @required this.initialModel,
     this.child,
-  }) : assert(initialModel != null), super(key: key);
+  })  : assert(initialModel != null),
+        super(key: key);
 
   final T initialModel;
   final Widget child;
@@ -30,7 +28,8 @@ class ModelBinding<T> extends StatefulWidget {
   @override
   _ModelBindingState<T> createState() => _ModelBindingState<T>();
 
-  static Type _typeOf<T>() => T;  // https://github.com/dart-lang/sdk/issues/33297
+  static Type _typeOf<T>() =>
+      T; // https://github.com/dart-lang/sdk/issues/33297
 
   static T of<T>(BuildContext context) {
     if (context == null) {
@@ -39,7 +38,8 @@ class ModelBinding<T> extends StatefulWidget {
     }
 
     final Type scopeType = _typeOf<_ModelBindingScope<T>>();
-    final _ModelBindingScope<T> scope = context.inheritFromWidgetOfExactType(scopeType);
+    final _ModelBindingScope<T> scope =
+        context.inheritFromWidgetOfExactType(scopeType);
     return scope.modelBindingState.currentModel;
   }
 
@@ -49,7 +49,8 @@ class ModelBinding<T> extends StatefulWidget {
       return;
     }
     final Type scopeType = _typeOf<_ModelBindingScope<T>>();
-    final _ModelBindingScope<dynamic> scope = context.inheritFromWidgetOfExactType(scopeType);
+    final _ModelBindingScope<dynamic> scope =
+        context.inheritFromWidgetOfExactType(scopeType);
     scope.modelBindingState.updateModel(newModel);
   }
 }

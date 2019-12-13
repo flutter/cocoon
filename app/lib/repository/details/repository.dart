@@ -19,38 +19,38 @@ class RepositoryDetails<T extends RepositoryStatus> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final T repositoryStatus = ModelBinding.of<T>(context);
-    final FlutterRepositoryStatus flutterStatus = ModelBinding.of<FlutterRepositoryStatus>(context);
+    final FlutterRepositoryStatus flutterStatus =
+        ModelBinding.of<FlutterRepositoryStatus>(context);
     return RefreshRepository<T>(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _RepositoryInfoWidget<T>(icon: icon),
-          // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc. Avoiding displaying twice in the Flutter repository widget.
-          if (repositoryStatus.runtimeType != flutterStatus.runtimeType)
-            _TopicListWidget(
+      child:
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+        _RepositoryInfoWidget<T>(icon: icon),
+        // The Flutter repository contains labels relevant to some other repos like plugins, engine, etc. Avoiding displaying twice in the Flutter repository widget.
+        if (repositoryStatus.runtimeType != flutterStatus.runtimeType)
+          _TopicListWidget(
               title: 'Flutter Pull Request Labels',
               countByTopic: flutterStatus.pullRequestCountByLabelName,
               labelEvaluation: repositoryStatus.labelEvaluation,
-              baseUrl: 'https://github.com/flutter/flutter/pulls?q=is%3Apr+is%3Aopen+label%3A'
-            ),
-          _TopicListWidget(
+              baseUrl:
+                  'https://github.com/flutter/flutter/pulls?q=is%3Apr+is%3Aopen+label%3A'),
+        _TopicListWidget(
             title: 'Pull Request Labels',
             countByTopic: repositoryStatus.pullRequestCountByLabelName,
             labelEvaluation: (String label) => !label.startsWith('cla:'),
-            baseUrl: 'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+label%3A'
-          ),
-          _TopicListWidget(
+            baseUrl:
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+label%3A'),
+        _TopicListWidget(
             title: 'Pull Requests by Topic',
             countByTopic: repositoryStatus.pullRequestCountByTitleTopic,
-            baseUrl: 'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+in%3Atitle+'
-          )
-        ]
-      ),
+            baseUrl:
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+in%3Atitle+')
+      ]),
     );
   }
 }
 
-class _RepositoryInfoWidget<T extends RepositoryStatus> extends StatelessWidget {
+class _RepositoryInfoWidget<T extends RepositoryStatus>
+    extends StatelessWidget {
   const _RepositoryInfoWidget({@required this.icon});
 
   final Widget icon;
@@ -59,26 +59,22 @@ class _RepositoryInfoWidget<T extends RepositoryStatus> extends StatelessWidget 
   Widget build(BuildContext context) {
     final T repositoryStatus = ModelBinding.of<T>(context);
     return Expanded(
-      child: Padding(padding: const EdgeInsets.only(right: 50.0),
-        child: Column(
-          children: <Widget>[
-            _MetadataWidget<T>(icon: icon),
-            if (repositoryStatus.pullRequestCount > 0)
-              _PullRequestWidget<T>(),
-            if (repositoryStatus.issueCount > 0)
-              _IssueWidget<T>(),
-            if (repositoryStatus.issuesByTriageLabelName.length > 0)
-              const Divider(height: 40.0),
-            _TopicListWidget(
-              title: 'Triage Issues',
-              countByTopic: repositoryStatus.issuesByTriageLabelName,
-              severe: true,
-              baseUrl: 'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+label%3A'
-            ),
-          ]
-        )
-      )
-    );
+        child: Padding(
+            padding: const EdgeInsets.only(right: 50.0),
+            child: Column(children: <Widget>[
+              _MetadataWidget<T>(icon: icon),
+              if (repositoryStatus.pullRequestCount > 0)
+                _PullRequestWidget<T>(),
+              if (repositoryStatus.issueCount > 0) _IssueWidget<T>(),
+              if (repositoryStatus.issuesByTriageLabelName.length > 0)
+                const Divider(height: 40.0),
+              _TopicListWidget(
+                  title: 'Triage Issues',
+                  countByTopic: repositoryStatus.issuesByTriageLabelName,
+                  severe: true,
+                  baseUrl:
+                      'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+label%3A'),
+            ])));
   }
 }
 
@@ -94,20 +90,26 @@ class _MetadataWidget<T extends RepositoryStatus> extends StatelessWidget {
 
     List<Widget> issueWidgets = <Widget>[
       ListTile(
-        leading: IconTheme(data: IconTheme.of(context).copyWith(size: 56.0, color: Theme.of(context).primaryColorLight), child: icon),
-        title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
-        onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}', '_blank')
-      ),
-      _DetailItem(title: 'Watchers', value: numberFormat.format(repositoryStatus.watchersCount)),
-      _DetailItem(title: 'Subscribers', value: numberFormat.format(repositoryStatus.subscribersCount)),
-      _DetailItem(title: 'TODOs', value: numberFormat.format(repositoryStatus.todoCount)),
+          leading: IconTheme(
+              data: IconTheme.of(context).copyWith(
+                  size: 56.0, color: Theme.of(context).primaryColorLight),
+              child: icon),
+          title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
+          onTap: () => window.open(
+              'https://github.com/flutter/${repositoryStatus.name}', '_blank')),
+      _DetailItem(
+          title: 'Watchers',
+          value: numberFormat.format(repositoryStatus.watchersCount)),
+      _DetailItem(
+          title: 'Subscribers',
+          value: numberFormat.format(repositoryStatus.subscribersCount)),
+      _DetailItem(
+          title: 'TODOs',
+          value: numberFormat.format(repositoryStatus.todoCount)),
     ];
-    return Column(
-      children: issueWidgets
-    );
+    return Column(children: issueWidgets);
   }
 }
-
 
 class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
   @override
@@ -116,28 +118,37 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
     final NumberFormat percentFormat = NumberFormat.percentPattern();
     final T repositoryStatus = ModelBinding.of<T>(context);
 
-    final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
+    final DateTime staleDate = DateTime.now().subtract(
+        const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
     final String staleDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
 
     final int issueCount = repositoryStatus.issueCount;
-    return Column(
-      children: <Widget>[
-        const Divider(height: 40.0),
-        const _DetailTitle(title: 'Issues'),
-        InkWell(
-          child: _DetailItem(title: 'Open', value: numberFormat.format(issueCount)),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues', '_blank')
-        ),
-        InkWell(
-          child: _DetailItem(title: 'No Labels', value: '${numberFormat.format(repositoryStatus.missingLabelsIssuesCount)} (${percentFormat.format(repositoryStatus.missingLabelsIssuesCount / issueCount)})'),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+no%3Alabel', '_blank')
-        ),
-        InkWell(
-          child: _DetailItem(title: 'Unmodified in month', value: '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$staleDateQuery', '_blank')
-        ),
-      ]
-    );
+    return Column(children: <Widget>[
+      const Divider(height: 40.0),
+      const _DetailTitle(title: 'Issues'),
+      InkWell(
+          child: _DetailItem(
+              title: 'Open', value: numberFormat.format(issueCount)),
+          onTap: () => window.open(
+              'https://github.com/flutter/${repositoryStatus.name}/issues',
+              '_blank')),
+      InkWell(
+          child: _DetailItem(
+              title: 'No Labels',
+              value:
+                  '${numberFormat.format(repositoryStatus.missingLabelsIssuesCount)} (${percentFormat.format(repositoryStatus.missingLabelsIssuesCount / issueCount)})'),
+          onTap: () => window.open(
+              'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+no%3Alabel',
+              '_blank')),
+      InkWell(
+          child: _DetailItem(
+              title: 'Unmodified in month',
+              value:
+                  '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
+          onTap: () => window.open(
+              'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$staleDateQuery',
+              '_blank')),
+    ]);
   }
 }
 
@@ -150,38 +161,51 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
 
     final int pullRequestCount = repositoryStatus.pullRequestCount;
 
-    final int ageDays = (repositoryStatus.totalAgeOfAllPullRequests / pullRequestCount).round();
-    final String age = Intl.plural(ageDays, zero: '0 days', one: '1 day', other: '$ageDays days');
+    final int ageDays =
+        (repositoryStatus.totalAgeOfAllPullRequests / pullRequestCount).round();
+    final String age = Intl.plural(ageDays,
+        zero: '0 days', one: '1 day', other: '$ageDays days');
 
-    final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.stalePullRequestThresholdInDays));
+    final DateTime staleDate = DateTime.now().subtract(
+        const Duration(days: RepositoryStatus.stalePullRequestThresholdInDays));
     final String staleDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
 
     return Semantics(
       label: 'Pull Requests',
-      child: Column(
-        children: <Widget>[
-          const Divider(height: 40.0),
-          const _DetailTitle(title: 'Pull Requests'),
-          InkWell(
-            child: _DetailItem(title: 'Open', value: numberFormat.format(pullRequestCount)),
-            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls', '_blank')
-          ),
-          InkWell(
+      child: Column(children: <Widget>[
+        const Divider(height: 40.0),
+        const _DetailTitle(title: 'Pull Requests'),
+        InkWell(
+            child: _DetailItem(
+                title: 'Open', value: numberFormat.format(pullRequestCount)),
+            onTap: () => window.open(
+                'https://github.com/flutter/${repositoryStatus.name}/pulls',
+                '_blank')),
+        InkWell(
             child: _DetailItem(title: 'Average Age', value: age),
-            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+sort%3Acreated-asc', '_blank')
-          ),
-          InkWell(
-            child: _DetailItem(title: 'Unmodified in week', value: '${numberFormat.format(repositoryStatus.stalePullRequestCount)} (${percentFormat.format(repositoryStatus.stalePullRequestCount / pullRequestCount)})'),
-            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$staleDateQuery', '_blank')
-          ),
-        ]
-      ),
+            onTap: () => window.open(
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+sort%3Acreated-asc',
+                '_blank')),
+        InkWell(
+            child: _DetailItem(
+                title: 'Unmodified in week',
+                value:
+                    '${numberFormat.format(repositoryStatus.stalePullRequestCount)} (${percentFormat.format(repositoryStatus.stalePullRequestCount / pullRequestCount)})'),
+            onTap: () => window.open(
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$staleDateQuery',
+                '_blank')),
+      ]),
     );
   }
 }
 
 class _TopicListWidget extends StatelessWidget {
-  const _TopicListWidget({@required this.title, @required this.countByTopic, this.labelEvaluation, this.severe = false, @required this.baseUrl});
+  const _TopicListWidget(
+      {@required this.title,
+      @required this.countByTopic,
+      this.labelEvaluation,
+      this.severe = false,
+      @required this.baseUrl});
 
   final String title;
   final LabelEvaluator labelEvaluation;
@@ -196,13 +220,12 @@ class _TopicListWidget extends StatelessWidget {
     final List<Widget> labelWidgets = <Widget>[];
 
     countByTopic.forEach((String labelName, int count) {
-      if ((labelEvaluation == null || labelEvaluation(labelName)) && labelWidgets.length < 17) {
-        labelWidgets.add(
-          InkWell(
-            child: _DetailItem(title: labelName, value: numberFormat.format(count)),
-            onTap: () => window.open('$baseUrl"$labelName"', '_blank')
-          )
-        );
+      if ((labelEvaluation == null || labelEvaluation(labelName)) &&
+          labelWidgets.length < 17) {
+        labelWidgets.add(InkWell(
+            child: _DetailItem(
+                title: labelName, value: numberFormat.format(count)),
+            onTap: () => window.open('$baseUrl"$labelName"', '_blank')));
       }
     });
     if (labelWidgets.isNotEmpty) {
@@ -213,9 +236,7 @@ class _TopicListWidget extends StatelessWidget {
     return Expanded(
       child: Semantics(
         label: title,
-        child: Column(
-          children: labelWidgets
-        ),
+        child: Column(children: labelWidgets),
       ),
     );
   }
@@ -229,17 +250,15 @@ class _DetailTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headline.copyWith(
-            color: severe ? Colors.redAccent : Theme.of(context).primaryColor,
-          )
-        )
-      )
-    );
+        alignment: AlignmentDirectional.centerStart,
+        child: Padding(
+            padding: const EdgeInsets.only(bottom: 10.0),
+            child: Text(title,
+                style: Theme.of(context).textTheme.headline.copyWith(
+                      color: severe
+                          ? Colors.redAccent
+                          : Theme.of(context).primaryColor,
+                    ))));
   }
 }
 
@@ -252,14 +271,15 @@ class _DetailItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          Text('$title: ', style: textTheme.subtitle.copyWith(fontSize: textTheme.subhead.fontSize)),
-          Text(value, style: textTheme.subhead),
-        ],
-      )
-    );
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text('$title: ',
+                style: textTheme.subtitle
+                    .copyWith(fontSize: textTheme.subhead.fontSize)),
+            Text(value, style: textTheme.subhead),
+          ],
+        ));
   }
 }

@@ -25,8 +25,7 @@ class SkiaAutoRoll {
       return false;
     }
     final SkiaAutoRoll otherRoll = other;
-    return otherRoll.mode == mode
-      && otherRoll.lastRollResult == lastRollResult;
+    return otherRoll.mode == mode && otherRoll.lastRollResult == lastRollResult;
   }
 
   @override
@@ -34,11 +33,19 @@ class SkiaAutoRoll {
 }
 
 class RefreshEngineFrameworkRoll extends RefreshAutoRoll {
-  const RefreshEngineFrameworkRoll({@required Widget child}) : super(child: child, url: 'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll/json/status');
+  const RefreshEngineFrameworkRoll({@required Widget child})
+      : super(
+            child: child,
+            url:
+                'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll/json/status');
 }
 
 class RefreshSkiaFlutterRoll extends RefreshAutoRoll {
-  const RefreshSkiaFlutterRoll({@required Widget child}) : super(child: child, url: 'https://autoroll.skia.org/r/skia-flutter-autoroll/json/status');
+  const RefreshSkiaFlutterRoll({@required Widget child})
+      : super(
+            child: child,
+            url:
+                'https://autoroll.skia.org/r/skia-flutter-autoroll/json/status');
 }
 
 class RefreshAutoRoll extends StatefulWidget {
@@ -53,7 +60,8 @@ class RefreshAutoRoll extends StatefulWidget {
   }
 }
 
-class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAliveClientMixin<RefreshAutoRoll> {
+class _RefreshAutoRollState extends State<RefreshAutoRoll>
+    with AutomaticKeepAliveClientMixin<RefreshAutoRoll> {
   _RefreshAutoRollState();
 
   Timer _refreshTimer;
@@ -91,4 +99,3 @@ class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAli
     return widget.child;
   }
 }
-

@@ -104,14 +104,17 @@ class Agent {
   /// If not tasks are available returns `null`.
   Future<CocoonTask> reserveTask() async {
     Map<String, dynamic> reservation =
-        await _cocoon('reserve-task', {'AgentID': agentId}) as Map<String,  dynamic>;
+        await _cocoon('reserve-task', {'AgentID': agentId})
+            as Map<String, dynamic>;
 
     if (reservation['TaskEntity'] != null) {
       return new CocoonTask(
         name: reservation['TaskEntity']['Task']['Name'] as String,
         key: reservation['TaskEntity']['Key'] as String,
-        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'] as String,
-        timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'] as int,
+        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha']
+            as String,
+        timeoutInMinutes:
+            reservation['TaskEntity']['Task']['TimeoutInMinutes'] as int,
         cloudAuthToken: reservation['CloudAuthToken'] as String,
       );
     }
@@ -156,7 +159,8 @@ class Agent {
   }
 
   Future<void> reportFailure(String taskKey, String reason) async {
-    await uploadLogChunk(taskKey, '\n\nTask failed with the following reason:\n$reason\n');
+    await uploadLogChunk(
+        taskKey, '\n\nTask failed with the following reason:\n$reason\n');
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
       'NewStatus': 'Failed',

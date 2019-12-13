@@ -17,7 +17,8 @@ import 'datastore.dart';
 class BuildStatusProvider {
   const BuildStatusProvider({
     DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider;
+  }) : datastoreProvider =
+            datastoreProvider ?? DatastoreService.defaultProvider;
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -40,7 +41,9 @@ class BuildStatusProvider {
 
           final bool isInLatestBuild = checkedTasks.containsKey(task.name);
           final bool checked = checkedTasks[task.name] ?? false;
-          if (isInLatestBuild && !checked && (task.isFlaky || _isFinal(task.status))) {
+          if (isInLatestBuild &&
+              !checked &&
+              (task.isFlaky || _isFinal(task.status))) {
             checkedTasks[task.name] = true;
             if (!task.isFlaky && _isFailedOrSkipped(task.status)) {
               return BuildStatus.failed;
@@ -65,7 +68,8 @@ class BuildStatusProvider {
   Stream<CommitStatus> retrieveCommitStatus() async* {
     final DatastoreService datastore = datastoreProvider();
     await for (Commit commit in datastore.queryRecentCommits()) {
-      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
+      final List<Stage> stages =
+          await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
   }
@@ -105,8 +109,10 @@ class BuildStatus {
 
   final String value;
 
-  static const BuildStatus succeeded = BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
-  static const BuildStatus failed = BuildStatus._(GithubBuildStatusUpdate.statusFailure);
+  static const BuildStatus succeeded =
+      BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
+  static const BuildStatus failed =
+      BuildStatus._(GithubBuildStatusUpdate.statusFailure);
 
   String get githubStatus => value;
 

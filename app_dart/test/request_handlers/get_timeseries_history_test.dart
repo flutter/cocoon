@@ -35,70 +35,77 @@ void main() {
     });
 
     test('return 0 when no commit exist', () async {
-      final TimeSeries timeSeries =
-          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey
+              .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
-    
+
       final Commit commit = Commit(sha: 'abc', timestamp: 4);
       final List<Commit> reportedCommits = <Commit>[
         commit,
       ];
 
-      final TimeSeriesValue timeSeriesValue = TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'def');
+      final TimeSeriesValue timeSeriesValue =
+          TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'def');
       final List<TimeSeriesValue> reportedTimeSeriesValues = <TimeSeriesValue>[
         timeSeriesValue,
       ];
 
       db.addOnQuery<Commit>((Iterable<Commit> commits) => reportedCommits);
-      db.addOnQuery<TimeSeriesValue>((Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
+      db.addOnQuery<TimeSeriesValue>(
+          (Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
       final GetTimeSeriesHistoryResponse response = await tester.post(handler);
 
       expect(response.timeSeriesValues.first.value, 0);
     });
 
     test('return timeseries value when commit exists', () async {
-      final TimeSeries timeSeries =
-          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey
+              .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
-    
+
       final Commit commit = Commit(sha: 'abc', timestamp: 4);
       final List<Commit> reportedCommits = <Commit>[
         commit,
       ];
 
-      final TimeSeriesValue timeSeriesValue = TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'abc');
+      final TimeSeriesValue timeSeriesValue =
+          TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'abc');
       final List<TimeSeriesValue> reportedTimeSeriesValues = <TimeSeriesValue>[
         timeSeriesValue,
       ];
 
       db.addOnQuery<Commit>((Iterable<Commit> commits) => reportedCommits);
-      db.addOnQuery<TimeSeriesValue>((Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
+      db.addOnQuery<TimeSeriesValue>(
+          (Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
       final GetTimeSeriesHistoryResponse response = await tester.post(handler);
 
       expect(response.timeSeriesValues.first.value, 4.5);
     });
 
     test('return timeseries values when multiple commits exist', () async {
-      final TimeSeries timeSeries =
-          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey
+              .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
-    
+
       final Commit commit1 = Commit(sha: 'abc', timestamp: 4);
       final Commit commit2 = Commit(sha: 'def', timestamp: 5);
-      final List<Commit> reportedCommits = <Commit>[
-        commit1,
-        commit2
-      ];
+      final List<Commit> reportedCommits = <Commit>[commit1, commit2];
 
-      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(value: 3.5, createTimestamp: 5, revision: 'abc');
-      final TimeSeriesValue timeSeriesValue2 = TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'def');
+      final TimeSeriesValue timeSeriesValue1 =
+          TimeSeriesValue(value: 3.5, createTimestamp: 5, revision: 'abc');
+      final TimeSeriesValue timeSeriesValue2 =
+          TimeSeriesValue(value: 4.5, createTimestamp: 5, revision: 'def');
       final List<TimeSeriesValue> reportedTimeSeriesValues = <TimeSeriesValue>[
         timeSeriesValue1,
         timeSeriesValue2
       ];
 
       db.addOnQuery<Commit>((Iterable<Commit> commits) => reportedCommits);
-      db.addOnQuery<TimeSeriesValue>((Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
+      db.addOnQuery<TimeSeriesValue>(
+          (Iterable<TimeSeriesValue> agents) => reportedTimeSeriesValues);
       final GetTimeSeriesHistoryResponse response = await tester.post(handler);
 
       expect(response.timeSeriesValues.first.value, 3.5);

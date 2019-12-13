@@ -27,7 +27,8 @@ void main() {
   });
 
   test('Serializes tags', () {
-    final List<Map<String, String>> encodedTags = const TagsConverter().toJson(tags);
+    final List<Map<String, String>> encodedTags =
+        const TagsConverter().toJson(tags);
     expect(encodedTags.length, 3);
     expect(json.encode(encodedTags), tagsJson);
   });
@@ -39,7 +40,8 @@ void main() {
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)));
+    final Build deserializedBuild =
+        Build.fromJson(json.decode(json.encode(buildJson)));
     expect(deserializedBuild.id, id);
 
     const GetBuildRequest request = GetBuildRequest(id: id);
@@ -47,7 +49,8 @@ void main() {
     expect(requestBuildJson['id'], id.toString());
     expect(requestBuildJson['id'].runtimeType, String);
 
-    final GetBuildRequest deserializedRequest = GetBuildRequest.fromJson(requestBuildJson);
+    final GetBuildRequest deserializedRequest =
+        GetBuildRequest.fromJson(requestBuildJson);
     expect(deserializedRequest.id, id);
   });
 }

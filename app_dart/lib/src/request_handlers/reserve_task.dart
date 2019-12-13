@@ -31,9 +31,12 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting TaskProvider taskProvider,
     @visibleForTesting ReservationProvider reservationProvider,
     @visibleForTesting AccessTokenProvider accessTokenProvider,
-  })  : taskProvider = taskProvider ?? TaskProvider(datastore: DatastoreService(db: config.db)),
-        reservationProvider = reservationProvider ?? ReservationProvider(config),
-        accessTokenProvider = accessTokenProvider ?? AccessTokenProvider(config),
+  })  : taskProvider = taskProvider ??
+            TaskProvider(datastore: DatastoreService(db: config.db)),
+        reservationProvider =
+            reservationProvider ?? ReservationProvider(config),
+        accessTokenProvider =
+            accessTokenProvider ?? AccessTokenProvider(config),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskProvider taskProvider;
@@ -74,13 +77,17 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         await reservationProvider.secureReservation(task.task, agent.id);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
-          scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
+          scopes: const <String>[
+            'https://www.googleapis.com/auth/devstorage.read_write'
+          ],
         );
-        final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+        final KeyHelper keyHelper =
+            KeyHelper(applicationContext: clientContext.applicationContext);
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
-        log.debug('Reservation lost for task ${task.task.name} on commit ${task.commit.sha}');
+        log.debug(
+            'Reservation lost for task ${task.task.name} on commit ${task.commit.sha}');
         continue;
       }
     }
@@ -92,7 +99,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
 @immutable
 class ReserveTaskResponse extends JsonBody {
-  const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
+  const ReserveTaskResponse(
+      this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
         assert(accessToken != null),
@@ -178,23 +186,26 @@ class ReserveTaskResponse extends JsonBody {
 class TaskProvider {
   TaskProvider({
     @required this.datastore,
-  })  : assert(datastore != null);
+  }) : assert(datastore != null);
 
   /// The backing datastore. Guaranteed to be non-null.
   final DatastoreService datastore;
 
   Future<FullTask> findNextTask(Agent agent) async {
     await for (Commit commit in datastore.queryRecentCommits()) {
-      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
+      final List<Stage> stages =
+          await datastore.queryTasksGroupedByStage(commit);
       for (Stage stage in stages) {
         if (!stage.isManagedByDeviceLab) {
           continue;
         }
         for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
           if (task.requiredCapabilities.isEmpty) {
-            throw InvalidTaskException('Task ${task.name} has no required capabilities');
+            throw InvalidTaskException(
+                'Task ${task.name} has no required capabilities');
           }
-          if (task.status == Task.statusNew && agent.isCapableOfPerformingTask(task)) {
+          if (task.status == Task.statusNew &&
+              agent.isCapableOfPerformingTask(task)) {
             return FullTask(task, commit);
           }
         }
@@ -238,9 +249,7 @@ class ReservationProvider {
 
         lockedTask.status = Task.statusInProgress;
         lockedTask.attempts += 1;
-        lockedTask.startTimestamp = DateTime
-            .now()
-            .millisecondsSinceEpoch;
+        lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
         lockedTask.reservedForAgentId = agentId;
         transaction.queueMutations(inserts: <Task>[lockedTask]);
         await transaction.commit();

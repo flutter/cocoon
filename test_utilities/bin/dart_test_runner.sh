@@ -14,6 +14,8 @@ pushd $1 > /dev/null
 pub get
 pub upgrade
 
+dartfmt --set-exit-if-changed .
+
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
   pub run build_runner build --delete-conflicting-outputs

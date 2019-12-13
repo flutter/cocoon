@@ -20,97 +20,104 @@ class RollDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final TextStyle headerStyle = theme.textTheme.headline.copyWith(
-      color: Theme.of(context).primaryColor
-    ).apply(fontSizeFactor: 1.3);
+    final TextStyle headerStyle = theme.textTheme.headline
+        .copyWith(color: Theme.of(context).primaryColor)
+        .apply(fontSizeFactor: 1.3);
 
     return Theme(
-      data: Theme.of(context).copyWith(
-        textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.3),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
+        data: Theme.of(context).copyWith(
+          textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.3),
+        ),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
           ModelBinding<RollHistory>(
             initialModel: RollHistory(),
             child: RefreshRollHistory(
               child: Expanded(
-                child: Column(
-                  children: <Widget>[
-                    ListTile(
-                      title: Text('Roll Commits', style: headerStyle),
-                    ),
-                    ListTile(
+                child: Column(children: <Widget>[
+                  ListTile(
+                    title: Text('Roll Commits', style: headerStyle),
+                  ),
+                  ListTile(
                       title: const Text('Skia → Engine'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastSkiaAutoRoll, unit: RollUnits.hour),
-                      onTap: () => window.open('https://autoroll.skia.org/r/skia-flutter-autoroll', '_blank')
-                    ),
-                    ListTile(
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastSkiaAutoRoll,
+                          unit: RollUnits.hour),
+                      onTap: () => window.open(
+                          'https://autoroll.skia.org/r/skia-flutter-autoroll',
+                          '_blank')),
+                  ListTile(
                       title: const Text('Engine → Framework'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
-                      onTap: () => window.open('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll', '_blank')
-                    ),
-                    ListTile(
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastEngineRoll,
+                          unit: RollUnits.hour),
+                      onTap: () => window.open(
+                          'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll',
+                          '_blank')),
+                  ListTile(
                       title: const Text('master → dev channel'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
-                      onTap: () => window.open('https://github.com/flutter/flutter/commits/dev', '_blank')
-                    ),
-                    ListTile(
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastDevBranchRoll),
+                      onTap: () => window.open(
+                          'https://github.com/flutter/flutter/commits/dev',
+                          '_blank')),
+                  ListTile(
                       title: const Text('dev → beta channel'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastBetaBranchRoll),
-                      onTap: () => window.open('https://github.com/flutter/flutter/commits/beta', '_blank')
-                    ),
-                    ListTile(
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastBetaBranchRoll),
+                      onTap: () => window.open(
+                          'https://github.com/flutter/flutter/commits/beta',
+                          '_blank')),
+                  ListTile(
                       title: const Text('beta → stable channel'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastStableBranchRoll),
-                      onTap: () => window.open('https://github.com/flutter/flutter/commits/stable', '_blank')
-                    ),
-                    ListTile(
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastStableBranchRoll),
+                      onTap: () => window.open(
+                          'https://github.com/flutter/flutter/commits/stable',
+                          '_blank')),
+                  ListTile(
                       title: const Text('flutter_web'),
-                      subtitle: _DetailItem(value: (RollHistory history) => history.lastFlutterWebCommit),
-                      onTap: () => window.open('https://github.com/flutter/flutter_web/commits/master', '_blank')
-                    ),
-                  ]
-                ),
+                      subtitle: _DetailItem(
+                          value: (RollHistory history) =>
+                              history.lastFlutterWebCommit),
+                      onTap: () => window.open(
+                          'https://github.com/flutter/flutter_web/commits/master',
+                          '_blank')),
+                ]),
               ),
             ),
           ),
           Expanded(
-            child: Column(
-              children: <Widget>[
-                ListTile(
-                  title: Text('Auto Rollers', style: headerStyle),
-                ),
-                const ModelBinding<RollSheriff>(
+            child: Column(children: <Widget>[
+              ListTile(
+                title: Text('Auto Rollers', style: headerStyle),
+              ),
+              const ModelBinding<RollSheriff>(
                   initialModel: RollSheriff(),
-                  child: RefreshSheriffRotation(
-                    child: RollSheriffWidget()
-                  )
-                ),
-                const ModelBinding<SkiaAutoRoll>(
+                  child: RefreshSheriffRotation(child: RollSheriffWidget())),
+              const ModelBinding<SkiaAutoRoll>(
                   initialModel: SkiaAutoRoll(),
                   child: RefreshEngineFrameworkRoll(
-                    child: AutoRollWidget(
-                      name: 'Engine → Framework',
-                      url: 'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll',
-                    )
-                  )
-                ),
-                const ModelBinding<SkiaAutoRoll>(
+                      child: AutoRollWidget(
+                    name: 'Engine → Framework',
+                    url:
+                        'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll',
+                  ))),
+              const ModelBinding<SkiaAutoRoll>(
                   initialModel: SkiaAutoRoll(),
                   child: RefreshSkiaFlutterRoll(
-                    child: AutoRollWidget(
-                      name: 'Skia → Engine',
-                      url: 'https://autoroll.skia.org/r/skia-flutter-autoroll',
-                    )
-                  )
-                )
-              ]
-            ),
+                      child: AutoRollWidget(
+                    name: 'Skia → Engine',
+                    url: 'https://autoroll.skia.org/r/skia-flutter-autoroll',
+                  )))
+            ]),
           )
-        ]
-      )
-    );
+        ]));
   }
 }
 
@@ -122,12 +129,13 @@ class RollSheriffWidget extends StatelessWidget {
     final RollSheriff sheriff = ModelBinding.of<RollSheriff>(context);
     if (sheriff?.currentSheriff != null) {
       return ListTile(
-        leading: CircleAvatar(
-          child: Icon(Icons.security),
-        ),
-        title: Text('${sheriff.currentSheriff} 🤠'),
-        onTap: () => window.open('http://chromium-build.appspot.com/static/rotations.html', '_blank')
-      );
+          leading: CircleAvatar(
+            child: Icon(Icons.security),
+          ),
+          title: Text('${sheriff.currentSheriff} 🤠'),
+          onTap: () => window.open(
+              'http://chromium-build.appspot.com/static/rotations.html',
+              '_blank'));
     }
     return const SizedBox();
   }
@@ -162,15 +170,15 @@ class AutoRollWidget extends StatelessWidget {
         backgroundColor = Colors.grey;
     }
     return ListTile(
-      title: Text(name),
-      leading: CircleAvatar(
-        child: Icon(icon),
-        backgroundColor: backgroundColor,
-      ),
-      subtitle: Text('${autoRoll.mode ?? 'Unknown'}\nLast roll: ${autoRoll.lastRollResult}'),
-      isThreeLine: true,
-      onTap: () => window.open(url, '_blank')
-    );
+        title: Text(name),
+        leading: CircleAvatar(
+          child: Icon(icon),
+          backgroundColor: backgroundColor,
+        ),
+        subtitle: Text(
+            '${autoRoll.mode ?? 'Unknown'}\nLast roll: ${autoRoll.lastRollResult}'),
+        isThreeLine: true,
+        onTap: () => window.open(url, '_blank'));
   }
 }
 
@@ -192,19 +200,24 @@ class _DetailItem extends StatelessWidget {
         if (unit == RollUnits.hour) {
           final int hours = DateTime.now().difference(valueDate).inHours;
           // Ignoring Russian, etc pluralization problems.
-          parenthesis = Intl.plural(hours, zero: '<1 hour ago', one: '1 hour ago', other: '$hours hours ago');
+          parenthesis = Intl.plural(hours,
+              zero: '<1 hour ago',
+              one: '1 hour ago',
+              other: '$hours hours ago');
           dateFormat = DateFormat.jm();
         } else {
           // RollUnits.day
           final int days = DateTime.now().difference(valueDate).inDays;
-          parenthesis = Intl.plural(days, zero: 'today', one: '1 day ago', other: '$days days ago');
+          parenthesis = Intl.plural(days,
+              zero: 'today', one: '1 day ago', other: '$days days ago');
           dateFormat = DateFormat.MMMMd();
         }
       }
     }
     return Text(
-      (valueDate != null) ? '${dateFormat.format(valueDate.toLocal())} ($parenthesis)' : 'Unknown',
-      style: Theme.of(context).textTheme.body1
-    );
+        (valueDate != null)
+            ? '${dateFormat.format(valueDate.toLocal())} ($parenthesis)'
+            : 'Unknown',
+        style: Theme.of(context).textTheme.body1);
   }
 }

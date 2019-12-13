@@ -25,7 +25,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
-        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        datastoreProvider =
+            datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciServiceProvider luciServiceProvider;
@@ -62,15 +63,19 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     await for (PullRequest pr in github.pullRequests.list(slug)) {
-      final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
+      final GithubBuildStatusUpdate update =
+          await datastore.queryLastStatusUpdate(slug, pr);
 
       if (update.status != latestStatus) {
-        log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
+        log.debug(
+            'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
         final CreateStatus request = CreateStatus(latestStatus);
-        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/engine/console';
+        request.targetUrl =
+            'https://ci.chromium.org/p/flutter/g/engine/console';
         request.context = 'luci-engine';
         if (latestStatus != GithubBuildStatusUpdate.statusSuccess) {
-          request.description = 'Flutter build is currently broken. Please do not merge this '
+          request.description =
+              'Flutter build is currently broken. Please do not merge this '
               'PR unless it contains a fix to the broken build.';
         }
 
@@ -80,7 +85,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
           update.updates += 1;
           updates.add(update);
         } catch (error) {
-          log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          log.error(
+              'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
         }
       }
     }
@@ -88,7 +94,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     final int maxEntityGroups = config.maxEntityGroups;
     for (int i = 0; i < updates.length; i += maxEntityGroups) {
       await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: updates.skip(i).take(maxEntityGroups).toList());
+        transaction.queueMutations(
+            inserts: updates.skip(i).take(maxEntityGroups).toList());
         await transaction.commit();
       });
     }

@@ -25,8 +25,7 @@ class StatusPageStatus {
       return false;
     }
     final StatusPageStatus otherStatus = other;
-    return otherStatus.status == status
-      && otherStatus.indicator == indicator;
+    return otherStatus.status == status && otherStatus.indicator == indicator;
   }
 
   @override
@@ -34,11 +33,17 @@ class StatusPageStatus {
 }
 
 class RefreshGitHubStatus extends RefreshStatusPageStatus {
-  const RefreshGitHubStatus({@required Widget child}) : super(child: child, url: 'https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
+  const RefreshGitHubStatus({@required Widget child})
+      : super(
+            child: child,
+            url: 'https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
 }
 
 class RefreshCoverallsStatus extends RefreshStatusPageStatus {
-  const RefreshCoverallsStatus({@required Widget child}) : super(child: child, url: 'https://status.coveralls.io/api/v2/status.json');
+  const RefreshCoverallsStatus({@required Widget child})
+      : super(
+            child: child,
+            url: 'https://status.coveralls.io/api/v2/status.json');
 }
 
 class RefreshStatusPageStatus extends StatefulWidget {
@@ -53,7 +58,8 @@ class RefreshStatusPageStatus extends StatefulWidget {
   }
 }
 
-class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus> with AutomaticKeepAliveClientMixin<RefreshStatusPageStatus> {
+class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus>
+    with AutomaticKeepAliveClientMixin<RefreshStatusPageStatus> {
   _RefreshStatusPageStatusState();
 
   Timer _refreshTimer;
@@ -91,4 +97,3 @@ class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus> with 
     return widget.child;
   }
 }
-
