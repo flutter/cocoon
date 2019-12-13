@@ -63,7 +63,8 @@ void main() {
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
         db.onCommit =
-            (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
+            (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) =>
+                throw AssertionError();
         db.addOnQuery<GithubBuildStatusUpdate>(
             (Iterable<GithubBuildStatusUpdate> results) {
           throw AssertionError();
@@ -112,7 +113,8 @@ void main() {
       group('does not update anything', () {
         setUp(() {
           db.onCommit =
-              (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
+              (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) =>
+                  throw AssertionError();
           when(repositoriesService.createStatus(any, any, any))
               .thenThrow(AssertionError());
         });
@@ -121,10 +123,12 @@ void main() {
           prsFromGitHub = <PullRequest>[];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
           final Body body = await tester.get<Body>(handler);
-          final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+          final TableDataList tableDataList =
+              await tabledataResourceApi.list('test', 'test', 'test');
           expect(body, same(Body.empty));
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
           /// Test for [BigQuery] insert
           expect(tableDataList.totalRows, '1');
         });

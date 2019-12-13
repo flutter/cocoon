@@ -106,9 +106,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     const String dataset = 'cocoon';
     const String table = 'BuildStatus';
 
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi =
+        await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
-    
+
     requestRows.add(<String, Object>{
       'json': <String, Object>{
         'Timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -118,13 +119,12 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     // Obtain [rows] to be inserted to [BigQuery].
     final TableDataInsertAllRequest request =
-      TableDataInsertAllRequest.fromJson(<String, Object>{
-      'rows': requestRows
-    });
+        TableDataInsertAllRequest.fromJson(
+            <String, Object>{'rows': requestRows});
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } catch(ApiRequestError){
+    } catch (ApiRequestError) {
       log.warning('Failed to add build status to BigQuery: $ApiRequestError');
     }
   }
