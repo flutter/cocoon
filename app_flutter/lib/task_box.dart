@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/stackdriver_log_button.dart';
+import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
