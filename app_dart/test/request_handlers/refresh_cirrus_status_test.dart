@@ -22,7 +22,8 @@ void main() {
     ApiRequestHandlerTester tester;
     RefreshCirrusStatus handler;
     final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
-    final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
+    final FakeTabledataResourceApi tabledataResourceApi =
+        FakeTabledataResourceApi();
     tester = ApiRequestHandlerTester();
 
     test('update cirrus status when all tasks succeeded', () async {
@@ -62,7 +63,8 @@ void main() {
 
       expect(task.status, 'New');
       await tester.get(handler);
-      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+      final TableDataList tableDataList =
+          await tabledataResourceApi.list('test', 'test', 'test');
       expect(task.status, 'Succeeded');
       expect(tableDataList.totalRows, '1');
     });
