@@ -243,7 +243,7 @@ class ContinuousIntegrationCommand extends Command {
           <String>[
             'unlock-keychain',
             '-p',
-            Platform.environments['FLUTTER_USER_SECRET'],
+            Platform.environment['FLUTTER_USER_SECRET'],
             'login.keychain'
           ],
           canFail: false,
