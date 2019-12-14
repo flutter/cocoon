@@ -8,23 +8,25 @@ import 'package:flutter/widgets.dart';
 import 'package:cocoon_service/protos.dart' show Task;
 import 'package:url_launcher/url_launcher.dart';
 
+/// Show information regarding each attempt for a Task.
 ///
+/// Currently shows a button that links to each individual log
+/// on Stackdriver for a Task.
+///
+// TODO(chillers): Add more information to Task entity so we can show more
+// information here. https://github.com/flutter/flutter/issues/47018
 class TaskAttemptSummary extends StatelessWidget {
   const TaskAttemptSummary({this.task});
 
   /// The task to show information from.
   final Task task;
 
+  /// The Google Cloud Project that hosts the Stackdriver logs.
   static const String _cloudProjectId = 'flutter-dashboard';
 
   @visibleForTesting
 
-  /// explain the breakdown of this url
-  /// resource=global
-  /// expandAll=false
-  /// minLogLevel=false
-  /// interval=NO_LIMIT
-  /// dateRangeUnbound=backwardInTime
+  /// This URL is configured to have Stackdriver show at the end of the log.
   static const String stackdriverLogUrlBase =
       'https://console.cloud.google.com/logs/viewer?project=$_cloudProjectId&resource=global&minLogLevel=0&expandAll=false&interval=NO_LIMIT&dateRangeUnbound=backwardInTime&logName=projects%2F$_cloudProjectId%2Flogs%2F';
 
