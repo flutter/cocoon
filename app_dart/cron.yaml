@@ -22,3 +22,6 @@ cron:
 - description: check for mergeable commits waiting for the tree to go green
   url: /api/check-waiting-pull-requests
   schedule: every 5 minutes
+- description: insert agent health status to bigquery
+  url: /api/update-agent-health-history
+  schedule: every 1 minutes
