@@ -321,8 +321,9 @@ Future<Null> forceQuitRunningProcesses() async {
 
 /// Executes a command and returns its exit code.
 Future<int> exec(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env);
+    {Map<String, String> env, bool canFail: false, bool silent: false}) async {
+  Process proc =
+      await startProcess(executable, arguments, env: env, silent: silent);
 
   proc.stdout
       .transform(utf8.decoder)

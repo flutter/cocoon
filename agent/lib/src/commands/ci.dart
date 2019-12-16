@@ -35,12 +35,12 @@ class ContinuousIntegrationCommand extends Command {
 
   @override
   Future<Null> run(ArgResults args) async {
+    // Ensure keychain is unlocked before running health checks.
+    await _unlockKeyChain();
     // Perform one pre-flight round of checks and quit immediately if something
     // is wrong.
     AgentHealth health = await performHealthChecks(agent);
     section('Pre-flight checks:');
-    // Ensure keychain is unlocked before running health checks.
-    await _unlockKeyChain();
     health
         .toString()
         .split('\n')
@@ -243,10 +243,11 @@ class ContinuousIntegrationCommand extends Command {
           <String>[
             'unlock-keychain',
             '-p',
-            '\$FLUTTER_USER_SECRET',
+            Platform.environment['FLUTTER_USER_SECRET'],
             'login.keychain'
           ],
-          canFail: false);
+          canFail: false,
+          silent: true);
     }
   }
 
