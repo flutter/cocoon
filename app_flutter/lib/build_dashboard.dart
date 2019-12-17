@@ -66,8 +66,6 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   void dispose() {
-    print('disposing build state!');
-
     buildState.errors.removeListener(_showErrorSnackbar);
     super.dispose();
   }
