@@ -19,10 +19,10 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
 /// List of Github supported repos.
-const List<String> supportedRepos = <String>['engine', 'flutter', 'cocoon'];
+const Set<String> supportedRepos = <String>{'engine', 'flutter', 'cocoon'};
 
 /// List of repos that require CQ+1 label.
-const List<String> needsCQLabelList = <String>['flutter/flutter'];
+const Set<String> needsCQLabelList = <String>{'flutter/flutter'};
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
