@@ -68,46 +68,45 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  String get nonMasterPullRequestMessage => '''
-This pull request was opened against a branch other than _master_. 
-Since Flutter pull requests should not normally be opened against branches other than master, I have changed the base to master. 
-If this was intended, you may modify the base back to {{branch}}. 
-See the [Release Process](https://github.com/flutter/flutter/wiki/Release-process) for information about how other branches get updated.
-
-__Reviewers__: Use caution before merging pull requests to branches other than master. The circumstances where this is valid are very rare.
-
-
-/cc @dnfield''';
+  String get nonMasterPullRequestMessage => 'This pull request was opened '
+      'against a branch other than _master_. Since Flutter pull requests should '
+      'not normally be opened against branches other than master, I have changed '
+      'the base to master. If this was intended, you may modify the base back to '
+      '{{branch}}. See the [Release Process]'
+      '(https://github.com/flutter/flutter/wiki/Release-process) for information '
+      'about how other branches get updated.\n\n'
+      '__Reviewers__: Use caution before merging pull requests to branches other '
+      'than master. The circumstances where this is valid are very rare.\n\n'
+      '/cc @dnfield';
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
-  String get missingTestsPullRequestMessage => '''
-It looks like this pull request may not have tests. 
-Please make sure to add tests before merging. If you need an exemption to this rule, contact Hixie.
+  String get missingTestsPullRequestMessage => 'It looks like this pull '
+      'request may not have tests. Please make sure to add tests before merging. '
+      'If you need an exemption to this rule, contact Hixie.\n\n'
+      '__Reviewers__: Read the [Tree Hygiene page]'
+      '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+      'and make sure this patch meets those guidelines before LGTMing.';
 
-__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) and make sure this patch meets those guidelines before LGTMing.''';
+  String get goldenBreakingChangeMessage => 'It looks like this pull request '
+      'includes a golden file change. Please make sure to follow '
+      '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes). '
+      'While there are exceptions to this rule, if this patch modifies an existing '
+      'golden file, it is probably not an exception. Only new golden files are not '
+      'considered breaking changes.\n\n'
+      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter) '
+      'may also provide guidance for this change.\n\n'
+      '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+      'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get goldenBreakingChangeMessage => '''
-It looks like this pull request includes a golden file change. 
-Please make sure to follow [Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes). 
-While there are exceptions to this rule, if this patch modifies an existing golden file, it is probably not an exception. 
-Only new golden files are not considered breaking changes.
-
-
-[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter) may also provide guidance for this change.
-
-__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) and make sure this patch meets those guidelines before LGTMing.''';
-
-  String get goldenTriageMessage => '''
-Nice merge! 🎉
-
-It looks like this PR made changes to golden files. 
-Be sure to visit [Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) to triage the results when post-submit testing has completed. 
-The status of these tests can be seen on the [Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).
-
-
-For more information about working with golden files, see the wiki page 
-[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).''';
+  String get goldenTriageMessage => 'Nice merge! 🎉\n'
+      'It looks like this PR made changes to golden files. Be sure to visit '
+      '[Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) '
+      'to triage the results when post-submit testing has completed. The status '
+      'of these tests can be seen on the '
+      '[Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).\n\n'
+      'For more information about working with golden files, see the wiki page '
+      '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 
   int get maxTaskRetries => 2;
 
