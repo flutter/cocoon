@@ -74,6 +74,12 @@ Future<void> main() async {
       } else {
         final String filePath = request.uri.toFilePath();
 
+        const List<String> indexRedirects = <String>['/build.html'];
+        if (indexRedirects.contains(filePath)) {
+          request.response.statusCode = HttpStatus.permanentRedirect;
+          return await request.response.redirect(Uri.parse('/#$filePath'));
+        }
+
         await StaticFileHandler(filePath, config: config).service(request);
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {
