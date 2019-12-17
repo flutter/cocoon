@@ -34,7 +34,7 @@ class StaticFileHandler extends RequestHandler<Body> {
   Future<Body> get() async {
     final HttpResponse response = request.response;
 
-    final String resultPath = filePath == '/' ? '/index.html.html' : filePath;
+    final String resultPath = filePath == '/' ? '/index.html' : filePath;
 
     /// The file path in app_dart to the files to serve
     const String basePath = 'build/web';
