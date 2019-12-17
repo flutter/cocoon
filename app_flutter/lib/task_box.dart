@@ -323,7 +323,8 @@ class TaskOverlayContents extends StatelessWidget {
             subtitle: isDevicelab(task)
                 ? Text('Attempts: ${task.attempts}\n'
                     'Duration: $taskDurationInMinutes minutes\n'
-                    'Agent: ${task.reservedForAgentId}')
+                    'Agent: ${task.reservedForAgentId}\n'
+                    'Flaky: ${task.isFlaky}')
                 : const Text('Task was run outside of devicelab'),
             contentPadding: const EdgeInsets.all(16.0),
           ),
