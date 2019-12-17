@@ -18,13 +18,11 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
-
 /// List of Github supported repos.
 const List<String> supportedRepos = <String>['engine', 'flutter', 'cocoon'];
 
 /// List of repos that require CQ+1 label.
 const List<String> needsCQLabelList = <String>['flutter/flutter'];
-
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -104,7 +102,8 @@ class GithubWebhook extends RequestHandler<Body> {
         );
         break;
       case 'unlabeled':
-        if (!needsCQLabelList.contains(event.repository.fullName.toLowerCase())) {
+        if (!needsCQLabelList
+            .contains(event.repository.fullName.toLowerCase())) {
           break;
         }
         if (!await _checkForCqLabel(existingLabels)) {
@@ -149,7 +148,7 @@ class GithubWebhook extends RequestHandler<Body> {
       runCQ = await _checkForCqLabel(labels);
     }
 
-    if (event.pullRequest.mergeable != false && runCQ) {
+    if (runCQ) {
       await _scheduleLuci(
         number: event.number,
         sha: event.pullRequest.head.sha,
