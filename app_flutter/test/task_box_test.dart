@@ -195,7 +195,7 @@ void main() {
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
     });
 
-    testWidgets('overlay show flaky is false', (WidgetTester tester) async {
+    testWidgets('overlay show flaky is true', (WidgetTester tester) async {
       final Task flakyTask = Task()
         ..attempts = 3
         ..stageName = 'devicelab'
@@ -216,7 +216,7 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${flakyTask.attempts}\nDuration: 0 minutes\nAgent: ${flakyTask.reservedForAgentId}\nFlaky: ${flakyTask.isFlaky}';
+          'Attempts: ${flakyTask.attempts}\nDuration: 0 minutes\nAgent: ${flakyTask.reservedForAgentId}\nFlaky: true';
       expect(find.text(expectedTaskInfoString), findsNothing);
 
       // Ensure the task indicator isn't showing when overlay is not shown
