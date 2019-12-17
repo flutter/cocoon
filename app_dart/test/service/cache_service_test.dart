@@ -17,7 +17,7 @@ void main() {
     const String testSubcacheName = 'test';
 
     setUp(() {
-      cache = CacheService(inMemory: true, inMemoryMaxSize: 1);
+      cache = CacheService(inMemory: true, inMemoryMaxNumberEntries: 1);
     });
 
     test('returns null when no value exists', () async {

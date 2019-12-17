@@ -9,12 +9,16 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
+/// Service for reading and writing values to a cache for quick access of data.
+///
+/// If [inMemory] is true, a cache with [inMemoryMaxNumberEntries] number
+/// of entries will be created. Otherwise, it will use the default redis cache.
 class CacheService {
   CacheService({
     bool inMemory = false,
-    int inMemoryMaxSize = 256,
+    int inMemoryMaxNumberEntries = 256,
   }) : _provider = inMemory
-            ? Cache.inMemoryCacheProvider(inMemoryMaxSize)
+            ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
             : Cache.redisCacheProvider(memorystoreUrl);
 
   final CacheProvider<List<int>> _provider;
