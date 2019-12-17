@@ -28,7 +28,7 @@ class StackdriverLoggerService {
   /// The Cocoon configuration. Guaranteed to be non-null.
   final Config config;
 
-  /// Interface to interacting with Stackdriver.
+  /// Stackdriver interface.
   LoggingApi _api;
 
   /// This is the location Stackdriver requires the logs be put at. Do not change.

@@ -17,7 +17,6 @@ void main() {
   group('AppendLog', () {
     FakeConfig config;
     AppendLog handler;
-
     MockStackdriverLoggerService mockStackdriverLoggerService;
 
     const String logData = '''
