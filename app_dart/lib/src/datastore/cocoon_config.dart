@@ -37,7 +37,7 @@ class Config {
   Logging get loggingService => ss.lookup(#appengine.logging);
 
   Future<String> _getSingleValue(String id) async {
-    final Uint8List cacheValue = await _cache.get(
+    final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       id,
       createFn: () => _getValueFromDatastore(id),

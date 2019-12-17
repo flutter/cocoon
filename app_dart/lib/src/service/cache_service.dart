@@ -49,7 +49,7 @@ class CacheService {
   /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
   /// times before giving up. This is because the cache is magnitudes faster
   /// than the fallback operation (usually a Datastore query).
-  Future<Uint8List> get(
+  Future<Uint8List> getOrCreate(
     String subcacheName,
     String key, {
     int attempt = 1,
@@ -63,7 +63,7 @@ class CacheService {
       value = await subcache[key].get();
     } catch (e) {
       if (attempt < maxCacheGetAttempts) {
-        return get(subcacheName, key, attempt: ++attempt);
+        return getOrCreate(subcacheName, key, attempt: ++attempt, createFn: createFn);
       } else {
         // Give up on trying to get the value from the cache.
         value = null;

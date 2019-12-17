@@ -21,7 +21,7 @@ void main() {
     });
 
     test('returns null when no value exists', () async {
-      final Uint8List value = await cache.get(testSubcacheName, 'abc');
+      final Uint8List value = await cache.getOrCreate(testSubcacheName, 'abc');
 
       expect(value, isNull);
     });
@@ -32,7 +32,7 @@ void main() {
 
       await cache.set(testSubcacheName, testKey, expectedValue);
 
-      final Uint8List value = await cache.get(testSubcacheName, testKey);
+      final Uint8List value = await cache.getOrCreate(testSubcacheName, testKey);
 
       expect(value, expectedValue);
     });
@@ -46,10 +46,10 @@ void main() {
       await cache.set(testSubcacheName, testKey1, expectedValue1);
       await cache.set(testSubcacheName, testKey2, expectedValue2);
 
-      final Uint8List value1 = await cache.get(testSubcacheName, testKey1);
+      final Uint8List value1 = await cache.getOrCreate(testSubcacheName, testKey1);
       expect(value1, null);
 
-      final Uint8List value2 = await cache.get(testSubcacheName, testKey2);
+      final Uint8List value2 = await cache.getOrCreate(testSubcacheName, testKey2);
       expect(value2, expectedValue2);
     });
 
@@ -70,7 +70,7 @@ void main() {
       cache.cacheValue = mockMainCache;
 
       final Uint8List value =
-          await cache.get(testSubcacheName, 'does not matter');
+          await cache.getOrCreate(testSubcacheName, 'does not matter');
       verify(mockTestSubcache[any]).called(2);
       expect(value, Uint8List.fromList('abc123'.codeUnits));
     });
@@ -92,7 +92,7 @@ void main() {
       cache.cacheValue = mockMainCache;
 
       final Uint8List value =
-          await cache.get(testSubcacheName, 'does not matter');
+          await cache.getOrCreate(testSubcacheName, 'does not matter');
       verify(mockTestSubcache[any]).called(CacheService.maxCacheGetAttempts);
       expect(value, isNull);
     });
@@ -102,7 +102,7 @@ void main() {
       Future<Uint8List> createCat() async => cat;
 
       final Uint8List value =
-          await cache.get(testSubcacheName, 'dog', createFn: createCat);
+          await cache.getOrCreate(testSubcacheName, 'dog', createFn: createCat);
 
       expect(value, cat);
     });

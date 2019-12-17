@@ -42,7 +42,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   @override
   Future<T> get() async {
     final String responseKey = '${request.uri.path}:${request.uri.query}';
-    final Uint8List cachedResponse = await cache.get(
+    final Uint8List cachedResponse = await cache.getOrCreate(
         responseSubcacheName, responseKey,
         createFn: () => getBodyBytesFromDelegate(delegate), ttl: ttl);
 
