@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'navigation_drawer.dart';
 import 'sign_in_button.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
@@ -65,6 +66,8 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 
   @override
   void dispose() {
+    print('disposing build state!');
+
     buildState.errors.removeListener(_showErrorSnackbar);
     super.dispose();
   }
@@ -112,6 +115,7 @@ class BuildDashboard extends StatelessWidget {
             StatusGridContainer(),
           ],
         ),
+        drawer: NavigationDrawer(),
       ),
     );
   }
