@@ -178,7 +178,10 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\nDuration: 0 minutes\nAgent: ${expectedTask.reservedForAgentId}\nFlaky: ${expectedTask.isFlaky}';
+          'Attempts: ${expectedTask.attempts}\n'
+          'Duration: 0 minutes\n'
+          'Agent: ${expectedTask.reservedForAgentId}\n'
+          'Flaky: ${expectedTask.isFlaky}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -216,7 +219,10 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${flakyTask.attempts}\nDuration: 0 minutes\nAgent: ${flakyTask.reservedForAgentId}\nFlaky: true';
+          'Attempts: ${flakyTask.attempts}\n'
+          'Duration: 0 minutes\n'
+          'Agent: ${flakyTask.reservedForAgentId}\n'
+          'Flaky: true';
       expect(find.text(expectedTaskInfoString), findsNothing);
 
       // Ensure the task indicator isn't showing when overlay is not shown
