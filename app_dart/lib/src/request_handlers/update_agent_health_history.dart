@@ -4,12 +4,15 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -25,16 +28,21 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(config: config, authenticationProvider: authenticationProvider);
+    @visibleForTesting LoggingProvider loggingProvider,
+  })  : loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
+        super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+  final LoggingProvider loggingProvider;
 
   @override
   Future<Body> get() async {
+    // Define const variables for [BigQuery] operations.
     const String projectId = 'flutter-dashboard';
     const String dataset = 'cocoon';
     const String table = 'Agent';
 
+    final Logging log = loggingProvider();
     final TabledataResourceApi tabledataResourceApi =
         await config.createTabledataResourceApi();
     final DatastoreService datastore = datastoreProvider();
@@ -71,6 +79,8 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     /// Insert [agents] to `BigQuery`.
     try {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
+      log.info(
+          'Succeeded to insert ${tableDataInsertAllRequestRows.length} rows to $projectId-$dataset-$table');
     } catch (ApiRequestError) {
       log.error('Failed to add commits to BigQuery: $ApiRequestError');
     }

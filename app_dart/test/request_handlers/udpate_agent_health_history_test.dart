@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:appengine/appengine.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
@@ -17,11 +18,13 @@ import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_logging.dart';
 
 void main() {
   group('UpdateAgentHealthHistory', () {
     FakeConfig config;
     FakeDatastoreDB db;
+    FakeLogging log;
     UpdateAgentHealthHistory handler;
     FakeTabledataResourceApi tabledataResourceApi;
 
@@ -34,10 +37,12 @@ void main() {
       tabledataResourceApi = FakeTabledataResourceApi();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       db = FakeDatastoreDB();
+      log = FakeLogging();
       handler = UpdateAgentHealthHistory(
         config,
         FakeAuthenticationProvider(),
         datastoreProvider: () => DatastoreService(db: db),
+        loggingProvider: () => log,
       );
     });
 
@@ -84,6 +89,7 @@ void main() {
 
       /// Test `BigQuery` insert.
       expect(tableDataList.totalRows, '3');
+      expect(log.records[0].message, 'Succeeded to insert 3 rows to flutter-dashboard-cocoon-AgentStatusTest');
 
       expect(result['AgentStatuses'], equals(expectedOrderedAgents));
     });
