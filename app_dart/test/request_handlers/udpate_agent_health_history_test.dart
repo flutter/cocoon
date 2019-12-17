@@ -4,13 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:test/test.dart';
+
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handlers/update_agent_health_history.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
