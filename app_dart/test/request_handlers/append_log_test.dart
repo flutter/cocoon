@@ -74,7 +74,7 @@ Deleting build/ directories, if any.
     });
 
     test('adds log chunk to datastore', () async {
-        final Commit commit = Commit(
+      final Commit commit = Commit(
           key: datastoreDB.emptyKey.append(Commit,
               id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
@@ -93,14 +93,15 @@ Deleting build/ directories, if any.
       await tester.post(handler);
 
       // Now task and a log chunk should exist
-      expect(datastoreDB.values.keys.length, 2);      
+      expect(datastoreDB.values.keys.length, 2);
 
       // To get the log chunk key, remove the known task key
       final List<Key> dbKeys = datastoreDB.values.keys.toList();
       dbKeys.remove(task.key);
       final Key logChunkKey = dbKeys[0];
 
-      final LogChunk logChunk = await datastoreDB.lookupValue<LogChunk>(logChunkKey);
+      final LogChunk logChunk =
+          await datastoreDB.lookupValue<LogChunk>(logChunkKey);
       expect(logChunk, isNotNull);
     });
 
