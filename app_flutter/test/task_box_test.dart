@@ -218,8 +218,7 @@ void main() {
         ),
       );
 
-      final String expectedTaskInfoString =
-          'Attempts: ${flakyTask.attempts}\n'
+      final String expectedTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
           'Duration: 0 minutes\n'
           'Agent: ${flakyTask.reservedForAgentId}\n'
           'Flaky: true';
