@@ -29,7 +29,7 @@ void testRemoveXcodeDerivedData() {
     expect(result.succeeded, true);
   });
 
-  test('missing home env var', () async {
+  test('fails when missing home env var', () async {
     platform.FakePlatform pf = platform.FakePlatform()
       ..operatingSystem = "macos"
       ..environment = <String, String>{"HOME": null};
