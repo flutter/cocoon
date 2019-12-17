@@ -21,7 +21,7 @@ class NavigationDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Build'),
-            onTap: () => Navigator.pushReplacementNamed(context, '/build.html'),
+            onTap: () => Navigator.pushReplacementNamed(context, '/build'),
           ),
           // ListTile(
           //   title: const Text('Infra Agents'),

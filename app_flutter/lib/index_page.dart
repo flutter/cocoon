@@ -92,7 +92,7 @@ class Index extends StatelessWidget {
                 child: RaisedButton(
                   child: const Text('Build'),
                   onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/build.html'),
+                      Navigator.pushReplacementNamed(context, '/build'),
                   padding: const EdgeInsets.all(20),
                   color: Colors.blueAccent,
                   textColor: Colors.white,
