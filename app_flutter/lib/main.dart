@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => IndexPage(),
-        '/build.html': (BuildContext context) => BuildDashboardPage(),
+        '/build': (BuildContext context) => BuildDashboardPage(),
       },
     );
   }
