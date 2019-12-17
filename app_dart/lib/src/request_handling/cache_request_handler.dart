@@ -49,8 +49,15 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     return Body.forStream(Stream<Uint8List>.value(cachedResponse));
   }
 
+  /// Get a Uint8List that contains the bytes of the response from [delegate]
+  /// so it can be stored in [cache].
   Future<Uint8List> getBodyBytesFromDelegate(RequestHandler<T> delegate) async {
     final Body body = await delegate.get();
+    
+    // Body only offers getting a Stream<Uint8List> since it just sends
+    // the data out usually to a client. In this case, we want to store
+    // the bytes in the cache which requires several conversions to get a
+    // Uint8List that contains the bytes of the response.
     final List<int> rawBytes =
         await body.serialize().expand<int>((Uint8List chunk) => chunk).toList();
     return Uint8List.fromList(rawBytes);
