@@ -63,7 +63,12 @@ class CacheService {
       value = await subcache[key].get();
     } catch (e) {
       if (attempt < maxCacheGetAttempts) {
-        return getOrCreate(subcacheName, key, attempt: ++attempt, createFn: createFn);
+        return getOrCreate(
+          subcacheName,
+          key,
+          attempt: ++attempt,
+          createFn: createFn,
+        );
       } else {
         // Give up on trying to get the value from the cache.
         value = null;
