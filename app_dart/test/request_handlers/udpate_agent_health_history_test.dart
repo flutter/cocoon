@@ -89,7 +89,7 @@ void main() {
       /// Test `BigQuery` insert.
       expect(tableDataList.totalRows, '3');
       expect(log.records[0].message,
-          'Succeeded to insert 3 rows to flutter-dashboard-cocoon-AgentStatusTest');
+          'Succeeded to insert 3 rows to flutter-dashboard-cocoon-Agent');
 
       expect(result['AgentStatuses'], equals(expectedOrderedAgents));
     });
