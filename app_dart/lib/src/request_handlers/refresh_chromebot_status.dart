@@ -58,6 +58,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
                 final Task update = task.task;
                 update.status = luciTask.status;
                 transaction.queueMutations(inserts: <Task>[update]);
+                // Stop updating task whenever we find the latest status of the same commit.
+                break;
               }
             }
           }
