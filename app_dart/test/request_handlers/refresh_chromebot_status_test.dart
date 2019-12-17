@@ -54,6 +54,7 @@ void main() {
         key: (dynamic builder) => builder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(commitSha: 'abc', status: Task.statusNew),
+          const LuciTask(commitSha: 'abc', status: Task.statusFailed)
         ],
       );
       when(mockLuciService.getRecentTasks(
