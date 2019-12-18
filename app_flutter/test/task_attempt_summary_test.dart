@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show RootKey, Task;
+import 'package:cocoon_service/protos.dart' show Key, RootKey, Task;
 
 import 'package:app_flutter/task_attempt_summary.dart';
 
@@ -66,7 +66,7 @@ void main() {
         MaterialApp(
           home: TaskAttemptSummary(
             task: Task()
-              ..key = (RootKey()..namespace = 'loggylog')
+              ..key = (RootKey()..child = (Key()..name = 'loggylog'))
               ..attempts = 1,
           ),
         ),
@@ -79,7 +79,8 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': '${TaskAttemptSummary.stackdriverLogUrlBase}loggylog_1',
+            'url':
+                'https://console.cloud.google.com/logs/viewer?project=flutter-dashboard&resource=global&minLogLevel=0&expandAll=false&interval=NO_LIMIT&dateRangeUnbound=backwardInTime&logName=projects%2Fflutter-dashboard%2Flogs%2Floggylog_1',
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,
@@ -105,7 +106,7 @@ void main() {
         MaterialApp(
           home: TaskAttemptSummary(
             task: Task()
-              ..key = (RootKey()..namespace = 'loggylog')
+              ..key = (RootKey()..child = (Key()..name = 'loggylog'))
               ..attempts = 3,
           ),
         ),
