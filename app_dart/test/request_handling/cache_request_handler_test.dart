@@ -86,7 +86,6 @@ void main() {
           }));
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
       // ignore: invalid_use_of_protected_member
-
       when(fallbackHandlerMock.get())
           .thenAnswer((Invocation invocation) async => Body.empty);
 
