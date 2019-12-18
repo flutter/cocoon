@@ -5,10 +5,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
+import 'package:file/local.dart' as local;
+import 'package:file/file.dart' as file;
+import 'package:platform/platform.dart' as platform;
+
 import 'adb.dart';
 import 'agent.dart';
 import 'utils.dart';
-import 'package:path/path.dart' as path;
 
 final RegExp _kLinuxIpAddrExp = RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
 final RegExp _kWindowsIpAddrExp =
@@ -68,6 +73,9 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
         }
       });
     }
+
+    results['remove-xcode-derived-data'] =
+        await _captureErrors(removeXcodeDerivedData);
   });
 
   return results;
@@ -130,4 +138,25 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
   return HealthCheckResult.success(ip.isEmpty
       ? 'Unable to determine IP address. Is wired ethernet connected?'
       : 'Last known IP address: $ip');
+}
+
+/// Completely removes Xcode DerivedData directory.
+///
+/// There're two purposes. First, it's a well known trick to fix Xcode when
+/// Xcode behaves strangely for no obvious reason. Second, it avoids eating
+/// all of the remaining disk space over time.
+@visibleForTesting
+Future<HealthCheckResult> removeXcodeDerivedData(
+    {platform.Platform pf = const platform.LocalPlatform(),
+    file.FileSystem fs = const local.LocalFileSystem()}) async {
+  if (!pf.isMacOS) {
+    return HealthCheckResult.success();
+  }
+  String home = pf.environment['HOME'];
+  if (home == null) {
+    return HealthCheckResult.failure('Missing \$HOME environment variable.');
+  }
+  String p = path.join(home, 'Library/Developer/Xcode/DerivedData');
+  rrm(fs.directory(p));
+  return HealthCheckResult.success();
 }
