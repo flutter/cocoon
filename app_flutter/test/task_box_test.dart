@@ -20,7 +20,8 @@ void main() {
       ..attempts = 3
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
-      ..reason = 'Because I said so';
+      ..reason = 'Because I said so'
+      ..isFlaky = false;
     FlutterBuildState buildState;
 
     setUpAll(() {
@@ -177,7 +178,10 @@ void main() {
       );
 
       final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\nDuration: 0 minutes\nAgent: ${expectedTask.reservedForAgentId}';
+          'Attempts: ${expectedTask.attempts}\n'
+          'Duration: 0 minutes\n'
+          'Agent: ${expectedTask.reservedForAgentId}\n'
+          'Flaky: ${expectedTask.isFlaky}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -192,6 +196,41 @@ void main() {
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
+    });
+
+    testWidgets('overlay show flaky is true', (WidgetTester tester) async {
+      final Task flakyTask = Task()
+        ..attempts = 3
+        ..stageName = 'devicelab'
+        ..name = 'Tasky McTaskFace'
+        ..reason = 'Because I said so'
+        ..isFlaky = true;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: flakyTask,
+              commit: Commit(),
+            ),
+          ),
+        ),
+      );
+
+      final String expectedTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
+          'Duration: 0 minutes\n'
+          'Agent: ${flakyTask.reservedForAgentId}\n'
+          'Flaky: true';
+      expect(find.text(expectedTaskInfoString), findsNothing);
+
+      // Ensure the task indicator isn't showing when overlay is not shown
+      expect(find.byKey(const Key('task-overlay-key')), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTaskInfoString), findsOneWidget);
     });
 
     testWidgets('overlay message for nondevicelab tasks',
