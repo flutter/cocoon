@@ -109,6 +109,48 @@ void main() {
 
       expect(value, cat);
     });
+
+    test('sets ttl from set', () async {
+      final Cache<Uint8List> mockMainCache = MockCache();
+      final Cache<Uint8List> mockTestSubcache = MockCache();
+      when<Cache<Uint8List>>(mockMainCache.withPrefix(any))
+          .thenReturn(mockTestSubcache);
+
+      final Entry<Uint8List> entry = MockEntry();
+      when(mockTestSubcache[any]).thenAnswer((Invocation invocation) => entry);
+      cache.cacheValue = mockMainCache;
+
+      verifyNever(entry.set(any, any));
+
+      const Duration testDuration = Duration(days: 40);
+      await cache.set(
+          testSubcacheName, 'fish', Uint8List.fromList('bigger fish'.codeUnits),
+          ttl: testDuration);
+
+      verify(entry.set(any, testDuration)).called(1);
+    });
+
+    test('sets ttl is passed through correctly from createFn', () async {
+      final Cache<Uint8List> mockMainCache = MockCache();
+      final Cache<Uint8List> mockTestSubcache = MockCache();
+      when<Cache<Uint8List>>(mockMainCache.withPrefix(any))
+          .thenReturn(mockTestSubcache);
+
+      final Entry<Uint8List> entry = MockEntry();
+      when(mockTestSubcache[any]).thenAnswer((Invocation invocation) => entry);
+      cache.cacheValue = mockMainCache;
+
+      verifyNever(entry.set(any, any));
+
+      const Duration testDuration = Duration(days: 40);
+      await cache.getOrCreate(testSubcacheName, 'fish',
+          createFn: () async => Uint8List.fromList(
+                'bigger fish'.codeUnits,
+              ),
+          ttl: testDuration);
+
+      verify(entry.set(any, testDuration)).called(1);
+    });
   });
 }
 
@@ -132,3 +174,5 @@ class FakeEntry extends Entry<Uint8List> {
     return value;
   }
 }
+
+class MockEntry extends Mock implements FakeEntry {}
