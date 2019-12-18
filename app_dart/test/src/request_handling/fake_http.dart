@@ -626,10 +626,11 @@ class FakeHttpRequest extends FakeInbound implements HttpRequest {
     this.method = 'GET',
     String body,
     String path = '/',
+    Map<String, dynamic> queryParametersValue,
     FakeHttpResponse response,
   })  : assert(method != null),
         assert(path != null),
-        uri = Uri(path: path),
+        uri = Uri(path: path, queryParameters: queryParametersValue),
         response = response ?? FakeHttpResponse(),
         super(body);
 

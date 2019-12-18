@@ -3,14 +3,17 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/service/stackdriver_logger.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/log_chunk.dart';
+import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -18,10 +21,19 @@ import '../request_handling/exceptions.dart';
 
 @immutable
 class AppendLog extends ApiRequestHandler<Body> {
-  const AppendLog(
+  AppendLog(
     Config config,
-    AuthenticationProvider authenticationProvider,
-  ) : super(config: config, authenticationProvider: authenticationProvider);
+    AuthenticationProvider authenticationProvider, {
+    StackdriverLoggerService stackdriverLogger,
+    @visibleForTesting Uint8List requestBodyValue,
+  })  : stackdriverLogger =
+            stackdriverLogger ?? StackdriverLoggerService(config: config),
+        super(
+            config: config,
+            authenticationProvider: authenticationProvider,
+            requestBodyValue: requestBodyValue);
+
+  final StackdriverLoggerService stackdriverLogger;
 
   static const String ownerKeyParam = 'ownerKey';
 
@@ -38,12 +50,13 @@ class AppendLog extends ApiRequestHandler<Body> {
         KeyHelper(applicationContext: clientContext.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
-    await config.db.lookupValue<Model>(ownerKey, orElse: () {
+    final Task task = await config.db.lookupValue<Model>(ownerKey, orElse: () {
       throw const InternalServerError(
           'Invalid owner key. Owner entity does not exist');
     });
 
     final LogChunk logChunk = LogChunk(
+      key: ownerKey,
       ownerKey: ownerKey,
       createTimestamp: DateTime.now().millisecondsSinceEpoch,
       data: requestBody,
@@ -54,6 +67,19 @@ class AppendLog extends ApiRequestHandler<Body> {
       await transaction.commit();
     });
 
+    await writeToStackdriver('${encodedOwnerKey}_${task.attempts}');
+
     return Body.empty;
+  }
+
+  /// Write the log data from this request to Stackdriver under [logName].
+  ///
+  /// [logName] must follow the format `[encodedOwnerKey]_[task.attempt]` so each
+  /// attempt for a task can be located.
+  ///
+  /// This will write the log to the global path `projects/flutter-dashboard/logs/[logName]` on Google Cloud.
+  Future<void> writeToStackdriver(String logName) async {
+    final List<String> lines = String.fromCharCodes(requestBody).split('\n');
+    await stackdriverLogger.writeLines(logName, lines);
   }
 }

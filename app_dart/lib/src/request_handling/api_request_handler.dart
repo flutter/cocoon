@@ -32,6 +32,7 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   const ApiRequestHandler({
     @required Config config,
     @required this.authenticationProvider,
+    this.requestBodyValue,
   })  : assert(authenticationProvider != null),
         super(config: config);
 
@@ -69,7 +70,11 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
   ///  * [requestData], which contains the JSON-decoded [Map] of the request
   ///    body content (if applicable).
   @protected
-  Uint8List get requestBody => getValue<Uint8List>(ApiKey.requestBody);
+  Uint8List get requestBody =>
+      requestBodyValue ?? getValue<Uint8List>(ApiKey.requestBody);
+
+  /// Used for injecting [requestBody] in tests.
+  final Uint8List requestBodyValue;
 
   /// The JSON data specified in the HTTP request body.
   ///
