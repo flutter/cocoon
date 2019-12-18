@@ -13,7 +13,9 @@ echo "Running tests from $1"
 pushd $1 > /dev/null
 pub get
 
-dartfmt --set-exit-if-changed .
+echo "############# files that require formatting ###########"
+dartfmt -n --set-exit-if-changed .
+echo "#######################################################"
 
 # agent doesn't use build_runner as of this writing.
 if grep -lq "build_runner" pubspec.yaml; then
