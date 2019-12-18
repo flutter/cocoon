@@ -21,7 +21,7 @@ class AuthenticationStatus {
 
 class ApplicationService {
   static final _client = HttpClient();
-  static const _root = 'https://flutter-dashboard.appspot.com/';
+  static const _root = 'https://flutter-dashboard.appspot.com';
   static const _github = 'https://api.github.com';
 
   Future<AuthenticationStatus> fetchAuthenticationStatus() async {
