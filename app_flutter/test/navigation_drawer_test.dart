@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:app_flutter/index_page.dart';
 import 'package:app_flutter/navigation_drawer.dart';
 
 void main() {

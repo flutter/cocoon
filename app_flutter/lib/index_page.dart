@@ -132,7 +132,7 @@ class Index extends StatelessWidget {
             ],
           ),
         ),
-        drawer: NavigationDrawer(),
+        drawer: const NavigationDrawer(),
       ),
     );
   }
