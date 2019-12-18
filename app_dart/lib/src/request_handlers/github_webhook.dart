@@ -225,7 +225,7 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
+    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
     final List<String> builderNames = builders
         .where(
             (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
@@ -270,7 +270,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
   Future<bool> _checkForCqLabel(List<IssueLabel> labels) async {
-    final String cqLabelName = await config.cqLabelName;
+    final String cqLabelName = config.cqLabelName;
     return labels.any((IssueLabel label) => label.name == cqLabelName);
   }
 
@@ -365,7 +365,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _pingForTriage(
       GitHub gitHubClient, PullRequestEvent event) async {
-    final String body = await config.goldenTriageMessage;
+    final String body = config.goldenTriageMessage;
     final RepositorySlug slug = event.repository.slug();
     await gitHubClient.issues.createComment(slug, event.number, body);
   }
@@ -478,14 +478,14 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (!hasTests && needsTests && !isDraft) {
       // Googlers can edit this at http://shortn/_GjZ5AgUqV2
-      final String body = await config.missingTestsPullRequestMessage;
+      final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
         await gitHubClient.issues.createComment(slug, event.number, body);
       }
     }
 
     if (isGoldenChange) {
-      final String body = await config.goldenBreakingChangeMessage;
+      final String body = config.goldenBreakingChangeMessage;
       if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
         await gitHubClient.issues.createComment(slug, event.number, body);
       }
@@ -528,7 +528,7 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<String> _getWrongBaseComment(String base) async {
-    final String messageTemplate = await config.nonMasterPullRequestMessage;
+    final String messageTemplate = config.nonMasterPullRequestMessage;
     return messageTemplate.replaceAll('{{branch}}', base);
   }
 

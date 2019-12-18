@@ -5,28 +5,94 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 
-import '../datastore/cocoon_config.dart';
-
+/// Service for reading and writing values to a cache for quick access of data.
+///
+/// If [inMemory] is true, a cache with [inMemoryMaxNumberEntries] number
+/// of entries will be created. Otherwise, it will use the default redis cache.
 class CacheService {
-  CacheService(this.config);
+  CacheService({
+    bool inMemory = false,
+    int inMemoryMaxNumberEntries = 256,
+  }) : _provider = inMemory
+            ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
+            : Cache.redisCacheProvider(memorystoreUrl);
 
-  final Config config;
+  final CacheProvider<List<int>> _provider;
 
-  CacheProvider<List<int>> _provider;
+  Cache<Uint8List> get cache =>
+      cacheValue ??
+      Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
 
-  Future<Cache<Uint8List>> redisCache() async {
-    _provider = Cache.redisCacheProvider(await config.redisUrl);
-    return Cache<List<int>>(_provider)
-        .withCodec<Uint8List>(const _CacheCodec());
+  @visibleForTesting
+  Cache<Uint8List> cacheValue;
+
+  /// Google Cloud Memorystore default url.
+  static const String memorystoreUrl = 'redis://10.0.0.4:6379';
+
+  /// An arbritary number for how many times we should try to get from cache
+  /// before giving up.
+  ///
+  /// Writing to the cache creates a racy condition for when another operation
+  /// is trying to get the same key. This race condition throws an exception.
+  @visibleForTesting
+  static const int maxCacheGetAttempts = 3;
+
+  /// Get value of [key] from the subcache [subcacheName]. If the key has no
+  /// value, call [createFn] to create a value for it, set it, and return it.
+  ///
+  /// The underlying cache get function is inherently racy as if there is a
+  /// write operation while a read operation, getting the value can fail. To
+  /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
+  /// times before giving up. This is because the cache is magnitudes faster
+  /// than the fallback operation (usually a Datastore query).
+  Future<Uint8List> getOrCreate(
+    String subcacheName,
+    String key, {
+    int attempt = 1,
+    Future<Uint8List> Function() createFn,
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    Uint8List value;
+
+    try {
+      value = await subcache[key].get();
+    } catch (e) {
+      if (attempt < maxCacheGetAttempts) {
+        return getOrCreate(
+          subcacheName,
+          key,
+          attempt: ++attempt,
+          createFn: createFn,
+        );
+      } else {
+        // Give up on trying to get the value from the cache.
+        value = null;
+      }
+    }
+
+    if (value == null && createFn != null) {
+      // Try creating the value
+      value = await createFn();
+      await set(subcacheName, key, value, ttl: ttl);
+    }
+
+    return value;
   }
 
-  Future<Cache<Uint8List>> inMemoryCache(int size) async {
-    _provider = Cache.inMemoryCacheProvider(size);
-    return Cache<List<int>>(_provider)
-        .withCodec<Uint8List>(const _CacheCodec());
+  /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
+  Future<Uint8List> set(
+    String subcacheName,
+    String key,
+    Uint8List value, {
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    return subcache[key].set(value);
   }
 
   void dispose() {

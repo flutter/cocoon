@@ -100,7 +100,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
   }
 
   Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
-    final List<Map<String, dynamic>> builders = await config.luciBuilders;
+    final List<Map<String, dynamic>> builders = config.luciBuilders;
     final String repoName = builders.firstWhere(
         (Map<String, dynamic> builder) =>
             builder['name'] == builderName)['repo'];

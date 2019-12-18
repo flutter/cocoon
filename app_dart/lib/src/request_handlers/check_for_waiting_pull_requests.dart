@@ -78,7 +78,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Logging log,
     GraphQLClient client,
   ) async {
-    final String labelName = await config.waitingForTreeToGoGreenLabelName;
+    final String labelName = config.waitingForTreeToGoGreenLabelName;
 
     final QueryResult result = await client.query(
       QueryOptions(

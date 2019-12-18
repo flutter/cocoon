@@ -6,10 +6,10 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
-import 'package:neat_cache/neat_cache.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../request_handling/request_handler.dart';
+import '../service/cache_service.dart';
 import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.
@@ -30,32 +30,36 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// [RequestHandler] to fallback on for cache misses.
   final RequestHandler<T> delegate;
 
-  final Cache<Uint8List> cache;
+  final CacheService cache;
 
   /// The time to live for the response stored in the cache.
   final Duration ttl;
 
+  @visibleForTesting
+  static const String responseSubcacheName = 'response';
+
   /// Services a cached request.
   @override
   Future<T> get() async {
-    final Cache<Uint8List> responseCache =
-        cache.withPrefix(await config.redisResponseSubcache);
-
     final String responseKey = '${request.uri.path}:${request.uri.query}';
-    final Uint8List cachedResponse = await responseCache[responseKey].get();
+    final Uint8List cachedResponse = await cache.getOrCreate(
+        responseSubcacheName, responseKey,
+        createFn: () => getBodyBytesFromDelegate(delegate), ttl: ttl);
 
-    if (cachedResponse != null) {
-      return Body.forStream(Stream<Uint8List>.value(cachedResponse));
-    } else {
-      final Body body = await delegate.get();
-      final List<int> rawBytes = await body
-          .serialize()
-          .expand<int>((Uint8List chunk) => chunk)
-          .toList();
-      final Uint8List bytes = Uint8List.fromList(rawBytes);
-      await responseCache[responseKey].set(bytes, ttl);
+    return Body.forStream(Stream<Uint8List>.value(cachedResponse));
+  }
 
-      return body;
-    }
+  /// Get a Uint8List that contains the bytes of the response from [delegate]
+  /// so it can be stored in [cache].
+  Future<Uint8List> getBodyBytesFromDelegate(RequestHandler<T> delegate) async {
+    final Body body = await delegate.get();
+
+    // Body only offers getting a Stream<Uint8List> since it just sends
+    // the data out usually to a client. In this case, we want to store
+    // the bytes in the cache which requires several conversions to get a
+    // Uint8List that contains the bytes of the response.
+    final List<int> rawBytes =
+        await body.serialize().expand<int>((Uint8List chunk) => chunk).toList();
+    return Uint8List.fromList(rawBytes);
   }
 }
