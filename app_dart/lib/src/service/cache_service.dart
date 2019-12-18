@@ -55,7 +55,6 @@ class CacheService {
     int attempt = 1,
     Future<Uint8List> Function() createFn,
     Duration ttl = const Duration(minutes: 1),
-    bool flushCache = false,
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     Uint8List value;
@@ -80,7 +79,7 @@ class CacheService {
     // cache flush or if the value returned was null.
     //
     // Cache flush is a failover to manually fix cache issues in production.
-    if (createFn != null && (flushCache || value == null)) {
+    if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
       await set(subcacheName, key, value, ttl: ttl);
@@ -98,6 +97,12 @@ class CacheService {
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     return subcache[key].set(value, ttl);
+  }
+
+  /// Clear the value stored in subcache [subcacheName] for key [key].
+  Future<void> purge(String subcacheName, String key) {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    return subcache[key].purge(retries: maxCacheGetAttempts);
   }
 
   void dispose() {

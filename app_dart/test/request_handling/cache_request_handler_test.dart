@@ -77,7 +77,7 @@ void main() {
       verify(fallbackHandlerMock.get()).called(1);
     });
 
-    test('flush cache calls create', () async {
+    test('flush cache param calls purge', () async {
       tester = RequestHandlerTester(
           request: FakeHttpRequest(
               path: testHttpPath,
@@ -95,6 +95,7 @@ void main() {
 
       final Uint8List serializedBody = await expectedBody.serialize().first;
 
+      // set an existing response for the request
       await cache.set(CacheRequestHandler.responseSubcacheName, responseKey,
           serializedBody);
 

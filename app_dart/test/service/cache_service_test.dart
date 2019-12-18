@@ -110,6 +110,24 @@ void main() {
       expect(value, cat);
     });
 
+    test('purge removes value', () async {
+      const String testKey = 'abc';
+      final Uint8List expectedValue = Uint8List.fromList('123'.codeUnits);
+
+      await cache.set(testSubcacheName, testKey, expectedValue);
+
+      final Uint8List value =
+          await cache.getOrCreate(testSubcacheName, testKey);
+
+      expect(value, expectedValue);
+
+      await cache.purge(testSubcacheName, testKey);
+
+      final Uint8List valueAfterPurge =
+          await cache.getOrCreate(testSubcacheName, testKey);
+      expect(valueAfterPurge, isNull);
+    });
+
     test('sets ttl from set', () async {
       final Cache<Uint8List> mockMainCache = MockCache();
       final Cache<Uint8List> mockTestSubcache = MockCache();
