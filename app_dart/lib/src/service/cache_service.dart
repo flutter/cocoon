@@ -75,7 +75,8 @@ class CacheService {
       }
     }
 
-    if (value == null && createFn != null) {
+    // If given createFn, update the cache value if the value returned was null.
+    if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
       await set(subcacheName, key, value, ttl: ttl);
@@ -92,7 +93,13 @@ class CacheService {
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    return subcache[key].set(value);
+    return subcache[key].set(value, ttl);
+  }
+
+  /// Clear the value stored in subcache [subcacheName] for key [key].
+  Future<void> purge(String subcacheName, String key) {
+    final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
+    return subcache[key].purge(retries: maxCacheGetAttempts);
   }
 
   void dispose() {
