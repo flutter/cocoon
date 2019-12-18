@@ -5,7 +5,16 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
+  const NavigationDrawer({this.currentRoute});
+
+  /// When given, will make the corresponding [ListTile] selected.
+  ///
+  /// Since Navigator cannot provide the current route, must be passed
+  /// where this widget is used.
+  final String currentRoute;
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -20,19 +29,22 @@ class NavigationDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            key: const Key('nav-link-build'),
             title: const Text('Build'),
+            leading: Icon(Icons.build),
             onTap: () => Navigator.pushReplacementNamed(context, '/build'),
+            selected: currentRoute == '/build',
           ),
-          // ListTile(
-          //   title: const Text('Infra Agents'),
-          //   onTap: () => Navigator.pushNamed(context, '/agent.html'),
-          // ),
           ListTile(
-            title: const Text('Performance'),
+            key: const Key('nav-link-benchmarks'),
+            title: const Text('Benchmarks'),
+            leading: Icon(Icons.show_chart),
             onTap: () => launch('/benchmarks.html'),
           ),
           ListTile(
+            key: const Key('nav-link-repository'),
             title: const Text('Repository'),
+            leading: Icon(Icons.info_outline),
             onTap: () => launch('/repository.html'),
           ),
         ],
