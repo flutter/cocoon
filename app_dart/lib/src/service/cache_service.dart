@@ -75,10 +75,7 @@ class CacheService {
       }
     }
 
-    // If given createFn, we can update the cache value if we are forcing a
-    // cache flush or if the value returned was null.
-    //
-    // Cache flush is a failover to manually fix cache issues in production.
+    // If given createFn, update the cache value if the value returned was null.
     if (createFn != null && value == null) {
       // Try creating the value
       value = await createFn();
