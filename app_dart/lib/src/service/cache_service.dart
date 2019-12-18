@@ -92,7 +92,7 @@ class CacheService {
     Duration ttl = const Duration(minutes: 1),
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
-    return subcache[key].set(value);
+    return subcache[key].set(value, ttl);
   }
 
   void dispose() {
