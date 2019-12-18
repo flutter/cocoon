@@ -38,13 +38,20 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   @visibleForTesting
   static const String responseSubcacheName = 'response';
 
+  @visibleForTesting
+  static const String flushCacheQueryParam = 'flushCache';
+
   /// Services a cached request.
   @override
   Future<T> get() async {
     final String responseKey = '${request.uri.path}:${request.uri.query}';
     final Uint8List cachedResponse = await cache.getOrCreate(
-        responseSubcacheName, responseKey,
-        createFn: () => getBodyBytesFromDelegate(delegate), ttl: ttl);
+      responseSubcacheName,
+      responseKey,
+      createFn: () => getBodyBytesFromDelegate(delegate),
+      ttl: ttl,
+      flushCache: request.uri.queryParameters[flushCacheQueryParam] == 'true',
+    );
 
     return Body.forStream(Stream<Uint8List>.value(cachedResponse));
   }

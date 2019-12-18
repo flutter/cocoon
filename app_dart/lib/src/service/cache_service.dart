@@ -55,6 +55,7 @@ class CacheService {
     int attempt = 1,
     Future<Uint8List> Function() createFn,
     Duration ttl = const Duration(minutes: 1),
+    bool flushCache = false,
   }) async {
     final Cache<Uint8List> subcache = cache.withPrefix(subcacheName);
     Uint8List value;
@@ -75,7 +76,11 @@ class CacheService {
       }
     }
 
-    if (value == null && createFn != null) {
+    // If given createFn, we can update the cache value if we are forcing a
+    // cache flush or if the value returned was null.
+    //
+    // Cache flush is a failover to manually fix cache issues in production.
+    if (createFn != null && (flushCache || value == null)) {
       // Try creating the value
       value = await createFn();
       await set(subcacheName, key, value, ttl: ttl);

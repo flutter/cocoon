@@ -76,6 +76,46 @@ void main() {
       // ignore: invalid_use_of_protected_member
       verify(fallbackHandlerMock.get()).called(1);
     });
+
+    test('flush cache calls create', () async {
+      tester = RequestHandlerTester(
+          request: FakeHttpRequest(
+              path: testHttpPath,
+              queryParametersValue: <String, String>{
+            CacheRequestHandler.flushCacheQueryParam: 'true',
+          }));
+      final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
+      // ignore: invalid_use_of_protected_member
+
+      when(fallbackHandlerMock.get())
+          .thenAnswer((Invocation invocation) async => Body.empty);
+
+      const String responseKey = '$testHttpPath:';
+      const String expectedResponse = 'Hello, World!';
+      final Body expectedBody = Body.forString(expectedResponse);
+
+      final Uint8List serializedBody = await expectedBody.serialize().first;
+
+      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey,
+          serializedBody);
+
+      final CacheRequestHandler<Body> cacheRequestHandler =
+          CacheRequestHandler<Body>(
+              delegate: fallbackHandlerMock, cache: cache, config: config);
+
+      // ignore: invalid_use_of_protected_member
+      verifyNever(fallbackHandlerMock.get());
+
+      final Body body = await tester.get(cacheRequestHandler);
+      final Uint8List response = await body.serialize().first;
+      final String strResponse = utf8.decode(response);
+
+      // the mock should update the cache to have null -> empty string
+      expect(strResponse, '');
+
+      // ignore: invalid_use_of_protected_member
+      verify(fallbackHandlerMock.get()).called(1);
+    });
   });
 }
 
