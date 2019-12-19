@@ -10,10 +10,14 @@ import 'package:gcloud/db.dart';
 class LogChunk extends Model {
   /// Creates a new [LogChunk].
   LogChunk({
+    Key key,
     this.data,
     this.createTimestamp,
     this.ownerKey,
-  });
+  }) {
+    parentKey = key?.parent;
+    id = key?.id;
+  }
 
   /// The binary data of the log chunk.
   @BlobProperty(propertyName: 'Data', required: true)

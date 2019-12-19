@@ -26,6 +26,7 @@ class AppendLog extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider, {
     StackdriverLoggerService stackdriverLogger,
     @visibleForTesting Uint8List requestBodyValue,
+    @visibleForTesting this.key,
   })  : stackdriverLogger =
             stackdriverLogger ?? StackdriverLoggerService(config: config),
         super(
@@ -34,6 +35,9 @@ class AppendLog extends ApiRequestHandler<Body> {
             requestBodyValue: requestBodyValue);
 
   final StackdriverLoggerService stackdriverLogger;
+
+  /// Used in tests so [LogChunk] can be appended.
+  final Key key;
 
   static const String ownerKeyParam = 'ownerKey';
 
@@ -56,6 +60,7 @@ class AppendLog extends ApiRequestHandler<Body> {
     });
 
     final LogChunk logChunk = LogChunk(
+      key: key,
       ownerKey: ownerKey,
       createTimestamp: DateTime.now().millisecondsSinceEpoch,
       data: requestBody,
