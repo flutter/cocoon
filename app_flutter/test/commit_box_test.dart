@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/protos.dart' show Commit;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,13 +28,11 @@ void main() {
       ));
 
       // Image.Network throws a 400 exception in tests
-      // TODO(chillers): Uncomment when images added back. https://github.com/flutter/flutter/issues/45955
-      // expect(find.byType(Image), findsOneWidget);
-      // if (kIsWeb) {
-      //   expect(tester.takeException(),
-      //       const test.TypeMatcher<NetworkImageLoadException>());
-      // }
-      expect(find.text('A'), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {
@@ -49,9 +48,6 @@ void main() {
 
       await tester.tap(find.byType(CommitBox));
       await tester.pump();
-
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
 
       expect(find.text(shortSha), findsOneWidget);
       expect(find.text(expectedCommit.author), findsOneWidget);
