@@ -80,7 +80,8 @@ Future<void> main() async {
           // The separate HTML files are remnants from when Cocoon was written
           // with an Angular Dart frontend.
           final String flutterRouteName = filePath.replaceFirst('.html', '');
-          return await request.response.redirect(Uri.parse('/#$flutterRouteName'));
+          return await request.response
+              .redirect(Uri.parse('/#$flutterRouteName'));
         }
 
         await StaticFileHandler(filePath, config: config).service(request);
