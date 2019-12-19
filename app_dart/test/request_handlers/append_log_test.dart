@@ -81,32 +81,25 @@ Deleting build/ directories, if any.
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
           requiredCapabilities: <String>['ios']);
+      datastoreDB.values[commit.key] = commit;
       datastoreDB.values[task.key] = task;
-
-      // Give the task key so the LogChunk can be added to the fake datastore
-      handler = AppendLog(
-        config,
-        FakeAuthenticationProvider(),
-        stackdriverLogger: mockStackdriverLoggerService,
-        requestBodyValue: Uint8List.fromList(logData.codeUnits),
-        key: task.key,
-      );
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         AppendLog.ownerKeyParam: expectedTaskKeyEncoded,
       });
 
-      // Only task should exist in the db
-      expect(datastoreDB.values.keys.length, 1);
+      // Only task and commit should exist in the db
+      expect(datastoreDB.values.keys.length, 2);
 
       await tester.post(handler);
 
-      // Now task and a log chunk should exist
-      expect(datastoreDB.values.keys.length, 2);
+      // Now a log chunk should also exist
+      expect(datastoreDB.values.keys.length, 3);
 
-      // To get the log chunk key, remove the known task key
+      // To get the log chunk key, remove the known task and commit key
       final List<Key> dbKeys = datastoreDB.values.keys.toList();
       dbKeys.remove(task.key);
+      dbKeys.remove(commit.key);
       final Key logChunkKey = dbKeys[0];
 
       final LogChunk logChunk =

@@ -10,13 +10,13 @@ import 'package:gcloud/db.dart';
 class LogChunk extends Model {
   /// Creates a new [LogChunk].
   LogChunk({
-    Key key,
+    Key parentKeyValue,
     this.data,
     this.createTimestamp,
     this.ownerKey,
   }) {
-    parentKey = key?.parent;
-    id = key?.id;
+    // For LogChunks that reference a task, this should be the Checklist key.
+    parentKey = parentKeyValue;
   }
 
   /// The binary data of the log chunk.

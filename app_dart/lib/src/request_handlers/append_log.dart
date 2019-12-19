@@ -60,7 +60,7 @@ class AppendLog extends ApiRequestHandler<Body> {
     });
 
     final LogChunk logChunk = LogChunk(
-      key: key,
+      parentKeyValue: task.commitKey,
       ownerKey: ownerKey,
       createTimestamp: DateTime.now().millisecondsSinceEpoch,
       data: requestBody,
