@@ -9,10 +9,32 @@
 <html>
 <head>
   <meta http-equiv="refresh" content="1200">
+  <meta name="google-signin-scope" content="profile email">
+  <meta name="google-signin-client_id" content="308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com">
 
   <title>Flutter Benchmarks</title>
   <link href="benchmarks.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <style>
+    .login-button {
+      display: none;
+    }
+
+    #logout-button {
+      display: none;
+    }
+
+    #sign-in-required-banner {
+      display: none;
+    }
+
+    #sign-in-required-banner {
+      padding: 30px;
+      text-align: center;
+      background-color: #ffc4c4;
+    }
+  </style>
 
   <script>
   (function(w,d,s,g,js,fjs){
@@ -22,10 +44,17 @@
     fjs.parentNode.insertBefore(js,fjs);js.onload=function(){g.load('analytics')};
   }(window,document,'script'));
   </script>
+  <script src="google_signin.js"></script>
 </head>
 <body>
   <div id="container">
     <benchmark-grid></benchmark-grid>
+
+    <footer id="page-footer">
+      <div class="g-signin2" data-onsuccess="onSignIn" data-onfailure="onSignInFailure" data-theme="dark"></div>
+      <button class="login-button">Sign in with Google</button>
+      <button id="logout-button">Sign out of Google</button>
+    </footer>
   </div>
 
   <script defer src="benchmarks.dart.js"></script>

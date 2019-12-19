@@ -110,13 +110,6 @@ Future<bool> _buildFlutterWebApp() async {
 
   final bool successfulReturn = await process.exitCode == 0;
 
-  // Move the build dashboard project to build.html to replace the Angular Dart
-  // build dashboard page. Just changing the name is fine as its assets do not
-  // have conflicts.
-  await Process.run(
-      'mv', <String>['build/web/index.html', 'build/web/build.html'],
-      workingDirectory: flutterProjectDirectory);
-
   return successfulReturn;
 }
 

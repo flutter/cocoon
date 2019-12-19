@@ -74,6 +74,16 @@ Future<void> main() async {
       } else {
         final String filePath = request.uri.toFilePath();
 
+        const List<String> indexRedirects = <String>['/build.html'];
+        if (indexRedirects.contains(filePath)) {
+          request.response.statusCode = HttpStatus.permanentRedirect;
+          // The separate HTML files are remnants from when Cocoon was written
+          // with an Angular Dart frontend.
+          final String flutterRouteName = filePath.replaceFirst('.html', '');
+          return await request.response
+              .redirect(Uri.parse('/#$flutterRouteName'));
+        }
+
         await StaticFileHandler(filePath, config: config).service(request);
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {

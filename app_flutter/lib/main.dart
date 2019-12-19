@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import 'build_dashboard.dart';
+import 'index_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -19,7 +20,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Build Dashboard',
       theme: theme,
-      home: BuildDashboardPage(),
+      initialRoute: '/',
+      routes: <String, WidgetBuilder>{
+        '/': (BuildContext context) => IndexPage(),
+        '/build': (BuildContext context) => BuildDashboardPage(),
+      },
     );
   }
 }
