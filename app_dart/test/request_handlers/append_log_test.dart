@@ -42,9 +42,6 @@ Deleting build/ directories, if any.
     const String expectedTaskKeyEncoded =
         'ag9zfnR2b2xrZXJ0LXRlc3RyWAsSCUNoZWNrbGlzdCI4Zmx1dHRlci9mbHV0dGVyLzdkMDMzNzE2MTBjMDc5NTNhNWRlZjUwZDUwMDA0NTk0MWRlNTE2YjgMCxIEVGFzaxiAgIDg5eGTCAw';
 
-    Commit commit;
-    Task task;
-
     setUp(() {
       tester = ApiRequestHandlerTester();
       datastoreDB = FakeDatastoreDB();
@@ -52,21 +49,12 @@ Deleting build/ directories, if any.
         dbValue: datastoreDB,
       );
 
-      commit = Commit(
-          key: datastoreDB.emptyKey.append(Commit,
-              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
-      task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          requiredCapabilities: <String>['ios']);
-
       mockStackdriverLoggerService = MockStackdriverLoggerService();
       handler = AppendLog(
         config,
         FakeAuthenticationProvider(),
         stackdriverLogger: mockStackdriverLoggerService,
         requestBodyValue: Uint8List.fromList(logData.codeUnits),
-        key: task.key,
       );
     });
 
@@ -86,7 +74,23 @@ Deleting build/ directories, if any.
     });
 
     test('adds log chunk to datastore', () async {
+      final Commit commit = Commit(
+          key: datastoreDB.emptyKey.append(Commit,
+              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          requiredCapabilities: <String>['ios']);
       datastoreDB.values[task.key] = task;
+
+      // Give the task key so the LogChunk can be added to the fake datastore
+      handler = AppendLog(
+        config,
+        FakeAuthenticationProvider(),
+        stackdriverLogger: mockStackdriverLoggerService,
+        requestBodyValue: Uint8List.fromList(logData.codeUnits),
+        key: task.key,
+      );
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         AppendLog.ownerKeyParam: expectedTaskKeyEncoded,
