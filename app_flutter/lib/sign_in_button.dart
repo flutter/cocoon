@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/canvaskit_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -24,13 +25,18 @@ class SignInButton extends StatelessWidget {
         /// On sign out, there's a second where the user is null before isAuthenticated catches up.
         if (isAuthenticated.data == true && authService.user != null) {
           return PopupMenuButton<String>(
-            // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
             // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
             // CanvasKit currently cannot render a NetworkImage because of CORS issues.
-            // child: Image.network(authService.user?.photoUrl),
-            child: Icon(
-              Icons.account_circle,
-              size: 42,
+            child: CanvasKitWidget(
+              canvaskit: Padding(
+                child: Icon(
+                  Icons.account_circle,
+                  size: 42,
+                ),
+                padding: const EdgeInsets.only(right: 10.0),
+              ),
+              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
+              other: Image.network(authService.user?.photoUrl),
             ),
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
