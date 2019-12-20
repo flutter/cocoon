@@ -62,6 +62,8 @@ class GithubWebhook extends RequestHandler<Body> {
       return Body.empty;
     } on FormatException {
       throw const BadRequestException('Could not process input data.');
+    } on InternalServerError {
+      rethrow;
     }
   }
 
@@ -257,6 +259,9 @@ class GithubWebhook extends RequestHandler<Body> {
             (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
         .map<String>((Map<String, dynamic> builder) => builder['name'])
         .toList();
+    if (builderNames.isEmpty) {
+      throw InternalServerError('$repositoryName does not have any builders');
+    }
 
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {

@@ -707,6 +707,35 @@ void main() {
         request.headers.set('X-GitHub-Event', 'pull_request');
       });
 
+      test('Exception is raised when no builders available', () async {
+        config.luciTryBuildersValue = <Map<String, dynamic>>[];
+        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
+          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
+            IssueLabel()..name = 'Random Label',
+          ]);
+        });
+
+        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+          return const BatchResponse(
+            responses: <Response>[
+              Response(
+                searchBuilds: SearchBuildsResponse(
+                  builds: <Build>[],
+                ),
+              ),
+            ],
+          );
+        });
+
+        request.body = jsonTemplate('labeled', issueNumber, 'master',
+            repoFullName: 'flutter/cocoon', repoName: 'cocoon');
+        final Uint8List body = utf8.encode(request.body);
+        final Uint8List key = utf8.encode(keyString);
+        final String hmac = getHmac(body, key);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+        expect(tester.post(webhook), throwsA(isA<InternalServerError>()));
+      });
+
       test('Optional repo - Not schedule build when labeled without CQ',
           () async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
