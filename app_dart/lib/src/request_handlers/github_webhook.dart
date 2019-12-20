@@ -209,13 +209,8 @@ class GithubWebhook extends RequestHandler<Body> {
     ]));
     return batch.responses
         .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse response) {
-      if (response.builds != null) {
-        return response.builds;
-      } else {
-        return <Build>[];
-      }
-    }).toList();
+        .expand((SearchBuildsResponse response) => response.builds ?? <Build>[])
+        .toList();
   }
 
   Future<bool> _scheduleLuci({
