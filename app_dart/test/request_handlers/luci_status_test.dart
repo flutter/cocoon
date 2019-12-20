@@ -65,7 +65,7 @@ void main() {
       }),
     );
 
-    config.luciBuildersValue = json.decode('''[
+    config.luciTryBuildersValue = json.decode('''[
       {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
       {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
       {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
