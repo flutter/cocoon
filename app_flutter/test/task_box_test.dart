@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
@@ -179,7 +180,8 @@ void main() {
 
       final String expectedTaskInfoString =
           'Attempts: ${expectedTask.attempts}\n'
-          'Duration: 0 minutes\n'
+          'Run time: 0 minutes\n'
+          'Queue time: 0 seconds\n'
           'Agent: ${expectedTask.reservedForAgentId}\n'
           'Flaky: ${expectedTask.isFlaky}';
       expect(find.text(expectedTask.name), findsNothing);
@@ -219,7 +221,8 @@ void main() {
       );
 
       final String expectedTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
-          'Duration: 0 minutes\n'
+          'Run time: 0 minutes\n'
+          'Queue time: 0 seconds\n'
           'Agent: ${flakyTask.reservedForAgentId}\n'
           'Flaky: true';
       expect(find.text(expectedTaskInfoString), findsNothing);
@@ -227,6 +230,43 @@ void main() {
       // Ensure the task indicator isn't showing when overlay is not shown
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
 
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      expect(find.text(expectedTaskInfoString), findsOneWidget);
+    });
+
+    testWidgets('durations are correct time', (WidgetTester tester) async {
+      final Task timeTask = Task()
+        ..attempts = 1
+        ..stageName = 'devicelab'
+        ..name = 'Tasky McTaskFace'
+        ..reason = 'Because I said so'
+        ..isFlaky = true
+        ..createTimestamp = Int64.parseInt('0') // created at 0ms
+        ..startTimestamp = Int64.parseInt('10000') // started after 10 seconds
+        ..endTimestamp = Int64.parseInt('490000'); // ended after 8 minutes
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: timeTask,
+              commit: Commit(),
+            ),
+          ),
+        ),
+      );
+
+      final String expectedTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+          'Run time: 8 minutes\n'
+          'Queue time: 10 seconds\n'
+          'Agent: ${timeTask.reservedForAgentId}\n'
+          'Flaky: true';
+      expect(find.text(expectedTaskInfoString), findsNothing);
+
+      // open the overlay to show the task summary
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
 
