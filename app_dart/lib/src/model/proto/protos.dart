@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+export 'internal/agent.pb.dart';
 export 'internal/commit.pb.dart';
 export 'internal/commit_status.pb.dart';
 export 'internal/key.pb.dart';
