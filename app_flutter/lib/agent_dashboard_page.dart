@@ -90,6 +90,7 @@ class AgentDashboard extends StatelessWidget {
           ],
         ),
         body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(height: 25),
             Expanded(

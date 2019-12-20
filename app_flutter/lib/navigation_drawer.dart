@@ -54,6 +54,12 @@ class NavigationDrawer extends StatelessWidget {
             onTap: () => Navigator.pushReplacementNamed(context, '/agents'),
             selected: currentRoute == '/agents',
           ),
+          ListTile(
+            key: const Key('nav-link-source'),
+            title: const Text('Source Code'),
+            leading: Icon(Icons.code),
+            onTap: () => launch('https://github.com/flutter/cocoon'),
+          ),
         ],
       ),
     );

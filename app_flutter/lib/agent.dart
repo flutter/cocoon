@@ -13,10 +13,25 @@ class AgentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final DateTime currentTime = DateTime.now();
+    final DateTime agentTime =
+        DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
+    final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
+    final bool isHealthy =
+        agentLastUpdateDuration.inMinutes < 10 && agent.isHealthy;
+
     return Card(
       child: ListTile(
-        leading: _getIconFromId(agent.agentId),
+        leading: CircleAvatar(
+          backgroundColor: isHealthy ? Colors.green : Colors.red,
+          foregroundColor: Colors.white,
+          child: _getIconFromId(agent.agentId),
+        ),
         title: Text(agent.agentId),
+        trailing: IconButton(
+          icon: Icon(Icons.more_vert),
+          onPressed: () => print('authorize'),
+        ),
       ),
     );
   }
