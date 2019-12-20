@@ -6,8 +6,7 @@ import 'dart:math';
 
 import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart';
 
 import 'cocoon.dart';
 
@@ -31,6 +30,11 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
+    return CocoonResponse<List<Agent>>()..data = _createFakeAgentStatuses();
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     return false;
   }
@@ -38,6 +42,24 @@ class FakeCocoonService implements CocoonService {
   @override
   Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     return false;
+  }
+
+  @override
+  Future<String> createAgent(
+          String agentId, List<String> capabilities, String idToken) async =>
+      'abc123';
+
+  List<Agent> _createFakeAgentStatuses() {
+    return List<Agent>.generate(
+      10,
+      (int i) => Agent()
+        ..agentId = 'dash-test-$i'
+        ..capabilities.add('moral support')
+        ..isHealthy = true
+        ..isHidden = false
+        ..healthCheckTimestamp =
+            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString()),
+    );
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {

@@ -9,8 +9,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Key, RootKey, Stage, Task;
+import 'package:cocoon_service/protos.dart';
 
 import 'cocoon.dart';
 import 'downloader.dart';
@@ -88,6 +87,28 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
+    final String getStatusUrl = _apiEndpoint('/api/public/get-status');
+
+    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
+    final http.Response response = await _client.get(getStatusUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      print(response.body);
+      return CocoonResponse<List<Agent>>()
+        ..error = '/api/public/get-status returned ${response.statusCode}';
+    }
+
+    try {
+      final Map<String, Object> jsonResponse = jsonDecode(response.body);
+      return CocoonResponse<List<Agent>>()
+        ..data = _agentStatusesFromJson(jsonResponse['AgentStatuses']);
+    } catch (error) {
+      return CocoonResponse<List<Agent>>()..error = error.toString();
+    }
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
     final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
@@ -125,6 +146,36 @@ class AppEngineCocoonService implements CocoonService {
     return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
+  @override
+  Future<String> createAgent(
+      String agentId, List<String> capabilities, String idToken) async {
+    assert(agentId != null);
+    assert(capabilities.isNotEmpty);
+    assert(idToken != null);
+
+    final String createAgentUrl = _apiEndpoint('/api/create-agent');
+
+    final http.Response response = await _client.post(
+      createAgentUrl,
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
+      body: jsonEncode(<String, Object>{
+        'AgentId': agentId,
+        'Capabilities': capabilities,
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('create agent did not respond with 200');
+    }
+
+    final Map<String, Object> responseBody = jsonDecode(response.body);
+    if (responseBody['Token'] == null) {
+      throw Exception('create agent returned unexpected response');
+    }
+
+    return responseBody['Token'];
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///
@@ -158,6 +209,24 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     return true;
+  }
+
+  List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {
+    final List<Agent> agents = <Agent>[];
+
+    for (Map<String, Object> jsonAgent in jsonAgentStatuses) {
+      final Agent agent = Agent()
+        ..agentId = jsonAgent['AgentId']
+        ..healthCheckTimestamp =
+            Int64.parseInt(jsonAgent['HealthCheckTimestamp'])
+        ..isHealthy = jsonAgent['IsHealthy']
+        ..capabilities.addAll(jsonAgent['Capabilities'])
+        ..healthDetails = jsonAgent['HealthDetails'];
+
+      agents.add(agent);
+    }
+
+    return agents;
   }
 
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {

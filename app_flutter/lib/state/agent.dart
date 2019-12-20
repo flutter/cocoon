@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent, CommitStatus;
+import 'package:cocoon_service/protos.dart' show Agent;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -24,13 +24,13 @@ class AgentState extends ChangeNotifier {
         GoogleSignInService(notifyListeners: notifyListeners);
   }
 
-  /// Cocoon backend service that retrieves the data needed for this state.
+  /// Cocoon backend service that retrieves the data needed for current infra status.
   final CocoonService _cocoonService;
 
   /// Authentication service for managing Google Sign In.
   GoogleSignInService authService;
 
-  /// How often to query the Cocoon backend for the current build state.
+  /// How often to query the Cocoon backend for the current agent statuses.
   @visibleForTesting
   final Duration refreshRate = const Duration(minutes: 1);
 
@@ -39,8 +39,8 @@ class AgentState extends ChangeNotifier {
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
-  List<CommitStatus> _statuses = <CommitStatus>[];
-  List<CommitStatus> get statuses => _statuses;
+  List<Agent> _agents = <Agent>[];
+  List<Agent> get agents => _agents;
 
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [AgentState].
   AgentStateErrors errors = AgentStateErrors();
@@ -50,7 +50,7 @@ class AgentState extends ChangeNotifier {
       'An error occured fetching agent statuses from Cocoon';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  Future<void> startFetchingBuildStateUpdates() async {
+  Future<void> startFetchingStateUpdates() async {
     if (refreshTimer != null) {
       // There's already an update loop, no need to make another.
       return;
@@ -63,23 +63,28 @@ class AgentState extends ChangeNotifier {
         Timer.periodic(refreshRate, (_) => _fetchAgentStatusUpdate());
   }
 
-  /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
+  /// Request the latest agent statuses from [CocoonService].
   Future<void> _fetchAgentStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService
-          .fetchCommitStatuses()
-          .then((CocoonResponse<List<CommitStatus>> response) {
+          .fetchAgentStatuses()
+          .then((CocoonResponse<List<Agent>> response) {
         if (response.error != null) {
           print(response.error);
           errors.message = errorMessageFetchingStatuses;
           errors.notifyListeners();
         } else {
-          _statuses = response.data;
+          _agents = response.data;
         }
         notifyListeners();
       }),
     ]);
   }
+
+  /// Create [Agent] in Cocoon.
+  Future<String> createAgent(String agentId, List<String> capabilities) async =>
+      _cocoonService.createAgent(
+          agentId, capabilities, await authService.idToken);
 
   Future<void> signIn() => authService.signIn();
   Future<void> signOut() => authService.signOut();

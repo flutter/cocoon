@@ -9,7 +9,6 @@ import 'navigation_drawer.dart';
 import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
 import 'state/agent.dart';
-import 'status_grid.dart';
 
 /// [AgentDashboardPage] parent widget that manages the state of the dashboard.
 class AgentDashboardPage extends StatefulWidget {
@@ -33,7 +32,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
   void initState() {
     super.initState();
 
-    widget.agentState.startFetchingBuildStateUpdates();
+    widget.agentState.startFetchingStateUpdates();
 
     widget.agentState.errors.addListener(_showErrorSnackbar);
   }
@@ -90,8 +89,7 @@ class AgentDashboard extends StatelessWidget {
           ],
         ),
         body: Column(
-          children: const <Widget>[
-          ],
+          children: const <Widget>[],
         ),
         drawer: const NavigationDrawer(
           currentRoute: '/agents',

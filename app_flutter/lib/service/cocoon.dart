@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task;
 
 import 'appengine_cocoon.dart';
 import 'fake_cocoon.dart';
@@ -33,6 +33,9 @@ abstract class CocoonService {
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<bool>> fetchTreeBuildStatus();
 
+  /// Get the current Flutter infra agent statuses.
+  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses();
+
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.
@@ -41,6 +44,12 @@ abstract class CocoonService {
   /// Writes the log for [Task] to local storage of the current device.
   /// Returns true if successful, false if failed.
   Future<bool> downloadLog(Task task, String idToken, String commitSha);
+
+  /// Creates [Agent] with the given information.
+  ///
+  /// Returns an auth token used to authorize the agent.
+  Future<String> createAgent(
+      String agentId, List<String> capabilities, String idToken);
 }
 
 /// Wrapper class for data this state serves.
