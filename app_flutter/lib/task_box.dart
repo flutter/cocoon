@@ -308,9 +308,15 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int taskDurationInSeconds =
-        (task.endTimestamp - task.startTimestamp).toInt() ~/ 100;
-    final int taskDurationInMinutes = taskDurationInSeconds ~/ 60;
+    final DateTime createTime =
+        DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
+    final DateTime startTime =
+        DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
+    final DateTime endTime =
+        DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
+
+    final Duration queueDuration = startTime.difference(createTime);
+    final Duration runDuration = endTime.difference(startTime);
 
     return Card(
       child: Column(
@@ -322,7 +328,8 @@ class TaskOverlayContents extends StatelessWidget {
             title: Text(task.name),
             subtitle: isDevicelab(task)
                 ? Text('Attempts: ${task.attempts}\n'
-                    'Duration: $taskDurationInMinutes minutes\n'
+                    'Run time: ${runDuration.inMinutes} minutes\n'
+                    'Queue time: ${queueDuration.inSeconds} seconds\n'
                     'Agent: ${task.reservedForAgentId}\n'
                     'Flaky: ${task.isFlaky}')
                 : const Text('Task was run outside of devicelab'),
