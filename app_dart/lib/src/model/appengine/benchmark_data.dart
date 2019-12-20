@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/appengine/time_series_entity.dart';
 import 'package:json_annotation/json_annotation.dart';
+
 import 'time_series_entity.dart';
 import 'time_series_value.dart';
 

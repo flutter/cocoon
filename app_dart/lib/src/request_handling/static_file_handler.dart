@@ -12,7 +12,6 @@ import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 
-import 'body.dart';
 import 'exceptions.dart';
 
 /// A class based on [RequestHandler] for serving static files.
