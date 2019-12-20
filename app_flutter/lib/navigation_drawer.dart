@@ -47,6 +47,13 @@ class NavigationDrawer extends StatelessWidget {
             leading: Icon(Icons.info_outline),
             onTap: () => launch('/repository.html'),
           ),
+          ListTile(
+            key: const Key('nav-link-agents'),
+            title: const Text('Infra Agents'),
+            leading: Icon(Icons.android),
+            onTap: () => Navigator.pushReplacementNamed(context, '/agents'),
+            selected: currentRoute == '/agents',
+          ),
         ],
       ),
     );
