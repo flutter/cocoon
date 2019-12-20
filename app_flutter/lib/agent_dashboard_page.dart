@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'agent.dart';
 import 'navigation_drawer.dart';
 import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
@@ -89,10 +90,24 @@ class AgentDashboard extends StatelessWidget {
           ],
         ),
         body: Column(
-          children: const <Widget>[],
+          children: <Widget>[
+            Container(height: 25),
+            Expanded(
+              child: ListView(
+                children: List<Widget>.generate(
+                  agentState.agents.length,
+                  (int i) => AgentTile(agentState.agents[i]),
+                ),
+              ),
+            ),
+          ],
         ),
         drawer: const NavigationDrawer(
           currentRoute: '/agents',
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add_to_queue),
+          onPressed: () => print('trying to work'),
         ),
       ),
     );
