@@ -21,7 +21,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.2"
+    version: "0.10.4"
   args:
     dependency: transitive
     description:
@@ -455,7 +455,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.16+1"
+    version: "1.0.1"
   pub_semver:
     dependency: transitive
     description:

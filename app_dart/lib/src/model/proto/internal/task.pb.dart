@@ -5,20 +5,17 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-import 'dart:core' as $core
-    show bool, Deprecated, double, int, List, Map, override, pragma, String;
+import 'dart:core' as $core;
 
-import 'package:fixnum/fixnum.dart';
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'key.pb.dart' as $0;
 
 class Task extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Task')
-    ..a<$0.RootKey>(
-        1, 'key', $pb.PbFieldType.OM, $0.RootKey.getDefault, $0.RootKey.create)
-    ..a<$0.RootKey>(2, 'commitKey', $pb.PbFieldType.OM, $0.RootKey.getDefault,
-        $0.RootKey.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Task', createEmptyInstance: create)
+    ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
+    ..aOM<$0.RootKey>(2, 'commitKey', subBuilder: $0.RootKey.create)
     ..aInt64(3, 'createTimestamp')
     ..aInt64(4, 'startTimestamp')
     ..aInt64(5, 'endTimestamp')
@@ -28,133 +25,149 @@ class Task extends $pb.GeneratedMessage {
     ..a<$core.int>(9, 'timeoutInMinutes', $pb.PbFieldType.O3)
     ..aOS(10, 'reason')
     ..pPS(11, 'requiredCapabilities')
-    ..aOS(12, 'reservedForAgentId')
+    ..aOS(12, 'reservedForAgentId', protoName: 'reserved_for_agentId')
     ..aOS(13, 'stageName')
     ..aOS(14, 'status')
-    ..hasRequiredFields = false;
+    ..hasRequiredFields = false
+  ;
 
   Task._() : super();
   factory Task() => create();
-  factory Task.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory Task.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
+  factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
   Task clone() => Task()..mergeFromMessage(this);
-  Task copyWith(void Function(Task) updates) =>
-      super.copyWith((message) => updates(message as Task));
+  Task copyWith(void Function(Task) updates) => super.copyWith((message) => updates(message as Task));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Task create() => Task._();
   Task createEmptyInstance() => create();
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
-  static Task getDefault() => _defaultInstance ??= create()..freeze();
+  @$core.pragma('dart2js:noInline')
+  static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
   static Task _defaultInstance;
 
+  @$pb.TagNumber(1)
   $0.RootKey get key => $_getN(0);
-  set key($0.RootKey v) {
-    setField(1, v);
-  }
-
+  @$pb.TagNumber(1)
+  set key($0.RootKey v) { setField(1, v); }
+  @$pb.TagNumber(1)
   $core.bool hasKey() => $_has(0);
+  @$pb.TagNumber(1)
   void clearKey() => clearField(1);
+  @$pb.TagNumber(1)
+  $0.RootKey ensureKey() => $_ensure(0);
 
+  @$pb.TagNumber(2)
   $0.RootKey get commitKey => $_getN(1);
-  set commitKey($0.RootKey v) {
-    setField(2, v);
-  }
-
+  @$pb.TagNumber(2)
+  set commitKey($0.RootKey v) { setField(2, v); }
+  @$pb.TagNumber(2)
   $core.bool hasCommitKey() => $_has(1);
+  @$pb.TagNumber(2)
   void clearCommitKey() => clearField(2);
+  @$pb.TagNumber(2)
+  $0.RootKey ensureCommitKey() => $_ensure(1);
 
-  Int64 get createTimestamp => $_getI64(2);
-  set createTimestamp(Int64 v) {
-    $_setInt64(2, v);
-  }
-
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get createTimestamp => $_getI64(2);
+  @$pb.TagNumber(3)
+  set createTimestamp($fixnum.Int64 v) { $_setInt64(2, v); }
+  @$pb.TagNumber(3)
   $core.bool hasCreateTimestamp() => $_has(2);
+  @$pb.TagNumber(3)
   void clearCreateTimestamp() => clearField(3);
 
-  Int64 get startTimestamp => $_getI64(3);
-  set startTimestamp(Int64 v) {
-    $_setInt64(3, v);
-  }
-
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get startTimestamp => $_getI64(3);
+  @$pb.TagNumber(4)
+  set startTimestamp($fixnum.Int64 v) { $_setInt64(3, v); }
+  @$pb.TagNumber(4)
   $core.bool hasStartTimestamp() => $_has(3);
+  @$pb.TagNumber(4)
   void clearStartTimestamp() => clearField(4);
 
-  Int64 get endTimestamp => $_getI64(4);
-  set endTimestamp(Int64 v) {
-    $_setInt64(4, v);
-  }
-
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get endTimestamp => $_getI64(4);
+  @$pb.TagNumber(5)
+  set endTimestamp($fixnum.Int64 v) { $_setInt64(4, v); }
+  @$pb.TagNumber(5)
   $core.bool hasEndTimestamp() => $_has(4);
+  @$pb.TagNumber(5)
   void clearEndTimestamp() => clearField(5);
 
-  $core.String get name => $_getS(5, '');
-  set name($core.String v) {
-    $_setString(5, v);
-  }
-
+  @$pb.TagNumber(6)
+  $core.String get name => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set name($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
   $core.bool hasName() => $_has(5);
+  @$pb.TagNumber(6)
   void clearName() => clearField(6);
 
-  $core.int get attempts => $_get(6, 0);
-  set attempts($core.int v) {
-    $_setSignedInt32(6, v);
-  }
-
+  @$pb.TagNumber(7)
+  $core.int get attempts => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set attempts($core.int v) { $_setSignedInt32(6, v); }
+  @$pb.TagNumber(7)
   $core.bool hasAttempts() => $_has(6);
+  @$pb.TagNumber(7)
   void clearAttempts() => clearField(7);
 
-  $core.bool get isFlaky => $_get(7, false);
-  set isFlaky($core.bool v) {
-    $_setBool(7, v);
-  }
-
+  @$pb.TagNumber(8)
+  $core.bool get isFlaky => $_getBF(7);
+  @$pb.TagNumber(8)
+  set isFlaky($core.bool v) { $_setBool(7, v); }
+  @$pb.TagNumber(8)
   $core.bool hasIsFlaky() => $_has(7);
+  @$pb.TagNumber(8)
   void clearIsFlaky() => clearField(8);
 
-  $core.int get timeoutInMinutes => $_get(8, 0);
-  set timeoutInMinutes($core.int v) {
-    $_setSignedInt32(8, v);
-  }
-
+  @$pb.TagNumber(9)
+  $core.int get timeoutInMinutes => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set timeoutInMinutes($core.int v) { $_setSignedInt32(8, v); }
+  @$pb.TagNumber(9)
   $core.bool hasTimeoutInMinutes() => $_has(8);
+  @$pb.TagNumber(9)
   void clearTimeoutInMinutes() => clearField(9);
 
-  $core.String get reason => $_getS(9, '');
-  set reason($core.String v) {
-    $_setString(9, v);
-  }
-
+  @$pb.TagNumber(10)
+  $core.String get reason => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set reason($core.String v) { $_setString(9, v); }
+  @$pb.TagNumber(10)
   $core.bool hasReason() => $_has(9);
+  @$pb.TagNumber(10)
   void clearReason() => clearField(10);
 
+  @$pb.TagNumber(11)
   $core.List<$core.String> get requiredCapabilities => $_getList(10);
 
-  $core.String get reservedForAgentId => $_getS(11, '');
-  set reservedForAgentId($core.String v) {
-    $_setString(11, v);
-  }
-
+  @$pb.TagNumber(12)
+  $core.String get reservedForAgentId => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set reservedForAgentId($core.String v) { $_setString(11, v); }
+  @$pb.TagNumber(12)
   $core.bool hasReservedForAgentId() => $_has(11);
+  @$pb.TagNumber(12)
   void clearReservedForAgentId() => clearField(12);
 
-  $core.String get stageName => $_getS(12, '');
-  set stageName($core.String v) {
-    $_setString(12, v);
-  }
-
+  @$pb.TagNumber(13)
+  $core.String get stageName => $_getSZ(12);
+  @$pb.TagNumber(13)
+  set stageName($core.String v) { $_setString(12, v); }
+  @$pb.TagNumber(13)
   $core.bool hasStageName() => $_has(12);
+  @$pb.TagNumber(13)
   void clearStageName() => clearField(13);
 
-  $core.String get status => $_getS(13, '');
-  set status($core.String v) {
-    $_setString(13, v);
-  }
-
+  @$pb.TagNumber(14)
+  $core.String get status => $_getSZ(13);
+  @$pb.TagNumber(14)
+  set status($core.String v) { $_setString(13, v); }
+  @$pb.TagNumber(14)
   $core.bool hasStatus() => $_has(13);
+  @$pb.TagNumber(14)
   void clearStatus() => clearField(14);
 }
+
