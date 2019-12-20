@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/benchmark_data.dart';
 import 'package:cocoon_service/src/model/appengine/key_converter.dart';
-import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -16,6 +15,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/time_series.dart';
 import '../model/appengine/time_series_entity.dart';
+import '../model/appengine/time_series_value.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/no_auth_request_handler.dart';

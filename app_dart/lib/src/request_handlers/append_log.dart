@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/stackdriver_logger.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -18,6 +17,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/stackdriver_logger.dart';
 
 @immutable
 class AppendLog extends ApiRequestHandler<Body> {
