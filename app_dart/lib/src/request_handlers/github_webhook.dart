@@ -18,6 +18,12 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
+/// List of Github supported repos.
+const Set<String> supportedRepos = <String>{'engine', 'flutter', 'cocoon'};
+
+/// List of repos that require CQ+1 label.
+const Set<String> needsCQLabelList = <String>{'flutter/flutter'};
+
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
   GithubWebhook(Config config, this.buildBucketClient, {HttpClient skiaClient})
@@ -56,6 +62,8 @@ class GithubWebhook extends RequestHandler<Body> {
       return Body.empty;
     } on FormatException {
       throw const BadRequestException('Could not process input data.');
+    } on InternalServerError {
+      rethrow;
     }
   }
 
@@ -86,6 +94,11 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'ready_for_review':
       case 'reopened':
         await _checkForLabelsAndTests(event, isDraft);
+        await _scheduleIfMergeable(
+          event,
+          cancelRunningBuilds: event.action == 'edited',
+          labels: existingLabels,
+        );
         break;
       case 'labeled':
       case 'synchronize':
@@ -96,6 +109,10 @@ class GithubWebhook extends RequestHandler<Body> {
         );
         break;
       case 'unlabeled':
+        if (!needsCQLabelList
+            .contains(event.repository.fullName.toLowerCase())) {
+          break;
+        }
         if (!await _checkForCqLabel(existingLabels)) {
           await _cancelLuci(
             event.repository.name,
@@ -131,8 +148,14 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
-    if (event.pullRequest.mergeable != false &&
-        await _checkForCqLabel(labels)) {
+
+    // For flutter/flutter tests need to be optimized before enforcing CQ.
+    bool runCQ = true;
+    if (needsCQLabelList.contains(event.repository.fullName.toLowerCase())) {
+      runCQ = await _checkForCqLabel(labels);
+    }
+
+    if (runCQ) {
       await _scheduleLuci(
         number: event.number,
         sha: event.pullRequest.head.sha,
@@ -186,7 +209,7 @@ class GithubWebhook extends RequestHandler<Body> {
     ]));
     return batch.responses
         .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse response) => response.builds)
+        .expand((SearchBuildsResponse response) => response.builds ?? <Build>[])
         .toList();
   }
 
@@ -200,7 +223,7 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(sha != null);
     assert(repositoryName != null);
     assert(skipRunningCheck != null);
-    if (repositoryName != 'flutter' && repositoryName != 'engine') {
+    if (!supportedRepos.contains(repositoryName)) {
       log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException(
           'Repository $repositoryName is not supported by this service.');
@@ -231,6 +254,9 @@ class GithubWebhook extends RequestHandler<Body> {
             (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
         .map<String>((Map<String, dynamic> builder) => builder['name'])
         .toList();
+    if (builderNames.isEmpty) {
+      throw InternalServerError('$repositoryName does not have any builders');
+    }
 
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
@@ -285,7 +311,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _cancelLuci(
       String repositoryName, int number, String sha, String reason) async {
-    if (repositoryName != 'flutter' && repositoryName != 'engine') {
+    if (!supportedRepos.contains(repositoryName)) {
       throw BadRequestException(
           'This service does not support repository $repositoryName.');
     }
