@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/agent_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 

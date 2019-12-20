@@ -12,7 +12,6 @@ import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
