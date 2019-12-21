@@ -58,7 +58,16 @@ class FakeCocoonService implements CocoonService {
         ..isHealthy = true
         ..isHidden = false
         ..healthCheckTimestamp =
-            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString()),
+            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthDetails =
+            'ssh-connectivity: succeeded\n'
+            'Last known IP address: 192.168.1.29\n\n'
+            'android-device-ZY223D6B7B: succeeded\n'
+            'has-healthy-devices: succeeded\n'
+            'Found 1 healthy devices\n\n'
+            'cocoon-authentication: succeeded\n'
+            'cocoon-connection: succeeded\n'
+            'able-to-perform-health-check: succeeded\n',
     );
   }
 
