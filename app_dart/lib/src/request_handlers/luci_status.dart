@@ -99,7 +99,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
     return info.email == devicelabServiceAccount.email;
   }
 
-  Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
+  Future<String> _getRepoNameForBuilder(String builderName) async {
+    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
+    return builders.firstWhere((Map<String, dynamic> builder) =>
+        builder['name'] == builderName)['repo'];
+  }
+
+  Future<RepositorySlug> _getRepoSlugForBuilder(String builderName) async {
     final List<Map<String, dynamic>> builders = config.luciTryBuilders;
     final String repoName = builders.firstWhere(
         (Map<String, dynamic> builder) =>
@@ -126,8 +132,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required String buildUrl,
     @required Result result,
   }) async {
-    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
-    final GitHub gitHubClient = await config.createGitHubClient();
+    final RepositorySlug slug = await _getRepoSlugForBuilder(builderName);
+    final String repoName = await _getRepoNameForBuilder(builderName);
+    final GitHub gitHubClient = await config.createGitHubClient(repoName);
     final CreateStatus status = _statusForResult(result)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'
@@ -140,8 +147,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required String builderName,
     @required String buildUrl,
   }) async {
-    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
-    final GitHub gitHubClient = await config.createGitHubClient();
+    final RepositorySlug slug = await _getRepoSlugForBuilder(builderName);
+    final String repoName = await _getRepoNameForBuilder(builderName);
+    final GitHub gitHubClient = await config.createGitHubClient(repoName);
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
@@ -162,6 +170,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'
       ..targetUrl = '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
+    log.debug('Status: ${status.toJSON()}');
     await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 }

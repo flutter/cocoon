@@ -32,9 +32,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
-    final GraphQLClient client = await config.createGitHubGraphQLClient();
-
+    GraphQLClient client = await config.createGitHubGraphQLClient('flutter');
     await _checkPRs('flutter', 'flutter', log, client);
+    client = await config.createGitHubGraphQLClient('engine');
     await _checkPRs('flutter', 'engine', log, client);
 
     return Body.empty;

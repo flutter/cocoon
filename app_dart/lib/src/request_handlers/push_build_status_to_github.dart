@@ -52,7 +52,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final BuildStatus buildStatus =
         await buildStatusProvider.calculateCumulativeStatus();
-    final GitHub github = await config.createGitHubClient();
+    final GitHub github = await config.createGitHubClient('flutter');
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     log.debug('Computed build result of $buildStatus');
 

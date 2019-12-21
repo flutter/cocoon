@@ -66,8 +66,6 @@ class Config {
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
-  Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
-
   String get nonMasterPullRequestMessage => 'This pull request was opened '
       'against a branch other than _master_. Since Flutter pull requests should '
       'not normally be opened against branches other than master, I have changed '
@@ -237,19 +235,26 @@ class Config {
         }
       ];
 
-  Future<GitHub> createGitHubClient() async {
-    final String githubToken = await githubOAuthToken;
+  Future<String> githubOAuthToken(String repo) async {
+    final List<Map<String, dynamic>> tokens =
+        json.decode(await _getSingleValue('GitHubPRTokens'));
+    return tokens.firstWhere(
+        (Map<String, dynamic> token) => token['repo'] == repo)['token'];
+  }
+
+  Future<GitHub> createGitHubClient(String repo) async {
+    final String githubToken = await githubOAuthToken(repo);
     return gh.createGitHubClient(
       auth: Authentication.withToken(githubToken),
     );
   }
 
-  Future<GraphQLClient> createGitHubGraphQLClient() async {
+  Future<GraphQLClient> createGitHubGraphQLClient(String repo) async {
     final HttpLink httpLink = HttpLink(
       uri: 'https://api.github.com/graphql',
     );
 
-    final String token = await githubOAuthToken;
+    final String token = await githubOAuthToken(repo);
     final AuthLink _authLink = AuthLink(
       getToken: () async => 'Bearer $token',
     );
@@ -268,8 +273,8 @@ class Config {
     return await BigqueryService(accessClientProvider).defaultTabledata();
   }
 
-  Future<GithubService> createGithubService() async {
-    final GitHub github = await createGitHubClient();
+  Future<GithubService> createGithubService(String repo) async {
+    final GitHub github = await createGitHubClient(repo);
     return GithubService(github);
   }
 }

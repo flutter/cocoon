@@ -380,7 +380,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
         (labelNames.contains('will affect goldens') ||
             await _isIgnoredForGold(event))) {
-      final GitHub gitHubClient = await config.createGitHubClient();
+      final GitHub gitHubClient = await config.createGitHubClient('flutter');
       try {
         await _pingForTriage(gitHubClient, event);
       } finally {
@@ -401,7 +401,7 @@ class GithubWebhook extends RequestHandler<Body> {
     bool isDraft,
   ) async {
     if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
-      final GitHub gitHubClient = await config.createGitHubClient();
+      final GitHub gitHubClient = await config.createGitHubClient('flutter');
       try {
         await _checkBaseRef(gitHubClient, event);
         await _applyLabels(gitHubClient, event, isDraft);

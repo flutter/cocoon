@@ -64,10 +64,10 @@ class FakeConfig implements Config {
   int maxEntityGroups;
 
   @override
-  Future<GitHub> createGitHubClient() async => githubClient;
+  Future<GitHub> createGitHubClient(String repo) async => githubClient;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async =>
+  Future<GraphQLClient> createGitHubGraphQLClient(String repo) async =>
       githubGraphQLClient;
 
   @override
@@ -75,7 +75,7 @@ class FakeConfig implements Config {
       tabledataResourceApi;
 
   @override
-  Future<GithubService> createGithubService() async => githubService;
+  Future<GithubService> createGithubService(String repo) async => githubService;
 
   @override
   FakeDatastoreDB get db => dbValue;
@@ -91,7 +91,7 @@ class FakeConfig implements Config {
   Future<String> get oauthClientId async => oauthClientIdValue;
 
   @override
-  Future<String> get githubOAuthToken async => githubOAuthTokenValue;
+  Future<String> githubOAuthToken(String repo) async => githubOAuthTokenValue;
 
   @override
   String get missingTestsPullRequestMessage =>

@@ -38,7 +38,8 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
-    final GithubService githubService = await config.createGithubService();
+    final GithubService githubService =
+        await config.createGithubService('flutter');
 
     await for (FullTask task
         in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
