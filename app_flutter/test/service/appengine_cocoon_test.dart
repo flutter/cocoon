@@ -64,29 +64,28 @@ const String jsonGetStatsResponse = '''
             ]
           }
         ], 
-        {
-   "AgentStatuses":[
-      {
-        "AgentID":"flutter-devicelab-linux-1",
-        "HealthCheckTimestamp":1576876008093,
-        "IsHealthy":true,
-        "Capabilities":[
-          "linux/android",
-          "linux"
-        ],
-        "HealthDetails":"ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.29\n\nandroid-device-ZY223D6B7B: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-perform-health-check: succeeded\n"
-      },
-      {
-        "AgentID":"flutter-devicelab-mac-1",
-        "HealthCheckTimestamp":1576530583142,
-        "IsHealthy":true,
-        "Capabilities":[
-          "mac/ios",
-          "mac"
-        ],
-        "HealthDetails":"ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.233\n\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-build-and-sign: succeeded\nios: succeeded\nable-to-perform-health-check: succeeded\n"
-      },
-    ]
+        "AgentStatuses":[
+          {
+            "AgentID":"flutter-devicelab-linux-1",
+            "HealthCheckTimestamp":1576876008093,
+            "IsHealthy":true,
+            "Capabilities":[
+              "linux/android",
+              "linux"
+            ],
+            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.29\\n\\nandroid-device-ZY223D6B7B: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-perform-health-check: succeeded\\n"
+          },
+          {
+            "AgentID":"flutter-devicelab-mac-1",
+            "HealthCheckTimestamp":1576530583142,
+            "IsHealthy":true,
+            "Capabilities":[
+              "mac/ios",
+              "mac"
+            ],
+            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.233\\n\\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-build-and-sign: succeeded\\nios: succeeded\\nable-to-perform-health-check: succeeded\\n"
+          }
+        ]
   }
 ''';
 
