@@ -215,12 +215,15 @@ class AppEngineCocoonService implements CocoonService {
     final List<Agent> agents = <Agent>[];
 
     for (Map<String, Object> jsonAgent in jsonAgentStatuses) {
+      final List<Object> objectCapabilities = jsonAgent['Capabilities'];
+      final List<String> capabilities =
+          objectCapabilities.map((Object value) => value.toString()).toList();
       final Agent agent = Agent()
-        ..agentId = jsonAgent['AgentId']
+        ..agentId = jsonAgent['AgentID']
         ..healthCheckTimestamp =
-            Int64.parseInt(jsonAgent['HealthCheckTimestamp'])
+            Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
         ..isHealthy = jsonAgent['IsHealthy']
-        ..capabilities.addAll(jsonAgent['Capabilities'])
+        ..capabilities.addAll(capabilities)
         ..healthDetails = jsonAgent['HealthDetails'];
 
       agents.add(agent);

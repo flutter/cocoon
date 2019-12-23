@@ -10,7 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Key, RootKey, Stage, Task;
+    show Agent, Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';
@@ -356,6 +356,82 @@ void main() {
                 'shashankabcdefghijklmno'),
             isTrue);
       });
+    });
+  });
+
+  group('AppEngine CocoonService fetchAgentStatus ', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetStatsResponse, 200);
+      }));
+    });
+
+    test('should return CocoonResponse<List<Agent>>', () {
+      expect(service.fetchAgentStatuses(),
+          const TypeMatcher<Future<CocoonResponse<List<Agent>>>>());
+    });
+
+    test('should return expected List<Agent>', () async {
+      final CocoonResponse<List<Agent>> agents =
+          await service.fetchAgentStatuses();
+
+      final List<Agent> expectedAgents = <Agent>[
+        Agent()
+          ..agentId = 'flutter-devicelab-linux-1'
+          ..healthCheckTimestamp = Int64.parseInt('1576876008093')
+          ..isHealthy = true
+          ..capabilities.addAll(<String>['linux/android', 'linux'])
+          ..healthDetails =
+              'ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.29\n\nandroid-device-ZY223D6B7B: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-perform-health-check: succeeded\n',
+        Agent()
+          ..agentId = 'flutter-devicelab-mac-1'
+          ..healthCheckTimestamp = Int64.parseInt('1576530583142')
+          ..isHealthy = true
+          ..capabilities.addAll(<String>['mac/ios', 'mac'])
+          ..healthDetails =
+              'ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.233\n\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-build-and-sign: succeeded\nios: succeeded\nable-to-perform-health-check: succeeded\n'
+      ];
+
+      expect(agents.data, expectedAgents);
+      expect(agents.error, isNull);
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchAgentStatuses();
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-status'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+      }
+    });
+
+    test('should have error if given non-200 response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('', 404)));
+
+      final CocoonResponse<List<Agent>> response =
+          await service.fetchAgentStatuses();
+      expect(response.error, isNotNull);
+    });
+
+    test('should have error if given bad response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('bad', 200)));
+
+      final CocoonResponse<List<Agent>> response =
+          await service.fetchAgentStatuses();
+      expect(response.error, isNotNull);
     });
   });
 }
