@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
 import 'agent.dart';
@@ -44,7 +45,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,
-      child: AgentDashboard(scaffoldKey: _scaffoldKey),
+      child: AgentDashboard(scaffoldKey: _scaffoldKey, agentState: agentState),
     );
   }
 
@@ -73,16 +74,41 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 }
 
 /// Shows current status of Flutter infra agents.
-class AgentDashboard extends StatelessWidget {
-  const AgentDashboard({this.scaffoldKey});
+class AgentDashboard extends StatefulWidget {
+  const AgentDashboard({this.scaffoldKey, this.agentState});
 
   final GlobalKey<ScaffoldState> scaffoldKey;
+  final AgentState agentState;
+
+  @override
+  _AgentDashboardState createState() => _AgentDashboardState();
+}
+
+class _AgentDashboardState extends State<AgentDashboard> {
+  TextEditingController _agentIdController;
+  TextEditingController _agentCapabilitiesController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _agentIdController = TextEditingController();
+    _agentCapabilitiesController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _agentIdController.dispose();
+    _agentCapabilitiesController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AgentState>(
       builder: (_, AgentState agentState, Widget child) => Scaffold(
-        key: scaffoldKey,
+        key: widget.scaffoldKey,
         appBar: AppBar(
           title: const Text('Infra Agents'),
           actions: <Widget>[
@@ -108,9 +134,69 @@ class AgentDashboard extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add_to_queue),
-          onPressed: () => print('trying to work'),
+          onPressed: () => _showCreateAgentDialog(context, agentState),
         ),
       ),
     );
+  }
+
+  void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
+    showDialog<SimpleDialog>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Create Agent'),
+            content: Form(
+              child: Column(
+                children: <Widget>[
+                  TextFormField(
+                    controller: _agentIdController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter agent id',
+                    ),
+                    validator: (String value) {
+                      if (value.isEmpty) {
+                        return 'Please enter an agent id (e.g. flutter-devicelab-linux-14)';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _agentCapabilitiesController,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter agent capabilities',
+                    ),
+                    validator: (String value) {
+                      if (value.split(',').isEmpty) {
+                        return 'Please enter agent capabilities as comma delimited list (e.g. linux,linux/android)';
+                      }
+
+                      return value;
+                    },
+                  ),
+                  Container(height: 25),
+                  ProgressButton(
+                    defaultWidget: const Text('Create agent'),
+                    progressWidget: const CircularProgressIndicator(),
+                    onPressed: () async => _createAgent(context),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Future<void> _createAgent(BuildContext context) async {
+    print('creating agnet');
+    final List<String> capabilities =
+        _agentCapabilitiesController.value.toString().split(',');
+    final String token = await widget.agentState
+        .createAgent(_agentIdController.value.toString(), capabilities);
+
+    // TODO(chillers): Show this token in a UI.
+    print(token);
+
+    Navigator.pop(context);
   }
 }
