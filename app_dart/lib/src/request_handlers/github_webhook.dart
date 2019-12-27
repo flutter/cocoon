@@ -377,9 +377,8 @@ class GithubWebhook extends RequestHandler<Body> {
   ) async {
     final List<String> labelNames =
         List<String>.generate(labels.length, (int index) => labels[index].name);
-    if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-        (labelNames.contains('will affect goldens') ||
-            await _isIgnoredForGold(event))) {
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter'
+      && await _isIgnoredForGold(event)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
@@ -450,8 +449,7 @@ class GithubWebhook extends RequestHandler<Body> {
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
       }
-      if (file.filename == 'bin/internal/goldens.version' ||
-          await _isIgnoredForGold(event)) {
+      if (await _isIgnoredForGold(event)) {
         isGoldenChange = true;
         labels.add('will affect goldens');
         labels.add('severe: API break');
