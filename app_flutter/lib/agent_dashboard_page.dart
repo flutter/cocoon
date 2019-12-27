@@ -188,14 +188,13 @@ class _AgentDashboardState extends State<AgentDashboard> {
   }
 
   Future<void> _createAgent(BuildContext context) async {
-    print('creating agnet');
+    final String id = _agentIdController.value.toString();
     final List<String> capabilities =
         _agentCapabilitiesController.value.toString().split(',');
-    final String token = await widget.agentState
-        .createAgent(_agentIdController.value.toString(), capabilities);
+    final String token = await widget.agentState.createAgent(id, capabilities);
 
-    // TODO(chillers): Show this token in a UI.
-    print(token);
+    // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020
+    print('$id: $token');
 
     Navigator.pop(context);
   }
