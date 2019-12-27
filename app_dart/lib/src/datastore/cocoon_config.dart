@@ -198,10 +198,6 @@ class Config {
   /// A List of try builders for LUCI
   List<Map<String, dynamic>> get luciTryBuilders => <Map<String, String>>[
         <String, String>{
-          'name': 'Cocoon',
-          'repo': 'cocoon',
-        },
-        <String, String>{
           'name': 'Linux',
           'repo': 'flutter',
           'taskName': 'linux_bot',

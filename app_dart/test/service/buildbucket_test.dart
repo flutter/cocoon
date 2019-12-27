@@ -18,17 +18,6 @@ import 'package:test/test.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {
-  group('BatchResponse tests', () {
-    test('fromJson returns an empty list', () {
-      const String jsonString =
-          '{"responses":[{"searchBuilds":{}},{"searchBuilds":{}}]}';
-      final Map<String, dynamic> map = json.decode(jsonString);
-      final BatchResponse response = BatchResponse.fromJson(map);
-      expect(response, isNotNull);
-      expect(response.responses, isNotNull);
-    });
-  });
-
   group('Client tests', () {
     MockHttpClient mockHttpClient;
     MockAccessTokenProvider mockAccessTokenProvider;
