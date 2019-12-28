@@ -6,6 +6,12 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
+/// A card for showing the information from an [Agent].
+///
+/// Summarizes [Agent.healthDetails] into a row of icons.
+///
+/// Offers the ability to view the raw health details of the agent and
+/// regenerate an access token for the agent.
 class AgentTile extends StatelessWidget {
   const AgentTile(this.agent);
 
@@ -17,37 +23,19 @@ class AgentTile extends StatelessWidget {
     final DateTime agentTime =
         DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
     final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
-    final bool isHealthy =
-        agentLastUpdateDuration.inMinutes < 10 && agent.isHealthy;
 
     final AgentHealthDetails healthDetails =
-        AgentHealthDetails(agent.healthDetails);
+        AgentHealthDetails(agent.healthDetails, agentLastUpdateDuration);
 
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isHealthy ? Colors.green : Colors.red,
+          backgroundColor: healthDetails.isHealthy ? Colors.green : Colors.red,
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
         title: Text(agent.agentId),
-        subtitle: Row(
-          children: <Widget>[
-            if (healthDetails.cocoonAuthentication)
-              Icon(Icons.verified_user)
-            else
-              Icon(Icons.error),
-            if (healthDetails.cocoonConnection)
-              Icon(Icons.network_wifi)
-            else
-              Icon(Icons.perm_scan_wifi),
-            if (healthDetails.hasHealthyDevices)
-              // Icon(Icons.mobile_friendly)
-              Icon(Icons.devices)
-            else
-              Icon(Icons.phonelink_erase),
-          ],
-        ),
+        subtitle: AgentHealthDetailsBar(healthDetails),
         trailing: IconButton(
           icon: Icon(Icons.more_vert),
           onPressed: () => print('authorize'),
@@ -71,8 +59,61 @@ class AgentTile extends StatelessWidget {
   }
 }
 
+/// An icon bar to display information from [AgentHealthDetails].
+class AgentHealthDetailsBar extends StatelessWidget {
+  const AgentHealthDetailsBar(this.healthDetails);
+
+  final AgentHealthDetails healthDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        if (!healthDetails.pingedRecently)
+          Tooltip(
+            message: 'Agent timed out',
+            child: Icon(Icons.timer, color: Colors.red),
+          ),
+        if (healthDetails.cocoonAuthentication)
+          Tooltip(
+            message: 'Cocoon authentication passed',
+            child: Icon(Icons.verified_user),
+          )
+        else
+          Tooltip(
+            message: 'Cocoon authentication failed',
+            child: Icon(Icons.error, color: Colors.red),
+          ),
+        if (healthDetails.cocoonConnection)
+          Tooltip(
+            message: 'Cocoon connected',
+            child: Icon(Icons.network_wifi),
+          )
+        else
+          Tooltip(
+            message: 'Cocoon connection failed',
+            child: Icon(Icons.perm_scan_wifi),
+          ),
+        if (healthDetails.hasHealthyDevices)
+          Tooltip(
+            message: 'Devices healthy',
+            child: Icon(Icons.devices),
+          )
+        else
+          Tooltip(
+            message: 'Devices not healthy',
+            child: Icon(Icons.phonelink_erase, color: Colors.red),
+          ),
+      ],
+    );
+  }
+}
+
+/// A helper class for [Agent.healthDetails] that splits the expected summary
+/// with regex to get actionable fields.
 class AgentHealthDetails {
-  factory AgentHealthDetails(String source) {
+  factory AgentHealthDetails(
+      String source, Duration durationSinceAgentLastUpdated) {
     final RegExpMatch match = _ipAddress.firstMatch(source);
     return AgentHealthDetails._(
       match?.group(0)?.split(': ')[1],
@@ -81,6 +122,7 @@ class AgentHealthDetails {
       source.contains(_cocoonConnection),
       source.contains(_ableToPerformhealthCheck),
       source.contains(_hasSshConnectivity),
+      durationSinceAgentLastUpdated.inMinutes < minutesUntilAgentIsUnresponsive,
     );
   }
 
@@ -91,7 +133,17 @@ class AgentHealthDetails {
     this.cocoonConnection,
     this.canPerformHealthCheck,
     this.hasSshConnectivity,
-  );
+    this.pingedRecently,
+  ) {
+    isHealthy = hasHealthyDevices &&
+        cocoonAuthentication &&
+        cocoonAuthentication &&
+        canPerformHealthCheck &&
+        hasSshConnectivity &&
+        pingedRecently;
+  }
+
+  static const int minutesUntilAgentIsUnresponsive = 10;
 
   static final RegExp _ipAddress =
       RegExp(r'Last known IP address: +\d+\.\d+\.\d+\.\d+');
@@ -112,4 +164,6 @@ class AgentHealthDetails {
   final bool cocoonAuthentication;
   final bool cocoonConnection;
   final bool canPerformHealthCheck;
+  final bool pingedRecently;
+  bool isHealthy;
 }

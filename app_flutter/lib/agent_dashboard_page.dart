@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
-import 'agent.dart';
+import 'agent_tile.dart';
 import 'navigation_drawer.dart';
 import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
@@ -118,12 +118,16 @@ class _AgentDashboardState extends State<AgentDashboard> {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Container(height: 25),
+            // Without this container the ListView will not be centered.
+            Container(),
             Expanded(
-              child: ListView(
-                children: List<Widget>.generate(
-                  agentState.agents.length,
-                  (int i) => AgentTile(agentState.agents[i]),
+              child: SizedBox(
+                width: 500,
+                child: ListView(
+                  children: List<Widget>.generate(
+                    agentState.agents.length,
+                    (int i) => AgentTile(agentState.agents[i]),
+                  ),
                 ),
               ),
             ),
