@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
-import 'agent_tile.dart';
+import 'agent_list.dart';
 import 'navigation_drawer.dart';
 import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
@@ -123,12 +123,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
             Expanded(
               child: SizedBox(
                 width: 500,
-                child: ListView(
-                  children: List<Widget>.generate(
-                    agentState.agents.length,
-                    (int i) => AgentTile(agentState.agents[i]),
-                  ),
-                ),
+                child: AgentList(agentState.agents),
               ),
             ),
           ],

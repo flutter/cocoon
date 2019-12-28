@@ -54,13 +54,13 @@ class FakeCocoonService implements CocoonService {
       10,
       (int i) => Agent()
         ..agentId = 'dash-test-$i'
-        ..capabilities.add('moral support')
-        ..isHealthy = true
+        ..capabilities.add('dash')
+        ..isHealthy = random.nextBool()
         ..isHidden = false
         ..healthCheckTimestamp =
             Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
         ..healthDetails = 'ssh-connectivity: succeeded\n'
-            'Last known IP address: 192.168.1.29\n\n'
+            'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
             'android-device-ZY223D6B7B: succeeded\n'
             'has-healthy-devices: succeeded\n'
             'Found 1 healthy devices\n\n'
