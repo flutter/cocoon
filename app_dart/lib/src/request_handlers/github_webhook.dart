@@ -377,8 +377,8 @@ class GithubWebhook extends RequestHandler<Body> {
   ) async {
     final List<String> labelNames =
         List<String>.generate(labels.length, (int index) => labels[index].name);
-    if (event.repository.fullName.toLowerCase() == 'flutter/flutter'
-      && await _isIgnoredForGold(event)) {
+    if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
+        await _isIgnoredForGold(event)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _pingForTriage(gitHubClient, event);
