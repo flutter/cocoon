@@ -385,46 +385,6 @@ void main() {
       )).called(1);
     });
 
-    test('Golden triage comment when closed && merged from labels', () async {
-      const int issueNumber = 123;
-      request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
-        'closed',
-        issueNumber,
-        'master',
-        merged: true,
-        includeGoldLabel: true,
-      );
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
-
-      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: '00000')));
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
-
-      await tester.post(webhook);
-
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.goldenTriageMessageValue)),
-      )).called(1);
-    });
-
     test('Golden triage comment when closed && merged from ignores', () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
