@@ -422,7 +422,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
-    bool isGoldenChange = false;
+    bool isGoldenChange = labels.contains('will affect goldens');
 
     await for (PullRequestFile file in files) {
       if (file.filename.endsWith('pubspec.yaml')) {
