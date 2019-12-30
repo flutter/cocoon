@@ -140,7 +140,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
   }
 
   void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
-    showDialog<SimpleDialog>(
+    showDialog<AlertDialog>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(

@@ -29,6 +29,10 @@ class AgentTile extends StatelessWidget {
     final AgentHealthDetails healthDetails =
         AgentHealthDetails(agent.healthDetails, agentLastUpdateDuration);
 
+    const String authorizeAgentValue = 'authorize';
+    const String healthDetailsValue = 'details';
+    const String reserveTaskValue = 'reserve';
+
     return Card(
       child: ListTile(
         leading: CircleAvatar(
@@ -38,9 +42,38 @@ class AgentTile extends StatelessWidget {
         ),
         title: Text(agent.agentId),
         subtitle: AgentHealthDetailsBar(healthDetails),
-        trailing: IconButton(
+        trailing: PopupMenuButton<String>(
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              child: Text('Raw health details'),
+              value: healthDetailsValue,
+            ),
+            const PopupMenuItem<String>(
+              child: Text('Authorize agent'),
+              value: authorizeAgentValue,
+            ),
+            const PopupMenuItem<String>(
+              child: Text('Reserve task'),
+              value: reserveTaskValue,
+            ),
+          ],
           icon: Icon(Icons.more_vert),
-          onPressed: () => print('authorize'),
+          onSelected: (String value) {
+            switch (value) {
+              case healthDetailsValue:
+                _showHealthDetailsDialog(context);
+                break;
+              case authorizeAgentValue:
+                _showAuthorizeAgentDialog(context);
+                break;
+              case reserveTaskValue:
+                _showReserveTaskDialog(context);
+                break;
+              default:
+                throw Exception(
+                    '$value is not a valid operation on AgentTile popup menu');
+            }
+          },
         ),
       ),
     );
@@ -59,4 +92,19 @@ class AgentTile extends StatelessWidget {
 
     return Icon(Icons.device_unknown);
   }
+
+  void _showHealthDetailsDialog(BuildContext context) {
+    showDialog<SimpleDialog>(
+      context: context,
+      builder: (BuildContext context) => SimpleDialog(
+        children: <Widget>[
+          Text(agent.healthDetails),
+        ],
+      ),
+    );
+  }
+
+  void _showAuthorizeAgentDialog(BuildContext context) {}
+
+  void _showReserveTaskDialog(BuildContext context) {}
 }
