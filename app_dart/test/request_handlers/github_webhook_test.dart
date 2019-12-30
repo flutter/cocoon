@@ -333,48 +333,6 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes based on goldens.version, comments to notify',
-        () async {
-      const int issueNumber = 123;
-      request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-        (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'bin/internal/goldens.version',
-        ),
-      );
-
-      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
-        (_) => Stream<IssueComment>.value(
-          IssueComment()..body = 'some other comment',
-        ),
-      );
-
-      await tester.post(webhook);
-
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>[
-          'will affect goldens',
-          'severe: API break',
-          'a: tests',
-        ],
-      )).called(1);
-
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.goldenBreakingChangeMessageValue)),
-      )).called(1);
-    });
-
     test('Labels Golden changes based on Skia Gold ignore, comments to notify',
         () async {
       const int issueNumber = 1234;
@@ -424,31 +382,6 @@ void main() {
         slug,
         issueNumber,
         argThat(contains(config.goldenBreakingChangeMessageValue)),
-      )).called(1);
-    });
-
-    test('Golden triage comment when closed && merged from labels', () async {
-      const int issueNumber = 123;
-      request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate(
-        'closed',
-        issueNumber,
-        'master',
-        merged: true,
-        includeGoldLabel: true,
-      );
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      await tester.post(webhook);
-
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.goldenTriageMessageValue)),
       )).called(1);
     });
 
