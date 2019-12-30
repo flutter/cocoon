@@ -12,6 +12,6 @@ fi
 
 pushd $1 > /dev/null
 
-pub run test
+pub run test --test-randomize-ordering-seed=random
 
 popd > /dev/null

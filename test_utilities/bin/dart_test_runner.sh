@@ -24,6 +24,6 @@ fi
 
 # See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
 pub global run tuneup check
-pub run test
+pub run test --test-randomize-ordering-seed=random
 
 popd > /dev/null
