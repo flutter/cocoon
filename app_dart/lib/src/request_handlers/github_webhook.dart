@@ -499,7 +499,6 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     if (!hasTests && needsTests && !isDraft) {
-      // Googlers can edit this at http://shortn/_GjZ5AgUqV2
       final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
         await gitHubClient.issues.createComment(slug, event.number, body);
