@@ -22,8 +22,6 @@ if grep -lq "build_runner" pubspec.yaml; then
   pub run build_runner build --delete-conflicting-outputs
 fi
 
-dart --version
-
 # See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
 pub global run tuneup check
 pub run test --test-randomize-ordering-seed=random
