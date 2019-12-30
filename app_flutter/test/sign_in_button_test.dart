@@ -25,6 +25,9 @@ void main() {
 
   tearDown(() {
     clearInteractions(mockAuthService);
+
+    // Image.Network caches images which must be cleared.
+    PaintingBinding.instance.imageCache.clear();
   });
 
   testWidgets('shows sign in when not authenticated',
@@ -114,6 +117,10 @@ void main() {
       ),
     );
     await tester.pump();
+    if (!kIsWeb) {
+      expect(tester.takeException(),
+          const test.TypeMatcher<NetworkImageLoadException>());
+    }
 
     await tester.tap(find.byType(Image));
     await tester.pumpAndSettle();

@@ -33,6 +33,11 @@ void main() {
       taskMatrix = TaskMatrix(statuses: statuses);
     });
 
+    tearDown(() {
+      // Image.Network caches images which must be cleared.
+      PaintingBinding.instance.imageCache.clear();
+    });
+
     testWidgets('shows loading indicator when statuses is empty',
         (WidgetTester tester) async {
       await tester.pumpWidget(
@@ -66,6 +71,11 @@ void main() {
           ),
         ),
       );
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
 
       final List<Element> commits = find.byType(CommitBox).evaluate().toList();
 
@@ -74,7 +84,6 @@ void main() {
       for (Element commit in commits) {
         // All the x positions should match the first instance if they're all in the same column
         expect(commit.size.topLeft(Offset.zero).dx, xPosition);
-        tester.takeException();
       }
     });
 
@@ -93,6 +102,11 @@ void main() {
           ),
         ),
       );
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
 
       final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, taskMatrix.task(0, 0));
@@ -154,6 +168,7 @@ void main() {
         ),
       );
 
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
       if (!kIsWeb) {
         expect(tester.takeException(),
             const test.TypeMatcher<NetworkImageLoadException>());
@@ -219,6 +234,11 @@ void main() {
           ),
         ),
       );
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
 
       // Compare all the cells to the first cell to check they all have
       // the same size
