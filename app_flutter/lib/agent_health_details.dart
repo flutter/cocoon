@@ -18,6 +18,7 @@ class AgentHealthDetails {
     final String source = agent.healthDetails;
     final RegExpMatch match = _ipAddress.firstMatch(source);
     return AgentHealthDetails._(
+      agent,
       match?.group(0)?.split(': ')[1],
       source.contains(_hasHealthyDevices),
       source.contains(_cocoonAuthentication),
@@ -29,6 +30,7 @@ class AgentHealthDetails {
   }
 
   AgentHealthDetails._(
+    this.agent,
     this.networkAddress,
     this.hasHealthyDevices,
     this.cocoonAuthentication,
@@ -37,7 +39,8 @@ class AgentHealthDetails {
     this.hasSshConnectivity,
     this.pingedRecently,
   ) {
-    isHealthy = hasHealthyDevices &&
+    isHealthy = agent.isHealthy &&
+        hasHealthyDevices &&
         cocoonAuthentication &&
         cocoonAuthentication &&
         canPerformHealthCheck &&
@@ -59,6 +62,7 @@ class AgentHealthDetails {
   static final RegExp _ableToPerformhealthCheck =
       RegExp('able-to-perform-health-check: succeeded');
 
+  final Agent agent;
   final String networkAddress;
   final bool hasHealthyDevices;
   final bool hasSshConnectivity;

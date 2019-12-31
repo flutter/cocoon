@@ -43,8 +43,10 @@ class FullAgent implements Comparable<FullAgent> {
 
   @override
   int compareTo(FullAgent other) {
-    if (healthDetails.isHealthy) {
+    if (healthDetails.isHealthy && other.healthDetails.isHealthy) {
       return agent.agentId.compareTo(other.agent.agentId);
+    } else if (healthDetails.isHealthy) {
+      return 1;
     }
 
     return -1;
