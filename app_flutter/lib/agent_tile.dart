@@ -29,12 +29,12 @@ class AgentTile extends StatelessWidget {
   @visibleForTesting
   static const Duration reserveTaskSnackbarDuration = Duration(seconds: 5);
 
+  static const String _authorizeAgentValue = 'authorize';
+  static const String _healthDetailsValue = 'details';
+  static const String _reserveTaskValue = 'reserve';
+
   @override
   Widget build(BuildContext context) {
-    const String authorizeAgentValue = 'authorize';
-    const String healthDetailsValue = 'details';
-    const String reserveTaskValue = 'reserve';
-
     final Agent agent = fullAgent.agent;
     final AgentHealthDetails healthDetails = fullAgent.healthDetails;
 
@@ -51,27 +51,27 @@ class AgentTile extends StatelessWidget {
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
             const PopupMenuItem<String>(
               child: Text('Raw health details'),
-              value: healthDetailsValue,
+              value: _healthDetailsValue,
             ),
             const PopupMenuItem<String>(
               child: Text('Authorize agent'),
-              value: authorizeAgentValue,
+              value: _authorizeAgentValue,
             ),
             const PopupMenuItem<String>(
               child: Text('Reserve task'),
-              value: reserveTaskValue,
+              value: _reserveTaskValue,
             ),
           ],
           icon: Icon(Icons.more_vert),
           onSelected: (String value) {
             switch (value) {
-              case healthDetailsValue:
+              case _healthDetailsValue:
                 _showHealthDetailsDialog(context, agent.healthDetails);
                 break;
-              case authorizeAgentValue:
+              case _authorizeAgentValue:
                 _authorizeAgent(context, agent);
                 break;
-              case reserveTaskValue:
+              case _reserveTaskValue:
                 _reserveTask(context, agent);
                 break;
               default:
@@ -99,6 +99,9 @@ class AgentTile extends StatelessWidget {
   }
 
   void _showHealthDetailsDialog(BuildContext context, String rawHealthDetails) {
+    // TODO(chillers): Add copy button when web has support. https://github.com/flutter/flutter/issues/46020
+    print(rawHealthDetails);
+
     showDialog<SimpleDialog>(
       context: context,
       builder: (BuildContext context) => SimpleDialog(
@@ -110,7 +113,6 @@ class AgentTile extends StatelessWidget {
   }
 
   Future<void> _authorizeAgent(BuildContext context, Agent agent) async {
-    // show snackbar say processing
     final String token = await agentState.authorizeAgent(agent);
     if (token != null) {
       print(token);
@@ -120,6 +122,7 @@ class AgentTile extends StatelessWidget {
         duration: authorizeAgentSnackbarDuration,
       ));
     }
+    // if the token is null, the error handler will print the snackbar
   }
 
   Future<void> _reserveTask(BuildContext context, Agent agent) async {
