@@ -13,33 +13,42 @@ import 'commit.pb.dart' as $1;
 import 'task.pb.dart' as $2;
 
 class Stage extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Stage', createEmptyInstance: create)
+  static final $pb
+      .BuilderInfo _i = $pb.BuilderInfo('Stage', createEmptyInstance: create)
     ..aOS(1, 'name')
     ..aOM<$1.Commit>(2, 'commit', subBuilder: $1.Commit.create)
     ..pc<$2.Task>(3, 'tasks', $pb.PbFieldType.PM, subBuilder: $2.Task.create)
     ..aOS(4, 'taskStatus')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   Stage._() : super();
   factory Stage() => create();
-  factory Stage.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Stage.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  factory Stage.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Stage.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
   Stage clone() => Stage()..mergeFromMessage(this);
-  Stage copyWith(void Function(Stage) updates) => super.copyWith((message) => updates(message as Stage));
+  Stage copyWith(void Function(Stage) updates) =>
+      super.copyWith((message) => updates(message as Stage));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Stage create() => Stage._();
   Stage createEmptyInstance() => create();
   static $pb.PbList<Stage> createRepeated() => $pb.PbList<Stage>();
   @$core.pragma('dart2js:noInline')
-  static Stage getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Stage>(create);
+  static Stage getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Stage>(create);
   static Stage _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set name($core.String v) { $_setString(0, v); }
+  set name($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
@@ -48,7 +57,10 @@ class Stage extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $1.Commit get commit => $_getN(1);
   @$pb.TagNumber(2)
-  set commit($1.Commit v) { setField(2, v); }
+  set commit($1.Commit v) {
+    setField(2, v);
+  }
+
   @$pb.TagNumber(2)
   $core.bool hasCommit() => $_has(1);
   @$pb.TagNumber(2)
@@ -62,10 +74,12 @@ class Stage extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.String get taskStatus => $_getSZ(3);
   @$pb.TagNumber(4)
-  set taskStatus($core.String v) { $_setString(3, v); }
+  set taskStatus($core.String v) {
+    $_setString(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasTaskStatus() => $_has(3);
   @$pb.TagNumber(4)
   void clearTaskStatus() => clearField(4);
 }
-
