@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:fixnum/fixnum.dart';
-import 'package:test/test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
@@ -123,6 +124,105 @@ able-to-perform-health-check: succeeded''';
       expect(healthDetails.hasSshConnectivity, isTrue);
       expect(healthDetails.pingedRecently, isFalse);
       expect(healthDetails.isHealthy, isFalse);
+    });
+
+    test('is unhealthy when health details is null', () {
+      final Agent agent = Agent()
+        ..healthCheckTimestamp = Int64.parseInt('10000')
+        ..isHealthy = false;
+
+      final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
+
+      expect(healthDetails.canPerformHealthCheck, isFalse);
+      expect(healthDetails.cocoonAuthentication, isFalse);
+      expect(healthDetails.cocoonConnection, isFalse);
+      expect(healthDetails.hasHealthyDevices, isFalse);
+      expect(healthDetails.hasSshConnectivity, isFalse);
+      expect(healthDetails.pingedRecently, isFalse);
+      expect(healthDetails.isHealthy, isFalse);
+    });
+  });
+
+  group('AgentHealthDetailsBar', () {
+    testWidgets('healthy bar', (WidgetTester tester) async {
+      final Agent agent = Agent()
+        ..healthCheckTimestamp =
+            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..isHealthy = true
+        ..healthDetails = '''
+ssh-connectivity: succeeded
+    Last known IP address: 192.168.1.29
+
+android-device-ZY223D6B7B: succeeded
+has-healthy-devices: succeeded
+    Found 1 healthy devices
+
+cocoon-authentication: succeeded
+cocoon-connection: succeeded
+able-to-perform-health-check: succeeded''';
+
+      final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
+      );
+
+      expect(find.byIcon(Icons.timer), findsNothing);
+      expect(find.byIcon(Icons.verified_user), findsOneWidget);
+      expect(find.byIcon(Icons.network_wifi), findsOneWidget);
+      expect(find.byIcon(Icons.devices), findsOneWidget);
+    });
+
+    testWidgets('timed out icon', (WidgetTester tester) async {
+      final Agent agent = Agent()
+        ..healthCheckTimestamp = Int64.parseInt('100')
+        ..isHealthy = true
+        ..healthDetails = '''
+ssh-connectivity: succeeded
+    Last known IP address: 192.168.1.29
+
+android-device-ZY223D6B7B: succeeded
+has-healthy-devices: succeeded
+    Found 1 healthy devices
+
+cocoon-authentication: succeeded
+cocoon-connection: succeeded
+able-to-perform-health-check: succeeded''';
+
+      final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
+      );
+
+      expect(find.byIcon(Icons.timer), findsOneWidget);
+      expect(find.byIcon(Icons.verified_user), findsOneWidget);
+      expect(find.byIcon(Icons.network_wifi), findsOneWidget);
+      expect(find.byIcon(Icons.devices), findsOneWidget);
+    });
+
+    testWidgets('unhealthy bar', (WidgetTester tester) async {
+      final Agent agent = Agent()
+        ..healthCheckTimestamp = Int64.parseInt('100')
+        ..isHealthy = false
+        ..healthDetails = '';
+
+      final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
+      );
+
+      expect(find.byIcon(Icons.timer), findsOneWidget);
+      expect(find.byIcon(Icons.verified_user), findsNothing);
+      expect(find.byIcon(Icons.network_wifi), findsNothing);
+      expect(find.byIcon(Icons.devices), findsNothing);
     });
   });
 }
