@@ -4,11 +4,18 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:cocoon_service/protos.dart' show Agent;
+
 /// A helper class for [Agent.healthDetails] that splits the expected summary
 /// with regex to get actionable fields.
 class AgentHealthDetails {
-  factory AgentHealthDetails(
-      String source, Duration durationSinceAgentLastUpdated) {
+  factory AgentHealthDetails(Agent agent) {
+    final DateTime currentTime = DateTime.now();
+    final DateTime agentTime =
+        DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
+    final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
+
+    final String source = agent.healthDetails;
     final RegExpMatch match = _ipAddress.firstMatch(source);
     return AgentHealthDetails._(
       match?.group(0)?.split(': ')[1],
@@ -17,7 +24,7 @@ class AgentHealthDetails {
       source.contains(_cocoonConnection),
       source.contains(_ableToPerformhealthCheck),
       source.contains(_hasSshConnectivity),
-      durationSinceAgentLastUpdated.inMinutes < minutesUntilAgentIsUnresponsive,
+      agentLastUpdateDuration.inMinutes < minutesUntilAgentIsUnresponsive,
     );
   }
 

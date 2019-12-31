@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'agent_health_details.dart';
+import 'agent_list.dart';
+import 'state/agent.dart';
 
 /// A card for showing the information from an [Agent].
 ///
@@ -15,23 +17,26 @@ import 'agent_health_details.dart';
 /// Offers the ability to view the raw health details of the agent and
 /// regenerate an access token for the agent.
 class AgentTile extends StatelessWidget {
-  const AgentTile(this.agent);
+  const AgentTile({this.fullAgent, this.agentState});
 
-  final Agent agent;
+  final AgentState agentState;
+
+  final FullAgent fullAgent;
+
+  @visibleForTesting
+  static const Duration authorizeAgentSnackbarDuration = Duration(seconds: 5);
+
+  @visibleForTesting
+  static const Duration reserveTaskSnackbarDuration = Duration(seconds: 5);
 
   @override
   Widget build(BuildContext context) {
-    final DateTime currentTime = DateTime.now();
-    final DateTime agentTime =
-        DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
-    final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
-
-    final AgentHealthDetails healthDetails =
-        AgentHealthDetails(agent.healthDetails, agentLastUpdateDuration);
-
     const String authorizeAgentValue = 'authorize';
     const String healthDetailsValue = 'details';
     const String reserveTaskValue = 'reserve';
+
+    final Agent agent = fullAgent.agent;
+    final AgentHealthDetails healthDetails = fullAgent.healthDetails;
 
     return Card(
       child: ListTile(
@@ -61,13 +66,13 @@ class AgentTile extends StatelessWidget {
           onSelected: (String value) {
             switch (value) {
               case healthDetailsValue:
-                _showHealthDetailsDialog(context);
+                _showHealthDetailsDialog(context, agent.healthDetails);
                 break;
               case authorizeAgentValue:
-                _showAuthorizeAgentDialog(context);
+                _authorizeAgent(context, agent);
                 break;
               case reserveTaskValue:
-                _showReserveTaskDialog(context);
+                _reserveTask(context, agent);
                 break;
               default:
                 throw Exception(
@@ -93,18 +98,35 @@ class AgentTile extends StatelessWidget {
     return Icon(Icons.device_unknown);
   }
 
-  void _showHealthDetailsDialog(BuildContext context) {
+  void _showHealthDetailsDialog(BuildContext context, String rawHealthDetails) {
     showDialog<SimpleDialog>(
       context: context,
       builder: (BuildContext context) => SimpleDialog(
         children: <Widget>[
-          Text(agent.healthDetails),
+          Text(rawHealthDetails),
         ],
       ),
     );
   }
 
-  void _showAuthorizeAgentDialog(BuildContext context) {}
+  Future<void> _authorizeAgent(BuildContext context, Agent agent) async {
+    // show snackbar say processing
+    final String token = await agentState.authorizeAgent(agent);
+    if (token != null) {
+      print(token);
 
-  void _showReserveTaskDialog(BuildContext context) {}
+      Scaffold.of(context).showSnackBar(const SnackBar(
+        content: Text('Check console for token'),
+        duration: authorizeAgentSnackbarDuration,
+      ));
+    }
+  }
+
+  Future<void> _reserveTask(BuildContext context, Agent agent) async {
+    await agentState.reserveTask(agent);
+    Scaffold.of(context).showSnackBar(const SnackBar(
+      content: Text('Check console for reserve task info'),
+      duration: authorizeAgentSnackbarDuration,
+    ));
+  }
 }

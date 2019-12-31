@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/protos.dart' show Agent, Task;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -85,6 +85,12 @@ class AgentState extends ChangeNotifier {
   Future<String> createAgent(String agentId, List<String> capabilities) async =>
       _cocoonService.createAgent(
           agentId, capabilities, await authService.idToken);
+
+  Future<String> authorizeAgent(Agent agent) async =>
+      _cocoonService.authorizeAgent(agent, await authService.idToken);
+
+  Future<void> reserveTask(Agent agent) async =>
+      _cocoonService.reserveTask(agent, await authService.idToken);
 
   Future<void> signIn() => authService.signIn();
   Future<void> signOut() => authService.signOut();

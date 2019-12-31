@@ -6,22 +6,47 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
+import 'agent_health_details.dart';
 import 'agent_tile.dart';
+import 'state/agent.dart';
 
 class AgentList extends StatelessWidget {
-  const AgentList(this.agents);
+  const AgentList({this.agents, this.agentState});
 
   final List<Agent> agents;
 
+  final AgentState agentState;
+
   @override
   Widget build(BuildContext context) {
-    agents.sort((Agent a, Agent b) =>
-        a.isHealthy ? a.agentId.compareTo(b.agentId) : -1);
+    final List<FullAgent> fullAgents = agents
+        .map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent)))
+        .toList()
+          ..sort();
     return ListView(
       children: List<AgentTile>.generate(
-        agents.length,
-        (int i) => AgentTile(agents[i]),
+        fullAgents.length,
+        (int i) => AgentTile(
+          fullAgent: fullAgents[i],
+          agentState: agentState,
+        ),
       ),
     );
+  }
+}
+
+class FullAgent implements Comparable<FullAgent> {
+  const FullAgent(this.agent, this.healthDetails);
+
+  final Agent agent;
+  final AgentHealthDetails healthDetails;
+
+  @override
+  int compareTo(FullAgent other) {
+    if (healthDetails.isHealthy) {
+      return agent.agentId.compareTo(other.agent.agentId);
+    }
+
+    return -1;
   }
 }

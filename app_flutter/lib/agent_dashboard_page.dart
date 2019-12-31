@@ -123,7 +123,10 @@ class _AgentDashboardState extends State<AgentDashboard> {
             Expanded(
               child: SizedBox(
                 width: 500,
-                child: AgentList(agentState.agents),
+                child: AgentList(
+                  agents: agentState.agents,
+                  agentState: agentState,
+                ),
               ),
             ),
           ],

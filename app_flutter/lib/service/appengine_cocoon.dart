@@ -176,6 +176,60 @@ class AppEngineCocoonService implements CocoonService {
     return responseBody['Token'];
   }
 
+  @override
+  Future<String> authorizeAgent(Agent agent, String idToken) async {
+    assert(agent != null);
+    assert(idToken != null);
+
+    final String authorizeAgentUrl = _apiEndpoint('/api/reserve-task');
+
+    final http.Response response = await _client.post(
+      authorizeAgentUrl,
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
+      body: jsonEncode(<String, Object>{
+        'AgentId': agent.agentId,
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('/api/authorize-agent did not respond with 200');
+    }
+
+    final Map<String, Object> responseBody = jsonDecode(response.body);
+    if (responseBody['Token'] == null) {
+      throw Exception('/api/authorize-agent returned unexpected response');
+    }
+
+    return responseBody['Token'];
+  }
+
+  @override
+  Future<void> reserveTask(Agent agent, String idToken) async {
+    assert(agent != null);
+    assert(idToken != null);
+
+    final String reserveTaskUrl = _apiEndpoint('/api/reserve-task');
+
+    final http.Response response = await _client.post(
+      reserveTaskUrl,
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
+      body: jsonEncode(<String, Object>{
+        'AgentId': agent.agentId,
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('/api/reserve-task did not respond with 200');
+    }
+
+    final Map<String, Object> responseBody = jsonDecode(response.body);
+    if (responseBody['Task'] == null) {
+      throw Exception('/api/authorize-agent returned unexpected response');
+    }
+
+    print(responseBody);
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///
