@@ -30,10 +30,8 @@ class AgentHealthDetails {
     final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
 
     final String healthDetails = agent.healthDetails;
-    final RegExpMatch match = _hostName.firstMatch(healthDetails);
     return AgentHealthDetails._(
       agent,
-      match?.group(0)?.split(': ')[1],
       healthDetails.contains(_hasHealthyDevices),
       healthDetails.contains(_cocoonAuthentication),
       healthDetails.contains(_cocoonConnection),
@@ -45,7 +43,6 @@ class AgentHealthDetails {
 
   AgentHealthDetails._(
     this.agent,
-    this.hostName,
     this.hasHealthyDevices,
     this.cocoonAuthentication,
     this.cocoonConnection,
@@ -65,7 +62,6 @@ class AgentHealthDetails {
   @visibleForTesting
   static const int minutesUntilAgentIsUnresponsive = 10;
 
-  static final RegExp _hostName = RegExp(r'Last known IP address: *');
   static final RegExp _hasSshConnectivity =
       RegExp('ssh-connectivity: succeeded');
   static final RegExp _hasHealthyDevices =
@@ -79,11 +75,6 @@ class AgentHealthDetails {
 
   /// The agent to show health details from.
   final Agent agent;
-
-  /// The network address that can be used to connect to this agent.
-  ///
-  /// Older agents have IP addresses whereas newer one have a domain address.
-  final String hostName;
 
   /// Whether or not the devices connected to the agent are healthy.
   ///
