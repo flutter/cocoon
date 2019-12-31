@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent, Task;
+import 'package:cocoon_service/protos.dart' show Agent;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
