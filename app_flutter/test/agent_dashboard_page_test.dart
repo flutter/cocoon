@@ -60,7 +60,7 @@ void main() {
     verifyNever(mockCocoonService.createAgent(any, any, any));
 
     await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     await tester.tap(find.text('Create agent'));
     await tester.pump();
