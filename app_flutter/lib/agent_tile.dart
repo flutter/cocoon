@@ -35,13 +35,16 @@ class AgentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     final Agent agent = fullAgent.agent;
     final AgentHealthDetails healthDetails = fullAgent.healthDetails;
 
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: healthDetails.isHealthy ? Colors.green : Colors.red,
+          backgroundColor:
+              healthDetails.isHealthy ? Colors.green : theme.errorColor,
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
