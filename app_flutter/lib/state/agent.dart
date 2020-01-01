@@ -49,6 +49,14 @@ class AgentState extends ChangeNotifier {
   static const String errorMessageFetchingStatuses =
       'An error occured fetching agent statuses from Cocoon';
 
+  @visibleForTesting
+  static const String errorMessageCreatingAgent =
+      'An error occurred creating agent';
+
+  @visibleForTesting
+  static const String errorMessageAuthorizingAgent =
+      'An error occurred authorizing agent';
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingStateUpdates() async {
     if (refreshTimer != null) {
@@ -82,12 +90,31 @@ class AgentState extends ChangeNotifier {
   }
 
   /// Create [Agent] in Cocoon.
-  Future<String> createAgent(String agentId, List<String> capabilities) async =>
-      _cocoonService.createAgent(
-          agentId, capabilities, await authService.idToken);
+  Future<String> createAgent(String agentId, List<String> capabilities) async {
+    final CocoonResponse<String> response = await _cocoonService.createAgent(
+        agentId, capabilities, await authService.idToken);
 
-  Future<String> authorizeAgent(Agent agent) async =>
-      _cocoonService.authorizeAgent(agent, await authService.idToken);
+    if (response.error != null) {
+      print(response.error);
+      errors.message = errorMessageCreatingAgent;
+      errors.notifyListeners();
+    }
+
+    return response.data;
+  }
+
+  Future<String> authorizeAgent(Agent agent) async {
+    final CocoonResponse<String> response =
+        await _cocoonService.authorizeAgent(agent, await authService.idToken);
+
+    if (response.error != null) {
+      print(response.error);
+      errors.message = errorMessageAuthorizingAgent;
+      errors.notifyListeners();
+    }
+
+    return response.data;
+  }
 
   Future<void> reserveTask(Agent agent) async =>
       _cocoonService.reserveTask(agent, await authService.idToken);

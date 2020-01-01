@@ -45,12 +45,14 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
-  Future<String> createAgent(
+  Future<CocoonResponse<String>> createAgent(
           String agentId, List<String> capabilities, String idToken) async =>
-      'abc123';
+      CocoonResponse<String>()..data = 'abc123';
 
   @override
-  Future<String> authorizeAgent(Agent agent, String idToken) async => 'def345';
+  Future<CocoonResponse<String>> authorizeAgent(
+          Agent agent, String idToken) async =>
+      CocoonResponse<String>()..data = 'def345';
 
   @override
   Future<void> reserveTask(Agent agent, String idToken) => null;

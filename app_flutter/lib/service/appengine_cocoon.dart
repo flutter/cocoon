@@ -147,7 +147,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<String> createAgent(
+  Future<CocoonResponse<String>> createAgent(
       String agentId, List<String> capabilities, String idToken) async {
     assert(agentId != null);
     assert(capabilities.isNotEmpty);
@@ -155,6 +155,7 @@ class AppEngineCocoonService implements CocoonService {
 
     final String createAgentUrl = _apiEndpoint('/api/create-agent');
 
+    /// This endpoint returns JSON {'Token': [Token]}
     final http.Response response = await _client.post(
       createAgentUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
@@ -165,24 +166,35 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      throw Exception('create agent did not respond with 200');
+      return CocoonResponse<String>()
+        ..error = '/api/create-agent did not respond with 200';
     }
 
-    final Map<String, Object> responseBody = jsonDecode(response.body);
-    if (responseBody['Token'] == null) {
-      throw Exception('create agent returned unexpected response');
+    Map<String, Object> responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+
+      if (responseBody['Token'] == null) {
+        CocoonResponse<String>()
+          ..error = '/api/create-agent returned unexpected response';
+      }
+    } catch (e) {
+      return CocoonResponse<String>()
+        ..error = '/api/create-agent returned unexpected response';
     }
 
-    return responseBody['Token'];
+    return CocoonResponse<String>()..data = responseBody['Token'];
   }
 
   @override
-  Future<String> authorizeAgent(Agent agent, String idToken) async {
+  Future<CocoonResponse<String>> authorizeAgent(
+      Agent agent, String idToken) async {
     assert(agent != null);
     assert(idToken != null);
 
-    final String authorizeAgentUrl = _apiEndpoint('/api/reserve-task');
+    final String authorizeAgentUrl = _apiEndpoint('/api/authorize-agent');
 
+    /// This endpoint returns JSON {'Token': [Token]}
     final http.Response response = await _client.post(
       authorizeAgentUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
@@ -192,15 +204,24 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      throw Exception('/api/authorize-agent did not respond with 200');
+      return CocoonResponse<String>()
+        ..error = '/api/authorize-agent did not respond with 200';
     }
 
-    final Map<String, Object> responseBody = jsonDecode(response.body);
-    if (responseBody['Token'] == null) {
-      throw Exception('/api/authorize-agent returned unexpected response');
+    Map<String, Object> responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+
+      if (responseBody['Token'] == null) {
+        return CocoonResponse<String>()
+          ..error = '/api/authorize-agent returned unexpected response';
+      }
+    } catch (e) {
+      return CocoonResponse<String>()
+        ..error = '/api/authorize-agent returned unexpected response';
     }
 
-    return responseBody['Token'];
+    return CocoonResponse<String>()..data = responseBody['Token'];
   }
 
   @override
@@ -222,9 +243,15 @@ class AppEngineCocoonService implements CocoonService {
       throw Exception('/api/reserve-task did not respond with 200');
     }
 
-    final Map<String, Object> responseBody = jsonDecode(response.body);
-    if (responseBody['Task'] == null) {
-      throw Exception('/api/authorize-agent returned unexpected response');
+    Map<String, Object> responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+
+      if (responseBody['Task'] == null) {
+        throw Exception('/api/reserve-task returned unexpected response');
+      }
+    } catch (e) {
+      throw Exception('/api/reserve-task returned unexpected response');
     }
 
     print(responseBody);

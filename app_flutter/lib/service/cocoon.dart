@@ -48,11 +48,11 @@ abstract class CocoonService {
   /// Creates [Agent] with the given information.
   ///
   /// Returns an auth token used to authorize the agent.
-  Future<String> createAgent(
+  Future<CocoonResponse<String>> createAgent(
       String agentId, List<String> capabilities, String idToken);
 
   /// Generate a new access token for [agent].
-  Future<String> authorizeAgent(Agent agent, String idToken);
+  Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken);
 
   /// Attempt to assign a new task to [agent].
   ///
