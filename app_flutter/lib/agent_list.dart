@@ -11,14 +11,26 @@ import 'agent_tile.dart';
 import 'state/agent.dart';
 
 class AgentList extends StatelessWidget {
-  const AgentList({this.agents, this.agentState});
+  const AgentList(
+      {this.agents,
+      this.agentState,
+      @visibleForTesting this.insertKeys = false});
 
   final List<Agent> agents;
 
   final AgentState agentState;
 
+  /// When true, will set a key for the [AgentTile] that is composed of its
+  /// position in the list and the agent id.
+  @visibleForTesting
+  final bool insertKeys;
+
   @override
   Widget build(BuildContext context) {
+    if (agents.isEmpty) {
+      return const CircularProgressIndicator();
+    }
+
     final List<FullAgent> fullAgents = agents
         .map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent)))
         .toList()
@@ -27,6 +39,7 @@ class AgentList extends StatelessWidget {
       children: List<AgentTile>.generate(
         fullAgents.length,
         (int i) => AgentTile(
+          key: insertKeys ? Key('$i-${fullAgents[i].agent.agentId}') : null,
           fullAgent: fullAgents[i],
           agentState: agentState,
         ),
