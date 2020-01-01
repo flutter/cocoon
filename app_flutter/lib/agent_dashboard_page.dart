@@ -97,14 +97,6 @@ class _AgentDashboardState extends State<AgentDashboard> {
   }
 
   @override
-  void dispose() {
-    _agentIdController.dispose();
-    _agentCapabilitiesController.dispose();
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Consumer<AgentState>(
       builder: (_, AgentState agentState, Widget child) => Scaffold(
