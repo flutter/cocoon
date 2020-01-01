@@ -57,7 +57,7 @@ able-to-perform-health-check: succeeded''';
 
       // Open the agent tile menu
       await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text(agent.healthDetails), findsNothing);
       expect(find.byType(SimpleDialog), findsNothing);
@@ -83,7 +83,7 @@ able-to-perform-health-check: succeeded''';
 
       // open the agent tile menu
       await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       verifyNever(mockAgentState.authorizeAgent(any));
 
@@ -98,16 +98,18 @@ able-to-perform-health-check: succeeded''';
     testWidgets('reserve task calls api', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: AgentTile(
-            fullAgent: fullAgent,
-            agentState: mockAgentState,
+          home: Scaffold(
+            body: AgentTile(
+              fullAgent: fullAgent,
+              agentState: mockAgentState,
+            ),
           ),
         ),
       );
 
       // open the agent tile menu
       await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       verifyNever(mockAgentState.reserveTask(any));
 
