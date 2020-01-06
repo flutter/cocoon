@@ -19,6 +19,11 @@ void main() {
       ..repository = 'flutter/cocoon'
       ..sha = 'ShaShankRedemption';
 
+    tearDown(() {
+      // Image.Network caches images which must be cleared.
+      PaintingBinding.instance.imageCache.clear();
+    });
+
     testWidgets('shows information correctly', (WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
         child: CommitBox(
@@ -42,6 +47,11 @@ void main() {
         ),
       ));
 
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
+
       final String shortSha = expectedCommit.sha.substring(0, 7);
       expect(find.text(shortSha), findsNothing);
       expect(find.text(expectedCommit.author), findsNothing);
@@ -59,6 +69,11 @@ void main() {
           commit: expectedCommit,
         ),
       ));
+
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
 
       // Open the overlay
       await tester.tap(find.byType(CommitBox));
@@ -87,6 +102,11 @@ void main() {
           commit: expectedCommit,
         ),
       ));
+
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
 
       // Open the overlay
       await tester.tap(find.byType(CommitBox));
