@@ -34,6 +34,7 @@ class AgentList extends StatelessWidget {
     final List<FullAgent> fullAgents = agents
         .map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent)))
         .toList()
+          // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
           ..sort();
     return ListView(
       children: List<AgentTile>.generate(
