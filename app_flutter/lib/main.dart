@@ -19,7 +19,7 @@ final ThemeData theme = ThemeData(
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService signInService = GoogleSignInService(, GoogleSignInService signInService);
+    final GoogleSignInService signInService = GoogleSignInService();
 
     return MaterialApp(
       title: 'Flutter Dashboard',

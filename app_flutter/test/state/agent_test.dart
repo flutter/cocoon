@@ -11,6 +11,7 @@ import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/agent.dart';
 
 void main() {
@@ -84,8 +85,27 @@ void main() {
       // Tear down fails to cancel the timer before the test is over
       agentState.dispose();
     });
+
+    test('auth functions call auth service', () async {
+      final MockGoogleSignInService mockSignInService =
+          MockGoogleSignInService();
+      agentState = AgentState(authServiceValue: mockSignInService);
+
+      verifyNever(mockSignInService.signIn());
+      verifyNever(mockSignInService.signOut());
+
+      await agentState.signIn();
+      verify(mockSignInService.signIn()).called(1);
+      verifyNever(mockSignInService.signOut());
+
+      await agentState.signOut();
+      verify(mockSignInService.signOut()).called(1);
+    });
   });
 }
 
 /// CocoonService for checking interactions.
 class MockCocoonService extends Mock implements FakeCocoonService {}
+
+/// GoogleAuthenticationService for checking interactions.
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}
