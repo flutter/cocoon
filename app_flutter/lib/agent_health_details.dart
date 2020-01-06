@@ -62,16 +62,13 @@ class AgentHealthDetails {
   @visibleForTesting
   static const int minutesUntilAgentIsUnresponsive = 10;
 
-  static final RegExp _hasSshConnectivity =
-      RegExp('ssh-connectivity: succeeded');
-  static final RegExp _hasHealthyDevices =
-      RegExp('has-healthy-devices: succeeded');
-  static final RegExp _cocoonAuthentication =
-      RegExp('cocoon-authentication: succeeded');
-  static final RegExp _cocoonConnection =
-      RegExp('cocoon-connection: succeeded');
-  static final RegExp _ableToPerformhealthCheck =
-      RegExp('able-to-perform-health-check: succeeded');
+  static const String _hasSshConnectivity = 'ssh-connectivity: succeeded';
+  static const String _hasHealthyDevices = 'has-healthy-devices: succeeded';
+  static const String _cocoonAuthentication =
+      'cocoon-authentication: succeeded';
+  static const String _cocoonConnection = 'cocoon-connection: succeeded';
+  static const String _ableToPerformhealthCheck =
+      'able-to-perform-health-check: succeeded';
 
   /// The agent to show health details from.
   final Agent agent;

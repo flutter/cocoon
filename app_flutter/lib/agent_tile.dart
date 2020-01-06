@@ -118,6 +118,7 @@ class AgentTile extends StatelessWidget {
   Future<void> _authorizeAgent(BuildContext context, Agent agent) async {
     final String token = await agentState.authorizeAgent(agent);
     if (token != null) {
+      // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020
       print(token);
 
       Scaffold.of(context).showSnackBar(const SnackBar(
