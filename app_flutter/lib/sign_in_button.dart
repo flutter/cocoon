@@ -29,11 +29,8 @@ class SignInButton extends StatelessWidget {
             // CanvasKit currently cannot render a NetworkImage because of CORS issues.
             child: CanvasKitWidget(
               canvaskit: Padding(
-                child: Icon(
-                  Icons.account_circle,
-                  size: 42,
-                ),
-                padding: const EdgeInsets.only(right: 10.0),
+                child: Text(authService.user.email),
+                padding: const EdgeInsets.only(right: 10.0, top: 20.0),
               ),
               // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
               other: Image.network(authService.user?.photoUrl),
