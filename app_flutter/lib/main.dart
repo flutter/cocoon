@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import 'build_dashboard.dart';
 import 'index_page.dart';
+import 'service/google_authentication.dart';
 
 void main() => runApp(MyApp());
 
@@ -17,13 +18,16 @@ final ThemeData theme = ThemeData(
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final GoogleSignInService signInService = GoogleSignInService();
+
     return MaterialApp(
       title: 'Flutter Build Dashboard',
       theme: theme,
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
-        '/': (BuildContext context) => IndexPage(),
-        '/build': (BuildContext context) => BuildDashboardPage(),
+        '/': (BuildContext context) => IndexPage(signInService: signInService),
+        '/build': (BuildContext context) =>
+            BuildDashboardPage(signInService: signInService),
       },
     );
   }

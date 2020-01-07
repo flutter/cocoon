@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +12,8 @@ import 'sign_in_button.dart';
 import 'state/index.dart';
 
 class IndexPage extends StatefulWidget {
-  IndexPage({IndexState indexState}) : indexState = indexState ?? IndexState();
+  IndexPage({IndexState indexState, GoogleSignInService signInService})
+      : indexState = indexState ?? IndexState(authServiceValue: signInService);
 
   final IndexState indexState;
 

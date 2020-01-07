@@ -19,6 +19,7 @@ class IndexState extends ChangeNotifier {
   }) {
     authService = authServiceValue ??
         GoogleSignInService(notifyListeners: notifyListeners);
+    authService.notifyListeners = notifyListeners;
   }
 
   /// Authentication service for managing Google Sign In.

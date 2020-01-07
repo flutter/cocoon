@@ -22,6 +22,7 @@ class FlutterBuildState extends ChangeNotifier {
   }) : _cocoonService = cocoonServiceValue ?? CocoonService() {
     authService = authServiceValue ??
         GoogleSignInService(notifyListeners: notifyListeners);
+    authService.notifyListeners = notifyListeners;
   }
 
   /// Cocoon backend service that retrieves the data needed for this state.
