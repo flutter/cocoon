@@ -115,7 +115,7 @@ Future<bool> _copyAngularDartProject() async {
   final ProcessResult result = await Process.run('cp',
       <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
 
-  // On MacOS, this will return exit code 1 since this copy does 
+  // On MacOS, this will return exit code 1 since this copy does
   // have files that "fail" to overwrite due to `app_flutter`.
   return result.exitCode == 0 || result.exitCode == 1;
 }
