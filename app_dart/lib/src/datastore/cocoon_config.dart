@@ -100,11 +100,13 @@ class Config {
       'and make sure this patch meets those guidelines before LGTMing.';
 
   String get goldenTriageMessage => 'Nice merge! 🎉\n'
-      'It looks like this PR made changes to golden files. Be sure to visit '
+      'It looks like this PR made changes to golden files. If these changes have '
+      'not been triaged as a tryjob, be sure to visit '
       '[Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) '
       'to triage the results when post-submit testing has completed. The status '
       'of these tests can be seen on the '
-      '[Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).\n\n'
+      '[Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).\n'
+      'Also, be sure to include this change in the [Changelog](https://github.com/flutter/flutter/wiki/Changelog).\n\n'
       'For more information about working with golden files, see the wiki page '
       '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 
