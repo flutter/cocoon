@@ -22,7 +22,7 @@ class GoogleSignInService {
   }
 
   /// A callback for notifying listeners there has been an update.
-  final VoidCallback notifyListeners;
+  VoidCallback notifyListeners;
 
   /// A list of Google API OAuth Scopes this project needs access to.
   ///
@@ -53,9 +53,11 @@ class GoogleSignInService {
   /// Initiate the Google Sign In process.
   Future<void> signIn() async {
     user = await _googleSignIn.signIn();
+    notifyListeners();
   }
 
   Future<void> signOut() async {
     await _googleSignIn.signOut();
+    notifyListeners();
   }
 }
