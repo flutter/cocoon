@@ -112,8 +112,8 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
-  final ProcessResult result = await Process.run(
-      'cp', <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
+  final ProcessResult result = await Process.run('cp',
+      <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
 
   // Since this copy does have files that will fail to overwrite due to Flutter
   // generating those files, the status code is expected to be 1
