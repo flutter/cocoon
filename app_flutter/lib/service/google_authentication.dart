@@ -53,11 +53,9 @@ class GoogleSignInService {
   /// Initiate the Google Sign In process.
   Future<void> signIn() async {
     user = await _googleSignIn.signIn();
-    notifyListeners();
   }
 
   Future<void> signOut() async {
     await _googleSignIn.signOut();
-    notifyListeners();
   }
 }
