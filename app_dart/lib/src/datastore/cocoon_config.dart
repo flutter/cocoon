@@ -101,7 +101,7 @@ class Config {
 
   String get goldenTriageMessage => 'Nice merge! 🎉\n'
       'It looks like this PR made changes to golden files. If these changes have '
-      ' not been triaged as a tryjob, be sure to visit '
+      'not been triaged as a tryjob, be sure to visit '
       '[Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) '
       'to triage the results when post-submit testing has completed. The status '
       'of these tests can be seen on the '
