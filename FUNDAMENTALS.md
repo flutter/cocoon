@@ -3,7 +3,7 @@ This document covers fundamentals of Flutter cocoon, including frontend [dashboa
 # Terminology
 
 * DeviceLab
-  * The hardware lab located at [US-MTV-1842-2-2G9](https://campusmaps.googleplex.com/?q=type:%22Standard%20Bench%20Lab%22%20US-MTV-1842-2-2G9)
+  * The hardware lab
 * Dashboard
   * The [web UI](https://flutter-dashboard.appspot.com) that aggregates Flutter CI build results and benchmarks
 * Agent
