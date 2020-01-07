@@ -115,9 +115,9 @@ Future<bool> _copyAngularDartProject() async {
   final ProcessResult result = await Process.run('cp',
       <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
 
-  // Since this copy does have files that will fail to overwrite due to Flutter
-  // generating those files, the status code is expected to be 1
-  return result.exitCode == 1;
+  // On MacOS, this will return exit code 1 since this copy does
+  // have files that "fail" to overwrite due to `app_flutter`.
+  return result.exitCode == 0 || result.exitCode == 1;
 }
 
 /// Copy the built project from app_flutter to this app_dart project.
