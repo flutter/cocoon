@@ -40,8 +40,6 @@ UI: https://pantheon.corp.google.com/appengine/versions?project=flutter-dashboar
 
 `--profile`: Deploy a profile mode of `app_flutter` application for debugging purposes.
 
-`--useSkia`: Deploy `app_flutter` using CanvasKit.
-
 # Design
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is made of
