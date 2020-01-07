@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Service class for interacting with Google Sign In authentication for Cocoon backend.
 class GoogleSignInService {
   /// Creates a new [GoogleSignIn].
-  GoogleSignInService({GoogleSignIn googleSignIn, this.notifyListeners})
+  GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: _googleScopes,
