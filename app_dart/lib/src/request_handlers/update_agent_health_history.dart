@@ -55,6 +55,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
 
     final List<Map<String, Object>> tableDataInsertAllRequestRows =
         <Map<String, Object>>[];
+    final int healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     for (Agent agent in agents) {
       final bool isHealthy = _isAgentHealthy(agent);
@@ -64,7 +65,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
       /// Prepare for bigquery [insertAll].
       tableDataInsertAllRequestRows.add(<String, Object>{
         'json': <String, Object>{
-          'Timestamp': agent.healthCheckTimestamp,
+          'Timestamp': healthCheckTimestamp,
           'AgentID': agent.agentId,
           // TODO(keyonghan): add more detailed statuses https://github.com/flutter/flutter/issues/44213
           'Status': isHealthy ? 'healthy' : 'unhealthy',

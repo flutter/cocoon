@@ -80,6 +80,8 @@ void main() {
       final Map<String, dynamic> result = await decodeHandlerBody();
       final TableDataList tableDataList =
           await tabledataResourceApi.list('test', 'test', 'test');
+      final Map<String, Object> value1 = tableDataList.rows[0].f[0].v;
+      final Map<String, Object> value2 = tableDataList.rows[1].f[0].v;
       final List<dynamic> expectedOrderedAgents = <dynamic>[
         linux1.toJson(),
         linux5.toJson(),
@@ -88,6 +90,7 @@ void main() {
 
       /// Test `BigQuery` insert.
       expect(tableDataList.totalRows, '3');
+      expect(value1['Timestamp'], value2['Timestamp']);
       expect(log.records[0].message,
           'Succeeded to insert 3 rows to flutter-dashboard-cocoon-Agent');
 
