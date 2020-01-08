@@ -29,11 +29,13 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       String startIndex,
       String pageToken,
       String $fields}) async {
-    final Map<String, Object> value = rows[0].json;
-    final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
-    tableCellList.add(<String, Object>{'v': value});
     final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
-    tableRowList.add(<String, Object>{'f': tableCellList});
+    for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows) {
+      final Map<String, Object> value = tableDataInsertAllRequestRows.json;
+      final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
+      tableCellList.add(<String, Object>{'v': value});
+      tableRowList.add(<String, Object>{'f': tableCellList});
+    }
 
     return TableDataList.fromJson(<String, Object>{
       'totalRows': rows.length.toString(),
