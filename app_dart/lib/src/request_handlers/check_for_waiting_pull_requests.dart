@@ -186,7 +186,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final bool hasChangesRequested =
           pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
       final String sha = commit['oid'];
-      final bool ciSuccessful = commit['status']['state'] == 'SUCCESS';
+      final List<Map<String, dynamic>> checkSuites =
+          commit['checkSuites']['nodes'].cast<Map<String, dynamic>>();
+      final bool checkSuitesSuccessful = checkSuites.every(
+          (Map<String, dynamic> checkSuiteConclusion) =>
+              checkSuiteConclusion['conclusion'] == 'SUCCESS');
+      final bool ciSuccessful =
+          checkSuitesSuccessful && commit['status']['state'] == 'SUCCESS';
       list.add(_AutoMergeQueryResult(
         graphQLId: id,
         ciSuccessful: ciSuccessful,

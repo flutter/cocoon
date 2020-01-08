@@ -249,6 +249,9 @@ class Config {
   Future<GraphQLClient> createGitHubGraphQLClient() async {
     final HttpLink httpLink = HttpLink(
       uri: 'https://api.github.com/graphql',
+      headers: <String, String>{
+        'Accept': 'application/vnd.github.antiope-preview+json',
+      },
     );
 
     final String token = await githubOAuthToken;

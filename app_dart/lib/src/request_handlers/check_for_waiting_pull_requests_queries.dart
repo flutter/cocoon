@@ -23,6 +23,11 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
                   status {
                     state
                   }
+                  checkSuites(first: 100) {
+                    nodes {
+                      conclusion
+                    }
+                  }
                 }
               }
             }
