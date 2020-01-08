@@ -15,8 +15,6 @@ import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
-import '../utils/fake_google_account.dart';
-
 void main() {
   group('FlutterBuildState', () {
     FlutterBuildState buildState;
