@@ -42,9 +42,7 @@ class GoogleSignInService {
   /// Whether or not the application has been signed in to.
   Future<bool> get isAuthenticated => _googleSignIn.isSignedIn();
 
-  /// The Google Account for the signed in user.
-  ///
-  /// If any of the fields are null, the current session is not signed in.
+  /// The Google Account for the signed in user, null if no user is signed in.
   ///
   /// Read only object with only access to clear client auth tokens.
   GoogleSignInAccount user;
