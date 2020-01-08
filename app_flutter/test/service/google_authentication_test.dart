@@ -49,7 +49,8 @@ void main() {
       when(mockSignIn.onCurrentUserChanged)
           .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
-      authService = GoogleSignInService(googleSignIn: mockSignIn);
+      authService = GoogleSignInService(googleSignIn: mockSignIn)
+        ..notifyListeners = () => null;
     });
 
     test('is authenticated after successful sign in', () async {

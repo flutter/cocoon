@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:app_flutter/service/google_authentication.dart';
@@ -36,7 +37,33 @@ void main() {
       verify(mockAuthService.signOut()).called(1);
     });
   });
+
+  testWidgets('sign in functions call notify listener',
+      (WidgetTester tester) async {
+    final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
+    when(mockSignInPlugin.onCurrentUserChanged)
+        .thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
+    when(mockSignInPlugin.signIn()).thenAnswer((_) async => null);
+    final GoogleSignInService signInService =
+        GoogleSignInService(googleSignIn: mockSignInPlugin);
+    final IndexState indexState = IndexState(authServiceValue: signInService);
+
+    int callCount = 0;
+    indexState.addListener(() => callCount++);
+
+    // notify listener is called during construction of the state
+    await tester.pump(const Duration(seconds: 5));
+    expect(callCount, 1);
+
+    await indexState.signIn();
+    expect(callCount, 2);
+
+    await indexState.signOut();
+    expect(callCount, 3);
+  });
 }
 
 /// Mock for testing interactions with [GoogleSignInService].
 class MockGoogleSignInService extends Mock implements GoogleSignInService {}
+
+class MockGoogleSignInPlugin extends Mock implements GoogleSignIn {}
