@@ -16,10 +16,11 @@ class GoogleSignInService {
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
+      print('GoogleSignIn currentUserChanged');
       print(user);
       notifyListeners();
     });
-    _googleSignIn.signInSilently(suppressErrors: false);
+    _googleSignIn.signInSilently();
   }
 
   /// A callback for notifying listeners there has been an update.
@@ -55,7 +56,15 @@ class GoogleSignInService {
       ?.then((GoogleSignInAuthentication key) => key.idToken);
 
   /// Initiate the Google Sign In process.
-  Future<void> signIn() async => await _googleSignIn.signIn();
+  Future<void> signIn() async {
+    print('calling sign in');
+    await _googleSignIn.signIn();
+    print('sign in complete');
+  }
 
-  Future<void> signOut() async => await _googleSignIn.signOut();
+  Future<void> signOut() async {
+    print('calling sign out');
+    await _googleSignIn.signOut();
+    print('sign out complete');
+  }
 }
