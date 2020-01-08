@@ -179,6 +179,29 @@ void main() {
       );
     });
 
+    test('Ignore red PRs', () async {
+      final PullRequestHelper prRed = PullRequestHelper(
+        lastCommitSuccess: false,
+        lastCommitCheckRunsSuccess: false,
+      );
+      final PullRequestHelper prRedButChecksOk = PullRequestHelper(
+        lastCommitSuccess: false,
+        lastCommitCheckRunsSuccess: true,
+      );
+      final PullRequestHelper prRedButStatusOk = PullRequestHelper(
+        lastCommitSuccess: true,
+        lastCommitCheckRunsSuccess: false,
+      );
+
+      flutterRepoPRs.add(prRed);
+      flutterRepoPRs.add(prRedButChecksOk);
+      flutterRepoPRs.add(prRedButStatusOk);
+
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
         hasApprovedReview: false,
@@ -192,9 +215,11 @@ void main() {
           PullRequestHelper(hasApprovedReview: false);
       final PullRequestHelper prRed = PullRequestHelper(
         lastCommitSuccess: false,
+        lastCommitCheckRunsSuccess: false,
       );
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
         lastCommitSuccess: false,
+        lastCommitCheckRunsSuccess: false,
         hasApprovedReview: false,
         hasChangeRequestReview: true,
       );
@@ -327,6 +352,7 @@ class PullRequestHelper {
     this.hasChangeRequestReview = false,
     this.lastCommitHash = oid,
     this.lastCommitSuccess = true,
+    this.lastCommitCheckRunsSuccess = true,
     this.dateTime,
   }) : _count = _counter++;
 
@@ -339,6 +365,7 @@ class PullRequestHelper {
   final bool hasChangeRequestReview;
   final String lastCommitHash;
   final bool lastCommitSuccess;
+  final bool lastCommitCheckRunsSuccess;
   final DateTime dateTime;
 
   Map<String, dynamic> toEntry() {
@@ -370,6 +397,14 @@ class PullRequestHelper {
                       .toIso8601String(),
               'status': <String, dynamic>{
                 'state': lastCommitSuccess ? 'SUCCESS' : 'FAILURE',
+              },
+              'checkSuites': <String, dynamic>{
+                'nodes': <dynamic>[
+                  <String, dynamic>{
+                    'conclusion': lastCommitCheckRunsSuccess ? 'SUCCESS' : null
+                  },
+                  <String, dynamic>{'conclusion': 'SUCCESS'},
+                ],
               },
             },
           },
