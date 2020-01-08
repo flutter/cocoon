@@ -16,9 +16,10 @@ class GoogleSignInService {
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
+      print(user);
       notifyListeners();
     });
-    _googleSignIn.signInSilently();
+    _googleSignIn.signInSilently(suppressErrors: false);
   }
 
   /// A callback for notifying listeners there has been an update.
@@ -36,12 +37,15 @@ class GoogleSignInService {
     'openid',
   ];
 
+  /// The instance of the GoogleSignIn plugin to use.
   final GoogleSignIn _googleSignIn;
 
   /// Whether or not the application has been signed in to.
   Future<bool> get isAuthenticated => _googleSignIn.isSignedIn();
 
-  /// The Google Account for the signed in user, null if no user is signed in.
+  /// The Google Account for the signed in user.
+  ///
+  /// If any of the fields are null, the current session is not signed in.
   ///
   /// Read only object with only access to clear client auth tokens.
   GoogleSignInAccount user;
@@ -51,11 +55,7 @@ class GoogleSignInService {
       ?.then((GoogleSignInAuthentication key) => key.idToken);
 
   /// Initiate the Google Sign In process.
-  Future<void> signIn() async {
-    user = await _googleSignIn.signIn();
-  }
+  Future<void> signIn() async => await _googleSignIn.signIn();
 
-  Future<void> signOut() async {
-    await _googleSignIn.signOut();
-  }
+  Future<void> signOut() async => await _googleSignIn.signOut();
 }

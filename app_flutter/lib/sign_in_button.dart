@@ -5,6 +5,7 @@
 import 'package:app_flutter/canvaskit_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 
 import 'service/google_authentication.dart';
 
@@ -49,12 +50,20 @@ class SignInButton extends StatelessWidget {
             },
           );
         }
-        return FlatButton(
-          child: const Text(
-            'Sign in',
-            style: TextStyle(color: Colors.white),
+        return SizedBox(
+          width: 100,
+          child: ProgressButton(
+            defaultWidget: const Text(
+              'Sign in',
+              style: TextStyle(color: Colors.white),
+            ),
+            color: Colors.transparent,
+            progressWidget: const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            animate: false,
+            onPressed: authService.signIn,
           ),
-          onPressed: () => authService.signIn(),
         );
       },
     );
