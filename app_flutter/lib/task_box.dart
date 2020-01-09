@@ -340,7 +340,6 @@ class TaskOverlayContents extends StatelessWidget {
                 ? Text('Attempts: ${task.attempts}\n'
                     'Run time: ${runDuration.inMinutes} minutes\n'
                     'Queue time: ${queueDuration.inSeconds} seconds\n'
-                    'Agent: ${task.reservedForAgentId}\n'
                     'Flaky: ${task.isFlaky}')
                 : const Text('Task was run outside of devicelab'),
             contentPadding: const EdgeInsets.all(16.0),
@@ -348,7 +347,8 @@ class TaskOverlayContents extends StatelessWidget {
           if (isDevicelab(task)) TaskAttemptSummary(task: task),
           ButtonBar(
             children: <Widget>[
-              FlatButton(
+              if (isDevicelab(task))
+                FlatButton(
                   child: Text(task.reservedForAgentId),
                   onPressed: () {
                     // Close the current overlay
@@ -360,7 +360,8 @@ class TaskOverlayContents extends StatelessWidget {
                       AgentDashboardPage.routeName,
                       arguments: task.reservedForAgentId,
                     );
-                  }),
+                  },
+                ),
               ProgressButton(
                 defaultWidget: const Text('Log'),
                 progressWidget: const CircularProgressIndicator(),

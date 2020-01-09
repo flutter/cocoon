@@ -14,8 +14,11 @@ import 'state/agent.dart';
 
 /// [AgentDashboardPage] parent widget that manages the state of the dashboard.
 class AgentDashboardPage extends StatefulWidget {
-  AgentDashboardPage({AgentState agentState, GoogleSignInService signInService, this.agentFilter})
-      : agentState = agentState ?? AgentState(authServiceValue: signInService);
+  AgentDashboardPage({
+    AgentState agentState,
+    GoogleSignInService signInService,
+    @visibleForTesting this.agentFilter,
+  }) : agentState = agentState ?? AgentState(authServiceValue: signInService);
 
   static const String routeName = '/agents';
 
@@ -47,7 +50,8 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
   Widget build(BuildContext context) {
     agentState = widget.agentState;
 
-    final String agentFilter = ModalRoute.of(context).settings.arguments;
+    final String agentFilter =
+        ModalRoute.of(context).settings.arguments ?? widget.agentFilter;
 
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,

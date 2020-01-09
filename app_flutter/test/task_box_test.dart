@@ -10,6 +10,7 @@ import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
+import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_attempt_summary.dart';
@@ -22,11 +23,12 @@ void main() {
       ..attempts = 3
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
+      ..reservedForAgentId = 'Agenty McAgentFace'
       ..reason = 'Because I said so'
       ..isFlaky = false;
-    FlutterBuildState buildState;
+    MockFlutterBuildState buildState;
 
-    setUpAll(() {
+    setUp(() {
       buildState = MockFlutterBuildState();
     });
 
@@ -183,10 +185,10 @@ void main() {
           'Attempts: ${expectedTask.attempts}\n'
           'Run time: 0 minutes\n'
           'Queue time: 0 seconds\n'
-          'Agent: ${expectedTask.reservedForAgentId}\n'
           'Flaky: ${expectedTask.isFlaky}';
       expect(find.text(expectedTask.name), findsNothing);
       expect(find.text(expectedTaskInfoString), findsNothing);
+      expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
       // Ensure the task indicator isn't showing when overlay is not shown
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
@@ -196,6 +198,7 @@ void main() {
 
       expect(find.text(expectedTask.name), findsOneWidget);
       expect(find.text(expectedTaskInfoString), findsOneWidget);
+      expect(find.text(expectedTask.reservedForAgentId), findsOneWidget);
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
@@ -224,7 +227,6 @@ void main() {
       final String expectedTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
           'Run time: 0 minutes\n'
           'Queue time: 0 seconds\n'
-          'Agent: ${flakyTask.reservedForAgentId}\n'
           'Flaky: true';
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -263,7 +265,6 @@ void main() {
       final String expectedTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
           'Run time: 8 minutes\n'
           'Queue time: 10 seconds\n'
-          'Agent: ${timeTask.reservedForAgentId}\n'
           'Flaky: true';
       expect(find.text(expectedTaskInfoString), findsNothing);
 
@@ -272,6 +273,43 @@ void main() {
       await tester.pump();
 
       expect(find.text(expectedTaskInfoString), findsOneWidget);
+    });
+
+    testWidgets('devicelab agent button redirects to agent page',
+        (WidgetTester tester) async {
+      final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TaskBox(
+              buildState: buildState,
+              task: expectedTask,
+              commit: Commit(),
+            ),
+          ),
+          navigatorObservers: <NavigatorObserver>[navigatorObserver],
+          routes: <String, WidgetBuilder>{
+            AgentDashboardPage.routeName: (BuildContext context) =>
+                AgentDashboardPage(),
+          },
+        ),
+      );
+
+      // The AppBar title for the agent page
+      expect(find.text('Infra Agents'), findsNothing);
+      expect(find.text(expectedTask.reservedForAgentId), findsNothing);
+
+      await tester.tap(find.byType(TaskBox));
+      await tester.pump();
+
+      await tester.tap(find.text(expectedTask.reservedForAgentId));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Infra Agents'), findsOneWidget);
+      // Check that the agent is filtered correctly which tests if the route
+      // argument was passed correctly
+      expect(find.text(expectedTask.reservedForAgentId), findsOneWidget);
     });
 
     testWidgets('overlay message for nondevicelab tasks',
@@ -602,3 +640,6 @@ Future<void> expectTaskBoxColorWithMessage(
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}
 
 class MockGoogleSignInService extends Mock implements GoogleSignInService {}
+
+/// Class for testing interactions on [NavigatorObserver].
+class MockNavigatorObserver extends Mock implements NavigatorObserver {}

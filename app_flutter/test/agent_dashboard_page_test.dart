@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_dashboard_page.dart';
+import 'package:app_flutter/agent_tile.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
@@ -111,6 +112,25 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(agentState.errors.message), findsNothing);
+  });
+
+  testWidgets('agent filter is passed to agent list',
+      (WidgetTester tester) async {
+    final AgentState agentState = AgentState();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AgentDashboardPage(
+          agentState: agentState,
+          agentFilter: 'dash-test-3',
+        ),
+      ),
+    );
+    agentState.notifyListeners();
+    await tester.pump();
+
+    expect(find.byType(AgentTile), findsOneWidget);
+    // agent id shows in the search bar and the agent tile
+    expect(find.text('dash-test-3'), findsNWidgets(2));
   });
 }
 

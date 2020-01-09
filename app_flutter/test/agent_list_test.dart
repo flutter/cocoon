@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_list.dart';
+import 'package:app_flutter/agent_tile.dart';
 
 void main() {
   group('AgentList', () {
@@ -73,6 +74,33 @@ able-to-perform-health-check: succeeded''',
       expect(find.byKey(const Key('0-sick')), findsOneWidget);
       expect(find.byKey(const Key('1-healthy1')), findsOneWidget);
       expect(find.byKey(const Key('2-healthy2')), findsOneWidget);
+    });
+
+    testWidgets('filter agents', (WidgetTester tester) async {
+      final List<Agent> agents = <Agent>[
+        Agent()
+          ..agentId = 'secret agent'
+          ..healthCheckTimestamp =
+              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..isHealthy = true,
+        Agent()
+          ..agentId = 'pigeon'
+          ..healthCheckTimestamp =
+              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..isHealthy = false,
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AgentList(
+                agents: agents, agentFilter: 'pigeon', insertKeys: true),
+          ),
+        ),
+      );
+
+      expect(find.byKey(const Key('0-pigeon')), findsOneWidget);
+      expect(find.byType(AgentTile), findsOneWidget);
     });
   });
 }
