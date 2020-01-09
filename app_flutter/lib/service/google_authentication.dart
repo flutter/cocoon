@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Service class for interacting with Google Sign In authentication for Cocoon backend.
 class GoogleSignInService {
   /// Creates a new [GoogleSignIn].
-  GoogleSignInService({GoogleSignIn googleSignIn, this.notifyListeners})
+  GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: _googleScopes,
@@ -22,7 +22,7 @@ class GoogleSignInService {
   }
 
   /// A callback for notifying listeners there has been an update.
-  final VoidCallback notifyListeners;
+  VoidCallback notifyListeners;
 
   /// A list of Google API OAuth Scopes this project needs access to.
   ///
@@ -36,6 +36,7 @@ class GoogleSignInService {
     'openid',
   ];
 
+  /// The instance of the GoogleSignIn plugin to use.
   final GoogleSignIn _googleSignIn;
 
   /// Whether or not the application has been signed in to.
@@ -53,9 +54,11 @@ class GoogleSignInService {
   /// Initiate the Google Sign In process.
   Future<void> signIn() async {
     user = await _googleSignIn.signIn();
+    notifyListeners();
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    user = await _googleSignIn.signOut();
+    notifyListeners();
   }
 }

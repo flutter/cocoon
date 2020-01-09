@@ -7,11 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'navigation_drawer.dart';
+import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
 import 'state/index.dart';
 
 class IndexPage extends StatefulWidget {
-  IndexPage({IndexState indexState}) : indexState = indexState ?? IndexState();
+  IndexPage({IndexState indexState, GoogleSignInService signInService})
+      : indexState = indexState ?? IndexState(authServiceValue: signInService);
 
   final IndexState indexState;
 

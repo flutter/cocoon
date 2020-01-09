@@ -16,9 +16,8 @@ class IndexState extends ChangeNotifier {
   /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
   IndexState({
     GoogleSignInService authServiceValue,
-  }) {
-    authService = authServiceValue ??
-        GoogleSignInService(notifyListeners: notifyListeners);
+  }) : authService = authServiceValue ?? GoogleSignInService() {
+    authService.notifyListeners = notifyListeners;
   }
 
   /// Authentication service for managing Google Sign In.
