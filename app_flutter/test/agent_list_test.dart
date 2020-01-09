@@ -63,7 +63,12 @@ able-to-perform-health-check: succeeded''',
       ];
 
       await tester.pumpWidget(
-          MaterialApp(home: AgentList(agents: agents, insertKeys: true)));
+        MaterialApp(
+          home: Scaffold(
+            body: AgentList(agents: agents, insertKeys: true),
+          ),
+        ),
+      );
 
       expect(find.byKey(const Key('0-sick')), findsOneWidget);
       expect(find.byKey(const Key('1-healthy1')), findsOneWidget);

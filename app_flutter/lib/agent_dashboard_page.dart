@@ -14,10 +14,14 @@ import 'state/agent.dart';
 
 /// [AgentDashboardPage] parent widget that manages the state of the dashboard.
 class AgentDashboardPage extends StatefulWidget {
-  AgentDashboardPage({AgentState agentState, GoogleSignInService signInService})
+  AgentDashboardPage({AgentState agentState, GoogleSignInService signInService, this.agentFilter})
       : agentState = agentState ?? AgentState(authServiceValue: signInService);
 
+  static const String routeName = '/agents';
+
   final AgentState agentState;
+
+  final String agentFilter;
 
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
@@ -45,7 +49,11 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,
-      child: AgentDashboard(scaffoldKey: _scaffoldKey, agentState: agentState),
+      child: AgentDashboard(
+        scaffoldKey: _scaffoldKey,
+        agentState: agentState,
+        agentFilter: widget.agentFilter,
+      ),
     );
   }
 
@@ -75,10 +83,15 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
 /// Shows current status of Flutter infra agents.
 class AgentDashboard extends StatefulWidget {
-  const AgentDashboard({this.scaffoldKey, this.agentState});
+  const AgentDashboard({
+    this.scaffoldKey,
+    this.agentState,
+    this.agentFilter,
+  });
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AgentState agentState;
+  final String agentFilter;
 
   @override
   _AgentDashboardState createState() => _AgentDashboardState();
@@ -118,16 +131,22 @@ class _AgentDashboardState extends State<AgentDashboard> {
                 child: AgentList(
                   agents: agentState.agents,
                   agentState: agentState,
+                  agentFilter: widget.agentFilter,
                 ),
               ),
             ),
           ],
         ),
         drawer: const NavigationDrawer(
-          currentRoute: '/agents',
+          currentRoute: AgentDashboardPage.routeName,
         ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add_to_queue),
+        floatingActionButton: RaisedButton(
+          child: const Text(
+            'Create Agent',
+            textScaleFactor: 1.5,
+          ),
+          color: Theme.of(context).primaryColor,
+          padding: const EdgeInsets.all(10.0),
           onPressed: () => _showCreateAgentDialog(context, agentState),
         ),
       ),
@@ -170,7 +189,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
                   ),
                   Container(height: 25),
                   ProgressButton(
-                    defaultWidget: const Text('Create agent'),
+                    defaultWidget: const Text('Create'),
                     progressWidget: const CircularProgressIndicator(),
                     onPressed: () async => _createAgent(context),
                   )

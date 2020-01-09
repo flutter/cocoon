@@ -10,15 +10,19 @@ import 'agent_health_details.dart';
 import 'agent_tile.dart';
 import 'state/agent.dart';
 
-class AgentList extends StatelessWidget {
+class AgentList extends StatefulWidget {
   const AgentList(
       {this.agents,
       this.agentState,
+      this.agentFilter,
       @visibleForTesting this.insertKeys = false});
 
   final List<Agent> agents;
 
   final AgentState agentState;
+
+  /// Term to filter [agents] by.
+  final String agentFilter;
 
   /// When true, will set a key for the [AgentTile] that is composed of its
   /// position in the list and the agent id.
@@ -26,26 +30,80 @@ class AgentList extends StatelessWidget {
   final bool insertKeys;
 
   @override
+  _AgentListState createState() => _AgentListState();
+}
+
+class _AgentListState extends State<AgentList> {
+  TextEditingController filterAgentsController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// When redirected from the build dashboard, display a specific agent.
+    if (widget.agentFilter != null && widget.agentFilter.isNotEmpty) {
+      filterAgentsController.text = widget.agentFilter;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (agents.isEmpty) {
+    if (widget.agents.isEmpty) {
       return const CircularProgressIndicator();
     }
 
-    final List<FullAgent> fullAgents = agents
+    final List<FullAgent> fullAgents = widget.agents
         .map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent)))
         .toList()
           // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
           ..sort();
-    return ListView(
-      children: List<AgentTile>.generate(
-        fullAgents.length,
-        (int i) => AgentTile(
-          key: insertKeys ? Key('$i-${fullAgents[i].agent.agentId}') : null,
-          fullAgent: fullAgents[i],
-          agentState: agentState,
+    List<FullAgent> filteredAgents =
+        filterAgents(fullAgents, filterAgentsController.value.text);
+
+    return Column(
+      children: <Widget>[
+        // Padding for the search bar
+        Container(height: 25),
+        TextField(
+          onChanged: (String value) {
+            setState(() {
+              filteredAgents = filterAgents(fullAgents, value);
+            });
+          },
+          controller: filterAgentsController,
+          decoration: InputDecoration(
+              labelText: 'Filter',
+              hintText: 'Filter',
+              prefixIcon: Icon(Icons.search),
+              border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(25.0)))),
         ),
-      ),
+        Expanded(
+          child: ListView(
+            children: List<AgentTile>.generate(filteredAgents.length, (int i) {
+              return AgentTile(
+                key: widget.insertKeys
+                    ? Key('$i-${filteredAgents[i].agent.agentId}')
+                    : null,
+                fullAgent: filteredAgents[i],
+                agentState: widget.agentState,
+              );
+            }),
+          ),
+        ),
+      ],
     );
+  }
+
+  List<FullAgent> filterAgents(List<FullAgent> agents, String filter) {
+    if (filter.isEmpty) {
+      return agents;
+    }
+
+    return agents
+        .where(
+            (FullAgent fullAgent) => fullAgent.agent.agentId.contains(filter))
+        .toList();
   }
 }
 

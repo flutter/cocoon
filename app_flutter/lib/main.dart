@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 
 import 'agent_dashboard_page.dart';
-import 'build_dashboard.dart';
+import 'build_dashboard_page.dart';
 import 'index_page.dart';
 import 'service/google_authentication.dart';
 
@@ -26,9 +26,11 @@ class MyApp extends StatelessWidget {
       theme: theme,
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
-        '/': (BuildContext context) => IndexPage(signInservice: signInService),
-        '/agents': (BuildContext context) => AgentDashboardPage(signInService: signInService),
-        '/build': (BuildContext context) => BuildDashboardPage(signInService: signInService,),
+        IndexPage.routeName: (BuildContext context) => IndexPage(),
+        AgentDashboardPage.routeName: (BuildContext context) =>
+            AgentDashboardPage(),
+        BuildDashboardPage.routeName: (BuildContext context) =>
+            BuildDashboardPage(),
       },
     );
   }

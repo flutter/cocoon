@@ -15,6 +15,8 @@ class IndexPage extends StatefulWidget {
   IndexPage({IndexState indexState, GoogleSignInService signInService})
       : indexState = indexState ?? IndexState(authServiceValue: signInService);
 
+  static const String routeName = '/';
+
   final IndexState indexState;
 
   @visibleForTesting
