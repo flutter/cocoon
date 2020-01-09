@@ -24,6 +24,10 @@ void main() {
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
+    tearDown(() {
+      clearInteractions(mockSignIn);
+    });
+
     test('not authenticated', () async {
       expect(await authService.isAuthenticated, false);
     });
@@ -32,6 +36,10 @@ void main() {
       expect(authService.user, null);
       expect(authService.idToken, null);
     });
+
+    test('sign in silently called', () async {
+      verify(mockSignIn.signInSilently()).called(1);
+    }, skip: true);
   });
 
   group('GoogleSignInService sign in', () {
