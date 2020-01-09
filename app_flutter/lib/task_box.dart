@@ -239,6 +239,7 @@ class TaskOverlayEntry extends StatelessWidget {
             task: task,
             taskStatus: taskStatus,
             commit: commit,
+            closeCallback: closeCallback,
           ),
         ),
       ],
@@ -259,6 +260,7 @@ class TaskOverlayContents extends StatelessWidget {
     @required this.buildState,
     @required this.task,
     @required this.taskStatus,
+    @required this.closeCallback,
     this.commit,
   })  : assert(showSnackbarCallback != null),
         assert(buildState != null),
@@ -280,6 +282,12 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// [Commit] for cirrus tasks to show log.
   final Commit commit;
+
+  /// This callback removes the parent overlay from the widget tree.
+  ///
+  /// On a click that is outside the area of the overlay (the rest of the screen),
+  /// this callback is called closing the overlay.
+  final void Function() closeCallback;
 
   @visibleForTesting
   static const String rerunErrorMessage = 'Failed to rerun task.';
@@ -341,13 +349,18 @@ class TaskOverlayContents extends StatelessWidget {
           ButtonBar(
             children: <Widget>[
               FlatButton(
-                child: Text(task.reservedForAgentId),
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  AgentDashboardPage.routeName,
-                  arguments: task.reservedForAgentId,
-                ),
-              ),
+                  child: Text(task.reservedForAgentId),
+                  onPressed: () {
+                    // Close the current overlay
+                    closeCallback();
+
+                    // Open the agent dashboard
+                    Navigator.pushNamed(
+                      context,
+                      AgentDashboardPage.routeName,
+                      arguments: task.reservedForAgentId,
+                    );
+                  }),
               ProgressButton(
                 defaultWidget: const Text('Log'),
                 progressWidget: const CircularProgressIndicator(),
