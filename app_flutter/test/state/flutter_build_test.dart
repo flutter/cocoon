@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:app_flutter/service/google_authentication.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';

@@ -20,8 +20,7 @@ class AgentState extends ChangeNotifier {
     CocoonService cocoonServiceValue,
     GoogleSignInService authServiceValue,
   }) : _cocoonService = cocoonServiceValue ?? CocoonService() {
-    authService = authServiceValue ??
-        GoogleSignInService();
+    authService = authServiceValue ?? GoogleSignInService();
     authService.notifyListeners = notifyListeners;
   }
 
