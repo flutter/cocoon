@@ -21,7 +21,8 @@ class AgentState extends ChangeNotifier {
     GoogleSignInService authServiceValue,
   }) : _cocoonService = cocoonServiceValue ?? CocoonService() {
     authService = authServiceValue ??
-        GoogleSignInService(notifyListeners: notifyListeners);
+        GoogleSignInService();
+    authService.notifyListeners = notifyListeners;
   }
 
   /// Cocoon backend service that retrieves the data needed for current infra status.
