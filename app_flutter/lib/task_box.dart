@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
@@ -339,6 +340,14 @@ class TaskOverlayContents extends StatelessWidget {
           if (isDevicelab(task)) TaskAttemptSummary(task: task),
           ButtonBar(
             children: <Widget>[
+              FlatButton(
+                child: Text(task.reservedForAgentId),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AgentDashboardPage.routeName,
+                  arguments: task.reservedForAgentId,
+                ),
+              ),
               ProgressButton(
                 defaultWidget: const Text('Log'),
                 progressWidget: const CircularProgressIndicator(),

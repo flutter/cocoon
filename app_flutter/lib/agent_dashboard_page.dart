@@ -47,12 +47,14 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
   Widget build(BuildContext context) {
     agentState = widget.agentState;
 
+    final String agentFilter = ModalRoute.of(context).settings.arguments;
+
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,
       child: AgentDashboard(
         scaffoldKey: _scaffoldKey,
         agentState: agentState,
-        agentFilter: widget.agentFilter,
+        agentFilter: agentFilter,
       ),
     );
   }
