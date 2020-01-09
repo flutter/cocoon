@@ -43,7 +43,6 @@ void main() {
     final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
     when(mockSignInPlugin.onCurrentUserChanged)
         .thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
-    when(mockSignInPlugin.signIn()).thenAnswer((_) async => null);
     final GoogleSignInService signInService =
         GoogleSignInService(googleSignIn: mockSignInPlugin);
     final IndexState indexState = IndexState(authServiceValue: signInService);
