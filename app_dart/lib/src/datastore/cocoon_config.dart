@@ -126,6 +126,9 @@ class Config {
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
+  /// The names of autoroller accounts for the repositories.
+  ///
+  /// These accounts should not need reviews before merging.
   Set<String> get rollerAccounts => <String>{
     'skia-flutter-autoroll',
     'engine-flutter-autoroll',
