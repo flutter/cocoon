@@ -10,6 +10,9 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
         id
         pullRequests(first: 100, states: OPEN) {
           nodes {
+            author {
+              login
+            }
             id
             number
             mergeable

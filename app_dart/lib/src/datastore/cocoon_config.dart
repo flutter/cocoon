@@ -126,6 +126,11 @@ class Config {
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
+  Set<String> get rollerAccounts => <String>{
+    'skia-flutter-autoroll',
+    'engine-flutter-autoroll',
+  };
+
   /// A List of builders for LUCI
   List<Map<String, dynamic>> get luciBuilders => <Map<String, String>>[
         <String, String>{

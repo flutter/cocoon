@@ -117,6 +117,35 @@ void main() {
       }
     });
 
+    test('Merges unapproved PR from autoroller', () async {
+      config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
+      flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller', hasApprovedReview: false));
+      engineRepoPRs.add(PullRequestHelper(author: 'skia-roller', hasApprovedReview: false));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs.first.id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
+              'oid': oid,
+            },
+          ),
+        ],
+      );
+    });
+
     test('Merges first PR in list, all successful', () async {
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
@@ -348,6 +377,7 @@ class FakeGraphQLClient implements GraphQLClient {
 
 class PullRequestHelper {
   PullRequestHelper({
+    this.author = 'some_rando',
     this.hasApprovedReview = true,
     this.hasChangeRequestReview = false,
     this.lastCommitHash = oid,
@@ -361,6 +391,7 @@ class PullRequestHelper {
   final int _count;
   String get id => _count.toString();
 
+  final String author;
   final bool hasApprovedReview;
   final bool hasChangeRequestReview;
   final String lastCommitHash;
@@ -370,6 +401,9 @@ class PullRequestHelper {
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
+      'author': <String, dynamic>{
+        'login': author
+      },
       'id': id,
       'number': id.hashCode,
       'approvedReviews': <String, dynamic>{

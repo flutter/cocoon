@@ -179,9 +179,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           .isAfter(DateTime.now().toUtc())) {
         continue;
       }
+      final String author = pullRequest['author']['login'];
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
-      final bool hasApproval =
+      final bool hasApproval = config.rollerAccounts.contains(author) ||
           pullRequest['approvedReviews']['nodes'].isNotEmpty;
       final bool hasChangesRequested =
           pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
