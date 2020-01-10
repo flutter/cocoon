@@ -2,8 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# This file must be manually deployed to updates the Datastore index with:
+# This file must be manually deployed to update Datastore
+# Ensure gcloud sdk is configured to the Cocoon GCP project:
+# $ gcloud config list
+# Then deploy to Datastore for the project:
 # $ gcloud datastore indexes create index.yaml
+# If indexes are removed:
+# $ gcloud datastore indexes cleanup index.yaml
 indexes:
 - kind: Checklist
   ancestor: yes
