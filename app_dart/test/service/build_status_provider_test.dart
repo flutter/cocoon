@@ -32,6 +32,12 @@ List<Task> allGreen = <Task>[
   Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
 ];
 
+List<Task> allRed = <Task>[
+  Task(stageName: 'stage1', name: 'task1', status: Task.statusFailed),
+  Task(stageName: 'stage2', name: 'task2', status: Task.statusFailed),
+  Task(stageName: 'stage2', name: 'task3', status: Task.statusFailed),
+];
+
 List<Task> middleTaskFailed = <Task>[
   Task(stageName: 'stage1', name: 'task1', status: Task.statusSucceeded),
   Task(stageName: 'stage2', name: 'task2', status: Task.statusFailed),
@@ -57,6 +63,16 @@ List<Task> middleTaskInProgress = <Task>[
 List<Task> middleTaskRerunning = <Task>[
   Task(stageName: 'stage1', name: 'task1', status: Task.statusSucceeded),
   Task(stageName: 'stage2', name: 'task2', status: Task.statusNew, attempts: 2),
+  Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
+];
+
+List<Task> middleTaskRerunGreen = <Task>[
+  Task(stageName: 'stage1', name: 'task1', status: Task.statusSucceeded),
+  Task(
+      stageName: 'stage2',
+      name: 'task2',
+      status: Task.statusSucceeded,
+      attempts: 2),
   Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
 ];
 
@@ -149,6 +165,17 @@ void main() {
         final BuildStatus status =
             await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
+      });
+
+      test('returns success when all green with a successful rerun', () async {
+        db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
+        int row = 0;
+        db.addOnQuery<Task>((Iterable<Task> results) {
+          return row++ == 0 ? middleTaskRerunGreen : allRed;
+        });
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
+        expect(status, BuildStatus.succeeded);
       });
     });
   });
