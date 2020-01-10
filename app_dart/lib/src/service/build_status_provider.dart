@@ -45,7 +45,8 @@ class BuildStatusProvider {
               !checked &&
               (task.isFlaky || _isFinal(task.status))) {
             checkedTasks[task.name] = true;
-            if (!task.isFlaky && _isFailedOrSkipped(task.status)) {
+            if (!task.isFlaky &&
+                (_isFailedOrSkipped(task.status) || _isRerunning(task))) {
               return BuildStatus.failed;
             }
           }
@@ -67,7 +68,7 @@ class BuildStatusProvider {
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus() async* {
     final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits()) {
+    await for (Commit commit in datastore.queryRecentCommits(limit: 15)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
@@ -82,6 +83,11 @@ class BuildStatusProvider {
 
   bool _isFailedOrSkipped(String status) {
     return status == Task.statusFailed || status == Task.statusSkipped;
+  }
+
+  bool _isRerunning(Task task) {
+    return task.attempts > 1 &&
+        (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 
