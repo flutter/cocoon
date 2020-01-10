@@ -129,7 +129,7 @@ class Config {
   /// The names of autoroller accounts for the repositories.
   ///
   /// These accounts should not need reviews before merging.
-  Set<String> get rollerAccounts => <String>{
+  Set<String> get rollerAccounts => const <String>{
     'skia-flutter-autoroll',
     'engine-flutter-autoroll',
   };
