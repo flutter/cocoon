@@ -46,6 +46,32 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   return true;
 }
 
+/// Check the Flutter version installed and make sure it is a version with
+/// beta web support. This current means checking for Flutter 1.12+
+///
+/// Flutter tools handles the rest of the checks (e.g. Dart version) when
+/// building the project.
+Future<bool> _checkDependencies() async {
+  final ProcessResult result =
+      await Process.run('flutter', <String>['--version']);
+  final String flutterVersionOutput = result.stdout;
+  print(flutterVersionOutput);
+
+  final RegExp flutterVersionRegExp =
+      RegExp(r'Flutter\ (\d+)\.?(\d+)\.?(\*|\d+)');
+  final RegExpMatch flutterVersion =
+      flutterVersionRegExp.firstMatch(flutterVersionOutput);
+
+  final int majorVersion = int.parse(flutterVersion.group(1));
+  final int minorVersion = int.parse(flutterVersion.group(2));
+
+  if (majorVersion == 1 && minorVersion < 12) {
+    return false;
+  }
+
+  return true;
+}
+
 /// Build app Angular Dart project
 Future<bool> _buildAngularDartApp() async {
   /// Clean up previous build files to ensure this codebase is deployed.
@@ -165,6 +191,11 @@ Future<void> main(List<String> arguments) async {
     ..addFlag(flutterProfileModeFlag);
 
   if (!_getArgs(argParser, arguments)) {
+    exit(1);
+  }
+
+  if (!await _checkDependencies()) {
+    stderr.writeln('Update Flutter to 1.12+ to deploy Cocoon');
     exit(1);
   }
 
