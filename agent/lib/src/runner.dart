@@ -129,6 +129,8 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     }
   }
 
+  await sendLog('Agent ID: ${agent.agentId}', flush: true);
+
   var stdoutSub =
       runner.stdout.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
