@@ -27,7 +27,13 @@ class AgentList extends StatefulWidget {
 
   final AgentState agentState;
 
-  /// Term to filter [agents] by.
+  /// Search term to filter the agents from [agentState] and show only those
+  /// that contain this term.
+  ///
+  /// This is set either:
+  ///   1. Route argument set when being redirected from the build dashboard
+  ///      to view a specific agent that ran a task.
+  ///   2. In the search bar of this widget.
   final String agentFilter;
 
   /// When true, will set a key for the [AgentTile] that is composed of its
@@ -113,6 +119,10 @@ class _AgentListState extends State<AgentList> {
     );
   }
 
+  /// Creates a new [List<FullAgent>] of only the agents that have an [agentId]
+  /// that contains [filter].
+  ///
+  /// If filter is empty, the original list of agents.
   List<FullAgent> filterAgents(List<FullAgent> agents, String filter) {
     if (filter.isEmpty) {
       return agents;

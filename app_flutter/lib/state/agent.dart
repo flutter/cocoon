@@ -72,6 +72,9 @@ class AgentState extends ChangeNotifier {
   }
 
   /// Request the latest agent statuses from [CocoonService].
+  ///
+  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// the message [errorMessageFetchingStatuses].
   Future<void> _fetchAgentStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService
@@ -90,6 +93,9 @@ class AgentState extends ChangeNotifier {
   }
 
   /// Create [Agent] in Cocoon.
+  ///
+  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// the message [errorMessageCreatingAgent].
   Future<String> createAgent(String agentId, List<String> capabilities) async {
     final CocoonResponse<String> response = await _cocoonService.createAgent(
         agentId, capabilities, await authService.idToken);
@@ -104,6 +110,9 @@ class AgentState extends ChangeNotifier {
   }
 
   /// Generates a new access token for [agent].
+  ///
+  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// the message [errorMessageAuthorizingAgent].
   Future<String> authorizeAgent(Agent agent) async {
     final CocoonResponse<String> response =
         await _cocoonService.authorizeAgent(agent, await authService.idToken);

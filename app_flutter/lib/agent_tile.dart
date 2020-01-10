@@ -29,6 +29,7 @@ class AgentTile extends StatelessWidget {
   @visibleForTesting
   static const Duration reserveTaskSnackbarDuration = Duration(seconds: 5);
 
+  /// Values to be used in [PopupMenu] to know what action to execute.
   static const String _authorizeAgentValue = 'authorize';
   static const String _healthDetailsValue = 'details';
   static const String _reserveTaskValue = 'reserve';
@@ -87,6 +88,7 @@ class AgentTile extends StatelessWidget {
     );
   }
 
+  /// A lookup function for showing the leading icon based on [agentId].
   Icon _getIconFromId(String agentId) {
     if (agentId.contains('vm')) {
       return Icon(Icons.dns);
@@ -115,6 +117,13 @@ class AgentTile extends StatelessWidget {
     );
   }
 
+  /// Call [authorizeAgent] to Cocoon for [agent] and show the new access token.
+  ///
+  /// On success, displays a [SnackBar] telling the user the access token can
+  /// be found in their console.
+  ///
+  /// If the request fails, [AgentDashboardPage] will handle the error and show
+  /// a [SnackBar].
   Future<void> _authorizeAgent(BuildContext context, Agent agent) async {
     final String token = await agentState.authorizeAgent(agent);
     if (token != null) {
@@ -126,9 +135,17 @@ class AgentTile extends StatelessWidget {
         duration: authorizeAgentSnackbarDuration,
       ));
     }
-    // if the token is null, the error handler will print the snackbar
   }
 
+  /// Call [reserveTask] to Cocoon for [agent] and show the information for
+  /// the [Task] that was reserved.
+  ///
+  /// On success, displays a [SnackBar] telling the user the information can
+  /// be found in their console. The data is just the ids and names for the
+  /// task its commit.
+  ///
+  /// If the request fails, [AgentDashboardPage] will handle the error and show
+  /// a [SnackBar].
   Future<void> _reserveTask(BuildContext context, Agent agent) async {
     await agentState.reserveTask(agent);
     Scaffold.of(context).showSnackBar(const SnackBar(

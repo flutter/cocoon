@@ -27,7 +27,7 @@ class AgentDashboardPage extends StatefulWidget {
   /// Search term to filter the agents from [agentState] and show only those
   /// that contain this term.
   ///
-  /// In debug mode, this is retrieved as a route argument.
+  /// This instance is to give a way for tests to inject the value.
   final String agentFilter;
 
   @visibleForTesting
@@ -102,6 +102,11 @@ class AgentDashboard extends StatelessWidget {
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AgentState agentState;
+
+  /// Search term to filter the agents from [agentState] and show only those
+  /// that contain this term.
+  ///
+  /// In a running application, this is retrieved as the route argument.
   final String agentFilter;
 
   @override
