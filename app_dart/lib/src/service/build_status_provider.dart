@@ -22,37 +22,44 @@ class BuildStatusProvider {
 
   final DatastoreServiceProvider datastoreProvider;
 
+  @visibleForTesting
+  /// 
+  static const int numberOfCommitsToReference = 20;
+
   /// Calculates and returns the "overall" status of the Flutter build.
   ///
   /// This calculation operates by looking for the most recent success or
   /// failure for every (non-flaky) task in the manifest.
   Future<BuildStatus> calculateCumulativeStatus() async {
     final Map<String, bool> checkedTasks = <String, bool>{};
-    bool isLatestBuild = true;
+    bool isLatestCommitStatus = true;
 
     await for (CommitStatus status in retrieveCommitStatus()) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          if (isLatestBuild) {
-            // We only care about tasks defined in the latest build. If a task
+          if (isLatestCommitStatus) {
+            // We only care about tasks defined in the latest commit. If a task
             // is removed from CI, we no longer care about its status.
             checkedTasks[task.name] = false;
           }
 
           final bool isInLatestBuild = checkedTasks.containsKey(task.name);
+
+          /// This task may be in progress. However, the same task for a prior
+          /// commit may be done that we can base off of.
           final bool checked = checkedTasks[task.name] ?? false;
           if (isInLatestBuild &&
               !checked &&
               (task.isFlaky || _isFinal(task.status))) {
             checkedTasks[task.name] = true;
             if (!task.isFlaky &&
-                (_isFailedOrSkipped(task.status) || _isRerunning(task))) {
+                (_isFailed(task.status) || _isRerunning(task))) {
               return BuildStatus.failed;
             }
           }
         }
       }
-      isLatestBuild = false;
+      isLatestCommitStatus = false;
     }
 
     if (checkedTasks.isEmpty) {
@@ -68,7 +75,7 @@ class BuildStatusProvider {
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus() async* {
     final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits(limit: 15)) {
+    await for (Commit commit in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
@@ -77,12 +84,11 @@ class BuildStatusProvider {
 
   bool _isFinal(String status) {
     return status == Task.statusSucceeded ||
-        status == Task.statusFailed ||
-        status == Task.statusSkipped;
+        status == Task.statusFailed;
   }
 
-  bool _isFailedOrSkipped(String status) {
-    return status == Task.statusFailed || status == Task.statusSkipped;
+  bool _isFailed(String status) {
+    return status == Task.statusFailed;
   }
 
   bool _isRerunning(Task task) {
