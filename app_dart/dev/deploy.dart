@@ -52,10 +52,10 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
 /// Flutter tools handles the rest of the checks (e.g. Dart version) when
 /// building the project.
 Future<bool> _checkDependencies() async {
+  stdout.writeln('Checking Flutter version via flutter --version');
   final ProcessResult result =
       await Process.run('flutter', <String>['--version']);
   final String flutterVersionOutput = result.stdout;
-  print(flutterVersionOutput);
 
   final RegExp flutterVersionRegExp =
       RegExp(r'Flutter\ (\d+)\.?(\d+)\.?(\*|\d+)');
