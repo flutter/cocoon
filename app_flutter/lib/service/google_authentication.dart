@@ -19,8 +19,7 @@ class GoogleSignInService {
       notifyListeners();
     });
 
-    // TODO(chillers): Uncomment following line when issue fixed. https://github.com/flutter/flutter/issues/47832
-    // _googleSignIn.signInSilently();
+    _googleSignIn.signInSilently();
   }
 
   /// A callback for notifying listeners there has been an update.
