@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# This file must be manually deployed to updates the Datastore index with:
+# $ gcloud datastore indexes create index.yaml
 indexes:
 - kind: Checklist
   ancestor: yes
@@ -13,22 +15,6 @@ indexes:
   properties:
     - name: StageName
       direction: desc
-- kind: Task
-  properties:
-  - name: Status
-  - name: CreateTimestamp
-    direction: desc
-- kind: Task
-  properties:
-  - name: ReservedForAgentID
-  - name: CreateTimestamp
-    direction: desc
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: Name
-  - name: CreateTimestamp
-    direction: desc
 - kind: Task
   ancestor: yes
   properties:
