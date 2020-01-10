@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/agent_dashboard_page.dart';
-import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
+import 'agent_dashboard_page.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
+import 'task_attempt_summary.dart';
 import 'task_helper.dart';
 
 /// Displays information from a [Task].
@@ -119,7 +119,7 @@ class _TaskBoxState extends State<TaskBox> {
       children: <Widget>[
         if (task.isFlaky)
           const Padding(
-            padding: EdgeInsets.all(10.0),
+            padding: EdgeInsets.all(12.0),
             child: Icon(
               Icons.help,
               color: Colors.white60,
@@ -129,7 +129,7 @@ class _TaskBoxState extends State<TaskBox> {
         if (status == TaskBox.statusInProgress ||
             status == TaskBox.statusUnderperformedInProgress)
           const Padding(
-            padding: EdgeInsets.all(10.0),
+            padding: EdgeInsets.all(12.0),
             child: Icon(
               Icons.timelapse,
               color: Colors.white60,
@@ -285,8 +285,8 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// This callback removes the parent overlay from the widget tree.
   ///
-  /// On a click that is outside the area of the overlay (the rest of the screen),
-  /// this callback is called closing the overlay.
+  /// This is used in this scope to close this overlay on redirection to view
+  /// the agent for this task in the agent dashboard.
   final void Function() closeCallback;
 
   @visibleForTesting
