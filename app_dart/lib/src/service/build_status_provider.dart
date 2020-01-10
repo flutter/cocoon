@@ -44,6 +44,11 @@ class BuildStatusProvider {
             checkedTasks[task.name] = false;
           }
 
+          /// All tasks in the latest [CommitStatus] are relevant to the build
+          /// status. However, not all tasks are relevant to the latest status.
+          ///
+          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
+          /// for a previous run of the task from the previous commit.
           final bool isRelevantToLatestStatus =
               checkedTasks.containsKey(task.name);
 
