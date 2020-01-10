@@ -10,13 +10,19 @@ import 'agent_health_details.dart';
 import 'agent_tile.dart';
 import 'state/agent.dart';
 
+/// Shows [List<Agent>] that have [Agent.agentId] that contains [agentFilter] in
+/// a ListView of [AgentTile].
+///
+/// Sorts this list to show unhealthy agents first.
 class AgentList extends StatefulWidget {
-  const AgentList(
-      {this.agents,
-      this.agentState,
-      this.agentFilter,
-      @visibleForTesting this.insertKeys = false});
+  const AgentList({
+    this.agents,
+    this.agentState,
+    this.agentFilter,
+    @visibleForTesting this.insertKeys = false,
+  });
 
+  /// All known agents that can be shown.
   final List<Agent> agents;
 
   final AgentState agentState;
@@ -34,6 +40,7 @@ class AgentList extends StatefulWidget {
 }
 
 class _AgentListState extends State<AgentList> {
+  /// Controller for filtering the agents, acting as a search bar.
   TextEditingController filterAgentsController = TextEditingController();
 
   @override
@@ -41,6 +48,7 @@ class _AgentListState extends State<AgentList> {
     super.initState();
 
     /// When redirected from the build dashboard, display a specific agent.
+    /// Updates the search bar to show [agentFilter].
     if (widget.agentFilter != null && widget.agentFilter.isNotEmpty) {
       filterAgentsController.text = widget.agentFilter;
     }
@@ -49,7 +57,13 @@ class _AgentListState extends State<AgentList> {
   @override
   Widget build(BuildContext context) {
     if (widget.agents.isEmpty) {
-      return const CircularProgressIndicator();
+      return const Center(
+        child: SizedBox(
+          height: 100,
+          width: 100,
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     final List<FullAgent> fullAgents = widget.agents
@@ -58,7 +72,7 @@ class _AgentListState extends State<AgentList> {
           // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
           ..sort();
     List<FullAgent> filteredAgents =
-        filterAgents(fullAgents, filterAgentsController.value.text);
+        filterAgents(fullAgents, filterAgentsController.text);
 
     return Column(
       children: <Widget>[
@@ -72,11 +86,15 @@ class _AgentListState extends State<AgentList> {
           },
           controller: filterAgentsController,
           decoration: InputDecoration(
-              labelText: 'Filter',
-              hintText: 'Filter',
-              prefixIcon: Icon(Icons.search),
-              border: const OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)))),
+            labelText: 'Filter',
+            hintText: 'Filter',
+            prefixIcon: Icon(Icons.search),
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(25.0),
+              ),
+            ),
+          ),
         ),
         Expanded(
           child: ListView(
@@ -107,6 +125,11 @@ class _AgentListState extends State<AgentList> {
   }
 }
 
+/// A wrapper class to help not have to generate [AgentHealthDetails] each time
+/// it is needed.
+///
+/// Sorts to show unhealthy agents before healthy agents, with those groups
+/// being sorted alphabetically.
 class FullAgent implements Comparable<FullAgent> {
   const FullAgent(this.agent, this.healthDetails);
 

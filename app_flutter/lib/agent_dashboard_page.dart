@@ -24,10 +24,15 @@ class AgentDashboardPage extends StatefulWidget {
 
   final AgentState agentState;
 
+  /// Search term to filter the agents from [agentState] and show only those
+  /// that contain this term.
+  ///
+  /// In debug mode, this is retrieved as a route argument.
   final String agentFilter;
 
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
+
   @override
   _AgentDashboardPageState createState() => _AgentDashboardPageState();
 }
@@ -40,16 +45,13 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
   @override
   void initState() {
     super.initState();
-
     widget.agentState.startFetchingStateUpdates();
-
     widget.agentState.errors.addListener(_showErrorSnackbar);
+    agentState = widget.agentState;
   }
 
   @override
   Widget build(BuildContext context) {
-    agentState = widget.agentState;
-
     final String agentFilter =
         ModalRoute.of(context).settings.arguments ?? widget.agentFilter;
 
@@ -88,7 +90,10 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 }
 
 /// Shows current status of Flutter infra agents.
-class AgentDashboard extends StatefulWidget {
+///
+/// If [agentFilter] is non-null and non-empty, it will only show agents
+/// with [agentId] that contains [agentFilter]. Otherwise, all agents are shown.
+class AgentDashboard extends StatelessWidget {
   const AgentDashboard({
     this.scaffoldKey,
     this.agentState,
@@ -100,26 +105,10 @@ class AgentDashboard extends StatefulWidget {
   final String agentFilter;
 
   @override
-  _AgentDashboardState createState() => _AgentDashboardState();
-}
-
-class _AgentDashboardState extends State<AgentDashboard> {
-  TextEditingController _agentIdController;
-  TextEditingController _agentCapabilitiesController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _agentIdController = TextEditingController();
-    _agentCapabilitiesController = TextEditingController();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Consumer<AgentState>(
       builder: (_, AgentState agentState, Widget child) => Scaffold(
-        key: widget.scaffoldKey,
+        key: scaffoldKey,
         appBar: AppBar(
           title: const Text('Infra Agents'),
           actions: <Widget>[
@@ -137,7 +126,7 @@ class _AgentDashboardState extends State<AgentDashboard> {
                 child: AgentList(
                   agents: agentState.agents,
                   agentState: agentState,
-                  agentFilter: widget.agentFilter,
+                  agentFilter: agentFilter,
                 ),
               ),
             ),
@@ -161,51 +150,87 @@ class _AgentDashboardState extends State<AgentDashboard> {
 
   void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
     showDialog<AlertDialog>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Create Agent'),
-            content: Form(
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    controller: _agentIdController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter agent id',
-                    ),
-                    validator: (String value) {
-                      if (value.isEmpty) {
-                        return 'Please enter an agent id (e.g. flutter-devicelab-linux-14)';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _agentCapabilitiesController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter agent capabilities',
-                    ),
-                    validator: (String value) {
-                      if (value.split(',').isEmpty) {
-                        return 'Please enter agent capabilities as comma delimited list (e.g. linux,linux/android)';
-                      }
+      context: context,
+      builder: (BuildContext context) =>
+          CreateAgentDialog(agentState: agentState),
+    );
+  }
+}
 
-                      return value;
-                    },
-                  ),
-                  Container(height: 25),
-                  ProgressButton(
-                    defaultWidget: const Text('Create'),
-                    progressWidget: const CircularProgressIndicator(),
-                    onPressed: () async => _createAgent(context),
-                  )
-                ],
-              ),
-            ),
-          );
-        });
+/// Dialog with a form that has inputs necessary for creating an agent.
+///
+/// User must input an agent id and a list of capabilities to create an agent.
+/// Capabilities are inputted as a comma delimited list.
+class CreateAgentDialog extends StatefulWidget {
+  const CreateAgentDialog({this.agentState});
+
+  final AgentState agentState;
+
+  @override
+  _CreateAgentDialogState createState() => _CreateAgentDialogState();
+}
+
+class _CreateAgentDialogState extends State<CreateAgentDialog> {
+  TextEditingController _agentIdController;
+  TextEditingController _agentCapabilitiesController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _agentIdController = TextEditingController();
+    _agentCapabilitiesController = TextEditingController();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Create Agent'),
+      content: Form(
+        child: SizedBox(
+          height: 200,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _agentIdController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter agent id',
+                ),
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return 'Please enter an agent id (e.g. flutter-devicelab-linux-14)';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _agentCapabilitiesController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter agent capabilities',
+                ),
+                validator: (String value) {
+                  if (value.split(',').isEmpty) {
+                    return 'Please enter agent capabilities as comma delimited list (e.g. linux,linux/android)';
+                  }
+
+                  return value;
+                },
+              ),
+              Container(height: 25),
+              ProgressButton(
+                defaultWidget: const Text('Create'),
+                progressWidget: const CircularProgressIndicator(),
+                onPressed: () async => _createAgent(context),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Send a request to Cocoon to create an agent with the values inputted
+  /// to the form.
   Future<void> _createAgent(BuildContext context) async {
     final String id = _agentIdController.value.text;
     final List<String> capabilities =

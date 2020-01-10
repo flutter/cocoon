@@ -103,6 +103,7 @@ class AgentState extends ChangeNotifier {
     return response.data;
   }
 
+  /// Generates a new access token for [agent].
   Future<String> authorizeAgent(Agent agent) async {
     final CocoonResponse<String> response =
         await _cocoonService.authorizeAgent(agent, await authService.idToken);
@@ -116,9 +117,13 @@ class AgentState extends ChangeNotifier {
     return response.data;
   }
 
+  /// Attempt to assign a new task to [agent].
+  ///
+  /// If no task can be assigned, a null value is returned.
   Future<void> reserveTask(Agent agent) async =>
       _cocoonService.reserveTask(agent, await authService.idToken);
 
+  /// Initiate the Google Sign In process.
   Future<void> signIn() => authService.signIn();
   Future<void> signOut() => authService.signOut();
 
