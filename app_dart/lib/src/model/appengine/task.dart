@@ -54,7 +54,7 @@ class Task extends Model {
   static const String statusFailed = 'Failed';
 
   /// The task was skipped or canceled while running.
-  /// 
+  ///
   /// This status is only used by LUCI tasks.
   static const String statusSkipped = 'Skipped';
 

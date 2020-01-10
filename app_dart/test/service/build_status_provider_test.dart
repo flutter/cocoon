@@ -54,6 +54,12 @@ List<Task> middleTaskInProgress = <Task>[
   Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
 ];
 
+List<Task> middleTaskRerunning = <Task>[
+  Task(stageName: 'stage1', name: 'task1', status: Task.statusSucceeded),
+  Task(stageName: 'stage2', name: 'task2', status: Task.statusNew, attempts: 2),
+  Task(stageName: 'stage2', name: 'task3', status: Task.statusSucceeded),
+];
+
 void main() {
   group('BuildStatusProvider', () {
     FakeDatastoreDB db;
@@ -128,6 +134,17 @@ void main() {
         int row = 0;
         db.addOnQuery<Task>((Iterable<Task> results) {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
+        });
+        final BuildStatus status =
+            await buildStatusProvider.calculateCumulativeStatus();
+        expect(status, BuildStatus.failed);
+      });
+
+      test('returns failure when green but a task is rerunning', () async {
+        db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
+        int row = 0;
+        db.addOnQuery<Task>((Iterable<Task> results) {
+          return row++ == 0 ? middleTaskRerunning : allGreen;
         });
         final BuildStatus status =
             await buildStatusProvider.calculateCumulativeStatus();

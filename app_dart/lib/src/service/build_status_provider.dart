@@ -23,7 +23,8 @@ class BuildStatusProvider {
   final DatastoreServiceProvider datastoreProvider;
 
   @visibleForTesting
-  /// 
+
+  /// This is how far back this will reference to calculate the build status.
   static const int numberOfCommitsToReference = 20;
 
   /// Calculates and returns the "overall" status of the Flutter build.
@@ -43,17 +44,19 @@ class BuildStatusProvider {
             checkedTasks[task.name] = false;
           }
 
-          final bool isInLatestBuild = checkedTasks.containsKey(task.name);
+          final bool isRelevantToLatestStatus =
+              checkedTasks.containsKey(task.name);
 
           /// This task may be in progress. However, the same task for a prior
           /// commit may be done that we can base off of.
           final bool checked = checkedTasks[task.name] ?? false;
-          if (isInLatestBuild &&
-              !checked &&
-              (task.isFlaky || _isFinal(task.status))) {
+
+          if (isRelevantToLatestStatus && task.isFlaky) {
             checkedTasks[task.name] = true;
-            if (!task.isFlaky &&
-                (_isFailed(task.status) || _isRerunning(task))) {
+          } else if (isRelevantToLatestStatus && !checked) {
+            if (_isSuccessful(task)) {
+              checkedTasks[task.name] = true;
+            } else if (_isFailed(task) || _isRerunning(task)) {
               return BuildStatus.failed;
             }
           }
@@ -75,20 +78,20 @@ class BuildStatusProvider {
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus() async* {
     final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
+    await for (Commit commit
+        in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
   }
 
-  bool _isFinal(String status) {
-    return status == Task.statusSucceeded ||
-        status == Task.statusFailed;
+  bool _isFailed(Task task) {
+    return task.status == Task.statusFailed;
   }
 
-  bool _isFailed(String status) {
-    return status == Task.statusFailed;
+  bool _isSuccessful(Task task) {
+    return task.status == Task.statusSucceeded;
   }
 
   bool _isRerunning(Task task) {
