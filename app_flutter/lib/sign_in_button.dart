@@ -50,20 +50,12 @@ class SignInButton extends StatelessWidget {
             },
           );
         }
-        return SizedBox(
-          width: 100,
-          child: ProgressButton(
-            defaultWidget: const Text(
-              'Sign in',
-              style: TextStyle(color: Colors.white),
-            ),
-            color: Colors.transparent,
-            progressWidget: const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-            animate: false,
-            onPressed: authService.signIn,
+        return FlatButton(
+          child: const Text(
+            'Sign in',
+            style: TextStyle(color: Colors.white),
           ),
+          onPressed: authService.signIn,
         );
       },
     );
