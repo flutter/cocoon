@@ -56,10 +56,8 @@ class BuildStatusProvider {
           /// commit may be done that we can base off of.
           final bool checked = checkedTasks[task.name] ?? false;
 
-          if (isRelevantToLatestStatus && task.isFlaky) {
-            checkedTasks[task.name] = true;
-          } else if (isRelevantToLatestStatus && !checked) {
-            if (_isSuccessful(task)) {
+          if (isRelevantToLatestStatus && !checked) {
+            if (task.isFlaky || _isSuccessful(task)) {
               checkedTasks[task.name] = true;
             } else if (_isFailed(task) || _isRerunning(task)) {
               return BuildStatus.failed;
