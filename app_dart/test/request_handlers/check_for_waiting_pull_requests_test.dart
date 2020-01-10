@@ -38,7 +38,7 @@ void main() {
 
     setUp(() {
       request = FakeHttpRequest();
-      config = FakeConfig();
+      config = FakeConfig(rollerAccountsValue: <String>{});
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       log = FakeLogging();
