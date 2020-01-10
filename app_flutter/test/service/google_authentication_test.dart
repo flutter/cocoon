@@ -39,7 +39,7 @@ void main() {
 
     test('sign in silently called', () async {
       verify(mockSignIn.signInSilently()).called(1);
-    }, skip: true);
+    });
   });
 
   group('GoogleSignInService sign in', () {
