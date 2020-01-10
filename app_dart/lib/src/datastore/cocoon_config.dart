@@ -126,6 +126,15 @@ class Config {
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
+  /// The names of autoroller accounts for the repositories.
+  ///
+  /// These accounts should not need reviews before merging. See
+  /// https://github.com/flutter/flutter/wiki/Autorollers
+  Set<String> get rollerAccounts => const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+      };
+
   /// A List of builders for LUCI
   List<Map<String, dynamic>> get luciBuilders => <Map<String, String>>[
         <String, String>{

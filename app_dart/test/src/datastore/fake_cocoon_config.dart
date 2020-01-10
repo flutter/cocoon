@@ -36,6 +36,7 @@ class FakeConfig implements Config {
     this.tabledataResourceApi,
     this.githubService,
     this.taskLogServiceAccountValue,
+    this.rollerAccountsValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -59,6 +60,7 @@ class FakeConfig implements Config {
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
+  Set<String> rollerAccountsValue;
 
   @override
   int maxEntityGroups;
@@ -128,4 +130,7 @@ class FakeConfig implements Config {
   @override
   Future<ServiceAccountCredentials> get taskLogServiceAccount async =>
       taskLogServiceAccountValue;
+
+  @override
+  Set<String> get rollerAccounts => rollerAccountsValue;
 }
