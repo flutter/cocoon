@@ -34,11 +34,28 @@ void main() {
 
     test('no user information', () {
       expect(authService.user, null);
-      expect(authService.idToken, null);
     });
 
     test('sign in silently called', () async {
       verify(mockSignIn.signInSilently()).called(1);
+    });
+
+    test('id token will prompt sign in', () async {
+      final GoogleSignInAccount testAccountWithAuthentication =
+          FakeGoogleSignInAccount()
+            ..authentication = Future<GoogleSignInAuthentication>.value(
+                FakeGoogleSignInAuthentication());
+      when(mockSignIn.signIn()).thenAnswer((_) =>
+          Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
+      authService.notifyListeners = () => null;
+
+      verifyNever(mockSignIn.isSignedIn());
+      verifyNever(mockSignIn.signIn());
+
+      expect(await authService.idToken, 'id123');
+
+      verify(mockSignIn.isSignedIn()).called(1);
+      verify(mockSignIn.signIn()).called(1);
     });
   });
 
@@ -97,7 +114,6 @@ void main() {
       await authService.signIn();
 
       expect(authService.user, null);
-      expect(authService.idToken, null);
     });
   });
 }
