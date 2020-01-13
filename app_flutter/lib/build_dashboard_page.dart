@@ -18,6 +18,8 @@ class BuildDashboardPage extends StatefulWidget {
       : buildState =
             buildState ?? FlutterBuildState(authServiceValue: signInService);
 
+  static const String routeName = '/build';
+
   final FlutterBuildState buildState;
 
   @visibleForTesting
@@ -117,7 +119,7 @@ class BuildDashboard extends StatelessWidget {
           ],
         ),
         drawer: const NavigationDrawer(
-          currentRoute: '/build',
+          currentRoute: BuildDashboardPage.routeName,
         ),
       ),
     );

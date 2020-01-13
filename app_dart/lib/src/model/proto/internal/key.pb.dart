@@ -5,10 +5,9 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-import 'dart:core' as $core
-    show bool, Deprecated, double, int, List, Map, override, pragma, String;
+import 'dart:core' as $core;
 
-import 'package:fixnum/fixnum.dart';
+import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 enum Key_Id { uid, name, notSet }
@@ -19,13 +18,14 @@ class Key extends $pb.GeneratedMessage {
     3: Key_Id.name,
     0: Key_Id.notSet
   };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Key')
-    ..oo(0, [2, 3])
-    ..aOS(1, 'type')
-    ..aInt64(2, 'uid')
-    ..aOS(3, 'name')
-    ..a<Key>(4, 'child', $pb.PbFieldType.OM, Key.getDefault, Key.create)
-    ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i =
+      $pb.BuilderInfo('Key', createEmptyInstance: create)
+        ..oo(0, [2, 3])
+        ..aOS(1, 'type')
+        ..aInt64(2, 'uid')
+        ..aOS(3, 'name')
+        ..aOM<Key>(4, 'child', subBuilder: Key.create)
+        ..hasRequiredFields = false;
 
   Key._() : super();
   factory Key() => create();
@@ -43,50 +43,71 @@ class Key extends $pb.GeneratedMessage {
   static Key create() => Key._();
   Key createEmptyInstance() => create();
   static $pb.PbList<Key> createRepeated() => $pb.PbList<Key>();
-  static Key getDefault() => _defaultInstance ??= create()..freeze();
+  @$core.pragma('dart2js:noInline')
+  static Key getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Key>(create);
   static Key _defaultInstance;
 
   Key_Id whichId() => _Key_IdByTag[$_whichOneof(0)];
   void clearId() => clearField($_whichOneof(0));
 
-  $core.String get type => $_getS(0, '');
+  @$pb.TagNumber(1)
+  $core.String get type => $_getSZ(0);
+  @$pb.TagNumber(1)
   set type($core.String v) {
     $_setString(0, v);
   }
 
+  @$pb.TagNumber(1)
   $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
   void clearType() => clearField(1);
 
-  Int64 get uid => $_getI64(1);
-  set uid(Int64 v) {
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get uid => $_getI64(1);
+  @$pb.TagNumber(2)
+  set uid($fixnum.Int64 v) {
     $_setInt64(1, v);
   }
 
+  @$pb.TagNumber(2)
   $core.bool hasUid() => $_has(1);
+  @$pb.TagNumber(2)
   void clearUid() => clearField(2);
 
-  $core.String get name => $_getS(2, '');
+  @$pb.TagNumber(3)
+  $core.String get name => $_getSZ(2);
+  @$pb.TagNumber(3)
   set name($core.String v) {
     $_setString(2, v);
   }
 
+  @$pb.TagNumber(3)
   $core.bool hasName() => $_has(2);
+  @$pb.TagNumber(3)
   void clearName() => clearField(3);
 
+  @$pb.TagNumber(4)
   Key get child => $_getN(3);
+  @$pb.TagNumber(4)
   set child(Key v) {
     setField(4, v);
   }
 
+  @$pb.TagNumber(4)
   $core.bool hasChild() => $_has(3);
+  @$pb.TagNumber(4)
   void clearChild() => clearField(4);
+  @$pb.TagNumber(4)
+  Key ensureChild() => $_ensure(3);
 }
 
 class RootKey extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('RootKey')
-    ..aOS(1, 'namespace')
-    ..a<Key>(2, 'child', $pb.PbFieldType.OM, Key.getDefault, Key.create)
-    ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i =
+      $pb.BuilderInfo('RootKey', createEmptyInstance: create)
+        ..aOS(1, 'namespace')
+        ..aOM<Key>(2, 'child', subBuilder: Key.create)
+        ..hasRequiredFields = false;
 
   RootKey._() : super();
   factory RootKey() => create();
@@ -104,22 +125,34 @@ class RootKey extends $pb.GeneratedMessage {
   static RootKey create() => RootKey._();
   RootKey createEmptyInstance() => create();
   static $pb.PbList<RootKey> createRepeated() => $pb.PbList<RootKey>();
-  static RootKey getDefault() => _defaultInstance ??= create()..freeze();
+  @$core.pragma('dart2js:noInline')
+  static RootKey getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RootKey>(create);
   static RootKey _defaultInstance;
 
-  $core.String get namespace => $_getS(0, '');
+  @$pb.TagNumber(1)
+  $core.String get namespace => $_getSZ(0);
+  @$pb.TagNumber(1)
   set namespace($core.String v) {
     $_setString(0, v);
   }
 
+  @$pb.TagNumber(1)
   $core.bool hasNamespace() => $_has(0);
+  @$pb.TagNumber(1)
   void clearNamespace() => clearField(1);
 
+  @$pb.TagNumber(2)
   Key get child => $_getN(1);
+  @$pb.TagNumber(2)
   set child(Key v) {
     setField(2, v);
   }
 
+  @$pb.TagNumber(2)
   $core.bool hasChild() => $_has(1);
+  @$pb.TagNumber(2)
   void clearChild() => clearField(2);
+  @$pb.TagNumber(2)
+  Key ensureChild() => $_ensure(1);
 }

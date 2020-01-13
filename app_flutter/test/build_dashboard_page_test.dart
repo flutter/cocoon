@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:app_flutter/build_dashboard.dart';
+import 'package:app_flutter/build_dashboard_page.dart';
 import 'package:app_flutter/main.dart' as app show theme;
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';

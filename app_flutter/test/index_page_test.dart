@@ -20,4 +20,14 @@ void main() {
 
     expect(find.byIcon(Icons.menu), findsOneWidget);
   });
+
+  testWidgets('shows navigation buttons for dashboards',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(home: IndexPage()));
+
+    expect(find.text('Build'), findsOneWidget);
+    expect(find.text('Performance'), findsOneWidget);
+    expect(find.text('Repository'), findsOneWidget);
+    expect(find.text('Infra Agents'), findsOneWidget);
+  });
 }

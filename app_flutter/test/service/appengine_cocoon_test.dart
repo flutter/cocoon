@@ -10,7 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Key, RootKey, Stage, Task;
+    show Agent, Commit, CommitStatus, Key, RootKey, Stage, Task;
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';
@@ -64,8 +64,29 @@ const String jsonGetStatsResponse = '''
             ]
           }
         ], 
-        "AgentStatuses": []
-      }
+        "AgentStatuses":[
+          {
+            "AgentID":"flutter-devicelab-linux-1",
+            "HealthCheckTimestamp":1576876008093,
+            "IsHealthy":true,
+            "Capabilities":[
+              "linux/android",
+              "linux"
+            ],
+            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.29\\n\\nandroid-device-ZY223D6B7B: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-perform-health-check: succeeded\\n"
+          },
+          {
+            "AgentID":"flutter-devicelab-mac-1",
+            "HealthCheckTimestamp":1576530583142,
+            "IsHealthy":true,
+            "Capabilities":[
+              "mac/ios",
+              "mac"
+            ],
+            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.233\\n\\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-build-and-sign: succeeded\\nios: succeeded\\nable-to-perform-health-check: succeeded\\n"
+          }
+        ]
+  }
 ''';
 
 const String jsonBuildStatusTrueResponse = '''
@@ -335,6 +356,282 @@ void main() {
                 'shashankabcdefghijklmno'),
             isTrue);
       });
+    });
+  });
+
+  group('AppEngine CocoonService fetchAgentStatus ', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetStatsResponse, 200);
+      }));
+    });
+
+    test('should return CocoonResponse<List<Agent>>', () {
+      expect(service.fetchAgentStatuses(),
+          const TypeMatcher<Future<CocoonResponse<List<Agent>>>>());
+    });
+
+    test('should return expected List<Agent>', () async {
+      final CocoonResponse<List<Agent>> agents =
+          await service.fetchAgentStatuses();
+
+      final List<Agent> expectedAgents = <Agent>[
+        Agent()
+          ..agentId = 'flutter-devicelab-linux-1'
+          ..healthCheckTimestamp = Int64.parseInt('1576876008093')
+          ..isHealthy = true
+          ..capabilities.addAll(<String>['linux/android', 'linux'])
+          ..healthDetails =
+              'ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.29\n\nandroid-device-ZY223D6B7B: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-perform-health-check: succeeded\n',
+        Agent()
+          ..agentId = 'flutter-devicelab-mac-1'
+          ..healthCheckTimestamp = Int64.parseInt('1576530583142')
+          ..isHealthy = true
+          ..capabilities.addAll(<String>['mac/ios', 'mac'])
+          ..healthDetails =
+              'ssh-connectivity: succeeded\n    Last known IP address: 192.168.1.233\n\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\nhas-healthy-devices: succeeded\n    Found 1 healthy devices\n\ncocoon-authentication: succeeded\ncocoon-connection: succeeded\nable-to-build-and-sign: succeeded\nios: succeeded\nable-to-perform-health-check: succeeded\n'
+      ];
+
+      expect(agents.data, expectedAgents);
+      expect(agents.error, isNull);
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchAgentStatuses();
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-status'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+      }
+    });
+
+    test('should have error if given non-200 response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('', 404)));
+
+      final CocoonResponse<List<Agent>> response =
+          await service.fetchAgentStatuses();
+      expect(response.error, isNotNull);
+    });
+
+    test('should have error if given bad response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('bad', 200)));
+
+      final CocoonResponse<List<Agent>> response =
+          await service.fetchAgentStatuses();
+      expect(response.error, isNotNull);
+    });
+  });
+
+  group('AppEngine Cocoon Service create agent', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('{"Token": "abc123"}', 200);
+      }));
+    });
+
+    test('should return token if request succeeds', () async {
+      final CocoonResponse<String> response = await service.createAgent(
+          'id123', <String>['im', 'capable'], 'fakeAccessToken');
+      expect(response.data, 'abc123');
+      expect(response.error, isNull);
+    });
+
+    test('should return error if request failed', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
+
+      expect(
+          (await service.createAgent(
+                  'id123', <String>['im', 'not', 'capable'], 'fakeAccessToken'))
+              .error,
+          '/api/create-agent did not respond with 200');
+    });
+
+    test('should return error if token is null', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+      expect(
+          (await service.createAgent(
+                  'id123', <String>['im', 'capable'], 'fakeAccessToken'))
+              .error,
+          '/api/create-agent returned unexpected response');
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.post(argThat(endsWith('/api/create-agent')),
+              headers: captureAnyNamed('headers'),
+              body: captureAnyNamed('body')))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
+
+      if (kIsWeb) {
+        verify(mockClient.post(
+          '/api/create-agent',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      } else {
+        verify(mockClient.post(
+          'https://flutter-dashboard.appspot.com/api/create-agent',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      }
+    });
+  });
+
+  group('AppEngine Cocoon Service authorize agent', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('{"Token": "abc123"}', 200);
+      }));
+    });
+
+    test('should return token if request succeeds', () async {
+      final CocoonResponse<String> response = await service.authorizeAgent(
+          Agent()..agentId = 'id123', 'fakeAccessToken');
+      expect(response.data, 'abc123');
+      expect(response.error, isNull);
+    });
+
+    test('should return error if request failed', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
+
+      expect(
+          (await service.authorizeAgent(
+                  Agent()..agentId = 'id123', 'fakeAccessToken'))
+              .error,
+          '/api/authorize-agent did not respond with 200');
+    });
+
+    test('should return error if token is null', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+      expect(
+          (await service.authorizeAgent(
+                  Agent()..agentId = 'id123', 'fakeAccessToken'))
+              .error,
+          '/api/authorize-agent returned unexpected response');
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.post(argThat(endsWith('/api/authorize-agent')),
+              headers: captureAnyNamed('headers'),
+              body: captureAnyNamed('body')))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.authorizeAgent(
+          Agent()..agentId = 'id123', 'fakeAccessToken');
+
+      if (kIsWeb) {
+        verify(mockClient.post(
+          '/api/authorize-agent',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      } else {
+        verify(mockClient.post(
+          'https://flutter-dashboard.appspot.com/api/authorize-agent',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      }
+    });
+  });
+
+  group('AppEngine Cocoon Service reserve task', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('{"Task": "randomdata"}', 200);
+      }));
+    });
+
+    test('should not throw exception if request succeeds', () async {
+      await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
+    });
+
+    test('should throw error if request failed', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
+
+      expect(service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'),
+          throwsA(const TypeMatcher<Exception>()));
+    });
+
+    test('should throw error if task is null', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+      expect(service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'),
+          throwsA(const TypeMatcher<Exception>()));
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.post(argThat(endsWith('/api/reserve-task')),
+              headers: captureAnyNamed('headers'),
+              body: captureAnyNamed('body')))
+          .thenAnswer((_) =>
+              Future<Response>.value(Response('{"Task": "randomdata"}', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
+
+      if (kIsWeb) {
+        verify(mockClient.post(
+          '/api/reserve-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      } else {
+        verify(mockClient.post(
+          'https://flutter-dashboard.appspot.com/api/reserve-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      }
     });
   });
 }

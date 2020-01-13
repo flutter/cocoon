@@ -15,6 +15,8 @@ class IndexPage extends StatefulWidget {
   IndexPage({IndexState indexState, GoogleSignInService signInService})
       : indexState = indexState ?? IndexState(authServiceValue: signInService);
 
+  static const String routeName = '/';
+
   final IndexState indexState;
 
   @visibleForTesting
@@ -77,12 +79,12 @@ class Index extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<IndexState>(
-      builder: (_, IndexState buildState, Widget child) => Scaffold(
+      builder: (_, IndexState indexState, Widget child) => Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
           title: const Text('Cocoon'),
           actions: <Widget>[
-            SignInButton(authService: buildState.authService),
+            SignInButton(authService: indexState.authService),
           ],
         ),
         body: Center(
@@ -126,9 +128,12 @@ class Index extends StatelessWidget {
               SizedBox(
                 width: 300,
                 child: RaisedButton(
-                  child: const Text('Old Build'),
-                  onPressed: () => launch('/old_build.html'),
-                  padding: const EdgeInsets.all(10),
+                  child: const Text('Infra Agents'),
+                  onPressed: () =>
+                      Navigator.pushReplacementNamed(context, '/agents'),
+                  padding: const EdgeInsets.all(20),
+                  color: Colors.blueAccent,
+                  textColor: Colors.white,
                 ),
               ),
             ],

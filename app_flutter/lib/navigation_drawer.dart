@@ -5,6 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'agent_dashboard_page.dart';
+import 'build_dashboard_page.dart';
+
 /// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
   const NavigationDrawer({this.currentRoute});
@@ -32,7 +35,8 @@ class NavigationDrawer extends StatelessWidget {
             key: const Key('nav-link-build'),
             title: const Text('Build'),
             leading: Icon(Icons.build),
-            onTap: () => Navigator.pushReplacementNamed(context, '/build'),
+            onTap: () => Navigator.pushReplacementNamed(
+                context, BuildDashboardPage.routeName),
             selected: currentRoute == '/build',
           ),
           ListTile(
@@ -46,6 +50,20 @@ class NavigationDrawer extends StatelessWidget {
             title: const Text('Repository'),
             leading: Icon(Icons.info_outline),
             onTap: () => launch('/repository.html'),
+          ),
+          ListTile(
+            key: const Key('nav-link-agents'),
+            title: const Text('Infra Agents'),
+            leading: Icon(Icons.android),
+            onTap: () => Navigator.pushReplacementNamed(
+                context, AgentDashboardPage.routeName),
+            selected: currentRoute == '/agents',
+          ),
+          ListTile(
+            key: const Key('nav-link-source'),
+            title: const Text('Source Code'),
+            leading: Icon(Icons.code),
+            onTap: () => launch('https://github.com/flutter/cocoon'),
           ),
         ],
       ),

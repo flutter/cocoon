@@ -5,20 +5,19 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-import 'dart:core' as $core
-    show bool, Deprecated, double, int, List, Map, override, pragma, String;
+import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'commit.pb.dart' as $0;
-import 'task.pb.dart' as $1;
+import 'commit.pb.dart' as $1;
+import 'task.pb.dart' as $2;
 
 class Stage extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Stage')
+  static final $pb
+      .BuilderInfo _i = $pb.BuilderInfo('Stage', createEmptyInstance: create)
     ..aOS(1, 'name')
-    ..a<$0.Commit>(
-        2, 'commit', $pb.PbFieldType.OM, $0.Commit.getDefault, $0.Commit.create)
-    ..pc<$1.Task>(3, 'tasks', $pb.PbFieldType.PM, $1.Task.create)
+    ..aOM<$1.Commit>(2, 'commit', subBuilder: $1.Commit.create)
+    ..pc<$2.Task>(3, 'tasks', $pb.PbFieldType.PM, subBuilder: $2.Task.create)
     ..aOS(4, 'taskStatus')
     ..hasRequiredFields = false;
 
@@ -38,32 +37,49 @@ class Stage extends $pb.GeneratedMessage {
   static Stage create() => Stage._();
   Stage createEmptyInstance() => create();
   static $pb.PbList<Stage> createRepeated() => $pb.PbList<Stage>();
-  static Stage getDefault() => _defaultInstance ??= create()..freeze();
+  @$core.pragma('dart2js:noInline')
+  static Stage getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Stage>(create);
   static Stage _defaultInstance;
 
-  $core.String get name => $_getS(0, '');
+  @$pb.TagNumber(1)
+  $core.String get name => $_getSZ(0);
+  @$pb.TagNumber(1)
   set name($core.String v) {
     $_setString(0, v);
   }
 
+  @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
+  @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
-  $0.Commit get commit => $_getN(1);
-  set commit($0.Commit v) {
+  @$pb.TagNumber(2)
+  $1.Commit get commit => $_getN(1);
+  @$pb.TagNumber(2)
+  set commit($1.Commit v) {
     setField(2, v);
   }
 
+  @$pb.TagNumber(2)
   $core.bool hasCommit() => $_has(1);
+  @$pb.TagNumber(2)
   void clearCommit() => clearField(2);
+  @$pb.TagNumber(2)
+  $1.Commit ensureCommit() => $_ensure(1);
 
-  $core.List<$1.Task> get tasks => $_getList(2);
+  @$pb.TagNumber(3)
+  $core.List<$2.Task> get tasks => $_getList(2);
 
-  $core.String get taskStatus => $_getS(3, '');
+  @$pb.TagNumber(4)
+  $core.String get taskStatus => $_getSZ(3);
+  @$pb.TagNumber(4)
   set taskStatus($core.String v) {
     $_setString(3, v);
   }
 
+  @$pb.TagNumber(4)
   $core.bool hasTaskStatus() => $_has(3);
+  @$pb.TagNumber(4)
   void clearTaskStatus() => clearField(4);
 }
