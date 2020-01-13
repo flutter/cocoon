@@ -21,8 +21,7 @@ void main() {
           .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
       when(mockSignIn.isSignedIn())
           .thenAnswer((_) => Future<bool>.value(false));
-      authService = GoogleSignInService(googleSignIn: mockSignIn)
-        ..notifyListeners = () => null;
+      authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
     tearDown(() {
@@ -42,10 +41,18 @@ void main() {
     });
 
     test('id token will prompt sign in', () async {
+      final GoogleSignInAccount testAccountWithAuthentication =
+          FakeGoogleSignInAccount()
+            ..authentication = Future<GoogleSignInAuthentication>.value(
+                FakeGoogleSignInAuthentication());
+      when(mockSignIn.signIn()).thenAnswer((_) =>
+          Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
+      authService.notifyListeners = () => null;
+
       verifyNever(mockSignIn.isSignedIn());
       verifyNever(mockSignIn.signIn());
 
-      await authService.idToken;
+      expect(await authService.idToken, 'id123');
 
       verify(mockSignIn.isSignedIn()).called(1);
       verify(mockSignIn.signIn()).called(1);

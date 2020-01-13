@@ -57,8 +57,11 @@ class GoogleSignInService {
       await signIn();
     }
 
-    return user?.authentication
+    final String idToken = await user?.authentication
         ?.then((GoogleSignInAuthentication key) => key.idToken);
+    assert(idToken != null && idToken.isNotEmpty);
+
+    return idToken;
   }
 
   /// Initiate the Google Sign In process.
