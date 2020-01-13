@@ -21,7 +21,8 @@ void main() {
           .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
       when(mockSignIn.isSignedIn())
           .thenAnswer((_) => Future<bool>.value(false));
-      authService = GoogleSignInService(googleSignIn: mockSignIn);
+      authService = GoogleSignInService(googleSignIn: mockSignIn)
+        ..notifyListeners = () => null;
     });
 
     tearDown(() {
@@ -34,11 +35,20 @@ void main() {
 
     test('no user information', () {
       expect(authService.user, null);
-      expect(authService.idToken, null);
     });
 
     test('sign in silently called', () async {
       verify(mockSignIn.signInSilently()).called(1);
+    });
+
+    test('id token will prompt sign in', () async {
+      verifyNever(mockSignIn.isSignedIn());
+      verifyNever(mockSignIn.signIn());
+
+      await authService.idToken;
+
+      verify(mockSignIn.isSignedIn()).called(1);
+      verify(mockSignIn.signIn()).called(1);
     });
   });
 
@@ -97,7 +107,6 @@ void main() {
       await authService.signIn();
 
       expect(authService.user, null);
-      expect(authService.idToken, null);
     });
   });
 }
