@@ -31,6 +31,22 @@ class BuildStatusProvider {
   ///
   /// This calculation operates by looking for the most recent success or
   /// failure for every (non-flaky) task in the manifest.
+  ///
+  /// Take the example build dashboard below:
+  /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
+  /// +---+---+---+---+
+  /// | A | B | C | D |
+  /// +---+---+---+---+
+  /// | ✔ | ☐ | ░ | s |
+  /// +---+---+---+---+
+  /// | ✔ | ░ | ✔ | ✖ |
+  /// +---+---+---+---+
+  /// | ✔ | ✖ | ✔ | ✔ |
+  /// +---+---+---+---+
+  /// This build will fail because only of Task B. Task D is not included in
+  /// the latest commit status, so it does not impact the build status.
+  /// Task B fails because its last known status was to be failing, even though
+  /// there is currently a newer version that is in progress.
   Future<BuildStatus> calculateCumulativeStatus() async {
     final Map<String, bool> tasksInProgress = <String, bool>{};
     bool isLatestCommitStatus = true;
