@@ -32,7 +32,7 @@ class BuildStatusProvider {
   /// This calculation operates by looking for the most recent success or
   /// failure for every (non-flaky) task in the manifest.
   Future<BuildStatus> calculateCumulativeStatus() async {
-    final Map<String, bool> checkedTasks = <String, bool>{};
+    final Map<String, bool> tasksInProgress = <String, bool>{};
     bool isLatestCommitStatus = true;
 
     await for (CommitStatus status in retrieveCommitStatus()) {
@@ -41,7 +41,7 @@ class BuildStatusProvider {
           if (isLatestCommitStatus) {
             // We only care about tasks defined in the latest commit. If a task
             // is removed from CI, we no longer care about its status.
-            checkedTasks[task.name] = false;
+            tasksInProgress[task.name] = true;
           }
 
           /// All tasks in the latest [CommitStatus] are relevant to the build
@@ -50,15 +50,15 @@ class BuildStatusProvider {
           /// If a task [isRelevantToLatestStatus] but has not run yet, we look
           /// for a previous run of the task from the previous commit.
           final bool isRelevantToLatestStatus =
-              checkedTasks.containsKey(task.name);
+              tasksInProgress.containsKey(task.name);
 
           /// This task may be in progress. However, the same task for a prior
           /// commit may be done that we can base off of.
-          final bool checked = checkedTasks[task.name] ?? false;
+          final bool taskInProgress = tasksInProgress[task.name] ?? true;
 
-          if (isRelevantToLatestStatus && !checked) {
+          if (isRelevantToLatestStatus && taskInProgress) {
             if (task.isFlaky || _isSuccessful(task)) {
-              checkedTasks[task.name] = true;
+              tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
               return BuildStatus.failed;
             }
@@ -68,7 +68,7 @@ class BuildStatusProvider {
       isLatestCommitStatus = false;
     }
 
-    if (checkedTasks.isEmpty) {
+    if (tasksInProgress.isEmpty) {
       return BuildStatus.failed;
     }
 
