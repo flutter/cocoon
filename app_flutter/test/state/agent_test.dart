@@ -18,14 +18,22 @@ void main() {
   group('AgentState', () {
     AgentState agentState;
     MockCocoonService mockService;
+    MockGoogleSignInService mockSignInService;
 
     setUp(() {
+      mockSignInService = MockGoogleSignInService();
       mockService = MockCocoonService();
-      agentState = AgentState(cocoonServiceValue: mockService);
+      agentState = AgentState(
+          cocoonServiceValue: mockService, authServiceValue: mockSignInService);
 
       when(mockService.fetchAgentStatuses()).thenAnswer((_) =>
           Future<CocoonResponse<List<Agent>>>.value(
               CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
+    });
+
+    tearDown(() {
+      clearInteractions(mockSignInService);
+      clearInteractions(mockService);
     });
 
     testWidgets('timer should periodically fetch updates',
@@ -105,10 +113,6 @@ void main() {
     });
 
     test('auth functions call auth service', () async {
-      final MockGoogleSignInService mockSignInService =
-          MockGoogleSignInService();
-      agentState = AgentState(authServiceValue: mockSignInService);
-
       verifyNever(mockSignInService.signIn());
       verifyNever(mockSignInService.signOut());
 
