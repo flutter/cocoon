@@ -46,8 +46,8 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   return true;
 }
 
-/// Check the Flutter version installed and make sure it is a version with
-/// beta web support. This current means checking for Flutter 1.12+
+/// Check the Flutter version installed and make sure it is a recent version
+/// from the past 21 days.
 ///
 /// Flutter tools handles the rest of the checks (e.g. Dart version) when
 /// building the project.
@@ -57,19 +57,18 @@ Future<bool> _checkDependencies() async {
       await Process.run('flutter', <String>['--version']);
   final String flutterVersionOutput = result.stdout;
 
-  final RegExp flutterVersionRegExp =
-      RegExp(r'Flutter\ (\d+)\.?(\d+)\.?(\*|\d+)');
-  final RegExpMatch flutterVersion =
-      flutterVersionRegExp.firstMatch(flutterVersionOutput);
+  // This makes an assumption that only the framework will have its version
+  // printed out with the date in YYYY-MM-DD format.
+  final RegExp dateRegExp =
+      RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
+  final String flutterVersionDateRaw =
+      dateRegExp.allMatches(flutterVersionOutput).first.group(0);
 
-  final int majorVersion = int.parse(flutterVersion.group(1));
-  final int minorVersion = int.parse(flutterVersion.group(2));
+  final DateTime flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
+  final DateTime now = DateTime.now();
+  final Duration lastUpdateToFlutter = now.difference(flutterVersionDate);
 
-  if (majorVersion == 1 && minorVersion < 12) {
-    return false;
-  }
-
-  return true;
+  return lastUpdateToFlutter.inDays < 21;
 }
 
 /// Build app Angular Dart project
