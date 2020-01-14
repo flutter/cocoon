@@ -20,13 +20,11 @@ import 'package:app_flutter/state/agent.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    final AgentState agentState = AgentState();
-
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: ChangeNotifierProvider<AgentState>(
-            create: (_) => agentState,
+            create: (_) => FakeAgentState(),
             child: const AgentDashboard(),
           ),
         ),
@@ -55,13 +53,18 @@ void main() {
 
   testWidgets('create agent dialog calls create agent',
       (WidgetTester tester) async {
-    final CocoonService mockCocoonService = MockCocoonService();
+    final MockCocoonService mockCocoonService = MockCocoonService();
+    final AgentState agentState = AgentState(
+      cocoonServiceValue: mockCocoonService,
+      authServiceValue: MockSignInService(),
+    );
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<AgentState>(
-          create: (_) => AgentState(cocoonServiceValue: mockCocoonService),
+          create: (_) => agentState,
           child: AgentDashboard(
-            agentState: AgentState(cocoonServiceValue: mockCocoonService),
+            agentState: agentState,
           ),
         ),
       ),
@@ -136,7 +139,7 @@ void main() {
 
 class FakeAgentState extends ChangeNotifier implements AgentState {
   @override
-  GoogleSignInService authService = GoogleSignInService();
+  GoogleSignInService authService = MockSignInService();
 
   @override
   AgentStateErrors errors = AgentStateErrors();
@@ -171,3 +174,5 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
 }
 
 class MockCocoonService extends Mock implements CocoonService {}
+
+class MockSignInService extends Mock implements GoogleSignInService {}
