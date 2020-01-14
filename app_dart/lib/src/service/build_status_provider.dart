@@ -68,7 +68,8 @@ class BuildStatusProvider {
   Stream<CommitStatus> retrieveCommitStatus() async* {
     const int maxRecords = 50;
     final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits(limit: maxRecords)) {
+    await for (Commit commit
+        in datastore.queryRecentCommits(limit: maxRecords)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
