@@ -48,32 +48,33 @@ class BuildStatusProvider {
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
   Future<BuildStatus> calculateCumulativeStatus() async {
-    final Map<String, bool> tasksInProgress = <String, bool>{};
-    bool isLatestCommitStatus = true;
+    final List<CommitStatus> statuses = await retrieveCommitStatus().toList();
+    if (statuses.isEmpty) {
+      return BuildStatus.failed;
+    }
 
-    await for (CommitStatus status in retrieveCommitStatus()) {
+    final Map<String, bool> tasksInProgress =
+        _findTasksRelevantToLatestStatus(statuses);
+    if (tasksInProgress.isEmpty) {
+      return BuildStatus.failed;
+    }
+
+    for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          if (isLatestCommitStatus) {
-            // We only care about tasks defined in the latest commit. If a task
-            // is removed from CI, we no longer care about its status.
-            tasksInProgress[task.name] = true;
-          }
-
-          /// All tasks in the latest [CommitStatus] are relevant to the build
-          /// status. However, not all tasks are relevant to the latest status.
-          ///
           /// If a task [isRelevantToLatestStatus] but has not run yet, we look
           /// for a previous run of the task from the previous commit.
           final bool isRelevantToLatestStatus =
               tasksInProgress.containsKey(task.name);
 
-          /// This task may be in progress. However, the same task for a prior
-          /// commit may be done that we can base off of.
+          /// Tasks that are not relevant to the latest status will have a
+          /// null value in the map.
           final bool taskInProgress = tasksInProgress[task.name] ?? true;
 
           if (isRelevantToLatestStatus && taskInProgress) {
             if (task.isFlaky || _isSuccessful(task)) {
+              /// This task no longer needs to be checked to see if it causing
+              /// the build status to fail.
               tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
               return BuildStatus.failed;
@@ -81,14 +82,25 @@ class BuildStatusProvider {
           }
         }
       }
-      isLatestCommitStatus = false;
-    }
-
-    if (tasksInProgress.isEmpty) {
-      return BuildStatus.failed;
     }
 
     return BuildStatus.succeeded;
+  }
+
+  /// Creates a map of the tasks that need to be checked for the build status.
+  ///
+  /// This is based on the most recent [CommitStatus] and all of its tasks.
+  Map<String, bool> _findTasksRelevantToLatestStatus(
+      List<CommitStatus> statuses) {
+    final Map<String, bool> tasks = <String, bool>{};
+
+    for (Stage stage in statuses.first.stages) {
+      for (Task task in stage.tasks) {
+        tasks[task.name] = true;
+      }
+    }
+
+    return tasks;
   }
 
   /// Retrieves the comprehensive status of every task that runs per commit.
