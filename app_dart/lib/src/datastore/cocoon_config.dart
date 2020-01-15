@@ -16,6 +16,7 @@ import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
@@ -115,7 +116,7 @@ class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 25;
 
-  AppEngineContext get applicationContext => context.applicationContext;
+  KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
   String get cqLabelName => 'CQ+1';
 

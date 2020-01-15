@@ -23,6 +23,7 @@ void main() {
   group('GetStatus', () {
     FakeConfig config;
     FakeClientContext clientContext;
+    FakeKeyHelper keyHelper;
     FakeBuildStatusProvider buildStatusProvider;
     RequestHandlerTester tester;
     GetStatus handler;
@@ -34,9 +35,9 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
-      config =
-          FakeConfig(applicationContextValue: clientContext.applicationContext);
+      config = FakeConfig(keyHelperValue: keyHelper);
       buildStatusProvider =
           FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
@@ -105,7 +106,7 @@ void main() {
       );
 
       final Map<String, dynamic> result = await decodeHandlerBody();
-      
+
       expect(result['Statuses'].length, 2);
     });
 

@@ -6,13 +6,13 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/server.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
-
 import '../request_handling/fake_authentication.dart';
 import 'fake_datastore.dart';
 
@@ -24,7 +24,7 @@ class FakeConfig implements Config {
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.commitNumberValue,
-    this.applicationContextValue,
+    this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.missingTestsPullRequestMessageValue,
@@ -51,7 +51,7 @@ class FakeConfig implements Config {
   ServiceAccountInfo deviceLabServiceAccountValue;
   int maxTaskRetriesValue;
   int commitNumberValue;
-  FakeAppEngineContext applicationContextValue;
+  FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
   String missingTestsPullRequestMessageValue;
@@ -98,7 +98,7 @@ class FakeConfig implements Config {
   int get commitNumber => commitNumberValue;
 
   @override
-  AppEngineContext get applicationContext => applicationContextValue;
+  KeyHelper get keyHelper => keyHelperValue;
 
   @override
   Future<String> get oauthClientId async => oauthClientIdValue;

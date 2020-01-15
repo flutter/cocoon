@@ -4,10 +4,14 @@
 
 import 'dart:io';
 
+
+import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart';
+
 import 'package:cocoon_service/src/model/appengine/agent.dart';
+import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:appengine/appengine.dart';
 
 // ignore: must_be_immutable
 class FakeAuthenticationProvider implements AuthenticationProvider {
@@ -105,4 +109,15 @@ class FakeAppEngineContext implements AppEngineContext {
 
   @override
   String version;
+}
+
+class FakeKeyHelper extends KeyHelper {
+  FakeKeyHelper({
+    AppEngineContext applicationContext,
+  })  : super(applicationContext: applicationContext);
+
+  @override
+  String encode(Key key){
+      return '';
+  }
 }

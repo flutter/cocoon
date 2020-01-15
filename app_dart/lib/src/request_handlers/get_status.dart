@@ -37,17 +37,16 @@ class GetStatus extends RequestHandler<Body> {
   Future<Body> get() async {
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     final DatastoreService datastore = datastoreProvider();
+    final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
 
     /// [timestamp] is initially set as the current time, which allows query return
-    /// latest commit list. If [owerKeyParam] is not empty, [timestamp] will be set 
-    /// as the timestamp of that [commit], and the query will return lastest commit 
+    /// latest commit list. If [owerKeyParam] is not empty, [timestamp] will be set
+    /// as the timestamp of that [commit], and the query will return lastest commit
     /// list whose timestamp is smaller than [timestamp].
     int timestamp = DateTime.now().millisecondsSinceEpoch;
 
     if (encodedOwnerKey != null) {
-      final KeyHelper keyHelper =
-          KeyHelper(applicationContext: config.applicationContext);
       final Key ownerKey = keyHelper.decode(encodedOwnerKey);
       final Commit commit =
           await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
@@ -57,8 +56,9 @@ class GetStatus extends RequestHandler<Body> {
 
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
         .retrieveCommitStatus(limit: commitNumber, timestamp: timestamp)
-        .map<SerializableCommitStatus>(
-            (CommitStatus status) => SerializableCommitStatus(status))
+        .map<SerializableCommitStatus>((CommitStatus status) =>
+            SerializableCommitStatus(
+                status, keyHelper.encode(status.commit.key)))
         .toList();
 
     final Query<Agent> agentQuery = datastore.db.query<Agent>()
@@ -80,13 +80,17 @@ class GetStatus extends RequestHandler<Body> {
 /// The serialized representation of a [CommitStatus].
 // TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
 class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status);
+  const SerializableCommitStatus(this.status, this.key);
 
   final CommitStatus status;
+  final String key;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'Checklist': SerializableCommit(status.commit),
+      'Checklist': <String, dynamic>{
+        'Key': key,
+        'Checklist': SerializableCommit(status.commit).facade,
+      },
       'Stages': status.stages,
     };
   }
