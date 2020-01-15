@@ -46,6 +46,31 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   return true;
 }
 
+/// Check the Flutter version installed and make sure it is a recent version
+/// from the past 21 days.
+///
+/// Flutter tools handles the rest of the checks (e.g. Dart version) when
+/// building the project.
+Future<bool> _checkDependencies() async {
+  stdout.writeln('Checking Flutter version via flutter --version');
+  final ProcessResult result =
+      await Process.run('flutter', <String>['--version']);
+  final String flutterVersionOutput = result.stdout;
+
+  // This makes an assumption that only the framework will have its version
+  // printed out with the date in YYYY-MM-DD format.
+  final RegExp dateRegExp =
+      RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
+  final String flutterVersionDateRaw =
+      dateRegExp.allMatches(flutterVersionOutput).first.group(0);
+
+  final DateTime flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
+  final DateTime now = DateTime.now();
+  final Duration lastUpdateToFlutter = now.difference(flutterVersionDate);
+
+  return lastUpdateToFlutter.inDays < 21;
+}
+
 /// Build app Angular Dart project
 Future<bool> _buildAngularDartApp() async {
   /// Clean up previous build files to ensure this codebase is deployed.
@@ -165,6 +190,11 @@ Future<void> main(List<String> arguments) async {
     ..addFlag(flutterProfileModeFlag);
 
   if (!_getArgs(argParser, arguments)) {
+    exit(1);
+  }
+
+  if (!await _checkDependencies()) {
+    stderr.writeln('Update Flutter to 1.12+ to deploy Cocoon');
     exit(1);
   }
 
