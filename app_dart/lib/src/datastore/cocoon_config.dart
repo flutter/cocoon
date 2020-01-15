@@ -112,6 +112,11 @@ class Config {
 
   int get maxTaskRetries => 2;
 
+  /// The default number of commit shown in flutter build dashboard.
+  int get commitNumber => 25;
+
+  AppEngineContext get applicationContext => context.applicationContext;
+
   String get cqLabelName => 'CQ+1';
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';

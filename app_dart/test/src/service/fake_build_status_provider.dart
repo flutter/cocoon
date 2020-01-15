@@ -33,6 +33,10 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
     if (commitStatuses == null) {
       throw AssertionError();
     }
-    return Stream<CommitStatus>.fromIterable(commitStatuses);
+    commitStatuses.sort((CommitStatus a, CommitStatus b) =>
+        a.commit.timestamp.compareTo(b.commit.timestamp));
+
+    return Stream<CommitStatus>.fromIterable(commitStatuses
+        .where((CommitStatus commitStatuse) => commitStatuse.commit.timestamp < timestamp));
   }
 }

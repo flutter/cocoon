@@ -112,11 +112,7 @@ class BuildStatusProvider {
   }) async* {
     final DatastoreService datastore = datastoreProvider();
     await for (Commit commit
-<<<<<<< HEAD
-        in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
-=======
-        in datastore.queryRecentCommits(limit: maxRecords)) {
->>>>>>> dartfmt
+        in datastore.queryRecentCommits(limit: limit, timestamp: timestamp)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);

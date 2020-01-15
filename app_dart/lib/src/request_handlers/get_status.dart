@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
+import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -30,15 +31,36 @@ class GetStatus extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusProvider buildStatusProvider;
 
+  static const String ownerKeyParam = 'ownerKey';
+
   @override
   Future<Body> get() async {
+    final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
+    final DatastoreService datastore = datastoreProvider();
+    final int commitNumber = config.commitNumber;
+
+    /// [timestamp] is initially set as the current time, which allows query return
+    /// latest commit list. If [owerKeyParam] is not empty, [timestamp] will be set 
+    /// as the timestamp of that [commit], and the query will return lastest commit 
+    /// list whose timestamp is smaller than [timestamp].
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    if (encodedOwnerKey != null) {
+      final KeyHelper keyHelper =
+          KeyHelper(applicationContext: config.applicationContext);
+      final Key ownerKey = keyHelper.decode(encodedOwnerKey);
+      final Commit commit =
+          await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
+
+      timestamp = commit?.timestamp;
+    }
+
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
-        .retrieveCommitStatus()
+        .retrieveCommitStatus(limit: commitNumber, timestamp: timestamp)
         .map<SerializableCommitStatus>(
             (CommitStatus status) => SerializableCommitStatus(status))
         .toList();
 
-    final DatastoreService datastore = datastoreProvider();
     final Query<Agent> agentQuery = datastore.db.query<Agent>()
       ..order('agentId');
     final List<Agent> agents =
