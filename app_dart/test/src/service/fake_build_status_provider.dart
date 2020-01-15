@@ -36,7 +36,8 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
     commitStatuses.sort((CommitStatus a, CommitStatus b) =>
         a.commit.timestamp.compareTo(b.commit.timestamp));
 
-    return Stream<CommitStatus>.fromIterable(commitStatuses
-        .where((CommitStatus commitStatuse) => commitStatuse.commit.timestamp < timestamp));
+    return Stream<CommitStatus>.fromIterable(commitStatuses.where(
+        (CommitStatus commitStatuse) =>
+            commitStatuse.commit.timestamp < timestamp));
   }
 }

@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 
@@ -114,10 +113,10 @@ class FakeAppEngineContext implements AppEngineContext {
 class FakeKeyHelper extends KeyHelper {
   FakeKeyHelper({
     AppEngineContext applicationContext,
-  })  : super(applicationContext: applicationContext);
+  }) : super(applicationContext: applicationContext);
 
   @override
-  String encode(Key key){
-      return '';
+  String encode(Key key) {
+    return '';
   }
 }

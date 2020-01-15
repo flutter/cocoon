@@ -35,7 +35,8 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
-      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      keyHelper =
+          FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
       config = FakeConfig(keyHelperValue: keyHelper);
       buildStatusProvider =

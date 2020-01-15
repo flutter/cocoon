@@ -116,7 +116,8 @@ class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 25;
 
-  KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
+  KeyHelper get keyHelper =>
+      KeyHelper(applicationContext: context.applicationContext);
 
   String get cqLabelName => 'CQ+1';
 
