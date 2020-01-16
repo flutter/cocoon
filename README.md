@@ -14,7 +14,19 @@ importantly, *Cocoon is not a Google product*.
 
 # Running local dev server
 
-TODO: Port the Go dev server to work with the Dart AppEngine system. https://github.com/flutter/flutter/issues/45410
+This is useful for developing backend functionality locally. This local dev
+server can be connected to the frontend applications by running `dart dev/deploy.dart --project test --version test`
+and answer `N` to deploying to AppEngine. This will build the frontend files
+and copy them to the directory the server will serve them out of.
+
+Set the environment variables `GCLOUD_PROJECT` and `GCLOUD_KEY`. Running the
+following command will give more explaination on what these values should be.
+
+[Make sure to create a service account in the GCP dashboard](https://pantheon.corp.google.com/iam-admin/serviceaccounts?project=flutter-dashboard&supportedpurview=project)
+
+`cd app_dart && dart bin/server.dart`
+
+If you see `Serving requests at 0.0.0.0:8080` the dev server is working.
 
 # Building Cocoon for deployment
 
