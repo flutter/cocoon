@@ -83,6 +83,7 @@ class FlutterBuildState extends ChangeNotifier {
           errors.notifyListeners();
         } else {
           _statuses = response.data;
+          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
         }
         notifyListeners();
       }),
@@ -99,6 +100,46 @@ class FlutterBuildState extends ChangeNotifier {
         notifyListeners();
       }),
     ]);
+  }
+
+  void _mergeRecentCommitStatusesWithStoredStatuses(
+      List<CommitStatus> recentStatuses) {
+    final List<CommitStatus> mergedStatuses =
+        List<CommitStatus>.from(recentStatuses);
+
+    final CommitStatus lastRecentStatus = recentStatuses.last;
+    int lastKnownIndex = -1;
+    for (int i = 0; i < mergedStatuses.length; i++) {
+      final CommitStatus current = _statuses[i];
+
+      if (current.commit.key == lastRecentStatus.commit.key) {
+        lastKnownIndex = i;
+        break;
+      }
+    }
+    assert(lastKnownIndex != -1);
+
+    mergedStatuses.addAll(_statuses.getRange(lastKnownIndex, _statuses.length));
+
+    _statuses = mergedStatuses;
+  }
+
+  Future<void> fetchMoreCommitStatuses() async {
+    assert(_statuses.isNotEmpty);
+
+    print('fetching more!');
+
+    final CocoonResponse<List<CommitStatus>> response = await _cocoonService
+        .fetchCommitStatuses(lastCommitStatus: _statuses.last);
+    if (response.error != null) {
+      print(response.error);
+      errors.message = errorMessageFetchingStatuses;
+      errors.notifyListeners();
+      return;
+    }
+
+    _statuses.addAll(response.data);
+    notifyListeners();
   }
 
   Future<void> signIn() => authService.signIn();

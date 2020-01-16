@@ -119,7 +119,11 @@ class StatusGrid extends StatelessWidget {
           // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
           child: GridView.builder(
             addRepaintBoundaries: false,
-            itemCount: columnCount * (statuses.length + 1),
+
+            /// The grid has as many rows as there are status. Additionally,
+            /// one row for task descriptions, and one at the bottom to show
+            /// a loader for more data.
+            itemCount: columnCount * (statuses.length + 2),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount),
             itemBuilder: (BuildContext context, int gridIndex) {
@@ -128,6 +132,14 @@ class StatusGrid extends StatelessWidget {
                 /// the left column is for [CommitBox] and the top
                 /// row is for [TaskIcon].
                 return const SizedBox();
+              }
+
+              if (gridIndex >= (columnCount * (statuses.length + 1))) {
+                if (gridIndex == (columnCount * (statuses.length + 1))) {
+                  buildState.fetchMoreCommitStatuses();
+                }
+
+                return Container(color: Colors.tealAccent);
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid

@@ -35,8 +35,15 @@ class AppEngineCocoonService implements CocoonService {
   final Downloader _downloader;
 
   @override
-  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
-    final String getStatusUrl = _apiEndpoint('/api/public/get-status');
+  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
+    CommitStatus lastCommitStatus,
+  }) async {
+    String getStatusUrl = _apiEndpoint('/api/public/get-status');
+
+    if (lastCommitStatus != null) {
+      getStatusUrl +=
+          '?lastCommitKey=' + lastCommitStatus.commit.key.child.name;
+    }
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
