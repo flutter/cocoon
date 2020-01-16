@@ -140,8 +140,23 @@ void main() {
         GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
+      //final Map<String, dynamic> result
 
-      expect(result['Statuses'].length, 1);
+      expect(result['Statuses'].first, <String, dynamic>{
+        'Checklist': <String, dynamic>{
+          'Key': '',
+          'Checklist': <String, dynamic>{
+            'FlutterRepositoryPath': null,
+            'CreateTimestamp': 1,
+            'Commit': <String, dynamic>{
+              'Sha': null,
+              'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
+            }
+          }
+        },
+        'Stages': <String>[]
+      });
+      //expect(value['RequiredCapabilities'], <String>['ios']);
     });
   });
 }

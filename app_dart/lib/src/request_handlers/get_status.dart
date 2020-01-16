@@ -40,16 +40,12 @@ class GetStatus extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
-
-    /// [timestamp] is initially set as the current time, which allows query return
-    /// latest commit list. If [owerKeyParam] is not empty, [timestamp] will be set
-    /// as the timestamp of that [commit], and the query will return lastest commit
-    /// list whose timestamp is smaller than [timestamp].
-    final int timestamp =
+    final int lastCommitTimestamp =
         await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
-        .retrieveCommitStatus(limit: commitNumber, timestamp: timestamp)
+        .retrieveCommitStatus(
+            limit: commitNumber, timestamp: lastCommitTimestamp)
         .map<SerializableCommitStatus>((CommitStatus status) =>
             SerializableCommitStatus(
                 status, keyHelper.encode(status.commit.key)))
@@ -70,16 +66,20 @@ class GetStatus extends RequestHandler<Body> {
 
   Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper,
       DatastoreService datastore) async {
-    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    /// [lastCommitTimestamp] is initially set as the current time, which allows query return
+    /// latest commit list. If [owerKeyParam] is not empty, [lastCommitTimestamp] will be set
+    /// as the timestamp of that [commit], and the query will return lastest commit
+    /// list whose timestamp is smaller than [lastCommitTimestamp].
+    int lastCommitTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     if (encodedLastCommitKey != null) {
       final Key ownerKey = keyHelper.decode(encodedLastCommitKey);
       final Commit commit =
           await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
 
-      timestamp = commit?.timestamp;
+      lastCommitTimestamp = commit?.timestamp;
     }
-    return timestamp;
+    return lastCommitTimestamp;
   }
 
   static bool _isVisible(Agent agent) => !agent.isHidden;
