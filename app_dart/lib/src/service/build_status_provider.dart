@@ -23,9 +23,7 @@ class BuildStatusProvider {
   final DatastoreServiceProvider datastoreProvider;
 
   @visibleForTesting
-
-  /// This is how far back this will reference to calculate the build status.
-  static const int numberOfCommitsToReference = 20;
+  static const int numberOfCommitsToReferenceForTreeStatus = 20;
 
   /// Calculates and returns the "overall" status of the Flutter build.
   ///
@@ -48,7 +46,9 @@ class BuildStatusProvider {
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
   Future<BuildStatus> calculateCumulativeStatus() async {
-    final List<CommitStatus> statuses = await retrieveCommitStatus().toList();
+    final List<CommitStatus> statuses = await retrieveCommitStatus(
+      numberOfCommitsToReference: numberOfCommitsToReferenceForTreeStatus,
+    ).toList();
     if (statuses.isEmpty) {
       return BuildStatus.failed;
     }
@@ -107,7 +107,9 @@ class BuildStatusProvider {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus() async* {
+  Stream<CommitStatus> retrieveCommitStatus({
+    int numberOfCommitsToReference = 100,
+  }) async* {
     final DatastoreService datastore = datastoreProvider();
     await for (Commit commit
         in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
