@@ -6,13 +6,14 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/server.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
-
+import '../request_handling/fake_authentication.dart';
 import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
@@ -22,6 +23,8 @@ class FakeConfig implements Config {
     this.githubClient,
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
+    this.commitNumberValue,
+    this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.missingTestsPullRequestMessageValue,
@@ -47,6 +50,8 @@ class FakeConfig implements Config {
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
   int maxTaskRetriesValue;
+  int commitNumberValue;
+  FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
   String missingTestsPullRequestMessageValue;
@@ -88,6 +93,12 @@ class FakeConfig implements Config {
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue;
+
+  @override
+  int get commitNumber => commitNumberValue;
+
+  @override
+  KeyHelper get keyHelper => keyHelperValue;
 
   @override
   Future<String> get oauthClientId async => oauthClientIdValue;

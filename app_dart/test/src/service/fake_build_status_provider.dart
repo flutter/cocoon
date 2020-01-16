@@ -27,12 +27,15 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({
-    int numberOfCommitsToReference = 100,
-  }) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
-    return Stream<CommitStatus>.fromIterable(commitStatuses);
+    commitStatuses.sort((CommitStatus a, CommitStatus b) =>
+        a.commit.timestamp.compareTo(b.commit.timestamp));
+
+    return Stream<CommitStatus>.fromIterable(commitStatuses.where(
+        (CommitStatus commitStatuse) =>
+            commitStatuse.commit.timestamp < timestamp));
   }
 }

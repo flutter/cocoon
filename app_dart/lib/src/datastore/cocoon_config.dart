@@ -16,6 +16,7 @@ import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
@@ -111,6 +112,13 @@ class Config {
       '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 
   int get maxTaskRetries => 2;
+
+  /// The default number of commit shown in flutter build dashboard.
+  int get commitNumber => 30;
+
+  // TODO(keyonghan): update all existing APIs to use this reference, https://github.com/flutter/flutter/issues/48987.
+  KeyHelper get keyHelper =>
+      KeyHelper(applicationContext: context.applicationContext);
 
   String get cqLabelName => 'CQ+1';
 
