@@ -116,6 +116,7 @@ class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 25;
 
+  // TODO(keyonghan): update all existing APIs to use this reference, https://github.com/flutter/flutter/issues/48987.
   KeyHelper get keyHelper =>
       KeyHelper(applicationContext: context.applicationContext);
 
