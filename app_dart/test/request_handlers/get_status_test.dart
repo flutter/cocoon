@@ -156,7 +156,6 @@ void main() {
         },
         'Stages': <String>[]
       });
-      //expect(value['RequiredCapabilities'], <String>['ios']);
     });
   });
 }

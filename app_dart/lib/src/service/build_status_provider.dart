@@ -47,7 +47,7 @@ class BuildStatusProvider {
   /// there is currently a newer version that is in progress.
   Future<BuildStatus> calculateCumulativeStatus() async {
     final List<CommitStatus> statuses = await retrieveCommitStatus(
-      numberOfCommitsToReference: numberOfCommitsToReferenceForTreeStatus,
+      limit: numberOfCommitsToReferenceForTreeStatus,
     ).toList();
     if (statuses.isEmpty) {
       return BuildStatus.failed;
@@ -107,9 +107,7 @@ class BuildStatusProvider {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus({
-    int numberOfCommitsToReference = 100,
-  }) async* {
+  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp}) async* {
     final DatastoreService datastore = datastoreProvider();
     await for (Commit commit
         in datastore.queryRecentCommits(limit: limit, timestamp: timestamp)) {
