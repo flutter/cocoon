@@ -22,43 +22,85 @@ class BuildStatusProvider {
 
   final DatastoreServiceProvider datastoreProvider;
 
+  @visibleForTesting
+
+  /// This is how far back this will reference to calculate the build status.
+  static const int numberOfCommitsToReference = 20;
+
   /// Calculates and returns the "overall" status of the Flutter build.
   ///
   /// This calculation operates by looking for the most recent success or
   /// failure for every (non-flaky) task in the manifest.
+  ///
+  /// Take the example build dashboard below:
+  /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
+  /// +---+---+---+---+
+  /// | A | B | C | D |
+  /// +---+---+---+---+
+  /// | ✔ | ☐ | ░ | s |
+  /// +---+---+---+---+
+  /// | ✔ | ░ | ✔ | ✖ |
+  /// +---+---+---+---+
+  /// | ✔ | ✖ | ✔ | ✔ |
+  /// +---+---+---+---+
+  /// This build will fail because only of Task B. Task D is not included in
+  /// the latest commit status, so it does not impact the build status.
+  /// Task B fails because its last known status was to be failing, even though
+  /// there is currently a newer version that is in progress.
   Future<BuildStatus> calculateCumulativeStatus() async {
-    final Map<String, bool> checkedTasks = <String, bool>{};
-    bool isLatestBuild = true;
+    final List<CommitStatus> statuses = await retrieveCommitStatus().toList();
+    if (statuses.isEmpty) {
+      return BuildStatus.failed;
+    }
 
-    await for (CommitStatus status in retrieveCommitStatus()) {
+    final Map<String, bool> tasksInProgress =
+        _findTasksRelevantToLatestStatus(statuses);
+    if (tasksInProgress.isEmpty) {
+      return BuildStatus.failed;
+    }
+
+    for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
-          if (isLatestBuild) {
-            // We only care about tasks defined in the latest build. If a task
-            // is removed from CI, we no longer care about its status.
-            checkedTasks[task.name] = false;
-          }
+          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
+          /// for a previous run of the task from the previous commit.
+          final bool isRelevantToLatestStatus =
+              tasksInProgress.containsKey(task.name);
 
-          final bool isInLatestBuild = checkedTasks.containsKey(task.name);
-          final bool checked = checkedTasks[task.name] ?? false;
-          if (isInLatestBuild &&
-              !checked &&
-              (task.isFlaky || _isFinal(task.status))) {
-            checkedTasks[task.name] = true;
-            if (!task.isFlaky && _isFailedOrSkipped(task.status)) {
+          /// Tasks that are not relevant to the latest status will have a
+          /// null value in the map.
+          final bool taskInProgress = tasksInProgress[task.name] ?? true;
+
+          if (isRelevantToLatestStatus && taskInProgress) {
+            if (task.isFlaky || _isSuccessful(task)) {
+              /// This task no longer needs to be checked to see if it causing
+              /// the build status to fail.
+              tasksInProgress[task.name] = false;
+            } else if (_isFailed(task) || _isRerunning(task)) {
               return BuildStatus.failed;
             }
           }
         }
       }
-      isLatestBuild = false;
-    }
-
-    if (checkedTasks.isEmpty) {
-      return BuildStatus.failed;
     }
 
     return BuildStatus.succeeded;
+  }
+
+  /// Creates a map of the tasks that need to be checked for the build status.
+  ///
+  /// This is based on the most recent [CommitStatus] and all of its tasks.
+  Map<String, bool> _findTasksRelevantToLatestStatus(
+      List<CommitStatus> statuses) {
+    final Map<String, bool> tasks = <String, bool>{};
+
+    for (Stage stage in statuses.first.stages) {
+      for (Task task in stage.tasks) {
+        tasks[task.name] = true;
+      }
+    }
+
+    return tasks;
   }
 
   /// Retrieves the comprehensive status of every task that runs per commit.
@@ -67,21 +109,25 @@ class BuildStatusProvider {
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus() async* {
     final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits()) {
+    await for (Commit commit
+        in datastore.queryRecentCommits(limit: numberOfCommitsToReference)) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
   }
 
-  bool _isFinal(String status) {
-    return status == Task.statusSucceeded ||
-        status == Task.statusFailed ||
-        status == Task.statusSkipped;
+  bool _isFailed(Task task) {
+    return task.status == Task.statusFailed;
   }
 
-  bool _isFailedOrSkipped(String status) {
-    return status == Task.statusFailed || status == Task.statusSkipped;
+  bool _isSuccessful(Task task) {
+    return task.status == Task.statusSucceeded;
+  }
+
+  bool _isRerunning(Task task) {
+    return task.attempts > 1 &&
+        (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 

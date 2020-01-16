@@ -2,15 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
+import 'agent_dashboard_page.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
+import 'task_attempt_summary.dart';
 import 'task_helper.dart';
 
 /// Displays information from a [Task].
@@ -118,7 +119,7 @@ class _TaskBoxState extends State<TaskBox> {
       children: <Widget>[
         if (task.isFlaky)
           const Padding(
-            padding: EdgeInsets.all(10.0),
+            padding: EdgeInsets.fromLTRB(10.0, 12.0, 10.0, 12.0),
             child: Icon(
               Icons.help,
               color: Colors.white60,
@@ -128,7 +129,7 @@ class _TaskBoxState extends State<TaskBox> {
         if (status == TaskBox.statusInProgress ||
             status == TaskBox.statusUnderperformedInProgress)
           const Padding(
-            padding: EdgeInsets.all(10.0),
+            padding: EdgeInsets.fromLTRB(10.0, 12.0, 10.0, 12.0),
             child: Icon(
               Icons.timelapse,
               color: Colors.white60,
@@ -238,6 +239,7 @@ class TaskOverlayEntry extends StatelessWidget {
             task: task,
             taskStatus: taskStatus,
             commit: commit,
+            closeCallback: closeCallback,
           ),
         ),
       ],
@@ -258,6 +260,7 @@ class TaskOverlayContents extends StatelessWidget {
     @required this.buildState,
     @required this.task,
     @required this.taskStatus,
+    @required this.closeCallback,
     this.commit,
   })  : assert(showSnackbarCallback != null),
         assert(buildState != null),
@@ -279,6 +282,12 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// [Commit] for cirrus tasks to show log.
   final Commit commit;
+
+  /// This callback removes the parent overlay from the widget tree.
+  ///
+  /// This is used in this scope to close this overlay on redirection to view
+  /// the agent for this task in the agent dashboard.
+  final void Function() closeCallback;
 
   @visibleForTesting
   static const String rerunErrorMessage = 'Failed to rerun task.';
@@ -331,7 +340,6 @@ class TaskOverlayContents extends StatelessWidget {
                 ? Text('Attempts: ${task.attempts}\n'
                     'Run time: ${runDuration.inMinutes} minutes\n'
                     'Queue time: ${queueDuration.inSeconds} seconds\n'
-                    'Agent: ${task.reservedForAgentId}\n'
                     'Flaky: ${task.isFlaky}')
                 : const Text('Task was run outside of devicelab'),
             contentPadding: const EdgeInsets.all(16.0),
@@ -339,6 +347,21 @@ class TaskOverlayContents extends StatelessWidget {
           if (isDevicelab(task)) TaskAttemptSummary(task: task),
           ButtonBar(
             children: <Widget>[
+              if (isDevicelab(task))
+                FlatButton(
+                  child: Text(task.reservedForAgentId),
+                  onPressed: () {
+                    // Close the current overlay
+                    closeCallback();
+
+                    // Open the agent dashboard
+                    Navigator.pushNamed(
+                      context,
+                      AgentDashboardPage.routeName,
+                      arguments: task.reservedForAgentId,
+                    );
+                  },
+                ),
               ProgressButton(
                 defaultWidget: const Text('Log'),
                 progressWidget: const CircularProgressIndicator(),

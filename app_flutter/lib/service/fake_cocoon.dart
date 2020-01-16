@@ -6,8 +6,7 @@ import 'dart:math';
 
 import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart';
 
 import 'cocoon.dart';
 
@@ -31,6 +30,11 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
+    return CocoonResponse<List<Agent>>()..data = _createFakeAgentStatuses();
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     return false;
   }
@@ -38,6 +42,40 @@ class FakeCocoonService implements CocoonService {
   @override
   Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     return false;
+  }
+
+  @override
+  Future<CocoonResponse<String>> createAgent(
+          String agentId, List<String> capabilities, String idToken) async =>
+      CocoonResponse<String>()..data = 'abc123';
+
+  @override
+  Future<CocoonResponse<String>> authorizeAgent(
+          Agent agent, String idToken) async =>
+      CocoonResponse<String>()..data = 'def345';
+
+  @override
+  Future<void> reserveTask(Agent agent, String idToken) => null;
+
+  List<Agent> _createFakeAgentStatuses() {
+    return List<Agent>.generate(
+      10,
+      (int i) => Agent()
+        ..agentId = 'dash-test-$i'
+        ..capabilities.add('dash')
+        ..isHealthy = random.nextBool()
+        ..isHidden = false
+        ..healthCheckTimestamp =
+            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthDetails = 'ssh-connectivity: succeeded\n'
+            'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
+            'android-device-ZY223D6B7B: succeeded\n'
+            'has-healthy-devices: succeeded\n'
+            'Found 1 healthy devices\n\n'
+            'cocoon-authentication: succeeded\n'
+            'cocoon-connection: succeeded\n'
+            'able-to-perform-health-check: succeeded\n',
+    );
   }
 
   List<CommitStatus> _createFakeCommitStatuses() {

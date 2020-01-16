@@ -4,7 +4,8 @@
 
 import 'package:flutter/material.dart';
 
-import 'build_dashboard.dart';
+import 'agent_dashboard_page.dart';
+import 'build_dashboard_page.dart';
 import 'index_page.dart';
 import 'service/google_authentication.dart';
 
@@ -21,12 +22,15 @@ class MyApp extends StatelessWidget {
     final GoogleSignInService signInService = GoogleSignInService();
 
     return MaterialApp(
-      title: 'Flutter Build Dashboard',
+      title: 'Flutter Dashboard',
       theme: theme,
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
-        '/': (BuildContext context) => IndexPage(signInService: signInService),
-        '/build': (BuildContext context) =>
+        IndexPage.routeName: (BuildContext context) =>
+            IndexPage(signInService: signInService),
+        AgentDashboardPage.routeName: (BuildContext context) =>
+            AgentDashboardPage(signInService: signInService),
+        BuildDashboardPage.routeName: (BuildContext context) =>
             BuildDashboardPage(signInService: signInService),
       },
     );

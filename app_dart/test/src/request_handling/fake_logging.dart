@@ -52,6 +52,16 @@ class FakeLogging implements Logging {
 
   @override
   Future<void> flush() async {}
+
+  @override
+  void reportError(
+    LogLevel level,
+    Object error,
+    StackTrace stackTrace, {
+    DateTime timestamp,
+  }) {
+    log(level, 'Error: $error\n$stackTrace', timestamp: timestamp);
+  }
 }
 
 bool Function(FakeLogRecord) hasLevel(LogLevel level) {

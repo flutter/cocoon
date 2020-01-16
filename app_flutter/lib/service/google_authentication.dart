@@ -49,8 +49,20 @@ class GoogleSignInService {
   GoogleSignInAccount user;
 
   /// Authentication token to be sent to Cocoon Backend to verify API calls.
-  Future<String> get idToken => user?.authentication
-      ?.then((GoogleSignInAuthentication key) => key.idToken);
+  ///
+  /// If there is no currently signed in user, it will prompt the sign in
+  /// process before attempting to return an id token.
+  Future<String> get idToken async {
+    if (!await isAuthenticated) {
+      await signIn();
+    }
+
+    final String idToken = await user?.authentication
+        ?.then((GoogleSignInAuthentication key) => key.idToken);
+    assert(idToken != null && idToken.isNotEmpty);
+
+    return idToken;
+  }
 
   /// Initiate the Google Sign In process.
   Future<void> signIn() async {

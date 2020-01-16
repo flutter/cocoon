@@ -1,0 +1,50 @@
+// Copyright 2019 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+import "lib/src/model/proto/internal/key.proto";
+
+// A Flutter Infra worker capable of running tasks.
+message Agent {
+    optional RootKey key = 1;
+    // The human-readable ID of the agent (e.g. 'linux1').
+    optional string agent_id = 2;
+    // The timestamp (in milliseconds since the Epoch) of the agent's last
+    // health check.
+    optional int64 health_check_timestamp = 3;
+    // True iff the agent is currently marked as healthy.
+    //
+    // A healthy agent is capable of accepting tasks.
+    optional bool is_healthy = 4;
+    optional bool is_hidden = 5;
+    // The list of capabilities that the agent supports.
+    //
+    // Capabilities are arbitrary string values, such as 'linux/android'. The
+    // capabilities of an agent will be matched up against the required
+    // capabilities of a devicelab task.
+    //
+    // See also:
+    //
+    //  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/manifest.yaml>,
+    //    which lists "required_agent_capabilities" for each task therein.
+    //
+    //  * [Task.requiredCapabilities]
+    repeated string capabilities = 6;
+    // Freeform information about the agent that was reported during its last
+    // health check.
+    //
+    // This will include information such as the agent's host IP address.
+    optional string health_details = 7;
+    // A hash of the agent's authentication token.
+    //
+    // This hash is generated using Provos and Mazières's bcrypt adaptive
+    // hashing algorithm. It should be decoded into ASCII, then used as
+    // the salt in the hashing function of the raw authentication token.
+    //
+    // See also:
+    //
+    //  * <https://www.usenix.org/legacy/event/usenix99/provos/provos.pdf>
+    optional string auth_token = 8;
+}
