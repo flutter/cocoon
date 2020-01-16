@@ -31,11 +31,12 @@ class GetStatus extends RequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildStatusProvider buildStatusProvider;
 
-  static const String ownerKeyParam = 'ownerKey';
+  static const String lastCommitKeyParam = 'lastCommitKey';
 
   @override
   Future<Body> get() async {
-    final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
+    final String encodedLastCommitKey =
+        request.uri.queryParameters[lastCommitKeyParam];
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
@@ -44,15 +45,8 @@ class GetStatus extends RequestHandler<Body> {
     /// latest commit list. If [owerKeyParam] is not empty, [timestamp] will be set
     /// as the timestamp of that [commit], and the query will return lastest commit
     /// list whose timestamp is smaller than [timestamp].
-    int timestamp = DateTime.now().millisecondsSinceEpoch;
-
-    if (encodedOwnerKey != null) {
-      final Key ownerKey = keyHelper.decode(encodedOwnerKey);
-      final Commit commit =
-          await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
-
-      timestamp = commit?.timestamp;
-    }
+    final int timestamp =
+        await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
         .retrieveCommitStatus(limit: commitNumber, timestamp: timestamp)
@@ -72,6 +66,20 @@ class GetStatus extends RequestHandler<Body> {
       'Statuses': statuses,
       'AgentStatuses': agents,
     });
+  }
+
+  Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper,
+      DatastoreService datastore) async {
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    if (encodedLastCommitKey != null) {
+      final Key ownerKey = keyHelper.decode(encodedLastCommitKey);
+      final Commit commit =
+          await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
+
+      timestamp = commit?.timestamp;
+    }
+    return timestamp;
   }
 
   static bool _isVisible(Agent agent) => !agent.isHidden;

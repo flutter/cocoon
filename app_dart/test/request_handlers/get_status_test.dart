@@ -133,11 +133,11 @@ void main() {
         buildStatusProvider: buildStatusProvider,
       );
 
-      const String expectedCommitKeyEncoded =
+      const String expectedLastCommitKeyEncoded =
           'ahNzfmZsdXR0ZXItZGFzaGJvYXJkckcLEglDaGVja2xpc3QiOGZsdXR0ZXIvZmx1dHRlci9lYTI4YTljMzRkYzcwMWRlODkxZWFmNzQ1MDNjYTQ3MTcwMTlmODI5DA';
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        GetStatus.ownerKeyParam: expectedCommitKeyEncoded,
+        GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
 
