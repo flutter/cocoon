@@ -247,30 +247,6 @@ class Config {
           'repo': 'engine',
         },
         <String, String>{
-          'name': 'Mac Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android Debug Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine Profile',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine Release',
-          'repo': 'engine',
-        },
-        <String, String>{
           'name': 'Windows Host Engine',
           'repo': 'engine',
         },
