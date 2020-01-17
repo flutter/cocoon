@@ -121,9 +121,9 @@ void main() {
     test('Merges unapproved PR from autoroller', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
-          author: 'engine-roller', reviews: <PullRequestReviewHelper>[]));
+          author: 'engine-roller', reviews: const <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(
-          author: 'skia-roller', reviews: <PullRequestReviewHelper>[]));
+          author: 'skia-roller', reviews: const <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
@@ -153,9 +153,10 @@ void main() {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
           author: 'engine-roller-hacker',
-          reviews: <PullRequestReviewHelper>[]));
+          reviews: const <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(
-          author: 'skia-roller-hacker', reviews: <PullRequestReviewHelper>[]));
+          author: 'skia-roller-hacker',
+          reviews: const <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
@@ -253,18 +254,32 @@ void main() {
       );
     });
 
-    test('Ignore red PRs', () async {
+    test('Unlabels red PRs', () async {
       final PullRequestHelper prRed = PullRequestHelper(
-        lastCommitSuccess: false,
-        lastCommitCheckRunsSuccess: false,
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+          StatusHelper.otherStatusFailure,
+        ],
+        lastCommitCheckRuns: const <StatusHelper>[
+          StatusHelper.cirrusFailure,
+        ],
       );
       final PullRequestHelper prRedButChecksOk = PullRequestHelper(
-        lastCommitSuccess: false,
-        lastCommitCheckRunsSuccess: true,
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+          StatusHelper.otherStatusFailure,
+        ],
+        lastCommitCheckRuns: const <StatusHelper>[
+          StatusHelper.cirrusSuccess,
+        ],
       );
       final PullRequestHelper prRedButStatusOk = PullRequestHelper(
-        lastCommitSuccess: true,
-        lastCommitCheckRunsSuccess: false,
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+        lastCommitCheckRuns: const <StatusHelper>[
+          StatusHelper.cirrusFailure,
+        ],
       );
 
       flutterRepoPRs.add(prRed);
@@ -273,12 +288,50 @@ void main() {
 
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': prRed.id,
+            'sBody':
+                '''This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            'labelId': base64LabelId,
+          },
+        ),
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': prRedButChecksOk.id,
+            'sBody':
+                '''This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            'labelId': base64LabelId,
+          },
+        ),
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': prRedButStatusOk.id,
+            'sBody':
+                '''This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            'labelId': base64LabelId,
+          },
+        ),
+      ]);
     });
 
     test('Allows member to change review', () async {
       final PullRequestHelper prChangedReview = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
           changePleaseApprove,
         ],
@@ -303,18 +356,18 @@ void main() {
 
     test('Ignores non-member/owner reviews', () async {
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           nonMemberApprove,
         ],
       );
       final PullRequestHelper prNonMemberChangeRequest = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           nonMemberChangeRequest,
         ],
       );
       final PullRequestHelper prNonMemberChangeRequestWithMemberApprove =
           PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           ownerApprove,
           nonMemberChangeRequest,
         ],
@@ -369,33 +422,30 @@ void main() {
 
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           changePleaseChange,
         ],
       );
       final PullRequestHelper prOneGoodOneBadReview = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[
+        reviews: const <PullRequestReviewHelper>[
           memberApprove,
           changePleaseChange,
         ],
       );
       final PullRequestHelper prNoReviews = PullRequestHelper(
-        reviews: <PullRequestReviewHelper>[],
-      );
-      final PullRequestHelper prRed = PullRequestHelper(
-        lastCommitSuccess: false,
-        lastCommitCheckRunsSuccess: false,
+        reviews: const <PullRequestReviewHelper>[],
       );
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
-        lastCommitSuccess: false,
-        lastCommitCheckRunsSuccess: false,
-        reviews: <PullRequestReviewHelper>[changePleaseChange],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure
+        ],
+        lastCommitCheckRuns: const <StatusHelper>[StatusHelper.cirrusFailure],
+        reviews: const <PullRequestReviewHelper>[changePleaseChange],
       );
 
       flutterRepoPRs.add(prOneBadReview);
       flutterRepoPRs.add(prOneGoodOneBadReview);
       flutterRepoPRs.add(prNoReviews);
-      flutterRepoPRs.add(prRed); // ignored.
       flutterRepoPRs.add(prEverythingWrong);
 
       await tester.get(handler);
@@ -448,6 +498,7 @@ void main() {
                   '''This pull request is not suitable for automatic merging in its current state.
 
 - This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
+- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
               'labelId': base64LabelId,
             },
@@ -523,6 +574,7 @@ enum MemberType {
   OTHER,
 }
 
+@immutable
 class PullRequestReviewHelper {
   const PullRequestReviewHelper({
     @required this.authorName,
@@ -535,6 +587,30 @@ class PullRequestReviewHelper {
   final MemberType memberType;
 }
 
+@immutable
+class StatusHelper {
+  const StatusHelper(this.name, this.state);
+
+  static const StatusHelper cirrusSuccess =
+      StatusHelper('Cirrus CI', 'SUCCESS');
+  static const StatusHelper cirrusFailure =
+      StatusHelper('Cirrus CI', 'FAILURE');
+  static const StatusHelper flutterBuildSuccess =
+      StatusHelper('flutter-build', 'SUCCESS');
+  static const StatusHelper flutterBuildFailure =
+      StatusHelper('flutter-build', 'FAILURE');
+  static const StatusHelper otherStatusFailure =
+      StatusHelper('other status', 'FAILURE');
+  static const StatusHelper luciEngineBuildSuccess =
+      StatusHelper('luci-engine', 'SUCCESS');
+  static const StatusHelper luciEngineBuildFailure =
+      StatusHelper('luci-engine', 'FAILURE');
+
+  final String name;
+  final String state;
+}
+
+@immutable
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
@@ -545,8 +621,10 @@ class PullRequestHelper {
           memberType: MemberType.MEMBER)
     ],
     this.lastCommitHash = oid,
-    this.lastCommitSuccess = true,
-    this.lastCommitCheckRunsSuccess = true,
+    this.lastCommitStatuses = const <StatusHelper>[
+      StatusHelper.flutterBuildSuccess
+    ],
+    this.lastCommitCheckRuns = const <StatusHelper>[StatusHelper.cirrusSuccess],
     this.dateTime,
   }) : _count = _counter++;
 
@@ -558,8 +636,8 @@ class PullRequestHelper {
   final String author;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
-  final bool lastCommitSuccess;
-  final bool lastCommitCheckRunsSuccess;
+  final List<StatusHelper> lastCommitStatuses;
+  final List<StatusHelper> lastCommitCheckRuns;
   final DateTime dateTime;
 
   Map<String, dynamic> toEntry() {
@@ -587,15 +665,20 @@ class PullRequestHelper {
                       .toUtc()
                       .toIso8601String(),
               'status': <String, dynamic>{
-                'state': lastCommitSuccess ? 'SUCCESS' : 'FAILURE',
+                'contexts': lastCommitStatuses.map((StatusHelper status) {
+                  return <String, dynamic>{
+                    'context': status.name,
+                    'state': status.state,
+                  };
+                }).toList(),
               },
               'checkSuites': <String, dynamic>{
-                'nodes': <dynamic>[
-                  <String, dynamic>{
-                    'conclusion': lastCommitCheckRunsSuccess ? 'SUCCESS' : null
-                  },
-                  <String, dynamic>{'conclusion': 'SUCCESS'},
-                ],
+                'nodes': lastCommitCheckRuns.map((StatusHelper status) {
+                  return <String, dynamic>{
+                    'app': <String, dynamic>{'name': status.name},
+                    'conclusion': status.state,
+                  };
+                }).toList(),
               },
             },
           },
