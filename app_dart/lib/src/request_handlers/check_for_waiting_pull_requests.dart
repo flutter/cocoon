@@ -185,7 +185,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
       final Set<String> changeRequestAuthors = <String>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
-          _checkApproval(pullRequest['reviews']['nodes'], changeRequestAuthors);
+          _checkApproval(
+            pullRequest['reviews']['nodes'].cast<Map<String, dynamic>>(),
+            changeRequestAuthors,
+          );
 
       final String sha = commit['oid'];
       final List<Map<String, dynamic>> checkSuites =
