@@ -327,27 +327,30 @@ class AppEngineCocoonService implements CocoonService {
     final List<CommitStatus> statuses = <CommitStatus>[];
 
     for (Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
-      final Map<String, Object> commit = jsonCommitStatus['Checklist'];
+      final Map<String, Object> checklist = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
-        ..commit = _commitFromJson(commit['Checklist'])
+        ..commit = _commitFromJson(checklist)
         ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
     }
 
     return statuses;
   }
 
-  Commit _commitFromJson(Map<String, Object> jsonCommit) {
-    assert(jsonCommit != null);
+  Commit _commitFromJson(Map<String, Object> jsonChecklist) {
+    assert(jsonChecklist != null);
 
-    final Map<String, Object> commit = jsonCommit['Commit'];
+    final Map<String, Object> checklist = jsonChecklist['Checklist'];
+
+    final Map<String, Object> commit = checklist['Commit'];
     final Map<String, Object> author = commit['Author'];
 
     return Commit()
-      ..timestamp = Int64() + jsonCommit['CreateTimestamp']
+      ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key']))
+      ..timestamp = Int64() + checklist['CreateTimestamp']
       ..sha = commit['Sha']
       ..author = author['Login']
       ..authorAvatarUrl = author['avatar_url']
-      ..repository = jsonCommit['FlutterRepositoryPath'];
+      ..repository = checklist['FlutterRepositoryPath'];
   }
 
   List<Stage> _stagesFromJson(List<Object> json) {
