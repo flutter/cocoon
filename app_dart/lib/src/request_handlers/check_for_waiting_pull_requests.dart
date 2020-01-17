@@ -228,12 +228,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 ///
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
-bool _checkApproval(List<Map<String, dynamic>> reviewNodes, Set<String> changeRequestAuthors) {
+bool _checkApproval(
+    List<Map<String, dynamic>> reviewNodes, Set<String> changeRequestAuthors) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
   for (Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
+    if (review['authorAssociation'] != 'MEMBER' &&
+        review['authorAssociation'] != 'OWNER') {
       continue;
     }
 
@@ -297,7 +299,8 @@ class _AutoMergeQueryResult {
       ciSuccessful && hasApprovedReview && changeRequestAuthors.isEmpty;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel => !hasApprovedReview || changeRequestAuthors.isNotEmpty;
+  bool get shouldRemoveLabel =>
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {

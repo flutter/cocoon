@@ -292,12 +292,11 @@ void main() {
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': prChangedReview.id,
-              'oid': oid,
-            }
-          ),
+              document: mergePullRequestMutation,
+              variables: <String, dynamic>{
+                'id': prChangedReview.id,
+                'oid': oid,
+              }),
         ],
       );
     });
@@ -313,7 +312,8 @@ void main() {
           nonMemberChangeRequest,
         ],
       );
-      final PullRequestHelper prNonMemberChangeRequestWithMemberApprove = PullRequestHelper(
+      final PullRequestHelper prNonMemberChangeRequestWithMemberApprove =
+          PullRequestHelper(
         reviews: <PullRequestReviewHelper>[
           ownerApprove,
           nonMemberChangeRequest,
@@ -358,12 +358,11 @@ void main() {
             },
           ),
           MutationOptions(
-            document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': prNonMemberChangeRequestWithMemberApprove.id,
-              'oid': oid,
-            }
-          ),
+              document: mergePullRequestMutation,
+              variables: <String, dynamic>{
+                'id': prNonMemberChangeRequestWithMemberApprove.id,
+                'oid': oid,
+              }),
         ],
       );
     });
