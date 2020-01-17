@@ -182,10 +182,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String author = pullRequest['author']['login'];
       final String id = pullRequest['id'];
       final int number = pullRequest['number'];
+
+      final Set<String> changeRequestAuthors = <String>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
-          pullRequest['approvedReviews']['nodes'].isNotEmpty;
-      final bool hasChangesRequested =
-          pullRequest['changeRequestReviews']['nodes'].isNotEmpty;
+          _checkApproval(pullRequest['reviews']['nodes'], changeRequestAuthors);
+
       final String sha = commit['oid'];
       final List<Map<String, dynamic>> checkSuites =
           commit['checkSuites']['nodes'].cast<Map<String, dynamic>>();
@@ -198,7 +199,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         graphQLId: id,
         ciSuccessful: ciSuccessful,
         hasApprovedReview: hasApproval,
-        hasChangesRequested: hasChangesRequested,
+        changeRequestAuthors: changeRequestAuthors,
         number: number,
         sha: sha,
         labelId: labelId,
@@ -208,6 +209,48 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   }
 }
 
+/// Parses the graphQL response reviews.
+///
+/// Checks that the authorAssociation is of a MEMBER or OWNER (ignore reviews
+/// from people who don't have write access to the repo).
+///
+/// If there are any CHANGES_REQUESTED reviews, checks if the same author has
+/// subsequently APPROVED.  From testing, dismissing a review means it won't
+/// show up in this list since it will have a status of DISMISSED and we only
+/// ask for CHANGES_REQUESTED or APPROVED - however, adding a new review does
+/// not automatically dismiss the previous one (why, GitHub? Why?).
+///
+/// If the author has not subsequently approved or dismissed the review, the
+/// name will be added to the changeRequestAuthors set.
+///
+/// Returns false if no approved reviews or any oustanding change request
+/// reviews.
+///
+/// Returns true if at least one approved review and no outstanding change
+/// request reviews.
+bool _checkApproval(List<Map<String, dynamic>> reviewNodes, Set<String> changeRequestAuthors) {
+  assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
+  bool hasAtLeastOneApprove = false;
+  for (Map<String, dynamic> review in reviewNodes) {
+    // Ignore reviews from non-members/owners.
+    if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
+      continue;
+    }
+
+    // Reviews come back in order of creation.
+    final String state = review['state'];
+    final String authorLogin = review['author']['login'];
+    if (state == 'APPROVED') {
+      hasAtLeastOneApprove = true;
+      changeRequestAuthors.remove(authorLogin);
+    } else if (state == 'CHANGES_REQUESTED') {
+      changeRequestAuthors.add(authorLogin);
+    }
+  }
+
+  return hasAtLeastOneApprove && changeRequestAuthors.isEmpty;
+}
+
 /// A model class describing the state of a pull request that has the "waiting
 /// for tree to go green" label on it.
 @immutable
@@ -215,14 +258,14 @@ class _AutoMergeQueryResult {
   const _AutoMergeQueryResult({
     @required this.graphQLId,
     @required this.hasApprovedReview,
-    @required this.hasChangesRequested,
+    @required this.changeRequestAuthors,
     @required this.ciSuccessful,
     @required this.number,
     @required this.sha,
     @required this.labelId,
   })  : assert(graphQLId != null),
         assert(hasApprovedReview != null),
-        assert(hasChangesRequested != null),
+        assert(changeRequestAuthors != null),
         assert(ciSuccessful != null),
         assert(number != null),
         assert(sha != null),
@@ -234,8 +277,8 @@ class _AutoMergeQueryResult {
   /// Whether the pull request has at least one approved review.
   final bool hasApprovedReview;
 
-  /// Whether the pull request has at least one change request review.
-  final bool hasChangesRequested;
+  /// A set of login names that have at least one outstanding change request.
+  final Set<String> changeRequestAuthors;
 
   /// Whether CI has run successfully on the pull request.
   final bool ciSuccessful;
@@ -251,10 +294,10 @@ class _AutoMergeQueryResult {
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
-      ciSuccessful && hasApprovedReview && !hasChangesRequested;
+      ciSuccessful && hasApprovedReview && changeRequestAuthors.isEmpty;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel => !hasApprovedReview || hasChangesRequested;
+  bool get shouldRemoveLabel => !hasApprovedReview || changeRequestAuthors.isNotEmpty;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {
@@ -266,16 +309,16 @@ class _AutoMergeQueryResult {
         'This pull request is not suitable for automatic merging in its '
         'current state.');
     buffer.writeln();
-    if (!hasApprovedReview) {
+    if (!hasApprovedReview && changeRequestAuthors.isEmpty) {
       buffer.writeln(
           '- Please get at least one approved review before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
-    if (hasChangesRequested) {
+    for (String author in changeRequestAuthors) {
       buffer.writeln(
-          '- This pull request has changes requested. Please resolve those '
-          'before re-applying the label.');
+          '- This pull request has changes requested by @$author. Please '
+          'resolve those before re-applying the label.');
     }
     return buffer.toString();
   }
@@ -287,7 +330,7 @@ class _AutoMergeQueryResult {
         'sha: $sha, '
         'ciSuccessful: $ciSuccessful, '
         'hasApprovedReview: $hasApprovedReview, '
-        'hasChangesRequested: $hasChangesRequested, '
+        'changeRequestAuthors: $changeRequestAuthors, '
         'labelId: $labelId, '
         'shouldMerge: $shouldMerge}';
   }

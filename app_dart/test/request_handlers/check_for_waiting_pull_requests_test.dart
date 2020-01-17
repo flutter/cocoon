@@ -9,6 +9,7 @@ import 'package:graphql/client.dart';
 import 'package:graphql/src/core/observable_query.dart';
 import 'package:graphql/src/link/fetch_result.dart';
 import 'package:graphql/src/link/operation.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -119,10 +120,10 @@ void main() {
 
     test('Merges unapproved PR from autoroller', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
-      flutterRepoPRs.add(
-          PullRequestHelper(author: 'engine-roller', hasApprovedReview: false));
-      engineRepoPRs.add(
-          PullRequestHelper(author: 'skia-roller', hasApprovedReview: false));
+      flutterRepoPRs.add(PullRequestHelper(
+          author: 'engine-roller', reviews: <PullRequestReviewHelper>[]));
+      engineRepoPRs.add(PullRequestHelper(
+          author: 'skia-roller', reviews: <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
@@ -151,9 +152,10 @@ void main() {
     test('Does not merge unapproved PR from a hacker', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
-          author: 'engine-roller-hacker', hasApprovedReview: false));
+          author: 'engine-roller-hacker',
+          reviews: <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(
-          author: 'skia-roller-hacker', hasApprovedReview: false));
+          author: 'skia-roller-hacker', reviews: <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
@@ -274,17 +276,113 @@ void main() {
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
+    test('Allows member to change review', () async {
+      final PullRequestHelper prChangedReview = PullRequestHelper(
+        reviews: <PullRequestReviewHelper>[
+          changePleaseChange,
+          changePleaseApprove,
+        ],
+      );
+
+      flutterRepoPRs.add(prChangedReview);
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': prChangedReview.id,
+              'oid': oid,
+            }
+          ),
+        ],
+      );
+    });
+
+    test('Ignores non-member/owner reviews', () async {
+      final PullRequestHelper prNonMemberApprove = PullRequestHelper(
+        reviews: <PullRequestReviewHelper>[
+          nonMemberApprove,
+        ],
+      );
+      final PullRequestHelper prNonMemberChangeRequest = PullRequestHelper(
+        reviews: <PullRequestReviewHelper>[
+          nonMemberChangeRequest,
+        ],
+      );
+      final PullRequestHelper prNonMemberChangeRequestWithMemberApprove = PullRequestHelper(
+        reviews: <PullRequestReviewHelper>[
+          ownerApprove,
+          nonMemberChangeRequest,
+        ],
+      );
+
+      // Ignored approval from non-member
+      flutterRepoPRs.add(prNonMemberApprove);
+      // Ignored change reuqest from non-member (but still no approval from member)
+      flutterRepoPRs.add(prNonMemberChangeRequest);
+      // Ignored change request from non-member with approval from owner/member.
+      flutterRepoPRs.add(prNonMemberChangeRequestWithMemberApprove);
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: removeLabelMutation,
+            variables: <String, dynamic>{
+              'id': prNonMemberApprove.id,
+              'sBody':
+                  '''This pull request is not suitable for automatic merging in its current state.
+
+- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+''',
+              'labelId': base64LabelId,
+            },
+          ),
+          MutationOptions(
+            document: removeLabelMutation,
+            variables: <String, dynamic>{
+              'id': prNonMemberChangeRequest.id,
+              'sBody':
+                  '''This pull request is not suitable for automatic merging in its current state.
+
+- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
+''',
+              'labelId': base64LabelId,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': prNonMemberChangeRequestWithMemberApprove.id,
+              'oid': oid,
+            }
+          ),
+        ],
+      );
+    });
+
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
-        hasApprovedReview: false,
-        hasChangeRequestReview: true,
+        reviews: <PullRequestReviewHelper>[
+          changePleaseChange,
+        ],
       );
       final PullRequestHelper prOneGoodOneBadReview = PullRequestHelper(
-        hasApprovedReview: true,
-        hasChangeRequestReview: true,
+        reviews: <PullRequestReviewHelper>[
+          memberApprove,
+          changePleaseChange,
+        ],
       );
-      final PullRequestHelper prNoReviews =
-          PullRequestHelper(hasApprovedReview: false);
+      final PullRequestHelper prNoReviews = PullRequestHelper(
+        reviews: <PullRequestReviewHelper>[],
+      );
       final PullRequestHelper prRed = PullRequestHelper(
         lastCommitSuccess: false,
         lastCommitCheckRunsSuccess: false,
@@ -292,8 +390,7 @@ void main() {
       final PullRequestHelper prEverythingWrong = PullRequestHelper(
         lastCommitSuccess: false,
         lastCommitCheckRunsSuccess: false,
-        hasApprovedReview: false,
-        hasChangeRequestReview: true,
+        reviews: <PullRequestReviewHelper>[changePleaseChange],
       );
 
       flutterRepoPRs.add(prOneBadReview);
@@ -315,8 +412,7 @@ void main() {
               'sBody':
                   '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
-- This pull request has changes requested. Please resolve those before re-applying the label.
+- This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
 ''',
               'labelId': base64LabelId,
             },
@@ -328,7 +424,7 @@ void main() {
               'sBody':
                   '''This pull request is not suitable for automatic merging in its current state.
 
-- This pull request has changes requested. Please resolve those before re-applying the label.
+- This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
 ''',
               'labelId': base64LabelId,
             },
@@ -352,8 +448,7 @@ void main() {
               'sBody':
                   '''This pull request is not suitable for automatic merging in its current state.
 
-- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
-- This pull request has changes requested. Please resolve those before re-applying the label.
+- This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
 ''',
               'labelId': base64LabelId,
             },
@@ -418,11 +513,38 @@ class FakeGraphQLClient implements GraphQLClient {
       verify(expected, mutations);
 }
 
+enum ReviewState {
+  APPROVED,
+  CHANGES_REQUESTED,
+}
+
+enum MemberType {
+  OWNER,
+  MEMBER,
+  OTHER,
+}
+
+class PullRequestReviewHelper {
+  const PullRequestReviewHelper({
+    @required this.authorName,
+    @required this.state,
+    @required this.memberType,
+  });
+
+  final String authorName;
+  final ReviewState state;
+  final MemberType memberType;
+}
+
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
-    this.hasApprovedReview = true,
-    this.hasChangeRequestReview = false,
+    this.reviews = const <PullRequestReviewHelper>[
+      PullRequestReviewHelper(
+          authorName: 'member',
+          state: ReviewState.APPROVED,
+          memberType: MemberType.MEMBER)
+    ],
     this.lastCommitHash = oid,
     this.lastCommitSuccess = true,
     this.lastCommitCheckRunsSuccess = true,
@@ -435,8 +557,7 @@ class PullRequestHelper {
   String get id => _count.toString();
 
   final String author;
-  final bool hasApprovedReview;
-  final bool hasChangeRequestReview;
+  final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   final bool lastCommitSuccess;
   final bool lastCommitCheckRunsSuccess;
@@ -447,19 +568,15 @@ class PullRequestHelper {
       'author': <String, dynamic>{'login': author},
       'id': id,
       'number': id.hashCode,
-      'approvedReviews': <String, dynamic>{
-        'nodes': hasApprovedReview
-            ? <dynamic>[
-                <String, dynamic>{'state': 'APPROVED'},
-              ]
-            : <dynamic>[],
-      },
-      'changeRequestReviews': <String, dynamic>{
-        'nodes': hasChangeRequestReview
-            ? <dynamic>[
-                <String, dynamic>{'state': 'CHANGES_REQUESTED'},
-              ]
-            : <dynamic>[],
+      'reviews': <String, dynamic>{
+        'nodes': reviews.map((PullRequestReviewHelper review) {
+          return <String, dynamic>{
+            'author': <String, dynamic>{'login': review.authorName},
+            'authorAssociation':
+                review.memberType.toString().replaceFirst('MemberType.', ''),
+            'state': review.state.toString().replaceFirst('ReviewState.', ''),
+          };
+        }).toList(),
       },
       'commits': <String, dynamic>{
         'nodes': <dynamic>[
@@ -511,3 +628,34 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
     },
   );
 }
+
+const PullRequestReviewHelper ownerApprove = PullRequestReviewHelper(
+  authorName: 'owner',
+  memberType: MemberType.OWNER,
+  state: ReviewState.APPROVED,
+);
+const PullRequestReviewHelper changePleaseChange = PullRequestReviewHelper(
+  authorName: 'change_please',
+  memberType: MemberType.MEMBER,
+  state: ReviewState.CHANGES_REQUESTED,
+);
+const PullRequestReviewHelper changePleaseApprove = PullRequestReviewHelper(
+  authorName: 'change_please',
+  memberType: MemberType.MEMBER,
+  state: ReviewState.APPROVED,
+);
+const PullRequestReviewHelper memberApprove = PullRequestReviewHelper(
+  authorName: 'member',
+  memberType: MemberType.MEMBER,
+  state: ReviewState.APPROVED,
+);
+const PullRequestReviewHelper nonMemberApprove = PullRequestReviewHelper(
+  authorName: 'random_person',
+  memberType: MemberType.OTHER,
+  state: ReviewState.APPROVED,
+);
+const PullRequestReviewHelper nonMemberChangeRequest = PullRequestReviewHelper(
+  authorName: 'random_person',
+  memberType: MemberType.OTHER,
+  state: ReviewState.CHANGES_REQUESTED,
+);
