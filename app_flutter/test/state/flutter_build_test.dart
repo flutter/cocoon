@@ -124,13 +124,17 @@ void main() {
 
       buildState.startFetchingBuildStateUpdates();
 
-      await tester.pump(buildState.refreshRate * 2);
+      await tester.pump(buildState.refreshRate);
 
-      expect(buildState.statuses, isEmpty);
+      expect(buildState.statuses.length, 2);
 
-      buildState.fetchMoreCommitStatuses();
+      await buildState.fetchMoreCommitStatuses();
 
-      expect(buildState.statuses.length, 1);
+      expect(buildState.statuses.length, 3);
+
+      await tester.pump(buildState.refreshRate * 10);
+
+      expect(buildState.statuses.length, 3);
 
       buildState.dispose();
     });
