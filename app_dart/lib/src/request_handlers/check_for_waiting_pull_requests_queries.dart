@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 const String labeledPullRequestsWithReviewsQuery = r'''
-query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
+query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
   repository(owner: $sOwner, name: $sName) {
     labels(first: 1, query: $sLabelName) {
       nodes {
@@ -24,10 +24,16 @@ query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelN
                   committedDate
                   pushedDate
                   status {
-                    state
+                    contexts {
+                      context
+                      state
+                    }
                   }
                   checkSuites(first: 100) {
                     nodes {
+                      app {
+                        name
+                      }
                       conclusion
                     }
                   }

@@ -193,14 +193,19 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String sha = commit['oid'];
       final List<Map<String, dynamic>> checkSuites =
           commit['checkSuites']['nodes'].cast<Map<String, dynamic>>();
-      final bool checkSuitesSuccessful = checkSuites.every(
-          (Map<String, dynamic> checkSuiteConclusion) =>
-              checkSuiteConclusion['conclusion'] == 'SUCCESS');
-      final bool ciSuccessful =
-          checkSuitesSuccessful && commit['status']['state'] == 'SUCCESS';
+      final List<Map<String, dynamic>> statuses =
+          commit['status']['contexts'].cast<Map<String, dynamic>>();
+      final Set<String> failingStatuses = <String>{};
+      final bool ciSuccessful = _checkStatuses(
+        statuses,
+        checkSuites,
+        failingStatuses,
+      );
+
       list.add(_AutoMergeQueryResult(
         graphQLId: id,
         ciSuccessful: ciSuccessful,
+        failingStatuses: failingStatuses,
         hasApprovedReview: hasApproval,
         changeRequestAuthors: changeRequestAuthors,
         number: number,
@@ -210,6 +215,49 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
     return list;
   }
+}
+
+/// Returns whether all statuses and checks are successful.
+///
+/// Also fills [failures] with the names of any status/check that has failed,
+/// if and only if that status is not `'flutter-build'` or `'luci-engine'`.
+///
+/// The idea is that those statuses are checks based on other pull requests,
+/// not this one. If anything based on this pull request fails, we should
+/// end up removing the label so the user can either fix it or deflake or
+/// what have you.
+bool _checkStatuses(
+  List<Map<String, dynamic>> statuses,
+  List<Map<String, dynamic>> checks,
+  Set<String> failures,
+) {
+  assert(failures != null && failures.isEmpty);
+  // The status checks that are not related to changes in this PR.
+  const Set<String> notInAuthorsControl = <String>{
+    'flutter-build', // flutter repo
+    'luci-engine', // engine repo
+  };
+
+  bool allSuccess = true;
+  for (Map<String, dynamic> status in statuses) {
+    final String name = status['context'];
+    if (status['state'] == 'FAILURE') {
+      allSuccess = false;
+      if (!notInAuthorsControl.contains(name)) {
+        failures.add(name);
+      }
+    }
+  }
+  for (Map<String, dynamic> check in checks) {
+    final String name = check['app']['name'];
+    if (check['conclusion'] == 'FAILURE') {
+      allSuccess = false;
+      if (!notInAuthorsControl.contains(name)) {
+        failures.add(name);
+      }
+    }
+  }
+  return allSuccess;
 }
 
 /// Parses the graphQL response reviews.
@@ -232,7 +280,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-    List<Map<String, dynamic>> reviewNodes, Set<String> changeRequestAuthors) {
+  List<Map<String, dynamic>> reviewNodes,
+  Set<String> changeRequestAuthors,
+) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
   for (Map<String, dynamic> review in reviewNodes) {
@@ -265,6 +315,7 @@ class _AutoMergeQueryResult {
     @required this.hasApprovedReview,
     @required this.changeRequestAuthors,
     @required this.ciSuccessful,
+    @required this.failingStatuses,
     @required this.number,
     @required this.sha,
     @required this.labelId,
@@ -272,6 +323,7 @@ class _AutoMergeQueryResult {
         assert(hasApprovedReview != null),
         assert(changeRequestAuthors != null),
         assert(ciSuccessful != null),
+        assert(failingStatuses != null),
         assert(number != null),
         assert(sha != null),
         assert(labelId != null);
@@ -288,6 +340,9 @@ class _AutoMergeQueryResult {
   /// Whether CI has run successfully on the pull request.
   final bool ciSuccessful;
 
+  /// A set of status names that have failed.
+  final Set<String> failingStatuses;
+
   /// The pull request number.
   final int number;
 
@@ -299,11 +354,16 @@ class _AutoMergeQueryResult {
 
   /// Whether it is sane to automatically merge this PR.
   bool get shouldMerge =>
-      ciSuccessful && hasApprovedReview && changeRequestAuthors.isEmpty;
+      ciSuccessful &&
+      failingStatuses.isEmpty &&
+      hasApprovedReview &&
+      changeRequestAuthors.isEmpty;
 
   /// Whether the auto-merge label should be removed from this PR.
   bool get shouldRemoveLabel =>
-      !hasApprovedReview || changeRequestAuthors.isNotEmpty;
+      !hasApprovedReview ||
+      changeRequestAuthors.isNotEmpty ||
+      failingStatuses.isNotEmpty;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {
@@ -325,6 +385,11 @@ class _AutoMergeQueryResult {
       buffer.writeln(
           '- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
+    }
+    for (String status in failingStatuses) {
+      buffer.writeln(
+          '- The status or check suite $status has failed. Please fix the '
+          'issues identified (or deflake) before re-applying this label.');
     }
     return buffer.toString();
   }
