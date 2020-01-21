@@ -119,9 +119,14 @@ class FlutterBuildState extends ChangeNotifier {
     }
     assert(lastKnownIndex != -1);
 
-    mergedStatuses.addAll(_statuses.getRange(lastKnownIndex, _statuses.length));
+    final List<CommitStatus> remainingStatuses = _statuses.getRange(lastKnownIndex, _statuses.length).toList();
+    print(remainingStatuses);
+    print(lastKnownIndex);
+    mergedStatuses.addAll(remainingStatuses);
 
     _statuses = mergedStatuses;
+
+    print('Number of statuses: ${_statuses.length}');
   }
 
   Future<void> fetchMoreCommitStatuses() async {

@@ -116,6 +116,25 @@ void main() {
       buildState.dispose();
     });
 
+    testWidgets('fetch more commit statuses appends', (WidgetTester tester) async {
+      when(mockService.fetchCommitStatuses(
+              lastCommitStatus: anyNamed('lastCommitStatus')))
+          .thenAnswer((_) async =>
+              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[CommitStatus()]);
+
+      buildState.startFetchingBuildStateUpdates();
+
+      await tester.pump(buildState.refreshRate * 2);
+
+      expect(buildState.statuses, isEmpty);
+
+      buildState.fetchMoreCommitStatuses();
+
+      expect(buildState.statuses.length, 1);
+
+      buildState.dispose();
+    });
+
     test('auth functions call auth service', () async {
       final MockGoogleSignInService mockSignInService =
           MockGoogleSignInService();
