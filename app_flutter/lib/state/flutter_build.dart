@@ -136,8 +136,6 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> fetchMoreCommitStatuses() async {
     assert(_statuses.isNotEmpty);
 
-    print('fetching more!');
-
     final CocoonResponse<List<CommitStatus>> response = await _cocoonService
         .fetchCommitStatuses(lastCommitStatus: _statuses.last);
     if (response.error != null) {

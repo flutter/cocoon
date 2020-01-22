@@ -120,7 +120,7 @@ class StatusGrid extends StatelessWidget {
           child: GridView.builder(
             addRepaintBoundaries: false,
 
-            /// The grid has as many rows as there are status. Additionally,
+            /// The grid has as many rows as there are statuses. Additionally,
             /// one row for task descriptions, and one at the bottom to show
             /// a loader for more data.
             itemCount: columnCount * (statuses.length + 2),
@@ -134,12 +134,18 @@ class StatusGrid extends StatelessWidget {
                 return const SizedBox();
               }
 
-              if (gridIndex >= (columnCount * (statuses.length + 1))) {
-                if (gridIndex == (columnCount * (statuses.length + 1))) {
+              /// Loader row at the bottom of the grid.
+              if (_isLastRow(
+                gridIndex: gridIndex,
+                columnCount: columnCount,
+              )) {
+                /// Only trigger [fetchMoreCommitStatuses] API call once for
+                /// this loading row.
+                if (gridIndex % columnCount == 0) {
                   buildState.fetchMoreCommitStatuses();
                 }
 
-                return Container(color: Colors.tealAccent);
+                return Container(color: Colors.grey);
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
@@ -179,5 +185,15 @@ class StatusGrid extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  bool _isLastRow({
+    @required int gridIndex,
+    @required int columnCount,
+  }) {
+    assert(gridIndex != null && gridIndex >= 0);
+    assert(columnCount != null && columnCount >= 0);
+
+    return gridIndex >= (columnCount * (statuses.length + 1));
   }
 }

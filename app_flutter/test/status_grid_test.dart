@@ -19,6 +19,8 @@ import 'package:app_flutter/status_grid.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:app_flutter/task_matrix.dart' show TaskMatrix;
 
+import 'utils/fake_flutter_build.dart';
+
 void main() {
   group('StatusGrid', () {
     List<CommitStatus> statuses;
@@ -45,7 +47,7 @@ void main() {
           home: Column(
             children: <Widget>[
               ChangeNotifierProvider<FlutterBuildState>(
-                create: (_) => FlutterBuildState(),
+                create: (_) => FakeFlutterBuildState(),
                 child: const StatusGridContainer(),
               ),
             ],
@@ -63,7 +65,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
-                buildState: FlutterBuildState(),
+                buildState: FakeFlutterBuildState(),
                 statuses: statuses,
                 taskMatrix: taskMatrix,
               ),
@@ -94,7 +96,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
-                buildState: FlutterBuildState(),
+                buildState: FakeFlutterBuildState(),
                 statuses: statuses,
                 taskMatrix: taskMatrix,
               ),
@@ -158,7 +160,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
-                buildState: FlutterBuildState(),
+                buildState: FakeFlutterBuildState(),
                 statuses: statusesWithSkips,
                 taskMatrix: taskMatrix,
                 insertCellKeys: true,
@@ -225,7 +227,7 @@ void main() {
           home: Column(
             children: <Widget>[
               StatusGrid(
-                buildState: FlutterBuildState(),
+                buildState: FakeFlutterBuildState(),
                 statuses: statusesWithSkips,
                 taskMatrix: taskMatrix,
                 insertCellKeys: true,

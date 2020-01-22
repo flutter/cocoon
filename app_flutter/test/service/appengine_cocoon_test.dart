@@ -124,6 +124,7 @@ void main() {
       final CommitStatus expectedStatus = CommitStatus()
         ..commit = (Commit()
           ..timestamp = Int64(123456789)
+          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
           ..sha = 'ShaShankHash'
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'

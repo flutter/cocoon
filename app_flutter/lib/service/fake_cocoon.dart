@@ -22,7 +22,10 @@ class FakeCocoonService implements CocoonService {
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
   }) async {
-    await Future<void>.delayed(const Duration(seconds: 5));
+    if (lastCommitStatus != null) {
+      return CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[];
+    }
+
     return CocoonResponse<List<CommitStatus>>()
       ..data = _createFakeCommitStatuses();
   }
