@@ -82,7 +82,6 @@ class FlutterBuildState extends ChangeNotifier {
           errors.message = errorMessageFetchingStatuses;
           errors.notifyListeners();
         } else {
-          _statuses = response.data;
           _mergeRecentCommitStatusesWithStoredStatuses(response.data);
         }
         notifyListeners();
@@ -104,6 +103,11 @@ class FlutterBuildState extends ChangeNotifier {
 
   void _mergeRecentCommitStatusesWithStoredStatuses(
       List<CommitStatus> recentStatuses) {
+    if (_statuses.isEmpty) {
+      _statuses = recentStatuses;
+      return;
+    }
+
     final List<CommitStatus> mergedStatuses =
         List<CommitStatus>.from(recentStatuses);
 
@@ -119,14 +123,14 @@ class FlutterBuildState extends ChangeNotifier {
     }
     assert(lastKnownIndex != -1);
 
-    final List<CommitStatus> remainingStatuses = _statuses.getRange(lastKnownIndex, _statuses.length).toList();
-    print(remainingStatuses);
-    print(lastKnownIndex);
+    final int firstIndex = lastKnownIndex + 1;
+    final int lastIndex = _statuses.length;
+    final List<CommitStatus> remainingStatuses = (firstIndex < lastIndex)
+        ? _statuses.getRange(firstIndex, lastIndex).toList()
+        : <CommitStatus>[];
     mergedStatuses.addAll(remainingStatuses);
 
     _statuses = mergedStatuses;
-
-    print('Number of statuses: ${_statuses.length}');
   }
 
   Future<void> fetchMoreCommitStatuses() async {

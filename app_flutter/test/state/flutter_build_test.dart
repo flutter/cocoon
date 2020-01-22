@@ -8,7 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Key, RootKey;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -20,14 +21,18 @@ void main() {
     FlutterBuildState buildState;
     MockCocoonService mockService;
 
+    CommitStatus setupCommitStatus;
+
     setUp(() {
       mockService = MockCocoonService();
       buildState = FlutterBuildState(cocoonServiceValue: mockService);
 
+      setupCommitStatus = _createCommitStatusWithKey('setup');
+
       when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>()
-                ..data = <CommitStatus>[CommitStatus()]));
+                ..data = <CommitStatus>[setupCommitStatus]));
       when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
           Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..data = true));
@@ -116,25 +121,28 @@ void main() {
       buildState.dispose();
     });
 
-    testWidgets('fetch more commit statuses appends', (WidgetTester tester) async {
-      when(mockService.fetchCommitStatuses(
-              lastCommitStatus: anyNamed('lastCommitStatus')))
-          .thenAnswer((_) async =>
-              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[CommitStatus()]);
-
+    testWidgets('fetch more commit statuses appends',
+        (WidgetTester tester) async {
       buildState.startFetchingBuildStateUpdates();
 
-      await tester.pump(buildState.refreshRate);
+      await untilCalled(mockService.fetchCommitStatuses());
 
-      expect(buildState.statuses.length, 2);
+      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+
+      final CommitStatus statusA = _createCommitStatusWithKey('A');
+      when(mockService.fetchCommitStatuses(
+              lastCommitStatus:
+                  captureThat(isNotNull, named: 'lastCommitStatus')))
+          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()
+            ..data = <CommitStatus>[statusA]);
 
       await buildState.fetchMoreCommitStatuses();
 
-      expect(buildState.statuses.length, 3);
+      expect(buildState.statuses, <CommitStatus>[setupCommitStatus, statusA]);
 
-      await tester.pump(buildState.refreshRate * 10);
+      await tester.pump(buildState.refreshRate);
 
-      expect(buildState.statuses.length, 3);
+      expect(buildState.statuses, <CommitStatus>[setupCommitStatus, statusA]);
 
       buildState.dispose();
     });
@@ -179,6 +187,13 @@ void main() {
     await buildState.signOut();
     expect(callCount, 3);
   });
+}
+
+CommitStatus _createCommitStatusWithKey(String keyValue) {
+  return CommitStatus()
+    ..commit = (Commit()
+      ..author = keyValue
+      ..key = (RootKey()..child = (Key()..name = keyValue)));
 }
 
 /// CocoonService for checking interactions.
