@@ -198,6 +198,9 @@ class StatusGrid extends StatelessWidget {
     );
   }
 
+  /// Check whether the current [gridIndex] resides in the last row.
+  ///
+  /// Used for checking if logic needs to be performed for the loader row.
   bool _isLastRow({
     @required int gridIndex,
     @required int columnCount,
