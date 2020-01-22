@@ -101,8 +101,22 @@ class FlutterBuildState extends ChangeNotifier {
     ]);
   }
 
+  /// Handle merging status updates with the current data in [statuses].
+  ///
+  /// If the current list of statuses is empty, [recentStatuses] is set
+  /// to be the current [statuses].
+  ///
+  /// Otherwise, follow this algorithm:
+  ///   1. Create a new [List<CommitStatus>] that is from [recentStatuses].
+  ///   2. Find where [recentStatuses] does not have [CommitStatus] that
+  ///      [statuses] has. This is called the [lastKnownIndex].
+  ///   3. Append the range of [statuses] from ([lastKnownIndex] to the end of
+  ///      statuses) to [recentStatuses]. This is the merged [statuses].
   void _mergeRecentCommitStatusesWithStoredStatuses(
-      List<CommitStatus> recentStatuses) {
+    List<CommitStatus> recentStatuses,
+  ) {
+    /// If the current statuses is empty, no merge logic is necessary.
+    /// This is used on the first call for statuses.
     if (_statuses.isEmpty) {
       _statuses = recentStatuses;
       return;
@@ -111,28 +125,54 @@ class FlutterBuildState extends ChangeNotifier {
     final List<CommitStatus> mergedStatuses =
         List<CommitStatus>.from(recentStatuses);
 
+    /// Bisect statuses to find the set that doesn't exist in [recentStatuses].
     final CommitStatus lastRecentStatus = recentStatuses.last;
-    int lastKnownIndex = -1;
-    for (int i = 0; i < mergedStatuses.length; i++) {
-      final CommitStatus current = _statuses[i];
+    final int lastKnownIndex =
+        _findCommitStatusIndex(_statuses, lastRecentStatus);
 
-      if (current.commit.key == lastRecentStatus.commit.key) {
-        lastKnownIndex = i;
-        break;
-      }
-    }
+    /// If this assertion error occurs, the Cocoon backend needs to be updated
+    /// to return more commit statuses. This error will only occur if there
+    /// is a gap between [recentStatuses] and [statuses].
     assert(lastKnownIndex != -1);
 
     final int firstIndex = lastKnownIndex + 1;
     final int lastIndex = _statuses.length;
+
+    /// If the current statuses has the same statuses as [recentStatuses],
+    /// there will be no subset of remaining statuses. Instead, it will give
+    /// a list with a null generated [CommitStatus]. Therefore we manually
+    /// return an empty list.
     final List<CommitStatus> remainingStatuses = (firstIndex < lastIndex)
         ? _statuses.getRange(firstIndex, lastIndex).toList()
         : <CommitStatus>[];
+
+    /// Append the bisected list to the recent statuses.
     mergedStatuses.addAll(remainingStatuses);
 
     _statuses = mergedStatuses;
   }
 
+  /// Find the index in [statuses] that has [statusToFind] based on the key.
+  /// Return -1 if it does not exist.
+  ///
+  /// The rest of the data in the [CommitStatus] can be different.
+  int _findCommitStatusIndex(
+    List<CommitStatus> statuses,
+    CommitStatus statusToFind,
+  ) {
+    for (int index = 0; index < statuses.length; index++) {
+      final CommitStatus current = _statuses[index];
+
+      if (current.commit.key == statusToFind.commit.key) {
+        return index;
+      }
+    }
+
+    return -1;
+  }
+
+  /// When the user reaches the end of [statuses], we load more from Cocoon
+  /// to create an infinite scroll effect.
   Future<void> fetchMoreCommitStatuses() async {
     assert(_statuses.isNotEmpty);
 
@@ -145,6 +185,8 @@ class FlutterBuildState extends ChangeNotifier {
       return;
     }
 
+    /// The [List<CommitStatus>] returned is the statuses that come at the end
+    /// of our current list and can just be appended.
     _statuses.addAll(response.data);
     notifyListeners();
   }
