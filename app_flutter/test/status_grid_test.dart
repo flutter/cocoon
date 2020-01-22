@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/task_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,12 +24,14 @@ import 'utils/fake_flutter_build.dart';
 
 void main() {
   group('StatusGrid', () {
+    FakeCocoonService service;
+
     List<CommitStatus> statuses;
 
     TaskMatrix taskMatrix;
 
     setUpAll(() async {
-      final FakeCocoonService service = FakeCocoonService();
+      service = FakeCocoonService();
       final CocoonResponse<List<CommitStatus>> response =
           await service.fetchCommitStatuses();
       statuses = response.data;
@@ -253,6 +256,77 @@ void main() {
 
           expect(taskBox.size, cell.size);
         }
+      }
+    });
+
+    testWidgets('task icon row is created', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StatusGrid(
+                buildState: FakeFlutterBuildState(),
+                statuses: statuses,
+                taskMatrix: taskMatrix,
+                insertCellKeys: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
+
+      final List<Element> taskIcons = find.byType(TaskIcon).evaluate().toList();
+      final double yPosition = taskIcons.first.size.topLeft(Offset.zero).dy;
+
+      // Ensure all task icons are in the same row
+      for (Element taskIcon in taskIcons) {
+        // All y positions should match the first instance if in the same row
+        expect(taskIcon.size.topLeft(Offset.zero).dy, yPosition);
+      }
+
+      for (int taskIndex = 0; taskIndex < taskMatrix.columns; taskIndex++) {
+        // Task icon indexes are one off because of the gridIndex having to
+        // account for the first column of commit boxes.
+        expect(find.byKey(Key('taskicon-${taskIndex + 1}')), findsOneWidget);
+      }
+    });
+
+    testWidgets('loader row is created', (WidgetTester tester) async {
+      final CocoonResponse<List<CommitStatus>> response =
+          await service.fetchCommitStatuses();
+      final List<CommitStatus> smallRangeOfStatusesToShowLoader =
+          response.data.getRange(0, 2).toList();
+      final TaskMatrix smallTaskMatrix =
+          TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StatusGrid(
+                buildState: FakeFlutterBuildState(),
+                statuses: smallRangeOfStatusesToShowLoader,
+                taskMatrix: smallTaskMatrix,
+                insertCellKeys: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
+      if (!kIsWeb) {
+        expect(tester.takeException(),
+            const test.TypeMatcher<NetworkImageLoadException>());
+      }
+
+      /// Loader containers show 1 extra to account for the commit box
+      /// column on the left of the grid.
+      for (int index = 0; index < taskMatrix.columns + 1; index++) {
+        expect(find.byKey(Key('loader-$index')), findsOneWidget);
       }
     });
   });

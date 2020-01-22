@@ -125,7 +125,8 @@ class StatusGrid extends StatelessWidget {
             /// a loader for more data.
             itemCount: columnCount * (statuses.length + 2),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount),
+              crossAxisCount: columnCount,
+            ),
             itemBuilder: (BuildContext context, int gridIndex) {
               if (gridIndex == 0) {
                 /// The top left corner of the grid is nothing since
@@ -139,13 +140,18 @@ class StatusGrid extends StatelessWidget {
                 gridIndex: gridIndex,
                 columnCount: columnCount,
               )) {
+                final int loaderIndex = gridIndex % columnCount;
+
                 /// Only trigger [fetchMoreCommitStatuses] API call once for
                 /// this loading row.
-                if (gridIndex % columnCount == 0) {
+                if (loaderIndex == 0) {
                   buildState.fetchMoreCommitStatuses();
                 }
 
-                return Container(color: Colors.grey);
+                return Container(
+                  key: insertCellKeys ? Key('loader-$loaderIndex') : null,
+                  color: Colors.blueGrey,
+                );
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
@@ -156,7 +162,12 @@ class StatusGrid extends StatelessWidget {
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return TaskIcon(task: taskMatrix.sampleTask(gridIndex - 1));
+                return TaskIcon(
+                  key: insertCellKeys
+                      ? Key('taskicon-${index % columnCount}')
+                      : null,
+                  task: taskMatrix.sampleTask(gridIndex - 1),
+                );
               }
 
               final int row = index ~/ columnCount;

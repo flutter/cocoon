@@ -192,6 +192,8 @@ void main() {
 CommitStatus _createCommitStatusWithKey(String keyValue) {
   return CommitStatus()
     ..commit = (Commit()
+      // Author is set so we don't have to dig through all the nested fields
+      // while debugging
       ..author = keyValue
       ..key = (RootKey()..child = (Key()..name = keyValue)));
 }
