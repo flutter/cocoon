@@ -20,6 +20,13 @@ class GoogleSignInService {
         .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
       notifyListeners();
+
+      if (user != null) {
+        user.authentication.then((GoogleSignInAuthentication auth) {
+          cookieService.set('X-Flutter-IdToken', auth.idToken,
+              options: 'path=/');
+        });
+      }
     });
 
     _googleSignIn.signInSilently();

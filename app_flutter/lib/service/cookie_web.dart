@@ -9,9 +9,9 @@ import 'cookie_interface.dart' as i;
 /// Utility service for managing HTML cookies.
 class Cookie implements i.Cookie {
   @override
-  Future<void> set(String name, String value, {String options}) async {
+  Future<void> set(String name, String value, {String options = ''}) async {
     // This line is dangerous as it fails silently. Be careful.
-    html.document.cookie = '$name=$value;path=/';
+    html.document.cookie = '$name=$value;$options';
 
     // This wait is a work around as the above line is not synchronous.
     // The cookie needs to be set for the request to be authenticated.
