@@ -252,7 +252,8 @@ bool _checkStatuses(
     final String name = check['app']['name'];
     if (check['conclusion'] != 'SUCCESS') {
       allSuccess = false;
-      if (check['conclusion'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+      if (check['conclusion'] == 'FAILURE' &&
+          !notInAuthorsControl.contains(name)) {
         failures.add(name);
       }
     }
