@@ -113,8 +113,7 @@ class DatastoreService {
   /// The returned list of stages will be ordered by the natural ordering of
   /// [Stage].
   Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
-    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-      ..order('-stageName');
+    final Query<Task> query = db.query<Task>(ancestorKey: commit.key);
     final Map<String, StageBuilder> stages = <String, StageBuilder>{};
     await for (Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
