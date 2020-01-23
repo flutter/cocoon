@@ -25,8 +25,11 @@ class GoogleSignInService {
 
       if (user != null) {
         user.authentication.then((GoogleSignInAuthentication auth) {
-          cookieService.set('X-Flutter-IdToken', auth.idToken,
-              options: 'path=/');
+          _cookieService.set(
+            'X-Flutter-IdToken',
+            auth.idToken,
+            options: 'path=/',
+          );
         });
       }
     });
