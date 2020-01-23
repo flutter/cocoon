@@ -149,6 +149,20 @@ void main() {
       );
     });
 
+    test('Does not merge PR with in progress tests', () async {
+      flutterRepoPRs.add(PullRequestHelper(
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper('Linux Host', 'PENDING')
+        ],
+      ));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
     test('Does not merge unapproved PR from a hacker', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
