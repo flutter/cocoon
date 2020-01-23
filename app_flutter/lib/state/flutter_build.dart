@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, RootKey, Task;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -103,6 +104,9 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Handle merging status updates with the current data in [statuses].
   ///
+  /// [recentStatuses] is expected to be sorted from newest commit to oldest
+  /// commit. This is the same order as [statuses].
+  ///
   /// If the current list of statuses is empty, [recentStatuses] is set
   /// to be the current [statuses].
   ///
@@ -122,6 +126,7 @@ class FlutterBuildState extends ChangeNotifier {
       return;
     }
 
+    assert(_statusesInOrder(recentStatuses));
     final List<CommitStatus> mergedStatuses =
         List<CommitStatus>.from(recentStatuses);
 
@@ -146,10 +151,10 @@ class FlutterBuildState extends ChangeNotifier {
         ? _statuses.getRange(firstIndex, lastIndex).toList()
         : <CommitStatus>[];
 
-    /// Append the bisected list to the recent statuses.
     mergedStatuses.addAll(remainingStatuses);
 
     _statuses = mergedStatuses;
+    assert(_statusesAreUnique(statuses));
   }
 
   /// Find the index in [statuses] that has [statusToFind] based on the key.
@@ -185,10 +190,15 @@ class FlutterBuildState extends ChangeNotifier {
       return;
     }
 
+    final List<CommitStatus> newStatuses = response.data;
+    assert(_statusesInOrder(newStatuses));
+
     /// The [List<CommitStatus>] returned is the statuses that come at the end
     /// of our current list and can just be appended.
-    _statuses.addAll(response.data);
+    _statuses.addAll(newStatuses);
     notifyListeners();
+
+    assert(_statusesAreUnique(statuses));
   }
 
   Future<void> signIn() => authService.signIn();
@@ -207,6 +217,37 @@ class FlutterBuildState extends ChangeNotifier {
   void dispose() {
     refreshTimer?.cancel();
     super.dispose();
+  }
+
+  /// Assert that [statuses] is ordered from newest commit to oldest.
+  bool _statusesInOrder(List<CommitStatus> statuses) {
+    for (int i = 0; i < statuses.length; i++) {
+      final Commit current = statuses[i].commit;
+      final Commit next = statuses[i + 1].commit;
+
+      if (current.timestamp < next.timestamp) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Assert that there are no duplicate commits in [statuses].
+  bool _statusesAreUnique(List<CommitStatus> statuses) {
+    final Map<RootKey, bool> uniqueStatuses = <RootKey, bool>{};
+
+    for (int i = 0; i < statuses.length; i++) {
+      final Commit current = statuses[i].commit;
+
+      if (uniqueStatuses.containsKey(current.key)) {
+        return false;
+      } else {
+        uniqueStatuses[current.key] = true;
+      }
+    }
+
+    return true;
   }
 }
 

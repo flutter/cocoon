@@ -141,6 +141,7 @@ class StatusGrid extends StatelessWidget {
                 columnCount: columnCount,
               )) {
                 final int loaderIndex = gridIndex % columnCount;
+                const String loadingText = 'LOADING ';
 
                 /// Only trigger [fetchMoreCommitStatuses] API call once for
                 /// this loading row.
@@ -148,9 +149,20 @@ class StatusGrid extends StatelessWidget {
                   buildState.fetchMoreCommitStatuses();
                 }
 
+                /// This loader row will spell out [loadingText].
                 return Container(
                   key: insertCellKeys ? Key('loader-$loaderIndex') : null,
                   color: Colors.blueGrey,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
+                    child: Text(
+                      loadingText[loaderIndex % loadingText.length],
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
                 );
               }
 
