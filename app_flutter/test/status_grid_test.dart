@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +17,7 @@ import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/commit_box.dart';
 import 'package:app_flutter/status_grid.dart';
 import 'package:app_flutter/task_box.dart';
+import 'package:app_flutter/task_icon.dart';
 import 'package:app_flutter/task_matrix.dart' show TaskMatrix;
 
 import 'utils/fake_flutter_build.dart';
