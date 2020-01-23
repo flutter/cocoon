@@ -4,6 +4,6 @@
 
 /// Utility service for agnostically downloading files locally onto a device.
 class Downloader {
-  Future<bool> download(String href, String fileName, {String idToken}) async =>
-      throw Exception('Download not implemented for this platofrm');
+  Future<bool> download(String href, String fileName) async =>
+      throw Exception('Download not implemented for this platform');
 }
