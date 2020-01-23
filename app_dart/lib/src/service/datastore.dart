@@ -79,10 +79,6 @@ class DatastoreService {
   /// specified value will be returned. By default, tasks will be returned
   /// regardless of their name.
   ///
-  /// If [taskStatus] is specified, only tasks whose [Task.status] matches the
-  /// specified value will be returned. By default, tasks will be returned
-  /// regardless of their status.
-  ///
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
   Stream<FullTask> queryRecentTasks({
