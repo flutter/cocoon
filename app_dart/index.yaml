@@ -15,11 +15,6 @@ indexes:
       direction: desc
 - kind: Task
   properties:
-  - name: Status
-  - name: CreateTimestamp
-    direction: desc
-- kind: Task
-  properties:
   - name: ReservedForAgentID
   - name: CreateTimestamp
     direction: desc
