@@ -10,12 +10,14 @@ import 'cookie_interface.dart';
 /// Service class for interacting with Google Sign In authentication for Cocoon backend.
 class GoogleSignInService {
   /// Creates a new [GoogleSignIn].
-  GoogleSignInService({GoogleSignIn googleSignIn})
-      : _googleSignIn = googleSignIn ??
+  GoogleSignInService({
+    GoogleSignIn googleSignIn,
+    Cookie cookieService,
+  })  : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: _googleScopes,
             ),
-        cookieService = Cookie() {
+        _cookieService = cookieService ?? Cookie() {
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
@@ -53,7 +55,7 @@ class GoogleSignInService {
   /// Service for handling HTML cookies.
   ///
   /// Used to set the id token as a cookie so manual API requests can be made.
-  final Cookie cookieService;
+  final Cookie _cookieService;
 
   /// Whether or not the application has been signed in to.
   Future<bool> get isAuthenticated => _googleSignIn.isSignedIn();

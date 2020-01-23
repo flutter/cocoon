@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'package:app_flutter/service/cookie_interface.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 
 import '../utils/fake_google_account.dart';
@@ -62,19 +63,27 @@ void main() {
   group('GoogleSignInService sign in', () {
     GoogleSignInService authService;
     GoogleSignIn mockSignIn;
+    Cookie mockCookieService;
 
-    final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
+    GoogleSignInAccount testAccount;
 
     setUp(() {
+      mockCookieService = MockCookieService();
       mockSignIn = MockGoogleSignIn();
+
+      testAccount = FakeGoogleSignInAccount()
+        ..authentication = Future<GoogleSignInAuthentication>.value(
+            FakeGoogleSignInAuthentication());
+
       when(mockSignIn.signIn())
           .thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn.currentUser).thenReturn(testAccount);
       when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
       when(mockSignIn.onCurrentUserChanged)
-          .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+          .thenAnswer((_) => Stream<GoogleSignInAccount>.value(testAccount));
 
-      authService = GoogleSignInService(googleSignIn: mockSignIn)
+      authService = GoogleSignInService(
+          googleSignIn: mockSignIn, cookieService: mockCookieService)
         ..notifyListeners = () => null;
     });
 
@@ -115,11 +124,23 @@ void main() {
 
       expect(authService.user, null);
     });
+
+    test('on sign in called cookie service to write X-Flutter-IdToken',
+        () async {
+      await untilCalled(mockSignIn.onCurrentUserChanged);
+
+      verify(mockCookieService.set(
+          'X-Flutter-IdToken', FakeGoogleSignInAuthentication().idToken,
+          options: 'path=/'));
+    });
   });
 }
 
 /// Mock [GoogleSignIn] for testing interactions.
 class MockGoogleSignIn extends Mock implements GoogleSignIn {}
+
+/// Mock [CookieService] for testing interactions.
+class MockCookieService extends Mock implements Cookie {}
 
 class FakeGoogleSignInAuthentication implements GoogleSignInAuthentication {
   @override
