@@ -87,7 +87,6 @@ class DatastoreService {
   /// first, then by most recent [Task.createTimestamp].
   Stream<FullTask> queryRecentTasks({
     String taskName,
-    String taskStatus,
     int commitLimit = 20,
     int taskLimit = 20,
   }) async* {
@@ -99,9 +98,6 @@ class DatastoreService {
         ..order('-createTimestamp');
       if (taskName != null) {
         query.filter('name =', taskName);
-      }
-      if (taskStatus != null) {
-        query.filter('status =', taskStatus);
       }
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
