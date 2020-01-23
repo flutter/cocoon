@@ -130,8 +130,10 @@ void main() {
       await untilCalled(mockSignIn.onCurrentUserChanged);
 
       verify(mockCookieService.set(
-          'X-Flutter-IdToken', FakeGoogleSignInAuthentication().idToken,
-          options: 'path=/'));
+        'X-Flutter-IdToken',
+        FakeGoogleSignInAuthentication().idToken,
+        options: 'path=/',
+      ));
     });
   });
 }
