@@ -241,18 +241,19 @@ bool _checkStatuses(
   bool allSuccess = true;
   for (Map<String, dynamic> status in statuses) {
     final String name = status['context'];
-    if (status['state'] == 'FAILURE') {
+    if (status['state'] != 'SUCCESS') {
       allSuccess = false;
-      if (!notInAuthorsControl.contains(name)) {
+      if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
         failures.add(name);
       }
     }
   }
   for (Map<String, dynamic> check in checks) {
     final String name = check['app']['name'];
-    if (check['conclusion'] == 'FAILURE') {
+    if (check['conclusion'] != 'SUCCESS') {
       allSuccess = false;
-      if (!notInAuthorsControl.contains(name)) {
+      if (check['conclusion'] == 'FAILURE' &&
+          !notInAuthorsControl.contains(name)) {
         failures.add(name);
       }
     }
