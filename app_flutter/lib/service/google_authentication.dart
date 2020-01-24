@@ -5,33 +5,18 @@
 import 'package:flutter/rendering.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'cookie_interface.dart';
-
 /// Service class for interacting with Google Sign In authentication for Cocoon backend.
 class GoogleSignInService {
   /// Creates a new [GoogleSignIn].
-  GoogleSignInService({
-    GoogleSignIn googleSignIn,
-    Cookie cookieService,
-  })  : _googleSignIn = googleSignIn ??
+  GoogleSignInService({GoogleSignIn googleSignIn})
+      : _googleSignIn = googleSignIn ??
             GoogleSignIn(
               scopes: _googleScopes,
-            ),
-        _cookieService = cookieService ?? Cookie() {
+            ) {
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
       notifyListeners();
-
-      if (user != null) {
-        user.authentication.then((GoogleSignInAuthentication auth) {
-          _cookieService.set(
-            'X-Flutter-IdToken',
-            auth.idToken,
-            options: 'path=/',
-          );
-        });
-      }
     });
 
     _googleSignIn.signInSilently();
@@ -54,11 +39,6 @@ class GoogleSignInService {
 
   /// The instance of the GoogleSignIn plugin to use.
   final GoogleSignIn _googleSignIn;
-
-  /// Service for handling HTML cookies.
-  ///
-  /// Used to set the id token as a cookie so manual API requests can be made.
-  final Cookie _cookieService;
 
   /// Whether or not the application has been signed in to.
   Future<bool> get isAuthenticated => _googleSignIn.isSignedIn();

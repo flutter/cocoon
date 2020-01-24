@@ -143,7 +143,7 @@ class AppEngineCocoonService implements CocoonService {
 
     final String fileName = '${task.name}_${shortSha}_${task.attempts}.log';
 
-    return _downloader.download(getTaskLogUrl, fileName);
+    return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
   @override

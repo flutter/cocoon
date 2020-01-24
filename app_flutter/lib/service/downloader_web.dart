@@ -19,9 +19,21 @@ class Downloader implements i.Downloader {
   ///    it will be downloaded to.
   /// 3. Click the anchor element to trigger the browser to download the file.
   @override
-  Future<bool> download(String href, String fileName) async {
+  Future<bool> download(String href, String fileName, {String idToken}) async {
     assert(href != null);
     assert(fileName != null);
+
+    if (idToken != null) {
+      // This line is dangerous as it fails silently. Be careful.
+      html.document.cookie = 'X-Flutter-IdToken=$idToken;path=/';
+
+      // This wait is a work around as the above line is not synchronous.
+      // The cookie needs to be set for the request to be authenticated.
+      //
+      // dart:html will say the cookie has been written, but the browser
+      // is still writing it.
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
 
     html.AnchorElement()
       ..href = href
