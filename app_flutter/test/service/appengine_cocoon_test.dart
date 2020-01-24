@@ -337,9 +337,10 @@ void main() {
       test('should send correct request to downloader service', () async {
         final Downloader mockDownloader = MockDownloader();
         when(mockDownloader.download(
-          argThat(contains('/api/get-log?ownerKey=')),
-          'test_task_shashan_1.log',
-        )).thenAnswer((_) => Future<bool>.value(true));
+                argThat(contains('/api/get-log?ownerKey=')),
+                'test_task_shashan_1.log',
+                idToken: 'abc123'))
+            .thenAnswer((_) => Future<bool>.value(true));
         service = AppEngineCocoonService(
             client: MockClient((Request request) async {
               return Response('', 200);
