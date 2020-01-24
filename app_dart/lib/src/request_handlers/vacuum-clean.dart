@@ -90,11 +90,6 @@ class VacuumClean extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
-  /// Returns whether [task] should be vacuum cleaned.
-  ///
-  /// The criteria are:
-  ///   1. [task] is currently marked as running.
-  ///   2. [task] has been running for at least an hour.
   bool shouldBeVacuumCleaned(Task task) {
     return _inProgress(task) && isOverAnHourOld(task);
   }
