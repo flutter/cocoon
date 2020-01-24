@@ -157,7 +157,7 @@ class StatusGrid extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
                     child: Text(
                       loadingText[loaderIndex % loadingText.length],
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                       ),
