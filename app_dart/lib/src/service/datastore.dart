@@ -151,7 +151,11 @@ class DatastoreService {
         updates: 0,
       );
     } else {
-      assert(previousStatusUpdates.length == 1);
+      if (previousStatusUpdates.length > 1) {
+        throw StateError(
+            'GithubBuildStatusUpdate should have no more than one entries on '
+            'repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}');
+      }
       return previousStatusUpdates.single;
     }
   }
