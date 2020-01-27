@@ -152,9 +152,10 @@ class DatastoreService {
       );
     } else {
       if (previousStatusUpdates.length > 1) {
-        throw 'GithubBuildStatusUpdate should have no more than one entries on repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}';
+        throw StateError(
+            'GithubBuildStatusUpdate should have no more than one entries on '
+            'repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}');
       }
-      assert(previousStatusUpdates.length == 1);
       return previousStatusUpdates.single;
     }
   }
