@@ -46,7 +46,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Logging log,
     GraphQLClient client,
   ) async {
-    bool hasMerged = false;
+    int mergeCount = 0;
     final Map<String, dynamic> data = await _queryGraphQL(
       owner,
       name,
@@ -54,13 +54,16 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       client,
     );
     for (_AutoMergeQueryResult queryResult in _parseQueryData(data)) {
-      if (!hasMerged && queryResult.shouldMerge) {
-        hasMerged = await _mergePullRequest(
+      if (mergeCount < 2 && queryResult.shouldMerge) {
+        final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
           log,
           client,
         );
+        if (merged) {
+          mergeCount++;
+        }
       } else if (queryResult.shouldRemoveLabel) {
         await _removeLabel(
           queryResult.graphQLId,

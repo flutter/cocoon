@@ -206,7 +206,8 @@ void main() {
       );
     });
 
-    test('Merges first PR in list, all successful', () async {
+    test('Merges first 2 PRs in list, all successful', () async {
+      flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
       engineRepoPRs.add(PullRequestHelper());
@@ -220,7 +221,14 @@ void main() {
           MutationOptions(
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.first.id,
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[1].id,
               'oid': oid,
             },
           ),
