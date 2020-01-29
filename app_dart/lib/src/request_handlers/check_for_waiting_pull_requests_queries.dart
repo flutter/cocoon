@@ -8,7 +8,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
     labels(first: 1, query: $sLabelName) {
       nodes {
         id
-        pullRequests(first: 100, states: OPEN) {
+        pullRequests(first: 100, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
           nodes {
             author {
               login
