@@ -243,7 +243,7 @@ void main() {
       );
     });
 
-    test('Merges first 2 PRs in list, one not successful', () async {
+    test('Merges 1st and 3rd PR, 2nd failed', () async {
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper(
           lastCommitStatuses: const <StatusHelper>[
