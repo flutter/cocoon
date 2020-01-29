@@ -243,6 +243,58 @@ void main() {
       );
     });
 
+    test('Merges first 2 PRs in list, one not successful', () async {
+      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(
+          lastCommitStatuses: const <StatusHelper>[
+            StatusHelper.cirrusFailure
+          ])); // not merged
+      flutterRepoPRs.add(PullRequestHelper());
+      engineRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: removeLabelMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[1].id,
+              'labelId': base64LabelId,
+              'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[2].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
+              'oid': oid,
+            },
+          ),
+        ],
+      );
+    });
+
     test('Ignores PRs that are too new', () async {
       flutterRepoPRs.add(PullRequestHelper(
           dateTime:
