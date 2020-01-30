@@ -45,4 +45,7 @@ class FakeFlutterBuildState extends ChangeNotifier
 
   @override
   Future<bool> downloadLog(Task task, Commit commit) => null;
+
+  @override
+  Future<void> fetchMoreCommitStatuses() => null;
 }
