@@ -34,7 +34,14 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       app {
                         name
                       }
-                      conclusion
+                      checkRuns(last: 100) {
+                        nodes {
+                          id
+                          name
+                          status
+                          conclusion
+                        }
+                      }
                     }
                   }
                 }
