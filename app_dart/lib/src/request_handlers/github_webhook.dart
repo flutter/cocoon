@@ -87,24 +87,39 @@ class GithubWebhook extends RequestHandler<Body> {
             event,
             existingLabels,
           );
+        } else {
+          await _cancelLuci(
+            event.repository.name,
+            event.number,
+            event.pullRequest.head.sha,
+            'Pull request closed',
+          );
         }
         break;
       case 'edited':
+        await _checkForLabelsAndTests(event, isDraft);
+        break;
       case 'opened':
       case 'ready_for_review':
       case 'reopened':
         await _checkForLabelsAndTests(event, isDraft);
         await _scheduleIfMergeable(
           event,
-          cancelRunningBuilds: event.action == 'edited',
           labels: existingLabels,
         );
         break;
       case 'labeled':
+        if (needsCQLabelList
+            .contains(event.repository.fullName.toLowerCase())) {
+          await _scheduleIfMergeable(
+            event,
+            labels: existingLabels,
+          );
+        }
+        break;
       case 'synchronize':
         await _scheduleIfMergeable(
           event,
-          cancelRunningBuilds: event.action == 'synchronize',
           labels: existingLabels,
         );
         break;
@@ -134,35 +149,29 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _scheduleIfMergeable(
     PullRequestEvent event, {
-    @required bool cancelRunningBuilds,
     @required List<IssueLabel> labels,
   }) async {
-    assert(cancelRunningBuilds != null);
-    if (cancelRunningBuilds) {
-      await _cancelLuci(
-        event.repository.name,
-        event.number,
-        event.pullRequest.head.sha,
-        'Newer commit available',
-      );
-    }
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
 
     // For flutter/flutter tests need to be optimized before enforcing CQ.
-    bool runCQ = true;
     if (needsCQLabelList.contains(event.repository.fullName.toLowerCase())) {
-      runCQ = await _checkForCqLabel(labels);
+      if (!await _checkForCqLabel(labels)) {
+        return;
+      }
     }
 
-    if (runCQ) {
-      await _scheduleLuci(
-        number: event.number,
-        sha: event.pullRequest.head.sha,
-        repositoryName: event.repository.name,
-        skipRunningCheck: cancelRunningBuilds,
-      );
-    }
+    await _cancelLuci(
+      event.repository.name,
+      event.number,
+      event.pullRequest.head.sha,
+      'Newer commit available',
+    );
+    await _scheduleLuci(
+      number: event.number,
+      sha: event.pullRequest.head.sha,
+      repositoryName: event.repository.name,
+    );
   }
 
   Future<List<Build>> _buildsForRepositoryAndPr(
@@ -217,12 +226,10 @@ class GithubWebhook extends RequestHandler<Body> {
     @required int number,
     @required String sha,
     @required String repositoryName,
-    bool skipRunningCheck = false,
   }) async {
     assert(number != null);
     assert(sha != null);
     assert(repositoryName != null);
-    assert(skipRunningCheck != null);
     if (!supportedRepos.contains(repositoryName)) {
       log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException(
@@ -231,21 +238,19 @@ class GithubWebhook extends RequestHandler<Body> {
     final ServiceAccountInfo serviceAccount =
         await config.deviceLabServiceAccount;
 
-    if (!skipRunningCheck) {
-      final List<Build> builds = await _buildsForRepositoryAndPr(
-        repositoryName,
-        number,
-        sha,
-        buildBucketClient,
-        serviceAccount,
-      );
-      if (builds != null &&
-          builds.any((Build build) {
-            return build.status == Status.scheduled ||
-                build.status == Status.started;
-          })) {
-        return false;
-      }
+    final List<Build> builds = await _buildsForRepositoryAndPr(
+      repositoryName,
+      number,
+      sha,
+      buildBucketClient,
+      serviceAccount,
+    );
+    if (builds != null &&
+        builds.any((Build build) {
+          return build.status == Status.scheduled ||
+              build.status == Status.started;
+        })) {
+      return false;
     }
 
     final List<Map<String, dynamic>> builders = config.luciTryBuilders;
