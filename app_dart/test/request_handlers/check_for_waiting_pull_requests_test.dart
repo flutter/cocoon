@@ -747,12 +747,18 @@ class PullRequestHelper {
                 }).toList(),
               },
               'checkSuites': <String, dynamic>{
-                'nodes': lastCommitCheckRuns.map((StatusHelper status) {
-                  return <String, dynamic>{
-                    'app': <String, dynamic>{'name': status.name},
-                    'conclusion': status.state,
-                  };
-                }).toList(),
+                'nodes': <dynamic>[
+                  <String, dynamic>{
+                    'checkRuns': <String, dynamic>{
+                      'nodes': lastCommitCheckRuns.map((StatusHelper status) {
+                        return <String, dynamic>{
+                          'name': status.name,
+                          'conclusion': status.state,
+                        };
+                      }).toList(),
+                    },
+                  },
+                ],
               },
             },
           },
