@@ -221,7 +221,7 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Assert that [statuses] is ordered from newest commit to oldest.
   bool _statusesInOrder(List<CommitStatus> statuses) {
-    for (int i = 0; i < statuses.length; i++) {
+    for (int i = 0; i < statuses.length - 1; i++) {
       final Commit current = statuses[i].commit;
       final Commit next = statuses[i + 1].commit;
 
