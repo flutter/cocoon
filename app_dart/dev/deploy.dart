@@ -194,7 +194,7 @@ Future<void> main(List<String> arguments) async {
   }
 
   if (!await _checkDependencies()) {
-    stderr.writeln('Update Flutter to 1.12+ to deploy Cocoon');
+    stderr.writeln('Update Flutter to a version on master from the past 3 weeks to deploy Cocoon');
     exit(1);
   }
 
