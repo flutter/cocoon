@@ -257,12 +257,14 @@ bool _checkStatuses(
     }
   }
   for (Map<String, dynamic> check in checks) {
-    final String name = check['app']['name'];
-    if (check['conclusion'] != 'SUCCESS') {
-      allSuccess = false;
-      if (check['conclusion'] == 'FAILURE' &&
-          !notInAuthorsControl.contains(name)) {
-        failures.add(name);
+    for (Map<String, dynamic> checkRun in check['checkRuns']['nodes']) {
+      if (checkRun['conclusion'] != 'SUCCESS') {
+        final String name = checkRun['name'];
+        allSuccess = false;
+        if (checkRun['conclusion'] == 'FAILURE' &&
+            !notInAuthorsControl.contains(name)) {
+          failures.add(name);
+        }
       }
     }
   }

@@ -25,10 +25,13 @@ abstract class CocoonService {
     return FakeCocoonService();
   }
 
-  /// Gets build information from the last 200 commits.
+  /// Gets build information on the most recent commits.
   ///
-  // TODO(chillers): Make configurable to get range of commits, https://github.com/flutter/cocoon/issues/458
-  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses();
+  /// If [lastCommitStatus] is given, it will return the next page of
+  /// [List<CommitStatus>] after [lastCommitStatus], not including it.
+  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
+    CommitStatus lastCommitStatus,
+  });
 
   /// Gets the current build status of flutter/flutter.
   Future<CocoonResponse<bool>> fetchTreeBuildStatus();
