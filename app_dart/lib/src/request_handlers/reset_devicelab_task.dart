@@ -35,8 +35,9 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
   Future<Body> post() async {
     checkRequiredParameters(<String>[keyParam]);
     final String encodedKey = requestData[keyParam];
+    final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
-        KeyHelper(applicationContext: context.applicationContext);
+        KeyHelper(applicationContext: clientContext.applicationContext);
     final Key key = keyHelper.decode(encodedKey);
 
     final DatastoreService datastore = datastoreProvider();
@@ -52,7 +53,6 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
             'Not allowed to restart task in progress.');
       }
 
-      task.attempts++;
       task.reason = '';
       task.status = Task.statusNew;
       task.reservedForAgentId = '';
