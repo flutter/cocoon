@@ -250,11 +250,19 @@ class Config {
           'repo': 'engine',
         },
         <String, String>{
+          'name': 'Linux Web Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
           'name': 'Windows Host Engine',
           'repo': 'engine',
         },
         <String, String>{
           'name': 'Windows Android AOT Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Web Engine',
           'repo': 'engine',
         }
       ];
