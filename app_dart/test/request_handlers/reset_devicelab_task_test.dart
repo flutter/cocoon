@@ -41,7 +41,8 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
-          attempts: 0);
+          attempts: 0,
+          status: 'Failed');
       config.db.values[task.key] = task;
 
       expect(task.attempts, 0);
@@ -49,6 +50,7 @@ void main() {
       await tester.post(handler);
       // Reset devicelab task will not increase [attempts].
       expect(task.attempts, 0);
+      expect(task.status, 'New');
     });
   });
 }
