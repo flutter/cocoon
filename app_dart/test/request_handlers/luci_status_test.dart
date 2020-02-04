@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
@@ -33,10 +34,12 @@ void main() {
   FakeHttpRequest request;
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
+  MockBuildBucketClient buildBucketClient;
 
   setUp(() {
-    config = FakeConfig();
-    handler = LuciStatusHandler(config);
+    config = FakeConfig(luciTryJobRetriesValue: 2);
+    buildBucketClient = MockBuildBucketClient();
+    handler = LuciStatusHandler(config, buildBucketClient);
     request = FakeHttpRequest();
 
     tester = RequestHandlerTester(
@@ -234,6 +237,55 @@ void main() {
     );
   });
 
+  test('Reschedules an infra failure', () async {
+    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED',
+        builderName: 'Linux',
+        result: 'FAILURE',
+        failureReason: 'INFRA_FAILURE'));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
+    await tester.post(handler);
+    expect(
+      jsonEncode(
+        verify(buildBucketClient.scheduleBuild(captureAny))
+            .captured
+            .single
+            .toJson(),
+      ),
+      jsonEncode(
+        ScheduleBuildRequest(
+          builderId: const BuilderId(
+            project: 'flutter',
+            bucket: 'try',
+            builder: 'Linux',
+          ),
+          tags: const <String, List<String>>{
+            'buildset': <String>['pr/git/37647', 'sha/git/$ref'],
+            'user_agent': <String>['flutter-cocoon'],
+            'github_link': <String>[
+              'https://github.com/flutter/flutter/pull/37647'
+            ],
+          },
+          properties: const <String, String>{
+            'git_ref': 'refs/pull/37647/head',
+            'git_url': 'https://github.com/flutter/flutter',
+          },
+          notify: NotificationConfig(
+            pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+            userData: json.encode(<String, dynamic>{
+              'retries': 1,
+            }),
+          ),
+        ).toJson(),
+      ),
+    );
+    verifyNever(mockRepositoriesService.createStatus(
+      const RepositorySlug('flutter', 'flutter'),
+      ref,
+      captureAny,
+    ));
+  });
+
   test('Handles a completed/canceled status/result as failure', () async {
     request.bodyBytes =
         utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED'));
@@ -295,11 +347,13 @@ String pushMessageJson(
   String result,
   String builderName = 'Linux Coverage',
   String urlParam = '',
+  int retries = 0,
+  String failureReason,
 }) {
   return '''{
      "message": {
        "attributes": {},
-       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam)}",
+       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam, retries: retries, failureReason: failureReason)}",
        "messageId": "123"
      },
      "subscription": "projects/myproject/subscriptions/mysubscription"
@@ -309,7 +363,9 @@ String pushMessageJson(
 String buildPushMessageJson(String status,
         {String result,
         String builderName = 'Linux Coverage',
-        String urlParam = ''}) =>
+        String urlParam = '',
+        int retries = 0,
+        String failureReason}) =>
     base64.encode(
       utf8.encode('''{
   "build": {
@@ -318,7 +374,8 @@ String buildPushMessageJson(String status,
     "canary_preference": "PROD",
     "created_by": "user:dnfield@google.com",
     "created_ts": "1565049186247524",
-    "experimental": true,
+    "experimental": false,
+    ${failureReason != null ? '"failure_reason": "$failureReason",' : ''}
     "id": "8905920700440101120",
     "parameters_json": "{\\"builder_name\\": \\"$builderName\\", \\"properties\\": {\\"git_ref\\": \\"refs/pull/37647/head\\", \\"git_url\\": \\"https://github.com/flutter/flutter\\"}}",
     "project": "flutter",
@@ -333,19 +390,24 @@ String buildPushMessageJson(String status,
       "builder:$builderName",
       "buildset:pr/git/37647",
       "buildset:sha/git/$ref",
+      "github_link:https://github.com/flutter/flutter/pull/37647",
       "swarming_hostname:chromium-swarm.appspot.com",
       "swarming_tag:log_location:logdog://logs.chromium.org/flutter/buildbucket/cr-buildbucket.appspot.com/8905920700440101120/+/annotations",
       "swarming_tag:luci_project:flutter",
       "swarming_tag:os:Linux",
       "swarming_tag:recipe_name:flutter/flutter",
       "swarming_tag:recipe_package:infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
-      "swarming_task_id:467d04f2f022d510"
+      "swarming_task_id:467d04f2f022d510",
+      "user_agent:flutter-cocoon"
     ],
     "updated_ts": "1565049194391321",
     "url": "https://ci.chromium.org/b/8905920700440101120$urlParam",
     "utcnow_ts": "1565049194653640"
   },
   "hostname": "cr-buildbucket.appspot.com",
-  "user_data": ""
+  "user_data": "{\\"retries\\": $retries}"
 }'''),
     );
+
+// ignore: must_be_immutable, Test mock.
+class MockBuildBucketClient extends Mock implements BuildBucketClient {}
