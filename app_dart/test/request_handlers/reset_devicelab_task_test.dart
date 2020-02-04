@@ -34,7 +34,7 @@ void main() {
       );
     });
 
-    test('updates datastore/bigquery entry for Task/TimeSeriesValue', () async {
+    test('disables attempts increase when resetting devicelab task', () async {
       final Commit commit = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
