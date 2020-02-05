@@ -303,7 +303,7 @@ void main() {
         ref,
         captureAny,
       )).captured.single.toJSON(),
-      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux","context":"Linux"}',
     );
   });
 
