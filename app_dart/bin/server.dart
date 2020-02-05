@@ -30,7 +30,7 @@ Future<void> main() async {
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest':
           GithubWebhook(config, buildBucketClient),
-      '/api/luci-status-handler': LuciStatusHandler(config),
+      '/api/luci-status-handler': LuciStatusHandler(config, buildBucketClient),
       '/api/push-build-status-to-github':
           PushBuildStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github':
