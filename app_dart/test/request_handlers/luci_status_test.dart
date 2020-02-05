@@ -37,7 +37,7 @@ void main() {
   MockBuildBucketClient buildBucketClient;
 
   setUp(() {
-    config = FakeConfig(luciTryJobRetriesValue: 2);
+    config = FakeConfig(luciTryInfraFailureRetriesValue: 2);
     buildBucketClient = MockBuildBucketClient();
     handler = LuciStatusHandler(config, buildBucketClient);
     request = FakeHttpRequest();
@@ -284,6 +284,27 @@ void main() {
       ref,
       captureAny,
     ));
+  });
+
+  test('Does not an infra failure after too many retries', () async {
+    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED',
+        builderName: 'Linux',
+        result: 'FAILURE',
+        failureReason: 'INFRA_FAILURE',
+        retries: 2));
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
+    await tester.post(handler);
+
+    verifyNever(buildBucketClient.scheduleBuild(any));
+    expect(
+      verify(mockRepositoriesService.createStatus(
+        const RepositorySlug('flutter', 'flutter'),
+        ref,
+        captureAny,
+      )).captured.single.toJSON(),
+      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+    );
   });
 
   test('Handles a completed/canceled status/result as failure', () async {

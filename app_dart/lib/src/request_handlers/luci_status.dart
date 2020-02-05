@@ -69,7 +69,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
     switch (buildMessage.build.status) {
       case Status.completed:
-        await _processCompleted(
+        await _rescheduleOrMarkCompleted(
           sha: sha,
           builderName: builderName,
           build: build,
@@ -88,7 +88,10 @@ class LuciStatusHandler extends RequestHandler<Body> {
     return Body.empty;
   }
 
-  Future<void> _processCompleted({
+  /// Reschedules jobs that failed for infra reasons up to
+  /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
+  /// GitHub for all other cases.
+  Future<void> _rescheduleOrMarkCompleted({
     @required String sha,
     @required String builderName,
     @required Build build,
@@ -123,13 +126,21 @@ class LuciStatusHandler extends RequestHandler<Body> {
     );
   }
 
+  /// Sends a [BuildBucket.scheduleBuild] request as long as the `retries`
+  /// parameter has not exceeded [CocoonConfig.luciTryInfraFailureRetries].
+  ///
+  /// If the retries have been exhausted, it sets the GitHub status to failure.
+  ///
+  /// The buildset, user_agent, and github_link tags are applied to match the
+  /// original build. The build properties from the original build are also
+  /// preserved.
   Future<void> _rescheduleBuild({
     @required String sha,
     @required String builderName,
     @required Build build,
     @required int retries,
   }) async {
-    if (retries >= config.luciTryJobRetries) {
+    if (retries >= config.luciTryInfraFailureRetries) {
       // Too many retries.
       await _setCompletedStatus(
         ref: sha,
