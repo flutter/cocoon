@@ -19,7 +19,9 @@ class FakeCocoonService implements CocoonService {
   final Random random;
 
   @override
-  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses() async {
+  Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
+    CommitStatus lastCommitStatus,
+  }) async {
     return CocoonResponse<List<CommitStatus>>()
       ..data = _createFakeCommitStatuses();
   }
@@ -83,7 +85,7 @@ class FakeCocoonService implements CocoonService {
 
     final int baseTimestamp = DateTime.now().millisecondsSinceEpoch;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 25; i++) {
       final Commit commit = _createFakeCommit(i, baseTimestamp);
 
       final CommitStatus status = CommitStatus()

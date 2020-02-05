@@ -18,6 +18,11 @@ import '../request_handling/body.dart';
 
 import 'check_for_waiting_pull_requests_queries.dart';
 
+/// Maximum number of pull requests to merge on each check.
+/// This should be kept reasonably low to avoid flooding infra when the tree
+/// goes green.
+const int _kMergeCountPerCycle = 2;
+
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   const CheckForWaitingPullRequests(
@@ -46,7 +51,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Logging log,
     GraphQLClient client,
   ) async {
-    bool hasMerged = false;
+    int mergeCount = 0;
     final Map<String, dynamic> data = await _queryGraphQL(
       owner,
       name,
@@ -54,13 +59,16 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       client,
     );
     for (_AutoMergeQueryResult queryResult in _parseQueryData(data)) {
-      if (!hasMerged && queryResult.shouldMerge) {
-        hasMerged = await _mergePullRequest(
+      if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
+        final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
           queryResult.sha,
           log,
           client,
         );
+        if (merged) {
+          mergeCount++;
+        }
       } else if (queryResult.shouldRemoveLabel) {
         await _removeLabel(
           queryResult.graphQLId,
@@ -241,19 +249,22 @@ bool _checkStatuses(
   bool allSuccess = true;
   for (Map<String, dynamic> status in statuses) {
     final String name = status['context'];
-    if (status['state'] == 'FAILURE') {
+    if (status['state'] != 'SUCCESS') {
       allSuccess = false;
-      if (!notInAuthorsControl.contains(name)) {
+      if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
         failures.add(name);
       }
     }
   }
   for (Map<String, dynamic> check in checks) {
-    final String name = check['app']['name'];
-    if (check['conclusion'] == 'FAILURE') {
-      allSuccess = false;
-      if (!notInAuthorsControl.contains(name)) {
-        failures.add(name);
+    for (Map<String, dynamic> checkRun in check['checkRuns']['nodes']) {
+      if (checkRun['conclusion'] != 'SUCCESS') {
+        final String name = checkRun['name'];
+        allSuccess = false;
+        if (checkRun['conclusion'] == 'FAILURE' &&
+            !notInAuthorsControl.contains(name)) {
+          failures.add(name);
+        }
       }
     }
   }

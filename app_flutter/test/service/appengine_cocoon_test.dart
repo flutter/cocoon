@@ -124,6 +124,7 @@ void main() {
       final CommitStatus expectedStatus = CommitStatus()
         ..commit = (Commit()
           ..timestamp = Int64(123456789)
+          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
           ..sha = 'ShaShankHash'
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'
@@ -164,6 +165,28 @@ void main() {
       } else {
         verify(mockClient.get(
             'https://flutter-dashboard.appspot.com/api/public/get-status'));
+      }
+    });
+
+    test(
+        'given last commit status should query correct endpoint whether web or mobile',
+        () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      final CommitStatus status = CommitStatus()
+        ..commit = (Commit()
+          ..key = (RootKey()..child = (Key()..name = 'iamatestkey')));
+      await service.fetchCommitStatuses(lastCommitStatus: status);
+
+      if (kIsWeb) {
+        verify(
+            mockClient.get('/api/public/get-status?lastCommitKey=iamatestkey'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/get-status?lastCommitKey=iamatestkey'));
       }
     });
 

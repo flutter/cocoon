@@ -119,15 +119,51 @@ class StatusGrid extends StatelessWidget {
           // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
           child: GridView.builder(
             addRepaintBoundaries: false,
-            itemCount: columnCount * (statuses.length + 1),
+
+            /// The grid has as many rows as there are statuses. Additionally,
+            /// one row for task descriptions, and one at the bottom to show
+            /// a loader for more data.
+            itemCount: columnCount * (statuses.length + 2),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount),
+              crossAxisCount: columnCount,
+            ),
             itemBuilder: (BuildContext context, int gridIndex) {
               if (gridIndex == 0) {
                 /// The top left corner of the grid is nothing since
                 /// the left column is for [CommitBox] and the top
                 /// row is for [TaskIcon].
                 return const SizedBox();
+              }
+
+              /// Loader row at the bottom of the grid.
+              if (_isLastRow(
+                gridIndex: gridIndex,
+                columnCount: columnCount,
+              )) {
+                final int loaderIndex = gridIndex % columnCount;
+                const String loadingText = 'LOADING ';
+
+                /// Only trigger [fetchMoreCommitStatuses] API call once for
+                /// this loading row.
+                if (loaderIndex == 0) {
+                  buildState.fetchMoreCommitStatuses();
+                }
+
+                /// This loader row will spell out [loadingText].
+                return Container(
+                  key: insertCellKeys ? Key('loader-$loaderIndex') : null,
+                  color: Colors.blueGrey,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
+                    child: Text(
+                      loadingText[loaderIndex % loadingText.length],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                );
               }
 
               /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
@@ -138,7 +174,12 @@ class StatusGrid extends StatelessWidget {
               /// row of [TaskIcon] introduces.
               final int index = gridIndex - columnCount;
               if (index < 0) {
-                return TaskIcon(task: taskMatrix.sampleTask(gridIndex - 1));
+                return TaskIcon(
+                  key: insertCellKeys
+                      ? Key('taskicon-${index % columnCount}')
+                      : null,
+                  task: taskMatrix.sampleTask(gridIndex - 1),
+                );
               }
 
               final int row = index ~/ columnCount;
@@ -167,5 +208,18 @@ class StatusGrid extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Check whether the current [gridIndex] resides in the last row.
+  ///
+  /// Used for checking if logic needs to be performed for the loader row.
+  bool _isLastRow({
+    @required int gridIndex,
+    @required int columnCount,
+  }) {
+    assert(gridIndex != null && gridIndex >= 0);
+    assert(columnCount != null && columnCount >= 0);
+
+    return gridIndex >= (columnCount * (statuses.length + 1));
   }
 }

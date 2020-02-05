@@ -33,15 +33,19 @@ class TaskIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget icon = const Icon(Icons.help);
+    if (task.stageName == StageName.luci && task.name == 'linux_bot') {
+      icon = Image.asset('assets/fuchsia.png');
+    } else if (stageIcons.containsKey(task.stageName)) {
+      icon = stageIcons[task.stageName];
+    }
     return GestureDetector(
       onTap: () => launch(sourceConfigurationUrl(task)),
       child: Tooltip(
         message: task.name,
         child: Container(
           margin: const EdgeInsets.all(7.5),
-          child: stageIcons.containsKey(task.stageName)
-              ? stageIcons[task.stageName]
-              : const Icon(Icons.help),
+          child: icon,
           width: 100,
           height: 100,
         ),

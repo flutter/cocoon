@@ -12,10 +12,12 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
+import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/buildbucket.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -38,7 +40,11 @@ import '../request_handling/request_handler.dart';
 @immutable
 class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
-  const LuciStatusHandler(Config config) : super(config: config);
+  const LuciStatusHandler(Config config, this.buildBucketClient)
+      : assert(buildBucketClient != null),
+        super(config: config);
+
+  final BuildBucketClient buildBucketClient;
 
   @override
   Future<Body> post() async {
@@ -52,6 +58,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final BuildPushMessage buildMessage =
         BuildPushMessage.fromJson(json.decode(envelope.message.data));
     final Build build = buildMessage.build;
+    final Map<String, dynamic> userData = jsonDecode(buildMessage.userData);
     final String builderName = build.tagsByName('builder').single;
 
     const String shaPrefix = 'sha/git/';
@@ -62,11 +69,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
     switch (buildMessage.build.status) {
       case Status.completed:
-        await _setCompletedStatus(
-          ref: sha,
+        await _rescheduleOrMarkCompleted(
+          sha: sha,
           builderName: builderName,
-          buildUrl: build.url,
-          result: build.result,
+          build: build,
+          retries: userData['retries'],
         );
         break;
       case Status.scheduled:
@@ -79,6 +86,89 @@ class LuciStatusHandler extends RequestHandler<Body> {
         break;
     }
     return Body.empty;
+  }
+
+  /// Reschedules jobs that failed for infra reasons up to
+  /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
+  /// GitHub for all other cases.
+  Future<void> _rescheduleOrMarkCompleted({
+    @required String sha,
+    @required String builderName,
+    @required Build build,
+    @required int retries,
+  }) async {
+    assert(sha != null);
+    assert(builderName != null);
+    assert(build != null);
+    if (build.result == Result.failure) {
+      switch (build.failureReason) {
+        case FailureReason.buildbucketFailure:
+        case FailureReason.infraFailure:
+          // infra failed
+          await _rescheduleBuild(
+            sha: sha,
+            builderName: builderName,
+            build: build,
+            retries: retries,
+          );
+          return;
+        case FailureReason.invalidBuildDefinition:
+        case FailureReason.buildFailure:
+          // the commit failed
+          break;
+      }
+    }
+    await _setCompletedStatus(
+      ref: sha,
+      builderName: builderName,
+      buildUrl: build.url,
+      result: build.result,
+    );
+  }
+
+  /// Sends a [BuildBucket.scheduleBuild] request as long as the `retries`
+  /// parameter has not exceeded [CocoonConfig.luciTryInfraFailureRetries].
+  ///
+  /// If the retries have been exhausted, it sets the GitHub status to failure.
+  ///
+  /// The buildset, user_agent, and github_link tags are applied to match the
+  /// original build. The build properties from the original build are also
+  /// preserved.
+  Future<void> _rescheduleBuild({
+    @required String sha,
+    @required String builderName,
+    @required Build build,
+    @required int retries,
+  }) async {
+    if (retries >= config.luciTryInfraFailureRetries) {
+      // Too many retries.
+      await _setCompletedStatus(
+        ref: sha,
+        builderName: builderName,
+        buildUrl: build.url,
+        result: build.result,
+      );
+      return;
+    }
+    await buildBucketClient.scheduleBuild(bb.ScheduleBuildRequest(
+      builderId: bb.BuilderId(
+        project: build.project,
+        bucket: 'try',
+        builder: builderName,
+      ),
+      tags: <String, List<String>>{
+        'buildset': build.tagsByName('buildset'),
+        'user_agent': build.tagsByName('user_agent'),
+        'github_link': build.tagsByName('github_link'),
+      },
+      properties: (build.buildParameters['properties']).cast<String, String>(),
+      notify: bb.NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+        userData: json.encode(<String, dynamic>{
+          'retries': retries + 1,
+        }),
+      ),
+    ));
   }
 
   Future<bool> _authenticateRequest(HttpHeaders headers) async {

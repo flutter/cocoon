@@ -113,6 +113,9 @@ class Config {
 
   int get maxTaskRetries => 2;
 
+  /// The number of times to retry a LUCI job on infra failures.
+  int get luciTryInfraFailureRetries => 2;
+
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
@@ -247,11 +250,19 @@ class Config {
           'repo': 'engine',
         },
         <String, String>{
+          'name': 'Linux Web Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
           'name': 'Windows Host Engine',
           'repo': 'engine',
         },
         <String, String>{
           'name': 'Windows Android AOT Engine',
+          'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Windows Web Engine',
           'repo': 'engine',
         }
       ];

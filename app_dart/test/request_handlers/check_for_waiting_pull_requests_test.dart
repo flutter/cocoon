@@ -149,6 +149,20 @@ void main() {
       );
     });
 
+    test('Does not merge PR with in progress tests', () async {
+      flutterRepoPRs.add(PullRequestHelper(
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper('Linux Host', 'PENDING')
+        ],
+      ));
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
     test('Does not merge unapproved PR from a hacker', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
       flutterRepoPRs.add(PullRequestHelper(
@@ -192,7 +206,8 @@ void main() {
       );
     });
 
-    test('Merges first PR in list, all successful', () async {
+    test('Merges first 2 PRs in list, all successful', () async {
+      flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper()); // will be ignored.
       engineRepoPRs.add(PullRequestHelper());
@@ -206,7 +221,66 @@ void main() {
           MutationOptions(
             document: mergePullRequestMutation,
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.first.id,
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[1].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
+              'oid': oid,
+            },
+          ),
+        ],
+      );
+    });
+
+    test('Merges 1st and 3rd PR, 2nd failed', () async {
+      flutterRepoPRs.add(PullRequestHelper());
+      flutterRepoPRs.add(PullRequestHelper(
+          lastCommitStatuses: const <StatusHelper>[
+            StatusHelper.cirrusFailure
+          ])); // not merged
+      flutterRepoPRs.add(PullRequestHelper());
+      engineRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            document: removeLabelMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[1].id,
+              'labelId': base64LabelId,
+              'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            },
+          ),
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[2].id,
               'oid': oid,
             },
           ),
@@ -673,12 +747,18 @@ class PullRequestHelper {
                 }).toList(),
               },
               'checkSuites': <String, dynamic>{
-                'nodes': lastCommitCheckRuns.map((StatusHelper status) {
-                  return <String, dynamic>{
-                    'app': <String, dynamic>{'name': status.name},
-                    'conclusion': status.state,
-                  };
-                }).toList(),
+                'nodes': <dynamic>[
+                  <String, dynamic>{
+                    'checkRuns': <String, dynamic>{
+                      'nodes': lastCommitCheckRuns.map((StatusHelper status) {
+                        return <String, dynamic>{
+                          'name': status.name,
+                          'conclusion': status.state,
+                        };
+                      }).toList(),
+                    },
+                  },
+                ],
               },
             },
           },

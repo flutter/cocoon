@@ -8,7 +8,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
     labels(first: 1, query: $sLabelName) {
       nodes {
         id
-        pullRequests(first: 100, states: OPEN) {
+        pullRequests(first: 100, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
           nodes {
             author {
               login
@@ -29,12 +29,19 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       state
                     }
                   }
-                  checkSuites(first: 100) {
+                  checkSuites(first: 10) {
                     nodes {
                       app {
                         name
                       }
-                      conclusion
+                      checkRuns(last: 100) {
+                        nodes {
+                          id
+                          name
+                          status
+                          conclusion
+                        }
+                      }
                     }
                   }
                 }

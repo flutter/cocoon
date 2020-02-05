@@ -40,6 +40,7 @@ class FakeConfig implements Config {
     this.githubService,
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
+    this.luciTryInfraFailureRetriesValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -66,6 +67,10 @@ class FakeConfig implements Config {
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
   Set<String> rollerAccountsValue;
+  int luciTryInfraFailureRetriesValue;
+
+  @override
+  int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
 
   @override
   int maxEntityGroups;
