@@ -6,9 +6,6 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
 
 import 'package:graphql/client.dart';
-import 'package:graphql/src/core/observable_query.dart';
-import 'package:graphql/src/link/fetch_result.dart';
-import 'package:graphql/src/link/operation.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -17,6 +14,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_graphql_client.dart';
 
 const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
@@ -48,10 +46,10 @@ void main() {
       engineRepoPRs.clear();
       PullRequestHelper._counter = 0;
 
-      githubGraphQLClient._mutateResultForOptions =
+      githubGraphQLClient.mutateResultForOptions =
           (MutationOptions options) => QueryResult();
 
-      githubGraphQLClient._queryResultForOptions = (QueryOptions options) {
+      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         expect(options.variables['sOwner'], 'flutter');
         expect(options.variables['sLabelName'],
             config.waitingForTreeToGoGreenLabelNameValue);
@@ -108,7 +106,7 @@ void main() {
       final List<GraphQLError> errors = <GraphQLError>[
         GraphQLError(raw: <String, String>{}, message: 'message'),
       ];
-      githubGraphQLClient._mutateResultForOptions =
+      githubGraphQLClient.mutateResultForOptions =
           (_) => QueryResult(errors: errors);
 
       await tester.get(handler);
@@ -581,60 +579,6 @@ This pull request is not suitable for automatic merging in its current state.
       );
     });
   });
-}
-
-class FakeGraphQLClient implements GraphQLClient {
-  QueryResult Function(MutationOptions) _mutateResultForOptions;
-  QueryResult Function(QueryOptions) _queryResultForOptions;
-
-  @override
-  QueryManager queryManager;
-
-  @override
-  Cache get cache => throw UnimplementedError();
-
-  @override
-  Link get link => throw UnimplementedError();
-
-  final List<QueryOptions> queries = <QueryOptions>[];
-  final List<MutationOptions> mutations = <MutationOptions>[];
-
-  @override
-  Future<QueryResult> mutate(MutationOptions options) async {
-    mutations.add(options);
-    return _mutateResultForOptions(options);
-  }
-
-  @override
-  Future<QueryResult> query(QueryOptions options) async {
-    queries.add(options);
-    return _queryResultForOptions(options);
-  }
-
-  @override
-  Stream<FetchResult> subscribe(Operation operation) {
-    throw UnimplementedError();
-  }
-
-  @override
-  ObservableQuery watchQuery(WatchQueryOptions options) {
-    throw UnimplementedError();
-  }
-
-  void verify(List<BaseOptions> expected, List<BaseOptions> actual) {
-    expect(actual.length, expected.length);
-    for (int i = 0; i < actual.length; i++) {
-      /// [BaseOptions.toKey] serializes all of the relevant parts of the query
-      /// or mutation for us, except the fetch policy.
-      expect(actual[i].toKey(), expected[i].toKey());
-      expect(actual[i].fetchPolicy, expected[i].fetchPolicy);
-    }
-  }
-
-  void verifyQueries(List<QueryOptions> expected) => verify(expected, queries);
-
-  void verifyMutations(List<MutationOptions> expected) =>
-      verify(expected, mutations);
 }
 
 enum ReviewState {

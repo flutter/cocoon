@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -12,16 +13,17 @@ import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
-import '../service/github_service.dart';
 
-const List<String> _failedStates = <String>[
-  'cancelled',
-  'timed_out',
-  'action_required',
-  'failure'
+/// Refer all cirrus build statuses at: https://github.com/cirruslabs/cirrus-ci-web/blob/master/schema.graphql#L120
+const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+const List<String> _inProgressStates = <String>[
+  'EXECUTING',
+  'CREATED',
+  'TRIGGERED',
+  'NEEDS_APPROVAL'
 ];
-const List<String> _inProgressStates = <String>['queued', 'in_progress'];
 
 @immutable
 class RefreshCirrusStatus extends ApiRequestHandler<Body> {
@@ -38,32 +40,27 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
-    final GithubService githubService = await config.createGithubService();
+    final GraphQLClient client = await config.createCirrusGraphQLClient();
 
     await for (FullTask task
-        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
+        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 1)) {
       final String sha = task.commit.sha;
       final String existingTaskStatus = task.task.status;
       log.debug(
           'Found Cirrus task for commit $sha with existing status $existingTaskStatus');
-
       final List<String> statuses = <String>[];
-      final List<String> conclusions = <String>[];
 
-      for (dynamic runStatus in await githubService.checkRuns(sha)) {
+      for (dynamic runStatus in await _queryGraphQL(sha, client)) {
         final String status = runStatus['status'];
-        final String conclusion = runStatus['conclusion'];
         final String taskName = runStatus['name'];
-        log.debug(
-            'Found Cirrus build status for $sha: $taskName ($status, $conclusion)');
+        log.debug('Found Cirrus build status for $sha: $taskName ($status)');
         statuses.add(status);
-        conclusions.add(conclusion);
       }
 
       String newTaskStatus;
-      if (conclusions.isEmpty) {
+      if (statuses.isEmpty) {
         newTaskStatus = Task.statusNew;
-      } else if (conclusions.any(_failedStates.contains)) {
+      } else if (statuses.any(_failedStates.contains)) {
         newTaskStatus = Task.statusFailed;
         task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
       } else if (statuses.any(_inProgressStates.contains)) {
@@ -81,7 +78,45 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
         });
       }
     }
-
     return Body.empty;
+  }
+
+  Future<List<dynamic>> _queryGraphQL(
+    String sha,
+    GraphQLClient client,
+  ) async {
+    const String owner = 'flutter';
+    const String name = 'flutter';
+    const String cirusStatusQuery = r'''
+    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
+      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
+        id latestGroupTasks { 
+          id name status 
+        } 
+      } 
+    }''';
+    final QueryResult result = await client.query(
+      QueryOptions(
+        document: cirusStatusQuery,
+        fetchPolicy: FetchPolicy.noCache,
+        variables: <String, dynamic>{
+          'owner': owner,
+          'name': name,
+          'SHA': sha,
+        },
+      ),
+    );
+
+    if (result.hasErrors) {
+      for (GraphQLError error in result.errors) {
+        log.error(error.toString());
+      }
+      throw const BadRequestException('GraphQL query failed');
+    }
+
+    final List<dynamic> tasks = <dynamic>[];
+    final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
+    tasks.addAll(searchBuilds['latestGroupTasks']);
+    return tasks;
   }
 }

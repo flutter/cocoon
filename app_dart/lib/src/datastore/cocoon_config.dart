@@ -295,6 +295,17 @@ class Config {
     );
   }
 
+  Future<GraphQLClient> createCirrusGraphQLClient() async {
+    final HttpLink httpLink = HttpLink(
+      uri: 'https://api.cirrus-ci.com/graphql',
+    );
+
+    return GraphQLClient(
+      cache: InMemoryCache(),
+      link: httpLink,
+    );
+  }
+
   Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
     final AccessClientProvider accessClientProvider =
         AccessClientProvider(await deviceLabServiceAccount);

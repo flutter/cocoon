@@ -38,6 +38,7 @@ class FakeConfig implements Config {
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
+    this.cirrusGraphQLClient,
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
     this.luciTryInfraFailureRetriesValue,
@@ -46,6 +47,7 @@ class FakeConfig implements Config {
 
   GitHub githubClient;
   GraphQLClient githubGraphQLClient;
+  GraphQLClient cirrusGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
   GithubService githubService;
   FakeDatastoreDB dbValue;
@@ -81,6 +83,10 @@ class FakeConfig implements Config {
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async =>
       githubGraphQLClient;
+
+  @override
+  Future<GraphQLClient> createCirrusGraphQLClient() async =>
+      cirrusGraphQLClient;
 
   @override
   Future<TabledataResourceApi> createTabledataResourceApi() async =>
