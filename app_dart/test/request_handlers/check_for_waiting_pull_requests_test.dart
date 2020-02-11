@@ -14,6 +14,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_cirrus_graphql_client.dart';
 import '../src/service/fake_graphql_client.dart';
 
 const String base64LabelId = 'base_64_label_id';
@@ -29,22 +30,35 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeLogging log;
     FakeGraphQLClient githubGraphQLClient;
+    FakeCirrusGraphQLClient cirrusGraphQLClient;
 
     ApiRequestHandlerTester tester;
 
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> engineRepoPRs = <PullRequestHelper>[];
+    List<dynamic> statuses = <dynamic>[];
 
     setUp(() {
       request = FakeHttpRequest();
-      config = FakeConfig(rollerAccountsValue: <String>{});
       clientContext = FakeClientContext();
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
+      cirrusGraphQLClient = FakeCirrusGraphQLClient();
+      config = FakeConfig(
+          rollerAccountsValue: <String>{},
+          cirrusGraphQLClient: cirrusGraphQLClient);
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
+      statuses.clear();
       PullRequestHelper._counter = 0;
+
+      cirrusGraphQLClient.mutateCirrusResultForOptions =
+          (MutationOptions options) => QueryResult();
+
+      cirrusGraphQLClient.queryCirrusResultForOptions = (QueryOptions options) {
+        return createCirrusQueryResult(statuses);
+      };
 
       githubGraphQLClient.mutateResultForOptions =
           (MutationOptions options) => QueryResult();
@@ -148,17 +162,77 @@ void main() {
     });
 
     test('Does not merge PR with in progress tests', () async {
-      flutterRepoPRs.add(PullRequestHelper(
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+
+      /*flutterRepoPRs.add(PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper('Linux Host', 'PENDING')
         ],
-      ));
+      ));*/
 
       await tester.get(handler);
 
       _verifyQueries();
 
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Merge PR with complated tests', () async {
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'COMPLETED', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+
+      flutterRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+        ],
+      );
+    });
+
+    test('Does not merge PR with failed tests', () async {
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+
+      flutterRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: removeLabelMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'labelId': base64LabelId,
+              'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite test1 has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+            },
+          ),
+        ],
+      );
     });
 
     test('Does not merge unapproved PR from a hacker', () async {
@@ -244,9 +318,9 @@ void main() {
     test('Merges 1st and 3rd PR, 2nd failed', () async {
       flutterRepoPRs.add(PullRequestHelper());
       flutterRepoPRs.add(PullRequestHelper(
-          lastCommitStatuses: const <StatusHelper>[
-            StatusHelper.cirrusFailure
-          ])); // not merged
+          author: 'engine-roller-hacker',
+          reviews: const <PullRequestReviewHelper>[]));
+
       flutterRepoPRs.add(PullRequestHelper());
       engineRepoPRs.add(PullRequestHelper());
 
@@ -267,12 +341,12 @@ void main() {
             document: removeLabelMutation,
             variables: <String, dynamic>{
               'id': flutterRepoPRs[1].id,
-              'labelId': base64LabelId,
-              'sBody': '''
-This pull request is not suitable for automatic merging in its current state.
+              'sBody':
+                  '''This pull request is not suitable for automatic merging in its current state.
 
-- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- Please get at least one approved review before re-applying this label. __Reviewers__: If you left a comment approving, please use the "approve" review action instead.
 ''',
+              'labelId': base64LabelId,
             },
           ),
           MutationOptions(
@@ -327,36 +401,17 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Unlabels red PRs', () async {
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
       final PullRequestHelper prRed = PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
           StatusHelper.otherStatusFailure,
         ],
-        lastCommitCheckRuns: const <StatusHelper>[
-          StatusHelper.cirrusFailure,
-        ],
       );
-      final PullRequestHelper prRedButChecksOk = PullRequestHelper(
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildFailure,
-          StatusHelper.otherStatusFailure,
-        ],
-        lastCommitCheckRuns: const <StatusHelper>[
-          StatusHelper.cirrusSuccess,
-        ],
-      );
-      final PullRequestHelper prRedButStatusOk = PullRequestHelper(
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper.flutterBuildSuccess,
-        ],
-        lastCommitCheckRuns: const <StatusHelper>[
-          StatusHelper.cirrusFailure,
-        ],
-      );
-
       flutterRepoPRs.add(prRed);
-      flutterRepoPRs.add(prRedButChecksOk);
-      flutterRepoPRs.add(prRedButStatusOk);
 
       await tester.get(handler);
       _verifyQueries();
@@ -368,32 +423,7 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody':
                 '''This pull request is not suitable for automatic merging in its current state.
 
-- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
-- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
-''',
-            'labelId': base64LabelId,
-          },
-        ),
-        MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': prRedButChecksOk.id,
-            'sBody':
-                '''This pull request is not suitable for automatic merging in its current state.
-
-- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
-''',
-            'labelId': base64LabelId,
-          },
-        ),
-        MutationOptions(
-          document: removeLabelMutation,
-          variables: <String, dynamic>{
-            'id': prRedButStatusOk.id,
-            'sBody':
-                '''This pull request is not suitable for automatic merging in its current state.
-
-- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
+- The status or check suite test1 has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
             'labelId': base64LabelId,
           },
@@ -511,7 +541,6 @@ This pull request is not suitable for automatic merging in its current state.
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildFailure
         ],
-        lastCommitCheckRuns: const <StatusHelper>[StatusHelper.cirrusFailure],
         reviews: const <PullRequestReviewHelper>[changePleaseChange],
       );
 
@@ -570,7 +599,6 @@ This pull request is not suitable for automatic merging in its current state.
                   '''This pull request is not suitable for automatic merging in its current state.
 
 - This pull request has changes requested by @change_please. Please resolve those before re-applying the label.
-- The status or check suite Cirrus CI has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
               'labelId': base64LabelId,
             },
@@ -733,6 +761,43 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
       },
     },
   );
+}
+
+QueryResult createCirrusQueryResult(List<dynamic> statuses) {
+  assert(statuses != null);
+
+  if (statuses.isEmpty) {
+    return QueryResult();
+  }
+  //List<dynamic> newStatuses = statuses.where()
+  return QueryResult(data: <String, dynamic>{
+    'searchBuilds': <dynamic>[
+      <String, dynamic>{
+        'id': '1',
+        'latestGroupTasks':
+            statuses.map<Map<String, dynamic>>((dynamic status) {
+          return <String, dynamic>{
+            'id': status['id'],
+            'name': status['name'],
+            'status': status['status'],
+          };
+        })
+      }
+    ]
+  });
+
+  /*      'latestGroupTasks': <dynamic>[
+            <String, dynamic>{
+              'id': '1',
+              'name': statuses.first['name'],
+              'status': statuses.first['status']
+            },
+            <String, dynamic>{
+              'id': '2',
+              'name': statuses.last['name'],
+              'status': statuses.last['status']
+            }
+          ],*/
 }
 
 const PullRequestReviewHelper ownerApprove = PullRequestReviewHelper(
