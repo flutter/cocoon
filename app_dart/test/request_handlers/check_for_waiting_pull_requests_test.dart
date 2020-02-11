@@ -167,11 +167,7 @@ void main() {
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
 
-      /*flutterRepoPRs.add(PullRequestHelper(
-        lastCommitStatuses: const <StatusHelper>[
-          StatusHelper('Linux Host', 'PENDING')
-        ],
-      ));*/
+      flutterRepoPRs.add(PullRequestHelper());
 
       await tester.get(handler);
 
@@ -769,7 +765,6 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
   if (statuses.isEmpty) {
     return QueryResult();
   }
-  //List<dynamic> newStatuses = statuses.where()
   return QueryResult(data: <String, dynamic>{
     'searchBuilds': <dynamic>[
       <String, dynamic>{
@@ -785,19 +780,6 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
       }
     ]
   });
-
-  /*      'latestGroupTasks': <dynamic>[
-            <String, dynamic>{
-              'id': '1',
-              'name': statuses.first['name'],
-              'status': statuses.first['status']
-            },
-            <String, dynamic>{
-              'id': '2',
-              'name': statuses.last['name'],
-              'status': statuses.last['status']
-            }
-          ],*/
 }
 
 const PullRequestReviewHelper ownerApprove = PullRequestReviewHelper(
