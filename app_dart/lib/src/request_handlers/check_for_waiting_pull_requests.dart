@@ -17,6 +17,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
 import 'check_for_waiting_pull_requests_queries.dart';
+import 'refresh_cirrus_status_queries.dart';
 
 /// Maximum number of pull requests to merge on each check.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -117,14 +118,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     assert(client != null);
     const String owner = 'flutter';
     const String name = 'flutter';
-    const String cirusStatusQuery = r'''
-    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
-      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
-        id latestGroupTasks { 
-          id name status 
-        } 
-      } 
-    }''';
     final QueryResult result = await client.query(
       QueryOptions(
         document: cirusStatusQuery,
@@ -267,7 +260,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Returns whether all statuses are successful.
   ///
   /// Also fills [failures] with the names of any status/check that has failed.
-
   Future<bool> _checkStatuses(
     String sha,
     Set<String> failures,

@@ -706,28 +706,6 @@ class PullRequestHelper {
                   (dateTime ?? DateTime.now().add(const Duration(hours: -2)))
                       .toUtc()
                       .toIso8601String(),
-              'status': <String, dynamic>{
-                'contexts': lastCommitStatuses.map((StatusHelper status) {
-                  return <String, dynamic>{
-                    'context': status.name,
-                    'state': status.state,
-                  };
-                }).toList(),
-              },
-              'checkSuites': <String, dynamic>{
-                'nodes': <dynamic>[
-                  <String, dynamic>{
-                    'checkRuns': <String, dynamic>{
-                      'nodes': lastCommitCheckRuns.map((StatusHelper status) {
-                        return <String, dynamic>{
-                          'name': status.name,
-                          'conclusion': status.state,
-                        };
-                      }).toList(),
-                    },
-                  },
-                ],
-              },
             },
           },
         ],

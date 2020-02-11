@@ -23,27 +23,6 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                   oid
                   committedDate
                   pushedDate
-                  status {
-                    contexts {
-                      context
-                      state
-                    }
-                  }
-                  checkSuites(first: 10) {
-                    nodes {
-                      app {
-                        name
-                      }
-                      checkRuns(last: 100) {
-                        nodes {
-                          id
-                          name
-                          status
-                          conclusion
-                        }
-                      }
-                    }
-                  }
                 }
               }
             }

@@ -15,6 +15,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import 'refresh_cirrus_status_queries.dart';
 
 /// Refer all cirrus build statuses at: https://github.com/cirruslabs/cirrus-ci-web/blob/master/schema.graphql#L120
 const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
@@ -87,14 +88,6 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   ) async {
     const String owner = 'flutter';
     const String name = 'flutter';
-    const String cirusStatusQuery = r'''
-    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
-      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
-        id latestGroupTasks { 
-          id name status 
-        } 
-      } 
-    }''';
     final QueryResult result = await client.query(
       QueryOptions(
         document: cirusStatusQuery,
