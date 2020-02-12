@@ -269,8 +269,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     List<Map<String, dynamic>> statuses,
   ) async {
     assert(failures != null && failures.isEmpty);
-    const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
-    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     bool allSuccess = true;
 
     // The status checks that are not related to changes in this PR.
@@ -283,13 +281,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String name = status['context'];
       if (status['state'] != 'SUCCESS') {
         allSuccess = false;
-        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+        if (status['state'] == 'FAILURE' &&
+            !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
       }
     }
 
-    final List<dynamic> cirrusStatuses = await _queryCirrusGraphQL(sha, cirrusClient);
+    const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
+    final List<dynamic> cirrusStatuses =
+        await _queryCirrusGraphQL(sha, cirrusClient);
     if (cirrusStatuses == null) {
       return allSuccess;
     }
