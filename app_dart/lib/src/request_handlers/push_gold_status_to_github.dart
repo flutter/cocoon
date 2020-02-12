@@ -46,10 +46,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GitHub github = await config.createGitHubClient();
-    final GraphQLClient client = await config.createCirrusGraphQLClient();
-    final List<GithubGoldStatusUpdate> updates = <GithubGoldStatusUpdate>[];
-    final List<String> checkStatuses = <String>[];
+    final GitHub githubClient = await config.createGitHubClient();
+    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
+    final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
+    final List<String> cirrusCheckStatuses = <String>[];
     const List<String> cirrusInProgressStates = <String>[
       'EXECUTING',
       'CREATED',
@@ -58,12 +58,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     ];
 
 
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
+    await for (PullRequest pr in githubClient.pullRequests.list(slug)) {
       // Check run statuses for this pr
       for (dynamic runStatus in await _queryGraphQL(
         pr.id.toString(),
         pr.head.sha,
-        client,
+        cirrusClient,
       )) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
@@ -72,10 +72,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           '${pr.head.sha}: $taskName ($status)');
 
         if (taskName.contains('framework'))
-          checkStatuses.add(status);
+          cirrusCheckStatuses.add(status);
       }
 
-      if (checkStatuses.isEmpty)
+      if (cirrusCheckStatuses.isEmpty)
         return Body.empty;
 
       // This PR needs a Gold Status
@@ -87,9 +87,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       log.debug('Last known Gold status for ${pr.id} was with sha '
         '${lastUpdate.head}, status: ${lastUpdate.status ?? 'initial'}');
 
-      // Checks have not completed uploading to Gold
-      if (checkStatuses.any(cirrusInProgressStates.contains)) {
-
+      if (cirrusCheckStatuses.any(cirrusInProgressStates.contains)) {
+        // Checks have not completed uploading to Gold
         log.debug('Checks for ${pr.id} at ${pr.head.sha} are still running.');
 
         if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning)
@@ -104,7 +103,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             'checks to be completed';
         }
       } else {
-        
         // Checks have completed
         final String status = await _getGoldStatus(pr, log);
         if (lastUpdate.head != pr.head.sha || lastUpdate.status != status) {
@@ -118,6 +116,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
               statusRequest.description = 'Image changes have been found for '
                 'this pr. Visit https://flutter-gold.skia.org/changelists to '
                 'view and triage (e.g. because this is an intentional change).';
+              // TODO(Piinks): Comment on pr that golden file changes have been detected
               break;
             case GithubGoldStatusUpdate.statusCompleted:
               statusRequest.description = 'All golden file tests have passed.';
@@ -128,10 +127,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (statusRequest != null) {
         try {
-          await github.repositories.createStatus(slug, pr.head.sha, statusRequest);
+          await githubClient.repositories.createStatus(slug, pr.head.sha, statusRequest);
           lastUpdate.status = statusRequest.state;
           lastUpdate.updates += 1;
-          updates.add(lastUpdate);
+          statusUpdates.add(lastUpdate);
         } catch (error) {
           log.error(
             'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
@@ -140,10 +139,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final int maxEntityGroups = config.maxEntityGroups;
-    for (int i = 0; i < updates.length; i += maxEntityGroups) {
+    for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
       await datastore.db.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(
-          inserts: updates.skip(i).take(maxEntityGroups).toList());
+          inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
         await transaction.commit();
       });
     }
