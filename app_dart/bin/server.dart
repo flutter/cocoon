@@ -33,6 +33,8 @@ Future<void> main() async {
       '/api/luci-status-handler': LuciStatusHandler(config, buildBucketClient),
       '/api/push-build-status-to-github':
           PushBuildStatusToGithub(config, authProvider),
+      '/api/push-gold-status-to-github':
+          PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github':
           PushEngineStatusToGithub(config, authProvider),
       '/api/refresh-chromebot-status':
