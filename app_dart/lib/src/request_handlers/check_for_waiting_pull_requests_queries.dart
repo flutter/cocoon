@@ -23,6 +23,12 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                   oid
                   committedDate
                   pushedDate
+                  status {
+                    contexts {
+                      context
+                      state
+                    }
+                  }
                 }
               }
             }

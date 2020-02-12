@@ -236,11 +236,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit['oid'];
+      final List<Map<String, dynamic>> statuses =
+          commit['status']['contexts'].cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};
 
       final bool ciSuccessful = await _checkStatuses(
         sha,
         failingStatuses,
+        statuses,
       );
 
       list.add(_AutoMergeQueryResult(
@@ -263,17 +266,34 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _checkStatuses(
     String sha,
     Set<String> failures,
+    List<Map<String, dynamic>> statuses,
   ) async {
     assert(failures != null && failures.isEmpty);
     const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     bool allSuccess = true;
 
-    final List<dynamic> statuses = await _queryCirrusGraphQL(sha, cirrusClient);
-    if (statuses == null) {
+    // The status checks that are not related to changes in this PR.
+    const Set<String> notInAuthorsControl = <String>{
+      'flutter-build', // flutter repo
+      'luci-engine', // engine repo
+    };
+
+    for (Map<String, dynamic> status in statuses) {
+      final String name = status['context'];
+      if (status['state'] != 'SUCCESS') {
+        allSuccess = false;
+        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+          failures.add(name);
+        }
+      }
+    }
+
+    final List<dynamic> cirrusStatuses = await _queryCirrusGraphQL(sha, cirrusClient);
+    if (cirrusStatuses == null) {
       return allSuccess;
     }
-    for (dynamic runStatus in statuses) {
+    for (dynamic runStatus in cirrusStatuses) {
       final String status = runStatus['status'];
       final String name = runStatus['name'];
       if (status != 'COMPLETED') {

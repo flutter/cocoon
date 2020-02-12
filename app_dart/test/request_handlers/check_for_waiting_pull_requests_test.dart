@@ -419,6 +419,7 @@ This pull request is not suitable for automatic merging in its current state.
             'sBody':
                 '''This pull request is not suitable for automatic merging in its current state.
 
+- The status or check suite other status has failed. Please fix the issues identified (or deflake) before re-applying this label.
 - The status or check suite test1 has failed. Please fix the issues identified (or deflake) before re-applying this label.
 ''',
             'labelId': base64LabelId,
@@ -706,6 +707,14 @@ class PullRequestHelper {
                   (dateTime ?? DateTime.now().add(const Duration(hours: -2)))
                       .toUtc()
                       .toIso8601String(),
+              'status': <String, dynamic>{
+                'contexts': lastCommitStatuses.map((StatusHelper status) {
+                  return <String, dynamic>{
+                    'context': status.name,
+                    'state': status.state,
+                  };
+                }).toList(),
+              },
             },
           },
         ],
