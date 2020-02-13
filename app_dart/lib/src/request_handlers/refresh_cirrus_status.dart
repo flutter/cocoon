@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -44,14 +45,14 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     final GraphQLClient client = await config.createCirrusGraphQLClient();
 
     await for (FullTask task
-        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
+        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 1)) {
       final String sha = task.commit.sha;
       final String existingTaskStatus = task.task.status;
       log.debug(
           'Found Cirrus task for commit $sha with existing status $existingTaskStatus');
       final List<String> statuses = <String>[];
 
-      for (dynamic runStatus in await _queryGraphQL(sha, client)) {
+      for (dynamic runStatus in await queryCirrusGraphQL(sha, client, log)) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
         log.debug('Found Cirrus build status for $sha: $taskName ($status)');
@@ -81,11 +82,14 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     }
     return Body.empty;
   }
+}
 
-  Future<List<dynamic>> _queryGraphQL(
+Future<List<dynamic>> queryCirrusGraphQL(
     String sha,
     GraphQLClient client,
+    Logging log,
   ) async {
+    assert(client != null);
     const String owner = 'flutter';
     const String name = 'flutter';
     final QueryResult result = await client.query(
@@ -108,8 +112,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     }
 
     final List<dynamic> tasks = <dynamic>[];
+    if (result.data == null) {
+      return tasks;
+    }
     final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
     tasks.addAll(searchBuilds['latestGroupTasks']);
     return tasks;
   }
-}

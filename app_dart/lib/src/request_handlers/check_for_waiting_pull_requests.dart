@@ -17,7 +17,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
 import 'check_for_waiting_pull_requests_queries.dart';
-import 'refresh_cirrus_status_queries.dart';
+import 'refresh_cirrus_status.dart';
 
 /// Maximum number of pull requests to merge on each check.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -109,41 +109,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
 
     return result.data;
-  }
-
-  Future<List<dynamic>> _queryCirrusGraphQL(
-    String sha,
-    GraphQLClient client,
-  ) async {
-    assert(client != null);
-    const String owner = 'flutter';
-    const String name = 'flutter';
-    final QueryResult result = await client.query(
-      QueryOptions(
-        document: cirusStatusQuery,
-        fetchPolicy: FetchPolicy.noCache,
-        variables: <String, dynamic>{
-          'owner': owner,
-          'name': name,
-          'SHA': sha,
-        },
-      ),
-    );
-
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
-      throw const BadRequestException('GraphQL query failed');
-    }
-
-    final List<dynamic> tasks = <dynamic>[];
-    if (result.data == null) {
-      return tasks;
-    }
-    final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
-    tasks.addAll(searchBuilds['latestGroupTasks']);
-    return tasks;
   }
 
   Future<bool> _removeLabel(
@@ -291,7 +256,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<dynamic> cirrusStatuses =
-        await _queryCirrusGraphQL(sha, cirrusClient);
+        await queryCirrusGraphQL(sha, cirrusClient, log);
     if (cirrusStatuses == null) {
       return allSuccess;
     }
