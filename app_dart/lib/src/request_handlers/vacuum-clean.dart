@@ -40,9 +40,9 @@ class VacuumClean extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final int maxRetries = config.maxTaskRetries;
     final List<Task> tasks = await datastoreProvider()
-        .queryRecentTasks(taskStatus: Task.statusInProgress)
+        .queryRecentTasks(commitLimit: config.commitNumber)
         .map<Task>((FullTask fullTask) => fullTask.task)
-        .where(isOverAnHourOld)
+        .where(shouldBeVacuumCleaned)
         .toList();
     log.debug(
         'Found ${tasks.length} in progress tasks that have been stranded');
@@ -89,6 +89,13 @@ class VacuumClean extends ApiRequestHandler<Body> {
 
     return Body.empty;
   }
+
+  bool shouldBeVacuumCleaned(Task task) {
+    return _inProgress(task) && isOverAnHourOld(task);
+  }
+
+  /// Returns whether [task] is in progress.
+  bool _inProgress(Task task) => task.status == Task.statusInProgress;
 
   /// Returns whether the specified [task] was started over an hour ago.
   bool isOverAnHourOld(Task task) {
