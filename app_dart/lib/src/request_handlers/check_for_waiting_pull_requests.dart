@@ -59,7 +59,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       log,
       client,
     );
-    for (_AutoMergeQueryResult queryResult in await _parseQueryData(data)) {
+    for (_AutoMergeQueryResult queryResult
+        in await _parseQueryData(data, name)) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -161,7 +162,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ///
   /// This method will not return null, but may return an empty list.
   Future<List<_AutoMergeQueryResult>> _parseQueryData(
-      Map<String, dynamic> data) async {
+      Map<String, dynamic> data, String name) async {
     final Map<String, dynamic> repository = data['repository'];
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
@@ -209,6 +210,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         sha,
         failingStatuses,
         statuses,
+        name,
       );
 
       list.add(_AutoMergeQueryResult(
@@ -232,6 +234,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     String sha,
     Set<String> failures,
     List<Map<String, dynamic>> statuses,
+    String name,
   ) async {
     assert(failures != null && failures.isEmpty);
     bool allSuccess = true;
@@ -256,7 +259,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<dynamic> cirrusStatuses =
-        await queryCirrusGraphQL(sha, cirrusClient, log);
+        await queryCirrusGraphQL(sha, cirrusClient, log, name);
     if (cirrusStatuses == null) {
       return allSuccess;
     }

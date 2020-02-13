@@ -51,8 +51,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       log.debug(
           'Found Cirrus task for commit $sha with existing status $existingTaskStatus');
       final List<String> statuses = <String>[];
+      const String name = 'flutter';
 
-      for (dynamic runStatus in await queryCirrusGraphQL(sha, client, log)) {
+      for (dynamic runStatus
+          in await queryCirrusGraphQL(sha, client, log, name)) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
         log.debug('Found Cirrus build status for $sha: $taskName ($status)');
@@ -88,10 +90,10 @@ Future<List<dynamic>> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
   Logging log,
+  String name,
 ) async {
   assert(client != null);
   const String owner = 'flutter';
-  const String name = 'flutter';
   final QueryResult result = await client.query(
     QueryOptions(
       document: cirusStatusQuery,
