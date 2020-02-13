@@ -35,6 +35,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final LoggingProvider loggingProvider;
 
+  static const String kTargetUrl = 'https://flutter-gold.skia.org/changelists';
+  static const String kContext = 'flutter-gold';
+
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
@@ -46,7 +49,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GitHub githubClient = await config.createGitHubClient();
+    final GitHub gitHubClient = await config.createGitHubClient();
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     final List<String> cirrusCheckStatuses = <String>[];
@@ -58,23 +61,24 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     ];
 
 
-    await for (PullRequest pr in githubClient.pullRequests.list(slug)) {
+    await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Check run statuses for this pr
       for (dynamic runStatus in await _queryGraphQL(
-        pr.id.toString(),
+        pr.number.toString(),
         pr.head.sha,
         cirrusClient,
       )) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
 
-        log.debug('Found Cirrus build status for pull request ${pr.id}, commit '
+        log.debug('Found Cirrus build status for pull request ${pr.number}, commit '
           '${pr.head.sha}: $taskName ($status)');
 
         if (taskName.contains('framework'))
           cirrusCheckStatuses.add(status);
       }
 
+      // Is there a framework test? (Generates gold tryjobs)
       if (cirrusCheckStatuses.isEmpty)
         return Body.empty;
 
@@ -84,51 +88,59 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
-      log.debug('Last known Gold status for ${pr.id} was with sha '
-        '${lastUpdate.head}, status: ${lastUpdate.status ?? 'initial'}');
+      log.debug('Last known Gold status for ${pr.number} was with sha '
+        '${lastUpdate?.head ?? 'initial'}, status: ${lastUpdate?.status ?? 'initial'}');
 
-      if (cirrusCheckStatuses.any(cirrusInProgressStates.contains)) {
-        // Checks have not completed uploading to Gold
-        log.debug('Checks for ${pr.id} at ${pr.head.sha} are still running.');
+      if (lastUpdate.head == null || lastUpdate.head != pr.head.sha){
+        // This is a new commit.
+        log.debug('Creating Gold status for new commit ${pr.head.sha} for pull '
+          'request #${pr.number}.');
 
-        if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning)
-          return Body.empty;
-        
-        else {
-          // Set up running status for github.
+        if (cirrusCheckStatuses.any(cirrusInProgressStates.contains)) {
+          // Checks are still running
+          log.debug('Status: running, checks are not completed.');
           statusRequest = CreateStatus(GithubGoldStatusUpdate.statusRunning);
-          statusRequest.targetUrl = 'https://flutter-gold.skia.org/changelists';
-          statusRequest.context = 'flutter-gold';
+          statusRequest.targetUrl = kTargetUrl;
+          statusRequest.context = kContext;
           statusRequest.description = 'This check is waiting for framework '
-            'checks to be completed';
+            'checks to be completed.';
+        } else {
+          // Checks are completed.
+          // Get gold status.
+          final String status = await _getGoldStatus(pr, log);
+          statusRequest = CreateStatus(status);
+          statusRequest.targetUrl = kTargetUrl;
+          statusRequest.context = kContext;
+          statusRequest.description = _getStatusDescription(status);
+          if (status == GithubGoldStatusUpdate.statusRunning)
+            await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
         }
       } else {
-        // Checks have completed
-        final String status = await _getGoldStatus(pr, log);
-        if (lastUpdate.head != pr.head.sha || lastUpdate.status != status) {
-          // Set up status for github.
-          statusRequest = CreateStatus(status);
-          statusRequest.targetUrl = 'https://flutter-gold.skia.org/changelists';
-          statusRequest.context = 'flutter-gold';
+        // We have seen this commit before.
+        // If checks are still running, or last update was green, do nothing.
+        if (cirrusCheckStatuses.any(cirrusInProgressStates.contains)
+          || lastUpdate.status == GithubGoldStatusUpdate.statusCompleted)
+          return Body.empty;
 
-          switch (status) {
-            case GithubGoldStatusUpdate.statusRunning:
-              statusRequest.description = 'Image changes have been found for '
-                'this pr. Visit https://flutter-gold.skia.org/changelists to '
-                'view and triage (e.g. because this is an intentional change).';
-              // TODO(Piinks): Comment on pr that golden file changes have been detected
-              break;
-            case GithubGoldStatusUpdate.statusCompleted:
-              statusRequest.description = 'All golden file tests have passed.';
-              break;
-          }
-        }
+        // Check Gold for new status.
+        final String status = await _getGoldStatus(pr, log);
+        if (lastUpdate.status == status)
+          return Body.empty;
+
+        // Status update needed.
+        statusRequest = CreateStatus(status);
+        statusRequest.targetUrl = kTargetUrl;
+        statusRequest.context = kContext;
+        statusRequest.description = _getStatusDescription(status);
+        if (status == GithubGoldStatusUpdate.statusRunning)
+          await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
       }
 
       if (statusRequest != null) {
         try {
-          await githubClient.repositories.createStatus(slug, pr.head.sha, statusRequest);
+          await gitHubClient.repositories.createStatus(slug, pr.head.sha, statusRequest);
           lastUpdate.status = statusRequest.state;
+          lastUpdate.head = pr.head.sha;
           lastUpdate.updates += 1;
           statusUpdates.add(lastUpdate);
         } catch (error) {
@@ -194,10 +206,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return tasks;
   }
 
-  /// Used to check for any tryjob results from Flutter Gold associated with a PR.
+  /// Used to check for any tryjob results from Flutter Gold associated with a
+  /// pull request.
   Future<String> _getGoldStatus(PullRequest pr, Logging log) async {
+    // We wait for a few seconds in case tests _just_ finished and the tryjob
+    // has not finished ingesting the results.
+    await Future<void>.delayed(const Duration(seconds: 10));
       final Uri requestForTryjobStatus = Uri.parse(
-        'http://flutter-gold.skia.org/json/changelist/github/${pr.id}/${pr.head.sha}/untriaged'
+        'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged'
     );
     String rawResponse;
     try {
@@ -210,26 +226,50 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (decodedResponse['digests'] == null) {
 
-        log.debug('There are no unexpected image results for ${pr.id} at sha '
+        log.debug('There are no unexpected image results for ${pr.number} at sha '
           '${pr.head.sha}, returning status ${GithubGoldStatusUpdate.statusCompleted}');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
 
-        log.debug('Tryjob for ${pr.id} at sha ${pr.head.sha} generated new '
+        log.debug('Tryjob for ${pr.number} at sha ${pr.head.sha} generated new '
           'images, returning status ${GithubGoldStatusUpdate.statusRunning}');
 
         return GithubGoldStatusUpdate.statusRunning;
       }
     } on FormatException catch (_) {
       throw BadRequestException('Formatting error detected requesting '
-        'tryjob status for pr ${pr.id} from Flutter Gold.\n'
+        'tryjob status for pr ${pr.number} from Flutter Gold.\n'
         'rawResponse: $rawResponse');
     } catch (e) {
       throw BadRequestException('Error detected requesting tryjob status for pr '
-        '${pr.id} from Flutter Gold.\n'
+        '${pr.number} from Flutter Gold.\n'
         'error: $e');
     }
+  }
+
+  String _getStatusDescription(String status) {
+    if (status == GithubGoldStatusUpdate.statusRunning)
+        return 'Image changes have been found for '
+          'this pr. Visit https://flutter-gold.skia.org/changelists to '
+          'view and triage (e.g. because this is an intentional change).';
+    return 'All golden file tests have passed.';
+  }
+
+  /// Creates a comment on a given pull request identified to have golden file
+  /// changes and applies the `will affect goldens` label.
+  Future<void> _commentAndApplyGoldLabel(
+    GitHub gitHubClient,
+    PullRequest pr,
+    RepositorySlug slug,
+  ) async {
+    final String body = 'Golden image changes have been found for this pull '
+      'request. Click [here](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+      'to view and triage (e.g. because this is an intentional change).\n\n'
+      'Changes reported for pull request: ${pr.number} at sha ${pr.head.sha}';
+    await gitHubClient.issues.createComment(slug, pr.number, body);
+    await gitHubClient.issues
+      .addLabelsToIssue(slug, pr.number, <String>['will affect goldens']);
   }
 }
 
