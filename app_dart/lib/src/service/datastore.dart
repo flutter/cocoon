@@ -164,13 +164,13 @@ class DatastoreService {
   Future<GithubGoldStatusUpdate> queryLastGoldUpdate(
     RepositorySlug slug,
     PullRequest pr,
-    ) async {
+  ) async {
     final Query<GithubGoldStatusUpdate> query = db
-      .query<GithubGoldStatusUpdate>()
-      ..filter('repository =', slug.fullName)
-      ..filter('pr =', pr.number);
+        .query<GithubGoldStatusUpdate>()
+          ..filter('repository =', slug.fullName)
+          ..filter('pr =', pr.number);
     final List<GithubGoldStatusUpdate> previousStatusUpdates =
-      await query.run().toList();
+        await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubGoldStatusUpdate(
@@ -182,7 +182,7 @@ class DatastoreService {
     } else {
       if (previousStatusUpdates.length > 1) {
         throw StateError(
-          'GithubGoldStatusUpdate should have no more than one entry on '
+            'GithubGoldStatusUpdate should have no more than one entry on '
             'repository ${slug.fullName}, pr ${pr.number}.');
       }
       return previousStatusUpdates.single;
