@@ -225,7 +225,7 @@ class AuthenticationProvider {
   Future<bool> _isWhitelisted(String email) async {
     final Query<WhitelistedAccount> query =
         _config.db.query<WhitelistedAccount>()
-          ..filter('Email =', email)
+          ..filter('email =', email)
           ..limit(20);
 
     return !(await query.run().isEmpty);

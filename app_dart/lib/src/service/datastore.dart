@@ -80,15 +80,10 @@ class DatastoreService {
   /// specified value will be returned. By default, tasks will be returned
   /// regardless of their name.
   ///
-  /// If [taskStatus] is specified, only tasks whose [Task.status] matches the
-  /// specified value will be returned. By default, tasks will be returned
-  /// regardless of their status.
-  ///
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
   Stream<FullTask> queryRecentTasks({
     String taskName,
-    String taskStatus,
     int commitLimit = 20,
     int taskLimit = 20,
   }) async* {
@@ -100,9 +95,6 @@ class DatastoreService {
         ..order('-createTimestamp');
       if (taskName != null) {
         query.filter('name =', taskName);
-      }
-      if (taskStatus != null) {
-        query.filter('status =', taskStatus);
       }
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }

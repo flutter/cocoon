@@ -29,21 +29,6 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       state
                     }
                   }
-                  checkSuites(first: 10) {
-                    nodes {
-                      app {
-                        name
-                      }
-                      checkRuns(last: 100) {
-                        nodes {
-                          id
-                          name
-                          status
-                          conclusion
-                        }
-                      }
-                    }
-                  }
                 }
               }
             }
