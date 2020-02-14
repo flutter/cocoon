@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -24,16 +24,19 @@ import '../service/datastore.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
-  const PushGoldStatusToGithub(Config config,
+  PushGoldStatusToGithub(Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting LoggingProvider loggingProvider,
+    HttpClient goldClient,
   }) : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
        loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
+       goldClient = goldClient ?? HttpClient(),
        super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final LoggingProvider loggingProvider;
+  final HttpClient goldClient;
 
   static const String kTargetUrl = 'https://flutter-gold.skia.org/changelists';
   static const String kContext = 'flutter-gold';
@@ -108,12 +111,16 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // Checks are completed.
           // Get gold status.
           final String status = await _getGoldStatus(pr, log);
+          log.debug('Checks are completed, Gold reports $status status for '
+            '${pr.number} sha ${pr.head.sha}.');
           statusRequest = CreateStatus(status);
           statusRequest.targetUrl = kTargetUrl;
           statusRequest.context = kContext;
           statusRequest.description = _getStatusDescription(status);
-          if (status == GithubGoldStatusUpdate.statusRunning)
+          if (status == GithubGoldStatusUpdate.statusRunning) {
+            log.debug('Notifying for triage.');
             await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+          }
         }
       } else {
         // We have seen this commit before.
@@ -122,18 +129,25 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           || lastUpdate.status == GithubGoldStatusUpdate.statusCompleted)
           return Body.empty;
 
-        // Check Gold for new status.
+        // Check Gold for new status and update.
         final String status = await _getGoldStatus(pr, log);
-        if (lastUpdate.status == status)
-          return Body.empty;
-
-        // Status update needed.
-        statusRequest = CreateStatus(status);
-        statusRequest.targetUrl = kTargetUrl;
-        statusRequest.context = kContext;
-        statusRequest.description = _getStatusDescription(status);
-        if (status == GithubGoldStatusUpdate.statusRunning)
+        log.debug('Checks are completed, Gold reports $status status for '
+          '${pr.number} sha ${pr.head.sha}.');
+        if (lastUpdate.status != status) {
+          // The 'running' state is used when the check is waiting and when
+          // triage is needed, so if it is already 'running' we don't need to
+          // update it. The comment feature below alerts the author that the
+          // result needs to be addressed.
+          statusRequest = CreateStatus(status);
+          statusRequest.targetUrl = kTargetUrl;
+          statusRequest.context = kContext;
+          statusRequest.description = _getStatusDescription(status);
+        }
+        if (status == GithubGoldStatusUpdate.statusRunning
+          && !await _alreadyCommented(gitHubClient, pr, slug)) {
+          log.debug('Notifying for triage.');
           await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+        }
       }
 
       if (statusRequest != null) {
@@ -217,9 +231,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     );
     String rawResponse;
     try {
-      final io.HttpClient httpClient = io.HttpClient();
-      final io.HttpClientRequest request = await httpClient.getUrl(requestForTryjobStatus);
-      final io.HttpClientResponse response = await request.close();
+      final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);
+      final HttpClientResponse response = await request.close();
 
       rawResponse = await utf8.decodeStream(response);
       final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
@@ -266,10 +279,30 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final String body = 'Golden image changes have been found for this pull '
       'request. Click [here](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
       'to view and triage (e.g. because this is an intentional change).\n\n'
-      'Changes reported for pull request: ${pr.number} at sha ${pr.head.sha}';
+      + config.goldenBreakingChangeMessage + '\n\n'
+      + '_Changes reported for pull request ${pr.number} at sha ${pr.head.sha}_\n\n';
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues
-      .addLabelsToIssue(slug, pr.number, <String>['will affect goldens']);
+      .addLabelsToIssue(slug, pr.number, <String>[
+        'will affect goldens',
+        'severe: API break',
+      ]);
+  }
+
+  Future<bool> _alreadyCommented(
+    GitHub gitHubClient,
+    PullRequest pr,
+    RepositorySlug slug,
+  ) async {
+    final Stream<IssueComment> comments =
+      gitHubClient.issues.listCommentsByIssue(slug, pr.number);
+    await for (IssueComment comment in comments) {
+      if (comment.body.contains(
+        'Changes reported for pull request ${pr.number} at sha ${pr.head.sha}'
+      )) {
+        return true;
+      }
+    }
+    return false;
   }
 }
-
