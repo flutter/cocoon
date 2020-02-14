@@ -17,6 +17,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
 import 'check_for_waiting_pull_requests_queries.dart';
+import 'refresh_cirrus_status.dart';
 
 /// Maximum number of pull requests to merge on each check.
 /// This should be kept reasonably low to avoid flooding infra when the tree
@@ -58,7 +59,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       log,
       client,
     );
-    for (_AutoMergeQueryResult queryResult in _parseQueryData(data)) {
+    for (_AutoMergeQueryResult queryResult
+        in await _parseQueryData(data, name)) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -159,7 +161,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
   ///
   /// This method will not return null, but may return an empty list.
-  List<_AutoMergeQueryResult> _parseQueryData(Map<String, dynamic> data) {
+  Future<List<_AutoMergeQueryResult>> _parseQueryData(
+      Map<String, dynamic> data, String name) async {
     final Map<String, dynamic> repository = data['repository'];
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
@@ -199,15 +202,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit['oid'];
-      final List<Map<String, dynamic>> checkSuites =
-          commit['checkSuites']['nodes'].cast<Map<String, dynamic>>();
       final List<Map<String, dynamic>> statuses =
           commit['status']['contexts'].cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};
-      final bool ciSuccessful = _checkStatuses(
-        statuses,
-        checkSuites,
+
+      final bool ciSuccessful = await _checkStatuses(
+        sha,
         failingStatuses,
+        statuses,
+        name,
       );
 
       list.add(_AutoMergeQueryResult(
@@ -223,52 +226,55 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
     return list;
   }
-}
 
-/// Returns whether all statuses and checks are successful.
-///
-/// Also fills [failures] with the names of any status/check that has failed,
-/// if and only if that status is not `'flutter-build'` or `'luci-engine'`.
-///
-/// The idea is that those statuses are checks based on other pull requests,
-/// not this one. If anything based on this pull request fails, we should
-/// end up removing the label so the user can either fix it or deflake or
-/// what have you.
-bool _checkStatuses(
-  List<Map<String, dynamic>> statuses,
-  List<Map<String, dynamic>> checks,
-  Set<String> failures,
-) {
-  assert(failures != null && failures.isEmpty);
-  // The status checks that are not related to changes in this PR.
-  const Set<String> notInAuthorsControl = <String>{
-    'flutter-build', // flutter repo
-    'luci-engine', // engine repo
-  };
+  /// Returns whether all statuses are successful.
+  ///
+  /// Also fills [failures] with the names of any status/check that has failed.
+  Future<bool> _checkStatuses(
+    String sha,
+    Set<String> failures,
+    List<Map<String, dynamic>> statuses,
+    String name,
+  ) async {
+    assert(failures != null && failures.isEmpty);
+    bool allSuccess = true;
 
-  bool allSuccess = true;
-  for (Map<String, dynamic> status in statuses) {
-    final String name = status['context'];
-    if (status['state'] != 'SUCCESS') {
-      allSuccess = false;
-      if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
-        failures.add(name);
-      }
-    }
-  }
-  for (Map<String, dynamic> check in checks) {
-    for (Map<String, dynamic> checkRun in check['checkRuns']['nodes']) {
-      if (checkRun['conclusion'] != 'SUCCESS') {
-        final String name = checkRun['name'];
+    // The status checks that are not related to changes in this PR.
+    const Set<String> notInAuthorsControl = <String>{
+      'flutter-build', // flutter repo
+      'luci-engine', // engine repo
+    };
+
+    for (Map<String, dynamic> status in statuses) {
+      final String name = status['context'];
+      if (status['state'] != 'SUCCESS') {
         allSuccess = false;
-        if (checkRun['conclusion'] == 'FAILURE' &&
+        if (status['state'] == 'FAILURE' &&
             !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
       }
     }
+
+    const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
+    final List<dynamic> cirrusStatuses =
+        await queryCirrusGraphQL(sha, cirrusClient, log, name);
+    if (cirrusStatuses == null) {
+      return allSuccess;
+    }
+    for (dynamic runStatus in cirrusStatuses) {
+      final String status = runStatus['status'];
+      final String name = runStatus['name'];
+      if (status != 'COMPLETED') {
+        allSuccess = false;
+      }
+      if (_failedStates.contains(status)) {
+        failures.add(name);
+      }
+    }
+    return allSuccess;
   }
-  return allSuccess;
 }
 
 /// Parses the graphQL response reviews.
