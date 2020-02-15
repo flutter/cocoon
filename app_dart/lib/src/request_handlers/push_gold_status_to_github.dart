@@ -80,13 +80,17 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             'Found Cirrus build status for pull request ${pr.number}, commit '
             '${pr.head.sha}: $taskName ($status)');
 
-        if (taskName.contains('framework'))
+        if (taskName.contains('framework')) {
+          // Analyzer requires curly braces here.
           cirrusCheckStatuses.add(status);
+        }
       }
 
       // Is there a framework test? (Generates gold tryjobs)
-      if (cirrusCheckStatuses.isEmpty)
+      if (cirrusCheckStatuses.isEmpty) {
+        // Analyzer requires curly braces here.
         return Body.empty;
+      }
 
       // This PR needs a Gold Status
       // Get last known Gold status from datastore
