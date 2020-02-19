@@ -152,22 +152,21 @@ class AutoRollWidget extends StatelessWidget {
     final SkiaAutoRoll autoRoll = ModelBinding.of<SkiaAutoRoll>(context);
     IconData icon;
     Color backgroundColor;
-    switch (autoRoll.mode) {
-      case 'running':
+    if (autoRoll.mode == 'running') {
+      if (autoRoll.lastRollResult == 'succeeded') {
         icon = Icons.check;
         backgroundColor = Colors.green;
-        break;
-      case 'dry run':
-        icon = Icons.warning;
-        backgroundColor = Colors.amberAccent;
-        break;
-      case 'stopped':
+      } else if (autoRoll.lastRollResult == 'failed') {
         icon = Icons.error;
         backgroundColor = Colors.redAccent;
-        break;
-      default:
-        icon = Icons.help_outline;
-        backgroundColor = Colors.grey;
+      }
+    } else if (autoRoll.mode == 'stopped') {
+      icon = Icons.pause_circle_filled;
+      backgroundColor = Colors.amberAccent;
+    }
+    if (icon == null || backgroundColor == null) {
+      icon = Icons.report_problem;
+      backgroundColor = Colors.grey;
     }
     return ListTile(
         title: Text(name),
