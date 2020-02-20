@@ -66,6 +66,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
             } else {
               results['able-to-build-and-sign'] = HealthCheckResult.failure(
                   'Failed to build and sign iOS app.');
+              await getFlutterAt('master');
             }
           });
         } finally {
