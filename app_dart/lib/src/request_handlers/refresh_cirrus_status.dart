@@ -45,7 +45,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     final GraphQLClient client = await config.createCirrusGraphQLClient();
 
     await for (FullTask task
-        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 1)) {
+        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
       final String sha = task.commit.sha;
       final String existingTaskStatus = task.task.status;
       log.debug(
