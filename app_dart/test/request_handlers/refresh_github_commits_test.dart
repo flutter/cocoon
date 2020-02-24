@@ -23,6 +23,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 
 const String singleTaskManifestYaml = '''
 tasks:
@@ -43,7 +44,8 @@ void main() {
     List<String> githubCommits;
     int yieldedCommitCount;
 
-    Stream<RepositoryCommit> commitStream() async* {
+    List<RepositoryCommit> commitList() {
+      final List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
@@ -53,13 +55,12 @@ void main() {
             'Username@abc.com',
             DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
         final GitCommit gitCommit = GitCommit()..committer = committer;
-        final RepositoryCommit commit = RepositoryCommit()
+        commits.add(RepositoryCommit()
           ..sha = sha
           ..author = author
-          ..commit = gitCommit;
-        yieldedCommitCount++;
-        yield commit;
+          ..commit = gitCommit);
       }
+      return commits;
     }
 
     Commit shaToCommit(String sha) {
@@ -69,22 +70,17 @@ void main() {
     }
 
     setUp(() {
-      final MockGitHub github = MockGitHub();
-      final MockRepositoriesService repositories = MockRepositoriesService();
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      final FakeGithubService githubService = FakeGithubService();
       final MockTabledataResourceApi tabledataResourceApi =
           MockTabledataResourceApi();
-      when(github.repositories).thenReturn(repositories);
-      when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
-        return commitStream();
-      });
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
       yieldedCommitCount = 0;
       config = FakeConfig(
-          githubClient: github, tabledataResourceApi: tabledataResourceApi);
+          tabledataResourceApi: tabledataResourceApi,
+          githubService: githubService);
       auth = FakeAuthenticationProvider();
       db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
@@ -96,6 +92,10 @@ void main() {
         httpClientProvider: () => httpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
+
+      githubService.listCommitsBranch = (String branch) {
+        return commitList();
+      };
     });
 
     test('succeeds when GitHub returns no commits', () async {
@@ -106,6 +106,16 @@ void main() {
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+    });
+
+    test('checks branch property for commits', () async {
+      githubCommits = <String>['1'];
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      httpClient.request.response.body = singleTaskManifestYaml;
+      await tester.get<Body>(handler);
+      final Commit commit = db.values.values.whereType<Commit>().last;
+      expect(commit.branch, 'master');
     });
 
     test('stops requesting GitHub commits when it finds an existing commit',
@@ -123,13 +133,6 @@ void main() {
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 6);
       expect(db.values.values.whereType<Task>().length, 10);
-      // You'd expect this to be 4 (two for the commits that aren't yet in the
-      // datastore, one for the `await for` loop to discover the existing
-      // commit, and one extra yield waiting to be taken from the queue), but
-      // the use of an `await` on an async task within an `await for` loop
-      // causes an extra stream event to be yielded.
-      // https://github.com/dart-lang/sdk/issues/37933
-      expect(yieldedCommitCount, 5);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
@@ -207,9 +210,5 @@ void main() {
 String toSha(Commit commit) => commit.sha;
 
 int toTimestamp(Commit commit) => commit.timestamp;
-
-class MockGitHub extends Mock implements GitHub {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
 
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}

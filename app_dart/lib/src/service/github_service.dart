@@ -5,9 +5,7 @@ import 'dart:convert' show json;
 
 import 'package:github/server.dart';
 import 'package:http/http.dart';
-import 'package:meta/meta.dart';
 
-@immutable
 class GithubService {
   const GithubService(this.github);
 
@@ -26,5 +24,38 @@ class GithubService {
       checkRuns.addAll(jsonStatus['check_runs']);
     }
     return checkRuns;
+  }
+
+  /// Lists the commits of the provided repository [slug] and [branch].
+  Future<List<RepositoryCommit>> listCommits(
+      RepositorySlug slug, String branch) async {
+    const Duration time = Duration(days: 30);
+    ArgumentError.checkNotNull(slug);
+    final PaginationHelper paginationHelper = PaginationHelper(github);
+
+    final List<dynamic> commits = <dynamic>[];
+    await for (Response response in paginationHelper.fetchStreamed(
+      'GET',
+      '/repos/${slug.fullName}/commits',
+      params: <String, dynamic>{
+        'sha': branch,
+        'since': DateTime.now().subtract(time).toIso8601String()
+      },
+    )) {
+      commits.addAll(json.decode(response.body));
+    }
+
+    return commits.map((dynamic commit) {
+      return RepositoryCommit()
+        ..sha = commit['sha']
+        ..author = (User()
+          ..login = commit['author']['login']
+          ..avatarUrl = commit['author']['avatar_url'])
+        ..commit = (GitCommit()
+          ..committer = (GitCommitUser(
+              commit['commit']['author']['name'],
+              commit['commit']['author']['email'],
+              DateTime.parse(commit['commit']['author']['date']))));
+    }).toList();
   }
 }

@@ -20,6 +20,7 @@ class Commit extends Model {
     this.author,
     this.authorAvatarUrl,
     this.repository,
+    this.branch,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -50,6 +51,10 @@ class Commit extends Model {
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
   String repository;
 
+  /// The branch of the commit.
+  @StringProperty(propertyName: 'Branch', required: true)
+  String branch;
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
@@ -62,6 +67,7 @@ class Commit extends Model {
       ..write(', author: $author')
       ..write(', authorAvatarUrl: $authorAvatarUrl')
       ..write(', repository: $repository')
+      ..write(', branch: $branch')
       ..write(')');
     return buf.toString();
   }
@@ -91,6 +97,7 @@ class SerializableCommit {
           'avatar_url': commit.authorAvatarUrl,
         },
       },
+      'Branch': commit.branch,
     };
   }
 
