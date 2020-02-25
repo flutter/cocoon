@@ -263,6 +263,10 @@ class Config {
         <String, String>{
           'name': 'Windows Web Engine',
           'repo': 'engine',
+        },
+        <String, String>{
+          'name': 'Mac Web Engine',
+          'repo': 'engine',
         }
       ];
 
