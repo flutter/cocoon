@@ -21,6 +21,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
+import 'refresh_cirrus_status.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
@@ -68,11 +69,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Check run statuses for this pr
-      for (dynamic runStatus in await _queryGraphQL(
-        pr.number.toString(),
-        pr.head.sha,
-        cirrusClient,
-      )) {
+      final List<dynamic> cirrusStatuses =
+        await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
+      for (dynamic runStatus in cirrusStatuses) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
 
@@ -184,50 +183,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
-  /// Queries the Cirrus GraphQL for build information for the given pr and sha.
-  Future<List<dynamic>> _queryGraphQL(
-    String pr,
-    String sha,
-    GraphQLClient client,
-  ) async {
-    const String owner = 'flutter';
-    const String name = 'flutter';
-    const String cirrusStatusQuery = r'''
-    query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
-      searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) {
-        pullRequest(first: 1, query: $PR) { 
-          id latestGroupTasks { 
-            id name status 
-          }
-        } 
-      } 
-    }''';
-    final QueryResult result = await client.query(
-      QueryOptions(
-        document: cirrusStatusQuery,
-        fetchPolicy: FetchPolicy.noCache,
-        variables: <String, dynamic>{
-          'owner': owner,
-          'name': name,
-          'SHA': sha,
-          'PR': pr,
-        },
-      ),
-    );
-
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
-      throw const BadRequestException('GraphQL query failed');
-    }
-
-    final List<dynamic> tasks = <dynamic>[];
-    final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
-    tasks.addAll(searchBuilds['latestGroupTasks']);
-    return tasks;
-  }
-
   /// Used to check for any tryjob results from Flutter Gold associated with a
   /// pull request.
   Future<String> _getGoldStatus(PullRequest pr, Logging log) async {
@@ -294,6 +249,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
       'severe: API break',
+      // TODO(Piinks): Add CQ+1 label when https://github.com/flutter/flutter/pull/49815
+      // lands to keep everything in sync across both CIs. The comment feedback
+      // will need to reflect that the Luci checks will need to run and be
+      // triaged as well.
     ]);
   }
 
