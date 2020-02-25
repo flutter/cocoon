@@ -70,7 +70,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Check run statuses for this pr
       final List<dynamic> cirrusStatuses =
-        await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
+          await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
       for (dynamic runStatus in cirrusStatuses) {
         final String status = runStatus['status'];
         final String taskName = runStatus['name'];
