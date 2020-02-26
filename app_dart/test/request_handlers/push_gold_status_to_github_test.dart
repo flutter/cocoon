@@ -43,6 +43,7 @@ void main() {
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
+      cirrusGraphQLClient = FakeGraphQLClient();
       config = FakeConfig(cirrusGraphQLClient: cirrusGraphQLClient);
       db = FakeDatastoreDB();
       log = FakeLogging();
