@@ -158,20 +158,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not apply labels or make comments
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
 
         test('same commit, checks running, last status running', () async {
@@ -195,20 +195,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not apply labels or make comments
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
 
         test('same commit, checks complete, last status complete', () async {
@@ -232,20 +232,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not apply labels or make comments
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
 
         test(
@@ -348,20 +348,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not apply labels or make comments
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
       });
 
@@ -387,20 +387,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not apply labels or make comments
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
 
         test('new commit, checks complete, no changes detected', () async {
@@ -435,20 +435,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not label or comment
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
 
         test('new commit, checks complete, change detected, should comment',
@@ -541,20 +541,20 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not label or comment
-          verify(issuesService.addLabelsToIssue(
+          verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,
             <String>[
               'will affect goldens',
               'severe: API break',
             ],
-          )).called(0);
+          ));
 
-          verify(issuesService.createComment(
+          verifyNever(issuesService.createComment(
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
-          )).called(0);
+          ));
         });
       });
     });
