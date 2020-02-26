@@ -169,7 +169,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(any(String))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
 
@@ -206,7 +206,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(any(String))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
 
@@ -243,7 +243,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(any(String))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
 
@@ -359,7 +359,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(any(String))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
       });
@@ -398,7 +398,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(any(String))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
 
@@ -446,7 +446,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
 
@@ -495,7 +495,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(1);
         });
 
@@ -552,7 +552,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(0);
         });
       });
