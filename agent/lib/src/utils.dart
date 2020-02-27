@@ -325,17 +325,27 @@ Future<int> exec(String executable, List<String> arguments,
   Process proc =
       await startProcess(executable, arguments, env: env, silent: silent);
 
-  proc.stdout
+  final StreamSubscription<String> stdoutSubscription = proc.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen(logger.info);
-  proc.stderr
+  final StreamSubscription<String> stderrSubscription = proc.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen(logger.warning);
 
-  int exitCode = await proc.exitCode;
+  // Wait for stdout and stderr to be fully processed because proc.exitCode
+  // may complete first.
+  await Future.wait<void>(<Future<void>>[
+    stdoutSubscription.asFuture<void>(),
+    stderrSubscription.asFuture<void>(),
+  ]);
+  // The streams as futures have already completed, so waiting for the
+  // potentially async stream cancellation to complete likely has no benefit.
+  unawaited(stdoutSubscription.cancel());
+  unawaited(stderrSubscription.cancel());
 
+  int exitCode = await proc.exitCode;
   if (exitCode != 0 && !canFail) {
     final List<String> command = [executable]..addAll(arguments);
     fail('Command "${command.join(' ')}" failed with exit code $exitCode.');
@@ -655,3 +665,14 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
     await Future<void>.delayed(Duration(seconds: 1));
   }
 }
+
+/// Indicates to the linter that the given future is intentionally not `await`-ed.
+///
+/// Has the same functionality as `unawaited` from `package:pedantic`.
+///
+/// In an async context, it is normally expected than all Futures are awaited,
+/// and that is the basis of the lint unawaited_futures which is turned on for
+/// the flutter_tools package. However, there are times where one or more
+/// futures are intentionally not awaited. This function may be used to ignore a
+/// particular future. It silences the unawaited_futures lint.
+void unawaited(Future<void> future) {}
