@@ -178,7 +178,7 @@ void main() {
 
     test('Merge PR with complated tests', () async {
       statuses = <dynamic>[
-        <String, String>{'id': '1', 'status': 'COMPLETED', 'name': 'test1'},
+        <String, String>{'id': '1', 'status': 'SKIPPED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
 
