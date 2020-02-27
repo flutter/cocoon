@@ -256,7 +256,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
     }
 
-    const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+    const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<dynamic> cirrusStatuses =
