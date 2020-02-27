@@ -257,6 +257,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
 
     const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+    const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<dynamic> cirrusStatuses =
         await queryCirrusGraphQL(sha, cirrusClient, log, name);
@@ -266,7 +267,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     for (dynamic runStatus in cirrusStatuses) {
       final String status = runStatus['status'];
       final String name = runStatus['name'];
-      if (status != 'COMPLETED') {
+      if (!_succeededStates.contains(status)) {
         allSuccess = false;
       }
       if (_failedStates.contains(status)) {
