@@ -68,10 +68,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       String newTaskStatus;
       if (statuses.isEmpty) {
         newTaskStatus = Task.statusNew;
-      } else if (statuses.any(_failedStates.contains)) {
+      } else if (statuses.any(kCirrusFailedStates.contains)) {
         newTaskStatus = Task.statusFailed;
         task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-      } else if (statuses.any(_inProgressStates.contains)) {
+      } else if (statuses.any(kCirrusInProgressStates.contains)) {
         newTaskStatus = Task.statusInProgress;
       } else {
         newTaskStatus = Task.statusSucceeded;
