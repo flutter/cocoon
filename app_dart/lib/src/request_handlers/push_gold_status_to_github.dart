@@ -210,8 +210,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   String _getStatusDescription(String status) {
     if (status == GithubGoldStatusUpdate.statusRunning) {
       return 'Image changes have been found for '
-        'this pr. Visit https://flutter-gold.skia.org/changelists to '
-        'view and triage (e.g. because this is an intentional change).';
+          'this pr. Visit https://flutter-gold.skia.org/changelists to '
+          'view and triage (e.g. because this is an intentional change).';
     }
     return 'All golden file tests have passed.';
   }
