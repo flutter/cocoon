@@ -19,12 +19,16 @@ import '../service/datastore.dart';
 import 'refresh_cirrus_status_queries.dart';
 
 /// Refer all cirrus build statuses at: https://github.com/cirruslabs/cirrus-ci-web/blob/master/schema.graphql#L120
-const List<String> _failedStates = <String>['FAILED', 'ERRORED', 'ABORTED'];
+const List<String> _failedStates = <String>[
+  'ABORTED',
+  'FAILED',
+];
 const List<String> _inProgressStates = <String>[
-  'EXECUTING',
   'CREATED',
   'TRIGGERED',
-  'NEEDS_APPROVAL'
+  'SCHEDULED',
+  'EXECUTING',
+  'PAUSED'
 ];
 
 @immutable
