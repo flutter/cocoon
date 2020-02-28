@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
 
 /// Class that represents an update having been posted to a GitHub
 /// flutter/flutter PR on the status of tryjobs generated on Flutter Gold.
