@@ -59,7 +59,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<String> cirrusCheckStatuses = <String>[];
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
-      // Check run statuses for this pr
+      // Query checks for this pr.
       final List<dynamic> cirrusChecks =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
       for (dynamic check in cirrusChecks) {
@@ -78,60 +78,37 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
-      log.debug('Last known Gold status for ${pr.number} was with sha '
-          '${lastUpdate?.head ?? 'initial'}, status: ${lastUpdate?.status ?? 'initial'}');
+      log.debug('Last known Gold status for ${pr.number} was with sha: '
+          '${lastUpdate.head}, status: ${lastUpdate.status}');
 
-      if (lastUpdate.head == null || lastUpdate.head != pr.head.sha) {
-        // This is a new commit.
-        log.debug('Creating Gold status for new commit ${pr.head.sha} for pull '
-            'request #${pr.number}.');
-
-        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
-          // Checks are still running
-          log.debug('Status: running, checks are not completed.');
-          statusRequest = _createStatus(
-            GithubGoldStatusUpdate.statusRunning,
-            'This check is waiting for framework checks to be completed.',
-          );
-        } else {
-          // Checks are completed.
-          // Get gold status.
-          final String status = await _getGoldStatus(pr, log);
-          log.debug('Checks are completed, Gold reports $status status for '
-              '${pr.number} sha ${pr.head.sha}.');
-          statusRequest = _createStatus(status, _getStatusDescription(status));
-          if (status == GithubGoldStatusUpdate.statusRunning) {
-            log.debug('Notifying for triage.');
-            await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
-          }
-        }
-      } else {
-        // We have seen this commit before.
-        // If checks are still running, or last update was green, do nothing.
-        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
-            lastUpdate.status == GithubGoldStatusUpdate.statusCompleted) {
-          return Body.empty;
-        }
-
-        // Check Gold for new status and update.
-        final String status = await _getGoldStatus(pr, log);
-        log.debug('Checks are completed, Gold reports $status status for '
-            '${pr.number} sha ${pr.head.sha}.');
-        if (lastUpdate.status != status) {
-          // The 'running' state is used when the check is waiting and when
-          // triage is needed, so if it is already 'running' we don't need to
-          // update it. The comment feature below alerts the author that the
-          // result needs to be addressed.
-          statusRequest = _createStatus(status, _getStatusDescription(status));
-        }
-        if (status == GithubGoldStatusUpdate.statusRunning &&
-            !await _alreadyCommented(gitHubClient, pr, slug)) {
-          log.debug('Notifying for triage.');
-          await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
-        }
+      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
+          lastUpdate.head == pr.head.sha) {
+        // We have already seen this commit and it is completed.
+        return Body.empty;
       }
 
-      if (statusRequest != null) {
+      if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
+        // Checks are still running, we have to wait.
+        statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
+            'This check is waiting for all other checks to be completed.');
+      }
+
+      // Get Gold status.
+      final String goldStatus = await _getGoldStatus(pr, log);
+      log.debug('Checks are completed, Gold reports $goldStatus status for '
+          '${pr.number} sha ${pr.head.sha}.');
+      statusRequest =
+          _createStatus(goldStatus, _getStatusDescription(goldStatus));
+      if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+          !await _alreadyCommented(gitHubClient, pr, slug)) {
+        log.debug('Notifying for triage.');
+        await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+      }
+
+      // Push updates if there is a status change (detected by unique description)
+      // or this is a new commit.
+      if (lastUpdate.description != statusRequest.description ||
+          lastUpdate.head != pr.head.sha) {
         try {
           await gitHubClient.repositories
               .createStatus(slug, pr.head.sha, statusRequest);
@@ -158,11 +135,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
-  CreateStatus _createStatus(String status, String description) {
-    final CreateStatus statusUpdate = CreateStatus(status);
-    statusUpdate.targetUrl = 'https://flutter-gold.skia.org/changelists';
-    statusUpdate.context = 'flutter-gold';
-    statusUpdate.description = description;
+  /// Returns a GitHub Status for the given state and description.
+  CreateStatus _createStatus(String state, String description) {
+    final CreateStatus statusUpdate = CreateStatus(state)
+      ..targetUrl = 'https://flutter-gold.skia.org/changelists'
+      ..context = 'flutter-gold'
+      ..description = description;
     return statusUpdate;
   }
 
@@ -210,8 +188,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   String _getStatusDescription(String status) {
     if (status == GithubGoldStatusUpdate.statusRunning) {
       return 'Image changes have been found for '
-          'this pr. Visit https://flutter-gold.skia.org/changelists to '
-          'view and triage (e.g. because this is an intentional change).';
+          'this pull request. Visit https://flutter-gold.skia.org/changelists '
+          'to view and triage (e.g. because this is an intentional change).';
     }
     return 'All golden file tests have passed.';
   }

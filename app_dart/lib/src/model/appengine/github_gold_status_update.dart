@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:github/server.dart';
 
 /// Class that represents an update having been posted to a GitHub
 /// flutter/flutter PR on the status of tryjobs generated on Flutter Gold.
@@ -13,6 +14,7 @@ class GithubGoldStatusUpdate extends Model {
     this.pr,
     this.head,
     this.status,
+    this.description,
     this.updates,
   }) {
     parentKey = key?.parent;
@@ -32,6 +34,9 @@ class GithubGoldStatusUpdate extends Model {
   @StringProperty(propertyName: 'Status', required: true)
   String status;
 
+  @StringProperty(propertyName: 'Description', required: true)
+  String description;
+
   @IntProperty(propertyName: 'Updates', required: true)
   int updates;
 
@@ -45,6 +50,7 @@ class GithubGoldStatusUpdate extends Model {
       ..write(', pr: $pr')
       ..write(', head: $head')
       ..write(', lastStatus: $status')
+      ..write(', description $description')
       ..write(', updates: $updates')
       ..write(')');
     return buf.toString();

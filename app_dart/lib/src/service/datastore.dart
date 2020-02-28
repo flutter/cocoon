@@ -167,8 +167,8 @@ class DatastoreService {
     if (previousStatusUpdates.isEmpty) {
       return GithubGoldStatusUpdate(
         pr: pr.number,
-        head: null,
-        status: null,
+        head: '',
+        status: '',
         updates: 0,
       );
     } else {
