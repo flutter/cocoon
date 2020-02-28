@@ -19,11 +19,11 @@ import '../service/datastore.dart';
 import 'refresh_cirrus_status_queries.dart';
 
 /// Refer all cirrus build statuses at: https://github.com/cirruslabs/cirrus-ci-web/blob/master/schema.graphql#L120
-const List<String> _failedStates = <String>[
+const List<String> kCirrusFailedStates = <String>[
   'ABORTED',
   'FAILED',
 ];
-const List<String> _inProgressStates = <String>[
+const List<String> kCirrusInProgressStates = <String>[
   'CREATED',
   'TRIGGERED',
   'SCHEDULED',
