@@ -42,7 +42,19 @@ void main() {
     RefreshGithubCommits handler;
 
     List<String> githubCommits;
+    List<String> githubBranches;
     int yieldedCommitCount;
+
+    Stream<Branch> branchStream() async* {
+      for (String branchName in githubBranches) {
+        final CommitDataUser author = CommitDataUser('a', 1, 'b');
+        final GitCommit gitCommit = GitCommit();
+        final CommitData commitData = CommitData('sha', gitCommit, 'test',
+            'test', 'test', author, author, <Map<String, dynamic>>[]);
+        final Branch branch = Branch(branchName, commitData);
+        yield branch;
+      }
+    }
 
     List<RepositoryCommit> commitList() {
       final List<RepositoryCommit> commits = <RepositoryCommit>[];
@@ -70,6 +82,8 @@ void main() {
     }
 
     setUp(() {
+      final MockGitHub github = MockGitHub();
+      final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
       final MockTabledataResourceApi tabledataResourceApi =
           MockTabledataResourceApi();
@@ -79,6 +93,7 @@ void main() {
 
       yieldedCommitCount = 0;
       config = FakeConfig(
+          githubClient: github,
           tabledataResourceApi: tabledataResourceApi,
           githubService: githubService);
       auth = FakeAuthenticationProvider();
@@ -96,10 +111,17 @@ void main() {
       githubService.listCommitsBranch = (String branch) {
         return commitList();
       };
+
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      when(github.repositories).thenReturn(repositories);
+      when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
+        return branchStream();
+      });
     });
 
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
+      githubBranches = <String>['master'];
       final Body body = await tester.get<Body>(handler);
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
@@ -110,17 +132,19 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
+      githubBranches = <String>['v1.1.1', 'test'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().last;
-      expect(commit.branch, 'master');
+      expect(commit.branch, 'v1.1.1');
     });
 
     test('stops requesting GitHub commits when it finds an existing commit',
         () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      githubBranches = <String>['master'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
       for (String sha in dbCommits) {
         final Commit commit = shaToCommit(sha);
@@ -140,6 +164,7 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
+      githubBranches = <String>['master'];
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
@@ -171,6 +196,7 @@ void main() {
       };
 
       githubCommits = <String>['1'];
+      githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
@@ -186,6 +212,7 @@ void main() {
       httpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
 
       githubCommits = <String>['1'];
+      githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
       await expectLater(
@@ -210,5 +237,9 @@ void main() {
 String toSha(Commit commit) => commit.sha;
 
 int toTimestamp(Commit commit) => commit.timestamp;
+
+class MockGitHub extends Mock implements GitHub {}
+
+class MockRepositoriesService extends Mock implements RepositoriesService {}
 
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}

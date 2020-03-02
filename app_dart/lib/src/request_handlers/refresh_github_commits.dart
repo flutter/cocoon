@@ -64,25 +64,29 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final GithubService githubService = await config.createGithubService();
+    final GitHub github = await config.createGitHubClient();
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    const List<String> branches = <String>['master', 'beta', 'stable'];
+    final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
+    final RegExp exp = RegExp(r'v[0-9]+.[0-9]+.[0-9]+');
 
-    for (String branch in branches) {
-      final List<RepositoryCommit> commits =
-          await githubService.listCommits(slug, branch);
-      final List<Commit> newCommits =
-          await _getNewCommits(commits, datastore, branch);
+    await for (Branch branch in branches) {
+      if (branch.name == 'master' || exp.hasMatch(branch.name)) {
+        final List<RepositoryCommit> commits =
+            await githubService.listCommits(slug, branch.name);
+        final List<Commit> newCommits =
+            await _getNewCommits(commits, datastore, branch.name);
 
-      if (newCommits.isEmpty) {
-        // Nothing to do.
-        continue;
+        if (newCommits.isEmpty) {
+          // Nothing to do.
+          continue;
+        }
+        log.debug(
+            'Found ${newCommits.length} new commits for branch $branch on GitHub');
+
+        //Save [Commit] to BigQuery and create [Task] in Datastore.
+        await _saveData(newCommits, datastore);
       }
-      log.debug(
-          'Found ${newCommits.length} new commits for branch $branch on GitHub');
-
-      //Save [Commit] to BigQuery and create [Task] in Datastore.
-      await _saveData(newCommits, datastore);
     }
 
     return Body.empty;

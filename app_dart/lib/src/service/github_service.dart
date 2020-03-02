@@ -29,7 +29,7 @@ class GithubService {
   /// Lists the commits of the provided repository [slug] and [branch].
   Future<List<RepositoryCommit>> listCommits(
       RepositorySlug slug, String branch) async {
-    const Duration time = Duration(days: 30);
+    const Duration time = Duration(hours: 1);
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
