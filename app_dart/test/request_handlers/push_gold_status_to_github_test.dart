@@ -110,13 +110,14 @@ void main() {
       });
 
       GithubGoldStatusUpdate newStatusUpdate(
-          PullRequest pr, String statusUpdate, String sha) {
+          PullRequest pr, String statusUpdate, String sha, String description) {
         return GithubGoldStatusUpdate(
           key: db.emptyKey.append(GithubGoldStatusUpdate),
           status: statusUpdate,
           pr: pr.number,
           head: sha,
           updates: 0,
+          description: description,
         );
       }
 
@@ -147,8 +148,12 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc');
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            'This check is waiting for all other checks to be completed.',
+          );
           db.values[status.key] = status;
 
           // Checks still running
@@ -185,7 +190,10 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr, GithubGoldStatusUpdate.statusCompleted, 'abc');
+              pr,
+              GithubGoldStatusUpdate.statusCompleted,
+              'abc',
+              'All golden file tests have passed.');
           db.values[status.key] = status;
 
           // Checks complete
@@ -223,8 +231,8 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc');
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+              pr, GithubGoldStatusUpdate.statusRunning, 'abc', '');
           db.values[status.key] = status;
 
           // Checks complete
@@ -280,8 +288,11 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc');
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+              pr,
+              GithubGoldStatusUpdate.statusRunning,
+              'abc',
+              'This check is waiting for all other checks to be completed.');
           db.values[status.key] = status;
 
           // Checks complete
@@ -339,7 +350,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, null, null);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks running
@@ -376,7 +387,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, null, null);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -425,7 +436,7 @@ void main() {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, null, null);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
 
           // Checks completed
@@ -474,8 +485,11 @@ void main() {
           // Same commit: abc
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc');
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+              pr,
+              GithubGoldStatusUpdate.statusRunning,
+              'abc',
+              'This check is waiting for all other checks to be completed.');
           db.values[status.key] = status;
 
           // Checks completed

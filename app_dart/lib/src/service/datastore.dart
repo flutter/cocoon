@@ -170,6 +170,7 @@ class DatastoreService {
         head: '',
         status: '',
         updates: 0,
+        description: '',
       );
     } else {
       if (previousStatusUpdates.length > 1) {
