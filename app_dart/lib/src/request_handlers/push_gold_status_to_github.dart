@@ -91,18 +91,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // Checks are still running, we have to wait.
         statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
             'This check is waiting for all other checks to be completed.');
-      }
-
-      // Get Gold status.
-      final String goldStatus = await _getGoldStatus(pr, log);
-      log.debug('Checks are completed, Gold reports $goldStatus status for '
+      } else {
+        // Get Gold status.
+        final String goldStatus = await _getGoldStatus(pr, log);
+        log.debug('Checks are completed, Gold reports $goldStatus status for '
           '${pr.number} sha ${pr.head.sha}.');
-      statusRequest =
+        statusRequest =
           _createStatus(goldStatus, _getStatusDescription(goldStatus));
-      if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+        if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
           !await _alreadyCommented(gitHubClient, pr, slug)) {
-        log.debug('Notifying for triage.');
-        await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+          log.debug('Notifying for triage.');
+          await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+        }
       }
 
       // Push updates if there is a status change (detected by unique description)
