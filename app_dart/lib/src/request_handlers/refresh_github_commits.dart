@@ -68,10 +68,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
-    final RegExp exp = RegExp(r'v[0-9]+.[0-9]+.[0-9]+');
+    final File file = File('dev/branch_regexps.txt');
+    final List<String> regExps = file.readAsLinesSync();
 
     await for (Branch branch in branches) {
-      if (branch.name == 'master' || exp.hasMatch(branch.name)) {
+      if (regExps
+          .any((String regExp) => RegExp(regExp).hasMatch(branch.name))) {
         final List<RepositoryCommit> commits =
             await githubService.listCommits(slug, branch.name);
         final List<Commit> newCommits =
