@@ -95,11 +95,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // Get Gold status.
         final String goldStatus = await _getGoldStatus(pr, log);
         log.debug('Checks are completed, Gold reports $goldStatus status for '
-          '${pr.number} sha ${pr.head.sha}.');
+            '${pr.number} sha ${pr.head.sha}.');
         statusRequest =
-          _createStatus(goldStatus, _getStatusDescription(goldStatus));
+            _createStatus(goldStatus, _getStatusDescription(goldStatus));
         if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
-          !await _alreadyCommented(gitHubClient, pr, slug)) {
+            !await _alreadyCommented(gitHubClient, pr, slug)) {
           log.debug('Notifying for triage.');
           await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
         }

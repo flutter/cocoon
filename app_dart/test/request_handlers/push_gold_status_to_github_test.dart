@@ -236,8 +236,8 @@ void main() {
               GithubGoldStatusUpdate.statusRunning,
               'abc',
               'Image changes have been found for '
-          'this pull request. Visit https://flutter-gold.skia.org/changelists '
-          'to view and triage (e.g. because this is an intentional change).');
+                  'this pull request. Visit https://flutter-gold.skia.org/changelists '
+                  'to view and triage (e.g. because this is an intentional change).');
           db.values[status.key] = status;
 
           // Checks complete
@@ -403,7 +403,7 @@ void main() {
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
           );
@@ -433,61 +433,64 @@ void main() {
         });
 
         test(
-          'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
+            'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
             () async {
-            // Same commit
-            final PullRequest pr = newPullRequest(123, 'abc');
-            prsFromGitHub = <PullRequest>[pr];
-            final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr, GithubGoldStatusUpdate.statusRunning, 'abc', 'This check is waiting for all other checks to be completed.');
-            db.values[status.key] = status;
+          // Same commit
+          final PullRequest pr = newPullRequest(123, 'abc');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+              pr,
+              GithubGoldStatusUpdate.statusRunning,
+              'abc',
+              'This check is waiting for all other checks to be completed.');
+          db.values[status.key] = status;
 
-            // Checks complete
-            statuses = <dynamic>[
-              <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-              <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-            ];
+          // Checks complete
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
 
-            // Gold status is running
-            final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-            final MockHttpClientResponse mockHttpResponse =
-            MockHttpClientResponse(utf8.encode(tryjobDigests()));
-            when(mockHttpClient.getUrl(Uri.parse(
-              'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+          // Gold status is running
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer(
-                (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-            when(mockHttpRequest.close()).thenAnswer(
-                (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
-            // Have not already commented for this commit.
-            when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-                (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
 
-            final Body body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(status.updates, 1);
-            expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-            expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
-            // Should apply labels and make comment
-            verify(issuesService.addLabelsToIssue(
-              slug,
-              pr.number,
-              <String>[
-                'will affect goldens',
-                'severe: API break',
-              ],
-            )).called(1);
+          // Should apply labels and make comment
+          verify(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          )).called(1);
 
-            verify(issuesService.createComment(
-              slug,
-              pr.number,
-              argThat(contains(config.goldenBreakingChangeMessageValue)),
-            )).called(1);
-          });
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
+          )).called(1);
+        });
 
         test('same commit, checks complete, new status, should not comment',
             () async {
