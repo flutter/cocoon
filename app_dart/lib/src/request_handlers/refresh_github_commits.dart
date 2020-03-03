@@ -72,7 +72,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
-    final List<String> regExps = await _loadBranchRegExps('flutter');
+    final List<String> regExps = await _loadBranchRegExps();
 
     await for (Branch branch in branches) {
       if (regExps
@@ -276,8 +276,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 
-  Future<List<String>> _loadBranchRegExps(String repo) async {
-    final String path = '/flutter/$repo/master/dev/branch_regexps.txt';
+  Future<List<String>> _loadBranchRegExps() async {
+    const String path = '/flutter/cocoon/master/dev/branch_regexps.txt';
     final Uri url = Uri.https('raw.githubusercontent.com', path);
 
     final HttpClient client = branchHttpClientProvider();
