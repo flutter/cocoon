@@ -15,6 +15,7 @@ class GithubGoldStatusUpdate extends Model {
     this.status,
     this.description,
     this.updates,
+    this.repository,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -39,6 +40,9 @@ class GithubGoldStatusUpdate extends Model {
   @IntProperty(propertyName: 'Updates', required: true)
   int updates;
 
+  @StringProperty(propertyName: 'Repository', required: true)
+  String repository;
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
@@ -51,6 +55,7 @@ class GithubGoldStatusUpdate extends Model {
       ..write(', lastStatus: $status')
       ..write(', description $description')
       ..write(', updates: $updates')
+      ..write(', repository: $repository')
       ..write(')');
     return buf.toString();
   }

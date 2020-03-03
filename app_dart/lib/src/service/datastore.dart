@@ -171,6 +171,7 @@ class DatastoreService {
         status: '',
         updates: 0,
         description: '',
+        repository: slug.fullName,
       );
     } else {
       if (previousStatusUpdates.length > 1) {
