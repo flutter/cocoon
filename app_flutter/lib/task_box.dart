@@ -335,7 +335,7 @@ class TaskOverlayContents extends StatelessWidget {
           ListTile(
             leading:
                 Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
-            title: Text(task.name),
+            title: SelectableText(task.name),
             subtitle: isDevicelab(task)
                 ? Text('Attempts: ${task.attempts}\n'
                     'Run time: ${runDuration.inMinutes} minutes\n'
