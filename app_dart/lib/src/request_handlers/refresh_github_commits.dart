@@ -277,7 +277,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   }
 
   Future<List<String>> _loadBranchRegExps() async {
-    const String path = '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
+    const String path =
+        '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
     final Uri url = Uri.https('raw.githubusercontent.com', path);
 
     final HttpClient client = branchHttpClientProvider();
