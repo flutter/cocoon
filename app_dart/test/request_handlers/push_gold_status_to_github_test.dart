@@ -118,6 +118,7 @@ void main() {
           head: sha,
           updates: 0,
           description: description,
+          repository: 'flutter/flutter',
         );
       }
 

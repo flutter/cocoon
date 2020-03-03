@@ -83,12 +83,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
           lastUpdate.head == pr.head.sha) {
+        log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed.
         return Body.empty;
       }
 
       if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
         // Checks are still running, we have to wait.
+        log.debug('Waiting for checks to be completed.');
         statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
             'This check is waiting for all other checks to be completed.');
       } else {
@@ -115,6 +117,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           lastUpdate.status = statusRequest.state;
           lastUpdate.head = pr.head.sha;
           lastUpdate.updates += 1;
+          lastUpdate.description = statusRequest.description;
           statusUpdates.add(lastUpdate);
         } catch (error) {
           log.error(
