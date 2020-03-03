@@ -307,9 +307,9 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         }
         await Future<void>.delayed(gitHubBackoffCalculator(attempt));
       }
-      return <String>['master'];
     } finally {
       client.close(force: true);
     }
+    return <String>['master'];
   }
 }
