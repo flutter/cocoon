@@ -87,7 +87,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           continue;
         }
         log.debug(
-            'Found ${newCommits.length} new commits for branch $branch on GitHub');
+            'Found ${newCommits.length} new commits for branch ${branch.name} on GitHub');
 
         //Save [Commit] to BigQuery and create [Task] in Datastore.
         await _saveData(newCommits, datastore);
@@ -277,7 +277,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   }
 
   Future<List<String>> _loadBranchRegExps() async {
-    const String path = '/flutter/cocoon/master/dev/branch_regexps.txt';
+    const String path =
+        '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
     final Uri url = Uri.https('raw.githubusercontent.com', path);
 
     final HttpClient client = branchHttpClientProvider();
