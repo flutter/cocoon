@@ -39,7 +39,7 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.now().subtract(time).toIso8601String()
+        'since': DateTime.now().toUtc().subtract(time).toIso8601String()
       },
     )) {
       commits.addAll(json.decode(response.body));
