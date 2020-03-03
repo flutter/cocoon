@@ -23,6 +23,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 
 const String singleTaskManifestYaml = '''
 tasks:
@@ -30,6 +31,10 @@ tasks:
     stage: devicelab
     required_agent_capabilities: ["linux/android"]
 ''';
+const String branchRegExp = '''
+      master
+      ^v[0-9]+\.[0-9]+\.[0-9]
+      ''';
 
 void main() {
   group('RefreshGithubCommits', () {
@@ -37,13 +42,27 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeHttpClient httpClient;
+    FakeHttpClient branchHttpClient;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
     List<String> githubCommits;
+    List<String> githubBranches;
     int yieldedCommitCount;
 
-    Stream<RepositoryCommit> commitStream() async* {
+    Stream<Branch> branchStream() async* {
+      for (String branchName in githubBranches) {
+        final CommitDataUser author = CommitDataUser('a', 1, 'b');
+        final GitCommit gitCommit = GitCommit();
+        final CommitData commitData = CommitData('sha', gitCommit, 'test',
+            'test', 'test', author, author, <Map<String, dynamic>>[]);
+        final Branch branch = Branch(branchName, commitData);
+        yield branch;
+      }
+    }
+
+    List<RepositoryCommit> commitList() {
+      final List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
@@ -53,13 +72,12 @@ void main() {
             'Username@abc.com',
             DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
         final GitCommit gitCommit = GitCommit()..committer = committer;
-        final RepositoryCommit commit = RepositoryCommit()
+        commits.add(RepositoryCommit()
           ..sha = sha
           ..author = author
-          ..commit = gitCommit;
-        yieldedCommitCount++;
-        yield commit;
+          ..commit = gitCommit);
       }
+      return commits;
     }
 
     Commit shaToCommit(String sha) {
@@ -71,35 +89,46 @@ void main() {
     setUp(() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      final FakeGithubService githubService = FakeGithubService();
       final MockTabledataResourceApi tabledataResourceApi =
           MockTabledataResourceApi();
-      when(github.repositories).thenReturn(repositories);
-      when(repositories.listCommits(slug)).thenAnswer((Invocation _) {
-        return commitStream();
-      });
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
       yieldedCommitCount = 0;
       config = FakeConfig(
-          githubClient: github, tabledataResourceApi: tabledataResourceApi);
+          githubClient: github,
+          tabledataResourceApi: tabledataResourceApi,
+          githubService: githubService);
       auth = FakeAuthenticationProvider();
       db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
+      branchHttpClient = FakeHttpClient();
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
         datastoreProvider: () => DatastoreService(db: db),
         httpClientProvider: () => httpClient,
+        branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
+
+      githubService.listCommitsBranch = (String branch) {
+        return commitList();
+      };
+
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      when(github.repositories).thenReturn(repositories);
+      when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
+        return branchStream();
+      });
     });
 
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
+      githubBranches = <String>['master'];
       final Body body = await tester.get<Body>(handler);
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
@@ -108,9 +137,24 @@ void main() {
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
     });
 
+    test('checks branch property for commits', () async {
+      githubCommits = <String>['1'];
+      githubBranches = <String>['v1.1.1', 'master'];
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
+      await tester.get<Body>(handler);
+      //expect(body.branches, null);
+      final Commit commit = db.values.values.whereType<Commit>().last;
+      //expect(body, null);
+      expect(commit.branch, 'v1.1.1');
+    });
+
     test('stops requesting GitHub commits when it finds an existing commit',
         () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      githubBranches = <String>['master'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
       for (String sha in dbCommits) {
         final Commit commit = shaToCommit(sha);
@@ -120,16 +164,10 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 4);
       expect(db.values.values.whereType<Task>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 6);
       expect(db.values.values.whereType<Task>().length, 10);
-      // You'd expect this to be 4 (two for the commits that aren't yet in the
-      // datastore, one for the `await for` loop to discover the existing
-      // commit, and one extra yield waiting to be taken from the queue), but
-      // the use of an `await` on an async task within an `await for` loop
-      // causes an extra stream event to be yielded.
-      // https://github.com/dart-lang/sdk/issues/37933
-      expect(yieldedCommitCount, 5);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
@@ -137,6 +175,7 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
+      githubBranches = <String>['master'];
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
@@ -147,6 +186,7 @@ void main() {
         }
       };
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 2);
       expect(db.values.values.whereType<Task>().length, 10);
@@ -168,7 +208,9 @@ void main() {
       };
 
       githubCommits = <String>['1'];
+      githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -183,8 +225,10 @@ void main() {
       httpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
 
       githubCommits = <String>['1'];
+      githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+      branchHttpClient.request.response.body = branchRegExp;
       await expectLater(
           tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
       expect(retry, 3);

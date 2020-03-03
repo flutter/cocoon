@@ -151,7 +151,8 @@ void main() {
             'Commit': <String, dynamic>{
               'Sha': null,
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
-            }
+            },
+            'Branch': null
           }
         },
         'Stages': <String>[]

@@ -23,6 +23,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/github_service.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -38,10 +39,10 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-/// Queries GitHub for the list of recent commits, and creates corresponding
-/// rows in the cloud datastore for any commits not yet in the datastore. Then
-/// creates new task rows in the datastore for any commits that were added.
-/// The task rows that it creates are driven by the Flutter [Manifest].
+/// Queries GitHub for the list of recent commits according to different branches,
+/// and creates corresponding rows in the cloud datastore and the BigQuery for any commits
+///  not yet there. Then creates new task rows in the datastore for any commits that
+/// were added. The task rows that it creates are driven by the Flutter [Manifest].
 @immutable
 class RefreshGithubCommits extends ApiRequestHandler<Body> {
   const RefreshGithubCommits(
@@ -50,59 +51,64 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting
+        this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
         assert(httpClientProvider != null),
+        assert(branchHttpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
+  final HttpClientProvider branchHttpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   @override
   Future<Body> get() async {
+    final GithubService githubService = await config.createGithubService();
+    final GitHub github = await config.createGitHubClient();
+    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final Stream<Branch> branches = github.repositories.listBranches(slug);
+    final DatastoreService datastore = datastoreProvider();
+    final List<String> regExps = await _loadBranchRegExps();
+
+    await for (Branch branch in branches) {
+      if (regExps
+          .any((String regExp) => RegExp(regExp).hasMatch(branch.name))) {
+        final List<RepositoryCommit> commits =
+            await githubService.listCommits(slug, branch.name);
+        final List<Commit> newCommits =
+            await _getNewCommits(commits, datastore, branch.name);
+
+        if (newCommits.isEmpty) {
+          // Nothing to do.
+          continue;
+        }
+        log.debug(
+            'Found ${newCommits.length} new commits for branch $branch on GitHub');
+
+        //Save [Commit] to BigQuery and create [Task] in Datastore.
+        await _saveData(newCommits, datastore);
+      }
+    }
+
+    return Body.empty;
+  }
+
+  Future<void> _saveData(
+    List<Commit> newCommits,
+    DatastoreService datastore,
+  ) async {
     const String projectId = 'flutter-dashboard';
     const String dataset = 'cocoon';
     const String table = 'Checklist';
 
-    final GitHub github = await config.createGitHubClient();
-    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final Stream<RepositoryCommit> commits =
-        github.repositories.listCommits(slug);
-    final DatastoreService datastore = datastoreProvider();
     final TabledataResourceApi tabledataResourceApi =
         await config.createTabledataResourceApi();
-    final List<Commit> newCommits = <Commit>[];
     final List<Map<String, Object>> tableDataInsertAllRequestRows =
         <Map<String, Object>>[];
-
-    await for (RepositoryCommit commit in commits) {
-      final String id = 'flutter/flutter/${commit.sha}';
-      final Key key = datastore.db.emptyKey.append(Commit, id: id);
-
-      if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) ==
-          null) {
-        newCommits.add(Commit(
-          key: key,
-          timestamp: commit.commit.committer.date.millisecondsSinceEpoch,
-          repository: 'flutter/flutter',
-          sha: commit.sha,
-          author: commit.author.login,
-          authorAvatarUrl: commit.author.avatarUrl,
-        ));
-      } else {
-        // Once we've found a commit that's already been recorded, we stop looking.
-        break;
-      }
-    }
-
-    if (newCommits.isEmpty) {
-      // Nothing to do.
-      return Body.empty;
-    }
-
-    log.debug('Found ${newCommits.length} new commits on GitHub');
 
     for (Commit commit in newCommits) {
       /// Consolidate [commits] together
@@ -116,6 +122,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           'CommitSha': commit.sha,
           'CommitAuthorLogin': commit.author,
           'CommitAuthorAvatarURL': commit.authorAvatarUrl,
+          'Branch': commit.branch,
         },
       });
 
@@ -149,8 +156,32 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     } catch (ApiRequestError) {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
+  }
 
-    return Body.empty;
+  Future<List<Commit>> _getNewCommits(List<RepositoryCommit> commits,
+      DatastoreService datastore, String branch) async {
+    final List<Commit> newCommits = <Commit>[];
+    for (RepositoryCommit commit in commits) {
+      final String id = 'flutter/flutter/${commit.sha}';
+      final Key key = datastore.db.emptyKey.append(Commit, id: id);
+
+      if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) ==
+          null) {
+        newCommits.add(Commit(
+          key: key,
+          timestamp: commit.commit.committer.date.millisecondsSinceEpoch,
+          repository: 'flutter/flutter',
+          sha: commit.sha,
+          author: commit.author.login,
+          authorAvatarUrl: commit.author.avatarUrl,
+          branch: branch,
+        ));
+      } else {
+        // Once we've found a commit that's already been recorded, we stop looking.
+        break;
+      }
+    }
+    return newCommits;
   }
 
   Future<List<Task>> _createTasks({
@@ -243,5 +274,42 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     response.headers.set(HttpHeaders.retryAfterHeader, '120');
     throw HttpStatusException(
         HttpStatus.serviceUnavailable, 'GitHub not responding');
+  }
+
+  Future<List<String>> _loadBranchRegExps() async {
+    const String path = '/flutter/cocoon/master/dev/branch_regexps.txt';
+    final Uri url = Uri.https('raw.githubusercontent.com', path);
+
+    final HttpClient client = branchHttpClientProvider();
+    try {
+      for (int attempt = 0; attempt < 3; attempt++) {
+        final HttpClientRequest clientRequest = await client.getUrl(url);
+
+        try {
+          final HttpClientResponse clientResponse = await clientRequest.close();
+          final int status = clientResponse.statusCode;
+
+          if (status == HttpStatus.ok) {
+            final String content =
+                await utf8.decoder.bind(clientResponse).join();
+            return content
+                .split('\n')
+                .map((String branch) => branch.trim())
+                .toList();
+          } else {
+            log.warning(
+                'Attempt to download branch_regexps.txt failed (HTTP $status)');
+            return <String>['master'];
+          }
+        } catch (error, stackTrace) {
+          log.error(
+              'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
+        }
+        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
+      }
+    } finally {
+      client.close(force: true);
+    }
+    return <String>['master'];
   }
 }

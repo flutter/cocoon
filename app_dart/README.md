@@ -101,3 +101,7 @@ $ dart dev/deploy.dart --project PROJECT_ID --version VERSION
 
 The deploy script will build the Flutter project and copy it over for deployment.
 Then it will use the Google Cloud CLI to deploy the project to AppEngine.
+
+### Branching support for flutter repo
+
+Define branch regular expressions in `dev/branch_regexps.txt`, based on which cocoon API filters targeted branches and then runs tests on those branches. With tests running against different branches, the frontend then supports listing commits on a specific branch (defaulting to master).
