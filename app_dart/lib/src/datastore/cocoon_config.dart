@@ -89,8 +89,7 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get goldenBreakingChangeMessage => 'It looks like this pull request '
-      'includes a golden file change. Please make sure to follow '
+  String get goldenBreakingChangeMessage => 'Check '
       '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes). '
       'While there are exceptions to this rule, if this patch modifies an existing '
       'golden file, it is probably not an exception. Only new golden files are not '

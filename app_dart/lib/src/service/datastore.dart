@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
+import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 import '../model/appengine/time_series.dart';
@@ -147,6 +148,35 @@ class DatastoreService {
         throw StateError(
             'GithubBuildStatusUpdate should have no more than one entries on '
             'repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}');
+      }
+      return previousStatusUpdates.single;
+    }
+  }
+
+  Future<GithubGoldStatusUpdate> queryLastGoldUpdate(
+    RepositorySlug slug,
+    PullRequest pr,
+  ) async {
+    final Query<GithubGoldStatusUpdate> query = db
+        .query<GithubGoldStatusUpdate>()
+          ..filter('repository =', slug.fullName)
+          ..filter('pr =', pr.number);
+    final List<GithubGoldStatusUpdate> previousStatusUpdates =
+        await query.run().toList();
+
+    if (previousStatusUpdates.isEmpty) {
+      return GithubGoldStatusUpdate(
+        pr: pr.number,
+        head: '',
+        status: '',
+        updates: 0,
+        description: '',
+      );
+    } else {
+      if (previousStatusUpdates.length > 1) {
+        throw StateError(
+            'GithubGoldStatusUpdate should have no more than one entry on '
+            'repository ${slug.fullName}, pr ${pr.number}.');
       }
       return previousStatusUpdates.single;
     }

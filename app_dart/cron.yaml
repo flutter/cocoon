@@ -13,6 +13,9 @@ cron:
 - description: sends build status to GitHub to annotate PRs and commits
   url: /api/push-build-status-to-github
   schedule: every 1 minutes
+- description: sends pr-specific gold status to GitHub to annotate PRs and commits
+  url: /api/push-gold-status-to-github
+  schedule: every 3 minutes
 - description: sends build status to GitHub to annotate engine PRs and commits
   url: /api/push-engine-build-status-to-github
   schedule: every 2 minutes
