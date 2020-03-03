@@ -51,14 +51,18 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting
+        this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
         assert(httpClientProvider != null),
+        assert(branchHttpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
+  final HttpClientProvider branchHttpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   @override
@@ -68,8 +72,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
-    final File file = File('dev/branch_regexps.txt');
-    final List<String> regExps = file.readAsLinesSync();
+    final List<String> regExps = await _loadBranchRegExps('flutter');
 
     await for (Branch branch in branches) {
       if (regExps
@@ -262,6 +265,49 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         }
 
         await Future<void>.delayed(gitHubBackoffCalculator(attempt));
+      }
+    } finally {
+      client.close(force: true);
+    }
+
+    log.error('GitHub not responding; giving up');
+    response.headers.set(HttpHeaders.retryAfterHeader, '120');
+    throw HttpStatusException(
+        HttpStatus.serviceUnavailable, 'GitHub not responding');
+  }
+
+  Future<List<String>> _loadBranchRegExps(String repo) async {
+    final String path = '/flutter/$repo/master/dev/branch_regexps.txt';
+    final Uri url = Uri.https('raw.githubusercontent.com', path);
+
+    final HttpClient client = branchHttpClientProvider();
+    try {
+      for (int attempt = 0; attempt < 3; attempt++) {
+        final HttpClientRequest clientRequest = await client.getUrl(url);
+
+        try {
+          final HttpClientResponse clientResponse = await clientRequest.close();
+          final int status = clientResponse.statusCode;
+
+          if (status == HttpStatus.ok) {
+            final String content =
+                await utf8.decoder.bind(clientResponse).join();
+            return content
+                .split('\n')
+                .map((String branch) => branch.trim())
+                .toList();
+          } else {
+            log.warning(
+                'Attempt to download branch_regexps.txt failed (HTTP $status)');
+            return <String>['master'];
+          }
+        } catch (error, stackTrace) {
+          log.error(
+              'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
+        }
+
+        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
+        return <String>['master'];
       }
     } finally {
       client.close(force: true);

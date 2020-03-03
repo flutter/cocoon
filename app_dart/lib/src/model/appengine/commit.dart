@@ -52,7 +52,7 @@ class Commit extends Model {
   String repository;
 
   /// The branch of the commit.
-  @StringProperty(propertyName: 'Branch', required: true)
+  @StringProperty(propertyName: 'Branch')
   String branch;
 
   @override

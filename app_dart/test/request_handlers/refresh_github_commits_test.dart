@@ -31,6 +31,10 @@ tasks:
     stage: devicelab
     required_agent_capabilities: ["linux/android"]
 ''';
+const String branchRegExp = '''
+      master
+      ^v[0-9]+\.[0-9]+\.[0-9]
+      ''';
 
 void main() {
   group('RefreshGithubCommits', () {
@@ -38,6 +42,7 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeHttpClient httpClient;
+    FakeHttpClient branchHttpClient;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
@@ -99,12 +104,14 @@ void main() {
       auth = FakeAuthenticationProvider();
       db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
+      branchHttpClient = FakeHttpClient();
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
         datastoreProvider: () => DatastoreService(db: db),
         httpClientProvider: () => httpClient,
+        branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
 
@@ -132,12 +139,15 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
-      githubBranches = <String>['v1.1.1', 'test'];
+      githubBranches = <String>['v1.1.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       await tester.get<Body>(handler);
+      //expect(body.branches, null);
       final Commit commit = db.values.values.whereType<Commit>().last;
+      //expect(body, null);
       expect(commit.branch, 'v1.1.1');
     });
 
@@ -154,6 +164,7 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 4);
       expect(db.values.values.whereType<Task>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 6);
       expect(db.values.values.whereType<Task>().length, 10);
@@ -175,6 +186,7 @@ void main() {
         }
       };
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 2);
       expect(db.values.values.whereType<Task>().length, 10);
@@ -198,6 +210,7 @@ void main() {
       githubCommits = <String>['1'];
       githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -215,6 +228,7 @@ void main() {
       githubBranches = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+      branchHttpClient.request.response.body = branchRegExp;
       await expectLater(
           tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
       expect(retry, 3);
