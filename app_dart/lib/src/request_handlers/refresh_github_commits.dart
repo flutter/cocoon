@@ -305,17 +305,11 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           log.error(
               'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
         }
-
         await Future<void>.delayed(gitHubBackoffCalculator(attempt));
-        return <String>['master'];
       }
+      return <String>['master'];
     } finally {
       client.close(force: true);
     }
-
-    log.error('GitHub not responding; giving up');
-    response.headers.set(HttpHeaders.retryAfterHeader, '120');
-    throw HttpStatusException(
-        HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }
