@@ -43,10 +43,13 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp}) {
+  Stream<Commit> queryRecentCommits(
+      {int limit = 100, int timestamp, String branch}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
+    branch ??= 'master';
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
+      ..filter('branch =', branch)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
     return query.run();

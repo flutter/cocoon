@@ -27,7 +27,8 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp}) {
+  Stream<CommitStatus> retrieveCommitStatus(
+      {int limit = 100, int timestamp, String branch}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }

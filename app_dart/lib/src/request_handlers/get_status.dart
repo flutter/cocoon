@@ -32,11 +32,13 @@ class GetStatus extends RequestHandler<Body> {
   final BuildStatusProvider buildStatusProvider;
 
   static const String lastCommitKeyParam = 'lastCommitKey';
+  static const String branchParam = 'branch';
 
   @override
   Future<Body> get() async {
     final String encodedLastCommitKey =
         request.uri.queryParameters[lastCommitKeyParam];
+    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
@@ -45,7 +47,7 @@ class GetStatus extends RequestHandler<Body> {
 
     final List<SerializableCommitStatus> statuses = await buildStatusProvider
         .retrieveCommitStatus(
-            limit: commitNumber, timestamp: lastCommitTimestamp)
+            limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
         .map<SerializableCommitStatus>((CommitStatus status) =>
             SerializableCommitStatus(
                 status, keyHelper.encode(status.commit.key)))
