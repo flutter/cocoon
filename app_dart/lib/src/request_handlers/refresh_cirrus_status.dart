@@ -125,7 +125,8 @@ Future<List<dynamic>> queryCirrusGraphQL(
     final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
     tasks.addAll(searchBuilds['latestGroupTasks']);
   } catch (_) {
-    log.debug('Did not receive expected result from Cirrus.');
+    log.debug(
+        'Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
   return tasks;
 }
