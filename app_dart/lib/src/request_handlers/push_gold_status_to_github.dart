@@ -111,7 +111,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (lastUpdate.description != statusRequest.description ||
           lastUpdate.head != pr.head.sha) {
         try {
-          log.debug('Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
+          log.debug(
+              'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
           await gitHubClient.repositories
               .createStatus(slug, pr.head.sha, statusRequest);
           lastUpdate.status = statusRequest.state;
