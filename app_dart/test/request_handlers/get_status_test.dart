@@ -88,11 +88,13 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3);
+          timestamp: 3,
+          branch: 'master');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          timestamp: 1);
+          timestamp: 1,
+          branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusProvider = FakeBuildStatusProvider(
@@ -115,11 +117,13 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3);
+          timestamp: 3,
+          branch: 'master');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          timestamp: 1);
+          timestamp: 1,
+          branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusProvider = FakeBuildStatusProvider(
@@ -152,13 +156,12 @@ void main() {
               'Sha': null,
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
-            'Branch': null
+            'Branch': 'master'
           }
         },
         'Stages': <String>[]
       });
     });
-
 
     test('reports statuses with input branch', () async {
       final Commit commit1 = Commit(
@@ -184,12 +187,12 @@ void main() {
         buildStatusProvider: buildStatusProvider,
       );
 
-      const String expectedLastCommitKeyEncoded =
-          'ahNzfmZsdXR0ZXItZGFzaGJvYXJkckcLEglDaGVja2xpc3QiOGZsdXR0ZXIvZmx1dHRlci9lYTI4YTljMzRkYzcwMWRlODkxZWFmNzQ1MDNjYTQ3MTcwMTlmODI5DA';
       const String branch = 'v0.0.0';
 
+      expect(config.db.values.length, 2);
+
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
+        //GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
         GetStatus.branchParam: branch,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
