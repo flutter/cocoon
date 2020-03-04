@@ -97,8 +97,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       } else {
         // Get Gold status.
         final String goldStatus = await _getGoldStatus(pr, log);
-        log.debug('Checks are completed, Gold reports $goldStatus status for '
-            '${pr.number} sha ${pr.head.sha}.');
         statusRequest =
             _createStatus(goldStatus, _getStatusDescription(goldStatus));
         if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
