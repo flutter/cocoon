@@ -59,6 +59,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<String> cirrusCheckStatuses = <String>[];
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
+      log.debug('Querying pull request ${pr.number}...');
       // Query checks for this pr.
       final List<dynamic> cirrusChecks =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
@@ -112,6 +113,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (lastUpdate.description != statusRequest.description ||
           lastUpdate.head != pr.head.sha) {
         try {
+          log.debug('Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
           await gitHubClient.repositories
               .createStatus(slug, pr.head.sha, statusRequest);
           lastUpdate.status = statusRequest.state;
