@@ -21,7 +21,7 @@ dependencies:
   googleapis_auth: ^0.2.10
   googleapis: ^0.54.0
   graphql: ^2.1.0
-  http: ^0.12.0
+  http: ^0.12.0+4
   json_annotation: ^3.0.0
   meta: ^1.1.7
   mime: ^0.9.0
