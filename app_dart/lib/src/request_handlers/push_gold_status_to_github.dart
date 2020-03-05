@@ -61,14 +61,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate =
-      await datastore.queryLastGoldUpdate(slug, pr);
+          await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
       log.debug('Last known Gold status for #${pr.number} was with sha: '
-        '${lastUpdate.head}, status: ${lastUpdate.status}');
+          '${lastUpdate.head}, status: ${lastUpdate.status}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-        lastUpdate.head == pr.head.sha) {
+          lastUpdate.head == pr.head.sha) {
         log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed.
         continue;
@@ -173,7 +173,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.debug('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
+        log.debug(
+            'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images, returning status ${GithubGoldStatusUpdate.statusRunning}');
 
         return GithubGoldStatusUpdate.statusRunning;
