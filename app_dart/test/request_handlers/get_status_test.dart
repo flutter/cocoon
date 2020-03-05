@@ -192,7 +192,6 @@ void main() {
       expect(config.db.values.length, 2);
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
-        //GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
         GetStatus.branchParam: branch,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
