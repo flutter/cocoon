@@ -14,7 +14,7 @@ pushd $1 > /dev/null
 pub get
 
 echo "############# files that require formatting ###########"
-dartfmt -n --set-exit-if-changed .
+dartfmt -n --set-exit-if-changed lib/ test/ dev/ bin/
 echo "#######################################################"
 
 # agent doesn't use build_runner as of this writing.
