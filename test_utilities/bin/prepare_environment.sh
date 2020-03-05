@@ -8,6 +8,6 @@
 
 set -e
 pub global activate tuneup
-flutter channel dev
+flutter channel beta
 flutter upgrade
 

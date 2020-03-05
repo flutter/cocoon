@@ -563,7 +563,7 @@ class FakeHttpHeaders implements HttpHeaders {
   List<String> operator [](String name) => _values[name];
 
   @override
-  void add(String name, Object value) {
+  void add(String name, Object value, {bool preserveHeaderCase = false}) {
     _checkSealed();
     name = name.toLowerCase();
     _values[name] ??= <String>[];
@@ -601,7 +601,7 @@ class FakeHttpHeaders implements HttpHeaders {
   }
 
   @override
-  void set(String name, Object value) {
+  void set(String name, Object value, {bool preserveHeaderCase = false}) {
     _checkSealed();
     name = name.toLowerCase();
     _values[name] = <String>['$value'];
