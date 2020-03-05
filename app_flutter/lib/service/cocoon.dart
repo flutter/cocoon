@@ -39,6 +39,9 @@ abstract class CocoonService {
   /// Get the current Flutter infra agent statuses.
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses();
 
+  /// Get the current list of version branches in flutter/flutter.
+  Future<CocoonResponse<List<String>>> fetchFlutterBranches();
+
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.

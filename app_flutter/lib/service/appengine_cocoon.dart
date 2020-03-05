@@ -116,6 +116,28 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
+    final String getBranchesUrl = _apiEndpoint('/api/public/get-branches');
+
+    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
+    final http.Response response = await _client.get(getBranchesUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      print(response.body);
+      return CocoonResponse<List<String>>()
+        ..error = '/api/public/get-branches returned ${response.statusCode}';
+    }
+
+    try {
+      final List<String> jsonResponse = jsonDecode(response.body);
+      return CocoonResponse<List<String>>()
+        ..data = jsonResponse;
+    } catch (error) {
+      return CocoonResponse<List<String>>()..error = error.toString();
+    }
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
     final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');

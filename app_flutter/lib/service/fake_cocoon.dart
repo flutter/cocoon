@@ -37,6 +37,12 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
+    return CocoonResponse<List<String>>()
+      ..data = <String>['master', 'dev', 'beta', 'stable'];
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     return false;
   }
