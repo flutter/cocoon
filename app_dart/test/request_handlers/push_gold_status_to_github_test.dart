@@ -522,7 +522,6 @@ void main() {
           when(mockHttpRequest.close()).thenAnswer(
               (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
-          // Previous comment was for a separate commit: def
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
@@ -594,7 +593,6 @@ void main() {
         when(mockHttpRequest.close()).thenAnswer(
             (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
-        // Previous comment was for a separate commit: def
         when(issuesService.listCommentsByIssue(slug, completedPR.number))
             .thenAnswer(
           (_) => Stream<IssueComment>.value(
@@ -604,7 +602,7 @@ void main() {
 
         final Body body = await tester.get<Body>(handler);
         expect(body, same(Body.empty));
-        expect(completedStatus.updates, 1);
+        expect(completedStatus.updates, 0);
         expect(followUpStatus.updates, 1);
         expect(completedStatus.status, GithubGoldStatusUpdate.statusCompleted);
         expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
