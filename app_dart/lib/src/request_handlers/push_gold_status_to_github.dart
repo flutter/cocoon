@@ -59,7 +59,22 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<String> cirrusCheckStatuses = <String>[];
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
-      log.debug('Querying pull request ${pr.number}...');
+      // Get last known Gold status from datastore.
+      final GithubGoldStatusUpdate lastUpdate =
+      await datastore.queryLastGoldUpdate(slug, pr);
+      CreateStatus statusRequest;
+
+      log.debug('Last known Gold status for #${pr.number} was with sha: '
+        '${lastUpdate.head}, status: ${lastUpdate.status}');
+
+      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
+        lastUpdate.head == pr.head.sha) {
+        log.debug('Completed status already reported for this commit.');
+        // We have already seen this commit and it is completed.
+        continue;
+      }
+
+      log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       // Query current checks for this pr.
       final List<dynamic> cirrusChecks =
@@ -69,25 +84,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final String taskName = check['name'];
 
         log.debug(
-            'Found Cirrus build status for pull request ${pr.number}, commit '
+            'Found Cirrus build status for pull request #${pr.number}, commit '
             '${pr.head.sha}: $taskName ($status)');
 
         cirrusCheckStatuses.add(status);
-      }
-
-      // Get last known Gold status from datastore.
-      final GithubGoldStatusUpdate lastUpdate =
-          await datastore.queryLastGoldUpdate(slug, pr);
-      CreateStatus statusRequest;
-
-      log.debug('Last known Gold status for ${pr.number} was with sha: '
-          '${lastUpdate.head}, status: ${lastUpdate.status}');
-
-      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-          lastUpdate.head == pr.head.sha) {
-        log.debug('Completed status already reported for this commit.');
-        // We have already seen this commit and it is completed.
-        continue;
       }
 
       if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
@@ -168,24 +168,24 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (decodedResponse['digests'] == null) {
         log.debug(
-            'There are no unexpected image results for ${pr.number} at sha '
+            'There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}, returning status ${GithubGoldStatusUpdate.statusCompleted}');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.debug('Tryjob for ${pr.number} at sha ${pr.head.sha} generated new '
+        log.debug('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images, returning status ${GithubGoldStatusUpdate.statusRunning}');
 
         return GithubGoldStatusUpdate.statusRunning;
       }
     } on FormatException catch (_) {
       throw BadRequestException('Formatting error detected requesting '
-          'tryjob status for pr ${pr.number} from Flutter Gold.\n'
+          'tryjob status for pr #${pr.number} from Flutter Gold.\n'
           'rawResponse: $rawResponse');
     } catch (e) {
       throw BadRequestException(
           'Error detected requesting tryjob status for pr '
-          '${pr.number} from Flutter Gold.\n'
+          '#${pr.number} from Flutter Gold.\n'
           'error: $e');
     }
   }
@@ -206,12 +206,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     PullRequest pr,
     RepositorySlug slug,
   ) async {
-    final String body = 'Golden image changes have been found for this pull '
-            'request. Click [here](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
-            'to view and triage (e.g. because this is an intentional change).\n\n' +
+    final String body = 'Golden file changes have been found for this pull '
+            'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+            '(e.g. because this is an intentional change).\n\n' +
         config.goldenBreakingChangeMessage +
         '\n\n' +
-        '_Changes reported for pull request ${pr.number} at sha ${pr.head.sha}_\n\n';
+        '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
@@ -232,7 +232,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(
-          'Changes reported for pull request ${pr.number} at sha ${pr.head.sha}')) {
+          'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
         return true;
       }
     }
