@@ -23,7 +23,7 @@ class GithubGoldStatusUpdate extends Model {
 
   static const String statusCompleted = 'success';
 
-  static const String statusRunning = 'in_progress';
+  static const String statusRunning = 'pending';
 
   @IntProperty(propertyName: 'PR', required: true)
   int pr;

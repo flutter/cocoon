@@ -60,7 +60,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       log.debug('Querying pull request ${pr.number}...');
-      // Query checks for this pr.
+      cirrusCheckStatuses.clear();
+      // Query current checks for this pr.
       final List<dynamic> cirrusChecks =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
       for (dynamic check in cirrusChecks) {
@@ -86,7 +87,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           lastUpdate.head == pr.head.sha) {
         log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed.
-        return Body.empty;
+        continue;
       }
 
       if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
