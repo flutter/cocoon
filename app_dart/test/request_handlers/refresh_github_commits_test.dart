@@ -33,7 +33,7 @@ tasks:
 ''';
 const String branchRegExp = '''
       master
-      ^flutter-[0-9]\.[0-9]-candidate\.[0-9]
+      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
       ''';
 
 void main() {
