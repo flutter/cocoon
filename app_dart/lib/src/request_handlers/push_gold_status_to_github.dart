@@ -59,7 +59,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<String> cirrusCheckStatuses = <String>[];
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
-
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate =
           await datastore.queryLastGoldUpdate(slug, pr);
@@ -183,14 +182,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
 
       if (decodedResponse['digests'] == null) {
-        print(
-            'There are no unexpected image results for #${pr.number} at sha '
+        print('There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        print(
-            'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
+        print('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images.}');
 
         return GithubGoldStatusUpdate.statusRunning;
