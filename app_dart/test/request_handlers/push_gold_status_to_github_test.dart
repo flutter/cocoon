@@ -263,7 +263,7 @@ void main() {
             (_) => Stream<IssueComment>.value(
               IssueComment()
                 ..body = 'Changes reported for pull request '
-                    '${pr.number} at sha ${pr.head.sha}',
+                    '#${pr.number} at sha ${pr.head.sha}',
             ),
           );
 
