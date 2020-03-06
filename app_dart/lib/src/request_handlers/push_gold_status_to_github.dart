@@ -219,8 +219,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     RepositorySlug slug,
   ) async {
     final String body = 'Golden file changes have been found for this pull '
-        'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
-        '(e.g. because this is an intentional change).\n\n' +
+            'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+            '(e.g. because this is an intentional change).\n\n' +
         config.goldenBreakingChangeMessage +
         '\n\n' +
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';

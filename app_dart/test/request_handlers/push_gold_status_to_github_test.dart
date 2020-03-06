@@ -268,8 +268,8 @@ void main() {
               GithubGoldStatusUpdate.statusRunning,
               'abc',
               'Image changes have been found for '
-              'this pull request. Visit https://flutter-gold.skia.org/changelists '
-              'to view and triage (e.g. because this is an intentional change).');
+                  'this pull request. Visit https://flutter-gold.skia.org/changelists '
+                  'to view and triage (e.g. because this is an intentional change).');
           db.values[status.key] = status;
 
           // Checks complete
@@ -292,10 +292,10 @@ void main() {
           // Already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-                  IssueComment()
-                    ..body = 'Changes reported for pull request '
-                        '#${pr.number} at sha ${pr.head.sha}',
-                ),
+              IssueComment()
+                ..body = 'Changes reported for pull request '
+                    '#${pr.number} at sha ${pr.head.sha}',
+            ),
           );
 
           final Body body = await tester.get<Body>(handler);
@@ -436,8 +436,8 @@ void main() {
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-                  IssueComment()..body = 'some other comment',
-                ),
+              IssueComment()..body = 'some other comment',
+            ),
           );
 
           final Body body = await tester.get<Body>(handler);
@@ -497,8 +497,8 @@ void main() {
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-                  IssueComment()..body = 'some other comment',
-                ),
+              IssueComment()..body = 'some other comment',
+            ),
           );
 
           final Body body = await tester.get<Body>(handler);
@@ -555,8 +555,8 @@ void main() {
 
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-                  IssueComment()..body = 'some other comment',
-                ),
+              IssueComment()..body = 'some other comment',
+            ),
           );
 
           final Body body = await tester.get<Body>(handler);
@@ -627,8 +627,8 @@ void main() {
         when(issuesService.listCommentsByIssue(slug, completedPR.number))
             .thenAnswer(
           (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
+            IssueComment()..body = 'some other comment',
+          ),
         );
 
         final Body body = await tester.get<Body>(handler);
