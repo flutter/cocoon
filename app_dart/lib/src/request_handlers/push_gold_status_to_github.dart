@@ -112,7 +112,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
-            await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+            await _commentAndApplyGoldLabel(
+                await _isFirstComment(gitHubClient, pr, slug),
+                gitHubClient,
+                pr,
+                slug);
           }
         }
 
@@ -214,15 +218,23 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   /// Creates a comment on a given pull request identified to have golden file
   /// changes and applies the `will affect goldens` label.
   Future<void> _commentAndApplyGoldLabel(
+    bool isFirstComment,
     GitHub gitHubClient,
     PullRequest pr,
     RepositorySlug slug,
   ) async {
-    final String body = 'Golden file changes have been found for this pull '
-            'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
-            '(e.g. because this is an intentional change).\n\n' +
-        config.goldenBreakingChangeMessage +
-        '\n\n' +
+    String body;
+    if (isFirstComment) {
+      body = 'Golden file changes have been found for this pull '
+              'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+              '(e.g. because this is an intentional change).\n\n' +
+          config.goldenBreakingChangeMessage +
+          '\n\n';
+    } else {
+      body = 'Golden file changes remain available for triage from new commit, '
+          'Click [here to view](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true).\n\n';
+    }
+    body +=
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
@@ -249,5 +261,21 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     return false;
+  }
+
+  Future<bool> _isFirstComment(
+    GitHub gitHubClient,
+    PullRequest pr,
+    RepositorySlug slug,
+  ) async {
+    final Stream<IssueComment> comments =
+        gitHubClient.issues.listCommentsByIssue(slug, pr.number);
+    await for (IssueComment comment in comments) {
+      if (comment.body.contains(
+          'Golden file changes have been found for this pull request.')) {
+        return false;
+      }
+    }
+    return true;
   }
 }
