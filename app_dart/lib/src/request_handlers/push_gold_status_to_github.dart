@@ -100,7 +100,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final String goldStatus = await _getGoldStatus(pr, log);
         statusRequest =
             _createStatus(goldStatus, _getStatusDescription(goldStatus));
-        log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
+        log.debug(
+            'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
         if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
             !await _alreadyCommented(gitHubClient, pr, slug)) {
           log.debug('Notifying for triage.');
