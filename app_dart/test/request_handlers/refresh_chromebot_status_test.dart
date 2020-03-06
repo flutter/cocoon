@@ -53,9 +53,9 @@ void main() {
         await LuciBuilder.getBuilders(config),
         key: (dynamic builder) => builder,
         value: (dynamic builder) => <LuciTask>[
-              const LuciTask(commitSha: 'abc', status: Task.statusNew),
-              const LuciTask(commitSha: 'abc', status: Task.statusFailed)
-            ],
+          const LuciTask(commitSha: 'abc', status: Task.statusNew),
+          const LuciTask(commitSha: 'abc', status: Task.statusFailed)
+        ],
       );
       when(mockLuciService.getRecentTasks(
               repo: 'flutter', requireTaskName: true))

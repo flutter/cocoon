@@ -137,14 +137,14 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-              PullRequestFile()..filename = 'packages/flutter/blah.dart',
-            ),
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
       );
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -184,14 +184,14 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-              PullRequestFile()..filename = 'packages/flutter/blah.dart',
-            ),
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
       );
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -231,8 +231,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-              PullRequestFile()..filename = 'packages/flutter/blah.md',
-            ),
+          PullRequestFile()..filename = 'packages/flutter/blah.md',
+        ),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -272,21 +272,19 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-              PullRequestFile()
-                ..filename = 'packages/flutter/semantics_test.dart',
-              PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
-              PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
-              PullRequestFile()
-                ..filename = 'examples/flutter_gallery/blah.dart',
-              PullRequestFile()..filename = 'dev/blah.dart',
-              PullRequestFile()..filename = 'bin/internal/engine.version',
-              PullRequestFile()
-                ..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
-              PullRequestFile()
-                ..filename = 'packages/flutter/lib/src/material/blah.dart',
-              PullRequestFile()
-                ..filename = 'packages/flutter_localizations/blah.dart',
-            ]),
+          PullRequestFile()..filename = 'packages/flutter/semantics_test.dart',
+          PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
+          PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
+          PullRequestFile()..filename = 'dev/blah.dart',
+          PullRequestFile()..filename = 'bin/internal/engine.version',
+          PullRequestFile()
+            ..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
+          PullRequestFile()
+            ..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()
+            ..filename = 'packages/flutter_localizations/blah.dart',
+        ]),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -338,10 +336,9 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-              PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
-              PullRequestFile()
-                ..filename = 'packages/flutter_tools/pubspec.yaml',
-            ]),
+          PullRequestFile()..filename = 'packages/flutter/pubspec.yaml',
+          PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
+        ]),
       );
 
       await tester.post(webhook);
@@ -377,8 +374,8 @@ void main() {
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
+          IssueComment()..body = 'some other comment',
+        ),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -591,7 +588,7 @@ void main() {
       expect(
         json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
         '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-            '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Pull request closed"}}]}]',
+        '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Pull request closed"}}]}]',
       );
     });
 
@@ -653,14 +650,14 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-              PullRequestFile()..filename = 'packages/flutter/blah.dart',
-            ),
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
       );
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.missingTestsPullRequestMessageValue,
-            ),
+          IssueComment()..body = config.missingTestsPullRequestMessageValue,
+        ),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -950,7 +947,7 @@ void main() {
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
           '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-              '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Tryjobs canceled (label removed)"}},{"cancelBuild":{"id":"998","summaryMarkdown":"Tryjobs canceled (label removed)"}}]}]',
+          '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Tryjobs canceled (label removed)"}},{"cancelBuild":{"id":"998","summaryMarkdown":"Tryjobs canceled (label removed)"}}]}]',
         );
       });
 
@@ -1007,7 +1004,7 @@ void main() {
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
           '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-              '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
+          '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
         );
       });
 
