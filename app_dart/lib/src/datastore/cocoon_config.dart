@@ -90,7 +90,7 @@ class Config {
       'and make sure this patch meets those guidelines before LGTMing.';
 
   String get goldenBreakingChangeMessage =>
-      'Changes to golden files are considered breaking, so consult '
+      'Changes to golden files are considered breaking changes, so consult '
       '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes) '
       'to proceed. While there are exceptions to this rule, if this patch modifies '
       'an existing golden file, it is probably not an exception. Only new golden '
