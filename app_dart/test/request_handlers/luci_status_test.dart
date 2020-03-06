@@ -124,7 +124,8 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
+      request.bodyBytes =
+          utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -150,7 +151,8 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes =
-          utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar')) as Uint8List;
+          utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar'))
+              as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -171,7 +173,8 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
+      request.bodyBytes =
+          utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -223,8 +226,8 @@ void main() {
   });
 
   test('Handles a completed/failure status/result as failure', () async {
-    request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE')) as Uint8List;
+    request.bodyBytes = utf8
+        .encode(pushMessageJson('COMPLETED', result: 'FAILURE')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -309,8 +312,8 @@ void main() {
   });
 
   test('Handles a completed/canceled status/result as failure', () async {
-    request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED')) as Uint8List;
+    request.bodyBytes = utf8
+        .encode(pushMessageJson('COMPLETED', result: 'CANCELED')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -325,8 +328,8 @@ void main() {
   });
 
   test('Handles a completed/success status/result as sucess', () async {
-    request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS')) as Uint8List;
+    request.bodyBytes = utf8
+        .encode(pushMessageJson('COMPLETED', result: 'SUCCESS')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);

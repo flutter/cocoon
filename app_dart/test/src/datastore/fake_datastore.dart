@@ -270,7 +270,8 @@ class FakeTransaction implements Transaction {
       for (Model insert in inserts) {
         Key key = insert.key;
         if (key.id == null) {
-          key = Key(key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));
+          key = Key(
+              key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));
         }
         this.inserts[key] = insert;
       }

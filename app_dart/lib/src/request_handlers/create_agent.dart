@@ -38,7 +38,9 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
 
     final String agentId = requestData[agentIdParam] as String;
     final List<String> capabilities =
-        (requestData[capabilitiesParam] as List<dynamic>).cast<String>().toList();
+        (requestData[capabilitiesParam] as List<dynamic>)
+            .cast<String>()
+            .toList();
     final DatastoreService datastore = datastoreProvider();
     final AgentService agentService = agentServiceProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);

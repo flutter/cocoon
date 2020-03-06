@@ -44,7 +44,8 @@ void main() {
 
       final UpdateBenchmarkTargetsResponse response =
           await tester.post(handler);
-      final TimeSeries timeSeries2 = config.db.values[timeSeries.key] as TimeSeries;
+      final TimeSeries timeSeries2 =
+          config.db.values[timeSeries.key] as TimeSeries;
 
       expect(timeSeries2.goal, 0);
       expect(response.timeSeries.baseline, 4.0);

@@ -61,7 +61,8 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey =
+          keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } catch (error) {
       throw BadRequestException(
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');

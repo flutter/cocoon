@@ -142,7 +142,8 @@ class LuciBuilder {
   static Future<List<LuciBuilder>> getBuilders(Config config) async {
     final List<dynamic> builders = config.luciBuilders;
     return builders
-        .map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json as Map<String, dynamic>))
+        .map<LuciBuilder>((dynamic json) =>
+            LuciBuilder.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 }

@@ -40,8 +40,8 @@ void main() {
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild =
-        Build.fromJson(json.decode(json.encode(buildJson)) as Map<String, dynamic>);
+    final Build deserializedBuild = Build.fromJson(
+        json.decode(json.encode(buildJson)) as Map<String, dynamic>);
     expect(deserializedBuild.id, id);
 
     const GetBuildRequest request = GetBuildRequest(id: id);

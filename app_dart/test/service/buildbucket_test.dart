@@ -22,7 +22,8 @@ void main() {
     test('fromJson returns an empty list', () {
       const String jsonString =
           '{"responses":[{"searchBuilds":{}},{"searchBuilds":{}}]}';
-      final Map<String, dynamic> map = json.decode(jsonString) as  Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          json.decode(jsonString) as Map<String, dynamic>;
       final BatchResponse response = BatchResponse.fromJson(map);
       expect(response, isNotNull);
       expect(response.responses, isNotNull);

@@ -276,7 +276,8 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<String> builderNames = builders
         .where(
             (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
-        .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
+        .map<String>(
+            (Map<String, dynamic> builder) => builder['name'] as String)
         .toList();
     if (builderNames.isEmpty) {
       throw InternalServerError('$repositoryName does not have any builders');
@@ -378,7 +379,8 @@ class GithubWebhook extends RequestHandler<Body> {
       final HttpClientResponse response = await request.close();
       rawResponse = await utf8.decodeStream(response);
       final List<dynamic> ignores = jsonDecode(rawResponse) as List<dynamic>;
-      for (Map<String, dynamic> ignore in ignores.cast<Map<String, dynamic>>()) {
+      for (Map<String, dynamic> ignore
+          in ignores.cast<Map<String, dynamic>>()) {
         if ((ignore['note'] as String).isNotEmpty &&
             event.number.toString() == ignore['note'].split('/').last) {
           ignored = true;
@@ -596,8 +598,8 @@ class GithubWebhook extends RequestHandler<Body> {
       return null;
     }
     try {
-      final PullRequestEvent event =
-          PullRequestEvent.fromJSON(json.decode(request) as Map<String, dynamic>);
+      final PullRequestEvent event = PullRequestEvent.fromJSON(
+          json.decode(request) as Map<String, dynamic>);
 
       if (event == null) {
         return null;

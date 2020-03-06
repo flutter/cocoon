@@ -432,7 +432,8 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
+              as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -506,7 +507,8 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
+              as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -554,7 +556,8 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
+              as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -615,8 +618,8 @@ void main() {
               ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -662,8 +665,8 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(

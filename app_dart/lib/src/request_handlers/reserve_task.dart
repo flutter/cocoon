@@ -74,7 +74,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       }
 
       try {
-        await reservationProvider.secureReservation(task.task, agent.id as String);
+        await reservationProvider.secureReservation(
+            task.task, agent.id as String);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
           scopes: const <String>[

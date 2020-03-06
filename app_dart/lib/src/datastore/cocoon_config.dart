@@ -128,7 +128,8 @@ class Config {
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return ServiceAccountInfo.fromJson(json.decode(rawValue) as Map<String, dynamic>);
+    return ServiceAccountInfo.fromJson(
+        json.decode(rawValue) as Map<String, dynamic>);
   }
 
   Future<ServiceAccountCredentials> get taskLogServiceAccount async {

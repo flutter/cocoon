@@ -71,6 +71,8 @@ class GetLog extends ApiRequestHandler<Body> {
     final Query<LogChunk> query = datastore.db.query<LogChunk>()
       ..filter('ownerKey =', ownerKey)
       ..order('createTimestamp');
-    yield* query.run().map<Uint8List>((LogChunk chunk) => chunk.data as Uint8List);
+    yield* query
+        .run()
+        .map<Uint8List>((LogChunk chunk) => chunk.data as Uint8List);
   }
 }
