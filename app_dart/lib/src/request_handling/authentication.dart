@@ -195,7 +195,8 @@ class AuthenticationProvider {
       final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
       TokenInfo token;
       try {
-        token = TokenInfo.fromJson(json.decode(tokenJson));
+        token =
+            TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
       } on FormatException {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
