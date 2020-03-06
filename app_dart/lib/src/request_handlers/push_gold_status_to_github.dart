@@ -131,6 +131,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                 .createStatus(slug, pr.head.sha, statusRequest);
             lastUpdate.status = statusRequest.state;
             lastUpdate.head = pr.head.sha;
+            print('About to update: ${lastUpdate.pr}, ${lastUpdate.updates}');
             lastUpdate.updates += 1;
             lastUpdate.description = statusRequest.description;
             statusUpdates.add(lastUpdate);
