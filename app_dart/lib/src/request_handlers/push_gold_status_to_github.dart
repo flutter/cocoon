@@ -182,12 +182,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
 
       if (decodedResponse['digests'] == null) {
-        log.debug('There are no unexpected image results for #${pr.number} at sha '
+        log.debug(
+            'There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.debug('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
+        log.debug(
+            'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images.}');
 
         return GithubGoldStatusUpdate.statusRunning;
