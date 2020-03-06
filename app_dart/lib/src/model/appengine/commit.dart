@@ -20,7 +20,7 @@ class Commit extends Model {
     this.author,
     this.authorAvatarUrl,
     this.repository,
-    this.branch,
+    this.branch = 'master',
   }) {
     parentKey = key?.parent;
     id = key?.id;

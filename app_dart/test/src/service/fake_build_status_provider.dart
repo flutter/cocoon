@@ -27,7 +27,8 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp}) {
+  Stream<CommitStatus> retrieveCommitStatus(
+      {int limit = 100, int timestamp, String branch}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
@@ -35,7 +36,8 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
         a.commit.timestamp.compareTo(b.commit.timestamp));
 
     return Stream<CommitStatus>.fromIterable(commitStatuses.where(
-        (CommitStatus commitStatuse) =>
-            commitStatuse.commit.timestamp < timestamp));
+        (CommitStatus commitStatus) =>
+            commitStatus.commit.timestamp < timestamp &&
+            commitStatus.commit.branch == branch));
   }
 }

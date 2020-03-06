@@ -8,6 +8,11 @@ indexes:
   properties:
   - name: CreateTimestamp
     direction: desc
+- kind: Checklist
+  properties:
+  - name: Branch
+  - name: CreateTimestamp
+    direction: desc
 - kind: Task
   ancestor: yes
   properties:
