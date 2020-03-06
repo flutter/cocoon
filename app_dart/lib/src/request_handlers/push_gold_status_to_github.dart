@@ -65,7 +65,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       CreateStatus statusRequest;
 
       log.debug('Last known Gold status for #${pr.number} was with sha: '
-          '${lastUpdate.head}, status: ${lastUpdate.status}');
+          '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
           lastUpdate.head == pr.head.sha) {
@@ -100,6 +100,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final String goldStatus = await _getGoldStatus(pr, log);
         statusRequest =
             _createStatus(goldStatus, _getStatusDescription(goldStatus));
+        log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
         if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
             !await _alreadyCommented(gitHubClient, pr, slug)) {
           log.debug('Notifying for triage.');
@@ -169,13 +170,13 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (decodedResponse['digests'] == null) {
         log.debug(
             'There are no unexpected image results for #${pr.number} at sha '
-            '${pr.head.sha}, returning status ${GithubGoldStatusUpdate.statusCompleted}');
+            '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
         log.debug(
             'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
-            'images, returning status ${GithubGoldStatusUpdate.statusRunning}');
+            'images.}');
 
         return GithubGoldStatusUpdate.statusRunning;
       }
