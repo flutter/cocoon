@@ -140,18 +140,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           }
         }
       }
-
-      final int maxEntityGroups = config.maxEntityGroups;
-      for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
-        await datastore.db
-            .withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(
-              inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
-          await transaction.commit();
-        });
-      }
-      log.debug('Committed all updates');
     }
+
+    final int maxEntityGroups = config.maxEntityGroups;
+    for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
+      await datastore.db.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(
+            inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
+        await transaction.commit();
+      });
+    }
+    log.debug('Committed all updates');
+
     return Body.empty;
   }
 
