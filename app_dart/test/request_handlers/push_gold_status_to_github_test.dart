@@ -152,7 +152,7 @@ void main() {
           ];
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(pr, null, null);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
