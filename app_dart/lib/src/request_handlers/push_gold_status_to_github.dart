@@ -57,24 +57,24 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<GithubGoldStatusUpdate> statusUpdates =
         <GithubGoldStatusUpdate>[];
     final List<String> cirrusCheckStatuses = <String>[];
-
+    log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate =
           await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
-      print('Last known Gold status for #${pr.number} was with sha: '
+      log.debug('Last known Gold status for #${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
           lastUpdate.head == pr.head.sha) {
-        print('Completed status already reported for this commit.');
+        log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed.
         continue;
       }
 
-      print('Querying Cirrus for pull request #${pr.number}...');
+      log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
       // Query current checks for this pr.
@@ -84,14 +84,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final String status = check['status'];
         final String taskName = check['name'];
 
-        print(
+        log.debug(
             'Found Cirrus build status for pull request #${pr.number}, commit '
             '${pr.head.sha}: $taskName ($status)');
 
         cirrusCheckStatuses.add(status);
         if (taskName.contains('framework')) {
           // Any pull request that runs a framework shard runs golden file tests,
-          // Once identified all checks will be awaited to check Gold status.
+          // Once identified, all checks will be awaited to check Gold status.
           runsGoldenFileTests = true;
         }
       }
@@ -99,7 +99,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (runsGoldenFileTests) {
         if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
           // Checks are still running, we have to wait.
-          print('Waiting for checks to be completed.');
+          log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
               'This check is waiting for all other checks to be completed.');
         } else {
@@ -107,11 +107,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           final String goldStatus = await _getGoldStatus(pr, log);
           statusRequest =
               _createStatus(goldStatus, _getStatusDescription(goldStatus));
-          print(
+          log.debug(
               'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug)) {
-            print('Notifying for triage.');
+            log.debug('Notifying for triage.');
             await _commentAndApplyGoldLabel(
                 await _isFirstComment(gitHubClient, pr, slug),
                 gitHubClient,
@@ -125,13 +125,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         if (lastUpdate.description != statusRequest.description ||
             lastUpdate.head != pr.head.sha) {
           try {
-            print(
+            log.debug(
                 'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
             await gitHubClient.repositories
                 .createStatus(slug, pr.head.sha, statusRequest);
             lastUpdate.status = statusRequest.state;
             lastUpdate.head = pr.head.sha;
-            print('About to update: ${lastUpdate.pr}, ${lastUpdate.updates}');
             lastUpdate.updates += 1;
             lastUpdate.description = statusRequest.description;
             statusUpdates.add(lastUpdate);
@@ -151,7 +150,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         await transaction.commit();
       });
     }
-    print('Committed all updates');
+    log.debug('Committed all updates');
 
     return Body.empty;
   }
@@ -183,12 +182,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
 
       if (decodedResponse['digests'] == null) {
-        print('There are no unexpected image results for #${pr.number} at sha '
+        log.debug('There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        print('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
+        log.debug('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images.}');
 
         return GithubGoldStatusUpdate.statusRunning;

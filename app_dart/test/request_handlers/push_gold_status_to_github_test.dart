@@ -124,8 +124,8 @@ void main() {
 
       PullRequest newPullRequest(int number, String sha) {
         return PullRequest()
-          ..number = number
-          ..head = (PullRequestHead()..sha = sha);
+          ..number = 123
+          ..head = (PullRequestHead()..sha = 'abc');
       }
 
       group('does not update GitHub or Datastore', () {
