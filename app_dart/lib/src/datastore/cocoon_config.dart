@@ -35,7 +35,7 @@ class Config {
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
-  Logging get loggingService => ss.lookup(#appengine.logging);
+  Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
   Future<String> _getSingleValue(String id) async {
     final Uint8List cacheValue = await _cache.getOrCreate(
@@ -128,7 +128,7 @@ class Config {
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return ServiceAccountInfo.fromJson(json.decode(rawValue));
+    return ServiceAccountInfo.fromJson(json.decode(rawValue) as Map<String, dynamic>);
   }
 
   Future<ServiceAccountCredentials> get taskLogServiceAccount async {

@@ -84,7 +84,8 @@ class BuildBucketClient {
     final String rawResponse = await utf8.decodeStream(response);
     if (response.statusCode < 300) {
       return responseFromJson(
-          json.decode(rawResponse.substring(kRpcResponseGarbage.length)));
+          json.decode(rawResponse.substring(kRpcResponseGarbage.length))
+              as Map<String, dynamic>);
     }
     throw BuildBucketException(response.statusCode, rawResponse);
   }

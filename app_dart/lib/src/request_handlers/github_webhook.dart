@@ -69,10 +69,11 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _handlePullRequest(String rawRequest) async {
     final PullRequestEvent event = await _getPullRequest(rawRequest);
-    final List<IssueLabel> existingLabels = _getProperty(rawRequest, 'labels')
-        .cast<Map<String, dynamic>>()
-        .map<IssueLabel>(IssueLabel.fromJSON)
-        .toList();
+    final List<IssueLabel> existingLabels =
+        _getProperty<List<dynamic>>(rawRequest, 'labels')
+            .cast<Map<String, dynamic>>()
+            .map<IssueLabel>(IssueLabel.fromJSON)
+            .toList();
     final bool isDraft = _getProperty(rawRequest, 'draft');
     if (event == null) {
       throw const BadRequestException('Expected pull request event.');
@@ -275,7 +276,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final List<String> builderNames = builders
         .where(
             (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
-        .map<String>((Map<String, dynamic> builder) => builder['name'])
+        .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
         .toList();
     if (builderNames.isEmpty) {
       throw InternalServerError('$repositoryName does not have any builders');
@@ -326,10 +327,12 @@ class GithubWebhook extends RequestHandler<Body> {
   // Eliminate when github.dart implements missing features:
   // TODO(dnfield): labels - https://github.com/DirectMyFile/github.dart/pull/155
   // TODO(Piinks): drafts - https://github.com/DirectMyFile/github.dart/issues/161
-  dynamic _getProperty(String pullRequestJson, String property) {
-    final Map<String, dynamic> decoded = json.decode(pullRequestJson);
-    final Map<String, dynamic> decodedPr = decoded['pull_request'];
-    return decodedPr[property];
+  T _getProperty<T>(String pullRequestJson, String property) {
+    final Map<String, dynamic> decoded =
+        json.decode(pullRequestJson) as Map<String, dynamic>;
+    final Map<String, dynamic> decodedPr =
+        decoded['pull_request'] as Map<String, dynamic>;
+    return decodedPr[property] as T;
   }
 
   Future<void> _cancelLuci(
@@ -374,9 +377,9 @@ class GithubWebhook extends RequestHandler<Body> {
           .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
       final HttpClientResponse response = await request.close();
       rawResponse = await utf8.decodeStream(response);
-      final List<dynamic> ignores = jsonDecode(rawResponse);
-      for (Map<String, dynamic> ignore in ignores) {
-        if (ignore['note'].isNotEmpty &&
+      final List<dynamic> ignores = jsonDecode(rawResponse) as List<dynamic>;
+      for (Map<String, dynamic> ignore in ignores.cast<Map<String, dynamic>>()) {
+        if ((ignore['note'] as String).isNotEmpty &&
             event.number.toString() == ignore['note'].split('/').last) {
           ignored = true;
           break;
@@ -594,7 +597,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     try {
       final PullRequestEvent event =
-          PullRequestEvent.fromJSON(json.decode(request));
+          PullRequestEvent.fromJSON(json.decode(request) as Map<String, dynamic>);
 
       if (event == null) {
         return null;

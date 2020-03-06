@@ -35,7 +35,7 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
   Future<AuthorizeAgentResponse> post() async {
     checkRequiredParameters(<String>[agentIdParam]);
 
-    final String agentId = requestData[agentIdParam];
+    final String agentId = requestData[agentIdParam] as String;
     final DatastoreService datastore = datastoreProvider();
     final AgentService agentService = agentServiceProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);

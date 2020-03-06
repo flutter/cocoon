@@ -52,16 +52,16 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
-    double goal = requestData[goalParam]?.toDouble();
-    double baseline = requestData[baselineParam]?.toDouble();
-    final String taskName = requestData[taskNameParam];
-    final String label = requestData[labelParam];
-    final String unit = requestData[unitParam];
-    final bool archived = requestData[archivedParam];
+    double goal = (requestData[goalParam] as num)?.toDouble();
+    double baseline = (requestData[baselineParam] as num)?.toDouble();
+    final String taskName = requestData[taskNameParam] as String;
+    final String label = requestData[labelParam] as String;
+    final String unit = requestData[unitParam] as String;
+    final bool archived = requestData[archivedParam] as bool;
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam]);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } catch (error) {
       throw BadRequestException(
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');

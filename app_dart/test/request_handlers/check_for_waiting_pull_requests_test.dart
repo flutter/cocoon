@@ -68,7 +68,7 @@ void main() {
         expect(options.variables['sLabelName'],
             config.waitingForTreeToGoGreenLabelNameValue);
 
-        final String repoName = options.variables['sName'];
+        final String repoName = options.variables['sName'] as String;
         if (repoName == 'flutter') {
           return createQueryResult(flutterRepoPRs);
         } else if (repoName == 'engine') {

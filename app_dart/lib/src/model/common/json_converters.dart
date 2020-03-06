@@ -32,8 +32,9 @@ class TagsConverter
     }
     final Map<String, List<String>> result = <String, List<String>>{};
     for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
-      result[tag['key']] ??= <String>[];
-      result[tag['key']].add(tag['value']);
+      final String key = tag['key'] as String;
+      result[key] ??= <String>[];
+      result[key].add(tag['value'] as String);
     }
     return result;
   }
@@ -171,7 +172,7 @@ class NestedJsonConverter
     if (json == null) {
       return null;
     }
-    return convert.json.decode(json);
+    return convert.json.decode(json) as Map<String, dynamic>;
   }
 
   @override

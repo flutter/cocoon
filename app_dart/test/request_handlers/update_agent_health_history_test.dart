@@ -77,11 +77,11 @@ void main() {
 
       db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
 
-      final Map<String, dynamic> result = await decodeHandlerBody();
+      final Map<String, dynamic> result = await decodeHandlerBody() as Map<String, dynamic>;
       final TableDataList tableDataList =
           await tabledataResourceApi.list('test', 'test', 'test');
-      final Map<String, Object> value1 = tableDataList.rows[0].f[0].v;
-      final Map<String, Object> value2 = tableDataList.rows[1].f[0].v;
+      final Map<String, Object> value1 = tableDataList.rows[0].f[0].v as Map<String, Object>;
+      final Map<String, Object> value2 = tableDataList.rows[1].f[0].v as Map<String, Object>;
       final List<dynamic> expectedOrderedAgents = <dynamic>[
         linux1.toJson(),
         linux5.toJson(),

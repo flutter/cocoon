@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
@@ -68,7 +69,7 @@ void main() {
       }),
     );
 
-    config.luciTryBuildersValue = json.decode('''[
+    config.luciTryBuildersValue = (json.decode('''[
       {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
       {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
       {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
@@ -82,7 +83,7 @@ void main() {
       {"name": "Mac iOS Engine", "repo": "engine"},
       {"name": "Windows Host Engine", "repo": "engine"},
       {"name": "Windows Android AOT Engine", "repo": "engine"}
-    ]''').cast<Map<String, dynamic>>();
+    ]''') as List<dynamic>).cast<Map<String, dynamic>>();
 
     mockGitHubClient = MockGitHubClient();
     mockRepositoriesService = MockRepositoriesService();
@@ -94,7 +95,7 @@ void main() {
   });
 
   test('Rejects unauthorized requests', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+    request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
     await expectLater(
       () => tester.post(handler),
       throwsA(const TypeMatcher<Unauthorized>()),
@@ -123,7 +124,7 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -149,7 +150,7 @@ void main() {
           ..state = 'pending',
       ];
       request.bodyBytes =
-          utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar'));
+          utf8.encode(pushMessageJson('SCHEDULED', urlParam: '?foo=bar')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -170,7 +171,7 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED'));
+      request.bodyBytes = utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -191,7 +192,7 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      request.bodyBytes = utf8.encode(pushMessageJson('STARTED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -212,7 +213,7 @@ void main() {
           ..context = 'Linux Coverage'
           ..state = 'pending',
       ];
-      request.bodyBytes = utf8.encode(pushMessageJson('STARTED'));
+      request.bodyBytes = utf8.encode(pushMessageJson('STARTED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
       await tester.post(handler);
@@ -223,7 +224,7 @@ void main() {
 
   test('Handles a completed/failure status/result as failure', () async {
     request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE'));
+        utf8.encode(pushMessageJson('COMPLETED', result: 'FAILURE')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -241,7 +242,7 @@ void main() {
     request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED',
         builderName: 'Linux',
         result: 'FAILURE',
-        failureReason: 'INFRA_FAILURE'));
+        failureReason: 'INFRA_FAILURE')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -291,7 +292,7 @@ void main() {
         builderName: 'Linux',
         result: 'FAILURE',
         failureReason: 'INFRA_FAILURE',
-        retries: 2));
+        retries: 2)) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -309,7 +310,7 @@ void main() {
 
   test('Handles a completed/canceled status/result as failure', () async {
     request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED'));
+        utf8.encode(pushMessageJson('COMPLETED', result: 'CANCELED')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -325,7 +326,7 @@ void main() {
 
   test('Handles a completed/success status/result as sucess', () async {
     request.bodyBytes =
-        utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS'));
+        utf8.encode(pushMessageJson('COMPLETED', result: 'SUCCESS')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
@@ -344,7 +345,7 @@ void main() {
       'COMPLETED',
       result: 'SUCCESS',
       builderName: 'Linux Host Engine',
-    ));
+    )) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);

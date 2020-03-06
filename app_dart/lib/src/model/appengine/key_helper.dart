@@ -130,7 +130,7 @@ class KeyHelper {
       if (kindAnnotations.isEmpty) {
         throw StateError('Class $type has no @Kind annotation');
       }
-      final Kind annotation = kindAnnotations.single.reflectee;
+      final Kind annotation = kindAnnotations.single.reflectee as Kind;
       result[type] = Kind(
         name: annotation.name ?? type.toString(),
         idType: annotation.idType ?? IdType.Integer,
@@ -157,9 +157,9 @@ class KeyHelper {
         }
         if (key.id != null) {
           if (key.id is String) {
-            element.name = key.id;
+            element.name = key.id as String;
           } else if (key.id is int) {
-            element.id = Int64(key.id);
+            element.id = Int64(key.id as int);
           }
         }
         return element;

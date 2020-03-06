@@ -40,7 +40,7 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
       {ClientContext clientContext, Logging log}) async {
     if (authenticated) {
       return FakeAuthenticatedContext(
-          agent: agent, clientContext: clientContext);
+          agent: agent, clientContext: clientContext as FakeClientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }

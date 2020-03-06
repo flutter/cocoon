@@ -71,7 +71,7 @@ void main() {
       config.deviceLabServiceAccountValue =
           const ServiceAccountInfo(email: serviceAccountEmail);
 
-      config.luciTryBuildersValue = json.decode('''[
+      config.luciTryBuildersValue = (json.decode('''[
     {"name": "Cocoon", "repo": "cocoon"},
     {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
     {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
@@ -86,7 +86,7 @@ void main() {
     {"name": "Mac iOS Engine", "repo": "engine"},
     {"name": "Windows Host Engine", "repo": "engine"},
     {"name": "Windows Android AOT Engine", "repo": "engine"}
-  ]''').cast<Map<String, dynamic>>();
+  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
       config.cqLabelNameValue = cqLabelName;
     });
 
@@ -108,7 +108,7 @@ void main() {
     test('Rejects malformed unicode', () async {
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.bodyBytes = Uint8List.fromList(<int>[0xc3, 0x28]);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(request.bodyBytes, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
@@ -117,8 +117,8 @@ void main() {
     test('Rejects non-json', () async {
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = 'Hello, World!';
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
@@ -128,8 +128,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'dev');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -148,8 +148,8 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -176,8 +176,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -195,8 +195,8 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -223,8 +223,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -236,8 +236,8 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -264,8 +264,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -288,8 +288,8 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -328,8 +328,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -361,8 +361,8 @@ void main() {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -381,7 +381,8 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())));
+                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
+              as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -417,8 +418,8 @@ void main() {
         'master',
         merged: true,
       );
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -431,7 +432,7 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())));
+              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -453,8 +454,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -491,8 +492,8 @@ void main() {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -505,7 +506,7 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())));
+              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -539,8 +540,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -553,7 +554,7 @@ void main() {
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
           utf8.encode(
-              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())));
+              skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -602,8 +603,8 @@ void main() {
         'master',
         isDraft: true,
       );
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -615,7 +616,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -642,8 +643,8 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -662,7 +663,7 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()));
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
       when(mockHttpClient
               .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
           .thenAnswer(
@@ -694,8 +695,8 @@ void main() {
         'master',
         login: 'engine-flutter-autoroll',
       );
-      final Uint8List body = utf8.encode(request.body);
-      final Uint8List key = utf8.encode(keyString);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -745,8 +746,8 @@ void main() {
 
         request.body = jsonTemplate('synchronize', issueNumber, 'master',
             repoFullName: 'flutter/cocoon', repoName: 'cocoon');
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -762,8 +763,8 @@ void main() {
         });
 
         request.body = jsonTemplate('labeled', issueNumber, 'master');
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -801,8 +802,8 @@ void main() {
             '"pull_request": {"id": 354272971, "labels":[], '
             '"head": {"sha": "the_sha"}}, "repository": {"name":"cocoon",'
             '"full_name": "flutter/cocoon"}}';
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -887,8 +888,8 @@ void main() {
         });
         request.body = jsonTemplate('labeled', issueNumber, 'master',
             includeCqLabel: true);
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -938,8 +939,8 @@ void main() {
         });
 
         request.body = jsonTemplate('unlabeled', issueNumber, 'master');
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -995,8 +996,8 @@ void main() {
         });
 
         request.body = jsonTemplate('unlabeled', issueNumber, 'master');
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
@@ -1049,8 +1050,8 @@ void main() {
 
         request.body = jsonTemplate('synchronize', issueNumber, 'master',
             includeCqLabel: true);
-        final Uint8List body = utf8.encode(request.body);
-        final Uint8List key = utf8.encode(keyString);
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 

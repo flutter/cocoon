@@ -29,9 +29,9 @@ bool _flutterProfileMode;
 bool _getArgs(ArgParser argParser, List<String> arguments) {
   final ArgResults args = argParser.parse(arguments);
 
-  _gcloudProjectId = args[gcloudProjectIdFlag];
-  _gcloudProjectVersion = args[gcloudProjectVersionFlag];
-  _flutterProfileMode = args[flutterProfileModeFlag];
+  _gcloudProjectId = args[gcloudProjectIdFlag] as String;
+  _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String;
+  _flutterProfileMode = args[flutterProfileModeFlag] as bool;
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -55,7 +55,7 @@ Future<bool> _checkDependencies() async {
   stdout.writeln('Checking Flutter version via flutter --version');
   final ProcessResult result =
       await Process.run('flutter', <String>['--version']);
-  final String flutterVersionOutput = result.stdout;
+  final String flutterVersionOutput = result.stdout as String;
 
   // This makes an assumption that only the framework will have its version
   // printed out with the date in YYYY-MM-DD format.

@@ -51,7 +51,7 @@ void main() {
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
         await LuciBuilder.getBuilders(config),
-        key: (dynamic builder) => builder,
+        key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(commitSha: 'abc', status: Task.statusNew),
           const LuciTask(commitSha: 'abc', status: Task.statusFailed)

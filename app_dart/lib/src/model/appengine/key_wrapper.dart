@@ -43,9 +43,9 @@ class KeyWrapper {
       }
       if (slice.id != null) {
         if (slice.id is String) {
-          current.name = slice.id;
+          current.name = slice.id as String;
         } else if (slice.id is int) {
-          current.uid = Int64(slice.id);
+          current.uid = Int64(slice.id as int);
         }
       }
       if (previous != null) {

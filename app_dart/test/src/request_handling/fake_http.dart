@@ -27,9 +27,9 @@ class _Body {
   _Body.utf8(this.value)
       : assert(value != null),
         isUtf8 = true,
-        bytes = utf8.encode(value),
-        stream =
-            Stream<Uint8List>.fromIterable(<Uint8List>[utf8.encode(value)]);
+        bytes = utf8.encode(value) as Uint8List,
+        stream = Stream<Uint8List>.fromIterable(
+            <Uint8List>[utf8.encode(value) as Uint8List]);
 
   _Body.rawBytes(this.bytes)
       : assert(bytes != null),
@@ -215,7 +215,8 @@ abstract class FakeInbound extends FakeTransport {
     List<int> Function() orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.firstWhere(test, orElse: orElse);
+    return _body.stream
+        .firstWhere(test, orElse: () => Uint8List.fromList(orElse()));
   }
 
   Future<S> fold<S>(
@@ -262,7 +263,8 @@ abstract class FakeInbound extends FakeTransport {
     List<int> Function() orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.lastWhere(test, orElse: orElse);
+    return _body.stream
+        .lastWhere(test, orElse: () => Uint8List.fromList(orElse()));
   }
 
   Future<int> get length {
@@ -277,13 +279,16 @@ abstract class FakeInbound extends FakeTransport {
 
   Future<dynamic> pipe(StreamConsumer<List<int>> streamConsumer) {
     _isStreamExposed = true;
-    return _body.stream.pipe(streamConsumer);
+    return _body.stream
+        .map((Uint8List list) => list.toList())
+        .pipe(streamConsumer);
   }
 
   Future<Uint8List> reduce(
       List<int> Function(Uint8List previous, Uint8List element) combine) {
     _isStreamExposed = true;
-    return _body.stream.reduce(combine);
+    return _body.stream.reduce((Uint8List previous, Uint8List element) =>
+        Uint8List.fromList(combine(previous, element)));
   }
 
   Future<Uint8List> get single {
@@ -296,7 +301,8 @@ abstract class FakeInbound extends FakeTransport {
     List<int> Function() orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.singleWhere(test, orElse: orElse);
+    return _body.stream
+        .singleWhere(test, orElse: () => Uint8List.fromList(orElse()));
   }
 
   Stream<Uint8List> skip(int count) {
@@ -339,7 +345,9 @@ abstract class FakeInbound extends FakeTransport {
 
   Stream<S> transform<S>(StreamTransformer<List<int>, S> streamTransformer) {
     _isStreamExposed = true;
-    return _body.stream.transform<S>(streamTransformer);
+    return _body.stream
+        .map((Uint8List list) => list.toList())
+        .transform<S>(streamTransformer);
   }
 
   Stream<Uint8List> where(bool Function(Uint8List event) test) {

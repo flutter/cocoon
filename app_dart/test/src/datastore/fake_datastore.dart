@@ -84,7 +84,7 @@ class FakeDatastoreDB implements DatastoreDB {
 
   @override
   Future<List<T>> lookup<T extends Model>(List<Key> keys) async {
-    return keys.map<T>((Key key) => values[key]).toList();
+    return keys.map<T>((Key key) => values[key] as T).toList();
   }
 
   @override
@@ -226,9 +226,9 @@ class FakeTransaction implements Transaction {
       if (deletes.contains(key)) {
         results.add(null);
       } else if (inserts.containsKey(key)) {
-        results.add(inserts[key]);
+        results.add(inserts[key] as T);
       } else if (db.values.containsKey(key)) {
-        results.add(db.values[key]);
+        results.add(db.values[key] as T);
       } else {
         results.add(null);
       }
@@ -270,7 +270,7 @@ class FakeTransaction implements Transaction {
       for (Model insert in inserts) {
         Key key = insert.key;
         if (key.id == null) {
-          key = Key(key.parent, key.type, random.nextInt(math.pow(2, 20)));
+          key = Key(key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));
         }
         this.inserts[key] = insert;
       }

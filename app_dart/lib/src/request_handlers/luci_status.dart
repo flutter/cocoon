@@ -53,12 +53,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
     }
     final String requestString = await utf8.decodeStream(request);
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
-      json.decode(requestString),
+      json.decode(requestString) as Map<String, dynamic>,
     );
-    final BuildPushMessage buildMessage =
-        BuildPushMessage.fromJson(json.decode(envelope.message.data));
+    final BuildPushMessage buildMessage = BuildPushMessage.fromJson(
+        json.decode(envelope.message.data) as Map<String, dynamic>);
     final Build build = buildMessage.build;
-    final Map<String, dynamic> userData = jsonDecode(buildMessage.userData);
+    final Map<String, dynamic> userData =
+        jsonDecode(buildMessage.userData) as Map<String, dynamic>;
     final String builderName = build.tagsByName('builder').single;
 
     const String shaPrefix = 'sha/git/';
@@ -73,7 +74,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
           sha: sha,
           builderName: builderName,
           build: build,
-          retries: userData['retries'],
+          retries: userData['retries'] as int,
         );
         break;
       case Status.scheduled:
@@ -161,7 +162,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
         'user_agent': build.tagsByName('user_agent'),
         'github_link': build.tagsByName('github_link'),
       },
-      properties: (build.buildParameters['properties']).cast<String, String>(),
+      properties: (build.buildParameters['properties'] as Map<String, dynamic>)
+          .cast<String, String>(),
       notify: bb.NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
         userData: json.encode(<String, dynamic>{
@@ -193,7 +195,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final List<Map<String, dynamic>> builders = config.luciTryBuilders;
     final String repoName = builders.firstWhere(
         (Map<String, dynamic> builder) =>
-            builder['name'] == builderName)['repo'];
+            builder['name'] == builderName)['repo'] as String;
     return RepositorySlug('flutter', repoName);
   }
 

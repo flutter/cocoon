@@ -104,8 +104,10 @@ void main() {
       request = await client.getUrl(url.replace(path: '/ok'));
       request.headers.clear();
       response = await request.close();
-      final Map<String, dynamic> data =
-          await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data = await utf8.decoder
+          .bind(response)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
       expect(data['headers'], <String, dynamic>{
         HttpHeaders.hostHeader: 'localhost:${destServer.port}',
       });
@@ -123,8 +125,10 @@ void main() {
       request.headers.add('multi', 'value1');
       request.headers.add('multi', 'value2');
       response = await request.close();
-      final Map<String, dynamic> data =
-          await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data = await utf8.decoder
+          .bind(response)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
       expect(data['headers'], <String, dynamic>{
         'foo': 'bar',
         'baz': 'qux',
@@ -139,8 +143,10 @@ void main() {
       request.write('request body');
       await request.flush();
       response = await request.close();
-      final Map<String, dynamic> data =
-          await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data = await utf8.decoder
+          .bind(response)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
       expect(data['body'], 'request body');
     });
 
@@ -148,8 +154,10 @@ void main() {
       request = await client.getUrl(
           url.replace(path: '/ok', query: 'foo=bar&baz=qux%26quz%3Dquw'));
       response = await request.close();
-      final Map<String, dynamic> data =
-          await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data = await utf8.decoder
+          .bind(response)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
       expect(data['query'], 'foo=bar&baz=qux%26quz%3Dquw');
     });
 
@@ -157,8 +165,10 @@ void main() {
       request = await client
           .getUrl(url.replace(path: '/ok', fragment: 'foo&bar=baz'));
       response = await request.close();
-      final Map<String, dynamic> data =
-          await utf8.decoder.bind(response).transform(json.decoder).single;
+      final Map<String, dynamic> data = await utf8.decoder
+          .bind(response)
+          .transform(json.decoder)
+          .single as Map<String, dynamic>;
       expect(data['fragment'], isEmpty);
     });
 
