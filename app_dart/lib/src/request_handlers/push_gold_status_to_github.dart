@@ -59,22 +59,23 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<String> cirrusCheckStatuses = <String>[];
 
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
+
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate =
           await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
-      log.debug('Last known Gold status for #${pr.number} was with sha: '
+      print('Last known Gold status for #${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
           lastUpdate.head == pr.head.sha) {
-        log.debug('Completed status already reported for this commit.');
+        print('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed.
         continue;
       }
 
-      log.debug('Querying Cirrus for pull request #${pr.number}...');
+      print('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
       // Query current checks for this pr.
@@ -84,7 +85,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final String status = check['status'];
         final String taskName = check['name'];
 
-        log.debug(
+        print(
             'Found Cirrus build status for pull request #${pr.number}, commit '
             '${pr.head.sha}: $taskName ($status)');
 
@@ -99,7 +100,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (runsGoldenFileTests) {
         if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
           // Checks are still running, we have to wait.
-          log.debug('Waiting for checks to be completed.');
+          print('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
               'This check is waiting for all other checks to be completed.');
         } else {
@@ -107,11 +108,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           final String goldStatus = await _getGoldStatus(pr, log);
           statusRequest =
               _createStatus(goldStatus, _getStatusDescription(goldStatus));
-          log.debug(
+          print(
               'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug)) {
-            log.debug('Notifying for triage.');
+            print('Notifying for triage.');
             await _commentAndApplyGoldLabel(
                 await _isFirstComment(gitHubClient, pr, slug),
                 gitHubClient,
@@ -125,7 +126,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         if (lastUpdate.description != statusRequest.description ||
             lastUpdate.head != pr.head.sha) {
           try {
-            log.debug(
+            print(
                 'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
             await gitHubClient.repositories
                 .createStatus(slug, pr.head.sha, statusRequest);
@@ -150,7 +151,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         await transaction.commit();
       });
     }
-    log.debug('Committed all updates');
+    print('Committed all updates');
 
     return Body.empty;
   }
@@ -182,13 +183,13 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
 
       if (decodedResponse['digests'] == null) {
-        log.debug(
+        print(
             'There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.debug(
+        print(
             'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images.}');
 
