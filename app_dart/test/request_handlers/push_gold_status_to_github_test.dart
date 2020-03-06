@@ -647,61 +647,61 @@ void main() {
       });
 
       test(
-        'Completed pull request does not skip follow-up prs with early return',
+          'Completed pull request does not skip follow-up prs with early return',
           () async {
-          final PullRequest completedPR = newPullRequest(123, 'abc');
-          final PullRequest followUpPR = newPullRequest(456, 'def');
-          prsFromGitHub = <PullRequest>[
-            completedPR,
-            followUpPR,
-          ];
-          final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
+        final PullRequest completedPR = newPullRequest(123, 'abc');
+        final PullRequest followUpPR = newPullRequest(456, 'def');
+        prsFromGitHub = <PullRequest>[
+          completedPR,
+          followUpPR,
+        ];
+        final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
             completedPR,
             GithubGoldStatusUpdate.statusCompleted,
             'abc',
             'All golden file tests have passed');
-          final GithubGoldStatusUpdate followUpStatus =
-          newStatusUpdate(followUpPR, '', '', '');
-          db.values[completedStatus.key] = completedStatus;
-          db.values[followUpStatus.key] = followUpStatus;
+        final GithubGoldStatusUpdate followUpStatus =
+            newStatusUpdate(followUpPR, '', '', '');
+        db.values[completedStatus.key] = completedStatus;
+        db.values[followUpStatus.key] = followUpStatus;
 
-          // Checks completed
-          statuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
+        // Checks completed
+        statuses = <dynamic>[
+          <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+          <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+        ];
 
-          // New status: completed/triaged/no changes
-          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(tryjobEmpty()));
-          when(mockHttpClient.getUrl(Uri.parse(
-            'http://flutter-gold.skia.org/json/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
+        // New status: completed/triaged/no changes
+        final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+        final MockHttpClientResponse mockHttpResponse =
+            MockHttpClientResponse(utf8.encode(tryjobEmpty()));
+        when(mockHttpClient.getUrl(Uri.parse(
+                'http://flutter-gold.skia.org/json/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
             .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpClient.getUrl(Uri.parse(
-            'http://flutter-gold.skia.org/json/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
+                (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+        when(mockHttpClient.getUrl(Uri.parse(
+                'http://flutter-gold.skia.org/json/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
             .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+                (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+        when(mockHttpRequest.close()).thenAnswer(
+            (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
-          when(issuesService.listCommentsByIssue(slug, completedPR.number))
+        when(issuesService.listCommentsByIssue(slug, completedPR.number))
             .thenAnswer(
-              (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
-          );
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
 
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(completedStatus.updates, 0);
-          expect(followUpStatus.updates, 1);
-          expect(completedStatus.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-        });
+        final Body body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(completedStatus.updates, 0);
+        expect(followUpStatus.updates, 1);
+        expect(completedStatus.status, GithubGoldStatusUpdate.statusCompleted);
+        expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
+        expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+        expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+      });
     });
   });
 }
