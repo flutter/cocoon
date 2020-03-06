@@ -89,13 +89,15 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get goldenBreakingChangeMessage => 'Check '
-      '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes). '
-      'While there are exceptions to this rule, if this patch modifies an existing '
-      'golden file, it is probably not an exception. Only new golden files are not '
-      'considered breaking changes.\n\n'
-      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter) '
-      'may also provide guidance for this change.\n\n'
+  String get goldenBreakingChangeMessage =>
+      'Changes to golden files are considered breaking changes, so consult '
+      '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes) '
+      'to proceed. While there are exceptions to this rule, if this patch modifies '
+      'an existing golden file, it is probably not an exception. Only new golden '
+      'file tests, or downstream changes like those from skia updates are '
+      'considered non-breaking.\n\n'
+      'For more guidance, visit '
+      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
       '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
