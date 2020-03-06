@@ -174,7 +174,7 @@ void main() {
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
-          branch: 'v0.0.0');
+          branch: 'flutter-1.1-candidate.1');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusProvider = FakeBuildStatusProvider(
@@ -188,7 +188,7 @@ void main() {
         buildStatusProvider: buildStatusProvider,
       );
 
-      const String branch = 'v0.0.0';
+      const String branch = 'flutter-1.1-candidate.1';
 
       expect(config.db.values.length, 2);
 
@@ -208,7 +208,7 @@ void main() {
               'Sha': null,
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
-            'Branch': 'v0.0.0'
+            'Branch': 'flutter-1.1-candidate.1'
           }
         },
         'Stages': <String>[]

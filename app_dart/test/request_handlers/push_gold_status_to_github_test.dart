@@ -145,6 +145,37 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
 
+        test('if there are no framework tests for this PR', () async {
+          statuses = <dynamic>[
+            <String, String>{'status': 'EXECUTING', 'name': 'tool-test-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'tool-test-2'}
+          ];
+          final PullRequest pr = newPullRequest(123, 'abc');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
+          ));
+        });
+
         test('same commit, checks running, last status running', () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc');
@@ -263,7 +294,7 @@ void main() {
             (_) => Stream<IssueComment>.value(
               IssueComment()
                 ..body = 'Changes reported for pull request '
-                    '${pr.number} at sha ${pr.head.sha}',
+                    '#${pr.number} at sha ${pr.head.sha}',
             ),
           );
 
@@ -490,6 +521,68 @@ void main() {
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
+          )).called(1);
+        });
+
+        test('uses shorter comment after first comment to reduce noise',
+            () async {
+          // Same commit
+          final PullRequest pr = newPullRequest(123, 'abc');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+              pr,
+              GithubGoldStatusUpdate.statusRunning,
+              'abc',
+              'This check is waiting for all other checks to be completed.');
+          db.values[status.key] = status;
+
+          // Checks complete
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+
+          // Gold status is running
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              .thenAnswer(
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()
+                ..body =
+                    'Golden file changes have been found for this pull request.',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should apply labels and make comment
+          verify(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          )).called(1);
+
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(
+                'Golden file changes remain available for triage from new commit,')),
           )).called(1);
         });
 

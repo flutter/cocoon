@@ -33,7 +33,7 @@ tasks:
 ''';
 const String branchRegExp = '''
       master
-      ^v[0-9]+\.[0-9]+\.[0-9]
+      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
       ''';
 
 void main() {
@@ -139,7 +139,7 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
-      githubBranches = <String>['v1.1.1', 'master'];
+      githubBranches = <String>['flutter-1.1-candidate.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
@@ -148,7 +148,7 @@ void main() {
       //expect(body.branches, null);
       final Commit commit = db.values.values.whereType<Commit>().last;
       //expect(body, null);
-      expect(commit.branch, 'v1.1.1');
+      expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
     test('stops requesting GitHub commits when it finds an existing commit',
