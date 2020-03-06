@@ -20,12 +20,13 @@ import 'task_helper.dart';
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox(
-      {Key key,
-      @required this.buildState,
-      @required this.task,
-      @required this.commit})
-      : assert(task != null),
+  const TaskBox({
+    Key key,
+    @required this.buildState,
+    @required this.task,
+    @required this.commit,
+    @visibleForTesting this.insertColorKeys = false,
+  })  : assert(task != null),
         assert(buildState != null),
         assert(commit != null),
         super(key: key);
@@ -38,6 +39,9 @@ class TaskBox extends StatefulWidget {
 
   /// [Commit] for cirrus tasks to show log.
   final Commit commit;
+
+  /// Test variable for storing the color in the key.
+  final bool insertColorKeys;
 
   /// Status messages that map to TaskStatus enums.
   // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
@@ -94,16 +98,19 @@ class _TaskBoxState extends State<TaskBox> {
       }
     }
 
+    final Color taskColor = TaskBox.statusColor.containsKey(status)
+        ? TaskBox.statusColor[status]
+        : Colors.black;
+
     return SizedBox(
+      key: widget.insertColorKeys ? Key(taskColor.toString()) : null,
       width: StatusGrid.cellSize,
       height: StatusGrid.cellSize,
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(
           margin: const EdgeInsets.all(1.0),
-          color: TaskBox.statusColor.containsKey(status)
-              ? TaskBox.statusColor[status]
-              : Colors.black,
+          color: taskColor,
           child: taskIndicators(widget.task, status),
         ),
       ),

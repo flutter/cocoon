@@ -71,14 +71,14 @@ void main() {
             buildState: buildState,
             task: repeatTask,
             commit: Commit(),
+            insertColorKeys: true,
           ),
         ),
       );
 
-      final Container taskBoxWidget =
-          find.byType(Container).evaluate().first.widget;
-      final BoxDecoration decoration = taskBoxWidget.decoration;
-      expect(decoration.color, Colors.orange);
+      final SizedBox taskBoxWidget =
+          find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      expect(taskBoxWidget, isNotNull);
     });
 
     testWidgets(
@@ -94,14 +94,14 @@ void main() {
             buildState: buildState,
             task: repeatTask,
             commit: Commit(),
+            insertColorKeys: true,
           ),
         ),
       );
 
-      final Container taskBoxWidget =
-          find.byType(Container).evaluate().first.widget;
-      final BoxDecoration decoration = taskBoxWidget.decoration;
-      expect(decoration.color, Colors.orange);
+      final SizedBox taskBoxWidget =
+          find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      expect(taskBoxWidget, isNotNull);
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
 
@@ -153,14 +153,14 @@ void main() {
             buildState: buildState,
             task: repeatTask,
             commit: Commit(),
+            insertColorKeys: true,
           ),
         ),
       );
 
-      final Container taskBoxWidget =
-          find.byType(Container).evaluate().first.widget;
-      final BoxDecoration decoration = taskBoxWidget.decoration;
-      expect(decoration.color, Colors.yellow);
+      final SizedBox taskBoxWidget =
+          find.byKey(Key(Colors.yellow.toString())).evaluate().first.widget;
+      expect(taskBoxWidget, isNotNull);
     });
 
     testWidgets('is the color black when given an unknown message',
@@ -627,14 +627,14 @@ Future<void> expectTaskBoxColorWithMessage(
         buildState: FlutterBuildState(),
         task: Task()..status = message,
         commit: Commit(),
+        insertColorKeys: true,
       ),
     ),
   );
 
-  final Container taskBoxWidget =
-      find.byType(Container).evaluate().first.widget;
-  final BoxDecoration decoration = taskBoxWidget.decoration;
-  expect(decoration.color, expectedColor);
+  final SizedBox taskBoxWidget =
+      find.byKey(Key(expectedColor.toString())).evaluate().first.widget;
+  expect(taskBoxWidget, isNotNull);
 }
 
 class MockFlutterBuildState extends Mock implements FlutterBuildState {}
