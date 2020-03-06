@@ -20,13 +20,13 @@ import 'task_helper.dart';
 /// with a [CircularProgressIndicator] in the box.
 /// Shows a black box for unknown statuses.
 class TaskBox extends StatefulWidget {
-  const TaskBox(
-      {Key key,
-      @required this.buildState,
-      @required this.task,
-      @required this.commit,
-      @visibleForTesting this.insertColorKeys = false})
-      : assert(task != null),
+  const TaskBox({
+    Key key,
+    @required this.buildState,
+    @required this.task,
+    @required this.commit,
+    @visibleForTesting this.insertColorKeys = false,
+  })  : assert(task != null),
         assert(buildState != null),
         assert(commit != null),
         super(key: key);
