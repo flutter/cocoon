@@ -76,6 +76,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
+      bool runsGoldenFileTests = false;
       // Query current checks for this pr.
       final List<dynamic> cirrusChecks =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
@@ -88,57 +89,65 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             '${pr.head.sha}: $taskName ($status)');
 
         cirrusCheckStatuses.add(status);
-      }
-
-      if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
-        // Checks are still running, we have to wait.
-        log.debug('Waiting for checks to be completed.');
-        statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
-            'This check is waiting for all other checks to be completed.');
-      } else {
-        // Get Gold status.
-        final String goldStatus = await _getGoldStatus(pr, log);
-        statusRequest =
-            _createStatus(goldStatus, _getStatusDescription(goldStatus));
-        log.debug(
-            'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-        if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
-            !await _alreadyCommented(gitHubClient, pr, slug)) {
-          log.debug('Notifying for triage.');
-          await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+        if (taskName.contains('framework')) {
+          // Any pull request that runs a framework shard runs golden file tests,
+          // Once identified all checks will be awaited to check Gold status.
+          runsGoldenFileTests = true;
         }
       }
 
-      // Push updates if there is a status change (detected by unique description)
-      // or this is a new commit.
-      if (lastUpdate.description != statusRequest.description ||
-          lastUpdate.head != pr.head.sha) {
-        try {
+      if (runsGoldenFileTests) {
+        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
+          // Checks are still running, we have to wait.
+          log.debug('Waiting for checks to be completed.');
+          statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
+              'This check is waiting for all other checks to be completed.');
+        } else {
+          // Get Gold status.
+          final String goldStatus = await _getGoldStatus(pr, log);
+          statusRequest =
+              _createStatus(goldStatus, _getStatusDescription(goldStatus));
           log.debug(
-              'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
-          await gitHubClient.repositories
-              .createStatus(slug, pr.head.sha, statusRequest);
-          lastUpdate.status = statusRequest.state;
-          lastUpdate.head = pr.head.sha;
-          lastUpdate.updates += 1;
-          lastUpdate.description = statusRequest.description;
-          statusUpdates.add(lastUpdate);
-        } catch (error) {
-          log.error(
-              'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+              'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
+          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+              !await _alreadyCommented(gitHubClient, pr, slug)) {
+            log.debug('Notifying for triage.');
+            await _commentAndApplyGoldLabel(gitHubClient, pr, slug);
+          }
+        }
+
+        // Push updates if there is a status change (detected by unique description)
+        // or this is a new commit.
+        if (lastUpdate.description != statusRequest.description ||
+            lastUpdate.head != pr.head.sha) {
+          try {
+            log.debug(
+                'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
+            await gitHubClient.repositories
+                .createStatus(slug, pr.head.sha, statusRequest);
+            lastUpdate.status = statusRequest.state;
+            lastUpdate.head = pr.head.sha;
+            lastUpdate.updates += 1;
+            lastUpdate.description = statusRequest.description;
+            statusUpdates.add(lastUpdate);
+          } catch (error) {
+            log.error(
+                'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          }
         }
       }
-    }
 
-    final int maxEntityGroups = config.maxEntityGroups;
-    for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
-      await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(
-            inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
-        await transaction.commit();
-      });
+      final int maxEntityGroups = config.maxEntityGroups;
+      for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
+        await datastore.db
+            .withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(
+              inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
+          await transaction.commit();
+        });
+      }
+      log.debug('Committed all updates');
     }
-    log.debug('Committed all updates');
     return Body.empty;
   }
 
@@ -210,8 +219,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     RepositorySlug slug,
   ) async {
     final String body = 'Golden file changes have been found for this pull '
-            'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
-            '(e.g. because this is an intentional change).\n\n' +
+        'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+        '(e.g. because this is an intentional change).\n\n' +
         config.goldenBreakingChangeMessage +
         '\n\n' +
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';

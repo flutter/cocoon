@@ -51,7 +51,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       if (agent.agentId != params['AgentID']) {
         throw BadRequestException(
           'Authenticated agent (${agent.agentId}) does not match agent '
-          'supplied in the request (${params['AgentID']})',
+              'supplied in the request (${params['AgentID']})',
         );
       }
     } else {
