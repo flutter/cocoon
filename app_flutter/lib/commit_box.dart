@@ -145,7 +145,7 @@ class CommitOverlayContents extends StatelessWidget {
                   // Shorten the SHA as we only need first 7 digits to be able
                   // to lookup the commit.
                   title: SelectableText(commit.sha.substring(0, 7)),
-                  subtitle: Text(commit.author),
+                  subtitle: SelectableText(commit.author),
                 ),
                 ButtonBar(
                   children: <Widget>[
