@@ -42,12 +42,10 @@ class KeyWrapper {
         current.type = slice.type.toString();
       }
       final Object id = slice.id;
-      if (id != null) {
-        if (id is String) {
-          current.name = id;
-        } else if (id is int) {
-          current.uid = Int64(id);
-        }
+      if (id is String) {
+        current.name = id;
+      } else if (id is int) {
+        current.uid = Int64(id);
       }
       if (previous != null) {
         current.child = previous;

@@ -156,12 +156,10 @@ class KeyHelper {
               : key.type.toString();
         }
         final Object id = key.id;
-        if (id != null) {
-          if (id is String) {
-            element.name = id;
-          } else if (id is int) {
-            element.id = Int64(id);
-          }
+        if (id is String) {
+          element.name = id;
+        } else if (id is int) {
+          element.id = Int64(id);
         }
         return element;
       }));
