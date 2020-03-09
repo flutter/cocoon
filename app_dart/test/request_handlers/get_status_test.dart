@@ -30,8 +30,10 @@ void main() {
 
     Future<T> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return utf8.decoder.bind(body.serialize()).transform(json.decoder).single
-          as T;
+      return await utf8.decoder
+          .bind(body.serialize())
+          .transform(json.decoder)
+          .single as T;
     }
 
     setUp(() {
