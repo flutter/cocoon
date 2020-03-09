@@ -169,7 +169,7 @@ class FakeQuery<T extends Model> implements Query<T> {
   Stream<T> run() {
     Iterable<T> resultsView = results.skip(start).take(count);
 
-    // This considers only the special case when there exists [branch] filter. 
+    // This considers only the special case when there exists [branch] filter.
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
