@@ -28,6 +28,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
+  cached_network_image: ^2.0.0
   cocoon_service:
     path: ../app_dart
   flutter_progress_button: ^1.0.0

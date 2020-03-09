@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -62,7 +63,12 @@ class _CommitBoxState extends State<CommitBox> {
               ),
             ),
           ),
-          other: Image.network(widget.commit.authorAvatarUrl),
+          other: CachedNetworkImage(
+            imageUrl: widget.commit.authorAvatarUrl,
+            placeholder: (_, String url) => Container(color: Colors.grey),
+            errorWidget: (_, String url, Object error) =>
+                const Icon(Icons.error),
+          ),
         ),
       ),
     );
@@ -138,7 +144,9 @@ class CommitOverlayContents extends StatelessWidget {
                 ListTile(
                   leading: CircleAvatar(
                     radius: 25.0,
-                    backgroundImage: NetworkImage(commit.authorAvatarUrl),
+                    backgroundImage: CachedNetworkImageProvider(
+                      commit.authorAvatarUrl,
+                    ),
                     backgroundColor: Colors.transparent,
                   ),
                   // TODO(chillers): Show commit message here instead: https://github.com/flutter/cocoon/issues/435

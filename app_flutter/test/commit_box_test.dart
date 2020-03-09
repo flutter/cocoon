@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit;
-import 'package:flutter/foundation.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:test/test.dart' as test show TypeMatcher;
+
+import 'package:cocoon_service/protos.dart' show Commit;
 
 import 'package:app_flutter/commit_box.dart';
 
@@ -19,11 +19,6 @@ void main() {
       ..repository = 'flutter/cocoon'
       ..sha = 'ShaShankRedemption';
 
-    tearDown(() {
-      // Image.Network caches images which must be cleared.
-      PaintingBinding.instance.imageCache.clear();
-    });
-
     testWidgets('shows information correctly', (WidgetTester tester) async {
       await tester.pumpWidget(Directionality(
         child: CommitBox(
@@ -32,12 +27,7 @@ void main() {
         textDirection: TextDirection.ltr,
       ));
 
-      // Image.Network throws a 400 exception in tests
-      expect(find.byType(Image), findsOneWidget);
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
+      expect(find.byType(CachedNetworkImage), findsOneWidget);
     });
 
     testWidgets('shows overlay on click', (WidgetTester tester) async {
@@ -46,11 +36,6 @@ void main() {
           commit: expectedCommit,
         ),
       ));
-
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       final String shortSha = expectedCommit.sha.substring(0, 7);
       expect(find.text(shortSha), findsNothing);
@@ -69,11 +54,6 @@ void main() {
           commit: expectedCommit,
         ),
       ));
-
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       // Open the overlay
       await tester.tap(find.byType(CommitBox));
@@ -102,11 +82,6 @@ void main() {
           commit: expectedCommit,
         ),
       ));
-
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       // Open the overlay
       await tester.tap(find.byType(CommitBox));

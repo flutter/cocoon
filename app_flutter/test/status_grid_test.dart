@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:test/test.dart' as test;
 
 import 'package:cocoon_service/protos.dart'
     show Commit, CommitStatus, Stage, Task;
@@ -76,11 +75,6 @@ void main() {
           ),
         ),
       );
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       final List<Element> commits = find.byType(CommitBox).evaluate().toList();
 
@@ -107,11 +101,6 @@ void main() {
           ),
         ),
       );
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
       expect(firstTask.task, taskMatrix.task(0, 0));
@@ -173,11 +162,6 @@ void main() {
         ),
       );
 
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
       expect(find.byType(TaskBox), findsNWidgets(3));
 
       // Row 1: ✓☐☐
@@ -239,11 +223,6 @@ void main() {
           ),
         ),
       );
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       // Compare all the cells to the first cell to check they all have
       // the same size
@@ -274,11 +253,6 @@ void main() {
           ),
         ),
       );
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       final List<Element> taskIcons = find.byType(TaskIcon).evaluate().toList();
       final double yPosition = taskIcons.first.size.topLeft(Offset.zero).dy;
@@ -317,11 +291,6 @@ void main() {
           ),
         ),
       );
-      // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-      if (!kIsWeb) {
-        expect(tester.takeException(),
-            const test.TypeMatcher<NetworkImageLoadException>());
-      }
 
       /// Loader containers show 1 extra to account for the commit box
       /// column on the left of the grid.
