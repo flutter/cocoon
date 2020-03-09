@@ -736,7 +736,7 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
               'pullRequests': <String, dynamic>{
                 'nodes': pullRequests.map<Map<String, dynamic>>(
                   (PullRequestHelper pullRequest) => pullRequest.toEntry(),
-                ),
+                ).toList(),
               },
             },
           ],
@@ -763,7 +763,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
             'name': status['name'],
             'status': status['status'],
           };
-        })
+        }).toList(),
       }
     ]
   });
