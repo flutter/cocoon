@@ -201,21 +201,12 @@ void main() {
         db.values[task1.key] = task1;
 
         // Test master branch.
-        final BuildStatus status1 = await buildStatusProvider
-            .calculateCumulativeStatus(branch: 'master');
-        expect(status1, BuildStatus.succeeded);
-
-        // Default branch is master.
         final List<CommitStatus> statuses1 =
             await buildStatusProvider.retrieveCommitStatus(limit: 5).toList();
         expect(statuses1.length, 1);
         expect(statuses1.first.commit.branch, 'master');
 
         // Test dev branch.
-        final BuildStatus status2 = await buildStatusProvider
-            .calculateCumulativeStatus(branch: 'flutter-0.0-candidate.0');
-        expect(status2, BuildStatus.succeeded);
-
         final List<CommitStatus> statuses2 = await buildStatusProvider
             .retrieveCommitStatus(limit: 5, branch: 'flutter-0.0-candidate.0')
             .toList();
