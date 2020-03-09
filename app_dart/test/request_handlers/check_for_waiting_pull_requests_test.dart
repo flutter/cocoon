@@ -734,9 +734,11 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
             <String, dynamic>{
               'id': base64LabelId,
               'pullRequests': <String, dynamic>{
-                'nodes': pullRequests.map<Map<String, dynamic>>(
-                  (PullRequestHelper pullRequest) => pullRequest.toEntry(),
-                ).toList(),
+                'nodes': pullRequests
+                    .map<Map<String, dynamic>>(
+                      (PullRequestHelper pullRequest) => pullRequest.toEntry(),
+                    )
+                    .toList(),
               },
             },
           ],
