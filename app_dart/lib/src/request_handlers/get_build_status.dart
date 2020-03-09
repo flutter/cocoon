@@ -28,10 +28,13 @@ class GetBuildStatus extends RequestHandler<Body> {
 
   final BuildStatusProvider buildStatusProvider;
 
+  static const String branchParam = 'branch';
+
   @override
   Future<Body> get() async {
+    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     final BuildStatus status =
-        await buildStatusProvider.calculateCumulativeStatus();
+        await buildStatusProvider.calculateCumulativeStatus(branch: branch);
 
     return Body.forJson(<String, dynamic>{
       'AnticipatedBuildStatus': _buildStatusLookup[status],

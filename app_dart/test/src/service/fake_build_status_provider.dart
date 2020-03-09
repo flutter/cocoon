@@ -19,7 +19,7 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
       throw UnsupportedError('Unsupported');
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus() async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }

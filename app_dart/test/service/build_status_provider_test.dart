@@ -177,6 +177,51 @@ void main() {
             await buildStatusProvider.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
+
+      test('return status when with branch parameter', () async {
+        final Commit commit1 = Commit(
+            key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
+            sha: 'sha1',
+            branch: 'flutter-0.0-candidate.0');
+        final Commit commit2 = Commit(
+            key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha2'),
+            sha: 'sha2',
+            branch: 'master');
+
+        db.values[commit1.key] = commit1;
+        db.values[commit2.key] = commit2;
+
+        final Task task1 = Task(
+            key: commit1.key.append(Task, id: 1),
+            commitKey: commit1.key,
+            name: 'task1',
+            status: Task.statusSucceeded,
+            stageName: 'stage1');
+
+        db.values[task1.key] = task1;
+
+        // Test master branch.
+        final BuildStatus status1 = await buildStatusProvider
+            .calculateCumulativeStatus(branch: 'master');
+        expect(status1, BuildStatus.succeeded);
+
+        // Default branch is master.
+        final List<CommitStatus> statuses1 =
+            await buildStatusProvider.retrieveCommitStatus(limit: 5).toList();
+        expect(statuses1.length, 1);
+        expect(statuses1.first.commit.branch, 'master');
+
+        // Test dev branch.
+        final BuildStatus status2 = await buildStatusProvider
+            .calculateCumulativeStatus(branch: 'flutter-0.0-candidate.0');
+        expect(status2, BuildStatus.succeeded);
+
+        final List<CommitStatus> statuses2 = await buildStatusProvider
+            .retrieveCommitStatus(limit: 5, branch: 'flutter-0.0-candidate.0')
+            .toList();
+        expect(statuses2.length, 1);
+        expect(statuses2.first.commit.branch, 'flutter-0.0-candidate.0');
+      });
     });
   });
 }
