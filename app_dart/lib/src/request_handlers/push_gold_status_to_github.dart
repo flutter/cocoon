@@ -81,8 +81,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final List<dynamic> cirrusChecks =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
       for (dynamic check in cirrusChecks) {
-        final String status = check['status'];
-        final String taskName = check['name'];
+        final String status = check['status'] as String;
+        final String taskName = check['name'] as String;
 
         log.debug(
             'Found Cirrus build status for pull request #${pr.number}, commit '
@@ -179,7 +179,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final HttpClientResponse response = await request.close();
 
       rawResponse = await utf8.decodeStream(response);
-      final Map<String, dynamic> decodedResponse = json.decode(rawResponse);
+      final Map<String, dynamic> decodedResponse =
+          json.decode(rawResponse) as Map<String, dynamic>;
 
       if (decodedResponse['digests'] == null) {
         log.debug(

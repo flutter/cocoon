@@ -64,13 +64,15 @@ class GetLog extends ApiRequestHandler<Body> {
 
   Stream<Uint8List> _getResponse(
       DatastoreService datastore, Task task, Key ownerKey) async* {
-    yield utf8.encode('\n\n------------ TASK ------------\n');
-    yield utf8.encode(task.toString());
+    yield utf8.encode('\n\n------------ TASK ------------\n') as Uint8List;
+    yield utf8.encode(task.toString()) as Uint8List;
 
-    yield utf8.encode('\n\n------------ LOG ------------\n');
+    yield utf8.encode('\n\n------------ LOG ------------\n') as Uint8List;
     final Query<LogChunk> query = datastore.db.query<LogChunk>()
       ..filter('ownerKey =', ownerKey)
       ..order('createTimestamp');
-    yield* query.run().map<Uint8List>((LogChunk chunk) => chunk.data);
+    yield* query
+        .run()
+        .map<Uint8List>((LogChunk chunk) => chunk.data as Uint8List);
   }
 }

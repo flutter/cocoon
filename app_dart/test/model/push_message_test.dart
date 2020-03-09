@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 void main() {
   test('BuildPushMessage tagsByName', () {
     final BuildPushMessage data = BuildPushMessage.fromJson(
-      json.decode(buildPushMessageJson),
+      json.decode(buildPushMessageJson) as Map<String, dynamic>,
     );
 
     expect(data.build.tags.length, 11);

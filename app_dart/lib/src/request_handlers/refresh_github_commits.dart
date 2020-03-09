@@ -254,7 +254,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           if (status == HttpStatus.ok) {
             final String content =
                 await utf8.decoder.bind(clientResponse).join();
-            return loadYaml(content);
+            return loadYaml(content) as YamlMap;
           } else {
             log.warning(
                 'Attempt to download manifest.yaml failed (HTTP $status)');

@@ -7,17 +7,10 @@ import 'package:github/server.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
-  List<dynamic> Function(String) listCommitsBranch;
-
-  final List<dynamic> statuses = <dynamic>[];
+  List<RepositoryCommit> Function(String) listCommitsBranch;
 
   @override
   final GitHub github = null;
-
-  @override
-  Future<List<dynamic>> checkRuns(String sha) async {
-    return statuses;
-  }
 
   @override
   Future<List<RepositoryCommit>> listCommits(

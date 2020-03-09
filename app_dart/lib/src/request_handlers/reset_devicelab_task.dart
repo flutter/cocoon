@@ -34,7 +34,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> post() async {
     checkRequiredParameters(<String>[keyParam]);
-    final String encodedKey = requestData[keyParam];
+    final String encodedKey = requestData[keyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);

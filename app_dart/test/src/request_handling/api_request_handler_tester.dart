@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -11,12 +10,13 @@ import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_authentication.dart';
+import 'fake_http.dart';
 import 'fake_logging.dart';
 import 'request_handler_tester.dart';
 
 class ApiRequestHandlerTester extends RequestHandlerTester {
   ApiRequestHandlerTester({
-    HttpRequest request,
+    FakeHttpRequest request,
     FakeLogging log,
     FakeAuthenticatedContext context,
     Map<String, dynamic> requestData,

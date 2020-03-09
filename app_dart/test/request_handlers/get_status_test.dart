@@ -28,9 +28,12 @@ void main() {
     RequestHandlerTester tester;
     GetStatus handler;
 
-    Future<Object> decodeHandlerBody() async {
+    Future<T> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return utf8.decoder.bind(body.serialize()).transform(json.decoder).single;
+      return await utf8.decoder
+          .bind(body.serialize())
+          .transform(json.decoder)
+          .single as T;
     }
 
     setUp(() {

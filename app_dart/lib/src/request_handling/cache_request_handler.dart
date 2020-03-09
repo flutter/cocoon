@@ -61,7 +61,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       ttl: ttl,
     );
 
-    return Body.forStream(Stream<Uint8List>.value(cachedResponse));
+    return Body.forStream(Stream<Uint8List>.value(cachedResponse)) as T;
   }
 
   /// Get a Uint8List that contains the bytes of the response from [delegate]

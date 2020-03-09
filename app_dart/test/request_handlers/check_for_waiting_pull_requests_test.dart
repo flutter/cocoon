@@ -68,7 +68,7 @@ void main() {
         expect(options.variables['sLabelName'],
             config.waitingForTreeToGoGreenLabelNameValue);
 
-        final String repoName = options.variables['sName'];
+        final String repoName = options.variables['sName'] as String;
         if (repoName == 'flutter') {
           return createQueryResult(flutterRepoPRs);
         } else if (repoName == 'engine') {
@@ -734,9 +734,11 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
             <String, dynamic>{
               'id': base64LabelId,
               'pullRequests': <String, dynamic>{
-                'nodes': pullRequests.map<Map<String, dynamic>>(
-                  (PullRequestHelper pullRequest) => pullRequest.toEntry(),
-                ),
+                'nodes': pullRequests
+                    .map<Map<String, dynamic>>(
+                      (PullRequestHelper pullRequest) => pullRequest.toEntry(),
+                    )
+                    .toList(),
               },
             },
           ],
@@ -763,7 +765,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
             'name': status['name'],
             'status': status['status'],
           };
-        })
+        }).toList(),
       }
     ]
   });

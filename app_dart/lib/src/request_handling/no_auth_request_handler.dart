@@ -84,7 +84,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
     Map<String, dynamic> requestData = const <String, dynamic>{};
     if (body.isNotEmpty) {
       try {
-        requestData = json.decode(utf8.decode(body));
+        requestData = json.decode(utf8.decode(body)) as Map<String, dynamic>;
       } on FormatException {
         // The HTTP request body is not valid UTF-8 encoded JSON. This is
         // allowed; just let [requestData] be null.

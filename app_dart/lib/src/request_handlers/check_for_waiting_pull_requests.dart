@@ -109,7 +109,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       throw const BadRequestException('GraphQL query failed');
     }
 
-    return result.data;
+    return result.data as Map<String, dynamic>;
   }
 
   Future<bool> _removeLabel(
@@ -163,47 +163,52 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// This method will not return null, but may return an empty list.
   Future<List<_AutoMergeQueryResult>> _parseQueryData(
       Map<String, dynamic> data, String name) async {
-    final Map<String, dynamic> repository = data['repository'];
+    final Map<String, dynamic> repository =
+        data['repository'] as Map<String, dynamic>;
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
 
-    final Map<String, dynamic> label = repository['labels']['nodes'].single;
+    final Map<String, dynamic> label =
+        repository['labels']['nodes'].single as Map<String, dynamic>;
     if (label == null || label.isEmpty) {
       throw StateError(
           'Query did not find information about the waitingForTreeToGoGreen label.');
     }
-    final String labelId = label['id'];
+    final String labelId = label['id'] as String;
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
-        label['pullRequests']['nodes'].cast<Map<String, dynamic>>();
+        (label['pullRequests']['nodes'] as List<dynamic>)
+            .cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
-      final Map<String, dynamic> commit =
-          pullRequest['commits']['nodes'].single['commit'];
+      final Map<String, dynamic> commit = pullRequest['commits']['nodes']
+          .single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate =
-          DateTime.parse(commit['pushedDate'] ?? commit['committedDate'])
-              .toUtc();
+      final DateTime utcDate = DateTime.parse(commit['pushedDate'] as String ??
+              commit['committedDate'] as String)
+          .toUtc();
       if (utcDate
           .add(const Duration(hours: 1))
           .isAfter(DateTime.now().toUtc())) {
         continue;
       }
-      final String author = pullRequest['author']['login'];
-      final String id = pullRequest['id'];
-      final int number = pullRequest['number'];
+      final String author = pullRequest['author']['login'] as String;
+      final String id = pullRequest['id'] as String;
+      final int number = pullRequest['number'] as int;
 
       final Set<String> changeRequestAuthors = <String>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
-            pullRequest['reviews']['nodes'].cast<Map<String, dynamic>>(),
+            (pullRequest['reviews']['nodes'] as List<dynamic>)
+                .cast<Map<String, dynamic>>(),
             changeRequestAuthors,
           );
 
-      final String sha = commit['oid'];
+      final String sha = commit['oid'] as String;
       final List<Map<String, dynamic>> statuses =
-          commit['status']['contexts'].cast<Map<String, dynamic>>();
+          (commit['status']['contexts'] as List<dynamic>)
+              .cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};
 
       final bool ciSuccessful = await _checkStatuses(
@@ -246,7 +251,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     };
 
     for (Map<String, dynamic> status in statuses) {
-      final String name = status['context'];
+      final String name = status['context'] as String;
       if (status['state'] != 'SUCCESS') {
         allSuccess = false;
         if (status['state'] == 'FAILURE' &&
@@ -259,14 +264,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    final List<dynamic> cirrusStatuses =
+    final List<Map<String, dynamic>> cirrusStatuses =
         await queryCirrusGraphQL(sha, cirrusClient, log, name);
     if (cirrusStatuses == null) {
       return allSuccess;
     }
-    for (dynamic runStatus in cirrusStatuses) {
-      final String status = runStatus['status'];
-      final String name = runStatus['name'];
+    for (Map<String, dynamic> runStatus in cirrusStatuses) {
+      final String status = runStatus['status'] as String;
+      final String name = runStatus['name'] as String;
       if (!_succeededStates.contains(status)) {
         allSuccess = false;
       }
@@ -311,8 +316,8 @@ bool _checkApproval(
     }
 
     // Reviews come back in order of creation.
-    final String state = review['state'];
-    final String authorLogin = review['author']['login'];
+    final String state = review['state'] as String;
+    final String authorLogin = review['author']['login'] as String;
     if (state == 'APPROVED') {
       hasAtLeastOneApprove = true;
       changeRequestAuthors.remove(authorLogin);

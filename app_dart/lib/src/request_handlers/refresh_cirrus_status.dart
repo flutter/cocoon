@@ -57,10 +57,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       final List<String> statuses = <String>[];
       const String name = 'flutter';
 
-      for (dynamic runStatus
+      for (Map<String, dynamic> runStatus
           in await queryCirrusGraphQL(sha, client, log, name)) {
-        final String status = runStatus['status'];
-        final String taskName = runStatus['name'];
+        final String status = runStatus['status'] as String;
+        final String taskName = runStatus['name'] as String;
         log.debug('Found Cirrus build status for $sha: $taskName ($status)');
         statuses.add(status);
       }
@@ -90,7 +90,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   }
 }
 
-Future<List<dynamic>> queryCirrusGraphQL(
+Future<List<Map<String, dynamic>>> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
   Logging log,
@@ -117,13 +117,15 @@ Future<List<dynamic>> queryCirrusGraphQL(
     throw const BadRequestException('GraphQL query failed');
   }
 
-  final List<dynamic> tasks = <dynamic>[];
+  final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
   if (result.data == null) {
     return tasks;
   }
   try {
-    final Map<String, dynamic> searchBuilds = result.data['searchBuilds'].first;
-    tasks.addAll(searchBuilds['latestGroupTasks']);
+    final Map<String, dynamic> searchBuilds =
+        result.data['searchBuilds'].first as Map<String, dynamic>;
+    tasks.addAll((searchBuilds['latestGroupTasks'] as List<dynamic>)
+        .cast<Map<String, dynamic>>());
   } catch (_) {
     log.debug(
         'Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');

@@ -50,15 +50,17 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
-    final String newStatus = requestData[newStatusParam];
+    final String newStatus = requestData[newStatusParam] as String;
     final Map<String, dynamic> resultData =
-        requestData[resultsParam] ?? const <String, dynamic>{};
+        requestData[resultsParam] as Map<String, dynamic> ??
+            const <String, dynamic>{};
     final List<String> scoreKeys =
-        requestData[scoreKeysParam]?.cast<String>() ?? const <String>[];
+        (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ??
+            const <String>[];
 
     Key taskKey;
     try {
-      taskKey = keyHelper.decode(requestData[taskKeyParam]);
+      taskKey = keyHelper.decode(requestData[taskKeyParam] as String);
     } catch (error) {
       throw BadRequestException('Bad task key: ${requestData[taskKeyParam]}');
     }
@@ -111,7 +113,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
             .withTransaction<void>((Transaction transaction) async {
           final TimeSeries series =
               await _getOrCreateTimeSeries(transaction, task, scoreKey);
-          final num value = resultData[scoreKey];
+          final num value = resultData[scoreKey] as num;
 
           final TimeSeriesValue seriesValue = TimeSeriesValue(
             key: series.key.append(TimeSeriesValue),

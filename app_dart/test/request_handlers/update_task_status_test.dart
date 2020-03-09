@@ -68,7 +68,8 @@ void main() {
       await tester.post(handler);
       final TableDataList tableDataList =
           await tabledataResourceApi.list('test', 'test', 'test');
-      final Map<String, Object> value = tableDataList.rows[0].f[0].v;
+      final Map<String, Object> value =
+          tableDataList.rows[0].f[0].v as Map<String, Object>;
 
       expect(task.status, 'Succeeded');
 

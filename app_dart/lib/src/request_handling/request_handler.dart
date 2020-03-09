@@ -102,7 +102,7 @@ abstract class RequestHandler<T extends Body> {
   /// throw a [StateError].
   @protected
   T getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
-    final T value = Zone.current[key];
+    final T value = Zone.current[key] as T;
     if (!allowNull && value == null) {
       throw StateError(
           'Attempt to access ${key.name} while not in a request context');

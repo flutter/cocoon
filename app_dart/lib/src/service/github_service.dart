@@ -11,21 +11,6 @@ class GithubService {
 
   final GitHub github;
 
-  Future<List<dynamic>> checkRuns(String sha) async {
-    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final String path = '/repos/${slug.fullName}/commits/$sha/check-runs';
-    final PaginationHelper paginationHelper = PaginationHelper(github);
-    final List<dynamic> checkRuns = <dynamic>[];
-    await for (Response response in paginationHelper.fetchStreamed('GET', path,
-        headers: <String, String>{
-          'Accept': 'application/vnd.github.antiope-preview+json'
-        })) {
-      final Map<String, dynamic> jsonStatus = json.decode(response.body);
-      checkRuns.addAll(jsonStatus['check_runs']);
-    }
-    return checkRuns;
-  }
-
   /// Lists the commits of the provided repository [slug] and [branch].
   Future<List<RepositoryCommit>> listCommits(
       RepositorySlug slug, String branch) async {
@@ -33,7 +18,7 @@ class GithubService {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
-    final List<dynamic> commits = <dynamic>[];
+    final List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
@@ -42,20 +27,21 @@ class GithubService {
         'since': DateTime.now().toUtc().subtract(time).toIso8601String()
       },
     )) {
-      commits.addAll(json.decode(response.body));
+      commits.addAll((json.decode(response.body) as List<dynamic>)
+          .cast<Map<String, dynamic>>());
     }
 
     return commits.map((dynamic commit) {
       return RepositoryCommit()
-        ..sha = commit['sha']
+        ..sha = commit['sha'] as String
         ..author = (User()
-          ..login = commit['author']['login']
-          ..avatarUrl = commit['author']['avatar_url'])
+          ..login = commit['author']['login'] as String
+          ..avatarUrl = commit['author']['avatar_url'] as String)
         ..commit = (GitCommit()
           ..committer = (GitCommitUser(
-              commit['commit']['author']['name'],
-              commit['commit']['author']['email'],
-              DateTime.parse(commit['commit']['author']['date']))));
+              commit['commit']['author']['name'] as String,
+              commit['commit']['author']['email'] as String,
+              DateTime.parse(commit['commit']['author']['date'] as String))));
     }).toList();
   }
 }

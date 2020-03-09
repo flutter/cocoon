@@ -22,13 +22,13 @@ void main() {
   };
 
   test('Deserializes tags', () {
-    final List<dynamic> decodedTags = json.decode(tagsJson);
+    final List<dynamic> decodedTags = json.decode(tagsJson) as List<dynamic>;
     expect(const TagsConverter().fromJson(decodedTags), tags);
   });
 
   test('Serializes tags', () {
     final List<Map<String, String>> encodedTags =
-        const TagsConverter().toJson(tags);
+        const TagsConverter().toJson(tags).cast<Map<String, String>>().toList();
     expect(encodedTags.length, 3);
     expect(json.encode(encodedTags), tagsJson);
   });
@@ -40,8 +40,8 @@ void main() {
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild =
-        Build.fromJson(json.decode(json.encode(buildJson)));
+    final Build deserializedBuild = Build.fromJson(
+        json.decode(json.encode(buildJson)) as Map<String, dynamic>);
     expect(deserializedBuild.id, id);
 
     const GetBuildRequest request = GetBuildRequest(id: id);

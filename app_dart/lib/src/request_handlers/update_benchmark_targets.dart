@@ -42,12 +42,13 @@ class UpdateBenchmarkTargets
     final DatastoreService datastore = datastoreProvider();
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
-    double goal = requestData[goalParam];
-    double baseline = requestData[baselineParam];
+    double goal = requestData[goalParam] as double;
+    double baseline = requestData[baselineParam] as double;
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam]);
+      timeSeriesKey =
+          keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } catch (error) {
       throw BadRequestException(
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');

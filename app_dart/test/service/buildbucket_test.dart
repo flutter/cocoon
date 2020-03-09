@@ -22,7 +22,8 @@ void main() {
     test('fromJson returns an empty list', () {
       const String jsonString =
           '{"responses":[{"searchBuilds":{}},{"searchBuilds":{}}]}';
-      final Map<String, dynamic> map = json.decode(jsonString);
+      final Map<String, dynamic> map =
+          json.decode(jsonString) as Map<String, dynamic>;
       final BatchResponse response = BatchResponse.fromJson(map);
       expect(response, isNotNull);
       expect(response.responses, isNotNull);
@@ -62,7 +63,7 @@ void main() {
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(response));
+          MockHttpClientResponse(utf8.encode(response) as Uint8List);
       when(mockHttpResponse.statusCode).thenReturn(202);
       when(mockHttpClient.postUrl(
               argThat(equals(Uri.parse('https://localhost/$expectedPath')))))
@@ -94,7 +95,7 @@ void main() {
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode('Error'));
+          MockHttpClientResponse(utf8.encode('Error') as Uint8List);
       when(mockHttpResponse.statusCode).thenReturn(403);
       when(mockHttpClient
               .postUrl(argThat(equals(Uri.parse('https://localhost/Batch')))))

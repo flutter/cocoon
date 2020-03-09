@@ -55,7 +55,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
         );
       }
     } else {
-      final String agentId = params['AgentID'];
+      final String agentId = params['AgentID'] as String;
       if (agentId == null) {
         throw const BadRequestException('AgentID not specified in request');
       }
@@ -74,7 +74,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       }
 
       try {
-        await reservationProvider.secureReservation(task.task, agent.id);
+        await reservationProvider.secureReservation(
+            task.task, agent.id as String);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenProvider.createAccessToken(
           scopes: const <String>[
