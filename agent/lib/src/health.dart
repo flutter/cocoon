@@ -47,34 +47,6 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
         results['cocoon-authentication'] = HealthCheckResult.success();
       }
     });
-    if (Platform.isMacOS &&
-        config.deviceOperatingSystem == DeviceOperatingSystem.ios) {
-      results['ios'] = await _captureErrors(() async {
-        final Directory tempDir =
-            Directory.systemTemp.createTempSync('health_tmp');
-        final Directory projectDir =
-            Directory(path.join(tempDir.path, 'hello'));
-        try {
-          await inDirectory(tempDir, () async {
-            await flutter('create', options: <String>['hello']);
-          });
-
-          await inDirectory(projectDir, () async {
-            int exitCode = await flutter('build', options: <String>['ios']);
-            if (exitCode == 0) {
-              results['able-to-build-and-sign'] = HealthCheckResult.success();
-            } else {
-              results['able-to-build-and-sign'] = HealthCheckResult.failure(
-                  'Failed to build and sign iOS app.');
-              await getFlutterAt('master');
-            }
-          });
-        } finally {
-          rrm(tempDir);
-        }
-      });
-    }
-
     results['remove-xcode-derived-data'] =
         await _captureErrors(removeXcodeDerivedData);
   });
