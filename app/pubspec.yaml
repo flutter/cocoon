@@ -23,7 +23,7 @@ dev_dependencies:
   # Enables the `pub run build_runner` command
   build_runner: ^1.1.2
   # Includes the JavaScript compilers
-  build_web_compilers: ^1.0.0
+  build_web_compilers: 1.2.3
   flutter_web_test: any
 
 dependency_overrides:
