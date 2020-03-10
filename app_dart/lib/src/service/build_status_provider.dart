@@ -45,9 +45,10 @@ class BuildStatusProvider {
   /// the latest commit status, so it does not impact the build status.
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
-  Future<BuildStatus> calculateCumulativeStatus() async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
     final List<CommitStatus> statuses = await retrieveCommitStatus(
       limit: numberOfCommitsToReferenceForTreeStatus,
+      branch: branch,
     ).toList();
     if (statuses.isEmpty) {
       return BuildStatus.failed;

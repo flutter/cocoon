@@ -168,6 +168,17 @@ class FakeQuery<T extends Model> implements Query<T> {
   @override
   Stream<T> run() {
     Iterable<T> resultsView = results.skip(start).take(count);
+
+    // This considers only the special case when there exists [branch] filter.
+    for (FakeFilterSpec filter in filters) {
+      final String filterString = filter.filterString;
+      final Object value = filter.comparisonObject;
+      if (filterString.contains('branch =')) {
+        resultsView = resultsView
+            .where((T result) => result.toString().contains(value.toString()));
+      }
+    }
+
     if (db.onQuery.containsKey(T)) {
       resultsView = db.onQuery[T](resultsView).cast<T>();
     }
