@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -72,7 +73,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
-    final List<String> regExps = await _loadBranchRegExps();
+    final List<String> regExps = await loadBranchRegExps(
+        branchHttpClientProvider, log, gitHubBackoffCalculator);
 
     await for (Branch branch in branches) {
       if (regExps
@@ -275,42 +277,45 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     throw HttpStatusException(
         HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
+}
 
-  Future<List<String>> _loadBranchRegExps() async {
-    const String path =
-        '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
-    final Uri url = Uri.https('raw.githubusercontent.com', path);
+Future<List<String>> loadBranchRegExps(
+    HttpClientProvider branchHttpClientProvider,
+    Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator) async {
+  const String path = '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
+  final Uri url = Uri.https('raw.githubusercontent.com', path);
 
-    final HttpClient client = branchHttpClientProvider();
-    try {
-      for (int attempt = 0; attempt < 3; attempt++) {
-        final HttpClientRequest clientRequest = await client.getUrl(url);
+  final HttpClient client = branchHttpClientProvider();
+  try {
+    for (int attempt = 0; attempt < 3; attempt++) {
+      final HttpClientRequest clientRequest = await client.getUrl(url);
 
-        try {
-          final HttpClientResponse clientResponse = await clientRequest.close();
-          final int status = clientResponse.statusCode;
+      try {
+        final HttpClientResponse clientResponse = await clientRequest.close();
+        final int status = clientResponse.statusCode;
 
-          if (status == HttpStatus.ok) {
-            final String content =
-                await utf8.decoder.bind(clientResponse).join();
-            return content
-                .split('\n')
-                .map((String branch) => branch.trim())
-                .toList();
-          } else {
-            log.warning(
-                'Attempt to download branch_regexps.txt failed (HTTP $status)');
-            return <String>['master'];
-          }
-        } catch (error, stackTrace) {
-          log.error(
-              'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
+        if (status == HttpStatus.ok) {
+          final String content = await utf8.decoder.bind(clientResponse).join();
+          final List<String> branches = content
+              .split('\n')
+              .map((String branch) => branch.trim())
+              .toList();
+          branches.removeWhere((String branch) => branch.isEmpty);
+          return branches;
+        } else {
+          log.warning(
+              'Attempt to download branch_regexps.txt failed (HTTP $status)');
+          return <String>['master'];
         }
-        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
+      } catch (error, stackTrace) {
+        log.error(
+            'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
       }
-    } finally {
-      client.close(force: true);
+      await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }
-    return <String>['master'];
+  } finally {
+    client.close(force: true);
   }
+  return <String>['master'];
 }

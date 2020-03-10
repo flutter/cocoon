@@ -69,6 +69,7 @@ Future<void> main() async {
         delegate: GetStatus(config),
       ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
+      '/api/public/get-branches': GetBranches(config),
     };
 
     return await runAppEngine((HttpRequest request) async {
