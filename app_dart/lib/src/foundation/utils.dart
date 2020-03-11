@@ -4,15 +4,20 @@
 
 import 'package:gcloud/datastore.dart';
 import 'package:retry/retry.dart';
+import 'package:grpc/grpc.dart';
 
 typedef RetryHandler = Function();
 
 // Runs a db transaction with retries.
 //
 // It uses quadratic backoff starting with 50ms and 3 max attempts.
-Future<void> runTransactionWithRetries(RetryHandler retryHandler) {
-  const RetryOptions r =
-      RetryOptions(delayFactor: Duration(milliseconds: 50), maxAttempts: 3);
-  return r.retry(retryHandler,
-      retryIf: (Exception e) => e is TransactionAbortedError);
+Future<void> runTransactionWithRetries(RetryHandler retryHandler,
+    {int delayMilliseconds = 50, int maxAttempts = 3}) {
+  final RetryOptions r = RetryOptions(
+      delayFactor: Duration(milliseconds: delayMilliseconds),
+      maxAttempts: maxAttempts);
+  return r.retry(
+    retryHandler,
+    retryIf: (Exception e) => e is TransactionAbortedError || e is GrpcError,
+  );
 }
