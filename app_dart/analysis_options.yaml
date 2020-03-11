@@ -37,6 +37,7 @@ analyzer:
   exclude:
     - ".dart_tool/**"
     - "**/*.g.dart"
+    - "**/*.gql.dart"
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
 

@@ -246,20 +246,41 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.11+1"
+  gql:
+    dependency: transitive
+    description:
+      name: gql
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.12.2"
+  gql_build:
+    dependency: "direct dev"
+    description:
+      name: gql_build
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.10"
+  gql_code_builder:
+    dependency: transitive
+    description:
+      name: gql_code_builder
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.9"
+  gql_exec:
+    dependency: "direct main"
+    description:
+      name: gql_exec
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.2"
   graphql:
     dependency: "direct main"
     description:
       name: graphql
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
-  graphql_parser:
-    dependency: transitive
-    description:
-      name: graphql_parser
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.4"
+    version: "3.0.0"
   graphs:
     dependency: transitive
     description:
@@ -511,7 +532,7 @@ packages:
       name: rxdart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.22.6"
+    version: "0.23.1"
   shelf:
     dependency: transitive
     description:
