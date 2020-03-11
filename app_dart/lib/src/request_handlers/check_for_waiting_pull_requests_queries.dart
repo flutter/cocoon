@@ -2,65 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const String labeledPullRequestsWithReviewsQuery = r'''
-query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
-  repository(owner: $sOwner, name: $sName) {
-    labels(first: 1, query: $sLabelName) {
-      nodes {
-        id
-        pullRequests(first: 100, states: OPEN, orderBy: {direction: ASC, field: CREATED_AT}) {
-          nodes {
-            author {
-              login
-            }
-            id
-            number
-            mergeable
-            commits(last:1) {
-              nodes {
-                commit {
-                  abbreviatedOid
-                  oid
-                  committedDate
-                  pushedDate
-                  status {
-                    contexts {
-                      context
-                      state
-                    }
-                  }
-                  # (appId: 64368) == flutter-dashbord. We only care about
-                  # flutter-dashboard checks.
-                  checkSuites(last:1, filterBy: { appId: 64368 } ) {
-                    nodes {
-                      checkRuns(first:100) {
-                        nodes {
-                          name
-                          status
-                          conclusion
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            reviews(first: 100, states: [APPROVED, CHANGES_REQUESTED]) {
-              nodes {
-                author {
-                  login
-                }
-                authorAssociation
-                state
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}''';
-
 const String mergePullRequestMutation = r'''
 mutation MergePR($id: ID!, $oid: GitObjectID!) {
   mergePullRequest(input: {

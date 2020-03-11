@@ -6,6 +6,10 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.data.gql.dart';
+import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.op.gql.dart';
+import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.var.gql.dart';
+import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart' show StatusState, CommentAuthorAssociation, PullRequestReviewState;
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -54,7 +58,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     int mergeCount = 0;
-    final Map<String, dynamic> data = await _queryGraphQL(
+    final $LabeledPullRequcodeestsWithReviews data = await _queryGraphQL(
       owner,
       name,
       log,
@@ -84,7 +88,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
   }
 
-  Future<Map<String, dynamic>> _queryGraphQL(
+  Future<$LabeledPullRequcodeestsWithReviews> _queryGraphQL(
     String owner,
     String name,
     Logging log,
@@ -94,23 +98,21 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     final QueryResult result = await client.query(
       QueryOptions(
-        document: labeledPullRequestsWithReviewsQuery,
+        documentNode: LabeledPullRequcodeestsWithReviews.document,
         fetchPolicy: FetchPolicy.noCache,
-        variables: <String, dynamic>{
-          'sOwner': owner,
-          'sName': name,
-          'sLabelName': labelName,
-        },
+        variables: (LabeledPullRequcodeestsWithReviewsVarBuilder()
+            ..sOwner = owner
+            ..sName = name
+            ..sLabelName = labelName).variables,
       ),
     );
 
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
+    if (result.hasException) {
+      log.error(result.exception.toString());
       throw const BadRequestException('GraphQL query failed');
     }
-    return result.data as Map<String, dynamic>;
+
+    return $LabeledPullRequcodeestsWithReviews(result.data as Map<String, dynamic>);
   }
 
   Future<bool> _removeLabel(
@@ -120,17 +122,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
-      document: removeLabelMutation,
+      documentNode: gql(removeLabelMutation),
       variables: <String, dynamic>{
         'id': id,
         'sBody': message,
         'labelId': labelId,
       },
     ));
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
+    if (result.hasException) {
+      log.error(result.exception.toString());
       return false;
     }
     return true;
@@ -143,17 +143,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     final QueryResult result = await client.mutate(MutationOptions(
-      document: mergePullRequestMutation,
+      documentNode: gql(mergePullRequestMutation),
       variables: <String, dynamic>{
         'id': id,
         'oid': sha,
       },
     ));
 
-    if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
-        log.error(error.toString());
-      }
+    if (result.hasException) {
+      log.error(result.exception.toString());
       return false;
     }
     return true;
@@ -162,50 +160,50 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
   ///
   /// This method will not return null, but may return an empty list.
-  Future<List<_AutoMergeQueryResult>> _parseQueryData(Map<String, dynamic> data, String name) async {
-    final Map<String, dynamic> repository = data['repository'] as Map<String, dynamic>;
-    if (repository == null || repository.isEmpty) {
+  Future<List<_AutoMergeQueryResult>> _parseQueryData(
+      final $LabeledPullRequcodeestsWithReviews data, String name) async {
+    if (data.repository == null || data.repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
 
-    final Map<String, dynamic> label = repository['labels']['nodes'].single as Map<String, dynamic>;
-    if (label == null || label.isEmpty) {
-      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
+    if (data.repository.labels.nodes == null || data.repository.labels.nodes.isEmpty) {
+      throw StateError(
+          'Query did not find information about the waitingForTreeToGoGreen label.');
     }
-    final String labelId = label['id'] as String;
+    final String labelId = data.repository.labels.nodes[0].id;
     log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    final Iterable<Map<String, dynamic>> pullRequests =
-        (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
-    for (Map<String, dynamic> pullRequest in pullRequests) {
-      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+    final List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes> pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
+    for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest in pullRequests) {
+      final $LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit commit = pullRequest.commits.nodes[0].commit;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate =
-          DateTime.parse(commit['pushedDate'] as String ?? commit['committedDate'] as String).toUtc();
-      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
+      final DateTime utcDate = DateTime.parse((commit.pushedDate ?? commit.committedDate).value).toUtc();
+      if (utcDate
+          .add(const Duration(hours: 1))
+          .isAfter(DateTime.now().toUtc())) {
         continue;
       }
-      final String author = pullRequest['author']['login'] as String;
-      final String id = pullRequest['id'] as String;
-      final int number = pullRequest['number'] as int;
+      final String author = pullRequest.author.login;
+      final String id = pullRequest.id;
+      final int number = pullRequest.number;
 
       final Set<String> changeRequestAuthors = <String>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
-            (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
+            pullRequest.reviews.nodes,
             changeRequestAuthors,
           );
 
-      final String sha = commit['oid'] as String;
-      final List<Map<String, dynamic>> statuses =
-          (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
-      List<Map<String, dynamic>> checkRuns;
-      if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-        checkRuns =
-            (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
-      }
-      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      final String sha = commit.oid.value;
+      final List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses = commit.status.contexts;
+      final checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes; // ?????
+      // List<Map<String, dynamic>> checkRuns;
+      // if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
+      //   checkRuns =
+      //       (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+      // }
+      // checkRuns = checkRuns ?? <Map<String, dynamic>>[];
       final Set<String> failingStatuses = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
@@ -236,8 +234,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _checkStatuses(
     String sha,
     Set<String> failures,
-    List<Map<String, dynamic>> statuses,
-    List<Map<String, dynamic>> checkRuns,
+    List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses,
+    List<dynamic> checkRuns,  /// ?????
     String name,
     String branch,
   ) async {
@@ -251,11 +249,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     };
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
-    for (Map<String, dynamic> status in statuses) {
-      final String name = status['context'] as String;
-      if (status['state'] != 'SUCCESS') {
+    for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts status in statuses) {
+      final String name = status.context;
+      if (status.state != StatusState.SUCCESS) {
         allSuccess = false;
-        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
+        if (status.state == StatusState.FAILURE &&
+            !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
       }
@@ -317,24 +316,25 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-  List<Map<String, dynamic>> reviewNodes,
+  List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> reviewNodes,
   Set<String> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
-  for (Map<String, dynamic> review in reviewNodes) {
+  for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
+    if (review.authorAssociation != CommentAuthorAssociation.MEMBER &&
+        review.authorAssociation != CommentAuthorAssociation.OWNER) {
       continue;
     }
 
     // Reviews come back in order of creation.
-    final String state = review['state'] as String;
-    final String authorLogin = review['author']['login'] as String;
-    if (state == 'APPROVED') {
+    final PullRequestReviewState state = review.state;
+    final String authorLogin = review.author.login;
+    if (state == PullRequestReviewState.APPROVED) {
       hasAtLeastOneApprove = true;
       changeRequestAuthors.remove(authorLogin);
-    } else if (state == 'CHANGES_REQUESTED') {
+    } else if (state == PullRequestReviewState.CHANGES_REQUESTED) {
       changeRequestAuthors.add(authorLogin);
     }
   }

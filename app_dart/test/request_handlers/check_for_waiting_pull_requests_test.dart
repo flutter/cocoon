@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_requests_queries.dart';
+import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.op.gql.dart';
 
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -92,7 +93,7 @@ void main() {
       githubGraphQLClient.verifyQueries(
         <QueryOptions>[
           QueryOptions(
-            document: labeledPullRequestsWithReviewsQuery,
+            documentNode: LabeledPullRequcodeestsWithReviews.document,
             fetchPolicy: FetchPolicy.noCache,
             variables: <String, dynamic>{
               'sOwner': 'flutter',
@@ -101,7 +102,7 @@ void main() {
             },
           ),
           QueryOptions(
-            document: labeledPullRequestsWithReviewsQuery,
+            documentNode: LabeledPullRequcodeestsWithReviews.document,
             fetchPolicy: FetchPolicy.noCache,
             variables: <String, dynamic>{
               'sOwner': 'flutter',
@@ -122,7 +123,7 @@ void main() {
       );
     }
 
-    test('Errors can be logged', () async {
+    test('Exception can be logged', () async {
       flutterRepoPRs.add(PullRequestHelper());
       final List<GraphQLError> errors = <GraphQLError>[
         GraphQLError(raw: <String, String>{}, message: 'message'),
@@ -130,10 +131,8 @@ void main() {
       githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(errors: errors);
 
       await tester.get(handler);
-      expect(log.records.length, errors.length);
-      for (int i = 0; i < errors.length; i++) {
-        expect(log.records[i].message, errors[i].toString());
-      }
+      expect(log.records.length, 1);
+      expect(log.records[0].message, exception.toString());
     });
 
     test('Merges unapproved PR from autoroller', () async {
@@ -148,16 +147,16 @@ void main() {
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
+              'id': flutterRepoPRs.first.id,
               'oid': oid,
             },
           ),
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.first.id,
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -350,7 +349,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'oid': oid,
@@ -376,7 +375,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'labelId': base64LabelId,
@@ -403,7 +402,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': engineRepoPRs.first.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -414,7 +413,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs.first.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -441,23 +440,23 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
-          ),
-          MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'oid': oid,
             },
           ),
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[1].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            documentNode: gql(mergePullRequestMutation),
+            variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -479,21 +478,21 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
-              'oid': oid,
-            },
-          ),
-          MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'oid': oid,
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(mergePullRequestMutation),
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[1].id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -504,7 +503,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[2].id,
               'oid': oid,
@@ -526,16 +525,16 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
+              'id': flutterRepoPRs.last.id,
               'oid': oid,
             },
           ),
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.last.id,
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -561,7 +560,7 @@ This pull request is not suitable for automatic merging in its current state.
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
-          document: removeLabelMutation,
+          documentNode: gql(removeLabelMutation),
           variables: <String, dynamic>{
             'id': prRed.id,
             'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -590,10 +589,12 @@ This pull request is not suitable for automatic merging in its current state.
 
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
-          MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
-            'id': prChangedReview.id,
-            'oid': oid,
-          }),
+          MutationOptions(
+              documentNode: gql(mergePullRequestMutation),
+              variables: <String, dynamic>{
+                'id': prChangedReview.id,
+                'oid': oid,
+              }),
         ],
       );
     });
@@ -630,7 +631,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prNonMemberApprove.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -641,7 +642,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prNonMemberChangeRequest.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -651,10 +652,12 @@ This pull request is not suitable for automatic merging in its current state.
               'labelId': base64LabelId,
             },
           ),
-          MutationOptions(document: mergePullRequestMutation, variables: <String, dynamic>{
-            'id': prNonMemberChangeRequestWithMemberApprove.id,
-            'oid': oid,
-          }),
+          MutationOptions(
+              documentNode: gql(mergePullRequestMutation),
+              variables: <String, dynamic>{
+                'id': prNonMemberChangeRequestWithMemberApprove.id,
+                'oid': oid,
+              }),
         ],
       );
     });
@@ -691,7 +694,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prOneBadReview.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -702,7 +705,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prOneGoodOneBadReview.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -713,7 +716,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prNoReviews.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.
@@ -724,7 +727,7 @@ This pull request is not suitable for automatic merging in its current state.
             },
           ),
           MutationOptions(
-            document: removeLabelMutation,
+            documentNode: gql(removeLabelMutation),
             variables: <String, dynamic>{
               'id': prEverythingWrong.id,
               'sBody': '''This pull request is not suitable for automatic merging in its current state.

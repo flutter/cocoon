@@ -123,7 +123,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   const String owner = 'flutter';
   final QueryResult result = await client.query(
     QueryOptions(
-      document: cirusStatusQuery,
+      documentNode: gql(cirusStatusQuery),
       fetchPolicy: FetchPolicy.noCache,
       variables: <String, dynamic>{
         'owner': owner,
@@ -133,10 +133,8 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
     ),
   );
 
-  if (result.hasErrors) {
-    for (GraphQLError error in result.errors) {
-      log.error(error.toString());
-    }
+  if (result.hasException) {
+    log.error(result.exception.toString());
     throw const BadRequestException('GraphQL query failed');
   }
 
