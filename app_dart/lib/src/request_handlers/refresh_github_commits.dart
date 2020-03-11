@@ -150,7 +150,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       DatastoreService datastore, String branch) async {
     final List<Commit> newCommits = <Commit>[];
     for (RepositoryCommit commit in commits) {
-      final String id = 'flutter/flutter/${commit.sha}';
+      final String id = 'flutter/flutter/$branch/${commit.sha}';
       final Key key = datastore.db.emptyKey.append(Commit, id: id);
 
       if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) ==
