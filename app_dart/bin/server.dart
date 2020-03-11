@@ -69,6 +69,12 @@ Future<void> main() async {
         delegate: GetStatus(config),
       ),
       '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
+      '/api/public/get-branches': CacheRequestHandler<Body>(
+        cache: cache,
+        config: config,
+        delegate: GetBranches(config),
+        ttl: const Duration(minutes: 15),
+      ),
     };
 
     return await runAppEngine((HttpRequest request) async {

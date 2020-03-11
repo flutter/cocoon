@@ -18,26 +18,13 @@ import '../foundation/typedefs.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
+import '../request_handlers/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
-
-/// Signature for a function that calculates the backoff duration to wait in
-/// between requests when GitHub responds with an error.
-///
-/// The `attempt` argument is zero-based, so if the first attempt to request
-/// from GitHub fails, and we're backing off before making the second attempt,
-/// the `attempt` argument will be zero.
-typedef GitHubBackoffCalculator = Duration Function(int attempt);
-
-/// Default backoff calculator.
-@visibleForTesting
-Duration twoSecondLinearBackoff(int attempt) {
-  return const Duration(seconds: 2) * (attempt + 1);
-}
 
 /// Queries GitHub for the list of recent commits according to different branches,
 /// and creates corresponding rows in the cloud datastore and the BigQuery for any commits
@@ -72,7 +59,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final Stream<Branch> branches = github.repositories.listBranches(slug);
     final DatastoreService datastore = datastoreProvider();
-    final List<String> regExps = await _loadBranchRegExps();
+    final List<String> regExps = await loadBranchRegExps(
+        branchHttpClientProvider, log, gitHubBackoffCalculator);
 
     await for (Branch branch in branches) {
       if (regExps
@@ -274,43 +262,5 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     response.headers.set(HttpHeaders.retryAfterHeader, '120');
     throw HttpStatusException(
         HttpStatus.serviceUnavailable, 'GitHub not responding');
-  }
-
-  Future<List<String>> _loadBranchRegExps() async {
-    const String path =
-        '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
-    final Uri url = Uri.https('raw.githubusercontent.com', path);
-
-    final HttpClient client = branchHttpClientProvider();
-    try {
-      for (int attempt = 0; attempt < 3; attempt++) {
-        final HttpClientRequest clientRequest = await client.getUrl(url);
-
-        try {
-          final HttpClientResponse clientResponse = await clientRequest.close();
-          final int status = clientResponse.statusCode;
-
-          if (status == HttpStatus.ok) {
-            final String content =
-                await utf8.decoder.bind(clientResponse).join();
-            return content
-                .split('\n')
-                .map((String branch) => branch.trim())
-                .toList();
-          } else {
-            log.warning(
-                'Attempt to download branch_regexps.txt failed (HTTP $status)');
-            return <String>['master'];
-          }
-        } catch (error, stackTrace) {
-          log.error(
-              'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
-        }
-        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
-      }
-    } finally {
-      client.close(force: true);
-    }
-    return <String>['master'];
   }
 }
