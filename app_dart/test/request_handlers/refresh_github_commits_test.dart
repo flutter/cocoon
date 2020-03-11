@@ -80,9 +80,9 @@ void main() {
       return commits;
     }
 
-    Commit shaToCommit(String sha) {
+    Commit shaToCommit(String sha, String branch) {
       return Commit(
-          key: db.emptyKey.append(Commit, id: 'flutter/flutter/$sha'),
+          key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
           sha: sha);
     }
 
@@ -145,9 +145,8 @@ void main() {
       httpClient.request.response.body = singleTaskManifestYaml;
       branchHttpClient.request.response.body = branchRegExp;
       await tester.get<Body>(handler);
-      //expect(body.branches, null);
-      final Commit commit = db.values.values.whereType<Commit>().last;
-      //expect(body, null);
+      final Commit commit = db.values.values.whereType<Commit>().first;
+      expect(db.values.values.whereType<Commit>().length, 2);
       expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
@@ -157,7 +156,7 @@ void main() {
       githubBranches = <String>['master'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
       for (String sha in dbCommits) {
-        final Commit commit = shaToCommit(sha);
+        final Commit commit = shaToCommit(sha, 'master');
         db.values[commit.key] = commit;
       }
 
