@@ -15,7 +15,7 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
 /// Queries GitHub for the list of all available branches on
-/// [flutter/flutter] repo, and returns list of branches
+/// [config.flutterSlug] repo, and returns list of branches
 /// that match pre-defined branch regular expressions.
 @immutable
 class GetBranches extends RequestHandler<Body> {

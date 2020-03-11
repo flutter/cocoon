@@ -7,16 +7,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:meta/meta.dart';
 
 import '../foundation/typedefs.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
 ///
-/// The `attempt` argument is zero-based, so if the first attempt to request
+/// The [attempt] argument is zero-based, so if the first attempt to request
 /// from GitHub fails, and we're backing off before making the second attempt,
-/// the `attempt` argument will be zero.
+/// the [attempt] argument will be zero.
 typedef GitHubBackoffCalculator = Duration Function(int attempt);
 
 /// Default backoff calculator.
@@ -51,7 +50,6 @@ Future<List<String>> loadBranchRegExps(
         } else {
           log.warning(
               'Attempt to download branch_regexps.txt failed (HTTP $status)');
-          //return <String>['master'];
         }
       } catch (error, stackTrace) {
         log.error(
