@@ -1,4 +1,4 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
+// Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -42,16 +42,16 @@ void main() {
       final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
 
-      config = FakeConfig(githubClient: github);
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      config = FakeConfig(githubClient: github, flutterSlugValue: slug);
       branchHttpClient = FakeHttpClient();
       tester = RequestHandlerTester();
       handler = GetBranches(
         config,
         branchHttpClientProvider: () => branchHttpClient,
-        gitHubBackoffCalculatorBranch: (int attempt) => Duration.zero,
+        gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
 
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
       when(github.repositories).thenReturn(repositories);
       when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
         return branchStream();

@@ -238,14 +238,6 @@ void main() {
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
     });
   });
-  group('GitHubBackoffCalculator', () {
-    test('twoSecondLinearBackoff', () {
-      expect(twoSecondLinearBackoff(0), const Duration(seconds: 2));
-      expect(twoSecondLinearBackoff(1), const Duration(seconds: 4));
-      expect(twoSecondLinearBackoff(2), const Duration(seconds: 6));
-      expect(twoSecondLinearBackoff(3), const Duration(seconds: 8));
-    });
-  });
 }
 
 String toSha(Commit commit) => commit.sha;

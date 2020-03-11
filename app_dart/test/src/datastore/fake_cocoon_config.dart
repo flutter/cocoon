@@ -42,6 +42,7 @@ class FakeConfig implements Config {
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
     this.luciTryInfraFailureRetriesValue,
+    this.flutterSlugValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -70,6 +71,7 @@ class FakeConfig implements Config {
   ServiceAccountCredentials taskLogServiceAccountValue;
   Set<String> rollerAccountsValue;
   int luciTryInfraFailureRetriesValue;
+  RepositorySlug flutterSlugValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -148,6 +150,9 @@ class FakeConfig implements Config {
   @override
   String get waitingForTreeToGoGreenLabelName =>
       waitingForTreeToGoGreenLabelNameValue;
+
+  @override
+  RepositorySlug get flutterSlug => flutterSlugValue;
 
   @override
   Future<ServiceAccountCredentials> get taskLogServiceAccount async =>

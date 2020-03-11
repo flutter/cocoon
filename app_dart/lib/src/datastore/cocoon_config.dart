@@ -126,6 +126,8 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
+  RepositorySlug get flutterSlug => const RepositorySlug('flutter', 'flutter');
+
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
