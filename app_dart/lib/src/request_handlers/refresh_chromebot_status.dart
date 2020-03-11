@@ -8,6 +8,7 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -49,25 +50,26 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     );
 
     for (LuciBuilder builder in luciTasks.keys) {
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          await for (FullTask task
-              in datastore.queryRecentTasks(taskName: builder.taskName)) {
-            for (LuciTask luciTask in luciTasks[builder]) {
-              if (luciTask.commitSha == task.commit.sha) {
-                final Task update = task.task;
-                update.status = luciTask.status;
-                transaction.queueMutations(inserts: <Task>[update]);
-                // Stop updating task whenever we find the latest status of the same commit.
-                break;
+      await runTransactionWithRetries(() async {
+        await config.db.withTransaction<void>((Transaction transaction) async {
+          try {
+            await for (FullTask task
+                in datastore.queryRecentTasks(taskName: builder.taskName)) {
+              for (LuciTask luciTask in luciTasks[builder]) {
+                if (luciTask.commitSha == task.commit.sha) {
+                  final Task update = task.task;
+                  update.status = luciTask.status;
+                  transaction.queueMutations(inserts: <Task>[update]);
+                  // Stop updating task whenever we find the latest status of the same commit.
+                  break;
+                }
               }
             }
+            await transaction.commit();
+          } catch (error) {
+            rethrow;
           }
-          await transaction.commit();
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
-        }
+        });
       });
     }
 

@@ -9,6 +9,7 @@ import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
@@ -93,10 +94,13 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
     final int maxEntityGroups = config.maxEntityGroups;
     for (int i = 0; i < updates.length; i += maxEntityGroups) {
-      await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(
-            inserts: updates.skip(i).take(maxEntityGroups).toList());
-        await transaction.commit();
+      await runTransactionWithRetries(() async {
+        await datastore.db
+            .withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(
+              inserts: updates.skip(i).take(maxEntityGroups).toList());
+          await transaction.commit();
+        });
       });
     }
     log.debug('Committed all updates');

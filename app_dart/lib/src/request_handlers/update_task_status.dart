@@ -10,6 +10,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
@@ -96,9 +97,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     }
 
-    await datastore.db.withTransaction<void>((Transaction transaction) async {
-      transaction.queueMutations(inserts: <Task>[task]);
-      await transaction.commit();
+    await runTransactionWithRetries(() async {
+      await datastore.db.withTransaction<void>((Transaction transaction) async {
+        transaction.queueMutations(inserts: <Task>[task]);
+        await transaction.commit();
+      });
     });
 
     if (task.endTimestamp > 0) {
@@ -109,22 +112,24 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
       for (String scoreKey in scoreKeys) {
-        await datastore.db
-            .withTransaction<void>((Transaction transaction) async {
-          final TimeSeries series =
-              await _getOrCreateTimeSeries(transaction, task, scoreKey);
-          final num value = resultData[scoreKey] as num;
+        await runTransactionWithRetries(() async {
+          await datastore.db
+              .withTransaction<void>((Transaction transaction) async {
+            final TimeSeries series =
+                await _getOrCreateTimeSeries(transaction, task, scoreKey);
+            final num value = resultData[scoreKey] as num;
 
-          final TimeSeriesValue seriesValue = TimeSeriesValue(
-            key: series.key.append(TimeSeriesValue),
-            createTimestamp: DateTime.now().millisecondsSinceEpoch,
-            revision: commit.sha,
-            taskKey: task.key,
-            value: value.toDouble(),
-          );
+            final TimeSeriesValue seriesValue = TimeSeriesValue(
+              key: series.key.append(TimeSeriesValue),
+              createTimestamp: DateTime.now().millisecondsSinceEpoch,
+              revision: commit.sha,
+              taskKey: task.key,
+              value: value.toDouble(),
+            );
 
-          transaction.queueMutations(inserts: <TimeSeriesValue>[seriesValue]);
-          await transaction.commit();
+            transaction.queueMutations(inserts: <TimeSeriesValue>[seriesValue]);
+            await transaction.commit();
+          });
         });
       }
     }

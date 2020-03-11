@@ -10,6 +10,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
@@ -240,20 +241,21 @@ class ReservationProvider {
     assert(task != null);
     assert(agentId != null);
     try {
-      return config.db.withTransaction<void>((Transaction transaction) async {
-        final Task lockedTask = await transaction.lookupValue<Task>(task.key);
+      return runTransactionWithRetries(() async {
+        await config.db.withTransaction<void>((Transaction transaction) async {
+          final Task lockedTask = await transaction.lookupValue<Task>(task.key);
+          if (lockedTask.status != Task.statusNew) {
+            // Another reservation beat us in a race.
+            throw const ReservationLostException();
+          }
 
-        if (lockedTask.status != Task.statusNew) {
-          // Another reservation beat us in a race.
-          throw const ReservationLostException();
-        }
-
-        lockedTask.status = Task.statusInProgress;
-        lockedTask.attempts += 1;
-        lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
-        lockedTask.reservedForAgentId = agentId;
-        transaction.queueMutations(inserts: <Task>[lockedTask]);
-        await transaction.commit();
+          lockedTask.status = Task.statusInProgress;
+          lockedTask.attempts += 1;
+          lockedTask.startTimestamp = DateTime.now().millisecondsSinceEpoch;
+          lockedTask.reservedForAgentId = agentId;
+          transaction.queueMutations(inserts: <Task>[lockedTask]);
+          await transaction.commit();
+        });
       });
     } catch (error) {
       throw const ReservationLostException();
