@@ -158,8 +158,9 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       final Key oldKey = datastore.db.emptyKey.append(Commit, id: oldId);
 
       if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) ==
-          null && await datastore.db.lookupValue<Commit>(oldKey, orElse: () => null) ==
-          null) {
+              null &&
+          await datastore.db.lookupValue<Commit>(oldKey, orElse: () => null) ==
+              null) {
         newCommits.add(Commit(
           key: key,
           timestamp: commit.commit.committer.date.millisecondsSinceEpoch,
