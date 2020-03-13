@@ -114,7 +114,7 @@ class FlutterBuildState extends ChangeNotifier {
   }
 
   Future<List<String>> _fetchFlutterBranches() async {
-    _cocoonService
+    return _cocoonService
         .fetchFlutterBranches()
         .then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
