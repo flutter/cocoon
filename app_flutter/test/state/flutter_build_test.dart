@@ -36,13 +36,12 @@ void main() {
       when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
           Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..data = true));
-      when(mockService.fetchFlutterBranches()).thenAnswer((_) => 
+      when(mockService.fetchFlutterBranches()).thenAnswer((_) =>
           Future<CocoonResponse<List<String>>>.value(
               CocoonResponse<List<String>>()..data = <String>['master']));
     });
 
-    testWidgets('start calls fetch branches',
-        (WidgetTester tester) async {
+    testWidgets('start calls fetch branches', (WidgetTester tester) async {
       buildState.startFetchingBuildStateUpdates();
 
       // startFetching immediately starts fetching results

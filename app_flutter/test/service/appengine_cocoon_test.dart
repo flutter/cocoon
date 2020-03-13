@@ -486,7 +486,10 @@ void main() {
       final CocoonResponse<List<String>> branches =
           await service.fetchFlutterBranches();
 
-      expect(branches.data, <String>['master', 'flutter-0.0-candidate.1',]);
+      expect(branches.data, <String>[
+        'master',
+        'flutter-0.0-candidate.1',
+      ]);
     });
 
     /// This requires a separate test run on the web platform.
