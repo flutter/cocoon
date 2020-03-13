@@ -40,6 +40,12 @@ class NavigationDrawer extends StatelessWidget {
             selected: currentRoute == '/build',
           ),
           ListTile(
+            key: const Key('nav-link-skia-perf'),
+            title: const Text('Skia Perf'),
+            leading: Icon(Icons.show_chart),
+            onTap: () => launch('https://flutter-perf.skia.org/'),
+          ),
+          ListTile(
             key: const Key('nav-link-benchmarks'),
             title: const Text('Benchmarks'),
             leading: Icon(Icons.show_chart),
