@@ -27,6 +27,7 @@ void main() {
 
     expect(find.text('Build'), findsOneWidget);
     expect(find.text('Performance'), findsOneWidget);
+    expect(find.text('Benchmarks on Skia Perf'), findsOneWidget);
     expect(find.text('Repository'), findsOneWidget);
     expect(find.text('Infra Agents'), findsOneWidget);
   });

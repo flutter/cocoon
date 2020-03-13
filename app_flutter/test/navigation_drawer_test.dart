@@ -112,6 +112,40 @@ void main() {
       );
     });
 
+    testWidgets('skia perf opens skia perf url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel =
+          MethodChannel('plugins.flutter.io/url_launcher');
+      final List<MethodCall> log = <MethodCall>[];
+      urlLauncherChannel.setMockMethodCallHandler(
+          (MethodCall methodCall) async => log.add(methodCall));
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: NavigationDrawer(),
+        ),
+      );
+
+      const String skiaPerfText = 'Benchmarks on Skia Perf';
+      expect(find.text(skiaPerfText), findsOneWidget);
+      await tester.tap(find.text(skiaPerfText));
+      await tester.pump();
+
+      expect(
+        log,
+        <Matcher>[
+          isMethodCall('launch', arguments: <String, Object>{
+            'url': 'https://flutter-perf.skia.org/',
+            'useSafariVC': true,
+            'useWebView': false,
+            'enableJavaScript': false,
+            'enableDomStorage': false,
+            'universalLinksOnly': false,
+            'headers': <String, String>{}
+          })
+        ],
+      );
+    });
+
     testWidgets('repository opens repository html url',
         (WidgetTester tester) async {
       const MethodChannel urlLauncherChannel =

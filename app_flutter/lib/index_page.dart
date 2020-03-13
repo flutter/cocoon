@@ -117,6 +117,17 @@ class Index extends StatelessWidget {
               SizedBox(
                 width: 300,
                 child: RaisedButton(
+                  child: const Text('Benchmarks on Skia Perf'),
+                  onPressed: () => launch('https://flutter-perf.skia.org/'),
+                  padding: const EdgeInsets.all(20),
+                  color: Colors.blueAccent,
+                  textColor: Colors.white,
+                ),
+              ),
+              Container(height: 25),
+              SizedBox(
+                width: 300,
+                child: RaisedButton(
                   child: const Text('Repository'),
                   onPressed: () => launch('/repository.html'),
                   padding: const EdgeInsets.all(20),
