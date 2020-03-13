@@ -38,7 +38,7 @@ class FakeFlutterBuildState extends ChangeNotifier
   Future<void> signOut() => null;
 
   @override
-  Future<void> startFetchingBuildStateUpdates() => null;
+  Future<void> startFetchingUpdates() => null;
 
   @override
   List<CommitStatus> statuses = <CommitStatus>[];

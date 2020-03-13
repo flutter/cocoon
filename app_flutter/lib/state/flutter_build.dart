@@ -67,7 +67,7 @@ class FlutterBuildState extends ChangeNotifier {
       'An error occured fetching branches from flutter/flutter on Cocoon.';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  Future<void> startFetchingBuildStateUpdates() async {
+  Future<void> startFetchingUpdates() async {
     if (refreshTimer != null) {
       // There's already an update loop, no need to make another.
       return;

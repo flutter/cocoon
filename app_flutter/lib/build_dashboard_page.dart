@@ -37,7 +37,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
   void initState() {
     super.initState();
 
-    widget.buildState.startFetchingBuildStateUpdates();
+    widget.buildState.startFetchingUpdates();
 
     widget.buildState.errors.addListener(_showErrorSnackbar);
   }
