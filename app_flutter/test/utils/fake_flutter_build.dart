@@ -48,4 +48,7 @@ class FakeFlutterBuildState extends ChangeNotifier
 
   @override
   Future<void> fetchMoreCommitStatuses() => null;
+
+  @override
+  List<String> get branches => <String>['master'];
 }

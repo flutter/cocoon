@@ -119,7 +119,7 @@ class AppEngineCocoonService implements CocoonService {
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
     final String getBranchesUrl = _apiEndpoint('/api/public/get-branches');
 
-    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
+    /// This endpoint returns JSON {"Branches": List<String>}
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
@@ -129,9 +129,9 @@ class AppEngineCocoonService implements CocoonService {
     }
 
     try {
-      final List<String> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<String>>()
-        ..data = jsonResponse;
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      final List<String> branches = jsonResponse['Branches'].cast<String>();
+      return CocoonResponse<List<String>>()..data = branches;
     } catch (error) {
       return CocoonResponse<List<String>>()..error = error.toString();
     }

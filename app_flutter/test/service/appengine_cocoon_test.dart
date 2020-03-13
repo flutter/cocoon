@@ -89,6 +89,15 @@ const String jsonGetStatsResponse = '''
   }
 ''';
 
+const String jsonGetBranchesResponse = '''
+  {
+    "Branches": [
+      "master",
+      "flutter-0.0-candidate.1"
+    ]
+  }
+''';
+
 const String jsonBuildStatusTrueResponse = '''
   {
     "AnticipatedBuildStatus": "Succeeded"
@@ -454,6 +463,64 @@ void main() {
 
       final CocoonResponse<List<Agent>> response =
           await service.fetchAgentStatuses();
+      expect(response.error, isNotNull);
+    });
+  });
+
+  group('AppEngine CocoonService fetchFlutterBranches', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(jsonGetBranchesResponse, 200);
+      }));
+    });
+
+    test('should return CocoonResponse<List<String>>', () {
+      expect(service.fetchFlutterBranches(),
+          const TypeMatcher<Future<CocoonResponse<List<String>>>>());
+    });
+
+    test('data should be expected list of branches', () async {
+      final CocoonResponse<List<String>> branches =
+          await service.fetchFlutterBranches();
+
+      expect(branches.data, <String>['master', 'flutter-0.0-candidate.1',]);
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchFlutterBranches();
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-branches'));
+      } else {
+        verify(mockClient.get(
+            'https://flutter-dashboard.appspot.com/api/public/get-branches'));
+      }
+    });
+
+    test('should have error if given non-200 response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('', 404)));
+
+      final CocoonResponse<List<String>> response =
+          await service.fetchFlutterBranches();
+      expect(response.error, isNotNull);
+    });
+
+    test('should have error if given bad response', () async {
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async => Response('bad', 200)));
+
+      final CocoonResponse<List<String>> response =
+          await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
     });
   });

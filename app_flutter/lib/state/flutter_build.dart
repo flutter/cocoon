@@ -47,6 +47,10 @@ class FlutterBuildState extends ChangeNotifier {
   bool _isTreeBuilding;
   bool get isTreeBuilding => _isTreeBuilding;
 
+  /// Git branches from flutter/flutter for managing Flutter releases.
+  List<String> _branches = <String>['master'];
+  List<String> get branches => _branches;
+
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
   FlutterBuildStateErrors errors = FlutterBuildStateErrors();
 
@@ -58,6 +62,10 @@ class FlutterBuildState extends ChangeNotifier {
   static const String errorMessageFetchingTreeStatus =
       'An error occured fetching tree status from Cocoon';
 
+  @visibleForTesting
+  static const String errorMessageFetchingBranches =
+      'An error occured fetching branches from flutter/flutter on Cocoon.';
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingBuildStateUpdates() async {
     if (refreshTimer != null) {
@@ -67,6 +75,9 @@ class FlutterBuildState extends ChangeNotifier {
 
     /// [Timer.periodic] does not necessarily run at the start of the timer.
     _fetchBuildStatusUpdate();
+
+    _fetchFlutterBranches()
+        .then((List<String> branchResponse) => _branches = branchResponse);
 
     refreshTimer =
         Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
@@ -100,6 +111,20 @@ class FlutterBuildState extends ChangeNotifier {
         notifyListeners();
       }),
     ]);
+  }
+
+  Future<List<String>> _fetchFlutterBranches() async {
+    _cocoonService
+        .fetchFlutterBranches()
+        .then((CocoonResponse<List<String>> response) {
+      if (response.error != null) {
+        print(response.error);
+        errors.message = errorMessageFetchingBranches;
+        errors.notifyListeners();
+      }
+
+      return response.data;
+    });
   }
 
   /// Handle merging status updates with the current data in [statuses].
