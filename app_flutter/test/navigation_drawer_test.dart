@@ -125,8 +125,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Skia Perf'), findsOneWidget);
-      await tester.tap(find.text('Skia Perf'));
+      const String skiaPerfText = 'Benchmarks on Skia Perf';
+      expect(find.text(skiaPerfText), findsOneWidget);
+      await tester.tap(find.text(skiaPerfText));
       await tester.pump();
 
       expect(
