@@ -178,8 +178,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
 }
 
 class CirrusResult {
-  const CirrusResult(this.branch, this.tasks)
-      : assert(tasks != null);
+  const CirrusResult(this.branch, this.tasks) : assert(tasks != null);
 
   final String branch;
   final List<Map<String, dynamic>> tasks;
