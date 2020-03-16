@@ -97,14 +97,15 @@ class DatastoreService {
   ///
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
-  Stream<FullTask> queryRecentTasks({
-    String taskName,
-    int commitLimit = 20,
-    int taskLimit = 20,
-  }) async* {
+  Stream<FullTask> queryRecentTasks(
+      {String taskName,
+      int commitLimit = 20,
+      int taskLimit = 20,
+      String branch = 'master'}) async* {
     assert(commitLimit != null);
     assert(taskLimit != null);
-    await for (Commit commit in queryRecentCommits(limit: commitLimit)) {
+    await for (Commit commit
+        in queryRecentCommits(limit: commitLimit, branch: branch)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
         ..limit(taskLimit)
         ..order('-createTimestamp');
