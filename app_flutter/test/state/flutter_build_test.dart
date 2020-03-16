@@ -36,11 +36,25 @@ void main() {
       when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
           Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..data = true));
+      when(mockService.fetchFlutterBranches()).thenAnswer((_) =>
+          Future<CocoonResponse<List<String>>>.value(
+              CocoonResponse<List<String>>()..data = <String>['master']));
+    });
+
+    testWidgets('start calls fetch branches', (WidgetTester tester) async {
+      buildState.startFetchingUpdates();
+
+      // startFetching immediately starts fetching results
+      verify(mockService.fetchFlutterBranches()).called(1);
+
+      // Tear down fails to cancel the timer
+      await tester.pump(buildState.refreshRate * 2);
+      buildState.dispose();
     });
 
     testWidgets('timer should periodically fetch updates',
         (WidgetTester tester) async {
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
 
       // startFetching immediately starts fetching results
       verify(mockService.fetchCommitStatuses()).called(1);
@@ -56,11 +70,11 @@ void main() {
 
     testWidgets('multiple start updates should not change the timer',
         (WidgetTester tester) async {
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
       final Timer refreshTimer = buildState.refreshTimer;
 
       // This second run should not change the refresh timer
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
 
       expect(refreshTimer, equals(buildState.refreshTimer));
 
@@ -74,7 +88,7 @@ void main() {
 
     testWidgets('statuses error should not delete previous statuses data',
         (WidgetTester tester) async {
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
@@ -99,7 +113,7 @@ void main() {
     testWidgets(
         'build status error should not delete previous build status data',
         (WidgetTester tester) async {
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
@@ -123,7 +137,7 @@ void main() {
 
     testWidgets('fetch more commit statuses appends',
         (WidgetTester tester) async {
-      buildState.startFetchingBuildStateUpdates();
+      buildState.startFetchingUpdates();
 
       await untilCalled(mockService.fetchCommitStatuses());
 
