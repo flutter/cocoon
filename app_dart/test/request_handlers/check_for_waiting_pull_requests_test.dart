@@ -758,6 +758,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
     'searchBuilds': <dynamic>[
       <String, dynamic>{
         'id': '1',
+        'branch': 'master',
         'latestGroupTasks':
             statuses.map<Map<String, dynamic>>((dynamic status) {
           return <String, dynamic>{
