@@ -17,11 +17,14 @@ const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
 const String flutterProfileModeFlag = 'profile';
+const String ignoreVersionFlag = 'force-deploy';
+const String helpFlag = 'help';
 
 String _gcloudProjectId;
 String _gcloudProjectVersion;
 
 bool _flutterProfileMode;
+bool _ignoreVersion;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -29,9 +32,15 @@ bool _flutterProfileMode;
 bool _getArgs(ArgParser argParser, List<String> arguments) {
   final ArgResults args = argParser.parse(arguments);
 
+  final bool printHelpMessage = args[helpFlag] as bool;
+  if (printHelpMessage) {
+    return false;
+  }
+
   _gcloudProjectId = args[gcloudProjectIdFlag] as String;
   _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String;
   _flutterProfileMode = args[flutterProfileModeFlag] as bool;
+  _ignoreVersion = args[ignoreVersionFlag] as bool;
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -52,6 +61,10 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
 /// Flutter tools handles the rest of the checks (e.g. Dart version) when
 /// building the project.
 Future<bool> _checkDependencies() async {
+  if (_ignoreVersion) {
+    return true;
+  }
+
   stdout.writeln('Checking Flutter version via flutter --version');
   final ProcessResult result =
       await Process.run('flutter', <String>['--version']);
@@ -187,9 +200,17 @@ Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
-    ..addFlag(flutterProfileModeFlag);
+    ..addFlag(flutterProfileModeFlag)
+    ..addFlag(ignoreVersionFlag)
+    ..addFlag(helpFlag);
 
   if (!_getArgs(argParser, arguments)) {
+    stdout.write('Required flags:\n'
+        '--$gcloudProjectIdFlag gcp-id\n'
+        '--$gcloudProjectVersionFlag version\n\n'
+        'Optional flags:\n'
+        '--$flutterProfileModeFlag\tBuild app_flutter in profile for debugging\n'
+        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n');
     exit(1);
   }
 
