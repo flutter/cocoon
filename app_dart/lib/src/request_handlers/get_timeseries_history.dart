@@ -44,7 +44,7 @@ class GetTimeSeriesHistory
     final KeyHelper keyHelper = KeyHelper(
         applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
     final Set<Commit> commits =
-        await datastore.queryRecentCommits(limit: maxRecords).toSet();
+        await datastore.queryRecentCommitsNoBranch(limit: maxRecords).toSet();
 
     Key timeSeriesKey;
     try {

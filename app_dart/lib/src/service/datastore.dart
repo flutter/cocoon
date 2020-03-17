@@ -55,6 +55,18 @@ class DatastoreService {
     return query.run();
   }
 
+  // Queries for recent commits without considering branches.
+  // TODO(keyonghan): combine this function with the above `queryRecentCommits`,
+  // this needs to fix https://github.com/flutter/flutter/issues/52694.
+  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp}) {
+    timestamp ??= DateTime.now().millisecondsSinceEpoch;
+    final Query<Commit> query = db.query<Commit>()
+      ..limit(limit)
+      ..order('-timestamp')
+      ..filter('timestamp <', timestamp);
+    return query.run();
+  }
+
   /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from
   /// [startFrom] and up to a given [limit].
   ///
