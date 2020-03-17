@@ -633,7 +633,8 @@ List<String> runningProcessesOnWindows(String processName) {
       .runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {
-    for (String rawProcess in result.stdout.split('\n')) {
+    final String stdoutResult = result.stdout as String;
+    for (String rawProcess in stdoutResult.split('\n')) {
       final String process = rawProcess.trim();
       if (!process.contains(processName)) {
         continue;
