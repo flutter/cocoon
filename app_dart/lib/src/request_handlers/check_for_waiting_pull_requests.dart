@@ -244,6 +244,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     assert(failures != null && failures.isEmpty);
     bool allSuccess = true;
 
+    /// API checks only `master` branch for waiting pull requests.
+    const String branch = 'master';
+
     // The status checks that are not related to changes in this PR.
     const Set<String> notInAuthorsControl = <String>{
       'flutter-build', // flutter repo
@@ -267,12 +270,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final List<CirrusResult> cirrusResults =
         await queryCirrusGraphQL(sha, cirrusClient, log, name);
     if (!cirrusResults
-        .any((CirrusResult cirrusResult) => cirrusResult.branch == 'master')) {
+        .any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
       return allSuccess;
     }
     final List<Map<String, dynamic>> cirrusStatuses = cirrusResults
         .singleWhere(
-            (CirrusResult cirrusResult) => cirrusResult.branch == 'master')
+            (CirrusResult cirrusResult) => cirrusResult.branch == branch)
         .tasks;
     if (cirrusStatuses == null) {
       return allSuccess;

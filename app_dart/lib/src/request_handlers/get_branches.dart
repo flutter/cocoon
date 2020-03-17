@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../request_handlers/utils.dart';
+import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
@@ -33,19 +33,11 @@ class GetBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final GitHub github = await config.createGitHubClient();
-    final RepositorySlug slug = config.flutterSlug;
-    final Stream<Branch> branchList = github.repositories.listBranches(slug);
-    final List<String> regExps = await loadBranchRegExps(
-        branchHttpClientProvider, log, gitHubBackoffCalculator);
-    final List<String> branches = <String>[];
+    final List<Branch> branchList = await getBranches(
+        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
-    await for (Branch branch in branchList) {
-      if (regExps
-          .any((String regExp) => RegExp(regExp).hasMatch(branch.name))) {
-        branches.add(branch.name);
-      }
-    }
-    return Body.forJson(<String, List<String>>{'Branches': branches});
+    return Body.forJson(<String, List<String>>{
+      'Branches': branchList.map((Branch branch) => branch.name).toList()
+    });
   }
 }

@@ -37,6 +37,7 @@ void main() {
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> engineRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
+    String branch;
 
     setUp(() {
       request = FakeHttpRequest();
@@ -51,13 +52,14 @@ void main() {
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       statuses.clear();
+      branch = 'master';
       PullRequestHelper._counter = 0;
 
       cirrusGraphQLClient.mutateCirrusResultForOptions =
           (MutationOptions options) => QueryResult();
 
       cirrusGraphQLClient.queryCirrusResultForOptions = (QueryOptions options) {
-        return createCirrusQueryResult(statuses);
+        return createCirrusQueryResult(statuses, branch);
       };
 
       githubGraphQLClient.mutateResultForOptions =
@@ -174,6 +176,32 @@ void main() {
       _verifyQueries();
 
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Ignores cirrus tasks statuses when no matched branch', () async {
+      statuses = <dynamic>[
+        <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
+        <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
+      ];
+      branch = 'flutter-0.0-candidate.0';
+
+      flutterRepoPRs.add(PullRequestHelper());
+
+      await tester.get(handler);
+
+      _verifyQueries();
+
+      githubGraphQLClient.verifyMutations(
+        <MutationOptions>[
+          MutationOptions(
+            document: mergePullRequestMutation,
+            variables: <String, dynamic>{
+              'id': flutterRepoPRs[0].id,
+              'oid': oid,
+            },
+          ),
+        ],
+      );
     });
 
     test('Merge PR with complated tests', () async {
@@ -748,7 +776,7 @@ QueryResult createQueryResult(List<PullRequestHelper> pullRequests) {
   );
 }
 
-QueryResult createCirrusQueryResult(List<dynamic> statuses) {
+QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
   assert(statuses != null);
 
   if (statuses.isEmpty) {
@@ -758,7 +786,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
     'searchBuilds': <dynamic>[
       <String, dynamic>{
         'id': '1',
-        'branch': 'master',
+        'branch': branch,
         'latestGroupTasks':
             statuses.map<Map<String, dynamic>>((dynamic status) {
           return <String, dynamic>{

@@ -12,17 +12,13 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_cirrus_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
+import '../foundation/utils_test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_graphql_client.dart';
-
-const String branchRegExp = '''
-      master
-      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
-      ''';
 
 void main() {
   group('RefreshCirrusStatus', () {
@@ -142,6 +138,30 @@ void main() {
       final Commit commit = Commit(
           key: config.db.emptyKey.append(Commit,
               id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          status: 'New');
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+
+      expect(task.status, 'New');
+      branchHttpClient.request.response.body = branchRegExp;
+      await tester.get(handler);
+      expect(task.status, 'In Progress');
+    });
+
+    test('update cirrus status with a branch different than master', () async {
+      cirrusBranch = 'flutter-0.0-candidate.0';
+      statuses = <dynamic>[
+        <String, String>{'status': 'EXECUTING', 'name': 'test1'},
+        <String, String>{'status': 'COMPLETED', 'name': 'test2'}
+      ];
+
+      final Commit commit = Commit(
+          key: config.db.emptyKey.append(Commit,
+              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'),
+          branch: 'flutter-0.0-candidate.0');
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
