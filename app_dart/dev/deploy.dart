@@ -17,7 +17,7 @@ const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
 const String flutterProfileModeFlag = 'profile';
-const String ignoreVersionFlag = 'force-deploy';
+const String ignoreVersionFlag = 'ignore-version-check';
 const String helpFlag = 'help';
 
 String _gcloudProjectId;
