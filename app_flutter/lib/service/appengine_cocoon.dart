@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
@@ -25,10 +25,13 @@ class AppEngineCocoonService implements CocoonService {
       : _client = client ?? http.Client(),
         _downloader = downloader ?? Downloader();
 
+  /// Branch on flutter/flutter to default requests for.
+  final String _defaultBranch = 'master';
+
   /// The Cocoon API endpoint to query
   ///
   /// This is the base for all API requests to cocoon
-  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+  static const String _baseApiUrl = 'flutter-dashboard.appspot.com';
 
   final http.Client _client;
 
@@ -37,13 +40,15 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
+    String branch,
   }) async {
-    String getStatusUrl = _apiEndpoint('/api/public/get-status');
-
-    if (lastCommitStatus != null) {
-      getStatusUrl +=
-          '?lastCommitKey=' + lastCommitStatus.commit.key.child.name;
-    }
+    final Map<String, String> queryParameters = <String, String>{
+      if (lastCommitStatus != null)
+        'lastCommitKey': lastCommitStatus.commit.key.child.name,
+      'branch': branch ?? _defaultBranch,
+    };
+    final String getStatusUrl =
+        apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
@@ -64,8 +69,14 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
-    final String getBuildStatusUrl = _apiEndpoint('/api/public/build-status');
+  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+    String branch,
+  }) async {
+    final Map<String, String> queryParameters = <String, String>{
+      'branch': branch ?? _defaultBranch,
+    };
+    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status',
+        queryParameters: queryParameters);
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
@@ -95,7 +106,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
-    final String getStatusUrl = _apiEndpoint('/api/public/get-status');
+    final String getStatusUrl = apiEndpoint('/api/public/get-status');
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
@@ -117,7 +128,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    final String getBranchesUrl = _apiEndpoint('/api/public/get-branches');
+    final String getBranchesUrl = apiEndpoint('/api/public/get-branches');
 
     /// This endpoint returns JSON {"Branches": List<String>}
     final http.Response response = await _client.get(getBranchesUrl);
@@ -140,7 +151,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
-    final String postResetTaskUrl = _apiEndpoint('/api/reset-devicelab-task');
+    final String postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
 
     /// This endpoint only returns a status code.
     final http.Response response = await _client.post(postResetTaskUrl,
@@ -163,8 +174,11 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
+    final Map<String, String> queryParameters = <String, String>{
+      'ownerKey': task.key.child.name
+    };
     final String getTaskLogUrl =
-        _apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
+        apiEndpoint('/api/get-log', queryParameters: queryParameters);
 
     // Only show the first 7 characters of the commit sha. This amount is unique
     // enough to allow lookup of a commit.
@@ -182,7 +196,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(capabilities.isNotEmpty);
     assert(idToken != null);
 
-    final String createAgentUrl = _apiEndpoint('/api/create-agent');
+    final String createAgentUrl = apiEndpoint('/api/create-agent');
 
     /// This endpoint returns JSON {'Token': [Token]}
     final http.Response response = await _client.post(
@@ -221,7 +235,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(agent != null);
     assert(idToken != null);
 
-    final String authorizeAgentUrl = _apiEndpoint('/api/authorize-agent');
+    final String authorizeAgentUrl = apiEndpoint('/api/authorize-agent');
 
     /// This endpoint returns JSON {'Token': [Token]}
     final http.Response response = await _client.post(
@@ -258,7 +272,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(agent != null);
     assert(idToken != null);
 
-    final String reserveTaskUrl = _apiEndpoint('/api/reserve-task');
+    final String reserveTaskUrl = apiEndpoint('/api/reserve-task');
 
     final http.Response response = await _client.post(
       reserveTaskUrl,
@@ -296,8 +310,17 @@ class AppEngineCocoonService implements CocoonService {
   /// production endpoint.
   ///
   /// The urlSuffix begins with a slash, e.g. "/api/public/get-status".
-  String _apiEndpoint(String urlSuffix) {
-    return kIsWeb ? urlSuffix : '$_baseApiUrl$urlSuffix';
+  ///
+  /// [queryParameters] are appended to the url and are url encoded.
+  @visibleForTesting
+  String apiEndpoint(
+    String urlSuffix, {
+    Map<String, String> queryParameters,
+  }) {
+    final Uri uri = Uri.https(_baseApiUrl, urlSuffix, queryParameters);
+    final String url = uri.toString();
+
+    return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.

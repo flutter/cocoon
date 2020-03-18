@@ -31,10 +31,13 @@ abstract class CocoonService {
   /// [List<CommitStatus>] after [lastCommitStatus], not including it.
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
+    String branch,
   });
 
   /// Gets the current build status of flutter/flutter.
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus();
+  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+    String branch,
+  });
 
   /// Get the current Flutter infra agent statuses.
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses();

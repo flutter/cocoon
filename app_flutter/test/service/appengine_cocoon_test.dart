@@ -110,8 +110,10 @@ const String jsonBuildStatusFalseResponse = '''
   }
 ''';
 
+const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+
 void main() {
-  group('AppEngine CocoonService fetchCommitStatus ', () {
+  group('AppEngine CocoonService fetchCommitStatus', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -170,10 +172,28 @@ void main() {
       await service.fetchCommitStatuses();
 
       if (kIsWeb) {
-        verify(mockClient.get('/api/public/get-status'));
+        verify(mockClient.get('/api/public/get-status?branch=master'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+        verify(
+            mockClient.get('$_baseApiUrl/api/public/get-status?branch=master'));
+      }
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint when given a specific branch',
+        () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchCommitStatuses(branch: 'stable');
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-status?branch=stable'));
+      } else {
+        verify(
+            mockClient.get('$_baseApiUrl/api/public/get-status?branch=stable'));
       }
     });
 
@@ -191,11 +211,11 @@ void main() {
       await service.fetchCommitStatuses(lastCommitStatus: status);
 
       if (kIsWeb) {
-        verify(
-            mockClient.get('/api/public/get-status?lastCommitKey=iamatestkey'));
+        verify(mockClient.get(
+            '/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       } else {
         verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status?lastCommitKey=iamatestkey'));
+            '$_baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       }
     });
 
@@ -218,7 +238,7 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService fetchTreeBuildStatus ', () {
+  group('AppEngine CocoonService fetchTreeBuildStatus', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -262,10 +282,28 @@ void main() {
       await service.fetchTreeBuildStatus();
 
       if (kIsWeb) {
-        verify(mockClient.get('/api/public/build-status'));
+        verify(mockClient.get('/api/public/build-status?branch=master'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/build-status'));
+        verify(mockClient
+            .get('$_baseApiUrl/api/public/build-status?branch=master'));
+      }
+    });
+
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint when given a specific branch',
+        () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchTreeBuildStatus(branch: 'stable');
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/build-status?branch=stable'));
+      } else {
+        verify(mockClient
+            .get('$_baseApiUrl/api/public/build-status?branch=stable'));
       }
     });
 
@@ -286,108 +324,107 @@ void main() {
           await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
+  });
 
-    group('AppEngine Cocoon Service rerun task', () {
-      AppEngineCocoonService service;
+  group('AppEngine CocoonService rerun task', () {
+    AppEngineCocoonService service;
 
-      setUp(() {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 200);
-        }));
-      });
-
-      test('should return true if request succeeds', () async {
-        expect(
-            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
-            true);
-      });
-
-      test('should return false if request failed', () async {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 500);
-        }));
-
-        expect(
-            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
-            false);
-      });
-
-      test('should return false if task key is null', () async {
-        expect(service.rerunTask(Task(), null),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
-
-      /// This requires a separate test run on the web platform.
-      test('should query correct endpoint whether web or mobile', () async {
-        final Client mockClient = MockHttpClient();
-        when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
-                headers: captureAnyNamed('headers'),
-                body: captureAnyNamed('body')))
-            .thenAnswer((_) => Future<Response>.value(Response('', 200)));
-        service = AppEngineCocoonService(client: mockClient);
-
-        await service.rerunTask(Task(), '');
-
-        if (kIsWeb) {
-          verify(mockClient.post(
-            '/api/reset-devicelab-task',
-            headers: captureAnyNamed('headers'),
-            body: captureAnyNamed('body'),
-          ));
-        } else {
-          verify(mockClient.post(
-            'https://flutter-dashboard.appspot.com/api/reset-devicelab-task',
-            headers: captureAnyNamed('headers'),
-            body: captureAnyNamed('body'),
-          ));
-        }
-      });
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
     });
 
-    group('AppEngine Cocoon Service download log', () {
-      AppEngineCocoonService service;
+    test('should return true if request succeeds', () async {
+      expect(
+          await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+          true);
+    });
 
-      setUp(() {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 200);
-        }));
-      });
+    test('should return false if request failed', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
 
-      test('should throw assertion error if task is null', () async {
-        expect(service.downloadLog(null, 'abc123', 'shashank'),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
+      expect(
+          await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+          false);
+    });
 
-      test('should throw assertion error if id token is null', () async {
-        expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
+    test('should return false if task key is null', () async {
+      expect(service.rerunTask(Task(), null),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
 
-      test('should send correct request to downloader service', () async {
-        final Downloader mockDownloader = MockDownloader();
-        when(mockDownloader.download(
-                argThat(contains('/api/get-log?ownerKey=')),
-                'test_task_shashan_1.log',
-                idToken: 'abc123'))
-            .thenAnswer((_) => Future<bool>.value(true));
-        service = AppEngineCocoonService(
-            client: MockClient((Request request) async {
-              return Response('', 200);
-            }),
-            downloader: mockDownloader);
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
+              headers: captureAnyNamed('headers'),
+              body: captureAnyNamed('body')))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
 
-        expect(
-            await service.downloadLog(
-                Task()
-                  ..name = 'test_task'
-                  ..attempts = 1,
-                'abc123',
-                'shashankabcdefghijklmno'),
-            isTrue);
-      });
+      await service.rerunTask(Task(), '');
+
+      if (kIsWeb) {
+        verify(mockClient.post(
+          '/api/reset-devicelab-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      } else {
+        verify(mockClient.post(
+          '$_baseApiUrl/api/reset-devicelab-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      }
+    });
+  });
+
+  group('AppEngine CocoonService download log', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+    });
+
+    test('should throw assertion error if task is null', () async {
+      expect(service.downloadLog(null, 'abc123', 'shashank'),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
+
+    test('should throw assertion error if id token is null', () async {
+      expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
+
+    test('should send correct request to downloader service', () async {
+      final Downloader mockDownloader = MockDownloader();
+      when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')),
+              'test_task_shashan_1.log',
+              idToken: 'abc123'))
+          .thenAnswer((_) => Future<bool>.value(true));
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async {
+            return Response('', 200);
+          }),
+          downloader: mockDownloader);
+
+      expect(
+          await service.downloadLog(
+              Task()
+                ..name = 'test_task'
+                ..attempts = 1,
+              'abc123',
+              'shashankabcdefghijklmno'),
+          isTrue);
     });
   });
 
@@ -443,8 +480,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+        verify(mockClient.get('$_baseApiUrl/api/public/get-status'));
       }
     });
 
@@ -504,8 +540,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-branches'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-branches'));
+        verify(mockClient.get('$_baseApiUrl/api/public/get-branches'));
       }
     });
 
@@ -528,7 +563,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service create agent', () {
+  group('AppEngine CocoonService create agent', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -589,7 +624,7 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/create-agent',
+          '$_baseApiUrl/api/create-agent',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
@@ -597,7 +632,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service authorize agent', () {
+  group('AppEngine CocoonService authorize agent', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -659,7 +694,7 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/authorize-agent',
+          '$_baseApiUrl/api/authorize-agent',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
@@ -667,7 +702,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service reserve task', () {
+  group('AppEngine CocoonService reserve task', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -720,11 +755,48 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/reserve-task',
+          '$_baseApiUrl/api/reserve-task',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
       }
+    });
+  });
+
+  group('AppEngine CocoonService apiEndpoint', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('{"Token": "abc123"}', 200);
+      }));
+    });
+    test('handles url suffix', () {
+      expect(service.apiEndpoint('/test'), '$_baseApiUrl/test');
+    });
+
+    test('single query parameter', () {
+      expect(
+          service.apiEndpoint('/test',
+              queryParameters: <String, String>{'key': 'value'}),
+          '$_baseApiUrl/test?key=value');
+    });
+
+    test('multiple query parameters', () {
+      expect(
+          service.apiEndpoint('/test', queryParameters: <String, String>{
+            'key': 'value',
+            'another': 'test'
+          }),
+          '$_baseApiUrl/test?key=value&another=test');
+    });
+
+    test('query parameter with null value', () {
+      expect(
+          service.apiEndpoint('/test',
+              queryParameters: <String, String>{'key': null}),
+          '$_baseApiUrl/test?key');
     });
   });
 }

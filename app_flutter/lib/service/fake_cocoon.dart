@@ -21,13 +21,16 @@ class FakeCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<List<CommitStatus>>> fetchCommitStatuses({
     CommitStatus lastCommitStatus,
+    String branch,
   }) async {
     return CocoonResponse<List<CommitStatus>>()
       ..data = _createFakeCommitStatuses();
   }
 
   @override
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus() async {
+  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+    String branch,
+  }) async {
     return CocoonResponse<bool>()..data = random.nextBool();
   }
 

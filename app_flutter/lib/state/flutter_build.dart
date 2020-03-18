@@ -51,6 +51,9 @@ class FlutterBuildState extends ChangeNotifier {
   List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
 
+  final String _currentBranch = 'master';
+  String get currentBranch => _currentBranch;
+
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
   FlutterBuildStateErrors errors = FlutterBuildStateErrors();
 
@@ -87,7 +90,9 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService
-          .fetchCommitStatuses()
+          .fetchCommitStatuses(
+        branch: _currentBranch,
+      )
           .then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
           print(response.error);
@@ -99,7 +104,9 @@ class FlutterBuildState extends ChangeNotifier {
         notifyListeners();
       }),
       _cocoonService
-          .fetchTreeBuildStatus()
+          .fetchTreeBuildStatus(
+        branch: _currentBranch,
+      )
           .then((CocoonResponse<bool> response) {
         if (response.error != null) {
           print(response.error);
