@@ -194,7 +194,7 @@ class TaskProvider {
   final DatastoreService datastore;
 
   Future<FullTask> findNextTask(Agent agent) async {
-    await for (Commit commit in datastore.queryRecentCommits()) {
+    await for (Commit commit in datastore.queryRecentCommitsNoBranch()) {
       final List<Stage> stages =
           await datastore.queryTasksGroupedByStage(commit);
       for (Stage stage in stages) {
