@@ -82,13 +82,13 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
 
       // TODO(katelovett): flutter gold will need to support branching, https://github.com/flutter/flutter/issues/52700
-      if (!cirrusResults.any(
-          (CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.id.toString()}')) {
+      if (!cirrusResults.any((CirrusResult cirrusResult) =>
+          cirrusResult.branch == 'pull/${pr.id.toString()}')) {
         continue;
       }
       final List<dynamic> cirrusChecks = cirrusResults
-          .singleWhere(
-              (CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.id.toString()}')
+          .singleWhere((CirrusResult cirrusResult) =>
+              cirrusResult.branch == 'pull/${pr.id.toString()}')
           .tasks;
       for (dynamic check in cirrusChecks) {
         final String status = check['status'] as String;
