@@ -39,7 +39,7 @@ Future<List<String>> loadBranchRegExps(
 
   final HttpClient client = branchHttpClientProvider();
   try {
-    // TODO(keyonghan): Apply retry logic here to simply, https://github.com/flutter/flutter/issues/52427
+    // TODO(keyonghan): apply retry logic here to simply, https://github.com/flutter/flutter/issues/52427
     for (int attempt = 0; attempt < 3; attempt++) {
       final HttpClientRequest clientRequest = await client.getUrl(url);
 
