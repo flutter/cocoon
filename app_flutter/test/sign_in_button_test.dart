@@ -44,7 +44,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(GoogleUserCircleAvatar), findsNothing);
-    expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('SIGN IN'), findsOneWidget);
   });
 
   testWidgets('calls sign in on tap when not authenticated', (WidgetTester tester) async {
@@ -62,7 +62,7 @@ void main() {
 
     verifyNever(mockAuthService.signIn());
 
-    await tester.tap(find.text('Sign in'));
+    await tester.tap(find.text('SIGN IN'));
     await tester.pump();
 
     verify(mockAuthService.signIn()).called(1);
@@ -89,7 +89,7 @@ void main() {
       expect(tester.takeException(), const test.TypeMatcher<NetworkImageLoadException>());
     }
 
-    expect(find.text('Sign in'), findsNothing);
+    expect(find.text('SIGN IN'), findsNothing);
     expect(find.byType(Image), findsOneWidget);
   });
 

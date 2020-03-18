@@ -83,76 +83,65 @@ class Index extends StatelessWidget {
 
   final GlobalKey<ScaffoldState> scaffoldKey;
 
+  static const Widget separator = SizedBox(height: 24.0);
+
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Consumer<IndexState>(
-      builder: (_, IndexState indexState, Widget child) => Scaffold(
+      builder: (BuildContext context, IndexState indexState, Widget child) => Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
           title: const Text('Cocoon'),
           actions: <Widget>[
-            SignInButton(authService: indexState.authService),
+            SignInButton(
+              authService: indexState.authService,
+              colorBrightness: theme.appBarTheme.brightness ?? theme.primaryColorBrightness,
+            ),
           ],
         ),
         body: Center(
-          child: Column(
-            children: <Widget>[
-              Container(height: 50),
-              SizedBox(
-                width: 300,
-                child: RaisedButton(
-                  child: const Text('Build'),
+          child: IntrinsicWidth(
+            stepWidth: 80.0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                separator,
+                Text('Select a dashboard', style: Theme.of(context).textTheme.headline4, textAlign: TextAlign.center),
+                separator,
+                RaisedButton.icon(
+                  icon: Icon(Icons.build),
+                  label: const Text('BUILD'),
                   onPressed: () => Navigator.pushReplacementNamed(context, '/build'),
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.blueAccent,
-                  textColor: Colors.white,
                 ),
-              ),
-              Container(height: 25),
-              SizedBox(
-                width: 300,
-                child: RaisedButton(
-                  child: const Text('Performance'),
+                separator,
+                RaisedButton.icon(
+                  icon: Icon(Icons.show_chart),
+                  label: const Text('BENCHMARKS'),
                   onPressed: () => launch('/benchmarks.html'),
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.blueAccent,
-                  textColor: Colors.white,
                 ),
-              ),
-              Container(height: 25),
-              SizedBox(
-                width: 300,
-                child: RaisedButton(
-                  child: const Text('Benchmarks on Skia Perf'),
+                separator,
+                RaisedButton.icon(
+                  icon: Icon(Icons.show_chart),
+                  label: const Text('BENCHMARKS ON SKIA PERF'),
                   onPressed: () => launch('https://flutter-perf.skia.org/'),
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.blueAccent,
-                  textColor: Colors.white,
                 ),
-              ),
-              Container(height: 25),
-              SizedBox(
-                width: 300,
-                child: RaisedButton(
-                  child: const Text('Repository'),
+                separator,
+                RaisedButton.icon(
+                  icon: Icon(Icons.info_outline),
+                  label: const Text('REPOSITORY'),
                   onPressed: () => launch('/repository.html'),
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.blueAccent,
-                  textColor: Colors.white,
                 ),
-              ),
-              Container(height: 50),
-              SizedBox(
-                width: 300,
-                child: RaisedButton(
-                  child: const Text('Infra Agents'),
+                separator,
+                const Divider(thickness: 2.0),
+                separator,
+                RaisedButton.icon(
+                  icon: Icon(Icons.android),
+                  label: const Text('INFRA AGENTS'),
                   onPressed: () => Navigator.pushReplacementNamed(context, '/agents'),
-                  padding: const EdgeInsets.all(20),
-                  color: Colors.blueAccent,
-                  textColor: Colors.white,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         drawer: const NavigationDrawer(),

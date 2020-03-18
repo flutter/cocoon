@@ -146,9 +146,7 @@ class AgentDashboard extends StatelessWidget {
             ),
           ],
         ),
-        drawer: const NavigationDrawer(
-          currentRoute: AgentDashboardPage.routeName,
-        ),
+        drawer: const NavigationDrawer(),
         floatingActionButton: RaisedButton(
           child: const Text(
             'Create Agent',

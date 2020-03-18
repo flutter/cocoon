@@ -127,9 +127,7 @@ class BuildDashboard extends StatelessWidget {
             StatusGridContainer(),
           ],
         ),
-        drawer: const NavigationDrawer(
-          currentRoute: BuildDashboardPage.routeName,
-        ),
+        drawer: const NavigationDrawer(),
       ),
     );
   }

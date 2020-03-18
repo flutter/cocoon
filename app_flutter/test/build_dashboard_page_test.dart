@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:app_flutter/build_dashboard_page.dart';
-import 'package:app_flutter/main.dart' as app show theme;
+import 'package:app_flutter/main.dart' as app show lightTheme;
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
@@ -31,7 +31,7 @@ void main() {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = null;
 
     await tester.pumpWidget(MaterialApp(
-        theme: app.theme,
+        theme: app.lightTheme,
         home: ChangeNotifierProvider<FlutterBuildState>(
           create: (_) => fakeBuildState,
           child: const BuildDashboard(),
@@ -47,7 +47,7 @@ void main() {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = false;
 
     await tester.pumpWidget(MaterialApp(
-        theme: app.theme,
+        theme: app.lightTheme,
         home: ChangeNotifierProvider<FlutterBuildState>(
           create: (_) => fakeBuildState,
           child: const BuildDashboard(),
@@ -56,14 +56,14 @@ void main() {
     expect(find.text('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, app.theme.errorColor);
+    expect(appbarWidget.backgroundColor, app.lightTheme.errorColor);
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = true;
 
     await tester.pumpWidget(MaterialApp(
-        theme: app.theme,
+        theme: app.lightTheme,
         home: ChangeNotifierProvider<FlutterBuildState>(
           create: (_) => fakeBuildState,
           child: const BuildDashboard(),
@@ -72,7 +72,7 @@ void main() {
     expect(find.text('Tree is Open'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
+    expect(appbarWidget.backgroundColor, app.lightTheme.appBarTheme.color);
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
