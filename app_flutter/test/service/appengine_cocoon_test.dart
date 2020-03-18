@@ -179,6 +179,24 @@ void main() {
       }
     });
 
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint when given a specific branch',
+        () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchCommitStatuses(branch: 'stable');
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/get-status?branch=stable'));
+      } else {
+        verify(
+            mockClient.get('$_baseApiUrl/api/public/get-status?branch=stable'));
+      }
+    });
+
     test(
         'given last commit status should query correct endpoint whether web or mobile',
         () async {
@@ -271,6 +289,24 @@ void main() {
       }
     });
 
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint when given a specific branch',
+        () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.get(any))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
+
+      await service.fetchTreeBuildStatus(branch: 'stable');
+
+      if (kIsWeb) {
+        verify(mockClient.get('/api/public/build-status?branch=stable'));
+      } else {
+        verify(mockClient
+            .get('$_baseApiUrl/api/public/build-status?branch=stable'));
+      }
+    });
+
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(
           client: MockClient((Request request) async => Response('', 404)));
@@ -288,107 +324,107 @@ void main() {
           await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
+  });
 
-    group('AppEngine CocoonService rerun task', () {
-      AppEngineCocoonService service;
+  group('AppEngine CocoonService rerun task', () {
+    AppEngineCocoonService service;
 
-      setUp(() {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 200);
-        }));
-      });
-
-      test('should return true if request succeeds', () async {
-        expect(
-            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
-            true);
-      });
-
-      test('should return false if request failed', () async {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 500);
-        }));
-
-        expect(
-            await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
-            false);
-      });
-
-      test('should return false if task key is null', () async {
-        expect(service.rerunTask(Task(), null),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
-
-      /// This requires a separate test run on the web platform.
-      test('should query correct endpoint whether web or mobile', () async {
-        final Client mockClient = MockHttpClient();
-        when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
-                headers: captureAnyNamed('headers'),
-                body: captureAnyNamed('body')))
-            .thenAnswer((_) => Future<Response>.value(Response('', 200)));
-        service = AppEngineCocoonService(client: mockClient);
-
-        await service.rerunTask(Task(), '');
-
-        if (kIsWeb) {
-          verify(mockClient.post(
-            '/api/reset-devicelab-task',
-            headers: captureAnyNamed('headers'),
-            body: captureAnyNamed('body'),
-          ));
-        } else {
-          verify(mockClient.post(
-            '$_baseApiUrl/api/reset-devicelab-task',
-            headers: captureAnyNamed('headers'),
-            body: captureAnyNamed('body'),
-          ));
-        }
-      });
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
     });
 
-    group('AppEngine CocoonService download log', () {
-      AppEngineCocoonService service;
+    test('should return true if request succeeds', () async {
+      expect(
+          await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+          true);
+    });
 
-      setUp(() {
-        service =
-            AppEngineCocoonService(client: MockClient((Request request) async {
-          return Response('', 200);
-        }));
-      });
+    test('should return false if request failed', () async {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
 
-      test('should throw assertion error if task is null', () async {
-        expect(service.downloadLog(null, 'abc123', 'shashank'),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
+      expect(
+          await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'),
+          false);
+    });
 
-      test('should throw assertion error if id token is null', () async {
-        expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
-            throwsA(const TypeMatcher<AssertionError>()));
-      });
+    test('should return false if task key is null', () async {
+      expect(service.rerunTask(Task(), null),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
 
-      test('should send correct request to downloader service', () async {
-        final Downloader mockDownloader = MockDownloader();
-        when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')),
-                'test_task_shashan_1.log',
-                idToken: 'abc123'))
-            .thenAnswer((_) => Future<bool>.value(true));
-        service = AppEngineCocoonService(
-            client: MockClient((Request request) async {
-              return Response('', 200);
-            }),
-            downloader: mockDownloader);
+    /// This requires a separate test run on the web platform.
+    test('should query correct endpoint whether web or mobile', () async {
+      final Client mockClient = MockHttpClient();
+      when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
+              headers: captureAnyNamed('headers'),
+              body: captureAnyNamed('body')))
+          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      service = AppEngineCocoonService(client: mockClient);
 
-        expect(
-            await service.downloadLog(
-                Task()
-                  ..name = 'test_task'
-                  ..attempts = 1,
-                'abc123',
-                'shashankabcdefghijklmno'),
-            isTrue);
-      });
+      await service.rerunTask(Task(), '');
+
+      if (kIsWeb) {
+        verify(mockClient.post(
+          '/api/reset-devicelab-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      } else {
+        verify(mockClient.post(
+          '$_baseApiUrl/api/reset-devicelab-task',
+          headers: captureAnyNamed('headers'),
+          body: captureAnyNamed('body'),
+        ));
+      }
+    });
+  });
+
+  group('AppEngine CocoonService download log', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+    });
+
+    test('should throw assertion error if task is null', () async {
+      expect(service.downloadLog(null, 'abc123', 'shashank'),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
+
+    test('should throw assertion error if id token is null', () async {
+      expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
+          throwsA(const TypeMatcher<AssertionError>()));
+    });
+
+    test('should send correct request to downloader service', () async {
+      final Downloader mockDownloader = MockDownloader();
+      when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')),
+              'test_task_shashan_1.log',
+              idToken: 'abc123'))
+          .thenAnswer((_) => Future<bool>.value(true));
+      service = AppEngineCocoonService(
+          client: MockClient((Request request) async {
+            return Response('', 200);
+          }),
+          downloader: mockDownloader);
+
+      expect(
+          await service.downloadLog(
+              Task()
+                ..name = 'test_task'
+                ..attempts = 1,
+              'abc123',
+              'shashankabcdefghijklmno'),
+          isTrue);
     });
   });
 
