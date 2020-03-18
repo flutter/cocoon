@@ -25,10 +25,13 @@ class AppEngineCocoonService implements CocoonService {
       : _client = client ?? http.Client(),
         _downloader = downloader ?? Downloader();
 
+  /// Branch on flutter/flutter to default requests for.
+  final String _defaultBranch = 'master';
+
   /// The Cocoon API endpoint to query
   ///
   /// This is the base for all API requests to cocoon
-  static const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+  static const String _baseApiUrl = 'flutter-dashboard.appspot.com';
 
   final http.Client _client;
 
@@ -42,7 +45,7 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, String> queryParameters = <String, String>{
       if (lastCommitStatus != null)
         'lastCommitKey': lastCommitStatus.commit.key.child.name,
-      if (branch != null) 'branch': branch,
+      'branch': branch ?? _defaultBranch,
     };
     final String getStatusUrl =
         apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
@@ -69,7 +72,11 @@ class AppEngineCocoonService implements CocoonService {
   Future<CocoonResponse<bool>> fetchTreeBuildStatus({
     String branch,
   }) async {
-    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status');
+    final Map<String, String> queryParameters = <String, String>{
+      'branch': branch ?? _defaultBranch,
+    };
+    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status',
+        queryParameters: queryParameters);
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
@@ -167,8 +174,11 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
+    final Map<String, String> queryParameters = <String, String>{
+      'ownerKey': task.key.child.name
+    };
     final String getTaskLogUrl =
-        apiEndpoint('/api/get-log?ownerKey=${task.key.child.name}');
+        apiEndpoint('/api/get-log', queryParameters: queryParameters);
 
     // Only show the first 7 characters of the commit sha. This amount is unique
     // enough to allow lookup of a commit.
@@ -305,7 +315,10 @@ class AppEngineCocoonService implements CocoonService {
     String urlSuffix, {
     Map<String, String> queryParameters,
   }) {
-    return kIsWeb ? urlSuffix : '$_baseApiUrl$urlSuffix';
+    final Uri uri = Uri.https(_baseApiUrl, urlSuffix, queryParameters);
+    final String url = uri.toString();
+
+    return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
   }
 
   /// Check if [Map<String,Object>] follows the format for build-status.

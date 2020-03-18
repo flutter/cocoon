@@ -111,7 +111,7 @@ const String jsonBuildStatusFalseResponse = '''
 ''';
 
 void main() {
-  group('AppEngine CocoonService fetchCommitStatus ', () {
+  group('AppEngine CocoonService fetchCommitStatus', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -170,10 +170,10 @@ void main() {
       await service.fetchCommitStatuses();
 
       if (kIsWeb) {
-        verify(mockClient.get('/api/public/get-status'));
+        verify(mockClient.get('/api/public/get-status?branch=master'));
       } else {
         verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+            'https://flutter-dashboard.appspot.com/api/public/get-status?branch=master'));
       }
     });
 
@@ -191,11 +191,11 @@ void main() {
       await service.fetchCommitStatuses(lastCommitStatus: status);
 
       if (kIsWeb) {
-        verify(
-            mockClient.get('/api/public/get-status?lastCommitKey=iamatestkey'));
+        verify(mockClient.get(
+            '/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       } else {
         verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status?lastCommitKey=iamatestkey'));
+            'https://flutter-dashboard.appspot.com/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       }
     });
 
@@ -218,7 +218,7 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService fetchTreeBuildStatus ', () {
+  group('AppEngine CocoonService fetchTreeBuildStatus', () {
     AppEngineCocoonService service;
 
     setUp(() async {
@@ -262,10 +262,10 @@ void main() {
       await service.fetchTreeBuildStatus();
 
       if (kIsWeb) {
-        verify(mockClient.get('/api/public/build-status'));
+        verify(mockClient.get('/api/public/build-status?branch=master'));
       } else {
         verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/build-status'));
+            'https://flutter-dashboard.appspot.com/api/public/build-status?branch=master'));
       }
     });
 
@@ -368,8 +368,7 @@ void main() {
 
       test('should send correct request to downloader service', () async {
         final Downloader mockDownloader = MockDownloader();
-        when(mockDownloader.download(
-                argThat(contains('/api/get-log?ownerKey=')),
+        when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')),
                 'test_task_shashan_1.log',
                 idToken: 'abc123'))
             .thenAnswer((_) => Future<bool>.value(true));
