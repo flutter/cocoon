@@ -84,6 +84,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       // TODO(katelovett): flutter gold will need to support branching, https://github.com/flutter/flutter/issues/52700
       if (!cirrusResults.any((CirrusResult cirrusResult) =>
           cirrusResult.branch == 'pull/${pr.number}')) {
+        log.debug('Skip pull request #${pr.number}, commit '
+            '${pr.head.sha} since no valid CirrusResult was found');
         continue;
       }
       final List<dynamic> cirrusChecks = cirrusResults
