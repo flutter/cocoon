@@ -78,8 +78,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
       // Query current checks for this pr.
-      final List<dynamic> cirrusChecks =
+      final List<CirrusResult> cirrusResults =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
+
+      // TODO(katelovett): flutter gold will need to support branching, https://github.com/flutter/flutter/issues/52700
+      if (!cirrusResults.any(
+          (CirrusResult cirrusResult) => cirrusResult.branch == 'master')) {
+        continue;
+      }
+      final List<dynamic> cirrusChecks = cirrusResults
+          .singleWhere(
+              (CirrusResult cirrusResult) => cirrusResult.branch == 'master')
+          .tasks;
       for (dynamic check in cirrusChecks) {
         final String status = check['status'] as String;
         final String taskName = check['name'] as String;

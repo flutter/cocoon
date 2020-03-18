@@ -15,10 +15,10 @@ import 'package:yaml/yaml.dart';
 import '../datastore/cocoon_config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
-import '../request_handlers/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -54,32 +54,27 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final GithubService githubService = await config.createGithubService();
-    final GitHub github = await config.createGitHubClient();
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final Stream<Branch> branches = github.repositories.listBranches(slug);
+    final GithubService githubService = await config.createGithubService();
     final DatastoreService datastore = datastoreProvider();
-    final List<String> regExps = await loadBranchRegExps(
-        branchHttpClientProvider, log, gitHubBackoffCalculator);
+    final List<Branch> branches = await getBranches(
+        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
-    await for (Branch branch in branches) {
-      if (regExps
-          .any((String regExp) => RegExp(regExp).hasMatch(branch.name))) {
-        final List<RepositoryCommit> commits =
-            await githubService.listCommits(slug, branch.name);
-        final List<Commit> newCommits =
-            await _getNewCommits(commits, datastore, branch.name);
+    for (Branch branch in branches) {
+      final List<RepositoryCommit> commits =
+          await githubService.listCommits(slug, branch.name);
+      final List<Commit> newCommits =
+          await _getNewCommits(commits, datastore, branch.name);
 
-        if (newCommits.isEmpty) {
-          // Nothing to do.
-          continue;
-        }
-        log.debug(
-            'Found ${newCommits.length} new commits for branch ${branch.name} on GitHub');
-
-        //Save [Commit] to BigQuery and create [Task] in Datastore.
-        await _saveData(newCommits, datastore);
+      if (newCommits.isEmpty) {
+        // Nothing to do.
+        continue;
       }
+      log.debug(
+          'Found ${newCommits.length} new commits for branch ${branch.name} on GitHub');
+
+      //Save [Commit] to BigQuery and create [Task] in Datastore.
+      await _saveData(newCommits, datastore);
     }
 
     return Body.empty;

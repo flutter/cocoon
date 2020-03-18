@@ -5,7 +5,7 @@
 const String cirusStatusQuery = r'''
     query BuildBySHAQuery($owner: String!, $name: String!, $SHA: String) { 
       searchBuilds(repositoryOwner: $owner, repositoryName: $name, SHA: $SHA) { 
-        id latestGroupTasks { 
+        id branch latestGroupTasks { 
           id name status 
         } 
       } 

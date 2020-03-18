@@ -760,6 +760,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
       'searchBuilds': <dynamic>[
         <String, dynamic>{
           'id': '1',
+          'branch': 'master',
           'latestGroupTasks': <dynamic>[
             <String, dynamic>{
               'id': '1',

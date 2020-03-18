@@ -5,11 +5,16 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -37,60 +42,103 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    @visibleForTesting
+        this.branchHttpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : datastoreProvider =
             datastoreProvider ?? DatastoreService.defaultProvider,
+        assert(branchHttpClientProvider != null),
+        assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
+  final HttpClientProvider branchHttpClientProvider;
+  final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider();
     final GraphQLClient client = await config.createCirrusGraphQLClient();
+    final List<Branch> branches = await getBranches(
+        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
+    const int commitLimit = 15;
 
-    await for (FullTask task
-        in datastore.queryRecentTasks(taskName: 'cirrus', commitLimit: 15)) {
-      final String sha = task.commit.sha;
-      final String existingTaskStatus = task.task.status;
-      log.debug(
-          'Found Cirrus task for commit $sha with existing status $existingTaskStatus');
-      final List<String> statuses = <String>[];
-      const String name = 'flutter';
+    for (Branch branch in branches) {
+      await for (FullTask task in datastore.queryRecentTasks(
+          taskName: 'cirrus', commitLimit: commitLimit, branch: branch.name)) {
+        final String sha = task.commit.sha;
+        final String existingTaskStatus = task.task.status;
 
-      for (Map<String, dynamic> runStatus
-          in await queryCirrusGraphQL(sha, client, log, name)) {
-        final String status = runStatus['status'] as String;
-        final String taskName = runStatus['name'] as String;
-        log.debug('Found Cirrus build status for $sha: $taskName ($status)');
-        statuses.add(status);
-      }
+        log.debug(
+            'Found Cirrus task for branch ${branch.name}, commit $sha, with existing status $existingTaskStatus');
 
-      String newTaskStatus;
-      if (statuses.isEmpty) {
-        newTaskStatus = Task.statusNew;
-      } else if (statuses.any(kCirrusFailedStates.contains)) {
-        newTaskStatus = Task.statusFailed;
-        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-      } else if (statuses.any(kCirrusInProgressStates.contains)) {
-        newTaskStatus = Task.statusInProgress;
-      } else {
-        newTaskStatus = Task.statusSucceeded;
-        task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-      }
+        const String name = 'flutter';
+        final List<CirrusResult> cirrusResults =
+            await queryCirrusGraphQL(sha, client, log, name);
 
-      if (newTaskStatus != existingTaskStatus) {
+        /// Get cirrus task statuses for [task.commit.branch] and [sha].
+        final List<String> statuses =
+            _getStatuses(cirrusResults, task.commit.branch, sha);
+
+        /// Calculate overall new task status based on cirrus results.
+        final String newTaskStatus = _getNewTaskStatus(statuses, task);
+
+        if (newTaskStatus == existingTaskStatus) {
+          continue;
+        }
         task.task.status = newTaskStatus;
-        await config.db.withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(inserts: <Task>[task.task]);
-          await transaction.commit();
+        await runTransactionWithRetries(() async {
+          await config.db
+              .withTransaction<void>((Transaction transaction) async {
+            transaction.queueMutations(inserts: <Task>[task.task]);
+            await transaction.commit();
+          });
         });
       }
     }
     return Body.empty;
   }
+
+  String _getNewTaskStatus(List<String> statuses, FullTask task) {
+    String newTaskStatus;
+    if (statuses.isEmpty) {
+      newTaskStatus = Task.statusNew;
+    } else if (statuses.any(kCirrusFailedStates.contains)) {
+      newTaskStatus = Task.statusFailed;
+      task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+    } else if (statuses.any(kCirrusInProgressStates.contains)) {
+      newTaskStatus = Task.statusInProgress;
+    } else {
+      newTaskStatus = Task.statusSucceeded;
+      task.task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+    }
+    return newTaskStatus;
+  }
+
+  List<String> _getStatuses(
+      List<CirrusResult> cirrusResults, String branch, String sha) {
+    final List<String> statuses = <String>[];
+
+    /// Multiple branches may exist for same commit.
+    /// Update only when branches match
+    if (!cirrusResults
+        .any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
+      return statuses;
+    }
+    for (Map<String, dynamic> runStatus in cirrusResults
+        .singleWhere(
+            (CirrusResult cirrusResult) => cirrusResult.branch == branch)
+        .tasks) {
+      final String status = runStatus['status'] as String;
+      final String taskName = runStatus['name'] as String;
+      log.debug('Found Cirrus build status for $sha: $taskName ($status)');
+      statuses.add(status);
+    }
+    return statuses;
+  }
 }
 
-Future<List<Map<String, dynamic>>> queryCirrusGraphQL(
+Future<List<CirrusResult>> queryCirrusGraphQL(
   String sha,
   GraphQLClient client,
   Logging log,
@@ -118,17 +166,32 @@ Future<List<Map<String, dynamic>>> queryCirrusGraphQL(
   }
 
   final List<Map<String, dynamic>> tasks = <Map<String, dynamic>>[];
+  final List<CirrusResult> cirrusResults = <CirrusResult>[];
+  String branch;
   if (result.data == null) {
-    return tasks;
+    cirrusResults.add(CirrusResult(branch, tasks));
+    return cirrusResults;
   }
   try {
-    final Map<String, dynamic> searchBuilds =
-        result.data['searchBuilds'].first as Map<String, dynamic>;
-    tasks.addAll((searchBuilds['latestGroupTasks'] as List<dynamic>)
-        .cast<Map<String, dynamic>>());
+    final List<dynamic> searchBuilds =
+        result.data['searchBuilds'] as List<dynamic>;
+    for (dynamic searchBuild in searchBuilds) {
+      tasks.clear();
+      tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>)
+          .cast<Map<String, dynamic>>());
+      branch = searchBuild['branch'] as String;
+      cirrusResults.add(CirrusResult(branch, tasks));
+    }
   } catch (_) {
     log.debug(
         'Did not receive expected result from Cirrus, sha $sha may not be executing Cirrus tasks.');
   }
-  return tasks;
+  return cirrusResults;
+}
+
+class CirrusResult {
+  const CirrusResult(this.branch, this.tasks) : assert(tasks != null);
+
+  final String branch;
+  final List<Map<String, dynamic>> tasks;
 }
