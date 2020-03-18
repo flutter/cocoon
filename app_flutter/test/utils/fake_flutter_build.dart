@@ -54,7 +54,4 @@ class FakeFlutterBuildState extends ChangeNotifier
 
   @override
   String get currentBranch => 'master';
-
-  @override
-  Future<void> updateBranch(String branch) => throw UnimplementedError();
 }

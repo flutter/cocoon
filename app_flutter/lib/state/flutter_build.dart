@@ -51,7 +51,7 @@ class FlutterBuildState extends ChangeNotifier {
   List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
 
-  String _currentBranch = 'master';
+  final String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
 
   /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
@@ -84,11 +84,6 @@ class FlutterBuildState extends ChangeNotifier {
 
     refreshTimer =
         Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
-  }
-
-  /// Switch the current branch being displayed on the build dashboard.
-  Future<void> updateBranch(String branch) {
-    _currentBranch = branch;
   }
 
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].

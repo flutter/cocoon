@@ -17,6 +17,8 @@ import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
 void main() {
+  const String _defaultBranch = 'master';
+
   group('FlutterBuildState', () {
     FlutterBuildState buildState;
     MockCocoonService mockService;
@@ -29,16 +31,16 @@ void main() {
 
       setupCommitStatus = _createCommitStatusWithKey('setup');
 
-      when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
-          Future<CocoonResponse<List<CommitStatus>>>.value(
+      when(mockService.fetchCommitStatuses(branch: anyNamed('branch')))
+          .thenAnswer((_) => Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>()
                 ..data = <CommitStatus>[setupCommitStatus]));
-      when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
-          Future<CocoonResponse<bool>>.value(
+      when(mockService.fetchTreeBuildStatus(branch: anyNamed('branch')))
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..data = true));
       when(mockService.fetchFlutterBranches()).thenAnswer((_) =>
           Future<CocoonResponse<List<String>>>.value(
-              CocoonResponse<List<String>>()..data = <String>['master']));
+              CocoonResponse<List<String>>()..data = <String>[_defaultBranch]));
     });
 
     testWidgets('start calls fetch branches', (WidgetTester tester) async {
@@ -57,12 +59,13 @@ void main() {
       buildState.startFetchingUpdates();
 
       // startFetching immediately starts fetching results
-      verify(mockService.fetchCommitStatuses()).called(1);
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(1);
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch))
+          .called(greaterThan(1));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
@@ -95,12 +98,13 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       final List<CommitStatus> originalData = buildState.statuses;
 
-      when(mockService.fetchCommitStatuses()).thenAnswer((_) =>
-          Future<CocoonResponse<List<CommitStatus>>>.value(
+      when(mockService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer(
+          (_) => Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>()..error = 'error'));
 
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchCommitStatuses()).called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch))
+          .called(greaterThan(1));
 
       expect(buildState.statuses, originalData);
       expect(buildState.errors.message,
@@ -120,12 +124,13 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       final bool originalData = buildState.isTreeBuilding;
 
-      when(mockService.fetchTreeBuildStatus()).thenAnswer((_) =>
-          Future<CocoonResponse<bool>>.value(
+      when(mockService.fetchTreeBuildStatus(branch: _defaultBranch)).thenAnswer(
+          (_) => Future<CocoonResponse<bool>>.value(
               CocoonResponse<bool>()..error = 'error'));
 
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchTreeBuildStatus()).called(greaterThan(1));
+      verify(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
+          .called(greaterThan(1));
 
       expect(buildState.isTreeBuilding, originalData);
       expect(buildState.errors.message,
@@ -139,14 +144,16 @@ void main() {
         (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
-      await untilCalled(mockService.fetchCommitStatuses());
+      await untilCalled(
+          mockService.fetchCommitStatuses(branch: anyNamed('branch')));
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
 
       final CommitStatus statusA = _createCommitStatusWithKey('A');
       when(mockService.fetchCommitStatuses(
               lastCommitStatus:
-                  captureThat(isNotNull, named: 'lastCommitStatus')))
+                  captureThat(isNotNull, named: 'lastCommitStatus'),
+              branch: anyNamed('branch')))
           .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()
             ..data = <CommitStatus>[statusA]);
 

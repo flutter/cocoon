@@ -310,7 +310,7 @@ class AppEngineCocoonService implements CocoonService {
   /// production endpoint.
   ///
   /// The urlSuffix begins with a slash, e.g. "/api/public/get-status".
-  /// 
+  ///
   /// [queryParameters] are appended to the url and are url encoded.
   @visibleForTesting
   String apiEndpoint(
