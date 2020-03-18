@@ -110,6 +110,8 @@ const String jsonBuildStatusFalseResponse = '''
   }
 ''';
 
+const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+
 void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {
     AppEngineCocoonService service;
@@ -172,8 +174,8 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?branch=master'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status?branch=master'));
+        verify(
+            mockClient.get('$_baseApiUrl/api/public/get-status?branch=master'));
       }
     });
 
@@ -195,7 +197,7 @@ void main() {
             '/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       } else {
         verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
+            '$_baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       }
     });
 
@@ -264,8 +266,8 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/build-status?branch=master'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/build-status?branch=master'));
+        verify(mockClient
+            .get('$_baseApiUrl/api/public/build-status?branch=master'));
       }
     });
 
@@ -287,7 +289,7 @@ void main() {
       expect(response.error, isNotNull);
     });
 
-    group('AppEngine Cocoon Service rerun task', () {
+    group('AppEngine CocoonService rerun task', () {
       AppEngineCocoonService service;
 
       setUp(() {
@@ -338,7 +340,7 @@ void main() {
           ));
         } else {
           verify(mockClient.post(
-            'https://flutter-dashboard.appspot.com/api/reset-devicelab-task',
+            '$_baseApiUrl/api/reset-devicelab-task',
             headers: captureAnyNamed('headers'),
             body: captureAnyNamed('body'),
           ));
@@ -346,7 +348,7 @@ void main() {
       });
     });
 
-    group('AppEngine Cocoon Service download log', () {
+    group('AppEngine CocoonService download log', () {
       AppEngineCocoonService service;
 
       setUp(() {
@@ -442,8 +444,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-status'));
+        verify(mockClient.get('$_baseApiUrl/api/public/get-status'));
       }
     });
 
@@ -503,8 +504,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-branches'));
       } else {
-        verify(mockClient.get(
-            'https://flutter-dashboard.appspot.com/api/public/get-branches'));
+        verify(mockClient.get('$_baseApiUrl/api/public/get-branches'));
       }
     });
 
@@ -527,7 +527,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service create agent', () {
+  group('AppEngine CocoonService create agent', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -588,7 +588,7 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/create-agent',
+          '$_baseApiUrl/api/create-agent',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
@@ -596,7 +596,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service authorize agent', () {
+  group('AppEngine CocoonService authorize agent', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -658,7 +658,7 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/authorize-agent',
+          '$_baseApiUrl/api/authorize-agent',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
@@ -666,7 +666,7 @@ void main() {
     });
   });
 
-  group('AppEngine Cocoon Service reserve task', () {
+  group('AppEngine CocoonService reserve task', () {
     AppEngineCocoonService service;
 
     setUp(() {
@@ -719,11 +719,48 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          'https://flutter-dashboard.appspot.com/api/reserve-task',
+          '$_baseApiUrl/api/reserve-task',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
       }
+    });
+  });
+
+  group('AppEngine CocoonService apiEndpoint', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service =
+          AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('{"Token": "abc123"}', 200);
+      }));
+    });
+    test('handles url suffix', () {
+      expect(service.apiEndpoint('/test'), '$_baseApiUrl/test');
+    });
+
+    test('single query parameter', () {
+      expect(
+          service.apiEndpoint('/test',
+              queryParameters: <String, String>{'key': 'value'}),
+          '$_baseApiUrl/test?key=value');
+    });
+
+    test('multiple query parameters', () {
+      expect(
+          service.apiEndpoint('/test', queryParameters: <String, String>{
+            'key': 'value',
+            'another': 'test'
+          }),
+          '$_baseApiUrl/test?key=value&another=test');
+    });
+
+    test('query parameter with null value', () {
+      expect(
+          service.apiEndpoint('/test',
+              queryParameters: <String, String>{'key': null}),
+          '$_baseApiUrl/test?key');
     });
   });
 }
