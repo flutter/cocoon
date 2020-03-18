@@ -75,8 +75,10 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
         const String name = 'flutter';
         final List<CirrusResult> cirrusResults =
             await queryCirrusGraphQL(sha, client, log, name);
+        /// Get cirrus task statuses for [task.commit.branch] and [sha].
         final List<String> statuses =
             _getStatuses(cirrusResults, task.commit.branch, sha);
+        /// Calculate overall new task status based on cirrus results.
         final String newTaskStatus = _getNewTaskStatus(statuses, task);
 
         if (newTaskStatus == existingTaskStatus) {
