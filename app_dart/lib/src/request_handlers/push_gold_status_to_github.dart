@@ -83,12 +83,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       // TODO(katelovett): flutter gold will need to support branching, https://github.com/flutter/flutter/issues/52700
       if (!cirrusResults.any((CirrusResult cirrusResult) =>
-          cirrusResult.branch == 'pull/${pr.id.toString()}')) {
+          cirrusResult.branch == 'pull/${pr.number}')) {
         continue;
       }
       final List<dynamic> cirrusChecks = cirrusResults
           .singleWhere((CirrusResult cirrusResult) =>
-              cirrusResult.branch == 'pull/${pr.id.toString()}')
+              cirrusResult.branch == 'pull/${pr.number}')
           .tasks;
       for (dynamic check in cirrusChecks) {
         final String status = check['status'] as String;

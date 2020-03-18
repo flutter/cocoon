@@ -36,6 +36,7 @@ void main() {
     PushGoldStatusToGithub handler;
     FakeGraphQLClient cirrusGraphQLClient;
     List<dynamic> statuses = <dynamic>[];
+    String branch;
     MockHttpClient mockHttpClient;
     RepositorySlug slug;
 
@@ -61,10 +62,12 @@ void main() {
           (MutationOptions options) => QueryResult();
 
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createCirrusQueryResult(statuses);
+        return createCirrusQueryResult(statuses, branch);
       };
 
       slug = const RepositorySlug('flutter', 'flutter');
+      statuses.clear();
+      branch = 'test';
     });
 
     group('in development environment', () {
@@ -193,6 +196,7 @@ void main() {
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -335,6 +339,7 @@ void main() {
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'EXECUTING', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -372,6 +377,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -421,6 +427,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -482,6 +489,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -541,6 +549,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -603,6 +612,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
+          branch = 'pull/123';
 
           // New status: completed/triaged/no changes
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -670,6 +680,7 @@ void main() {
           <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
           <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
         ];
+        branch = 'pull/123';
 
         // New status: completed/triaged/no changes
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -752,7 +763,7 @@ class MockHttpImageResponse extends Mock implements HttpClientResponse {
   }
 }
 
-QueryResult createCirrusQueryResult(List<dynamic> statuses) {
+QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
   assert(statuses != null);
 
   return QueryResult(
@@ -760,7 +771,7 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses) {
       'searchBuilds': <dynamic>[
         <String, dynamic>{
           'id': '1',
-          'branch': 'master',
+          'branch': branch,
           'latestGroupTasks': <dynamic>[
             <String, dynamic>{
               'id': '1',
