@@ -49,6 +49,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
     });
     results['remove-xcode-derived-data'] =
         await _captureErrors(removeXcodeDerivedData);
+    results['remove-cached-data'] = await _captureErrors(removeCachedData);
   });
 
   return results;
@@ -131,5 +132,25 @@ Future<HealthCheckResult> removeXcodeDerivedData(
   }
   String p = path.join(home, 'Library/Developer/Xcode/DerivedData');
   rrm(fs.directory(p));
+  return HealthCheckResult.success();
+}
+
+/// Completely removes Cache directories.
+///
+/// This is needed for VMs with limited resources where the
+/// cache directories grow very fast.
+@visibleForTesting
+Future<HealthCheckResult> removeCachedData(
+    {platform.Platform pf = const platform.LocalPlatform(),
+    file.FileSystem fs = const local.LocalFileSystem()}) async {
+  String home = pf.environment['HOME'];
+  if (home == null) {
+    return HealthCheckResult.failure('Missing \$HOME environment variable.');
+  }
+  List<String> cacheFolders = ['.graddle', '.dartServer', '.pub-cache'];
+  for (String folder in cacheFolders) {
+    String folderPath = path.join(home, folder);
+    rrm(fs.directory(folderPath));
+  }
   return HealthCheckResult.success();
 }
