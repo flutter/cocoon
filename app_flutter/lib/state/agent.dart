@@ -75,6 +75,7 @@ class AgentState extends ChangeNotifier {
     await Future.wait(<Future<void>>[
       _cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
         if (response.error != null) {
+          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
           print(response.error);
           errors.message = errorMessageFetchingStatuses;
           errors.notifyListeners();
@@ -98,6 +99,7 @@ class AgentState extends ChangeNotifier {
     );
 
     if (response.error != null) {
+      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
       print(response.error);
       errors.message = errorMessageCreatingAgent;
       errors.notifyListeners();
@@ -114,6 +116,7 @@ class AgentState extends ChangeNotifier {
     final CocoonResponse<String> response = await _cocoonService.authorizeAgent(agent, await authService.idToken);
 
     if (response.error != null) {
+      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
       print(response.error);
       errors.message = errorMessageAuthorizingAgent;
       errors.notifyListeners();

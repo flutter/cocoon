@@ -90,6 +90,7 @@ class FlutterBuildState extends ChangeNotifier {
       )
           .then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
+          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
           print(response.error);
           errors.message = errorMessageFetchingStatuses;
           errors.notifyListeners();
@@ -104,6 +105,7 @@ class FlutterBuildState extends ChangeNotifier {
       )
           .then((CocoonResponse<bool> response) {
         if (response.error != null) {
+          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
           print(response.error);
           errors.message = errorMessageFetchingTreeStatus;
           errors.notifyListeners();
@@ -118,6 +120,7 @@ class FlutterBuildState extends ChangeNotifier {
   Future<List<String>> _fetchFlutterBranches() async {
     return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
+        // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
         print(response.error);
         errors.message = errorMessageFetchingBranches;
         errors.notifyListeners();
@@ -213,6 +216,7 @@ class FlutterBuildState extends ChangeNotifier {
       lastCommitStatus: _statuses.last,
     );
     if (response.error != null) {
+      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
       print(response.error);
       errors.message = errorMessageFetchingStatuses;
       errors.notifyListeners();

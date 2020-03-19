@@ -204,7 +204,7 @@ class TaskOverlayEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RenderBox renderBox = parentContext.findRenderObject();
+    final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
     final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
 
     return Stack(
