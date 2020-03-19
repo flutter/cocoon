@@ -13,10 +13,10 @@ import 'status_grid.dart';
 
 /// [BuildDashboard] parent widget that manages the state of the dashboard.
 class BuildDashboardPage extends StatefulWidget {
-  BuildDashboardPage(
-      {FlutterBuildState buildState, GoogleSignInService signInService})
-      : buildState =
-            buildState ?? FlutterBuildState(authServiceValue: signInService);
+  BuildDashboardPage({
+    FlutterBuildState buildState,
+    GoogleSignInService signInService,
+  }) : buildState = buildState ?? FlutterBuildState(authServiceValue: signInService);
 
   static const String routeName = '/build';
 
@@ -57,7 +57,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),
-        Text(buildState.errors.message)
+        Text(buildState.errors.message),
       ],
     );
     _scaffoldKey.currentState.showSnackBar(

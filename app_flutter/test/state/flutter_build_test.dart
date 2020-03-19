@@ -8,8 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Key, RootKey;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Key, RootKey;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -31,16 +30,13 @@ void main() {
 
       setupCommitStatus = _createCommitStatusWithKey('setup');
 
-      when(mockService.fetchCommitStatuses(branch: anyNamed('branch')))
-          .thenAnswer((_) => Future<CocoonResponse<List<CommitStatus>>>.value(
-              CocoonResponse<List<CommitStatus>>()
-                ..data = <CommitStatus>[setupCommitStatus]));
+      when(mockService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(
+              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
       when(mockService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(
-              CocoonResponse<bool>()..data = true));
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
       when(mockService.fetchFlutterBranches()).thenAnswer((_) =>
-          Future<CocoonResponse<List<String>>>.value(
-              CocoonResponse<List<String>>()..data = <String>[_defaultBranch]));
+          Future<CocoonResponse<List<String>>>.value(CocoonResponse<List<String>>()..data = <String>[_defaultBranch]));
     });
 
     testWidgets('start calls fetch branches', (WidgetTester tester) async {
@@ -54,8 +50,7 @@ void main() {
       buildState.dispose();
     });
 
-    testWidgets('timer should periodically fetch updates',
-        (WidgetTester tester) async {
+    testWidgets('timer should periodically fetch updates', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
       // startFetching immediately starts fetching results
@@ -64,15 +59,13 @@ void main() {
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchCommitStatuses(branch: _defaultBranch))
-          .called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
     });
 
-    testWidgets('multiple start updates should not change the timer',
-        (WidgetTester tester) async {
+    testWidgets('multiple start updates should not change the timer', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
       final Timer refreshTimer = buildState.refreshTimer;
 
@@ -89,8 +82,7 @@ void main() {
       buildState.dispose();
     });
 
-    testWidgets('statuses error should not delete previous statuses data',
-        (WidgetTester tester) async {
+    testWidgets('statuses error should not delete previous statuses data', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
       // Periodic timers don't necessarily run at the same time in each interval.
@@ -98,25 +90,20 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       final List<CommitStatus> originalData = buildState.statuses;
 
-      when(mockService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer(
-          (_) => Future<CocoonResponse<List<CommitStatus>>>.value(
-              CocoonResponse<List<CommitStatus>>()..error = 'error'));
+      when(mockService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(CocoonResponse<List<CommitStatus>>()..error = 'error'));
 
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchCommitStatuses(branch: _defaultBranch))
-          .called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.statuses, originalData);
-      expect(buildState.errors.message,
-          FlutterBuildState.errorMessageFetchingStatuses);
+      expect(buildState.errors.message, FlutterBuildState.errorMessageFetchingStatuses);
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
     });
 
-    testWidgets(
-        'build status error should not delete previous build status data',
-        (WidgetTester tester) async {
+    testWidgets('build status error should not delete previous build status data', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
       // Periodic timers don't necessarily run at the same time in each interval.
@@ -124,38 +111,30 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       final bool originalData = buildState.isTreeBuilding;
 
-      when(mockService.fetchTreeBuildStatus(branch: _defaultBranch)).thenAnswer(
-          (_) => Future<CocoonResponse<bool>>.value(
-              CocoonResponse<bool>()..error = 'error'));
+      when(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..error = 'error'));
 
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
-          .called(greaterThan(1));
+      verify(mockService.fetchTreeBuildStatus(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.isTreeBuilding, originalData);
-      expect(buildState.errors.message,
-          FlutterBuildState.errorMessageFetchingTreeStatus);
+      expect(buildState.errors.message, FlutterBuildState.errorMessageFetchingTreeStatus);
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
     });
 
-    testWidgets('fetch more commit statuses appends',
-        (WidgetTester tester) async {
+    testWidgets('fetch more commit statuses appends', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
-      await untilCalled(
-          mockService.fetchCommitStatuses(branch: anyNamed('branch')));
+      await untilCalled(mockService.fetchCommitStatuses(branch: anyNamed('branch')));
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
 
       final CommitStatus statusA = _createCommitStatusWithKey('A');
       when(mockService.fetchCommitStatuses(
-              lastCommitStatus:
-                  captureThat(isNotNull, named: 'lastCommitStatus'),
-              branch: anyNamed('branch')))
-          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()
-            ..data = <CommitStatus>[statusA]);
+              lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
+          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[statusA]);
 
       await buildState.fetchMoreCommitStatuses();
 
@@ -169,8 +148,7 @@ void main() {
     });
 
     test('auth functions call auth service', () async {
-      final MockGoogleSignInService mockSignInService =
-          MockGoogleSignInService();
+      final MockGoogleSignInService mockSignInService = MockGoogleSignInService();
       buildState = FlutterBuildState(authServiceValue: mockSignInService);
 
       verifyNever(mockSignInService.signIn());
@@ -185,15 +163,11 @@ void main() {
     });
   });
 
-  testWidgets('sign in functions call notify listener',
-      (WidgetTester tester) async {
+  testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
     final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
-    when(mockSignInPlugin.onCurrentUserChanged)
-        .thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
-    final GoogleSignInService signInService =
-        GoogleSignInService(googleSignIn: mockSignInPlugin);
-    final FlutterBuildState buildState =
-        FlutterBuildState(authServiceValue: signInService);
+    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
+    final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
+    final FlutterBuildState buildState = FlutterBuildState(authServiceValue: signInService);
 
     int callCount = 0;
     buildState.addListener(() => callCount++);

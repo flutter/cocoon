@@ -24,8 +24,7 @@ void main() {
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
     });
-    testWidgets('build navigates to build Flutter route',
-        (WidgetTester tester) async {
+    testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
         MaterialApp(
@@ -45,14 +44,11 @@ void main() {
       await tester.tap(find.text('Build'));
       await tester.pumpAndSettle();
 
-      verify(navigatorObserver.didReplace(
-              newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute')))
-          .called(1);
+      verify(navigatorObserver.didReplace(newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute'))).called(1);
       expect(find.text('i am build'), findsOneWidget);
     });
 
-    testWidgets('infra agents navigates to its Flutter route',
-        (WidgetTester tester) async {
+    testWidgets('infra agents navigates to its Flutter route', (WidgetTester tester) async {
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
         MaterialApp(
@@ -72,19 +68,14 @@ void main() {
       await tester.tap(find.text('Infra Agents'));
       await tester.pumpAndSettle();
 
-      verify(navigatorObserver.didReplace(
-              newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute')))
-          .called(1);
+      verify(navigatorObserver.didReplace(newRoute: anyNamed('newRoute'), oldRoute: anyNamed('oldRoute'))).called(1);
       expect(find.text('infra agents'), findsOneWidget);
     });
 
-    testWidgets('performance opens performance html url',
-        (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('performance opens performance html url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler(
-          (MethodCall methodCall) async => log.add(methodCall));
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -113,11 +104,9 @@ void main() {
     });
 
     testWidgets('skia perf opens skia perf url', (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler(
-          (MethodCall methodCall) async => log.add(methodCall));
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -146,13 +135,10 @@ void main() {
       );
     });
 
-    testWidgets('repository opens repository html url',
-        (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('repository opens repository html url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler(
-          (MethodCall methodCall) async => log.add(methodCall));
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -180,13 +166,10 @@ void main() {
       );
     });
 
-    testWidgets('source code opens github cocoon url',
-        (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('source code opens github cocoon url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler(
-          (MethodCall methodCall) async => log.add(methodCall));
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -223,10 +206,8 @@ void main() {
         ),
       );
 
-      final ListTile selectedListTile =
-          tester.widget(find.byKey(const Key('nav-link-build')));
-      final ListTile notSelectedListTile =
-          tester.widget(find.byKey(const Key('nav-link-benchmarks')));
+      final ListTile selectedListTile = tester.widget(find.byKey(const Key('nav-link-build')));
+      final ListTile notSelectedListTile = tester.widget(find.byKey(const Key('nav-link-benchmarks')));
       expect(selectedListTile.selected, true);
       expect(notSelectedListTile.selected, false);
     });

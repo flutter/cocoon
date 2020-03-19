@@ -66,8 +66,7 @@ void main() {
     });
 
     test('create task matrix', () {
-      final List<Column> matrix =
-          TaskMatrix(statuses: statuses).createTaskMatrix(statuses);
+      final List<Column> matrix = TaskMatrix(statuses: statuses).createTaskMatrix(statuses);
 
       expect(matrix[0].tasks[0], statusA.stages[0].tasks[0]);
       expect(matrix[0].tasks[1], statusB.stages[0].tasks[0]);
@@ -87,11 +86,7 @@ void main() {
                     ..stageName = 'C'
                     ..name = 'special task'));
 
-      final List<CommitStatus> statusesABC = <CommitStatus>[
-        statusA,
-        statusB,
-        statusC
-      ];
+      final List<CommitStatus> statusesABC = <CommitStatus>[statusA, statusB, statusC];
       final TaskMatrix matrix = TaskMatrix(statuses: statusesABC);
 
       expect(matrix.task(0, 2), isNull);
@@ -117,11 +112,7 @@ void main() {
                     ..stageName = 'C'
                     ..name = 'special task'));
 
-      final List<CommitStatus> statusesABC = <CommitStatus>[
-        statusA,
-        statusB,
-        statusC
-      ];
+      final List<CommitStatus> statusesABC = <CommitStatus>[statusA, statusB, statusC];
       final TaskMatrix matrix = TaskMatrix(statuses: statusesABC);
 
       final Map<String, int> expectedKeyIndex = <String, int>{

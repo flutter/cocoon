@@ -23,8 +23,7 @@ void main() {
       clearInteractions(mockAuthService);
     });
 
-    testWidgets('auth functions forward to google sign in service',
-        (WidgetTester tester) async {
+    testWidgets('auth functions forward to google sign in service', (WidgetTester tester) async {
       verifyNever(mockAuthService.signIn());
       verifyNever(mockAuthService.signOut());
 
@@ -38,13 +37,10 @@ void main() {
     });
   });
 
-  testWidgets('sign in functions call notify listener',
-      (WidgetTester tester) async {
+  testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
     final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
-    when(mockSignInPlugin.onCurrentUserChanged)
-        .thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
-    final GoogleSignInService signInService =
-        GoogleSignInService(googleSignIn: mockSignInPlugin);
+    when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
+    final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
     final IndexState indexState = IndexState(authServiceValue: signInService);
 
     int callCount = 0;

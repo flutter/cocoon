@@ -26,12 +26,9 @@ class MyApp extends StatelessWidget {
       theme: theme,
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
-        IndexPage.routeName: (BuildContext context) =>
-            IndexPage(signInService: signInService),
-        AgentDashboardPage.routeName: (BuildContext context) =>
-            AgentDashboardPage(signInService: signInService),
-        BuildDashboardPage.routeName: (BuildContext context) =>
-            BuildDashboardPage(signInService: signInService),
+        IndexPage.routeName: (BuildContext context) => IndexPage(signInService: signInService),
+        AgentDashboardPage.routeName: (BuildContext context) => AgentDashboardPage(signInService: signInService),
+        BuildDashboardPage.routeName: (BuildContext context) => BuildDashboardPage(signInService: signInService),
       },
     );
   }

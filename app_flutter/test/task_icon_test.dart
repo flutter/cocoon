@@ -17,14 +17,12 @@ void main() {
     testWidgets('tooltip shows task name', (WidgetTester tester) async {
       const String taskName = 'tasky task';
 
-      await tester.pumpWidget(
-          MaterialApp(home: TaskIcon(task: Task()..name = taskName)));
+      await tester.pumpWidget(MaterialApp(home: TaskIcon(task: Task()..name = taskName)));
 
       expect(find.text(taskName), findsNothing);
 
       final Finder taskIcon = find.byType(TaskIcon);
-      final TestGesture gesture =
-          await tester.startGesture(tester.getCenter(taskIcon));
+      final TestGesture gesture = await tester.startGesture(tester.getCenter(taskIcon));
       await tester.pump(kLongPressTimeout);
 
       expect(find.text(taskName), findsOneWidget);
@@ -32,13 +30,10 @@ void main() {
       await gesture.up();
     });
 
-    testWidgets('tapping TaskIcon opens source configuration url',
-        (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('tapping TaskIcon opens source configuration url', (WidgetTester tester) async {
+      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler(
-          (MethodCall methodCall) async => log.add(methodCall));
+      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
       final Task devicelabTask = Task()
         ..stageName = 'devicelab'
@@ -70,10 +65,8 @@ void main() {
       );
     });
 
-    testWidgets('unknown stage name shows helper icon',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-          home: TaskIcon(task: Task()..stageName = 'stage not to be named')));
+    testWidgets('unknown stage name shows helper icon', (WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(home: TaskIcon(task: Task()..stageName = 'stage not to be named')));
 
       expect(find.byIcon(Icons.help), findsOneWidget);
     });

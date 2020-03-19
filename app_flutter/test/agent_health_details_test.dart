@@ -14,8 +14,7 @@ void main() {
   group('AgentHealthDetails', () {
     test('is healthy when everything is healthy', () {
       final Agent agent = Agent()
-        ..healthCheckTimestamp =
-            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
         ..isHealthy = true
         ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -42,8 +41,7 @@ able-to-perform-health-check: succeeded''';
 
     test('is not healthy when just one metric is unhealthy', () {
       final Agent agent = Agent()
-        ..healthCheckTimestamp =
-            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
         ..isHealthy = false
         ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -146,8 +144,7 @@ able-to-perform-health-check: succeeded''';
   group('AgentHealthDetailsBar', () {
     testWidgets('healthy bar', (WidgetTester tester) async {
       final Agent agent = Agent()
-        ..healthCheckTimestamp =
-            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
         ..isHealthy = true
         ..healthDetails = '''
 ssh-connectivity: succeeded

@@ -13,8 +13,7 @@ class GoogleSignInService {
             GoogleSignIn(
               scopes: _googleScopes,
             ) {
-    _googleSignIn.onCurrentUserChanged
-        .listen((GoogleSignInAccount accountValue) {
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount accountValue) {
       user = accountValue;
       notifyListeners();
     });
@@ -57,8 +56,7 @@ class GoogleSignInService {
       await signIn();
     }
 
-    final String idToken = await user?.authentication
-        ?.then((GoogleSignInAuthentication key) => key.idToken);
+    final String idToken = await user?.authentication?.then((GoogleSignInAuthentication key) => key.idToken);
     assert(idToken != null && idToken.isNotEmpty);
 
     return idToken;

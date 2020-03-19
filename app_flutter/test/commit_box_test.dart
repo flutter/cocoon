@@ -67,11 +67,9 @@ void main() {
       expect(find.text(expectedCommit.sha), findsNothing);
     });
 
-    testWidgets('tapping GitHub button should redirect to GitHub',
-        (WidgetTester tester) async {
+    testWidgets('tapping GitHub button should redirect to GitHub', (WidgetTester tester) async {
       // The url_launcher calls get logged in this channel
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
@@ -95,8 +93,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url':
-                'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
+            'url': 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,

@@ -15,15 +15,13 @@ void main() {
         ..stageName = 'chromebot'
         ..name = 'mac_bot';
 
-      expect(logUrl(luciTask),
-          'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+      expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
-      expect(logUrl(cirrusTask, commit: Commit()..sha = 'abc123'),
-          'https://cirrus-ci.com/build/flutter/flutter/abc123');
+      expect(
+          logUrl(cirrusTask, commit: Commit()..sha = 'abc123'), 'https://cirrus-ci.com/build/flutter/flutter/abc123');
 
-      expect(logUrl(cirrusTask),
-          'https://cirrus-ci.com/github/flutter/flutter/master');
+      expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
     });
 
     test('log url for devicelab tasks redirects to cocoon backend', () {
@@ -31,8 +29,7 @@ void main() {
         ..stageName = 'devicelab'
         ..name = 'test';
 
-      expect(logUrl(devicelabTask),
-          'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
+      expect(logUrl(devicelabTask), 'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
     });
 
     test('source configuration for devicelab', () {
@@ -49,14 +46,12 @@ void main() {
         ..stageName = 'chromebot'
         ..name = 'mac_bot';
 
-      expect(sourceConfigurationUrl(luciTask),
-          'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+      expect(sourceConfigurationUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
     });
     test('source configuration for cirrus', () {
       final Task cirrusTask = Task()..stageName = 'cirrus';
 
-      expect(sourceConfigurationUrl(cirrusTask),
-          'https://cirrus-ci.com/github/flutter/flutter/master');
+      expect(sourceConfigurationUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
     });
 
     test('is devicelab', () {

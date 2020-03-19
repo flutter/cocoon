@@ -44,8 +44,7 @@ class AgentTile extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              healthDetails.isHealthy ? Colors.green : theme.errorColor,
+          backgroundColor: healthDetails.isHealthy ? Colors.green : theme.errorColor,
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
@@ -79,8 +78,7 @@ class AgentTile extends StatelessWidget {
                 _reserveTask(context, agent);
                 break;
               default:
-                throw Exception(
-                    '$value is not a valid operation on AgentTile popup menu');
+                throw Exception('$value is not a valid operation on AgentTile popup menu');
             }
           },
         ),

@@ -6,8 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, RootKey, Task;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, Task;
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
@@ -58,12 +57,10 @@ class FlutterBuildState extends ChangeNotifier {
   FlutterBuildStateErrors errors = FlutterBuildStateErrors();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses =
-      'An error occured fetching build statuses from Cocoon';
+  static const String errorMessageFetchingStatuses = 'An error occured fetching build statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageFetchingTreeStatus =
-      'An error occured fetching tree status from Cocoon';
+  static const String errorMessageFetchingTreeStatus = 'An error occured fetching tree status from Cocoon';
 
   @visibleForTesting
   static const String errorMessageFetchingBranches =
@@ -79,11 +76,9 @@ class FlutterBuildState extends ChangeNotifier {
     /// [Timer.periodic] does not necessarily run at the start of the timer.
     _fetchBuildStatusUpdate();
 
-    _fetchFlutterBranches()
-        .then((List<String> branchResponse) => _branches = branchResponse);
+    _fetchFlutterBranches().then((List<String> branchResponse) => _branches = branchResponse);
 
-    refreshTimer =
-        Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
+    refreshTimer = Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
@@ -121,9 +116,7 @@ class FlutterBuildState extends ChangeNotifier {
   }
 
   Future<List<String>> _fetchFlutterBranches() async {
-    return _cocoonService
-        .fetchFlutterBranches()
-        .then((CocoonResponse<List<String>> response) {
+    return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
         print(response.error);
         errors.message = errorMessageFetchingBranches;
@@ -159,13 +152,11 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     assert(_statusesInOrder(recentStatuses));
-    final List<CommitStatus> mergedStatuses =
-        List<CommitStatus>.from(recentStatuses);
+    final List<CommitStatus> mergedStatuses = List<CommitStatus>.from(recentStatuses);
 
     /// Bisect statuses to find the set that doesn't exist in [recentStatuses].
     final CommitStatus lastRecentStatus = recentStatuses.last;
-    final int lastKnownIndex =
-        _findCommitStatusIndex(_statuses, lastRecentStatus);
+    final int lastKnownIndex = _findCommitStatusIndex(_statuses, lastRecentStatus);
 
     /// If this assertion error occurs, the Cocoon backend needs to be updated
     /// to return more commit statuses. This error will only occur if there
@@ -180,7 +171,12 @@ class FlutterBuildState extends ChangeNotifier {
     /// a list with a null generated [CommitStatus]. Therefore we manually
     /// return an empty list.
     final List<CommitStatus> remainingStatuses = (firstIndex < lastIndex)
-        ? _statuses.getRange(firstIndex, lastIndex).toList()
+        ? _statuses
+            .getRange(
+              firstIndex,
+              lastIndex,
+            )
+            .toList()
         : <CommitStatus>[];
 
     mergedStatuses.addAll(remainingStatuses);
@@ -213,8 +209,9 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> fetchMoreCommitStatuses() async {
     assert(_statuses.isNotEmpty);
 
-    final CocoonResponse<List<CommitStatus>> response = await _cocoonService
-        .fetchCommitStatuses(lastCommitStatus: _statuses.last);
+    final CocoonResponse<List<CommitStatus>> response = await _cocoonService.fetchCommitStatuses(
+      lastCommitStatus: _statuses.last,
+    );
     if (response.error != null) {
       print(response.error);
       errors.message = errorMessageFetchingStatuses;
@@ -241,8 +238,7 @@ class FlutterBuildState extends ChangeNotifier {
   }
 
   Future<bool> downloadLog(Task task, Commit commit) async {
-    return _cocoonService.downloadLog(
-        task, await authService.idToken, commit.sha);
+    return _cocoonService.downloadLog(task, await authService.idToken, commit.sha);
   }
 
   @override

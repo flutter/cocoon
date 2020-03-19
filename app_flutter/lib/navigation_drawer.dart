@@ -35,8 +35,7 @@ class NavigationDrawer extends StatelessWidget {
             key: const Key('nav-link-build'),
             title: const Text('Build'),
             leading: Icon(Icons.build),
-            onTap: () => Navigator.pushReplacementNamed(
-                context, BuildDashboardPage.routeName),
+            onTap: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
             selected: currentRoute == '/build',
           ),
           ListTile(
@@ -61,8 +60,7 @@ class NavigationDrawer extends StatelessWidget {
             key: const Key('nav-link-agents'),
             title: const Text('Infra Agents'),
             leading: Icon(Icons.android),
-            onTap: () => Navigator.pushReplacementNamed(
-                context, AgentDashboardPage.routeName),
+            onTap: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
             selected: currentRoute == '/agents',
           ),
           ListTile(

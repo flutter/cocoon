@@ -38,14 +38,12 @@ void main() {
 
     // Table Driven Approach to ensure every message does show the corresponding color
     TaskBox.statusColor.forEach((String message, Color color) {
-      testWidgets('is the color $color when given the message $message',
-          (WidgetTester tester) async {
+      testWidgets('is the color $color when given the message $message', (WidgetTester tester) async {
         expectTaskBoxColorWithMessage(tester, message, color);
       });
     });
 
-    testWidgets('shows loading indicator for In Progress task',
-        (WidgetTester tester) async {
+    testWidgets('shows loading indicator for In Progress task', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: TaskBox(
@@ -59,8 +57,7 @@ void main() {
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
 
-    testWidgets('show orange when New but already attempted',
-        (WidgetTester tester) async {
+    testWidgets('show orange when New but already attempted', (WidgetTester tester) async {
       final Task repeatTask = Task()
         ..status = 'New'
         ..attempts = 2;
@@ -76,13 +73,11 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget =
-          find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
       expect(taskBoxWidget, isNotNull);
     });
 
-    testWidgets(
-        'show loading indicator for In Progress task that is not on first attempt',
+    testWidgets('show loading indicator for In Progress task that is not on first attempt',
         (WidgetTester tester) async {
       final Task repeatTask = Task()
         ..status = 'In Progress'
@@ -99,14 +94,12 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget =
-          find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
       expect(taskBoxWidget, isNotNull);
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
 
-    testWidgets('shows question mark for task marked flaky',
-        (WidgetTester tester) async {
+    testWidgets('shows question mark for task marked flaky', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: TaskBox(
@@ -122,8 +115,7 @@ void main() {
       expect(find.byIcon(Icons.help), findsOneWidget);
     });
 
-    testWidgets(
-        'shows question mark and loading indicator for task marked flaky that is in progress',
+    testWidgets('shows question mark and loading indicator for task marked flaky that is in progress',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -141,8 +133,7 @@ void main() {
       expect(find.byIcon(Icons.help), findsOneWidget);
     });
 
-    testWidgets('show yellow when Succeeded but ran multiple times',
-        (WidgetTester tester) async {
+    testWidgets('show yellow when Succeeded but ran multiple times', (WidgetTester tester) async {
       final Task repeatTask = Task()
         ..status = 'Succeeded'
         ..attempts = 2;
@@ -158,13 +149,11 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget =
-          find.byKey(Key(Colors.yellow.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.yellow.toString())).evaluate().first.widget;
       expect(taskBoxWidget, isNotNull);
     });
 
-    testWidgets('is the color black when given an unknown message',
-        (WidgetTester tester) async {
+    testWidgets('is the color black when given an unknown message', (WidgetTester tester) async {
       expectTaskBoxColorWithMessage(tester, '404', Colors.black);
     });
 
@@ -181,8 +170,7 @@ void main() {
         ),
       );
 
-      final String expectedTaskInfoString =
-          'Attempts: ${expectedTask.attempts}\n'
+      final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
           'Run time: 0 minutes\n'
           'Queue time: 0 seconds\n'
           'Flaky: ${expectedTask.isFlaky}';
@@ -275,8 +263,7 @@ void main() {
       expect(find.text(expectedTaskInfoString), findsOneWidget);
     });
 
-    testWidgets('devicelab agent button redirects to agent page',
-        (WidgetTester tester) async {
+    testWidgets('devicelab agent button redirects to agent page', (WidgetTester tester) async {
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
 
       await tester.pumpWidget(
@@ -290,8 +277,7 @@ void main() {
           ),
           navigatorObservers: <NavigatorObserver>[navigatorObserver],
           routes: <String, WidgetBuilder>{
-            AgentDashboardPage.routeName: (BuildContext context) =>
-                AgentDashboardPage(),
+            AgentDashboardPage.routeName: (BuildContext context) => AgentDashboardPage(),
           },
         ),
       );
@@ -312,8 +298,7 @@ void main() {
       expect(find.text(expectedTask.reservedForAgentId), findsOneWidget);
     });
 
-    testWidgets('overlay message for nondevicelab tasks',
-        (WidgetTester tester) async {
+    testWidgets('overlay message for nondevicelab tasks', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -369,8 +354,7 @@ void main() {
       expect(find.byKey(const Key('task-overlay-key')), findsNothing);
     });
 
-    testWidgets('overlay shows TaskAttemptSummary for devicelab tasks',
-        (WidgetTester tester) async {
+    testWidgets('overlay shows TaskAttemptSummary for devicelab tasks', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -394,9 +378,7 @@ void main() {
       expect(find.byType(TaskAttemptSummary), findsOneWidget);
     });
 
-    testWidgets(
-        'overlay does not show TaskAttemptSummary for tasks outside of devicelab',
-        (WidgetTester tester) async {
+    testWidgets('overlay does not show TaskAttemptSummary for tasks outside of devicelab', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -420,10 +402,8 @@ void main() {
       expect(find.byType(TaskAttemptSummary), findsNothing);
     });
 
-    testWidgets('successful rerun shows success snackbar message',
-        (WidgetTester tester) async {
-      when(buildState.rerunTask(any))
-          .thenAnswer((_) => Future<bool>.value(true));
+    testWidgets('successful rerun shows success snackbar message', (WidgetTester tester) async {
+      when(buildState.rerunTask(any)).thenAnswer((_) => Future<bool>.value(true));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -445,25 +425,20 @@ void main() {
       // Click the rerun task button
       await tester.tap(find.text('Rerun'));
       await tester.pump();
-      await tester
-          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+      await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
-      expect(
-          find.text(TaskOverlayContents.rerunSuccessMessage), findsOneWidget);
+      expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsOneWidget);
 
       // Snackbar message should go away after its duration
-      await tester.pumpAndSettle(
-          TaskOverlayContents.rerunSnackbarDuration); // wait the duration
+      await tester.pumpAndSettle(TaskOverlayContents.rerunSnackbarDuration); // wait the duration
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
     });
 
-    testWidgets('failed rerun shows error snackbar message',
-        (WidgetTester tester) async {
-      when(buildState.rerunTask(any))
-          .thenAnswer((_) => Future<bool>.value(false));
+    testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
+      when(buildState.rerunTask(any)).thenAnswer((_) => Future<bool>.value(false));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -486,25 +461,21 @@ void main() {
       // Click the rerun task button
       await tester.tap(find.text('Rerun'));
       await tester.pump();
-      await tester
-          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+      await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsOneWidget);
 
       // Snackbar message should go away after its duration
-      await tester.pumpAndSettle(
-          TaskOverlayContents.rerunSnackbarDuration); // wait the duration
+      await tester.pumpAndSettle(TaskOverlayContents.rerunSnackbarDuration); // wait the duration
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
       expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
     });
 
-    testWidgets('log button opens log url for public log',
-        (WidgetTester tester) async {
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('log button opens log url for public log', (WidgetTester tester) async {
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
@@ -547,10 +518,8 @@ void main() {
       );
     });
 
-    testWidgets('log button calls build state to download devicelab log',
-        (WidgetTester tester) async {
-      when(buildState.downloadLog(any, any))
-          .thenAnswer((_) => Future<bool>.value(true));
+    testWidgets('log button calls build state to download devicelab log', (WidgetTester tester) async {
+      when(buildState.downloadLog(any, any)).thenAnswer((_) => Future<bool>.value(true));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -576,10 +545,8 @@ void main() {
       verify(buildState.downloadLog(any, any)).called(1);
     });
 
-    testWidgets('failing to download devicelab log shows error snackbar',
-        (WidgetTester tester) async {
-      when(buildState.downloadLog(any, any))
-          .thenAnswer((_) => Future<bool>.value(false));
+    testWidgets('failing to download devicelab log shows error snackbar', (WidgetTester tester) async {
+      when(buildState.downloadLog(any, any)).thenAnswer((_) => Future<bool>.value(false));
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -601,26 +568,21 @@ void main() {
       await tester.pump();
 
       // expect error snackbar to be shown
-      await tester
-          .pump(const Duration(milliseconds: 750)); // 750ms open animation
+      await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
-      expect(find.text(TaskOverlayContents.downloadLogErrorMessage),
-          findsOneWidget);
+      expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsOneWidget);
 
       // Snackbar message should go away after its duration
-      await tester.pumpAndSettle(
-          TaskOverlayContents.downloadLogSnackbarDuration); // wait the duration
+      await tester.pumpAndSettle(TaskOverlayContents.downloadLogSnackbarDuration); // wait the duration
       await tester.pump(); // schedule animation
       await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-      expect(
-          find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
+      expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
     });
   });
 }
 
-Future<void> expectTaskBoxColorWithMessage(
-    WidgetTester tester, String message, Color expectedColor) async {
+Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
   await tester.pumpWidget(
     MaterialApp(
       home: TaskBox(
@@ -632,8 +594,7 @@ Future<void> expectTaskBoxColorWithMessage(
     ),
   );
 
-  final SizedBox taskBoxWidget =
-      find.byKey(Key(expectedColor.toString())).evaluate().first.widget;
+  final SizedBox taskBoxWidget = find.byKey(Key(expectedColor.toString())).evaluate().first.widget;
   expect(taskBoxWidget, isNotNull);
 }
 

@@ -48,8 +48,7 @@ class _CommitBoxState extends State<CommitBox> {
             margin: const EdgeInsets.all(1.0),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Color.fromRGBO(authorHash & 255, authorHash >>= 8 & 255,
-                  authorHash >>= 8 & 255, 1),
+              color: Color.fromRGBO(authorHash & 255, authorHash >>= 8 & 255, authorHash >>= 8 & 255, 1),
             ),
             child: Center(
               child: Text(
@@ -66,8 +65,7 @@ class _CommitBoxState extends State<CommitBox> {
           other: CachedNetworkImage(
             imageUrl: widget.commit.authorAvatarUrl,
             placeholder: (_, String url) => Container(color: Colors.grey),
-            errorWidget: (_, String url, Object error) =>
-                const Icon(Icons.error),
+            errorWidget: (_, String url, Object error) => const Icon(Icons.error),
           ),
         ),
       ),
@@ -77,9 +75,10 @@ class _CommitBoxState extends State<CommitBox> {
   void _handleTap() {
     _commitOverlay = OverlayEntry(
       builder: (_) => CommitOverlayContents(
-          parentContext: context,
-          commit: widget.commit,
-          closeCallback: _closeOverlay),
+        parentContext: context,
+        commit: widget.commit,
+        closeCallback: _closeOverlay,
+      ),
     );
 
     Overlay.of(context).insert(_commitOverlay);
@@ -176,8 +175,7 @@ class CommitOverlayContents extends StatelessWidget {
   }
 
   Future<void> _openGithub() async {
-    final String githubUrl =
-        'https://github.com/${commit.repository}/commit/${commit.sha}';
+    final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
     launch(githubUrl);
   }
 }

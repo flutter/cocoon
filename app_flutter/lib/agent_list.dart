@@ -73,12 +73,13 @@ class _AgentListState extends State<AgentList> {
     }
 
     final List<FullAgent> fullAgents = widget.agents
-        .map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent)))
+        .map(
+          (Agent agent) => FullAgent(agent, AgentHealthDetails(agent)),
+        )
         .toList()
           // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
           ..sort();
-    List<FullAgent> filteredAgents =
-        filterAgents(fullAgents, filterAgentsController.text);
+    List<FullAgent> filteredAgents = filterAgents(fullAgents, filterAgentsController.text);
 
     return Column(
       children: <Widget>[
@@ -106,9 +107,7 @@ class _AgentListState extends State<AgentList> {
           child: ListView(
             children: List<AgentTile>.generate(filteredAgents.length, (int i) {
               return AgentTile(
-                key: widget.insertKeys
-                    ? Key('$i-${filteredAgents[i].agent.agentId}')
-                    : null,
+                key: widget.insertKeys ? Key('$i-${filteredAgents[i].agent.agentId}') : null,
                 fullAgent: filteredAgents[i],
                 agentState: widget.agentState,
               );
@@ -128,10 +127,7 @@ class _AgentListState extends State<AgentList> {
       return agents;
     }
 
-    return agents
-        .where(
-            (FullAgent fullAgent) => fullAgent.agent.agentId.contains(filter))
-        .toList();
+    return agents.where((FullAgent fullAgent) => fullAgent.agent.agentId.contains(filter)).toList();
   }
 }
 

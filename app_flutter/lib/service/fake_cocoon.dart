@@ -23,8 +23,7 @@ class FakeCocoonService implements CocoonService {
     CommitStatus lastCommitStatus,
     String branch,
   }) async {
-    return CocoonResponse<List<CommitStatus>>()
-      ..data = _createFakeCommitStatuses();
+    return CocoonResponse<List<CommitStatus>>()..data = _createFakeCommitStatuses();
   }
 
   @override
@@ -41,8 +40,7 @@ class FakeCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    return CocoonResponse<List<String>>()
-      ..data = <String>['master', 'dev', 'beta', 'stable'];
+    return CocoonResponse<List<String>>()..data = <String>['master', 'dev', 'beta', 'stable'];
   }
 
   @override
@@ -56,13 +54,11 @@ class FakeCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<String>> createAgent(
-          String agentId, List<String> capabilities, String idToken) async =>
+  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken) async =>
       CocoonResponse<String>()..data = 'abc123';
 
   @override
-  Future<CocoonResponse<String>> authorizeAgent(
-          Agent agent, String idToken) async =>
+  Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken) async =>
       CocoonResponse<String>()..data = 'def345';
 
   @override
@@ -76,8 +72,7 @@ class FakeCocoonService implements CocoonService {
         ..capabilities.add('dash')
         ..isHealthy = random.nextBool()
         ..isHidden = false
-        ..healthCheckTimestamp =
-            Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
         ..healthDetails = 'ssh-connectivity: succeeded\n'
             'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
             'android-device-ZY223D6B7B: succeeded\n'
@@ -122,14 +117,12 @@ class FakeCocoonService implements CocoonService {
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab'
-      ..tasks.addAll(
-          List<Task>.generate(40, (int i) => _createFakeTask(i, 'devicelab'))));
+      ..tasks.addAll(List<Task>.generate(40, (int i) => _createFakeTask(i, 'devicelab'))));
 
     stages.add(Stage()
       ..commit = commit
       ..name = 'devicelab_win'
-      ..tasks.addAll(List<Task>.generate(
-          30, (int i) => _createFakeTask(i, 'devicelab_win'))));
+      ..tasks.addAll(List<Task>.generate(30, (int i) => _createFakeTask(i, 'devicelab_win'))));
 
     return stages;
   }

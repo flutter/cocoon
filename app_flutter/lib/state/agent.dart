@@ -46,16 +46,13 @@ class AgentState extends ChangeNotifier {
   AgentStateErrors errors = AgentStateErrors();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses =
-      'An error occured fetching agent statuses from Cocoon';
+  static const String errorMessageFetchingStatuses = 'An error occured fetching agent statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageCreatingAgent =
-      'An error occurred creating agent';
+  static const String errorMessageCreatingAgent = 'An error occurred creating agent';
 
   @visibleForTesting
-  static const String errorMessageAuthorizingAgent =
-      'An error occurred authorizing agent';
+  static const String errorMessageAuthorizingAgent = 'An error occurred authorizing agent';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingStateUpdates() async {
@@ -67,8 +64,7 @@ class AgentState extends ChangeNotifier {
     /// [Timer.periodic] does not necessarily run at the start of the timer.
     _fetchAgentStatusUpdate();
 
-    refreshTimer =
-        Timer.periodic(refreshRate, (_) => _fetchAgentStatusUpdate());
+    refreshTimer = Timer.periodic(refreshRate, (_) => _fetchAgentStatusUpdate());
   }
 
   /// Request the latest agent statuses from [CocoonService].
@@ -77,9 +73,7 @@ class AgentState extends ChangeNotifier {
   /// the message [errorMessageFetchingStatuses].
   Future<void> _fetchAgentStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      _cocoonService
-          .fetchAgentStatuses()
-          .then((CocoonResponse<List<Agent>> response) {
+      _cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
         if (response.error != null) {
           print(response.error);
           errors.message = errorMessageFetchingStatuses;
@@ -98,7 +92,10 @@ class AgentState extends ChangeNotifier {
   /// the message [errorMessageCreatingAgent].
   Future<String> createAgent(String agentId, List<String> capabilities) async {
     final CocoonResponse<String> response = await _cocoonService.createAgent(
-        agentId, capabilities, await authService.idToken);
+      agentId,
+      capabilities,
+      await authService.idToken,
+    );
 
     if (response.error != null) {
       print(response.error);
@@ -114,8 +111,7 @@ class AgentState extends ChangeNotifier {
   /// If an error occurs, [AgentStateErrors] will be updated with
   /// the message [errorMessageAuthorizingAgent].
   Future<String> authorizeAgent(Agent agent) async {
-    final CocoonResponse<String> response =
-        await _cocoonService.authorizeAgent(agent, await authService.idToken);
+    final CocoonResponse<String> response = await _cocoonService.authorizeAgent(agent, await authService.idToken);
 
     if (response.error != null) {
       print(response.error);
@@ -129,8 +125,7 @@ class AgentState extends ChangeNotifier {
   /// Attempt to assign a new task to [agent].
   ///
   /// If no task can be assigned, a null value is returned.
-  Future<void> reserveTask(Agent agent) async =>
-      _cocoonService.reserveTask(agent, await authService.idToken);
+  Future<void> reserveTask(Agent agent) async => _cocoonService.reserveTask(agent, await authService.idToken);
 
   /// Initiate the Google Sign In process.
   Future<void> signIn() => authService.signIn();

@@ -30,10 +30,8 @@ void main() {
     PaintingBinding.instance.imageCache.clear();
   });
 
-  testWidgets('shows sign in when not authenticated',
-      (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) async => Future<bool>.value(false));
+  testWidgets('shows sign in when not authenticated', (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -49,10 +47,8 @@ void main() {
     expect(find.text('Sign in'), findsOneWidget);
   });
 
-  testWidgets('calls sign in on tap when not authenticated',
-      (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) async => Future<bool>.value(false));
+  testWidgets('calls sign in on tap when not authenticated', (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       Directionality(
@@ -73,8 +69,7 @@ void main() {
   });
 
   testWidgets('shows avatar when authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) async => Future<bool>.value(true));
+    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -91,18 +86,15 @@ void main() {
     await tester.pump();
     // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
     if (!kIsWeb) {
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
+      expect(tester.takeException(), const test.TypeMatcher<NetworkImageLoadException>());
     }
 
     expect(find.text('Sign in'), findsNothing);
     expect(find.byType(Image), findsOneWidget);
   });
 
-  testWidgets('calls sign out on tap when authenticated',
-      (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated)
-        .thenAnswer((_) async => Future<bool>.value(true));
+  testWidgets('calls sign out on tap when authenticated', (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -118,8 +110,7 @@ void main() {
     );
     await tester.pump();
     if (!kIsWeb) {
-      expect(tester.takeException(),
-          const test.TypeMatcher<NetworkImageLoadException>());
+      expect(tester.takeException(), const test.TypeMatcher<NetworkImageLoadException>());
     }
 
     await tester.tap(find.byType(Image));

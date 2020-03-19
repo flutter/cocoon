@@ -25,8 +25,7 @@ import 'package:cocoon_service/protos.dart' show Agent;
 class AgentHealthDetails {
   factory AgentHealthDetails(Agent agent) {
     final DateTime currentTime = DateTime.now();
-    final DateTime agentTime =
-        DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
+    final DateTime agentTime = DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp.toInt());
     final Duration agentLastUpdateDuration = currentTime.difference(agentTime);
 
     final String healthDetails = agent.healthDetails;
@@ -64,11 +63,9 @@ class AgentHealthDetails {
 
   static const String _hasSshConnectivity = 'ssh-connectivity: succeeded';
   static const String _hasHealthyDevices = 'has-healthy-devices: succeeded';
-  static const String _cocoonAuthentication =
-      'cocoon-authentication: succeeded';
+  static const String _cocoonAuthentication = 'cocoon-authentication: succeeded';
   static const String _cocoonConnection = 'cocoon-connection: succeeded';
-  static const String _ableToPerformhealthCheck =
-      'able-to-perform-health-check: succeeded';
+  static const String _ableToPerformhealthCheck = 'able-to-perform-health-check: succeeded';
 
   /// The agent to show health details from.
   final Agent agent;

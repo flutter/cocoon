@@ -51,8 +51,7 @@ void main() {
     expect(find.text('Create Agent'), findsNWidgets(2));
   });
 
-  testWidgets('create agent dialog calls create agent',
-      (WidgetTester tester) async {
+  testWidgets('create agent dialog calls create agent', (WidgetTester tester) async {
     final MockCocoonService mockCocoonService = MockCocoonService();
     final AgentState agentState = AgentState(
       cocoonServiceValue: mockCocoonService,
@@ -84,12 +83,10 @@ void main() {
     verify(mockCocoonService.createAgent(any, any, any)).called(1);
   });
 
-  testWidgets('show error snackbar when error occurs',
-      (WidgetTester tester) async {
+  testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
     final FakeAgentState agentState = FakeAgentState();
 
-    final AgentDashboardPage buildDashboardPage =
-        AgentDashboardPage(agentState: agentState);
+    final AgentDashboardPage buildDashboardPage = AgentDashboardPage(agentState: agentState);
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(body: buildDashboardPage),
@@ -103,22 +100,19 @@ void main() {
     agentState.errors.notifyListeners();
     await tester.pump();
 
-    await tester
-        .pump(const Duration(milliseconds: 750)); // open animation for snackbar
+    await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
     expect(find.text(agentState.errors.message), findsOneWidget);
 
     // Snackbar message should go away after its duration
-    await tester
-        .pump(AgentDashboardPage.errorSnackbarDuration); // wait the duration
+    await tester.pump(AgentDashboardPage.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(agentState.errors.message), findsNothing);
   });
 
-  testWidgets('agent filter is passed to agent list',
-      (WidgetTester tester) async {
+  testWidgets('agent filter is passed to agent list', (WidgetTester tester) async {
     final AgentState agentState = AgentState();
     await tester.pumpWidget(
       MaterialApp(
@@ -160,8 +154,7 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
   Future<String> authorizeAgent(Agent agent) async => 'abc123';
 
   @override
-  Future<String> createAgent(String agentId, List<String> capabilities) async =>
-      'def456';
+  Future<String> createAgent(String agentId, List<String> capabilities) async => 'def456';
 
   @override
   Future<void> reserveTask(Agent agent) => null;

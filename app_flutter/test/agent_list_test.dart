@@ -13,21 +13,17 @@ import 'package:app_flutter/agent_tile.dart';
 
 void main() {
   group('AgentList', () {
-    testWidgets('empty list of agents shows loading indicator',
-        (WidgetTester tester) async {
-      await tester
-          .pumpWidget(const MaterialApp(home: AgentList(agents: <Agent>[])));
+    testWidgets('empty list of agents shows loading indicator', (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: AgentList(agents: <Agent>[])));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('list of agents shows unhealthy agents first',
-        (WidgetTester tester) async {
+    testWidgets('list of agents shows unhealthy agents first', (WidgetTester tester) async {
       final List<Agent> agents = <Agent>[
         Agent()
           ..agentId = 'healthy1'
-          ..healthCheckTimestamp =
-              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
           ..isHealthy = true
           ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -42,13 +38,11 @@ cocoon-connection: succeeded
 able-to-perform-health-check: succeeded''',
         Agent()
           ..agentId = 'sick'
-          ..healthCheckTimestamp =
-              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
           ..isHealthy = false,
         Agent()
           ..agentId = 'healthy2'
-          ..healthCheckTimestamp =
-              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
           ..isHealthy = true
           ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -80,21 +74,18 @@ able-to-perform-health-check: succeeded''',
       final List<Agent> agents = <Agent>[
         Agent()
           ..agentId = 'secret agent'
-          ..healthCheckTimestamp =
-              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
           ..isHealthy = true,
         Agent()
           ..agentId = 'pigeon'
-          ..healthCheckTimestamp =
-              Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+          ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
           ..isHealthy = false,
       ];
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: AgentList(
-                agents: agents, agentFilter: 'pigeon', insertKeys: true),
+            body: AgentList(agents: agents, agentFilter: 'pigeon', insertKeys: true),
           ),
         ),
       );
