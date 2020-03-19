@@ -33,7 +33,7 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
-  final Duration refreshRate = const Duration(seconds: 10);
+  final Duration refreshRate = const Duration(seconds: 30);
 
   /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
   @visibleForTesting
@@ -51,7 +51,7 @@ class FlutterBuildState extends ChangeNotifier {
   List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
 
-  final String _currentBranch = 'master';
+  String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
 
   /// A [Brook] that reports when errors occur that relate to this [FlutterBuildState].
@@ -70,7 +70,7 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingUpdates() async {
-    if (refreshTimer != null) {
+    if (refreshTimer != null && refreshTimer.isActive) {
       // There's already an update loop, no need to make another.
       return;
     }
@@ -83,8 +83,23 @@ class FlutterBuildState extends ChangeNotifier {
     refreshTimer = Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
+  Future<void> updateCurrentBranch(String branch) async {
+    _currentBranch = branch;
+    refreshTimer?.cancel();
+
+    _isTreeBuilding = null;
+    _statuses = <CommitStatus>[];
+    await Future<void>.delayed(const Duration(seconds: 7));
+    _isTreeBuilding = null;
+    _statuses = <CommitStatus>[];
+    
+    startFetchingUpdates();
+  }
+
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
-  Future<void> _fetchBuildStatusUpdate() async {
+  Future<void> _fetchBuildStatusUpdate({
+    bool mergeCommitStatuses = true,
+  }) async {
     await Future.wait(<Future<void>>[
       _cocoonService
           .fetchCommitStatuses(
@@ -94,7 +109,9 @@ class FlutterBuildState extends ChangeNotifier {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
-          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
+          mergeCommitStatuses
+              ? _mergeRecentCommitStatusesWithStoredStatuses(response.data)
+              : _statuses = response.data;
         }
         notifyListeners();
       }),
