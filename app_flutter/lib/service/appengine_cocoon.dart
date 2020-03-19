@@ -375,10 +375,18 @@ class AppEngineCocoonService implements CocoonService {
       final Map<String, Object> checklist = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
+        ..branch = _branchFromJson(checklist)
         ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
     }
 
     return statuses;
+  }
+
+  String _branchFromJson(Map<String, Object> jsonChecklist) {
+    assert(jsonChecklist != null);
+
+    final Map<String, Object> checklist = jsonChecklist['Checklist'];
+    return checklist['Branch'];
   }
 
   Commit _commitFromJson(Map<String, Object> jsonChecklist) {

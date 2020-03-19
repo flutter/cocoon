@@ -9,14 +9,15 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'commit.pb.dart' as $1;
-import 'stage.pb.dart' as $3;
+import 'commit.pb.dart' as $0;
+import 'stage.pb.dart' as $1;
 
 class CommitStatus extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('CommitStatus',
       createEmptyInstance: create)
-    ..aOM<$1.Commit>(1, 'commit', subBuilder: $1.Commit.create)
-    ..pc<$3.Stage>(2, 'stages', $pb.PbFieldType.PM, subBuilder: $3.Stage.create)
+    ..aOM<$0.Commit>(1, 'commit', subBuilder: $0.Commit.create)
+    ..pc<$1.Stage>(2, 'stages', $pb.PbFieldType.PM, subBuilder: $1.Stage.create)
+    ..aOS(3, 'branch')
     ..hasRequiredFields = false;
 
   CommitStatus._() : super();
@@ -42,9 +43,9 @@ class CommitStatus extends $pb.GeneratedMessage {
   static CommitStatus _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.Commit get commit => $_getN(0);
+  $0.Commit get commit => $_getN(0);
   @$pb.TagNumber(1)
-  set commit($1.Commit v) {
+  set commit($0.Commit v) {
     setField(1, v);
   }
 
@@ -53,8 +54,20 @@ class CommitStatus extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearCommit() => clearField(1);
   @$pb.TagNumber(1)
-  $1.Commit ensureCommit() => $_ensure(0);
+  $0.Commit ensureCommit() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $core.List<$3.Stage> get stages => $_getList(1);
+  $core.List<$1.Stage> get stages => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.String get branch => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set branch($core.String v) {
+    $_setString(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasBranch() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBranch() => clearField(3);
 }
