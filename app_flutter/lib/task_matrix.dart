@@ -104,9 +104,9 @@ class TaskMatrix {
 
     /// O(Tasks * CommitStatuses).
     /// In production, this is usually O(85 * 100) ~ 8500 operations.
-    for (CommitStatus status in statuses) {
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
+    for (final CommitStatus status in statuses) {
+      for (final Stage stage in status.stages) {
+        for (final Task task in stage.tasks) {
           final String key = taskColumnKey(task);
           if (taskColumnKeyIndex.containsKey(key)) {
             continue;
@@ -134,8 +134,8 @@ class TaskMatrix {
       final CommitStatus status = statuses[row];
 
       /// Organize [Task] in [CommitStatus] to the [Column] they map to.
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
+      for (final Stage stage in status.stages) {
+        for (final Task task in stage.tasks) {
           final String columnKey = taskColumnKey(task);
           final int columnIndex = columnKeyIndex[columnKey];
           final Column column = matrix[columnIndex];

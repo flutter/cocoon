@@ -52,8 +52,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String agentFilter = ModalRoute.of(context).settings.arguments ?? widget.agentFilter;
-
+    final String agentFilter = (ModalRoute.of(context).settings.arguments as String) ?? widget.agentFilter;
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,
       child: AgentDashboard(

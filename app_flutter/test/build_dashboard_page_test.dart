@@ -38,7 +38,7 @@ void main() {
 
     expect(find.text('Loading...'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.grey);
   });
 
@@ -54,7 +54,7 @@ void main() {
 
     expect(find.text('Tree is Closed'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, app.theme.errorColor);
   });
 
@@ -70,7 +70,7 @@ void main() {
 
     expect(find.text('Tree is Open'), findsOneWidget);
 
-    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget;
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
   });
 

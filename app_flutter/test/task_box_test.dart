@@ -73,7 +73,7 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget as SizedBox;
       expect(taskBoxWidget, isNotNull);
     });
 
@@ -94,7 +94,7 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.orange.toString())).evaluate().first.widget as SizedBox;
       expect(taskBoxWidget, isNotNull);
       expect(find.byIcon(Icons.timelapse), findsOneWidget);
     });
@@ -149,7 +149,7 @@ void main() {
         ),
       );
 
-      final SizedBox taskBoxWidget = find.byKey(Key(Colors.yellow.toString())).evaluate().first.widget;
+      final SizedBox taskBoxWidget = find.byKey(Key(Colors.yellow.toString())).evaluate().first.widget as SizedBox;
       expect(taskBoxWidget, isNotNull);
     });
 
@@ -594,7 +594,7 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
     ),
   );
 
-  final SizedBox taskBoxWidget = find.byKey(Key(expectedColor.toString())).evaluate().first.widget;
+  final SizedBox taskBoxWidget = find.byKey(Key(expectedColor.toString())).evaluate().first.widget as SizedBox;
   expect(taskBoxWidget, isNotNull);
 }
 

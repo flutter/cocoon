@@ -77,7 +77,7 @@ void main() {
 
       final double xPosition = commits.first.size.topLeft(Offset.zero).dx;
 
-      for (Element commit in commits) {
+      for (final Element commit in commits) {
         // All the x positions should match the first instance if they're all in the same column
         expect(commit.size.topLeft(Offset.zero).dx, xPosition);
       }
@@ -98,7 +98,7 @@ void main() {
         ),
       );
 
-      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget;
+      final TaskBox firstTask = find.byType(TaskBox).evaluate().first.widget as TaskBox;
       expect(firstTask.task, taskMatrix.task(0, 0));
     });
 
@@ -160,33 +160,33 @@ void main() {
       expect(find.byType(TaskBox), findsNWidgets(3));
 
       // Row 1: ✓☐☐
-      final TaskBox firstTask = find.byKey(const Key('cell-0-0')).evaluate().first.widget;
+      final TaskBox firstTask = find.byKey(const Key('cell-0-0')).evaluate().first.widget as TaskBox;
       expect(firstTask.task, statusesWithSkips[0].stages[0].tasks[0]);
 
-      final SizedBox skippedTaskRow1Col2 = find.byKey(const Key('cell-0-1')).evaluate().first.widget;
+      final SizedBox skippedTaskRow1Col2 = find.byKey(const Key('cell-0-1')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow1Col2, isNotNull);
 
-      final SizedBox skippedTaskRow1Col3 = find.byKey(const Key('cell-0-2')).evaluate().first.widget;
+      final SizedBox skippedTaskRow1Col3 = find.byKey(const Key('cell-0-2')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow1Col3, isNotNull);
 
       // Row 2: ☐✓☐
-      final SizedBox skippedTaskRow2Col1 = find.byKey(const Key('cell-1-0')).evaluate().first.widget;
+      final SizedBox skippedTaskRow2Col1 = find.byKey(const Key('cell-1-0')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow2Col1, isNotNull);
 
-      final TaskBox secondTask = find.byKey(const Key('cell-1-1')).evaluate().first.widget;
+      final TaskBox secondTask = find.byKey(const Key('cell-1-1')).evaluate().first.widget as TaskBox;
       expect(secondTask.task, statusesWithSkips[1].stages[0].tasks[0]);
 
-      final SizedBox skippedTaskRow2Col3 = find.byKey(const Key('cell-1-2')).evaluate().first.widget;
+      final SizedBox skippedTaskRow2Col3 = find.byKey(const Key('cell-1-2')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow2Col3, isNotNull);
 
       // Row 3: ☐☐✓
-      final SizedBox skippedTaskRow3Col1 = find.byKey(const Key('cell-2-0')).evaluate().first.widget;
+      final SizedBox skippedTaskRow3Col1 = find.byKey(const Key('cell-2-0')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow3Col1, isNotNull);
 
-      final SizedBox skippedTaskRow3Col2 = find.byKey(const Key('cell-2-1')).evaluate().first.widget;
+      final SizedBox skippedTaskRow3Col2 = find.byKey(const Key('cell-2-1')).evaluate().first.widget as SizedBox;
       expect(skippedTaskRow3Col2, isNotNull);
 
-      final TaskBox lastTask = find.byKey(const Key('cell-2-2')).evaluate().first.widget;
+      final TaskBox lastTask = find.byKey(const Key('cell-2-2')).evaluate().first.widget as TaskBox;
       expect(lastTask.task, statusesWithSkips[2].stages[0].tasks[0]);
     });
 
@@ -241,7 +241,7 @@ void main() {
       final double yPosition = taskIcons.first.size.topLeft(Offset.zero).dy;
 
       // Ensure all task icons are in the same row
-      for (Element taskIcon in taskIcons) {
+      for (final Element taskIcon in taskIcons) {
         // All y positions should match the first instance if in the same row
         expect(taskIcon.size.topLeft(Offset.zero).dy, yPosition);
       }

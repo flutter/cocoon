@@ -52,7 +52,6 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response.body);
       return CocoonResponse<List<CommitStatus>>()..error = '/api/public/get-status returned ${response.statusCode}';
     }
 
@@ -77,7 +76,6 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response.body);
       return CocoonResponse<bool>()..error = '/api/public/build-status returned ${response.statusCode}';
     }
 
@@ -103,7 +101,6 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response.body);
       return CocoonResponse<List<Agent>>()..error = '/api/public/get-status returned ${response.statusCode}';
     }
 
@@ -123,7 +120,6 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      print(response.body);
       return CocoonResponse<List<String>>()..error = '/api/public/get-branches returned ${response.statusCode}';
     }
 
@@ -199,9 +195,8 @@ class AppEngineCocoonService implements CocoonService {
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
-
       if (responseBody['Token'] == null) {
-        CocoonResponse<String>()..error = '/api/create-agent returned unexpected response';
+        return CocoonResponse<String>()..error = '/api/create-agent returned unexpected response';
       }
     } catch (e) {
       return CocoonResponse<String>()..error = '/api/create-agent returned unexpected response';
@@ -233,7 +228,6 @@ class AppEngineCocoonService implements CocoonService {
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
-
       if (responseBody['Token'] == null) {
         return CocoonResponse<String>()..error = '/api/authorize-agent returned unexpected response';
       }
@@ -266,15 +260,12 @@ class AppEngineCocoonService implements CocoonService {
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
-
       if (responseBody['Task'] == null) {
         throw Exception('/api/reserve-task returned unexpected response');
       }
     } catch (e) {
       throw Exception('/api/reserve-task returned unexpected response');
     }
-
-    print(responseBody);
   }
 
   /// Construct the API endpoint based on the priority of using a local endpoint
@@ -324,7 +315,7 @@ class AppEngineCocoonService implements CocoonService {
   List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {
     final List<Agent> agents = <Agent>[];
 
-    for (Map<String, Object> jsonAgent in jsonAgentStatuses) {
+    for (final Map<String, Object> jsonAgent in jsonAgentStatuses) {
       final List<Object> objectCapabilities = jsonAgent['Capabilities'];
       final List<String> capabilities = objectCapabilities.map((Object value) => value.toString()).toList();
       final Agent agent = Agent()
@@ -333,7 +324,6 @@ class AppEngineCocoonService implements CocoonService {
         ..isHealthy = jsonAgent['IsHealthy']
         ..capabilities.addAll(capabilities)
         ..healthDetails = jsonAgent['HealthDetails'];
-
       agents.add(agent);
     }
 
@@ -346,7 +336,7 @@ class AppEngineCocoonService implements CocoonService {
 
     final List<CommitStatus> statuses = <CommitStatus>[];
 
-    for (Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
+    for (final Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
       final Map<String, Object> checklist = jsonCommitStatus['Checklist'];
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
@@ -385,7 +375,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
     final List<Stage> stages = <Stage>[];
 
-    for (Object jsonStage in json) {
+    for (final Object jsonStage in json) {
       stages.add(_stageFromJson(jsonStage));
     }
 
@@ -394,7 +384,6 @@ class AppEngineCocoonService implements CocoonService {
 
   Stage _stageFromJson(Map<String, Object> json) {
     assert(json != null);
-
     return Stage()
       ..name = json['Name']
       ..tasks.addAll(_tasksFromJson(json['Tasks']))
@@ -405,7 +394,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
     final List<Task> tasks = <Task>[];
 
-    for (Map<String, Object> jsonTask in json) {
+    for (final Map<String, Object> jsonTask in json) {
       tasks.add(_taskFromJson(jsonTask));
     }
 
