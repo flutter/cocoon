@@ -52,8 +52,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String agentFilter =
-        ModalRoute.of(context).settings.arguments ?? widget.agentFilter;
+    final String agentFilter = ModalRoute.of(context).settings.arguments ?? widget.agentFilter;
 
     return ChangeNotifierProvider<AgentState>(
       create: (_) => agentState,
@@ -70,7 +69,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),
-        Text(agentState.errors.message)
+        Text(agentState.errors.message),
       ],
     );
     _scaffoldKey.currentState.showSnackBar(
@@ -156,8 +155,7 @@ class AgentDashboard extends StatelessWidget {
   void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
     showDialog<AlertDialog>(
       context: context,
-      builder: (BuildContext context) =>
-          CreateAgentDialog(agentState: agentState),
+      builder: (BuildContext context) => CreateAgentDialog(agentState: agentState),
     );
   }
 }
@@ -238,8 +236,7 @@ class _CreateAgentDialogState extends State<CreateAgentDialog> {
   /// to the form.
   Future<void> _createAgent(BuildContext context) async {
     final String id = _agentIdController.value.text;
-    final List<String> capabilities =
-        _agentCapabilitiesController.value.text.split(',');
+    final List<String> capabilities = _agentCapabilitiesController.value.text.split(',');
     final String token = await widget.agentState.createAgent(id, capabilities);
 
     // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020

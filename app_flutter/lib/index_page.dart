@@ -52,7 +52,7 @@ class _IndexPageState extends State<IndexPage> {
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),
-        Text(indexState.errors.message)
+        Text(indexState.errors.message),
       ],
     );
     _scaffoldKey.currentState.showSnackBar(
@@ -95,8 +95,7 @@ class Index extends StatelessWidget {
                 width: 300,
                 child: RaisedButton(
                   child: const Text('Build'),
-                  onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/build'),
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/build'),
                   padding: const EdgeInsets.all(20),
                   color: Colors.blueAccent,
                   textColor: Colors.white,
@@ -140,8 +139,7 @@ class Index extends StatelessWidget {
                 width: 300,
                 child: RaisedButton(
                   child: const Text('Infra Agents'),
-                  onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/agents'),
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/agents'),
                   padding: const EdgeInsets.all(20),
                   color: Colors.blueAccent,
                   textColor: Colors.white,

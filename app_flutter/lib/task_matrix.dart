@@ -124,13 +124,11 @@ class TaskMatrix {
   ///
   /// If no [Task] can be placed in a cell of the matrix, it will be left null.
   @visibleForTesting
-  List<Column> createTaskMatrix(List<CommitStatus> statuses,
-      {Map<String, int> columnKeyIndex}) {
+  List<Column> createTaskMatrix(List<CommitStatus> statuses, {Map<String, int> columnKeyIndex}) {
     columnKeyIndex ??= _columnKeyIndex;
 
     final List<Column> matrix = List<Column>.generate(
-        columnKeyIndex.keys.length,
-        (int i) => Column(statuses.length, columnKeyIndex.keys.elementAt(i)));
+        columnKeyIndex.keys.length, (int i) => Column(statuses.length, columnKeyIndex.keys.elementAt(i)));
 
     for (int row = 0; row < statuses.length; row++) {
       final CommitStatus status = statuses[row];

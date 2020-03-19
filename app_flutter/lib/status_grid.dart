@@ -20,11 +20,9 @@ class StatusGridContainer extends StatelessWidget {
   const StatusGridContainer({Key key}) : super(key: key);
 
   @visibleForTesting
-  static const String errorFetchCommitStatus =
-      'An error occurred fetching commit statuses';
+  static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
   @visibleForTesting
-  static const String errorFetchTreeStatus =
-      'An error occurred fetching tree build status';
+  static const String errorFetchTreeStatus = 'An error occurred fetching tree build status';
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
@@ -43,8 +41,7 @@ class StatusGridContainer extends StatelessWidget {
           );
         }
 
-        final task_matrix.TaskMatrix matrix =
-            task_matrix.TaskMatrix(statuses: statuses);
+        final task_matrix.TaskMatrix matrix = task_matrix.TaskMatrix(statuses: statuses);
         matrix.sort(compareRecentlyFailed);
 
         return StatusGrid(
@@ -175,9 +172,7 @@ class StatusGrid extends StatelessWidget {
               final int index = gridIndex - columnCount;
               if (index < 0) {
                 return TaskIcon(
-                  key: insertCellKeys
-                      ? Key('taskicon-${index % columnCount}')
-                      : null,
+                  key: insertCellKeys ? Key('taskicon-${index % columnCount}') : null,
                   task: taskMatrix.sampleTask(gridIndex - 1),
                 );
               }

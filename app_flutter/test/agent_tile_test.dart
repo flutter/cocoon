@@ -17,8 +17,7 @@ import 'package:app_flutter/state/agent.dart';
 void main() {
   group('AgentTile', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp =
-          Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+      ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded

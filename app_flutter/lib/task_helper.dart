@@ -7,8 +7,7 @@ import 'package:cocoon_service/protos.dart' show Commit, Task;
 /// A collection of common utilities done with a [Task].
 
 /// Base URLs for various endpoints that can relate to a [Task].
-const String flutterGithubSourceUrl =
-    'https://github.com/flutter/flutter/blob/master';
+const String flutterGithubSourceUrl = 'https://github.com/flutter/flutter/blob/master';
 const String flutterDashboardUrl = 'https://flutter-dashboard.appspot.com';
 const String cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';
@@ -62,8 +61,7 @@ String _externalSourceConfigurationUrl(Task task) {
     return '$cirrusUrl/master';
   }
 
-  throw Exception(
-      'Failed to get source configuration url for ${task.stageName}');
+  throw Exception('Failed to get source configuration url for ${task.stageName}');
 }
 
 String _luciSourceConfigurationUrl(Task task) {
@@ -85,7 +83,6 @@ bool isDevicelab(Task task) => task.stageName.contains(StageName.devicelab);
 /// Whether the information from [Task] is available publically.
 ///
 /// Only devicelab tasks are not available publically.
-bool _isExternal(Task task) =>
-    task.stageName == StageName.luci || task.stageName == StageName.cirrus;
+bool _isExternal(Task task) => task.stageName == StageName.luci || task.stageName == StageName.cirrus;
 
 class TaskHelper {}

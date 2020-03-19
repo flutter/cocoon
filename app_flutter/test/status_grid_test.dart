@@ -7,8 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart'
-    show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/fake_cocoon.dart';
@@ -31,8 +30,7 @@ void main() {
 
     setUpAll(() async {
       service = FakeCocoonService();
-      final CocoonResponse<List<CommitStatus>> response =
-          await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       statuses = response.data;
       taskMatrix = TaskMatrix(statuses: statuses);
     });
@@ -42,8 +40,7 @@ void main() {
       PaintingBinding.instance.imageCache.clear();
     });
 
-    testWidgets('shows loading indicator when statuses is empty',
-        (WidgetTester tester) async {
+    testWidgets('shows loading indicator when statuses is empty', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -86,8 +83,7 @@ void main() {
       }
     });
 
-    testWidgets('first task in grid is the first task given',
-        (WidgetTester tester) async {
+    testWidgets('first task in grid is the first task given', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -143,8 +139,7 @@ void main() {
           ]))
     ];
 
-    testWidgets('skipped tasks do not break the grid',
-        (WidgetTester tester) async {
+    testWidgets('skipped tasks do not break the grid', (WidgetTester tester) async {
       final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
 
       await tester.pumpWidget(
@@ -165,47 +160,37 @@ void main() {
       expect(find.byType(TaskBox), findsNWidgets(3));
 
       // Row 1: ✓☐☐
-      final TaskBox firstTask =
-          find.byKey(const Key('cell-0-0')).evaluate().first.widget;
+      final TaskBox firstTask = find.byKey(const Key('cell-0-0')).evaluate().first.widget;
       expect(firstTask.task, statusesWithSkips[0].stages[0].tasks[0]);
 
-      final SizedBox skippedTaskRow1Col2 =
-          find.byKey(const Key('cell-0-1')).evaluate().first.widget;
+      final SizedBox skippedTaskRow1Col2 = find.byKey(const Key('cell-0-1')).evaluate().first.widget;
       expect(skippedTaskRow1Col2, isNotNull);
 
-      final SizedBox skippedTaskRow1Col3 =
-          find.byKey(const Key('cell-0-2')).evaluate().first.widget;
+      final SizedBox skippedTaskRow1Col3 = find.byKey(const Key('cell-0-2')).evaluate().first.widget;
       expect(skippedTaskRow1Col3, isNotNull);
 
       // Row 2: ☐✓☐
-      final SizedBox skippedTaskRow2Col1 =
-          find.byKey(const Key('cell-1-0')).evaluate().first.widget;
+      final SizedBox skippedTaskRow2Col1 = find.byKey(const Key('cell-1-0')).evaluate().first.widget;
       expect(skippedTaskRow2Col1, isNotNull);
 
-      final TaskBox secondTask =
-          find.byKey(const Key('cell-1-1')).evaluate().first.widget;
+      final TaskBox secondTask = find.byKey(const Key('cell-1-1')).evaluate().first.widget;
       expect(secondTask.task, statusesWithSkips[1].stages[0].tasks[0]);
 
-      final SizedBox skippedTaskRow2Col3 =
-          find.byKey(const Key('cell-1-2')).evaluate().first.widget;
+      final SizedBox skippedTaskRow2Col3 = find.byKey(const Key('cell-1-2')).evaluate().first.widget;
       expect(skippedTaskRow2Col3, isNotNull);
 
       // Row 3: ☐☐✓
-      final SizedBox skippedTaskRow3Col1 =
-          find.byKey(const Key('cell-2-0')).evaluate().first.widget;
+      final SizedBox skippedTaskRow3Col1 = find.byKey(const Key('cell-2-0')).evaluate().first.widget;
       expect(skippedTaskRow3Col1, isNotNull);
 
-      final SizedBox skippedTaskRow3Col2 =
-          find.byKey(const Key('cell-2-1')).evaluate().first.widget;
+      final SizedBox skippedTaskRow3Col2 = find.byKey(const Key('cell-2-1')).evaluate().first.widget;
       expect(skippedTaskRow3Col2, isNotNull);
 
-      final TaskBox lastTask =
-          find.byKey(const Key('cell-2-2')).evaluate().first.widget;
+      final TaskBox lastTask = find.byKey(const Key('cell-2-2')).evaluate().first.widget;
       expect(lastTask.task, statusesWithSkips[2].stages[0].tasks[0]);
     });
 
-    testWidgets(
-        'all cells in the grid have the same size even when grid has skipped tasks',
+    testWidgets('all cells in the grid have the same size even when grid has skipped tasks',
         (WidgetTester tester) async {
       final TaskMatrix taskMatrix = TaskMatrix(statuses: statusesWithSkips);
 
@@ -226,12 +211,10 @@ void main() {
 
       // Compare all the cells to the first cell to check they all have
       // the same size
-      final Element taskBox =
-          find.byKey(const Key('cell-0-0')).evaluate().first;
+      final Element taskBox = find.byKey(const Key('cell-0-0')).evaluate().first;
       for (int rowIndex = 0; rowIndex < taskMatrix.rows; rowIndex++) {
         for (int colIndex = 0; colIndex < taskMatrix.columns; colIndex++) {
-          final Element cell =
-              find.byKey(Key('cell-$rowIndex-$colIndex')).evaluate().first;
+          final Element cell = find.byKey(Key('cell-$rowIndex-$colIndex')).evaluate().first;
 
           expect(taskBox.size, cell.size);
         }
@@ -271,12 +254,9 @@ void main() {
     });
 
     testWidgets('loader row is created', (WidgetTester tester) async {
-      final CocoonResponse<List<CommitStatus>> response =
-          await service.fetchCommitStatuses();
-      final List<CommitStatus> smallRangeOfStatusesToShowLoader =
-          response.data.getRange(0, 2).toList();
-      final TaskMatrix smallTaskMatrix =
-          TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
+      final List<CommitStatus> smallRangeOfStatusesToShowLoader = response.data.getRange(0, 2).toList();
+      final TaskMatrix smallTaskMatrix = TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
       await tester.pumpWidget(
         MaterialApp(
           home: Column(

@@ -9,8 +9,7 @@ import 'package:app_flutter/canvaskit_widget.dart';
 
 void main() {
   group('CanvasKitWidget', () {
-    testWidgets('use canvaskit child when FLUTTER_WEB_USE_SKIA=true',
-        (WidgetTester tester) async {
+    testWidgets('use canvaskit child when FLUTTER_WEB_USE_SKIA=true', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: CanvasKitWidget(
@@ -24,8 +23,7 @@ void main() {
       expect(find.text('canvaskit'), findsOneWidget);
       expect(find.text('not canvaskit'), findsNothing);
     });
-    testWidgets('use canvaskit child when FLUTTER_WEB_USE_SKIA=false',
-        (WidgetTester tester) async {
+    testWidgets('use canvaskit child when FLUTTER_WEB_USE_SKIA=false', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: CanvasKitWidget(

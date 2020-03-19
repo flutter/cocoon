@@ -26,10 +26,8 @@ void main() {
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
-  testWidgets('shows loading when fetch tree status is null',
-      (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
-      ..isTreeBuilding = null;
+  testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = null;
 
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
@@ -44,10 +42,8 @@ void main() {
     expect(appbarWidget.backgroundColor, Colors.grey);
   });
 
-  testWidgets('shows tree closed when fetch tree status is false',
-      (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
-      ..isTreeBuilding = false;
+  testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = false;
 
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
@@ -62,10 +58,8 @@ void main() {
     expect(appbarWidget.backgroundColor, app.theme.errorColor);
   });
 
-  testWidgets('shows tree open when fetch tree status is true',
-      (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()
-      ..isTreeBuilding = true;
+  testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = true;
 
     await tester.pumpWidget(MaterialApp(
         theme: app.theme,
@@ -80,12 +74,10 @@ void main() {
     expect(appbarWidget.backgroundColor, app.theme.appBarTheme.color);
   });
 
-  testWidgets('show error snackbar when error occurs',
-      (WidgetTester tester) async {
+  testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
     final FakeFlutterBuildState buildState = FakeFlutterBuildState();
 
-    final BuildDashboardPage buildDashboardPage =
-        BuildDashboardPage(buildState: buildState);
+    final BuildDashboardPage buildDashboardPage = BuildDashboardPage(buildState: buildState);
     await tester.pumpWidget(MaterialApp(home: buildDashboardPage));
 
     expect(find.text(buildState.errors.message), findsNothing);
@@ -95,14 +87,12 @@ void main() {
     buildState.errors.notifyListeners();
     await tester.pump();
 
-    await tester
-        .pump(const Duration(milliseconds: 750)); // open animation for snackbar
+    await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
     expect(find.text(buildState.errors.message), findsOneWidget);
 
     // Snackbar message should go away after its duration
-    await tester
-        .pump(BuildDashboardPage.errorSnackbarDuration); // wait the duration
+    await tester.pump(BuildDashboardPage.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 

@@ -23,12 +23,10 @@ void main() {
     setUp(() {
       mockSignInService = MockGoogleSignInService();
       mockService = MockCocoonService();
-      agentState = AgentState(
-          cocoonServiceValue: mockService, authServiceValue: mockSignInService);
+      agentState = AgentState(cocoonServiceValue: mockService, authServiceValue: mockSignInService);
 
-      when(mockService.fetchAgentStatuses()).thenAnswer((_) =>
-          Future<CocoonResponse<List<Agent>>>.value(
-              CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
+      when(mockService.fetchAgentStatuses()).thenAnswer(
+          (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
     });
 
     tearDown(() {
@@ -36,8 +34,7 @@ void main() {
       clearInteractions(mockService);
     });
 
-    testWidgets('timer should periodically fetch updates',
-        (WidgetTester tester) async {
+    testWidgets('timer should periodically fetch updates', (WidgetTester tester) async {
       agentState.startFetchingStateUpdates();
 
       // startFetching immediately starts fetching results
@@ -52,8 +49,7 @@ void main() {
       agentState.dispose();
     });
 
-    testWidgets('multiple start updates should not change the timer',
-        (WidgetTester tester) async {
+    testWidgets('multiple start updates should not change the timer', (WidgetTester tester) async {
       agentState.startFetchingStateUpdates();
       final Timer refreshTimer = agentState.refreshTimer;
 
@@ -70,8 +66,7 @@ void main() {
       agentState.dispose();
     });
 
-    testWidgets('fetching agents error should not delete previous data',
-        (WidgetTester tester) async {
+    testWidgets('fetching agents error should not delete previous data', (WidgetTester tester) async {
       agentState.startFetchingStateUpdates();
 
       // Periodic timers don't necessarily run at the same time in each interval.
@@ -79,24 +74,21 @@ void main() {
       await tester.pump(agentState.refreshRate * 2);
       final List<Agent> originalData = agentState.agents;
 
-      when(mockService.fetchAgentStatuses()).thenAnswer((_) =>
-          Future<CocoonResponse<List<Agent>>>.value(
-              CocoonResponse<List<Agent>>()..error = 'error'));
+      when(mockService.fetchAgentStatuses())
+          .thenAnswer((_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..error = 'error'));
 
       await tester.pump(agentState.refreshRate * 2);
       verify(mockService.fetchAgentStatuses()).called(greaterThan(1));
 
       expect(agentState.agents, originalData);
-      expect(
-          agentState.errors.message, AgentState.errorMessageFetchingStatuses);
+      expect(agentState.errors.message, AgentState.errorMessageFetchingStatuses);
 
       // Tear down fails to cancel the timer before the test is over
       agentState.dispose();
     });
 
     test('authorize agent calls cocoon service', () async {
-      when(mockService.authorizeAgent(any, any))
-          .thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
+      when(mockService.authorizeAgent(any, any)).thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
       verifyNever(mockService.authorizeAgent(any, any));
 
       await agentState.authorizeAgent(Agent());
