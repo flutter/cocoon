@@ -10,4 +10,5 @@ import "lib/src/model/proto/internal/stage.proto";
 message CommitStatus {
     optional Commit commit = 1;
     repeated Stage stages = 2;
+    optional string branch = 3;
 }

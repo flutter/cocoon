@@ -26,6 +26,7 @@ const String jsonGetStatsResponse = '''
           "Checklist": {
             "Key": "iamatestkey", 
             "Checklist": {
+              "Branch": "master",
               "FlutterRepositoryPath": "flutter/cocoon", 
               "CreateTimestamp": 123456789, 
               "Commit": {
@@ -133,6 +134,7 @@ void main() {
           await service.fetchCommitStatuses();
 
       final CommitStatus expectedStatus = CommitStatus()
+        ..branch = 'master'
         ..commit = (Commit()
           ..timestamp = Int64(123456789)
           ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
