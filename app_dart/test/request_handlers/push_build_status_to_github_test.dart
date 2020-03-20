@@ -20,8 +20,15 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_build_status_provider.dart';
+import '../src/service/fake_github_service.dart';
+
+const String branchRegExp = '''
+      master
+      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
+      ''';
 
 void main() {
   group('PushBuildStatusToGithub', () {
@@ -35,6 +42,33 @@ void main() {
     ApiRequestHandlerTester tester;
     PushBuildStatusToGithub handler;
     FakeTabledataResourceApi tabledataResourceApi;
+    FakeHttpClient branchHttpClient;
+    List<int> githubPullRequestsMaster;
+    List<int> githubPullRequestsOther;
+    List<String> githubBranches;
+
+    List<PullRequest> pullRequestList(String branch) {
+      final List<PullRequest> pullRequests = <PullRequest>[];
+      for (int pr in (branch == 'master')
+          ? githubPullRequestsMaster
+          : githubPullRequestsOther) {
+        pullRequests.add(PullRequest()
+          ..number = pr
+          ..head = (PullRequestHead()..sha = pr.toString()));
+      }
+      return pullRequests;
+    }
+
+    Stream<Branch> branchStream() async* {
+      for (String branchName in githubBranches) {
+        final CommitDataUser author = CommitDataUser('a', 1, 'b');
+        final GitCommit gitCommit = GitCommit();
+        final CommitData commitData = CommitData('sha', gitCommit, 'test',
+            'test', 'test', author, author, <Map<String, dynamic>>[]);
+        final Branch branch = Branch(branchName, commitData);
+        yield branch;
+      }
+    }
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -42,7 +76,11 @@ void main() {
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       buildStatusProvider = FakeBuildStatusProvider();
       tabledataResourceApi = FakeTabledataResourceApi();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
+      branchHttpClient = FakeHttpClient();
+      final FakeGithubService githubService = FakeGithubService();
+      config = FakeConfig(
+          tabledataResourceApi: tabledataResourceApi,
+          githubService: githubService);
       db = FakeDatastoreDB();
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
@@ -52,7 +90,15 @@ void main() {
         datastoreProvider: () => DatastoreService(db: db),
         loggingProvider: () => log,
         buildStatusProvider: buildStatusProvider,
+        branchHttpClientProvider: () => branchHttpClient,
+        gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
+
+      githubPullRequestsMaster = <int>[];
+      githubPullRequestsOther = <int>[];
+      githubService.listPullRequestsBranch = (String branch) {
+        return pullRequestList(branch);
+      };
     });
 
     group('in development environment', () {
@@ -78,7 +124,6 @@ void main() {
       MockGitHub github;
       MockPullRequestsService pullRequestsService;
       MockRepositoriesService repositoriesService;
-      List<PullRequest> prsFromGitHub;
 
       setUp(() {
         github = MockGitHub();
@@ -86,8 +131,9 @@ void main() {
         repositoriesService = MockRepositoriesService();
         when(github.pullRequests).thenReturn(pullRequestsService);
         when(github.repositories).thenReturn(repositoriesService);
-        when(pullRequestsService.list(any)).thenAnswer((Invocation _) {
-          return Stream<PullRequest>.fromIterable(prsFromGitHub);
+        const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+        when(repositoriesService.listBranches(slug)).thenAnswer((_) {
+          return branchStream();
         });
         config.githubClient = github;
         clientContext.isDevelopmentEnvironment = false;
@@ -120,8 +166,9 @@ void main() {
         });
 
         test('if there are no PRs', () async {
-          prsFromGitHub = <PullRequest>[];
+          githubBranches = <String>['master'];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           final TableDataList tableDataList =
               await tabledataResourceApi.list('test', 'test', 'test');
@@ -134,15 +181,34 @@ void main() {
         });
 
         test('if status has not changed since last update', () async {
-          final PullRequest pr = newPullRequest(id: 123, sha: 'abc');
-          prsFromGitHub = <PullRequest>[pr];
+          githubPullRequestsMaster = <int>[1];
+          final PullRequest pr = newPullRequest(id: 1, sha: '1');
+          githubBranches = <String>['master'];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.succeeded);
           db.values[status.key] = status;
+          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        });
+
+        test('if there is no pr found for a targeted branch', () async {
+          githubPullRequestsMaster = <int>[1];
+          final PullRequest pr = newPullRequest(id: 1, sha: '1');
+          githubBranches = <String>['flutter-0.0-candidate.0'];
+          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.failed);
+          db.values[status.key] = status;
+          branchHttpClient.request.response.body = branchRegExp;
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(status.status, BuildStatus.failed.githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
@@ -150,12 +216,14 @@ void main() {
 
       group('updates GitHub and datastore', () {
         test('if status has changed since last update', () async {
-          final PullRequest pr = newPullRequest(id: 123, sha: 'abc');
-          prsFromGitHub = <PullRequest>[pr];
+          githubPullRequestsOther = <int>[1];
+          final PullRequest pr = newPullRequest(id: 1, sha: '1');
+          githubBranches = <String>['flutter-0.0-candidate.0'];
           buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
+          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);

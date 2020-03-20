@@ -13,12 +13,14 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
+import '../service/github_service.dart';
 
 @immutable
 class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
@@ -28,79 +30,95 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting LoggingProvider loggingProvider,
     @visibleForTesting BuildStatusProvider buildStatusProvider,
+    @visibleForTesting
+        this.branchHttpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : datastoreProvider =
             datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
         buildStatusProvider =
             buildStatusProvider ?? const BuildStatusProvider(),
+        assert(branchHttpClientProvider != null),
+        assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final LoggingProvider loggingProvider;
   final BuildStatusProvider buildStatusProvider;
+  final HttpClientProvider branchHttpClientProvider;
+  final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider();
-
+    final GithubService githubService = await config.createGithubService();
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
     }
 
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final BuildStatus buildStatus =
-        await buildStatusProvider.calculateCumulativeStatus();
-    final GitHub github = await config.createGitHubClient();
-    final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    log.debug('Computed build result of $buildStatus');
 
-    // Insert build status to bigquery.
-    await _insertBigquery(buildStatus);
+    final List<Branch> branches = await getBranches(
+        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
+    for (Branch branch in branches) {
+      final BuildStatus buildStatus = await buildStatusProvider
+          .calculateCumulativeStatus(branch: branch.name);
+      final GitHub github = await config.createGitHubClient();
+      final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
+      log.debug('Computed build result of $buildStatus');
 
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
-      final GithubBuildStatusUpdate update =
-          await datastore.queryLastStatusUpdate(slug, pr);
+      // Insert build status to bigquery.
+      await _insertBigquery(buildStatus, branch.name);
 
-      if (update.status != buildStatus.githubStatus) {
-        log.debug(
-            'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
-        final CreateStatus request = CreateStatus(buildStatus.githubStatus);
-        request.targetUrl = 'https://flutter-dashboard.appspot.com/build.html';
-        request.context = 'flutter-build';
-        if (buildStatus != BuildStatus.succeeded) {
-          request.description =
-              'Flutter build is currently broken. Please do not merge this '
-              'PR unless it contains a fix to the broken build.';
-        }
+      final List<PullRequest> pullRequests =
+          await githubService.listPullRequests(slug, branch.name);
+      for (PullRequest pr in pullRequests) {
+        final GithubBuildStatusUpdate update =
+            await datastore.queryLastStatusUpdate(slug, pr);
 
-        try {
-          await github.repositories.createStatus(slug, pr.head.sha, request);
-          update.status = buildStatus.githubStatus;
-          update.updates += 1;
-          updates.add(update);
-        } catch (error) {
-          log.error(
-              'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+        if (update.status != buildStatus.githubStatus) {
+          log.debug(
+              'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
+          final CreateStatus request = CreateStatus(buildStatus.githubStatus);
+          request.targetUrl =
+              'https://flutter-dashboard.appspot.com/build.html';
+          request.context = 'flutter-build';
+          if (buildStatus != BuildStatus.succeeded) {
+            request.description =
+                'Flutter build is currently broken. Please do not merge this '
+                'PR unless it contains a fix to the broken build.';
+          }
+
+          try {
+            await github.repositories.createStatus(slug, pr.head.sha, request);
+            update.status = buildStatus.githubStatus;
+            update.updates += 1;
+            updates.add(update);
+          } catch (error) {
+            log.error(
+                'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          }
         }
       }
-    }
 
-    final int maxEntityGroups = config.maxEntityGroups;
-    for (int i = 0; i < updates.length; i += maxEntityGroups) {
-      await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(
-            inserts: updates.skip(i).take(maxEntityGroups).toList());
-        await transaction.commit();
-      });
+      final int maxEntityGroups = config.maxEntityGroups;
+      for (int i = 0; i < updates.length; i += maxEntityGroups) {
+        await datastore.db
+            .withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(
+              inserts: updates.skip(i).take(maxEntityGroups).toList());
+          await transaction.commit();
+        });
+      }
+      log.debug('Committed all updates');
     }
-    log.debug('Committed all updates');
 
     return Body.empty;
   }
 
-  Future<void> _insertBigquery(BuildStatus buildStatus) async {
+  Future<void> _insertBigquery(BuildStatus buildStatus, String branch) async {
     // Define const variables for [BigQuery] operations.
     const String projectId = 'flutter-dashboard';
     const String dataset = 'cocoon';
@@ -114,6 +132,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       'json': <String, Object>{
         'Timestamp': DateTime.now().millisecondsSinceEpoch,
         'Status': buildStatus.value,
+        'Branch': branch,
       },
     });
 
