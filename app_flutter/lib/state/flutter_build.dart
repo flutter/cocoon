@@ -304,7 +304,6 @@ class FlutterBuildState extends ChangeNotifier {
     return true;
   }
 
-
   /// Check if the latest [List<CommitStatus>] matches the current branch.
   ///
   /// When switching branches, there is potential for the previous branch data
