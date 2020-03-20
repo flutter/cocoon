@@ -11,7 +11,7 @@ import 'index_page.dart';
 
 /// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer();
+  const NavigationDrawer({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

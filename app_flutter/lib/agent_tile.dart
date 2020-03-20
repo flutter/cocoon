@@ -17,7 +17,11 @@ import 'state/agent.dart';
 /// Offers the ability to view the agent raw health details, re-authorize the
 /// agent, and attempt to reserve a task for the agent.
 class AgentTile extends StatelessWidget {
-  const AgentTile({this.fullAgent, this.agentState, Key key}) : super(key: key);
+  const AgentTile({
+    Key key,
+    this.fullAgent,
+    this.agentState,
+  }) : super(key: key);
 
   final AgentState agentState;
 

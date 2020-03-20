@@ -19,8 +19,10 @@ import 'status_grid.dart';
 /// for the author of this commit. Clicking outside of the [OverlayEntry]
 /// will close it.
 class CommitBox extends StatefulWidget {
-  const CommitBox({Key key, @required this.commit})
-      : assert(commit != null),
+  const CommitBox({
+    Key key,
+    @required this.commit,
+  })  : assert(commit != null),
         super(key: key);
 
   /// The commit being shown

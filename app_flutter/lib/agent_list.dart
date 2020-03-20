@@ -16,11 +16,12 @@ import 'state/agent.dart';
 /// Sorts this list to show unhealthy agents first.
 class AgentList extends StatefulWidget {
   const AgentList({
+    Key key,
     this.agents,
     this.agentState,
     this.agentFilter,
     @visibleForTesting this.insertKeys = false,
-  });
+  }) : super(key: key);
 
   /// All known agents that can be shown.
   final List<Agent> agents;

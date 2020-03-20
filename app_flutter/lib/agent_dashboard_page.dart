@@ -15,7 +15,6 @@ import 'state/agent.dart';
 /// [AgentDashboardPage] parent widget that manages the state of the dashboard.
 class AgentDashboardPage extends StatefulWidget {
   // TODO(ianh): there's a number of problems with the design here
-  // - the widget doesn't have a key argument
   // - the widget itself (as opposed to its State) has state (it creates an AgentState)
   // - the State doesn't handle the widget's agentState property changing dynamically
   // - the State doesn't handle the case of the signInService changing dynamically
@@ -26,10 +25,12 @@ class AgentDashboardPage extends StatefulWidget {
   // tree and using inherited widgets to get at it.
 
   AgentDashboardPage({
+    Key key,
     AgentState agentState,
     GoogleSignInService signInService,
     @visibleForTesting this.agentFilter,
-  }) : agentState = agentState ?? AgentState(authServiceValue: signInService);
+  })  : agentState = agentState ?? AgentState(authServiceValue: signInService),
+        super(key: key);
 
   static const String routeName = '/agents';
 
@@ -104,10 +105,11 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 /// with [agentId] that contains [agentFilter]. Otherwise, all agents are shown.
 class AgentDashboard extends StatelessWidget {
   const AgentDashboard({
+    Key key,
     this.scaffoldKey,
     this.agentState,
     this.agentFilter,
-  });
+  }) : super(key: key);
 
   final GlobalKey<ScaffoldState> scaffoldKey;
   final AgentState agentState;
@@ -173,7 +175,10 @@ class AgentDashboard extends StatelessWidget {
 /// User must input an agent id and a list of capabilities to create an agent.
 /// Capabilities are inputted as a comma delimited list.
 class CreateAgentDialog extends StatefulWidget {
-  const CreateAgentDialog({this.agentState});
+  const CreateAgentDialog({
+    Key key,
+    this.agentState,
+  }) : super(key: key);
 
   final AgentState agentState;
 

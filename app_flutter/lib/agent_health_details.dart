@@ -104,7 +104,10 @@ class AgentHealthDetails {
 
 /// An icon bar to display information from [AgentHealthDetails].
 class AgentHealthDetailsBar extends StatelessWidget {
-  const AgentHealthDetailsBar(this.healthDetails);
+  const AgentHealthDetailsBar(
+    this.healthDetails, {
+    Key key,
+  }) : super(key: key);
 
   final AgentHealthDetails healthDetails;
 

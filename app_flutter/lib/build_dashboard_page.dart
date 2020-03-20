@@ -14,7 +14,6 @@ import 'status_grid.dart';
 /// [BuildDashboard] parent widget that manages the state of the dashboard.
 class BuildDashboardPage extends StatefulWidget {
   // TODO(ianh): there's a number of problems with the design here
-  // - the widget doesn't have a key argument
   // - the widget itself (as opposed to its State) has state (it creates an FlutterBuildState)
   // - the State doesn't handle the widget's buildState property changing dynamically
   // - the State doesn't handle the case of the signInService changing dynamically
@@ -25,9 +24,11 @@ class BuildDashboardPage extends StatefulWidget {
   // tree and using inherited widgets to get at it.
 
   BuildDashboardPage({
+    Key key,
     FlutterBuildState buildState,
     GoogleSignInService signInService,
-  }) : buildState = buildState ?? FlutterBuildState(authServiceValue: signInService);
+  })  : buildState = buildState ?? FlutterBuildState(authServiceValue: signInService),
+        super(key: key);
 
   static const String routeName = '/build';
 
@@ -90,7 +91,10 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
 /// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
 class BuildDashboard extends StatelessWidget {
-  const BuildDashboard({this.scaffoldKey});
+  const BuildDashboard({
+    Key key,
+    this.scaffoldKey,
+  }) : super(key: key);
 
   final GlobalKey<ScaffoldState> scaffoldKey;
 

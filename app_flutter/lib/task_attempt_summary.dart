@@ -16,7 +16,10 @@ import 'package:url_launcher/url_launcher.dart';
 // TODO(chillers): Add more information to Task entity so we can show more
 // information here. https://github.com/flutter/flutter/issues/47018
 class TaskAttemptSummary extends StatelessWidget {
-  const TaskAttemptSummary({this.task});
+  const TaskAttemptSummary({
+    Key key,
+    this.task,
+  }) : super(key: key);
 
   /// The task to show information from.
   final Task task;
