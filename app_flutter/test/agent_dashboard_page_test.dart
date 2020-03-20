@@ -17,6 +17,9 @@ import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/agent.dart';
+import 'package:app_flutter/state/brooks.dart';
+
+import 'utils/output.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
@@ -77,14 +80,25 @@ void main() {
     await tester.tap(find.text('Create Agent'));
     await tester.pump();
 
-    await tester.tap(find.text('Create'));
-    await tester.pump();
+    await checkOutput(
+      block: () async {
+        await tester.tap(find.text('Create'));
+        await tester.pump();
+      },
+      output: <String>[
+        ': abc123',
+        'Capabilities: []',
+      ],
+    );
 
     verify(mockCocoonService.createAgent(any, any, any)).called(1);
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
     final FakeAgentState agentState = FakeAgentState();
+
+    String lastError;
+    agentState.errors.addListener((String message) => lastError = message);
 
     final AgentDashboardPage buildDashboardPage = AgentDashboardPage(agentState: agentState);
     await tester.pumpWidget(
@@ -93,23 +107,29 @@ void main() {
       ),
     );
 
-    expect(find.text(agentState.errors.message), findsNothing);
+    expect(find.text(lastError), findsNothing);
 
     // propagate the error message
-    agentState.errors.message = 'ERROR';
-    agentState.errors.notifyListeners();
+    await checkOutput(
+      block: () async {
+        agentState.errors.send('ERROR');
+      },
+      output: <String>[
+        'ERROR',
+      ],
+    );
     await tester.pump();
 
     await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
-    expect(find.text(agentState.errors.message), findsOneWidget);
+    expect(find.text(lastError), findsOneWidget);
 
     // Snackbar message should go away after its duration
     await tester.pump(AgentDashboardPage.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(find.text(agentState.errors.message), findsNothing);
+    expect(find.text(lastError), findsNothing);
   });
 
   testWidgets('agent filter is passed to agent list', (WidgetTester tester) async {
@@ -136,7 +156,7 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
   GoogleSignInService authService = MockSignInService();
 
   @override
-  AgentStateErrors errors = AgentStateErrors();
+  final ErrorSink errors = ErrorSink();
 
   @override
   Duration get refreshRate => null;

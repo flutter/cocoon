@@ -14,6 +14,17 @@ import 'state/agent.dart';
 
 /// [AgentDashboardPage] parent widget that manages the state of the dashboard.
 class AgentDashboardPage extends StatefulWidget {
+  // TODO(ianh): there's a number of problems with the design here
+  // - the widget doesn't have a key argument
+  // - the widget itself (as opposed to its State) has state (it creates an AgentState)
+  // - the State doesn't handle the widget's agentState property changing dynamically
+  // - the State doesn't handle the case of the signInService changing dynamically
+  // - the State caches the agentState from the widget, leading to a two-sources-of-truth situation
+  // - the State causes the AgentState to start donig its updates, rather than just subscribing
+  //   and letting the AgentState logic determine whether it has clients and should be live
+  // We could probably solve most of these problems by moving all the app state out of the widget
+  // tree and using inherited widgets to get at it.
+
   AgentDashboardPage({
     AgentState agentState,
     GoogleSignInService signInService,
@@ -63,12 +74,12 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
     );
   }
 
-  void _showErrorSnackbar() {
+  void _showErrorSnackbar(String error) {
     final Row snackbarContent = Row(
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),
-        Text(agentState.errors.message),
+        Text(error),
       ],
     );
     _scaffoldKey.currentState.showSnackBar(
@@ -239,8 +250,8 @@ class _CreateAgentDialogState extends State<CreateAgentDialog> {
     final String token = await widget.agentState.createAgent(id, capabilities);
 
     // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020
-    print('$id: $token');
-    print('Capabilities: $capabilities');
+    debugPrint('$id: $token');
+    debugPrint('Capabilities: $capabilities');
 
     Navigator.pop(context);
   }

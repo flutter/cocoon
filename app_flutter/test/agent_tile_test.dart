@@ -14,6 +14,8 @@ import 'package:app_flutter/agent_list.dart';
 import 'package:app_flutter/agent_tile.dart';
 import 'package:app_flutter/state/agent.dart';
 
+import 'utils/output.dart';
+
 void main() {
   group('AgentTile', () {
     final Agent agent = Agent()
@@ -63,8 +65,24 @@ able-to-perform-health-check: succeeded''';
 
       expect(find.text('Raw health details'), findsOneWidget);
 
-      await tester.tap(find.text('Raw health details'));
-      await tester.pump();
+      await checkOutput(
+        block: () async {
+          await tester.tap(find.text('Raw health details'));
+          await tester.pump();
+        },
+        output: <String>[
+          'health details: ssh-connectivity: succeeded',
+          '    Last known IP address: 192.168.1.29',
+          '',
+          'android-device-ZY223D6B7B: succeeded',
+          'has-healthy-devices: succeeded',
+          '    Found 1 healthy devices',
+          '',
+          'cocoon-authentication: succeeded',
+          'cocoon-connection: succeeded',
+          'able-to-perform-health-check: succeeded',
+        ],
+      );
 
       expect(find.byType(SimpleDialog), findsOneWidget);
       expect(find.text(agent.healthDetails), findsOneWidget);

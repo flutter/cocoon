@@ -1,7 +1,6 @@
 # To be kept in sync with https://github.com/flutter/flutter/blob/master/analysis_options.yaml
 # We don't set `implicit-casts: false` because of JSON code that we'll migrate with NNBD.
 # We remove the exclusions since they don't apply here.
-# We should set `avoid_print` once we fix the TODOs regarding copying stuff to the clipboard.
 
 analyzer:
   strong-mode:
@@ -46,7 +45,7 @@ linter:
     # - avoid_js_rounded_ints # only useful when targeting JS runtime
     - avoid_null_checks_in_equality_operators
     # - avoid_positional_boolean_parameters # not yet tested
-    # - avoid_print
+    - avoid_print
     # - avoid_private_typedef_functions # we prefer having typedef (discussion in https://github.com/flutter/flutter/pull/16356)
     # - avoid_redundant_argument_values # not yet tested
     - avoid_relative_lib_imports

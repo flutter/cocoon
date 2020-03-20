@@ -12,6 +12,7 @@ import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
 import 'utils/fake_flutter_build.dart';
+import 'utils/output.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
@@ -75,27 +76,35 @@ void main() {
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
-    final FakeFlutterBuildState buildState = FakeFlutterBuildState();
+    String lastError;
+    final FakeFlutterBuildState buildState = FakeFlutterBuildState()
+      ..errors.addListener((String message) => lastError = message);
 
     final BuildDashboardPage buildDashboardPage = BuildDashboardPage(buildState: buildState);
     await tester.pumpWidget(MaterialApp(home: buildDashboardPage));
 
-    expect(find.text(buildState.errors.message), findsNothing);
+    expect(find.text(lastError), findsNothing);
 
     // propagate the error message
-    buildState.errors.message = 'ERROR';
-    buildState.errors.notifyListeners();
+    await checkOutput(
+      block: () async {
+        buildState.errors.send('ERROR');
+      },
+      output: <String>[
+        'ERROR',
+      ],
+    );
     await tester.pump();
 
     await tester.pump(const Duration(milliseconds: 750)); // open animation for snackbar
 
-    expect(find.text(buildState.errors.message), findsOneWidget);
+    expect(find.text(lastError), findsOneWidget);
 
     // Snackbar message should go away after its duration
     await tester.pump(BuildDashboardPage.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(find.text(buildState.errors.message), findsNothing);
+    expect(find.text(lastError), findsNothing);
   });
 }

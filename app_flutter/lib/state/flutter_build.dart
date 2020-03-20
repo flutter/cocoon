@@ -10,6 +10,7 @@ import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, 
 
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
+import 'brooks.dart';
 
 /// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
@@ -53,8 +54,9 @@ class FlutterBuildState extends ChangeNotifier {
   final String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
 
-  /// A [ChangeNotifer] for knowing when errors occur that relate to this [FlutterBuildState].
-  FlutterBuildStateErrors errors = FlutterBuildStateErrors();
+  /// A [Brook] that reports when errors occur that relate to this [FlutterBuildState].
+  Brook<String> get errors => _errors;
+  final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
   static const String errorMessageFetchingStatuses = 'An error occured fetching build statuses from Cocoon';
@@ -90,10 +92,7 @@ class FlutterBuildState extends ChangeNotifier {
       )
           .then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
-          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-          print(response.error);
-          errors.message = errorMessageFetchingStatuses;
-          errors.notifyListeners();
+          _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
           _mergeRecentCommitStatusesWithStoredStatuses(response.data);
         }
@@ -105,10 +104,7 @@ class FlutterBuildState extends ChangeNotifier {
       )
           .then((CocoonResponse<bool> response) {
         if (response.error != null) {
-          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-          print(response.error);
-          errors.message = errorMessageFetchingTreeStatus;
-          errors.notifyListeners();
+          _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
         } else {
           _isTreeBuilding = response.data;
         }
@@ -120,10 +116,7 @@ class FlutterBuildState extends ChangeNotifier {
   Future<List<String>> _fetchFlutterBranches() async {
     return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
-        // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-        print(response.error);
-        errors.message = errorMessageFetchingBranches;
-        errors.notifyListeners();
+        _errors.send('$errorMessageFetchingBranches: ${response.error}');
       }
 
       return response.data;
@@ -216,10 +209,7 @@ class FlutterBuildState extends ChangeNotifier {
       lastCommitStatus: _statuses.last,
     );
     if (response.error != null) {
-      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-      print(response.error);
-      errors.message = errorMessageFetchingStatuses;
-      errors.notifyListeners();
+      _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
     }
 
@@ -281,8 +271,4 @@ class FlutterBuildState extends ChangeNotifier {
 
     return true;
   }
-}
-
-class FlutterBuildStateErrors extends ChangeNotifier {
-  String message;
 }

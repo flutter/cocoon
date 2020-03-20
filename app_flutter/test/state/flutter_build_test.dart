@@ -15,18 +15,22 @@ import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
+import '../utils/output.dart';
+
 void main() {
   const String _defaultBranch = 'master';
 
   group('FlutterBuildState', () {
     FlutterBuildState buildState;
     MockCocoonService mockService;
+    String lastError;
 
     CommitStatus setupCommitStatus;
 
     setUp(() {
       mockService = MockCocoonService();
-      buildState = FlutterBuildState(cocoonServiceValue: mockService);
+      buildState = FlutterBuildState(cocoonServiceValue: mockService)
+        ..errors.addListener((String message) => lastError = message);
 
       setupCommitStatus = _createCommitStatusWithKey('setup');
 
@@ -93,11 +97,18 @@ void main() {
       when(mockService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(CocoonResponse<List<CommitStatus>>()..error = 'error'));
 
-      await tester.pump(buildState.refreshRate * 2);
+      await checkOutput(
+        block: () async {
+          await tester.pump(buildState.refreshRate);
+        },
+        output: <String>[
+          'An error occured fetching build statuses from Cocoon: error',
+        ],
+      );
       verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.statuses, originalData);
-      expect(buildState.errors.message, FlutterBuildState.errorMessageFetchingStatuses);
+      expect(lastError, startsWith(FlutterBuildState.errorMessageFetchingStatuses));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
@@ -114,11 +125,18 @@ void main() {
       when(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
           .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..error = 'error'));
 
-      await tester.pump(buildState.refreshRate * 2);
+      await checkOutput(
+        block: () async {
+          await tester.pump(buildState.refreshRate);
+        },
+        output: <String>[
+          'An error occured fetching tree status from Cocoon: error',
+        ],
+      );
       verify(mockService.fetchTreeBuildStatus(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.isTreeBuilding, originalData);
-      expect(buildState.errors.message, FlutterBuildState.errorMessageFetchingTreeStatus);
+      expect(lastError, startsWith(FlutterBuildState.errorMessageFetchingTreeStatus));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
