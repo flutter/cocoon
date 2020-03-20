@@ -141,7 +141,7 @@ class BuildDashboard extends StatelessWidget {
                     child: Text(value, style: TextStyle(color: Colors.black)),
                   );
                 }).toList()),
-            Container(width: 10), // Padding between branches and sign in
+            const SizedBox(width: 10), // Padding between branches and sign in
             SignInButton(authService: buildState.authService),
           ],
         ),
