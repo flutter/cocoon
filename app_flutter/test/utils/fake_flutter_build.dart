@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 
 import 'package:app_flutter/service/google_authentication.dart';
+import 'package:app_flutter/state/brooks.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
 class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState {
@@ -19,7 +20,7 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
   Timer refreshTimer;
 
   @override
-  FlutterBuildStateErrors errors = FlutterBuildStateErrors();
+  final ErrorSink errors = ErrorSink();
 
   @override
   bool isTreeBuilding;

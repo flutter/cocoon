@@ -9,6 +9,8 @@ import 'package:flutter/foundation.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 
+import 'brooks.dart';
+
 /// State for the index page
 class IndexState extends ChangeNotifier {
   /// Creates a new [FlutterBuildState].
@@ -23,13 +25,12 @@ class IndexState extends ChangeNotifier {
   /// Authentication service for managing Google Sign In.
   GoogleSignInService authService;
 
-  /// A [ChangeNotifer] for knowing when errors occur that relate to this [IndexState].
-  IndexStateErrors errors = IndexStateErrors();
+  /// A [Brook] that reports when errors occur that relate to this [IndexState].
+  ///
+  /// Currently no errors are ever reported here.
+  Brook<String> get errors => _errors;
+  final ErrorSink _errors = ErrorSink();
 
   Future<void> signIn() => authService.signIn();
   Future<void> signOut() => authService.signOut();
-}
-
-class IndexStateErrors extends ChangeNotifier {
-  String message;
 }

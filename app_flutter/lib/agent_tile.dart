@@ -103,7 +103,7 @@ class AgentTile extends StatelessWidget {
 
   void _showHealthDetailsDialog(BuildContext context, String rawHealthDetails) {
     // TODO(chillers): Add copy button when web has support. https://github.com/flutter/flutter/issues/46020
-    print(rawHealthDetails);
+    debugPrint('health details: $rawHealthDetails');
 
     showDialog<SimpleDialog>(
       context: context,
@@ -126,7 +126,7 @@ class AgentTile extends StatelessWidget {
     final String token = await agentState.authorizeAgent(agent);
     if (token != null) {
       // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020
-      print(token);
+      debugPrint('token: $token');
 
       Scaffold.of(context).showSnackBar(const SnackBar(
         content: Text('Check console for token'),

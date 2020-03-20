@@ -11,6 +11,8 @@ import 'package:cocoon_service/protos.dart' show Agent;
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 
+import 'brooks.dart';
+
 /// State for the agents in Flutter infra.
 class AgentState extends ChangeNotifier {
   /// Creates a new [AgentState].
@@ -42,8 +44,9 @@ class AgentState extends ChangeNotifier {
   List<Agent> _agents = <Agent>[];
   List<Agent> get agents => _agents;
 
-  /// A [ChangeNotifer] for knowing when errors occur that relate to this [AgentState].
-  AgentStateErrors errors = AgentStateErrors();
+  /// A [Brook] that reports when errors occur that relate to this [AgentState].
+  Brook<String> get errors => _errors;
+  final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
   static const String errorMessageFetchingStatuses = 'An error occured fetching agent statuses from Cocoon';
@@ -69,16 +72,13 @@ class AgentState extends ChangeNotifier {
 
   /// Request the latest agent statuses from [CocoonService].
   ///
-  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageFetchingStatuses].
   Future<void> _fetchAgentStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
         if (response.error != null) {
-          // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-          print(response.error);
-          errors.message = errorMessageFetchingStatuses;
-          errors.notifyListeners();
+          _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
           _agents = response.data;
         }
@@ -89,7 +89,7 @@ class AgentState extends ChangeNotifier {
 
   /// Create [Agent] in Cocoon.
   ///
-  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageCreatingAgent].
   Future<String> createAgent(String agentId, List<String> capabilities) async {
     final CocoonResponse<String> response = await _cocoonService.createAgent(
@@ -97,31 +97,21 @@ class AgentState extends ChangeNotifier {
       capabilities,
       await authService.idToken,
     );
-
     if (response.error != null) {
-      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-      print(response.error);
-      errors.message = errorMessageCreatingAgent;
-      errors.notifyListeners();
+      _errors.send('$errorMessageCreatingAgent: ${response.error}');
     }
-
     return response.data;
   }
 
   /// Generates a new access token for [agent].
   ///
-  /// If an error occurs, [AgentStateErrors] will be updated with
+  /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageAuthorizingAgent].
   Future<String> authorizeAgent(Agent agent) async {
     final CocoonResponse<String> response = await _cocoonService.authorizeAgent(agent, await authService.idToken);
-
     if (response.error != null) {
-      // TODO(ianh): log this to service and screen instead, https://github.com/flutter/flutter/issues/52697
-      print(response.error);
-      errors.message = errorMessageAuthorizingAgent;
-      errors.notifyListeners();
+      _errors.send('$errorMessageAuthorizingAgent: ${response.error}');
     }
-
     return response.data;
   }
 
@@ -139,8 +129,4 @@ class AgentState extends ChangeNotifier {
     refreshTimer?.cancel();
     super.dispose();
   }
-}
-
-class AgentStateErrors extends ChangeNotifier {
-  String message;
 }

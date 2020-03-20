@@ -12,6 +12,15 @@ import 'sign_in_button.dart';
 import 'state/index.dart';
 
 class IndexPage extends StatefulWidget {
+  // TODO(ianh): there's a number of problems with the design here
+  // - the widget doesn't have a key argument
+  // - the widget itself (as opposed to its State) has state (it creates an IndexState)
+  // - the State doesn't handle the widget's indexState property changing dynamically
+  // - the State doesn't handle the case of the signInService changing dynamically
+  // - the State caches the indexState from the widget, leading to a two-sources-of-truth situation
+  // We could probably solve most of these problems by moving all the app state out of the widget
+  // tree and using inherited widgets to get at it.
+
   IndexPage({IndexState indexState, GoogleSignInService signInService})
       : indexState = indexState ?? IndexState(authServiceValue: signInService);
 
@@ -33,26 +42,24 @@ class _IndexPageState extends State<IndexPage> {
   @override
   void initState() {
     super.initState();
-
     widget.indexState.errors.addListener(_showErrorSnackbar);
   }
 
   @override
   Widget build(BuildContext context) {
     indexState = widget.indexState;
-
     return ChangeNotifierProvider<IndexState>(
       create: (_) => indexState,
       child: Index(scaffoldKey: _scaffoldKey),
     );
   }
 
-  void _showErrorSnackbar() {
+  void _showErrorSnackbar(String error) {
     final Row snackbarContent = Row(
       children: <Widget>[
         const Icon(Icons.error),
         const SizedBox(width: 10),
-        Text(indexState.errors.message),
+        Text(error),
       ],
     );
     _scaffoldKey.currentState.showSnackBar(

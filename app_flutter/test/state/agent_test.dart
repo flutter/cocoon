@@ -14,16 +14,20 @@ import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/agent.dart';
 
+import '../utils/output.dart';
+
 void main() {
   group('AgentState', () {
     AgentState agentState;
     MockCocoonService mockService;
     MockGoogleSignInService mockSignInService;
+    String lastError;
 
     setUp(() {
       mockSignInService = MockGoogleSignInService();
       mockService = MockCocoonService();
-      agentState = AgentState(cocoonServiceValue: mockService, authServiceValue: mockSignInService);
+      agentState = AgentState(cocoonServiceValue: mockService, authServiceValue: mockSignInService)
+        ..errors.addListener((String message) => lastError = message);
 
       when(mockService.fetchAgentStatuses()).thenAnswer(
           (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
@@ -77,11 +81,18 @@ void main() {
       when(mockService.fetchAgentStatuses())
           .thenAnswer((_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..error = 'error'));
 
-      await tester.pump(agentState.refreshRate * 2);
-      verify(mockService.fetchAgentStatuses()).called(greaterThan(1));
+      await checkOutput(
+        block: () async {
+          await tester.pump(agentState.refreshRate);
+          verify(mockService.fetchAgentStatuses()).called(greaterThan(1));
+        },
+        output: <String>[
+          'An error occured fetching agent statuses from Cocoon: error',
+        ],
+      );
 
       expect(agentState.agents, originalData);
-      expect(agentState.errors.message, AgentState.errorMessageFetchingStatuses);
+      expect(lastError, startsWith(AgentState.errorMessageFetchingStatuses));
 
       // Tear down fails to cancel the timer before the test is over
       agentState.dispose();
