@@ -119,6 +119,29 @@ class BuildDashboard extends StatelessWidget {
           title: statusTable[buildState.isTreeBuilding],
           backgroundColor: colorTable[buildState.isTreeBuilding],
           actions: <Widget>[
+            DropdownButton<String>(
+                value: buildState.currentBranch,
+                icon: Icon(
+                  Icons.arrow_downward,
+                  color: Colors.white,
+                ),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.white),
+                underline: Container(
+                  height: 2,
+                  color: Colors.white,
+                ),
+                onChanged: (String branch) {
+                  buildState.updateCurrentBranch(branch);
+                },
+                items: buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(color: Colors.black)),
+                  );
+                }).toList()),
+            Container(width: 10), // Padding between branches and sign in
             SignInButton(authService: buildState.authService),
           ],
         ),
