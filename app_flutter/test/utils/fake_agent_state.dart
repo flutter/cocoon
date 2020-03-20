@@ -5,18 +5,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
+import 'package:app_flutter/state/agent.dart';
 import 'package:app_flutter/state/brooks.dart';
-import 'package:app_flutter/state/flutter_build.dart';
 
 import 'mocks.dart';
 
-class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState {
-  FakeFlutterBuildState({
+class FakeAgentState extends ChangeNotifier implements AgentState {
+  FakeAgentState({
     GoogleSignInService authService,
     CocoonService cocoonService,
   })  : authService = authService ?? MockGoogleSignInService(),
@@ -24,46 +25,36 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
 
   @override
   final GoogleSignInService authService;
-
   @override
   final CocoonService cocoonService;
-
-  @override
-  Timer refreshTimer;
 
   @override
   final ErrorSink errors = ErrorSink();
 
   @override
-  bool isTreeBuilding;
-
-  @override
   Duration get refreshRate => null;
 
   @override
-  Future<bool> rerunTask(Task task) => null;
+  List<Agent> agents = <Agent>[
+    // We have to have at least one otherwise our logic assumes we have not yet
+    // successfully fetched the agent list.
+    // TODO(ianh): fix the logic to handle receiving an empty list and distingush
+    // this from not yet having received any agents.
+    Agent(),
+  ];
 
   @override
-  Future<void> startFetchingUpdates() => null;
+  Future<String> authorizeAgent(Agent agent) async => 'abc123';
 
   @override
-  List<CommitStatus> statuses = <CommitStatus>[];
+  Future<String> createAgent(String agentId, List<String> capabilities) async => 'def456';
 
   @override
-  bool moreStatusesExist = true;
+  Future<void> reserveTask(Agent agent) => null;
 
   @override
-  Future<bool> downloadLog(Task task, Commit commit) => null;
+  Future<void> startFetchingStateUpdates() => null;
 
   @override
-  Future<void> fetchMoreCommitStatuses() => null;
-
-  @override
-  List<String> get branches => <String>['master'];
-
-  @override
-  String get currentBranch => 'master';
-
-  @override
-  Future<void> updateCurrentBranch(String branch) => throw UnimplementedError();
+  Timer refreshTimer;
 }

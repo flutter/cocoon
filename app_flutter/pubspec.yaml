@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 name: app_flutter
-description: A new Flutter project.
+description: The Flutter dashboard.
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -33,7 +33,7 @@ dependencies:
     path: ../app_dart
   flutter_progress_button: ^1.0.0
   google_sign_in: ^4.1.0
-  provider: ^3.0.0
+  provider: ^4.0.0
   url_launcher: ^5.4.1
 
 dev_dependencies:

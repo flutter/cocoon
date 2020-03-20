@@ -11,11 +11,13 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/agent_dashboard_page.dart';
-import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/task_attempt_summary.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:app_flutter/task_helper.dart';
+
+import 'utils/mocks.dart';
+import 'utils/wrapper.dart';
 
 void main() {
   group('TaskBox', () {
@@ -264,21 +266,24 @@ void main() {
     });
 
     testWidgets('devicelab agent button redirects to agent page', (WidgetTester tester) async {
+      // TODO(ianh): remove the navigator observer since we don't seem to use it
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: TaskBox(
-              buildState: buildState,
-              task: expectedTask,
-              commit: Commit(),
+        FakeInserter(
+          child: MaterialApp(
+            home: Scaffold(
+              body: TaskBox(
+                buildState: buildState,
+                task: expectedTask,
+                commit: Commit(),
+              ),
             ),
+            navigatorObservers: <NavigatorObserver>[navigatorObserver],
+            routes: <String, WidgetBuilder>{
+              AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
+            },
           ),
-          navigatorObservers: <NavigatorObserver>[navigatorObserver],
-          routes: <String, WidgetBuilder>{
-            AgentDashboardPage.routeName: (BuildContext context) => AgentDashboardPage(),
-          },
         ),
       );
 
@@ -288,13 +293,15 @@ void main() {
 
       await tester.tap(find.byType(TaskBox));
       await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       await tester.tap(find.text(expectedTask.reservedForAgentId));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Infra Agents'), findsOneWidget);
-      // Check that the agent is filtered correctly which tests if the route
-      // argument was passed correctly
+      // Check that the agent is filtered correctly, which tests if the route
+      // argument was parsed correctly.
       expect(find.text(expectedTask.reservedForAgentId), findsOneWidget);
     });
 
@@ -586,7 +593,10 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   await tester.pumpWidget(
     MaterialApp(
       home: TaskBox(
-        buildState: FlutterBuildState(),
+        buildState: FlutterBuildState(
+          authService: MockGoogleSignInService(),
+          cocoonService: MockCocoonService(),
+        ),
         task: Task()..status = message,
         commit: Commit(),
         insertColorKeys: true,
@@ -597,10 +607,6 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final SizedBox taskBoxWidget = find.byKey(Key(expectedColor.toString())).evaluate().first.widget as SizedBox;
   expect(taskBoxWidget, isNotNull);
 }
-
-class MockFlutterBuildState extends Mock implements FlutterBuildState {}
-
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}
 
 /// Class for testing interactions on [NavigatorObserver].
 class MockNavigatorObserver extends Mock implements NavigatorObserver {}

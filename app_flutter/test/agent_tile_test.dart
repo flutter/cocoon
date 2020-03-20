@@ -12,13 +12,14 @@ import 'package:cocoon_service/protos.dart' show Agent;
 import 'package:app_flutter/agent_health_details.dart';
 import 'package:app_flutter/agent_list.dart';
 import 'package:app_flutter/agent_tile.dart';
-import 'package:app_flutter/state/agent.dart';
 
+import 'utils/mocks.dart';
 import 'utils/output.dart';
 
 void main() {
   group('AgentTile', () {
     final Agent agent = Agent()
+      // TODO(ianh): here and in other files, remove dependency on DateTime.now since that can introduce flakes.
       ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
       ..isHealthy = true
       ..healthDetails = '''
@@ -153,5 +154,3 @@ able-to-perform-health-check: succeeded''';
     });
   });
 }
-
-class MockAgentState extends Mock implements AgentState {}

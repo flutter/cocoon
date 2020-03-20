@@ -5,7 +5,6 @@
 import 'dart:math';
 
 import 'package:fixnum/fixnum.dart';
-
 import 'package:cocoon_service/protos.dart';
 
 import 'cocoon.dart';
@@ -13,8 +12,8 @@ import 'cocoon.dart';
 /// [CocoonService] for local development purposes.
 ///
 /// This creates fake data that mimicks what production will send.
-class FakeCocoonService implements CocoonService {
-  FakeCocoonService({Random rand}) : random = rand ?? Random();
+class DevelopmentCocoonService implements CocoonService {
+  DevelopmentCocoonService({Random rand}) : random = rand ?? Random();
 
   final Random random;
 

@@ -9,39 +9,14 @@ import 'package:mockito/mockito.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/index.dart';
 
+import '../utils/mocks.dart';
+
 void main() {
-  group('IndexState', () {
-    IndexState indexState;
-    MockGoogleSignInService mockAuthService;
-
-    setUp(() {
-      mockAuthService = MockGoogleSignInService();
-      indexState = IndexState(authServiceValue: mockAuthService);
-    });
-
-    tearDown(() {
-      clearInteractions(mockAuthService);
-    });
-
-    testWidgets('auth functions forward to google sign in service', (WidgetTester tester) async {
-      verifyNever(mockAuthService.signIn());
-      verifyNever(mockAuthService.signOut());
-
-      await indexState.signIn();
-
-      verify(mockAuthService.signIn()).called(1);
-      verifyNever(mockAuthService.signOut());
-
-      await indexState.signOut();
-      verify(mockAuthService.signOut()).called(1);
-    });
-  });
-
-  testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
+  testWidgets('IndexState sign in functions call notify listener', (WidgetTester tester) async {
     final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
-    final IndexState indexState = IndexState(authServiceValue: signInService);
+    final IndexState indexState = IndexState(authService: signInService);
 
     int callCount = 0;
     indexState.addListener(() => callCount++);
@@ -50,15 +25,10 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     expect(callCount, 1);
 
-    await indexState.signIn();
+    await signInService.signIn();
     expect(callCount, 2);
 
-    await indexState.signOut();
+    await signInService.signOut();
     expect(callCount, 3);
   });
 }
-
-/// Mock for testing interactions with [GoogleSignInService].
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}
-
-class MockGoogleSignInPlugin extends Mock implements GoogleSignIn {}
