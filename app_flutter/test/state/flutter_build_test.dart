@@ -32,7 +32,7 @@ void main() {
       buildState = FlutterBuildState(cocoonServiceValue: mockService)
         ..errors.addListener((String message) => lastError = message);
 
-      setupCommitStatus = _createCommitStatusWithKey('setup');
+      setupCommitStatus = _createCommitStatus('setup');
 
       when(mockService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
@@ -149,7 +149,7 @@ void main() {
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
 
-      final CommitStatus statusA = _createCommitStatusWithKey('A');
+      final CommitStatus statusA = _createCommitStatus('A');
       when(mockService.fetchCommitStatuses(
               lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
           .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[statusA]);
@@ -161,18 +161,51 @@ void main() {
       await tester.pump(buildState.refreshRate);
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus, statusA]);
+      expect(buildState.moreStatusesExist, true);
+
+      buildState.dispose();
+    });
+
+    testWidgets('fetchMoreCommitStatuses returns empty stops fetching more', (WidgetTester tester) async {
+      buildState.startFetchingUpdates();
+
+      await untilCalled(mockService.fetchCommitStatuses(branch: anyNamed('branch')));
+
+      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+
+      when(mockService.fetchCommitStatuses(
+              lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
+          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]);
+
+      await buildState.fetchMoreCommitStatuses();
+
+      expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
+      expect(buildState.moreStatusesExist, false);
 
       buildState.dispose();
     });
 
     testWidgets('update branch resets build state data', (WidgetTester tester) async {
+      // Only return statuses when on master branch
+      when(mockService.fetchCommitStatuses(branch: 'master')).thenAnswer((_) =>
+          Future<CocoonResponse<List<CommitStatus>>>.value(
+              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
+      // Mark tree green on master, red on dev
+      when(mockService.fetchTreeBuildStatus(branch: 'master'))
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
+      when(mockService.fetchTreeBuildStatus(branch: 'dev'))
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = false));
       buildState.startFetchingUpdates();
-      await tester.pump(buildState.refreshRate);
 
-      buildState.updateCurrentBranch('dev');
+      await untilCalled(mockService.fetchCommitStatuses(branch: 'master'));
+      expect(buildState.statuses, isNotEmpty);
+      expect(buildState.isTreeBuilding, isNotNull);
+
+      // With mockito, the fetch requests for data will finish immediately
+      await buildState.updateCurrentBranch('dev');
 
       expect(buildState.statuses, isEmpty);
-      expect(buildState.isTreeBuilding, null);
+      expect(buildState.isTreeBuilding, false);
       expect(buildState.moreStatusesExist, true);
 
       buildState.dispose();
@@ -215,9 +248,12 @@ void main() {
   });
 }
 
-CommitStatus _createCommitStatusWithKey(String keyValue) {
+CommitStatus _createCommitStatus(
+  String keyValue, {
+  String branch = 'master',
+}) {
   return CommitStatus()
-    ..branch = 'master'
+    ..branch = branch
     ..commit = (Commit()
       // Author is set so we don't have to dig through all the nested fields
       // while debugging

@@ -114,9 +114,7 @@ class FlutterBuildState extends ChangeNotifier {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
-          if (_commitStatusesMatchCurrentBranch(response.data)) {
-            _mergeRecentCommitStatusesWithStoredStatuses(response.data);
-          }
+          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
         }
         notifyListeners();
       }),
@@ -142,19 +140,6 @@ class FlutterBuildState extends ChangeNotifier {
     });
   }
 
-  /// Check if the latest [List<CommitStatus>] matches the current branch.
-  ///
-  /// When switching branches, there is potential for the previous branch data
-  /// to come in. In that case, the dashboard should ignore that data.
-  ///
-  /// Returns true if [List<CommitStatus>] is data from the current branch.
-  bool _commitStatusesMatchCurrentBranch(List<CommitStatus> statuses) {
-    assert(statuses.isNotEmpty);
-
-    final CommitStatus exampleStatus = statuses.first;
-    return exampleStatus.branch == _currentBranch;
-  }
-
   /// Handle merging status updates with the current data in [statuses].
   ///
   /// [recentStatuses] is expected to be sorted from newest commit to oldest
@@ -172,6 +157,12 @@ class FlutterBuildState extends ChangeNotifier {
   void _mergeRecentCommitStatusesWithStoredStatuses(
     List<CommitStatus> recentStatuses,
   ) {
+    if (!_statusesMatchCurrentBranch(recentStatuses)) {
+      // Do not merge statueses if they are not from the current branch.
+      // Happens in delayed network requests after switching branches.
+      return;
+    }
+
     /// If the current statuses is empty, no merge logic is necessary.
     /// This is used on the first call for statuses.
     if (_statuses.isEmpty) {
@@ -311,5 +302,19 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     return true;
+  }
+
+
+  /// Check if the latest [List<CommitStatus>] matches the current branch.
+  ///
+  /// When switching branches, there is potential for the previous branch data
+  /// to come in. In that case, the dashboard should ignore that data.
+  ///
+  /// Returns true if [List<CommitStatus>] is data from the current branch.
+  bool _statusesMatchCurrentBranch(List<CommitStatus> statuses) {
+    assert(statuses.isNotEmpty);
+
+    final CommitStatus exampleStatus = statuses.first;
+    return exampleStatus.branch == _currentBranch;
   }
 }
