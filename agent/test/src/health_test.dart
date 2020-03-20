@@ -71,11 +71,7 @@ void main() {
       platform.FakePlatform pf = platform.FakePlatform()
         ..operatingSystem = "macos"
         ..environment = <String, String>{"HOME": "/foo"};
-      List<String> folders = <String>[
-        '/foo/.graddle',
-        '/foo/.dartServer',
-        '/foo/.pub-cache'
-      ];
+      List<String> folders = <String>['/foo/.graddle', '/foo/.dartServer'];
       for (String dir in folders) {
         fs.directory(dir)..createSync(recursive: true);
       }

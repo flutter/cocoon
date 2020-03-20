@@ -147,7 +147,7 @@ Future<HealthCheckResult> removeCachedData(
   if (home == null) {
     return HealthCheckResult.failure('Missing \$HOME environment variable.');
   }
-  List<String> cacheFolders = ['.graddle', '.dartServer', '.pub-cache'];
+  List<String> cacheFolders = ['.graddle', '.dartServer'];
   for (String folder in cacheFolders) {
     String folderPath = path.join(home, folder);
     rrm(fs.directory(folderPath));
