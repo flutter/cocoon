@@ -142,7 +142,7 @@ class BuildDashboard extends StatelessWidget {
                 items: buildState.branches.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value, style: TextStyle(color: Colors.black)),
+                    child: Text(value, style: const TextStyle(color: Colors.black)),
                   );
                 }).toList()),
             const SizedBox(width: 10), // Padding between branches and sign in
