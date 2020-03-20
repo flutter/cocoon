@@ -51,8 +51,16 @@ class FlutterBuildState extends ChangeNotifier {
   List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
 
-  final String _currentBranch = 'master';
+  /// The current flutter/flutter git branch to show data from.
+  String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
+
+  /// Whether more [List<CommitStatus>] can be loaded from Cocoon.
+  ///
+  /// If [fetchMoreCommitStatuses] returns no data, it is assumed the last
+  /// [CommitStatus] has been loaded.
+  bool get moreStatusesExist => _moreStatusesExist;
+  bool _moreStatusesExist = true;
 
   /// A [Brook] that reports when errors occur that relate to this [FlutterBuildState].
   Brook<String> get errors => _errors;
@@ -70,7 +78,7 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   Future<void> startFetchingUpdates() async {
-    if (refreshTimer != null) {
+    if (refreshTimer != null && refreshTimer.isActive) {
       // There's already an update loop, no need to make another.
       return;
     }
@@ -83,14 +91,26 @@ class FlutterBuildState extends ChangeNotifier {
     refreshTimer = Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
   }
 
+  /// Update build state to be on [branch] and erase previous branch data.
+  Future<void> updateCurrentBranch(String branch) async {
+    _currentBranch = branch;
+    _moreStatusesExist = true;
+    _isTreeBuilding = null;
+    _statuses = <CommitStatus>[];
+
+    /// Clear previous branch data from the widgets
+    notifyListeners();
+
+    /// To prevent delays, make an immediate request for dashboard data.
+    _fetchBuildStatusUpdate();
+  }
+
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
+  ///
+  /// If fetched [statuses] is not on the current branch it will be discarded.
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      _cocoonService
-          .fetchCommitStatuses(
-        branch: _currentBranch,
-      )
-          .then((CocoonResponse<List<CommitStatus>> response) {
+      _cocoonService.fetchCommitStatuses(branch: _currentBranch).then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
@@ -98,11 +118,7 @@ class FlutterBuildState extends ChangeNotifier {
         }
         notifyListeners();
       }),
-      _cocoonService
-          .fetchTreeBuildStatus(
-        branch: _currentBranch,
-      )
-          .then((CocoonResponse<bool> response) {
+      _cocoonService.fetchTreeBuildStatus(branch: _currentBranch).then((CocoonResponse<bool> response) {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
         } else {
@@ -113,6 +129,7 @@ class FlutterBuildState extends ChangeNotifier {
     ]);
   }
 
+  /// Request the latests [branches] from [CocoonService].
   Future<List<String>> _fetchFlutterBranches() async {
     return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
@@ -140,6 +157,12 @@ class FlutterBuildState extends ChangeNotifier {
   void _mergeRecentCommitStatusesWithStoredStatuses(
     List<CommitStatus> recentStatuses,
   ) {
+    if (!_statusesMatchCurrentBranch(recentStatuses)) {
+      // Do not merge statueses if they are not from the current branch.
+      // Happens in delayed network requests after switching branches.
+      return;
+    }
+
     /// If the current statuses is empty, no merge logic is necessary.
     /// This is used on the first call for statuses.
     if (_statuses.isEmpty) {
@@ -207,6 +230,7 @@ class FlutterBuildState extends ChangeNotifier {
 
     final CocoonResponse<List<CommitStatus>> response = await _cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
+      branch: _currentBranch,
     );
     if (response.error != null) {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
@@ -214,6 +238,14 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     final List<CommitStatus> newStatuses = response.data;
+
+    /// Handle the case where release branches only have a few commits.
+    if (newStatuses.isEmpty) {
+      _moreStatusesExist = false;
+      notifyListeners();
+      return;
+    }
+
     assert(_statusesInOrder(newStatuses));
 
     /// The [List<CommitStatus>] returned is the statuses that come at the end
@@ -270,5 +302,18 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     return true;
+  }
+
+  /// Check if the latest [List<CommitStatus>] matches the current branch.
+  ///
+  /// When switching branches, there is potential for the previous branch data
+  /// to come in. In that case, the dashboard should ignore that data.
+  ///
+  /// Returns true if [List<CommitStatus>] is data from the current branch.
+  bool _statusesMatchCurrentBranch(List<CommitStatus> statuses) {
+    assert(statuses.isNotEmpty);
+
+    final CommitStatus exampleStatus = statuses.first;
+    return exampleStatus.branch == _currentBranch;
   }
 }

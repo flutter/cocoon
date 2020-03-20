@@ -44,6 +44,9 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
   List<CommitStatus> statuses = <CommitStatus>[];
 
   @override
+  bool moreStatusesExist = true;
+
+  @override
   Future<bool> downloadLog(Task task, Commit commit) => null;
 
   @override
@@ -54,4 +57,7 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
 
   @override
   String get currentBranch => 'master';
+
+  @override
+  Future<void> updateCurrentBranch(String branch) => throw UnimplementedError();
 }

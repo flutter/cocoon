@@ -138,27 +138,31 @@ class StatusGrid extends StatelessWidget {
                 columnCount: columnCount,
               )) {
                 final int loaderIndex = gridIndex % columnCount;
-                const String loadingText = 'LOADING ';
+
+                /// This loader row will spell out [loadingText].
+                const String loaderRowText = 'LOADING ';
+                final Color lastRowColor = buildState.moreStatusesExist ? Colors.blueGrey : Colors.transparent;
+                final String keyValue =
+                    buildState.moreStatusesExist ? 'loader-$loaderIndex' : 'hidden-loader-$loaderIndex';
 
                 /// Only trigger [fetchMoreCommitStatuses] API call once for
                 /// this loading row.
-                if (loaderIndex == 0) {
+                if (loaderIndex == 0 && buildState.moreStatusesExist) {
                   buildState.fetchMoreCommitStatuses();
                 }
 
-                /// This loader row will spell out [loadingText].
                 return Container(
-                  key: insertCellKeys ? Key('loader-$loaderIndex') : null,
-                  color: Colors.blueGrey,
+                  key: insertCellKeys ? Key(keyValue) : null,
+                  color: lastRowColor,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
-                    child: Text(
-                      loadingText[loaderIndex % loadingText.length],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                      ),
-                    ),
+                    child: buildState.moreStatusesExist
+                        ? Text(loaderRowText[loaderIndex % loaderRowText.length],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                            ))
+                        : null,
                   ),
                 );
               }

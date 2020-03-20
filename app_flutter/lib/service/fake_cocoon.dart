@@ -93,6 +93,7 @@ class FakeCocoonService implements CocoonService {
       final Commit commit = _createFakeCommit(i, baseTimestamp);
 
       final CommitStatus status = CommitStatus()
+        ..branch = 'master'
         ..commit = commit
         ..stages.addAll(_createFakeStages(i, commit));
 
