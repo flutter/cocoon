@@ -54,6 +54,9 @@ class FlutterBuildState extends ChangeNotifier {
   String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
 
+  bool get moreStatusesExist => _moreStatusesExist;
+  bool _moreStatusesExist = true;
+
   /// A [Brook] that reports when errors occur that relate to this [FlutterBuildState].
   Brook<String> get errors => _errors;
   final ErrorSink _errors = ErrorSink();
@@ -86,6 +89,7 @@ class FlutterBuildState extends ChangeNotifier {
   /// Update build state to be on [branch] and erase previous branch data.
   Future<void> updateCurrentBranch(String branch) async {
     _currentBranch = branch;
+    _moreStatusesExist = true;
     _isTreeBuilding = null;
     _statuses = <CommitStatus>[];
     notifyListeners();
@@ -225,6 +229,7 @@ class FlutterBuildState extends ChangeNotifier {
 
     final CocoonResponse<List<CommitStatus>> response = await _cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
+      branch: _currentBranch,
     );
     if (response.error != null) {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
@@ -232,6 +237,14 @@ class FlutterBuildState extends ChangeNotifier {
     }
 
     final List<CommitStatus> newStatuses = response.data;
+
+    /// Handle the case where release branches only have a few commits.
+    if (newStatuses.isEmpty) {
+      _moreStatusesExist = false;
+      notifyListeners();
+      return;
+    }
+
     assert(_statusesInOrder(newStatuses));
 
     /// The [List<CommitStatus>] returned is the statuses that come at the end
