@@ -119,7 +119,7 @@ void main() {
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
-      await tester.pump(buildState.refreshRate * 2);
+      await tester.pump(buildState.refreshRate);
       final bool originalData = buildState.isTreeBuilding;
 
       when(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
@@ -204,6 +204,7 @@ void main() {
 
 CommitStatus _createCommitStatusWithKey(String keyValue) {
   return CommitStatus()
+    ..branch = 'master'
     ..commit = (Commit()
       // Author is set so we don't have to dig through all the nested fields
       // while debugging

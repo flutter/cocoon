@@ -278,5 +278,31 @@ void main() {
         expect(find.byKey(Key('loader-$index')), findsOneWidget);
       }
     });
+
+    testWidgets('loader row is hidden when there are no more statuses', (WidgetTester tester) async {
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
+      final List<CommitStatus> smallRangeOfStatusesToShowLoader = response.data.getRange(0, 2).toList();
+      final TaskMatrix smallTaskMatrix = TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Column(
+            children: <Widget>[
+              StatusGrid(
+                buildState: FakeFlutterBuildState()..moreStatusesExist = false,
+                statuses: smallRangeOfStatusesToShowLoader,
+                taskMatrix: smallTaskMatrix,
+                insertCellKeys: true,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      /// Loader containers show 1 extra to account for the commit box
+      /// column on the left of the grid.
+      for (int index = 0; index < taskMatrix.columns + 1; index++) {
+        expect(find.byKey(Key('hidden-loader-$index')), findsOneWidget);
+      }
+    });
   });
 }

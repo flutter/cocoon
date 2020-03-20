@@ -51,9 +51,14 @@ class FlutterBuildState extends ChangeNotifier {
   List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
 
+  /// The current flutter/flutter git branch to show data from.
   String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
 
+  /// Whether more [List<CommitStatus>] can be loaded from Cocoon.
+  ///
+  /// If [fetchMoreCommitStatuses] returns no data, it is assumed the last
+  /// [CommitStatus] has been loaded.
   bool get moreStatusesExist => _moreStatusesExist;
   bool _moreStatusesExist = true;
 
@@ -92,13 +97,17 @@ class FlutterBuildState extends ChangeNotifier {
     _moreStatusesExist = true;
     _isTreeBuilding = null;
     _statuses = <CommitStatus>[];
+
+    /// Clear previous branch data from the widgets
     notifyListeners();
+
+    /// To prevent delays, make an immediate request for dashboard data.
     _fetchBuildStatusUpdate();
   }
 
   /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
   ///
-  /// If fetched [statuses] is not on the current branch it will be discared.
+  /// If fetched [statuses] is not on the current branch it will be discarded.
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
       _cocoonService.fetchCommitStatuses(branch: _currentBranch).then((CocoonResponse<List<CommitStatus>> response) {
@@ -122,6 +131,7 @@ class FlutterBuildState extends ChangeNotifier {
     ]);
   }
 
+  /// Request the latests [branches] from [CocoonService].
   Future<List<String>> _fetchFlutterBranches() async {
     return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {

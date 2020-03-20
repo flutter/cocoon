@@ -27,6 +27,22 @@ void main() {
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
+  testWidgets('shows branch dropdown button', (WidgetTester tester) async {
+    final FlutterBuildState fakeBuildState = FakeFlutterBuildState();
+
+    await tester.pumpWidget(MaterialApp(
+        home: ChangeNotifierProvider<FlutterBuildState>(
+      create: (_) => fakeBuildState,
+      child: const BuildDashboard(),
+    )));
+
+    final Type dropdownButtonType = DropdownButton<String>(
+      onChanged: (_) {},
+      items: const <DropdownMenuItem<String>>[],
+    ).runtimeType;
+    expect(find.byType(dropdownButtonType), findsOneWidget);
+  });
+
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = null;
 
