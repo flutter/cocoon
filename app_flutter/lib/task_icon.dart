@@ -15,7 +15,10 @@ import 'task_helper.dart';
 /// Shows an icon based on [task.stageName], defaulting to [Icons.help] if it can't be mapped.
 /// On tap, shows [task.name].
 class TaskIcon extends StatelessWidget {
-  const TaskIcon({Key key, @required this.task}) : super(key: key);
+  const TaskIcon({
+    Key key,
+    @required this.task,
+  }) : super(key: key);
 
   /// [Task] to get information from.
   final Task task;

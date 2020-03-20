@@ -10,8 +10,13 @@ import 'package:flutter/widgets.dart';
 // Remove this workaround when the following issues have been removed:
 // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
 class CanvasKitWidget extends StatelessWidget {
-  const CanvasKitWidget({this.canvaskit, this.other, bool useCanvasKit})
-      : useCanvasKit = useCanvasKit ?? const bool.fromEnvironment('FLUTTER_WEB_USE_SKIA');
+  const CanvasKitWidget({
+    Key key,
+    this.canvaskit,
+    this.other,
+    bool useCanvasKit,
+  })  : useCanvasKit = useCanvasKit ?? const bool.fromEnvironment('FLUTTER_WEB_USE_SKIA'),
+        super(key: key);
 
   final bool useCanvasKit;
 

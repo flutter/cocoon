@@ -13,7 +13,6 @@ import 'state/index.dart';
 
 class IndexPage extends StatefulWidget {
   // TODO(ianh): there's a number of problems with the design here
-  // - the widget doesn't have a key argument
   // - the widget itself (as opposed to its State) has state (it creates an IndexState)
   // - the State doesn't handle the widget's indexState property changing dynamically
   // - the State doesn't handle the case of the signInService changing dynamically
@@ -21,8 +20,12 @@ class IndexPage extends StatefulWidget {
   // We could probably solve most of these problems by moving all the app state out of the widget
   // tree and using inherited widgets to get at it.
 
-  IndexPage({IndexState indexState, GoogleSignInService signInService})
-      : indexState = indexState ?? IndexState(authServiceValue: signInService);
+  IndexPage({
+    Key key,
+    IndexState indexState,
+    GoogleSignInService signInService,
+  })  : indexState = indexState ?? IndexState(authServiceValue: signInService),
+        super(key: key);
 
   static const String routeName = '/';
 
@@ -79,7 +82,10 @@ class _IndexPageState extends State<IndexPage> {
 }
 
 class Index extends StatelessWidget {
-  const Index({this.scaffoldKey});
+  const Index({
+    Key key,
+    this.scaffoldKey,
+  }) : super(key: key);
 
   final GlobalKey<ScaffoldState> scaffoldKey;
 
