@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:app_flutter/main.dart';
 import 'package:app_flutter/navigation_drawer.dart';
 
 void main() {
@@ -14,16 +15,21 @@ void main() {
     testWidgets('lists all pages', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
+          title: 'Test',
           home: NavigationDrawer(),
         ),
       );
 
+      expect(find.text('Home'), findsOneWidget);
       expect(find.text('Build'), findsOneWidget);
       expect(find.text('Benchmarks'), findsOneWidget);
+      expect(find.text('Benchmarks on Skia Perf'), findsOneWidget);
       expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
+      expect(find.text('About Test'), findsOneWidget);
     });
+
     testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
       final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
       await tester.pumpWidget(
@@ -198,18 +204,28 @@ void main() {
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: NavigationDrawer(
-            currentRoute: '/build',
-          ),
-        ),
-      );
+      await tester.pumpWidget(const MyApp());
 
-      final ListTile selectedListTile = tester.widget(find.byKey(const Key('nav-link-build')));
-      final ListTile notSelectedListTile = tester.widget(find.byKey(const Key('nav-link-benchmarks')));
-      expect(selectedListTile.selected, true);
-      expect(notSelectedListTile.selected, false);
+      void test({@required bool isHome}) {
+        final ListTile home = tester.widget(find.ancestor(of: find.text('Home'), matching: find.byType(ListTile)));
+        final ListTile build = tester.widget(find.ancestor(of: find.text('Build'), matching: find.byType(ListTile)));
+        expect(home.selected, isHome);
+        expect(build.selected, !isHome);
+      }
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pump(); // start animation of drawer opening
+      await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
+      test(isHome: true);
+
+      await tester.tap(find.text('Build'));
+      await tester.pump(); // drawer closes and new page arrives
+      await tester.pump(const Duration(seconds: 1)); // end of those animations
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pump(); // start animation of drawer opening
+      await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
+      test(isHome: false);
     });
   });
 }

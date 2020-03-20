@@ -8,23 +8,31 @@ import 'package:flutter/widgets.dart';
 
 import 'service/google_authentication.dart';
 
+enum _SignInButtonAction { logout }
+
 /// Widget for displaying sign in information for the current user.
 ///
 /// If logged in, it will display the user's avatar. Clicking it opens a dropdown for logging out.
 /// Otherwise, a sign in button will show.
 class SignInButton extends StatelessWidget {
-  const SignInButton({@required this.authService, Key key}) : super(key: key);
+  const SignInButton({
+    Key key,
+    @required this.authService,
+    this.colorBrightness,
+  }) : super(key: key);
 
   final GoogleSignInService authService;
+
+  final Brightness colorBrightness;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: authService.isAuthenticated,
-      builder: (_, AsyncSnapshot<bool> isAuthenticated) {
+      builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
         /// On sign out, there's a second where the user is null before isAuthenticated catches up.
         if (isAuthenticated.data == true && authService.user != null) {
-          return PopupMenuButton<String>(
+          return PopupMenuButton<_SignInButtonAction>(
             // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
             // CanvasKit currently cannot render a NetworkImage because of CORS issues.
             child: CanvasKitWidget(
@@ -36,24 +44,24 @@ class SignInButton extends StatelessWidget {
               other: Image.network(authService.user?.photoUrl),
             ),
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'logout',
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
+              const PopupMenuItem<_SignInButtonAction>(
+                value: _SignInButtonAction.logout,
                 child: Text('Log out'),
               ),
             ],
-            onSelected: (String value) {
-              if (value == 'logout') {
-                authService.signOut();
+            onSelected: (_SignInButtonAction value) {
+              switch (value) {
+                case _SignInButtonAction.logout:
+                  authService.signOut();
+                  break;
               }
             },
           );
         }
         return FlatButton(
-          child: const Text(
-            'Sign in',
-            style: TextStyle(color: Colors.white),
-          ),
+          child: const Text('SIGN IN'),
+          colorBrightness: colorBrightness ?? Theme.of(context).brightness,
           onPressed: authService.signIn,
         );
       },

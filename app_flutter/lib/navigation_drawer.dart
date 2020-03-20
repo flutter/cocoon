@@ -7,67 +7,69 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'agent_dashboard_page.dart';
 import 'build_dashboard_page.dart';
+import 'index_page.dart';
 
 /// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({this.currentRoute});
-
-  /// When given, will make the corresponding [ListTile] selected.
-  ///
-  /// Since Navigator cannot provide the current route, must be passed
-  /// where this widget is used.
-  final String currentRoute;
+  const NavigationDrawer();
 
   @override
   Widget build(BuildContext context) {
+    final String currentRoute = ModalRoute.of(context).settings.name;
     return Drawer(
       child: ListView(
         children: <Widget>[
           DrawerHeader(
-            child: Row(
-              children: const <Widget>[
-                FlutterLogo(),
-                Text('Flutter Dashboards'),
-              ],
+            decoration: const FlutterLogoDecoration(
+              margin: EdgeInsets.only(bottom: 24.0),
+            ),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: const Text('Flutter Dashboard'),
             ),
           ),
           ListTile(
-            key: const Key('nav-link-build'),
+            title: const Text('Home'),
+            leading: Icon(Icons.home),
+            onTap: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
+            selected: currentRoute == '/',
+          ),
+          ListTile(
             title: const Text('Build'),
             leading: Icon(Icons.build),
             onTap: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
             selected: currentRoute == '/build',
           ),
           ListTile(
-            key: const Key('nav-link-skia-perf'),
-            title: const Text('Benchmarks on Skia Perf'),
-            leading: Icon(Icons.show_chart),
-            onTap: () => launch('https://flutter-perf.skia.org/'),
-          ),
-          ListTile(
-            key: const Key('nav-link-benchmarks'),
             title: const Text('Benchmarks'),
             leading: Icon(Icons.show_chart),
             onTap: () => launch('/benchmarks.html'),
           ),
           ListTile(
-            key: const Key('nav-link-repository'),
+            title: const Text('Benchmarks on Skia Perf'),
+            leading: Icon(Icons.show_chart),
+            onTap: () => launch('https://flutter-perf.skia.org/'),
+          ),
+          ListTile(
             title: const Text('Repository'),
             leading: Icon(Icons.info_outline),
             onTap: () => launch('/repository.html'),
           ),
+          const Divider(thickness: 2.0),
           ListTile(
-            key: const Key('nav-link-agents'),
             title: const Text('Infra Agents'),
             leading: Icon(Icons.android),
             onTap: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
             selected: currentRoute == '/agents',
           ),
+          const Divider(thickness: 2.0),
           ListTile(
-            key: const Key('nav-link-source'),
             title: const Text('Source Code'),
             leading: Icon(Icons.code),
             onTap: () => launch('https://github.com/flutter/cocoon'),
+          ),
+          const AboutListTile(
+            icon: FlutterLogo(),
           ),
         ],
       ),

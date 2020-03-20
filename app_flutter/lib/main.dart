@@ -9,21 +9,33 @@ import 'build_dashboard_page.dart';
 import 'index_page.dart';
 import 'service/google_authentication.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
-final ThemeData theme = ThemeData(
-  appBarTheme: const AppBarTheme(color: Colors.green),
-  primarySwatch: Colors.blue,
+final ThemeData lightTheme = ThemeData.from(
+  colorScheme: ColorScheme.light(
+    primary: Colors.green,
+    secondary: Colors.blueAccent,
+  ),
+);
+
+final ThemeData darkTheme = ThemeData.from(
+  colorScheme: ColorScheme.dark(
+    primary: Colors.green,
+    secondary: Colors.blueAccent,
+  ),
 );
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final GoogleSignInService signInService = GoogleSignInService();
 
     return MaterialApp(
       title: 'Flutter Dashboard',
-      theme: theme,
+      theme: lightTheme,
+      darkTheme: darkTheme,
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
         IndexPage.routeName: (BuildContext context) => IndexPage(signInService: signInService),
