@@ -165,6 +165,19 @@ void main() {
       buildState.dispose();
     });
 
+    testWidgets('update branch resets build state data', (WidgetTester tester) async {
+      buildState.startFetchingUpdates();
+      await tester.pump(buildState.refreshRate);
+
+      buildState.updateCurrentBranch('dev');
+
+      expect(buildState.statuses, isEmpty);
+      expect(buildState.isTreeBuilding, null);
+      expect(buildState.moreStatusesExist, true);
+
+      buildState.dispose();
+    });
+
     test('auth functions call auth service', () async {
       final MockGoogleSignInService mockSignInService = MockGoogleSignInService();
       buildState = FlutterBuildState(authServiceValue: mockSignInService);
