@@ -11,6 +11,9 @@
 :: Remember to also update the Posix version (flutter_test_runner.sh) when
 :: changing this file.
 
+:: Runner for flutter tests. It expects a single parameter with the full
+:: path to the flutter project where tests will be run.
+
 ECHO Running flutter tests from %1
 PUSHD %1
 
