@@ -126,7 +126,10 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
+  // Repository status context for github status.
   String get flutterBuild => 'flutter-build';
+
+  // Repository status description for github status.
   String get flutterBuildDescription =>
       'Flutter build is currently broken. Please do not merge this '
       'PR unless it contains a fix to the broken build.';

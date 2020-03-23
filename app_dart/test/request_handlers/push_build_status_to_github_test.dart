@@ -129,7 +129,6 @@ void main() {
     });
 
     group('in non-development environment', () {
-
       setUp(() {
         clientContext.isDevelopmentEnvironment = false;
       });
@@ -226,8 +225,9 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
-        
-        test('if status has changed since last update - multiple branches', () async {
+
+        test('if status has changed since last update - multiple branches',
+            () async {
           githubPullRequestsMaster = <int>[0];
           githubPullRequestsOther = <int>[1];
           final PullRequest prMaster = newPullRequest(id: 0, sha: '0');

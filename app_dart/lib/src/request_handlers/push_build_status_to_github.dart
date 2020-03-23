@@ -83,8 +83,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           log.debug(
               'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
           final CreateStatus request = CreateStatus(buildStatus.githubStatus);
-          request.targetUrl =
-              'https://flutter-dashboard.appspot.com/#/build';
+          request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build';
           request.context = config.flutterBuild;
           if (buildStatus != BuildStatus.succeeded) {
             request.description = config.flutterBuildDescription;
@@ -102,6 +101,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
 
+      /// Whenever github status is updated, [update.updates] will be synchronized in
+      /// datastore [GithubBuildStatusUpdate].
       final int maxEntityGroups = config.maxEntityGroups;
       for (int i = 0; i < updates.length; i += maxEntityGroups) {
         await datastore.db
