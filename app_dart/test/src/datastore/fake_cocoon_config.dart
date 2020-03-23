@@ -43,6 +43,8 @@ class FakeConfig implements Config {
     this.rollerAccountsValue,
     this.luciTryInfraFailureRetriesValue,
     this.flutterSlugValue,
+    this.flutterBuildValue,
+    this.flutterBuildDescriptionValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -64,6 +66,8 @@ class FakeConfig implements Config {
   String goldenTriageMessageValue;
   String webhookKeyValue;
   String cqLabelNameValue;
+  String flutterBuildValue;
+  String flutterBuildDescriptionValue;
   List<Map<String, dynamic>> luciBuildersValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
   Logging loggingServiceValue;
@@ -137,6 +141,12 @@ class FakeConfig implements Config {
 
   @override
   String get cqLabelName => cqLabelNameValue;
+
+  @override
+  String get flutterBuild => flutterBuildValue;
+
+  @override
+  String get flutterBuildDescription => flutterBuildDescriptionValue;
 
   @override
   List<Map<String, dynamic>> get luciBuilders => luciBuildersValue;

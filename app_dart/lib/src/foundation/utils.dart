@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/server.dart';
 import 'package:grpc/grpc.dart';
@@ -91,7 +92,8 @@ Future<List<Branch>> getBranches(
     HttpClientProvider branchHttpClientProvider,
     Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  final GitHub github = await config.createGitHubClient();
+  final GithubService githubService = await config.createGithubService();
+  final GitHub github = githubService.github;
   const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
   final Stream<Branch> branchList = github.repositories.listBranches(slug);
   final List<String> regExps = await loadBranchRegExps(

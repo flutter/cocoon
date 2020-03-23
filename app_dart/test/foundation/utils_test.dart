@@ -16,6 +16,7 @@ import 'package:cocoon_service/src/foundation/utils.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 
 const String branchRegExp = '''
       master
@@ -137,15 +138,17 @@ void main() {
       }
 
       setUp(() {
-        final MockGitHub github = MockGitHub();
-        final MockRepositoriesService repositories = MockRepositoriesService();
+        final FakeGithubService githubService = FakeGithubService();
+        //final MockGitHub github = MockGitHub();
+        final MockRepositoriesService repositoriesService =
+            MockRepositoriesService();
         branchHttpClient = FakeHttpClient();
-        config = FakeConfig(githubClient: github);
+        config = FakeConfig(githubService: githubService);
         log = FakeLogging();
 
+        when(githubService.github.repositories).thenReturn(repositoriesService);
         const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-        when(github.repositories).thenReturn(repositories);
-        when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
+        when(repositoriesService.listBranches(slug)).thenAnswer((_) {
           return branchStream();
         });
       });

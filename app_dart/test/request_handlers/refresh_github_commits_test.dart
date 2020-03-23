@@ -87,7 +87,6 @@ void main() {
     }
 
     setUp(() {
-      final MockGitHub github = MockGitHub();
       final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
       final MockTabledataResourceApi tabledataResourceApi =
@@ -98,7 +97,6 @@ void main() {
 
       yieldedCommitCount = 0;
       config = FakeConfig(
-          githubClient: github,
           tabledataResourceApi: tabledataResourceApi,
           githubService: githubService);
       auth = FakeAuthenticationProvider();
@@ -120,7 +118,7 @@ void main() {
       };
 
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(github.repositories).thenReturn(repositories);
+      when(githubService.github.repositories).thenReturn(repositories);
       when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
         return branchStream();
       });

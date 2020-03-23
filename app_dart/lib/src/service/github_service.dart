@@ -44,4 +44,31 @@ class GithubService {
               DateTime.parse(commit['commit']['author']['date'] as String))));
     }).toList();
   }
+
+  Future<List<PullRequest>> listPullRequests(
+      RepositorySlug slug, String branch) async {
+    ArgumentError.checkNotNull(slug);
+    final PaginationHelper paginationHelper = PaginationHelper(github);
+
+    final List<Map<String, dynamic>> pullRequests = <Map<String, dynamic>>[];
+    await for (Response response in paginationHelper.fetchStreamed(
+      'GET',
+      '/repos/${slug.fullName}/pulls',
+      params: <String, dynamic>{
+        'base': branch,
+        'direction': 'desc',
+        'sort': 'created',
+        'state': 'open',
+      },
+    )) {
+      pullRequests.addAll((json.decode(response.body) as List<dynamic>)
+          .cast<Map<String, dynamic>>());
+    }
+
+    return pullRequests.map((dynamic commit) {
+      return PullRequest()
+        ..number = commit['number'] as int
+        ..head = (PullRequestHead()..sha = commit['head']['sha'] as String);
+    }).toList();
+  }
 }

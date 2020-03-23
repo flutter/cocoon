@@ -18,6 +18,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_github_service.dart';
 import '../src/service/fake_graphql_client.dart';
 
 void main() {
@@ -47,7 +48,7 @@ void main() {
     }
 
     setUp(() {
-      final MockGitHub github = MockGitHub();
+      final FakeGithubService githubService = FakeGithubService();
       final MockRepositoriesService repositories = MockRepositoriesService();
       datastoreDB = FakeDatastoreDB();
       branchHttpClient = FakeHttpClient();
@@ -56,7 +57,7 @@ void main() {
       config = FakeConfig(
           dbValue: datastoreDB,
           cirrusGraphQLClient: cirrusGraphQLClient,
-          githubClient: github);
+          githubService: githubService);
       handler = RefreshCirrusStatus(
         config,
         FakeAuthenticationProvider(),
@@ -75,7 +76,7 @@ void main() {
       };
 
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(github.repositories).thenReturn(repositories);
+      when(githubService.github.repositories).thenReturn(repositories);
       when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
         return branchStream();
       });

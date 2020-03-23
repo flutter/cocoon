@@ -173,7 +173,7 @@ class FakeQuery<T extends Model> implements Query<T> {
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
-      if (filterString.contains('branch =')) {
+      if (filterString.contains('branch =') || filterString.contains('pr =')) {
         resultsView = resultsView
             .where((T result) => result.toString().contains(value.toString()));
       }
