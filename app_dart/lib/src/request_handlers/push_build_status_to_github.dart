@@ -60,12 +60,13 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
+    // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
     for (Branch branch in branches) {
       final BuildStatus buildStatus = await buildStatusProvider
           .calculateCumulativeStatus(branch: branch.name);
-      final GitHub github = await config.createGitHubClient();
+      final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
       log.debug('Computed build result of $buildStatus');
 
@@ -83,12 +84,10 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
               'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
           final CreateStatus request = CreateStatus(buildStatus.githubStatus);
           request.targetUrl =
-              'https://flutter-dashboard.appspot.com/build.html';
-          request.context = 'flutter-build';
+              'https://flutter-dashboard.appspot.com/#/build';
+          request.context = config.flutterBuild;
           if (buildStatus != BuildStatus.succeeded) {
-            request.description =
-                'Flutter build is currently broken. Please do not merge this '
-                'PR unless it contains a fix to the broken build.';
+            request.description = config.flutterBuildDescription;
           }
 
           try {

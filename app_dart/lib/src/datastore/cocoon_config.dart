@@ -126,6 +126,11 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
+  String get flutterBuild => 'flutter-build';
+  String get flutterBuildDescription =>
+      'Flutter build is currently broken. Please do not merge this '
+      'PR unless it contains a fix to the broken build.';
+
   RepositorySlug get flutterSlug => const RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';

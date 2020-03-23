@@ -46,6 +46,7 @@ void main() {
     List<int> githubPullRequestsMaster;
     List<int> githubPullRequestsOther;
     List<String> githubBranches;
+    MockRepositoriesService repositoriesService;
 
     List<PullRequest> pullRequestList(String branch) {
       final List<PullRequest> pullRequests = <PullRequest>[];
@@ -99,6 +100,13 @@ void main() {
       githubService.listPullRequestsBranch = (String branch) {
         return pullRequestList(branch);
       };
+
+      repositoriesService = MockRepositoriesService();
+      when(githubService.github.repositories).thenReturn(repositoriesService);
+      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      when(repositoriesService.listBranches(slug)).thenAnswer((_) {
+        return branchStream();
+      });
     });
 
     group('in development environment', () {
@@ -121,28 +129,15 @@ void main() {
     });
 
     group('in non-development environment', () {
-      MockGitHub github;
-      MockPullRequestsService pullRequestsService;
-      MockRepositoriesService repositoriesService;
 
       setUp(() {
-        github = MockGitHub();
-        pullRequestsService = MockPullRequestsService();
-        repositoriesService = MockRepositoriesService();
-        when(github.pullRequests).thenReturn(pullRequestsService);
-        when(github.repositories).thenReturn(repositoriesService);
-        const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-        when(repositoriesService.listBranches(slug)).thenAnswer((_) {
-          return branchStream();
-        });
-        config.githubClient = github;
         clientContext.isDevelopmentEnvironment = false;
       });
 
       GithubBuildStatusUpdate newStatusUpdate(
           PullRequest pr, BuildStatus status) {
         return GithubBuildStatusUpdate(
-          key: db.emptyKey.append(GithubBuildStatusUpdate),
+          key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
           status: status.githubStatus,
           pr: pr.number,
           head: pr.head.sha,
@@ -152,8 +147,8 @@ void main() {
 
       PullRequest newPullRequest({@required int id, @required String sha}) {
         return PullRequest()
-          ..number = 123
-          ..head = (PullRequestHead()..sha = 'abc');
+          ..number = id
+          ..head = (PullRequestHead()..sha = sha);
       }
 
       group('does not update anything', () {
@@ -228,6 +223,30 @@ void main() {
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.status, BuildStatus.succeeded.githubStatus);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+        });
+        
+        test('if status has changed since last update - multiple branches', () async {
+          githubPullRequestsMaster = <int>[0];
+          githubPullRequestsOther = <int>[1];
+          final PullRequest prMaster = newPullRequest(id: 0, sha: '0');
+          final PullRequest prOther = newPullRequest(id: 1, sha: '1');
+          githubBranches = <String>['flutter-0.0-candidate.0', 'master'];
+          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          final GithubBuildStatusUpdate statusOther =
+              newStatusUpdate(prOther, BuildStatus.failed);
+          db.values[statusOther.key] = statusOther;
+          final GithubBuildStatusUpdate statusMaster =
+              newStatusUpdate(prMaster, BuildStatus.failed);
+          db.values[statusMaster.key] = statusMaster;
+          branchHttpClient.request.response.body = branchRegExp;
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(statusMaster.updates, 1);
+          expect(statusOther.updates, 1);
+          expect(statusMaster.status, BuildStatus.succeeded.githubStatus);
+          expect(statusOther.status, BuildStatus.succeeded.githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
