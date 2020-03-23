@@ -52,7 +52,6 @@ void main() {
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       statuses.clear();
-      branch = 'master';
       PullRequestHelper._counter = 0;
 
       cirrusGraphQLClient.mutateCirrusResultForOptions =
@@ -168,6 +167,7 @@ void main() {
         <String, String>{'id': '1', 'status': 'EXECUTING', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
+      branch = 'pull/0';
 
       flutterRepoPRs.add(PullRequestHelper());
 
@@ -209,6 +209,7 @@ void main() {
         <String, String>{'id': '1', 'status': 'SKIPPED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
+      branch = 'pull/0';
 
       flutterRepoPRs.add(PullRequestHelper());
 
@@ -234,6 +235,7 @@ void main() {
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
+      branch = 'pull/0';
 
       flutterRepoPRs.add(PullRequestHelper());
 
@@ -429,6 +431,7 @@ This pull request is not suitable for automatic merging in its current state.
         <String, String>{'id': '1', 'status': 'FAILED', 'name': 'test1'},
         <String, String>{'id': '2', 'status': 'COMPLETED', 'name': 'test2'}
       ];
+      branch = 'pull/0';
       final PullRequestHelper prRed = PullRequestHelper(
         lastCommitStatuses: const <StatusHelper>[
           StatusHelper.flutterBuildSuccess,
@@ -715,7 +718,7 @@ class PullRequestHelper {
     return <String, dynamic>{
       'author': <String, dynamic>{'login': author},
       'id': id,
-      'number': id.hashCode,
+      'number': _count,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
