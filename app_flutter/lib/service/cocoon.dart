@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task;
 
@@ -70,12 +70,14 @@ abstract class CocoonService {
 /// Wrapper class for data this state serves.
 ///
 /// Holds [data] and possible error information.
+@immutable
 class CocoonResponse<T> {
-  // TODO(ianh): See if we can make this immutable.
+  const CocoonResponse.data(this.data) : error = null;
+  const CocoonResponse.error(this.error) : data = null;
 
   /// The data that gets used from [CocoonService].
-  T data;
+  final T data;
 
   /// Error information that can be used for debugging.
-  String error;
+  final String error;
 }

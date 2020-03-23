@@ -38,11 +38,11 @@ void main() {
 
       when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
-              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
+              CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus])));
       when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
-      when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) =>
-          Future<CocoonResponse<List<String>>>.value(CocoonResponse<List<String>>()..data = <String>[_defaultBranch]));
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(true)));
+      when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Future<CocoonResponse<List<String>>>.value(
+          const CocoonResponse<List<String>>.data(<String>[_defaultBranch])));
     });
 
     testWidgets('start calls fetch branches', (WidgetTester tester) async {
@@ -97,7 +97,7 @@ void main() {
       final List<CommitStatus> originalData = buildState.statuses;
 
       when(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer((_) =>
-          Future<CocoonResponse<List<CommitStatus>>>.value(CocoonResponse<List<CommitStatus>>()..error = 'error'));
+          Future<CocoonResponse<List<CommitStatus>>>.value(const CocoonResponse<List<CommitStatus>>.error('error')));
 
       await checkOutput(
         block: () async {
@@ -125,7 +125,7 @@ void main() {
       final bool originalData = buildState.isTreeBuilding;
 
       when(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..error = 'error'));
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.error('error')));
 
       await checkOutput(
         block: () async {
@@ -154,7 +154,7 @@ void main() {
       final CommitStatus statusA = _createCommitStatus('A');
       when(mockCocoonService.fetchCommitStatuses(
               lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
-          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[statusA]);
+          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[statusA]));
 
       await buildState.fetchMoreCommitStatuses();
 
@@ -177,7 +177,7 @@ void main() {
 
       when(mockCocoonService.fetchCommitStatuses(
               lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
-          .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]);
+          .thenAnswer((_) async => const CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[]));
 
       await buildState.fetchMoreCommitStatuses();
 
@@ -191,12 +191,12 @@ void main() {
       // Only return statuses when on master branch
       when(mockCocoonService.fetchCommitStatuses(branch: 'master')).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
-              CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
+              CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus])));
       // Mark tree green on master, red on dev
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'master'))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(true)));
       when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev'))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = false));
+          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(false)));
       buildState.startFetchingUpdates();
 
       await untilCalled(mockCocoonService.fetchCommitStatuses(branch: 'master'));

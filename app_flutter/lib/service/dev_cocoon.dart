@@ -22,24 +22,24 @@ class DevelopmentCocoonService implements CocoonService {
     CommitStatus lastCommitStatus,
     String branch,
   }) async {
-    return CocoonResponse<List<CommitStatus>>()..data = _createFakeCommitStatuses();
+    return CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses());
   }
 
   @override
   Future<CocoonResponse<bool>> fetchTreeBuildStatus({
     String branch,
   }) async {
-    return CocoonResponse<bool>()..data = random.nextBool();
+    return CocoonResponse<bool>.data(random.nextBool());
   }
 
   @override
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
-    return CocoonResponse<List<Agent>>()..data = _createFakeAgentStatuses();
+    return CocoonResponse<List<Agent>>.data(_createFakeAgentStatuses());
   }
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    return CocoonResponse<List<String>>()..data = <String>['master', 'dev', 'beta', 'stable'];
+    return const CocoonResponse<List<String>>.data(<String>['master', 'dev', 'beta', 'stable']);
   }
 
   @override
@@ -54,11 +54,11 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken) async =>
-      CocoonResponse<String>()..data = 'abc123';
+      const CocoonResponse<String>.data('abc123');
 
   @override
   Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken) async =>
-      CocoonResponse<String>()..data = 'def345';
+      const CocoonResponse<String>.data('def345');
 
   @override
   Future<void> reserveTask(Agent agent, String idToken) => null;

@@ -29,7 +29,7 @@ void main() {
         ..errors.addListener((String message) => lastError = message);
 
       when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
-          (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
+          (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>.data(<Agent>[Agent()])));
     });
 
     tearDown(() {
@@ -77,8 +77,8 @@ void main() {
       await tester.pump(agentState.refreshRate * 2);
       final List<Agent> originalData = agentState.agents;
 
-      when(mockCocoonService.fetchAgentStatuses())
-          .thenAnswer((_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..error = 'error'));
+      when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
+          (_) => Future<CocoonResponse<List<Agent>>>.value(const CocoonResponse<List<Agent>>.error('error')));
 
       await checkOutput(
         block: () async {
@@ -99,7 +99,7 @@ void main() {
 
     test('authorize agent calls cocoon service', () async {
       when(mockCocoonService.authorizeAgent(any, any))
-          .thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
+          .thenAnswer((_) async => const CocoonResponse<String>.data('abc123'));
       verifyNever(mockCocoonService.authorizeAgent(any, any));
 
       await agentState.authorizeAgent(Agent());
