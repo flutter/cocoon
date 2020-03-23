@@ -14,11 +14,11 @@
 ECHO Running flutter tests from %1
 PUSHD %1
 
-flutter packages get
-flutter analyze
-flutter format --line-length=120 --set-exit-if-changed lib/ test/
-flutter config --enable-web
-flutter build web
-flutter test --test-randomize-ordering-seed=random
+CALL flutter packages get
+CALL flutter analyze
+CALL flutter format --line-length=120 --set-exit-if-changed lib/ test/
+CALL flutter config --enable-web
+CALL flutter build web
+CALL flutter test --test-randomize-ordering-seed=random
 
 POPD
