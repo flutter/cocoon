@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'app_bar.dart';
 import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
-import 'sign_in_button.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
 
@@ -56,7 +56,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(
-        appBar: AppBar(
+        appBar: CocoonAppBar(
           title: statusTable[_buildState.isTreeBuilding],
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
@@ -76,14 +76,14 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
                 onChanged: (String branch) {
                   _buildState.updateCurrentBranch(branch);
                 },
-                items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: const TextStyle(color: Colors.black)),
-                  );
-                }).toList()),
-            const SizedBox(width: 10), // Padding between branches and sign in
-            const SignInButton(),
+                items: _buildState.branches.map<DropdownMenuItem<String>>(
+                  (String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: const TextStyle(color: Colors.black)),
+                    );
+                  },
+                ).toList()),
           ],
         ),
         body: ErrorBrookWatcher(
