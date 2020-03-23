@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task;
 
 import 'appengine_cocoon.dart';
-import 'fake_cocoon.dart';
+import 'dev_cocoon.dart';
 
 /// Service class for interacting with flutter/flutter build data.
 ///
@@ -21,8 +21,7 @@ abstract class CocoonService {
     if (kReleaseMode) {
       return AppEngineCocoonService();
     }
-
-    return FakeCocoonService();
+    return DevelopmentCocoonService();
   }
 
   /// Gets build information on the most recent commits.
@@ -72,6 +71,8 @@ abstract class CocoonService {
 ///
 /// Holds [data] and possible error information.
 class CocoonResponse<T> {
+  // TODO(ianh): See if we can make this immutable.
+
   /// The data that gets used from [CocoonService].
   T data;
 

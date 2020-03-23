@@ -10,44 +10,43 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/service/cocoon.dart';
-import 'package:app_flutter/service/fake_cocoon.dart';
-import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/agent.dart';
 
+import '../utils/mocks.dart';
 import '../utils/output.dart';
 
 void main() {
   group('AgentState', () {
     AgentState agentState;
-    MockCocoonService mockService;
+    MockCocoonService mockCocoonService;
     MockGoogleSignInService mockSignInService;
     String lastError;
 
     setUp(() {
       mockSignInService = MockGoogleSignInService();
-      mockService = MockCocoonService();
-      agentState = AgentState(cocoonServiceValue: mockService, authServiceValue: mockSignInService)
+      mockCocoonService = MockCocoonService();
+      agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService)
         ..errors.addListener((String message) => lastError = message);
 
-      when(mockService.fetchAgentStatuses()).thenAnswer(
+      when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
           (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..data = <Agent>[Agent()]));
     });
 
     tearDown(() {
       clearInteractions(mockSignInService);
-      clearInteractions(mockService);
+      clearInteractions(mockCocoonService);
     });
 
     testWidgets('timer should periodically fetch updates', (WidgetTester tester) async {
       agentState.startFetchingStateUpdates();
 
       // startFetching immediately starts fetching results
-      verify(mockService.fetchAgentStatuses()).called(1);
+      verify(mockCocoonService.fetchAgentStatuses()).called(1);
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(agentState.refreshRate * 2);
-      verify(mockService.fetchAgentStatuses()).called(greaterThan(1));
+      verify(mockCocoonService.fetchAgentStatuses()).called(greaterThan(1));
 
       // Tear down fails to cancel the timer before the test is over
       agentState.dispose();
@@ -78,13 +77,13 @@ void main() {
       await tester.pump(agentState.refreshRate * 2);
       final List<Agent> originalData = agentState.agents;
 
-      when(mockService.fetchAgentStatuses())
+      when(mockCocoonService.fetchAgentStatuses())
           .thenAnswer((_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>()..error = 'error'));
 
       await checkOutput(
         block: () async {
           await tester.pump(agentState.refreshRate);
-          verify(mockService.fetchAgentStatuses()).called(greaterThan(1));
+          verify(mockCocoonService.fetchAgentStatuses()).called(greaterThan(1));
         },
         output: <String>[
           'An error occured fetching agent statuses from Cocoon: error',
@@ -99,38 +98,21 @@ void main() {
     });
 
     test('authorize agent calls cocoon service', () async {
-      when(mockService.authorizeAgent(any, any)).thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
-      verifyNever(mockService.authorizeAgent(any, any));
+      when(mockCocoonService.authorizeAgent(any, any))
+          .thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
+      verifyNever(mockCocoonService.authorizeAgent(any, any));
 
       await agentState.authorizeAgent(Agent());
 
-      verify(mockService.authorizeAgent(any, any)).called(1);
+      verify(mockCocoonService.authorizeAgent(any, any)).called(1);
     });
 
     test('reserve task calls cocoon service', () async {
-      verifyNever(mockService.reserveTask(any, any));
+      verifyNever(mockCocoonService.reserveTask(any, any));
 
       await agentState.reserveTask(Agent());
 
-      verify(mockService.reserveTask(any, any)).called(1);
-    });
-
-    test('auth functions call auth service', () async {
-      verifyNever(mockSignInService.signIn());
-      verifyNever(mockSignInService.signOut());
-
-      await agentState.signIn();
-      verify(mockSignInService.signIn()).called(1);
-      verifyNever(mockSignInService.signOut());
-
-      await agentState.signOut();
-      verify(mockSignInService.signOut()).called(1);
+      verify(mockCocoonService.reserveTask(any, any)).called(1);
     });
   });
 }
-
-/// CocoonService for checking interactions.
-class MockCocoonService extends Mock implements FakeCocoonService {}
-
-/// GoogleAuthenticationService for checking interactions.
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}
