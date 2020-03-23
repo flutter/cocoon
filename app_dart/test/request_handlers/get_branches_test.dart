@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_github_service.dart';
 
 const String branchRegExp = '''
       master
@@ -39,11 +40,11 @@ void main() {
     }
 
     setUp(() {
-      final MockGitHub github = MockGitHub();
+      final FakeGithubService githubService = FakeGithubService();
       final MockRepositoriesService repositories = MockRepositoriesService();
 
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      config = FakeConfig(githubClient: github, flutterSlugValue: slug);
+      config = FakeConfig(githubService: githubService, flutterSlugValue: slug);
       branchHttpClient = FakeHttpClient();
       tester = RequestHandlerTester();
       handler = GetBranches(
@@ -52,7 +53,7 @@ void main() {
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
 
-      when(github.repositories).thenReturn(repositories);
+      when(githubService.github.repositories).thenReturn(repositories);
       when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
         return branchStream();
       });
