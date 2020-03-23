@@ -9,10 +9,18 @@ import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_health_details.dart';
 
+final DateTime pingTime = DateTime(2010, 5, 6, 12, 30);
+final DateTime soonTime = pingTime.add(
+  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+);
+final DateTime laterTime = pingTime.add(
+  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
+);
+
 void main() {
   test('is healthy when everything is healthy', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -33,13 +41,15 @@ able-to-perform-health-check: succeeded''';
     expect(healthDetails.cocoonConnection, isTrue);
     expect(healthDetails.hasHealthyDevices, isTrue);
     expect(healthDetails.hasSshConnectivity, isTrue);
-    expect(healthDetails.pingedRecently, isTrue);
-    expect(healthDetails.isHealthy, isTrue);
+    expect(healthDetails.pingedRecently(soonTime), isTrue);
+    expect(healthDetails.pingedRecently(laterTime), isFalse);
+    expect(healthDetails.isHealthy(soonTime), isTrue);
+    expect(healthDetails.isHealthy(laterTime), isFalse);
   });
 
   test('is not healthy when just one metric is unhealthy', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
       ..isHealthy = false
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -91,8 +101,10 @@ able-to-perform-health-check: succeeded''';
     expect(healthDetails.cocoonConnection, isTrue);
     expect(healthDetails.hasHealthyDevices, isFalse);
     expect(healthDetails.hasSshConnectivity, isTrue);
-    expect(healthDetails.pingedRecently, isTrue);
-    expect(healthDetails.isHealthy, isFalse);
+    expect(healthDetails.pingedRecently(soonTime), isTrue);
+    expect(healthDetails.isHealthy(soonTime), isFalse);
+    expect(healthDetails.pingedRecently(laterTime), isFalse);
+    expect(healthDetails.isHealthy(laterTime), isFalse);
   });
 
   test('is not healthy when all metrics are healthy but has timed out', () {
@@ -118,8 +130,10 @@ able-to-perform-health-check: succeeded''';
     expect(healthDetails.cocoonConnection, isTrue);
     expect(healthDetails.hasHealthyDevices, isTrue);
     expect(healthDetails.hasSshConnectivity, isTrue);
-    expect(healthDetails.pingedRecently, isFalse);
-    expect(healthDetails.isHealthy, isFalse);
+    expect(healthDetails.pingedRecently(soonTime), isFalse);
+    expect(healthDetails.isHealthy(soonTime), isFalse);
+    expect(healthDetails.pingedRecently(laterTime), isFalse);
+    expect(healthDetails.isHealthy(laterTime), isFalse);
   });
 
   test('is unhealthy when health details is null', () {
@@ -134,7 +148,9 @@ able-to-perform-health-check: succeeded''';
     expect(healthDetails.cocoonConnection, isFalse);
     expect(healthDetails.hasHealthyDevices, isFalse);
     expect(healthDetails.hasSshConnectivity, isFalse);
-    expect(healthDetails.pingedRecently, isFalse);
-    expect(healthDetails.isHealthy, isFalse);
+    expect(healthDetails.pingedRecently(soonTime), isFalse);
+    expect(healthDetails.isHealthy(soonTime), isFalse);
+    expect(healthDetails.pingedRecently(laterTime), isFalse);
+    expect(healthDetails.isHealthy(laterTime), isFalse);
   });
 }

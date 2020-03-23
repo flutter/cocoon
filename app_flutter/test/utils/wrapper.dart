@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/material.dart';
+
+import 'package:app_flutter/now.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state_provider.dart';
-import 'package:flutter/material.dart';
 
 import 'fake_agent_state.dart';
 import 'fake_flutter_build.dart';
@@ -25,7 +27,10 @@ class FakeInserter extends StatelessWidget {
       indexState: FakeIndexState(authService: authService),
       agentState: FakeAgentState(authService: authService),
       buildState: FakeFlutterBuildState(authService: authService),
-      child: child,
+      child: Now.fixed(
+        dateTime: DateTime(2000),
+        child: child,
+      ),
     );
   }
 }

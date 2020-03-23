@@ -11,17 +11,21 @@ import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_health_details.dart';
 import 'package:app_flutter/agent_health_details_bar.dart';
-import 'package:app_flutter/agent_list.dart';
 import 'package:app_flutter/agent_tile.dart';
+import 'package:app_flutter/now.dart';
 
 import 'utils/mocks.dart';
 import 'utils/output.dart';
 
+final DateTime healthyTime = DateTime(2010, 5, 6, 12, 30);
+final DateTime nowTime = healthyTime.add(
+  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+);
+
 void main() {
   group('AgentTile', () {
     final Agent agent = Agent()
-      // TODO(ianh): here and in other files, remove dependency on DateTime.now since that can introduce flakes.
-      ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+      ..healthCheckTimestamp = Int64(healthyTime.millisecondsSinceEpoch)
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -35,7 +39,7 @@ cocoon-authentication: succeeded
 cocoon-connection: succeeded
 able-to-perform-health-check: succeeded''';
 
-    final FullAgent fullAgent = FullAgent(agent, AgentHealthDetails(agent));
+    final AgentHealthDetails agentHealthDetails = AgentHealthDetails(agent);
 
     MockAgentState mockAgentState;
 
@@ -49,10 +53,11 @@ able-to-perform-health-check: succeeded''';
 
     testWidgets('raw health details dialog', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: AgentTile(
-              fullAgent: fullAgent,
+        Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: AgentTile(
+              agentHealthDetails: agentHealthDetails,
             ),
           ),
         ),
@@ -92,10 +97,13 @@ able-to-perform-health-check: succeeded''';
 
     testWidgets('authorize agent calls api', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: AgentTile(
-            fullAgent: fullAgent,
-            agentState: mockAgentState,
+        Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: AgentTile(
+              agentHealthDetails: agentHealthDetails,
+              agentState: mockAgentState,
+            ),
           ),
         ),
       );
@@ -116,11 +124,14 @@ able-to-perform-health-check: succeeded''';
 
     testWidgets('reserve task calls api', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: AgentTile(
-              fullAgent: fullAgent,
-              agentState: mockAgentState,
+        Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: Scaffold(
+              body: AgentTile(
+                agentHealthDetails: agentHealthDetails,
+                agentState: mockAgentState,
+              ),
             ),
           ),
         ),
@@ -142,9 +153,12 @@ able-to-perform-health-check: succeeded''';
 
     testWidgets('agent info is shown', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: AgentTile(
-            fullAgent: fullAgent,
+        Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: AgentTile(
+              agentHealthDetails: agentHealthDetails,
+            ),
           ),
         ),
       );

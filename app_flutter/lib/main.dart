@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'agent_dashboard_page.dart';
 import 'build_dashboard_page.dart';
 import 'index_page.dart';
+import 'now.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/agent.dart';
@@ -23,7 +24,7 @@ void main() {
       indexState: IndexState(authService: authService),
       agentState: AgentState(authService: authService, cocoonService: cocoonService),
       buildState: FlutterBuildState(authService: authService, cocoonService: cocoonService),
-      child: const MyApp(),
+      child: Now(child: const MyApp()),
     ),
   );
 }

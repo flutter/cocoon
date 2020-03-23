@@ -8,8 +8,11 @@ import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'agent_health_details.dart';
 import 'agent_health_details_bar.dart';
-import 'agent_list.dart';
+import 'now.dart';
 import 'state/agent.dart';
+
+/// Values to be used in [PopupMenu] to know what action to execute.
+enum _AgentTileAction { details, authorize, reserve }
 
 /// A card for showing the information from an [Agent].
 ///
@@ -20,13 +23,13 @@ import 'state/agent.dart';
 class AgentTile extends StatelessWidget {
   const AgentTile({
     Key key,
-    this.fullAgent,
+    this.agentHealthDetails,
     this.agentState,
   }) : super(key: key);
 
   final AgentState agentState;
 
-  final FullAgent fullAgent;
+  final AgentHealthDetails agentHealthDetails;
 
   @visibleForTesting
   static const Duration authorizeAgentSnackbarDuration = Duration(seconds: 5);
@@ -34,52 +37,47 @@ class AgentTile extends StatelessWidget {
   @visibleForTesting
   static const Duration reserveTaskSnackbarDuration = Duration(seconds: 5);
 
-  /// Values to be used in [PopupMenu] to know what action to execute.
-  static const String _authorizeAgentValue = 'authorize';
-  static const String _healthDetailsValue = 'details';
-  static const String _reserveTaskValue = 'reserve';
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final DateTime now = Now.of(context);
 
-    final Agent agent = fullAgent.agent;
-    final AgentHealthDetails healthDetails = fullAgent.healthDetails;
+    final Agent agent = agentHealthDetails.agent;
 
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: healthDetails.isHealthy ? Colors.green : theme.errorColor,
+          backgroundColor: agentHealthDetails.isHealthy(now) ? Colors.green : theme.errorColor,
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
         title: Text(agent.agentId),
-        subtitle: AgentHealthDetailsBar(healthDetails),
-        trailing: PopupMenuButton<String>(
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
+        subtitle: AgentHealthDetailsBar(agentHealthDetails),
+        trailing: PopupMenuButton<_AgentTileAction>(
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<_AgentTileAction>>[
+            const PopupMenuItem<_AgentTileAction>(
               child: Text('Raw health details'),
-              value: _healthDetailsValue,
+              value: _AgentTileAction.details,
             ),
-            const PopupMenuItem<String>(
+            const PopupMenuItem<_AgentTileAction>(
               child: Text('Authorize agent'),
-              value: _authorizeAgentValue,
+              value: _AgentTileAction.authorize,
             ),
-            const PopupMenuItem<String>(
+            const PopupMenuItem<_AgentTileAction>(
               child: Text('Reserve task'),
-              value: _reserveTaskValue,
+              value: _AgentTileAction.reserve,
             ),
           ],
           icon: Icon(Icons.more_vert),
-          onSelected: (String value) {
+          onSelected: (_AgentTileAction value) {
             switch (value) {
-              case _healthDetailsValue:
+              case _AgentTileAction.details:
                 _showHealthDetailsDialog(context, agent.healthDetails);
                 break;
-              case _authorizeAgentValue:
+              case _AgentTileAction.authorize:
                 _authorizeAgent(context, agent);
                 break;
-              case _reserveTaskValue:
+              case _AgentTileAction.reserve:
                 _reserveTask(context, agent);
                 break;
               default:
