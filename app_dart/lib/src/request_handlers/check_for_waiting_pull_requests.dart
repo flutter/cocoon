@@ -216,6 +216,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         failingStatuses,
         statuses,
         name,
+        'pull/$number',
       );
 
       list.add(_AutoMergeQueryResult(
@@ -240,12 +241,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Set<String> failures,
     List<Map<String, dynamic>> statuses,
     String name,
+    String branch,
   ) async {
     assert(failures != null && failures.isEmpty);
     bool allSuccess = true;
-
-    /// API checks only `master` branch for waiting pull requests.
-    const String branch = 'master';
 
     // The status checks that are not related to changes in this PR.
     const Set<String> notInAuthorsControl = <String>{
