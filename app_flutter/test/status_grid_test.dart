@@ -5,7 +5,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
 
@@ -13,12 +12,14 @@ import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 import 'package:app_flutter/commit_box.dart';
+import 'package:app_flutter/state_provider.dart';
 import 'package:app_flutter/status_grid.dart';
 import 'package:app_flutter/task_box.dart';
 import 'package:app_flutter/task_icon.dart';
 import 'package:app_flutter/task_matrix.dart' show TaskMatrix;
 
 import 'utils/fake_flutter_build.dart';
+import 'utils/mocks.dart';
 
 void main() {
   group('StatusGrid', () {
@@ -45,13 +46,9 @@ void main() {
     testWidgets('shows loading indicator when statuses is empty', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              ChangeNotifierProvider<FlutterBuildState>(
-                create: (_) => FakeFlutterBuildState(),
-                child: const StatusGridContainer(),
-              ),
-            ],
+          home: ValueProvider<FlutterBuildState>(
+            value: FakeFlutterBuildState(),
+            child: const StatusGridContainer(),
           ),
         ),
       );
@@ -60,17 +57,41 @@ void main() {
       expect(find.byType(GridView), findsNothing);
     });
 
+    testWidgets('commits show in the same column (indirectly via StatusGridContainer)', (WidgetTester tester) async {
+      final FlutterBuildState buildState = FlutterBuildState(
+        cocoonService: service,
+        authService: MockGoogleSignInService(),
+      );
+      buildState.startFetchingUpdates();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ValueProvider<FlutterBuildState>(
+            value: buildState,
+            child: const StatusGridContainer(),
+          ),
+        ),
+      );
+
+      final List<Element> commits = find.byType(CommitBox).evaluate().toList();
+
+      final double xPosition = commits.first.size.topLeft(Offset.zero).dx;
+
+      for (final Element commit in commits) {
+        // All the x positions should match the first instance if they're all in the same column
+        expect(commit.size.topLeft(Offset.zero).dx, xPosition);
+      }
+
+      await tester.pumpWidget(Container());
+      buildState.dispose();
+    });
+
     testWidgets('commits show in the same column', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: statuses,
-                taskMatrix: taskMatrix,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: statuses,
+            taskMatrix: taskMatrix,
           ),
         ),
       );
@@ -88,14 +109,10 @@ void main() {
     testWidgets('first task in grid is the first task given', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: statuses,
-                taskMatrix: taskMatrix,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: statuses,
+            taskMatrix: taskMatrix,
           ),
         ),
       );
@@ -146,15 +163,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: statusesWithSkips,
-                taskMatrix: taskMatrix,
-                insertCellKeys: true,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: statusesWithSkips,
+            taskMatrix: taskMatrix,
+            insertCellKeys: true,
           ),
         ),
       );
@@ -198,15 +211,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: statusesWithSkips,
-                taskMatrix: taskMatrix,
-                insertCellKeys: true,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: statusesWithSkips,
+            taskMatrix: taskMatrix,
+            insertCellKeys: true,
           ),
         ),
       );
@@ -226,15 +235,11 @@ void main() {
     testWidgets('task icon row is created', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: statuses,
-                taskMatrix: taskMatrix,
-                insertCellKeys: true,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: statuses,
+            taskMatrix: taskMatrix,
+            insertCellKeys: true,
           ),
         ),
       );
@@ -261,15 +266,11 @@ void main() {
       final TaskMatrix smallTaskMatrix = TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState(),
-                statuses: smallRangeOfStatusesToShowLoader,
-                taskMatrix: smallTaskMatrix,
-                insertCellKeys: true,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState(),
+            statuses: smallRangeOfStatusesToShowLoader,
+            taskMatrix: smallTaskMatrix,
+            insertCellKeys: true,
           ),
         ),
       );
@@ -287,15 +288,11 @@ void main() {
       final TaskMatrix smallTaskMatrix = TaskMatrix(statuses: smallRangeOfStatusesToShowLoader);
       await tester.pumpWidget(
         MaterialApp(
-          home: Column(
-            children: <Widget>[
-              StatusGrid(
-                buildState: FakeFlutterBuildState()..moreStatusesExist = false,
-                statuses: smallRangeOfStatusesToShowLoader,
-                taskMatrix: smallTaskMatrix,
-                insertCellKeys: true,
-              ),
-            ],
+          home: StatusGrid(
+            buildState: FakeFlutterBuildState()..moreStatusesExist = false,
+            statuses: smallRangeOfStatusesToShowLoader,
+            taskMatrix: smallTaskMatrix,
+            insertCellKeys: true,
           ),
         ),
       );

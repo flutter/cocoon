@@ -88,11 +88,8 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
         ),
         body: ErrorBrookWatcher(
           errors: _buildState.errors,
-          child: Column(
-            // TODO(ianh): Replace with a more idiomatic solution.
-            children: const <Widget>[
-              StatusGridContainer(),
-            ],
+          child: const SizedBox.expand(
+            child: StatusGridContainer(),
           ),
         ),
         drawer: const NavigationDrawer(),
