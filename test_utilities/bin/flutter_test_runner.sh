@@ -24,8 +24,6 @@ pushd $1 > /dev/null
 flutter packages get
 flutter analyze
 flutter format --line-length=120 --set-exit-if-changed lib/ test/
-flutter config --enable-web
-flutter build web
 flutter test --test-randomize-ordering-seed=random
 
 popd > /dev/null
