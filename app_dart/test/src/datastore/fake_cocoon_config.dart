@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/datastore/datastore_wrapper.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -105,6 +106,9 @@ class FakeConfig implements Config {
 
   @override
   FakeDatastoreDB get db => dbValue;
+
+  @override
+  DatastoreWrapper get dbWrapper => DatastoreWrapper(dbValue, this);
 
   @override
   Future<ServiceAccountInfo> get deviceLabServiceAccount async =>

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/datastore/datastore_wrapper.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart' hide createGitHubClient;
@@ -64,6 +65,8 @@ class Config {
   int get maxEntityGroups => 5;
 
   DatastoreDB get db => _db;
+
+  DatastoreWrapper get dbWrapper => DatastoreWrapper(_db, this);
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
