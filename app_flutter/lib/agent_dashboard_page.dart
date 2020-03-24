@@ -7,89 +7,165 @@ import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
 import 'agent_list.dart';
-import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
+import 'service/google_authentication.dart';
 import 'sign_in_button.dart';
 import 'state/agent.dart';
+
+/// [AgentDashboardPage] parent widget that manages the state of the dashboard.
+class AgentDashboardPage extends StatefulWidget {
+  // TODO(ianh): there's a number of problems with the design here
+  // - the widget itself (as opposed to its State) has state (it creates an AgentState)
+  // - the State doesn't handle the widget's agentState property changing dynamically
+  // - the State doesn't handle the case of the signInService changing dynamically
+  // - the State caches the agentState from the widget, leading to a two-sources-of-truth situation
+  // - the State causes the AgentState to start donig its updates, rather than just subscribing
+  //   and letting the AgentState logic determine whether it has clients and should be live
+  // We could probably solve most of these problems by moving all the app state out of the widget
+  // tree and using inherited widgets to get at it.
+
+  AgentDashboardPage({
+    Key key,
+    AgentState agentState,
+    GoogleSignInService signInService,
+    @visibleForTesting this.agentFilter,
+  })  : agentState = agentState ?? AgentState(authServiceValue: signInService),
+        super(key: key);
+
+  static const String routeName = '/agents';
+
+  final AgentState agentState;
+
+  /// Search term to filter the agents from [agentState] and show only those
+  /// that contain this term.
+  ///
+  /// This instance is to give a way for tests to inject the value.
+  final String agentFilter;
+
+  @visibleForTesting
+  static const Duration errorSnackbarDuration = Duration(seconds: 8);
+
+  @override
+  _AgentDashboardPageState createState() => _AgentDashboardPageState();
+}
+
+class _AgentDashboardPageState extends State<AgentDashboardPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  AgentState agentState;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.agentState.startFetchingStateUpdates();
+    widget.agentState.errors.addListener(_showErrorSnackbar);
+    agentState = widget.agentState;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String agentFilter = (ModalRoute.of(context).settings.arguments as String) ?? widget.agentFilter;
+    return ChangeNotifierProvider<AgentState>(
+      create: (_) => agentState,
+      child: AgentDashboard(
+        scaffoldKey: _scaffoldKey,
+        agentState: agentState,
+        agentFilter: agentFilter,
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String error) {
+    final Row snackbarContent = Row(
+      children: <Widget>[
+        const Icon(Icons.error),
+        const SizedBox(width: 10),
+        Text(error),
+      ],
+    );
+    _scaffoldKey.currentState.showSnackBar(
+      SnackBar(
+        content: snackbarContent,
+        backgroundColor: Theme.of(context).errorColor,
+        duration: AgentDashboardPage.errorSnackbarDuration,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    agentState.errors.removeListener(_showErrorSnackbar);
+    super.dispose();
+  }
+}
 
 /// Shows current status of Flutter infra agents.
 ///
 /// If [agentFilter] is non-null and non-empty, it will only show agents
 /// with [agentId] that contains [agentFilter]. Otherwise, all agents are shown.
-class AgentDashboardPage extends StatefulWidget {
-  const AgentDashboardPage({
+class AgentDashboard extends StatelessWidget {
+  const AgentDashboard({
     Key key,
+    this.scaffoldKey,
+    this.agentState,
     this.agentFilter,
   }) : super(key: key);
+
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  final AgentState agentState;
 
   /// Search term to filter the agents from [agentState] and show only those
   /// that contain this term.
   ///
-  /// If this is null, the [Route.arguments] value is used instead.
+  /// In a running application, this is retrieved as the route argument.
   final String agentFilter;
 
-  static const String routeName = '/agents';
-
   @override
-  State<AgentDashboardPage> createState() => _AgentDashboardPageState();
-}
-
-class _AgentDashboardPageState extends State<AgentDashboardPage> {
-  AgentState _agentState;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _agentState = Provider.of<AgentState>(context)..startFetchingStateUpdates();
+  Widget build(BuildContext context) {
+    return Consumer<AgentState>(
+      builder: (_, AgentState agentState, Widget child) => Scaffold(
+        key: scaffoldKey,
+        appBar: AppBar(
+          title: const Text('Infra Agents'),
+          actions: <Widget>[
+            SignInButton(authService: agentState.authService),
+          ],
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            // Without this container the ListView will not be centered.
+            Container(),
+            Expanded(
+              child: SizedBox(
+                width: 500,
+                child: AgentList(
+                  agents: agentState.agents,
+                  agentState: agentState,
+                  agentFilter: agentFilter,
+                ),
+              ),
+            ),
+          ],
+        ),
+        drawer: const NavigationDrawer(),
+        floatingActionButton: RaisedButton(
+          child: const Text(
+            'Create Agent',
+            textScaleFactor: 1.5,
+          ),
+          color: Theme.of(context).primaryColor,
+          padding: const EdgeInsets.all(10.0),
+          onPressed: () => _showCreateAgentDialog(context, agentState),
+        ),
+      ),
+    );
   }
 
   void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
     showDialog<AlertDialog>(
       context: context,
       builder: (BuildContext context) => CreateAgentDialog(agentState: agentState),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _agentState,
-      builder: (BuildContext context, Widget child) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Infra Agents'),
-          actions: const <Widget>[
-            SignInButton(),
-          ],
-        ),
-        body: ErrorBrookWatcher(
-          errors: _agentState.errors,
-          child: Column(
-            // TODO(ianh): Replace with a more idiomatic solution.
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // Without this container the ListView will not be centered.
-              Container(),
-              Expanded(
-                child: SizedBox(
-                  width: 500,
-                  child: AgentList(
-                    // TODO(ianh): stop passing both the state and the value from the state
-                    agents: _agentState.agents,
-                    agentState: _agentState,
-                    agentFilter: widget.agentFilter ?? ModalRoute.of(context).settings.arguments as String,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        drawer: const NavigationDrawer(),
-        floatingActionButton: FloatingActionButton.extended(
-          icon: Icon(Icons.add),
-          label: const Text('CREATE AGENT'),
-          onPressed: () => _showCreateAgentDialog(context, _agentState),
-        ),
-      ),
     );
   }
 }

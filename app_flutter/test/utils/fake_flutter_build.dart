@@ -8,25 +8,13 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 
-import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/brooks.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
-import 'mocks.dart';
-
 class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState {
-  FakeFlutterBuildState({
-    GoogleSignInService authService,
-    CocoonService cocoonService,
-  })  : authService = authService ?? MockGoogleSignInService(),
-        cocoonService = cocoonService ?? MockCocoonService();
-
   @override
-  final GoogleSignInService authService;
-
-  @override
-  final CocoonService cocoonService;
+  GoogleSignInService authService = GoogleSignInService();
 
   @override
   Timer refreshTimer;
@@ -42,6 +30,12 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
 
   @override
   Future<bool> rerunTask(Task task) => null;
+
+  @override
+  Future<void> signIn() => null;
+
+  @override
+  Future<void> signOut() => null;
 
   @override
   Future<void> startFetchingUpdates() => null;

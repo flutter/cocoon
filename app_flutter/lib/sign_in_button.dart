@@ -5,7 +5,6 @@
 import 'package:app_flutter/canvaskit_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:provider/provider.dart';
 
 import 'service/google_authentication.dart';
 
@@ -18,14 +17,16 @@ enum _SignInButtonAction { logout }
 class SignInButton extends StatelessWidget {
   const SignInButton({
     Key key,
+    @required this.authService,
     this.colorBrightness,
   }) : super(key: key);
+
+  final GoogleSignInService authService;
 
   final Brightness colorBrightness;
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
     return FutureBuilder<bool>(
       future: authService.isAuthenticated,
       builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {

@@ -11,10 +11,10 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Key, RootKey;
 
 import 'package:app_flutter/service/cocoon.dart';
+import 'package:app_flutter/service/fake_cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/flutter_build.dart';
 
-import '../utils/mocks.dart';
 import '../utils/output.dart';
 
 void main() {
@@ -22,26 +22,24 @@ void main() {
 
   group('FlutterBuildState', () {
     FlutterBuildState buildState;
-    MockCocoonService mockCocoonService;
+    MockCocoonService mockService;
     String lastError;
 
     CommitStatus setupCommitStatus;
 
     setUp(() {
-      mockCocoonService = MockCocoonService();
-      buildState = FlutterBuildState(
-        authService: MockGoogleSignInService(),
-        cocoonService: mockCocoonService,
-      )..errors.addListener((String message) => lastError = message);
+      mockService = MockCocoonService();
+      buildState = FlutterBuildState(cocoonServiceValue: mockService)
+        ..errors.addListener((String message) => lastError = message);
 
       setupCommitStatus = _createCommitStatus('setup');
 
-      when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
+      when(mockService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
-      when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
+      when(mockService.fetchTreeBuildStatus(branch: anyNamed('branch')))
           .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
-      when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) =>
+      when(mockService.fetchFlutterBranches()).thenAnswer((_) =>
           Future<CocoonResponse<List<String>>>.value(CocoonResponse<List<String>>()..data = <String>[_defaultBranch]));
     });
 
@@ -49,7 +47,7 @@ void main() {
       buildState.startFetchingUpdates();
 
       // startFetching immediately starts fetching results
-      verify(mockCocoonService.fetchFlutterBranches()).called(1);
+      verify(mockService.fetchFlutterBranches()).called(1);
 
       // Tear down fails to cancel the timer
       await tester.pump(buildState.refreshRate * 2);
@@ -60,12 +58,12 @@ void main() {
       buildState.startFetchingUpdates();
 
       // startFetching immediately starts fetching results
-      verify(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch)).called(1);
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(1);
 
       // Periodic timers don't necessarily run at the same time in each interval.
       // We double the refreshRate to gurantee a call would have been made.
       await tester.pump(buildState.refreshRate * 2);
-      verify(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
 
       // Tear down fails to cancel the timer before the test is over
       buildState.dispose();
@@ -96,7 +94,7 @@ void main() {
       await tester.pump(buildState.refreshRate * 2);
       final List<CommitStatus> originalData = buildState.statuses;
 
-      when(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer((_) =>
+      when(mockService.fetchCommitStatuses(branch: _defaultBranch)).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(CocoonResponse<List<CommitStatus>>()..error = 'error'));
 
       await checkOutput(
@@ -107,7 +105,7 @@ void main() {
           'An error occured fetching build statuses from Cocoon: error',
         ],
       );
-      verify(mockCocoonService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
+      verify(mockService.fetchCommitStatuses(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.statuses, originalData);
       expect(lastError, startsWith(FlutterBuildState.errorMessageFetchingStatuses));
@@ -124,7 +122,7 @@ void main() {
       await tester.pump(buildState.refreshRate);
       final bool originalData = buildState.isTreeBuilding;
 
-      when(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch))
+      when(mockService.fetchTreeBuildStatus(branch: _defaultBranch))
           .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..error = 'error'));
 
       await checkOutput(
@@ -135,7 +133,7 @@ void main() {
           'An error occured fetching tree status from Cocoon: error',
         ],
       );
-      verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).called(greaterThan(1));
+      verify(mockService.fetchTreeBuildStatus(branch: _defaultBranch)).called(greaterThan(1));
 
       expect(buildState.isTreeBuilding, originalData);
       expect(lastError, startsWith(FlutterBuildState.errorMessageFetchingTreeStatus));
@@ -147,12 +145,12 @@ void main() {
     testWidgets('fetch more commit statuses appends', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
-      await untilCalled(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch')));
+      await untilCalled(mockService.fetchCommitStatuses(branch: anyNamed('branch')));
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
 
       final CommitStatus statusA = _createCommitStatus('A');
-      when(mockCocoonService.fetchCommitStatuses(
+      when(mockService.fetchCommitStatuses(
               lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
           .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[statusA]);
 
@@ -171,11 +169,11 @@ void main() {
     testWidgets('fetchMoreCommitStatuses returns empty stops fetching more', (WidgetTester tester) async {
       buildState.startFetchingUpdates();
 
-      await untilCalled(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch')));
+      await untilCalled(mockService.fetchCommitStatuses(branch: anyNamed('branch')));
 
       expect(buildState.statuses, <CommitStatus>[setupCommitStatus]);
 
-      when(mockCocoonService.fetchCommitStatuses(
+      when(mockService.fetchCommitStatuses(
               lastCommitStatus: captureThat(isNotNull, named: 'lastCommitStatus'), branch: anyNamed('branch')))
           .thenAnswer((_) async => CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[]);
 
@@ -189,17 +187,17 @@ void main() {
 
     testWidgets('update branch resets build state data', (WidgetTester tester) async {
       // Only return statuses when on master branch
-      when(mockCocoonService.fetchCommitStatuses(branch: 'master')).thenAnswer((_) =>
+      when(mockService.fetchCommitStatuses(branch: 'master')).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>()..data = <CommitStatus>[setupCommitStatus]));
       // Mark tree green on master, red on dev
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'master'))
+      when(mockService.fetchTreeBuildStatus(branch: 'master'))
           .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = true));
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev'))
+      when(mockService.fetchTreeBuildStatus(branch: 'dev'))
           .thenAnswer((_) => Future<CocoonResponse<bool>>.value(CocoonResponse<bool>()..data = false));
       buildState.startFetchingUpdates();
 
-      await untilCalled(mockCocoonService.fetchCommitStatuses(branch: 'master'));
+      await untilCalled(mockService.fetchCommitStatuses(branch: 'master'));
       expect(buildState.statuses, isNotEmpty);
       expect(buildState.isTreeBuilding, isNotNull);
 
@@ -212,28 +210,40 @@ void main() {
 
       buildState.dispose();
     });
+
+    test('auth functions call auth service', () async {
+      final MockGoogleSignInService mockSignInService = MockGoogleSignInService();
+      buildState = FlutterBuildState(authServiceValue: mockSignInService);
+
+      verifyNever(mockSignInService.signIn());
+      verifyNever(mockSignInService.signOut());
+
+      await buildState.signIn();
+      verify(mockSignInService.signIn()).called(1);
+      verifyNever(mockSignInService.signOut());
+
+      await buildState.signOut();
+      verify(mockSignInService.signOut()).called(1);
+    });
   });
 
   testWidgets('sign in functions call notify listener', (WidgetTester tester) async {
     final MockGoogleSignInPlugin mockSignInPlugin = MockGoogleSignInPlugin();
     when(mockSignInPlugin.onCurrentUserChanged).thenAnswer((_) => Stream<GoogleSignInAccount>.value(null));
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
-
-    final FlutterBuildState buildState = FlutterBuildState(
-      cocoonService: MockCocoonService(),
-      authService: signInService, // TODO(ianh): Settle on one of these two for the whole codebase.
-    );
+    final FlutterBuildState buildState = FlutterBuildState(authServiceValue: signInService);
 
     int callCount = 0;
-    buildState.addListener(() => callCount += 1);
+    buildState.addListener(() => callCount++);
 
+    // notify listener is called during construction of the state
     await tester.pump(const Duration(seconds: 5));
     expect(callCount, 1);
 
-    await signInService.signIn();
+    await buildState.signIn();
     expect(callCount, 2);
 
-    await signInService.signOut();
+    await buildState.signOut();
     expect(callCount, 3);
   });
 }
@@ -250,3 +260,11 @@ CommitStatus _createCommitStatus(
       ..author = keyValue
       ..key = (RootKey()..child = (Key()..name = keyValue)));
 }
+
+/// CocoonService for checking interactions.
+class MockCocoonService extends Mock implements FakeCocoonService {}
+
+class MockGoogleSignInPlugin extends Mock implements GoogleSignIn {}
+
+/// Mock for testing interactions with [GoogleSignInService].
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}

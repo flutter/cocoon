@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 
 import '../utils/fake_google_account.dart';
-import '../utils/mocks.dart';
 
 void main() {
   group('GoogleSignInService not signed in', () {
@@ -17,7 +16,7 @@ void main() {
     GoogleSignIn mockSignIn;
 
     setUp(() {
-      mockSignIn = MockGoogleSignInPlugin();
+      mockSignIn = MockGoogleSignIn();
       when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
       when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(false));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
@@ -43,6 +42,7 @@ void main() {
       final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
         ..authentication = Future<GoogleSignInAuthentication>.value(FakeGoogleSignInAuthentication());
       when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
+      authService.notifyListeners = () => null;
 
       verifyNever(mockSignIn.isSignedIn());
       verifyNever(mockSignIn.signIn());
@@ -61,13 +61,13 @@ void main() {
     final GoogleSignInAccount testAccount = FakeGoogleSignInAccount();
 
     setUp(() {
-      mockSignIn = MockGoogleSignInPlugin();
+      mockSignIn = MockGoogleSignIn();
       when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn.currentUser).thenReturn(testAccount);
       when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
       when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
-      authService = GoogleSignInService(googleSignIn: mockSignIn);
+      authService = GoogleSignInService(googleSignIn: mockSignIn)..notifyListeners = () => null;
     });
 
     test('is authenticated after successful sign in', () async {
@@ -105,6 +105,9 @@ void main() {
     });
   });
 }
+
+/// Mock [GoogleSignIn] for testing interactions.
+class MockGoogleSignIn extends Mock implements GoogleSignIn {}
 
 class FakeGoogleSignInAuthentication implements GoogleSignInAuthentication {
   @override
