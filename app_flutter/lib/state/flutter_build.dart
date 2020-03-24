@@ -12,20 +12,24 @@ import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 import 'brooks.dart';
 
-/// State for the Flutter Build Dashboard.
+/// State for the Flutter Build Dashboard
 class FlutterBuildState extends ChangeNotifier {
+  /// Creates a new [FlutterBuildState].
+  ///
+  /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
   FlutterBuildState({
-    @required this.cocoonService,
-    @required this.authService,
-  }) {
-    authService.addListener(notifyListeners);
+    CocoonService cocoonServiceValue,
+    GoogleSignInService authServiceValue,
+  })  : _cocoonService = cocoonServiceValue ?? CocoonService(),
+        authService = authServiceValue ?? GoogleSignInService() {
+    authService.notifyListeners = notifyListeners;
   }
 
   /// Cocoon backend service that retrieves the data needed for this state.
-  final CocoonService cocoonService;
+  final CocoonService _cocoonService;
 
   /// Authentication service for managing Google Sign In.
-  final GoogleSignInService authService;
+  GoogleSignInService authService;
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
@@ -33,7 +37,6 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
   @visibleForTesting
-  @protected
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
@@ -74,7 +77,6 @@ class FlutterBuildState extends ChangeNotifier {
       'An error occured fetching branches from flutter/flutter on Cocoon.';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  // TODO(ianh): make this automatically trigger when listeners are added, and cancel when they're removed.
   Future<void> startFetchingUpdates() async {
     if (refreshTimer != null && refreshTimer.isActive) {
       // There's already an update loop, no need to make another.
@@ -108,7 +110,7 @@ class FlutterBuildState extends ChangeNotifier {
   /// If fetched [statuses] is not on the current branch it will be discarded.
   Future<void> _fetchBuildStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      cocoonService.fetchCommitStatuses(branch: _currentBranch).then((CocoonResponse<List<CommitStatus>> response) {
+      _cocoonService.fetchCommitStatuses(branch: _currentBranch).then((CocoonResponse<List<CommitStatus>> response) {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
@@ -116,7 +118,7 @@ class FlutterBuildState extends ChangeNotifier {
         }
         notifyListeners();
       }),
-      cocoonService.fetchTreeBuildStatus(branch: _currentBranch).then((CocoonResponse<bool> response) {
+      _cocoonService.fetchTreeBuildStatus(branch: _currentBranch).then((CocoonResponse<bool> response) {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
         } else {
@@ -129,7 +131,7 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Request the latests [branches] from [CocoonService].
   Future<List<String>> _fetchFlutterBranches() async {
-    return cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
+    return _cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
       if (response.error != null) {
         _errors.send('$errorMessageFetchingBranches: ${response.error}');
       }
@@ -226,7 +228,7 @@ class FlutterBuildState extends ChangeNotifier {
   Future<void> fetchMoreCommitStatuses() async {
     assert(_statuses.isNotEmpty);
 
-    final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
+    final CocoonResponse<List<CommitStatus>> response = await _cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
       branch: _currentBranch,
     );
@@ -254,17 +256,19 @@ class FlutterBuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
+  Future<void> signIn() => authService.signIn();
+  Future<void> signOut() => authService.signOut();
+
   Future<bool> rerunTask(Task task) async {
-    return cocoonService.rerunTask(task, await authService.idToken);
+    return _cocoonService.rerunTask(task, await authService.idToken);
   }
 
   Future<bool> downloadLog(Task task, Commit commit) async {
-    return cocoonService.downloadLog(task, await authService.idToken, commit.sha);
+    return _cocoonService.downloadLog(task, await authService.idToken, commit.sha);
   }
 
   @override
   void dispose() {
-    authService.removeListener(notifyListeners);
     refreshTimer?.cancel();
     super.dispose();
   }
