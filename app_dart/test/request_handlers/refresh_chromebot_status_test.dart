@@ -119,10 +119,10 @@ void main() {
           key: config.db.emptyKey.append(Commit, id: 'def'),
           sha: 'def',
           branch: 'flutter-0.0-candidate.0');
-      final Task taskMaster =
-          Task(key: commitMaster.key.append(Task, id: 123), status: Task.statusNew);
-      final Task taskOther =
-          Task(key: commitOther.key.append(Task, id: 456), status: Task.statusNew);
+      final Task taskMaster = Task(
+          key: commitMaster.key.append(Task, id: 123), status: Task.statusNew);
+      final Task taskOther = Task(
+          key: commitOther.key.append(Task, id: 456), status: Task.statusNew);
       config.db.values[commitMaster.key] = commitMaster;
       config.db.values[commitOther.key] = commitOther;
       config.db.values[taskMaster.key] = taskMaster;
