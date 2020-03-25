@@ -2,28 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
-import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 
 import 'brooks.dart';
 
-/// State for the index page
+/// State for the index page.
 class IndexState extends ChangeNotifier {
-  /// Creates a new [FlutterBuildState].
-  ///
-  /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
+  /// Creates a new [IndexState].
   IndexState({
-    GoogleSignInService authServiceValue,
-  }) : authService = authServiceValue ?? GoogleSignInService() {
-    authService.notifyListeners = notifyListeners;
+    this.authService,
+  }) {
+    authService.addListener(notifyListeners);
   }
 
   /// Authentication service for managing Google Sign In.
-  GoogleSignInService authService;
+  final GoogleSignInService authService;
 
   /// A [Brook] that reports when errors occur that relate to this [IndexState].
   ///
@@ -31,6 +26,9 @@ class IndexState extends ChangeNotifier {
   Brook<String> get errors => _errors;
   final ErrorSink _errors = ErrorSink();
 
-  Future<void> signIn() => authService.signIn();
-  Future<void> signOut() => authService.signOut();
+  @override
+  void dispose() {
+    authService.removeListener(notifyListeners);
+    super.dispose();
+  }
 }

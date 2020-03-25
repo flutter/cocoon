@@ -28,16 +28,16 @@ class StatusGridContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FlutterBuildState>(
-      builder: (_, FlutterBuildState buildState, Widget child) {
+    final FlutterBuildState buildState = Provider.of<FlutterBuildState>(context);
+    return AnimatedBuilder(
+      animation: buildState,
+      builder: (BuildContext context, Widget child) {
         final List<CommitStatus> statuses = buildState.statuses;
 
         // Assume if there is no data that it is loading.
         if (statuses.isEmpty) {
-          return const Expanded(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+          return const Center(
+            child: CircularProgressIndicator(),
           );
         }
 
@@ -106,104 +106,102 @@ class StatusGrid extends StatelessWidget {
     /// The grid needs to know its dimensions. Column is based off how many tasks are
     /// in a row (+ 1 to account for [CommitBox]).
     final int columnCount = taskMatrix.columns + 1;
-    return Expanded(
-      // The grid is wrapped with SingleChildScrollView to enable scrolling both
-      // horizontally and vertically
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          width: columnCount * cellSize,
-          // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
-          child: GridView.builder(
-            addRepaintBoundaries: false,
+    // The grid is wrapped with SingleChildScrollView to enable scrolling both
+    // horizontally and vertically
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        width: columnCount * cellSize,
+        // TODO(chillers): Refactor this to a separate TaskView widget. https://github.com/flutter/flutter/issues/43376
+        child: GridView.builder(
+          addRepaintBoundaries: false,
 
-            /// The grid has as many rows as there are statuses. Additionally,
-            /// one row for task descriptions, and one at the bottom to show
-            /// a loader for more data.
-            itemCount: columnCount * (statuses.length + 2),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columnCount,
-            ),
-            itemBuilder: (BuildContext context, int gridIndex) {
-              if (gridIndex == 0) {
-                /// The top left corner of the grid is nothing since
-                /// the left column is for [CommitBox] and the top
-                /// row is for [TaskIcon].
-                return const SizedBox();
-              }
-
-              /// Loader row at the bottom of the grid.
-              if (_isLastRow(
-                gridIndex: gridIndex,
-                columnCount: columnCount,
-              )) {
-                final int loaderIndex = gridIndex % columnCount;
-
-                /// This loader row will spell out [loadingText].
-                const String loaderRowText = 'LOADING ';
-                final Color lastRowColor = buildState.moreStatusesExist ? Colors.blueGrey : Colors.transparent;
-                final String keyValue =
-                    buildState.moreStatusesExist ? 'loader-$loaderIndex' : 'hidden-loader-$loaderIndex';
-
-                /// Only trigger [fetchMoreCommitStatuses] API call once for
-                /// this loading row.
-                if (loaderIndex == 0 && buildState.moreStatusesExist) {
-                  buildState.fetchMoreCommitStatuses();
-                }
-
-                return Container(
-                  key: insertCellKeys ? Key(keyValue) : null,
-                  color: lastRowColor,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
-                    child: buildState.moreStatusesExist
-                        ? Text(loaderRowText[loaderIndex % loaderRowText.length],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                            ))
-                        : null,
-                  ),
-                );
-              }
-
-              /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
-              /// of [List<List<Task>>]. This allows the row of [TaskIcon] to align
-              /// with the column of [Task] that it maps to.
-              ///
-              /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
-              /// row of [TaskIcon] introduces.
-              final int index = gridIndex - columnCount;
-              if (index < 0) {
-                return TaskIcon(
-                  key: insertCellKeys ? Key('taskicon-${index % columnCount}') : null,
-                  task: taskMatrix.sampleTask(gridIndex - 1),
-                );
-              }
-
-              final int row = index ~/ columnCount;
-              if (index % columnCount == 0) {
-                return CommitBox(commit: statuses[row].commit);
-              }
-
-              final int column = (index % columnCount) - 1;
-              final Task task = taskMatrix.task(row, column);
-              if (task == null) {
-                /// [Task] was skipped so don't show anything.
-                return SizedBox(
-                  key: insertCellKeys ? Key('cell-$row-$column') : null,
-                  width: StatusGrid.cellSize,
-                );
-              }
-
-              return TaskBox(
-                key: insertCellKeys ? Key('cell-$row-$column') : null,
-                task: task,
-                buildState: buildState,
-                commit: statuses[row].commit,
-              );
-            },
+          /// The grid has as many rows as there are statuses. Additionally,
+          /// one row for task descriptions, and one at the bottom to show
+          /// a loader for more data.
+          itemCount: columnCount * (statuses.length + 2),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columnCount,
           ),
+          itemBuilder: (BuildContext context, int gridIndex) {
+            if (gridIndex == 0) {
+              /// The top left corner of the grid is nothing since
+              /// the left column is for [CommitBox] and the top
+              /// row is for [TaskIcon].
+              return const SizedBox();
+            }
+
+            /// Loader row at the bottom of the grid.
+            if (_isLastRow(
+              gridIndex: gridIndex,
+              columnCount: columnCount,
+            )) {
+              final int loaderIndex = gridIndex % columnCount;
+
+              /// This loader row will spell out [loadingText].
+              const String loaderRowText = 'LOADING ';
+              final Color lastRowColor = buildState.moreStatusesExist ? Colors.blueGrey : Colors.transparent;
+              final String keyValue =
+                  buildState.moreStatusesExist ? 'loader-$loaderIndex' : 'hidden-loader-$loaderIndex';
+
+              /// Only trigger [fetchMoreCommitStatuses] API call once for
+              /// this loading row.
+              if (loaderIndex == 0 && buildState.moreStatusesExist) {
+                buildState.fetchMoreCommitStatuses();
+              }
+
+              return Container(
+                key: insertCellKeys ? Key(keyValue) : null,
+                color: lastRowColor,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10.0, 14.0, 10.0, 14.0),
+                  child: buildState.moreStatusesExist
+                      ? Text(loaderRowText[loaderIndex % loaderRowText.length],
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ))
+                      : null,
+                ),
+              );
+            }
+
+            /// This [GridView] is composed of a row of [TaskIcon] and a subgrid
+            /// of [List<List<Task>>]. This allows the row of [TaskIcon] to align
+            /// with the column of [Task] that it maps to.
+            ///
+            /// Mapping [gridIndex] to [index] allows us to ignore the overhead the
+            /// row of [TaskIcon] introduces.
+            final int index = gridIndex - columnCount;
+            if (index < 0) {
+              return TaskIcon(
+                key: insertCellKeys ? Key('taskicon-${index % columnCount}') : null,
+                task: taskMatrix.sampleTask(gridIndex - 1),
+              );
+            }
+
+            final int row = index ~/ columnCount;
+            if (index % columnCount == 0) {
+              return CommitBox(commit: statuses[row].commit);
+            }
+
+            final int column = (index % columnCount) - 1;
+            final Task task = taskMatrix.task(row, column);
+            if (task == null) {
+              /// [Task] was skipped so don't show anything.
+              return SizedBox(
+                key: insertCellKeys ? Key('cell-$row-$column') : null,
+                width: StatusGrid.cellSize,
+              );
+            }
+
+            return TaskBox(
+              key: insertCellKeys ? Key('cell-$row-$column') : null,
+              task: task,
+              buildState: buildState,
+              commit: statuses[row].commit,
+            );
+          },
         ),
       ),
     );

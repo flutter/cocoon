@@ -73,11 +73,8 @@ class _AgentListState extends State<AgentList> {
       );
     }
 
-    final List<FullAgent> fullAgents = widget.agents
-        .map(
-          (Agent agent) => FullAgent(agent, AgentHealthDetails(agent)),
-        )
-        .toList()
+    final List<FullAgent> fullAgents =
+        widget.agents.map((Agent agent) => FullAgent(agent, AgentHealthDetails(agent))).toList()
           // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
           ..sort();
     List<FullAgent> filteredAgents = filterAgents(fullAgents, filterAgentsController.text);

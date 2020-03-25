@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app_flutter/index_page.dart';
 import 'package:app_flutter/sign_in_button.dart';
 
+import 'utils/wrapper.dart';
+
 T getDescendant<T extends Widget>({@required Element of}) {
   return find
       .descendant(
@@ -21,13 +23,13 @@ T getDescendant<T extends Widget>({@required Element of}) {
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(home: IndexPage()));
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(home: IndexPage()));
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.byIcon(Icons.menu), findsOneWidget);
 
@@ -53,7 +55,7 @@ void main() {
   });
 
   testWidgets('shows navigation buttons for dashboards', (WidgetTester tester) async {
-    await tester.pumpWidget(MaterialApp(home: IndexPage()));
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.text('BUILD'), findsOneWidget);
     expect(find.text('BENCHMARKS'), findsOneWidget);
