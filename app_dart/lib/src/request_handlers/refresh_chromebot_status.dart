@@ -82,27 +82,22 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       DatastoreService datastore,
       Map<LuciBuilder, List<LuciTask>> luciTasks) async {
     await config.db.withTransaction<void>((Transaction transaction) async {
-      try {
-        for (Branch branch in branches) {
-          await for (FullTask task in datastore.queryRecentTasks(
-              taskName: builder.taskName, branch: branch.name)) {
-            for (LuciTask luciTask in luciTasks[builder]) {
-              if (luciTask.commitSha == task.commit.sha &&
-                  luciTask.ref == 'refs/heads/${branch.name}') {
-                final Task update = task.task;
-                update.status = luciTask.status;
-                transaction.queueMutations(inserts: <Task>[update]);
-                // Stop updating task whenever we find the latest status of the same commit.
-                break;
-              }
+      for (Branch branch in branches) {
+        await for (FullTask task in datastore.queryRecentTasks(
+            taskName: builder.taskName, branch: branch.name)) {
+          for (LuciTask luciTask in luciTasks[builder]) {
+            if (luciTask.commitSha == task.commit.sha &&
+                luciTask.ref == 'refs/heads/${branch.name}') {
+              final Task update = task.task;
+              update.status = luciTask.status;
+              transaction.queueMutations(inserts: <Task>[update]);
+              // Stop updating task whenever we find the latest status of the same commit.
+              break;
             }
           }
         }
-        await transaction.commit();
-      } catch (error, stackTrace) {
-        log.error(
-            'Update chromebot status failed for builder: $builder:\n$error\n$stackTrace');
       }
+      await transaction.commit();
     });
   }
 }
