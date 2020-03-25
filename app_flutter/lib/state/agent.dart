@@ -28,15 +28,6 @@ class AgentState extends ChangeNotifier {
   /// Authentication service for managing Google Sign In.
   final GoogleSignInService authService;
 
-  /// How often to query the Cocoon backend for the current agent statuses.
-  @visibleForTesting
-  final Duration refreshRate = const Duration(minutes: 1);
-
-  /// Timer that calls [_fetchAgentStatusUpdate] on a set interval.
-  @visibleForTesting
-  @protected
-  Timer refreshTimer;
-
   /// The current status of the commits loaded.
   List<Agent> _agents = <Agent>[];
   List<Agent> get agents => _agents;
@@ -54,35 +45,59 @@ class AgentState extends ChangeNotifier {
   @visibleForTesting
   static const String errorMessageAuthorizingAgent = 'An error occurred authorizing agent';
 
-  /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  // TODO(ianh): make this automatically trigger when listeners are added, and cancel when they're removed.
-  Future<void> startFetchingStateUpdates() async {
-    if (refreshTimer != null) {
-      // There's already an update loop, no need to make another.
-      return;
+  /// How often to query the Cocoon backend for the current agent statuses.
+  @visibleForTesting
+  final Duration refreshRate = const Duration(minutes: 1);
+
+  /// Timer that calls [_fetchAgentStatusUpdate] on a set interval.
+  @visibleForTesting
+  @protected
+  Timer refreshTimer;
+
+  // There's no way to cancel futures in the standard library so instead we just track
+  // if we've been disposed, and if so, we drop everything on the floor.
+  bool _active = true;
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (!hasListeners) {
+      _startFetchingStateUpdates();
+      assert(refreshTimer != null);
     }
+    super.addListener(listener);
+  }
 
-    /// [Timer.periodic] does not necessarily run at the start of the timer.
-    _fetchAgentStatusUpdate();
+  @override
+  void removeListener(VoidCallback listener) {
+    super.removeListener(listener);
+    if (!hasListeners) {
+      refreshTimer?.cancel();
+      refreshTimer = null;
+    }
+  }
 
-    refreshTimer = Timer.periodic(refreshRate, (_) => _fetchAgentStatusUpdate());
+  /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
+  void _startFetchingStateUpdates() {
+    assert(refreshTimer == null);
+    _fetchAgentStatusUpdate(null);
+    refreshTimer = Timer.periodic(refreshRate, _fetchAgentStatusUpdate);
   }
 
   /// Request the latest agent statuses from [CocoonService].
   ///
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageFetchingStatuses].
-  Future<void> _fetchAgentStatusUpdate() async {
-    await Future.wait(<Future<void>>[
-      cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
-        if (response.error != null) {
-          _errors.send('$errorMessageFetchingStatuses: ${response.error}');
-        } else {
-          _agents = response.data;
-        }
-        notifyListeners();
-      }),
-    ]);
+  Future<void> _fetchAgentStatusUpdate(Timer timer) async {
+    final CocoonResponse<List<Agent>> response = await cocoonService.fetchAgentStatuses();
+    if (!_active) {
+      return;
+    }
+    if (response.error != null) {
+      _errors.send('$errorMessageFetchingStatuses: ${response.error}');
+    } else {
+      _agents = response.data;
+      notifyListeners();
+    }
   }
 
   /// Create [Agent] in Cocoon.
@@ -95,6 +110,9 @@ class AgentState extends ChangeNotifier {
       capabilities,
       await authService.idToken,
     );
+    if (!_active) {
+      return null;
+    }
     if (response.error != null) {
       _errors.send('$errorMessageCreatingAgent: ${response.error}');
     }
@@ -106,7 +124,13 @@ class AgentState extends ChangeNotifier {
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageAuthorizingAgent].
   Future<String> authorizeAgent(Agent agent) async {
-    final CocoonResponse<String> response = await cocoonService.authorizeAgent(agent, await authService.idToken);
+    final CocoonResponse<String> response = await cocoonService.authorizeAgent(
+      agent,
+      await authService.idToken,
+    );
+    if (!_active) {
+      return null;
+    }
     if (response.error != null) {
       _errors.send('$errorMessageAuthorizingAgent: ${response.error}');
     }
@@ -116,12 +140,18 @@ class AgentState extends ChangeNotifier {
   /// Attempt to assign a new task to [agent].
   ///
   /// If no task can be assigned, a null value is returned.
-  Future<void> reserveTask(Agent agent) async => cocoonService.reserveTask(agent, await authService.idToken);
+  Future<void> reserveTask(Agent agent) async {
+    await cocoonService.reserveTask(
+      agent,
+      await authService.idToken,
+    );
+  }
 
   @override
   void dispose() {
     authService.removeListener(notifyListeners);
     refreshTimer?.cancel();
+    _active = false;
     super.dispose();
   }
 }

@@ -25,6 +25,7 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
 
   @override
   final GoogleSignInService authService;
+
   @override
   final CocoonService cocoonService;
 
@@ -51,9 +52,6 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
 
   @override
   Future<void> reserveTask(Agent agent) => null;
-
-  @override
-  Future<void> startFetchingStateUpdates() => null;
 
   @override
   Timer refreshTimer;

@@ -16,7 +16,7 @@ import 'state/agent.dart';
 ///
 /// If [agentFilter] is non-null and non-empty, it will only show agents
 /// with [agentId] that contains [agentFilter]. Otherwise, all agents are shown.
-class AgentDashboardPage extends StatefulWidget {
+class AgentDashboardPage extends StatelessWidget {
   const AgentDashboardPage({
     Key key,
     this.agentFilter,
@@ -30,20 +30,7 @@ class AgentDashboardPage extends StatefulWidget {
 
   static const String routeName = '/agents';
 
-  @override
-  State<AgentDashboardPage> createState() => _AgentDashboardPageState();
-}
-
-class _AgentDashboardPageState extends State<AgentDashboardPage> {
-  AgentState _agentState;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _agentState = Provider.of<AgentState>(context)..startFetchingStateUpdates();
-  }
-
-  void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
+  static void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
     showDialog<AlertDialog>(
       context: context,
       builder: (BuildContext context) => CreateAgentDialog(agentState: agentState),
@@ -52,6 +39,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final AgentState _agentState = Provider.of<AgentState>(context);
     return AnimatedBuilder(
       animation: _agentState,
       builder: (BuildContext context, Widget child) => Scaffold(
@@ -73,7 +61,7 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
                     // TODO(ianh): stop passing both the state and the value from the state
                     agents: _agentState.agents,
                     agentState: _agentState,
-                    agentFilter: widget.agentFilter ?? ModalRoute.of(context).settings.arguments as String,
+                    agentFilter: agentFilter ?? ModalRoute.of(context).settings.arguments as String,
                   ),
                 ),
               ),
