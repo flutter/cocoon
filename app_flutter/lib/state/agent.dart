@@ -15,22 +15,18 @@ import 'brooks.dart';
 
 /// State for the agents in Flutter infra.
 class AgentState extends ChangeNotifier {
-  /// Creates a new [AgentState].
-  ///
-  /// If [CocoonService] is not specified, a new [CocoonService] instance is created.
   AgentState({
-    CocoonService cocoonServiceValue,
-    GoogleSignInService authServiceValue,
-  }) : _cocoonService = cocoonServiceValue ?? CocoonService() {
-    authService = authServiceValue ?? GoogleSignInService();
-    authService.notifyListeners = notifyListeners;
+    @required this.cocoonService,
+    @required this.authService,
+  }) {
+    authService.addListener(notifyListeners);
   }
 
   /// Cocoon backend service that retrieves the data needed for current infra status.
-  final CocoonService _cocoonService;
+  final CocoonService cocoonService;
 
   /// Authentication service for managing Google Sign In.
-  GoogleSignInService authService;
+  final GoogleSignInService authService;
 
   /// How often to query the Cocoon backend for the current agent statuses.
   @visibleForTesting
@@ -38,6 +34,7 @@ class AgentState extends ChangeNotifier {
 
   /// Timer that calls [_fetchAgentStatusUpdate] on a set interval.
   @visibleForTesting
+  @protected
   Timer refreshTimer;
 
   /// The current status of the commits loaded.
@@ -58,6 +55,7 @@ class AgentState extends ChangeNotifier {
   static const String errorMessageAuthorizingAgent = 'An error occurred authorizing agent';
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
+  // TODO(ianh): make this automatically trigger when listeners are added, and cancel when they're removed.
   Future<void> startFetchingStateUpdates() async {
     if (refreshTimer != null) {
       // There's already an update loop, no need to make another.
@@ -76,7 +74,7 @@ class AgentState extends ChangeNotifier {
   /// the message [errorMessageFetchingStatuses].
   Future<void> _fetchAgentStatusUpdate() async {
     await Future.wait(<Future<void>>[
-      _cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
+      cocoonService.fetchAgentStatuses().then((CocoonResponse<List<Agent>> response) {
         if (response.error != null) {
           _errors.send('$errorMessageFetchingStatuses: ${response.error}');
         } else {
@@ -92,7 +90,7 @@ class AgentState extends ChangeNotifier {
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageCreatingAgent].
   Future<String> createAgent(String agentId, List<String> capabilities) async {
-    final CocoonResponse<String> response = await _cocoonService.createAgent(
+    final CocoonResponse<String> response = await cocoonService.createAgent(
       agentId,
       capabilities,
       await authService.idToken,
@@ -108,7 +106,7 @@ class AgentState extends ChangeNotifier {
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageAuthorizingAgent].
   Future<String> authorizeAgent(Agent agent) async {
-    final CocoonResponse<String> response = await _cocoonService.authorizeAgent(agent, await authService.idToken);
+    final CocoonResponse<String> response = await cocoonService.authorizeAgent(agent, await authService.idToken);
     if (response.error != null) {
       _errors.send('$errorMessageAuthorizingAgent: ${response.error}');
     }
@@ -118,14 +116,11 @@ class AgentState extends ChangeNotifier {
   /// Attempt to assign a new task to [agent].
   ///
   /// If no task can be assigned, a null value is returned.
-  Future<void> reserveTask(Agent agent) async => _cocoonService.reserveTask(agent, await authService.idToken);
-
-  /// Initiate the Google Sign In process.
-  Future<void> signIn() => authService.signIn();
-  Future<void> signOut() => authService.signOut();
+  Future<void> reserveTask(Agent agent) async => cocoonService.reserveTask(agent, await authService.idToken);
 
   @override
   void dispose() {
+    authService.removeListener(notifyListeners);
     refreshTimer?.cancel();
     super.dispose();
   }

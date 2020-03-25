@@ -4,69 +4,64 @@
 
 import 'dart:async';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
-
-import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/agent_tile.dart';
+import 'package:app_flutter/error_brook_watcher.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/agent.dart';
-import 'package:app_flutter/state/brooks.dart';
+import 'package:app_flutter/state_provider.dart';
+import 'package:cocoon_service/protos.dart';
 
+import 'utils/fake_agent_state.dart';
+import 'utils/mocks.dart';
 import 'utils/output.dart';
+import 'utils/wrapper.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ChangeNotifierProvider<AgentState>(
-            create: (_) => FakeAgentState(),
-            child: const AgentDashboard(),
-          ),
-        ),
-      ),
-    );
-
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: AgentDashboardPage())));
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
   testWidgets('create agent FAB opens dialog', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: AgentDashboardPage(),
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: AgentDashboardPage())));
 
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('Create Agent'), findsOneWidget);
+    expect(find.text('CREATE AGENT'), findsOneWidget); // the floating action button
+    expect(find.text('Create Agent'), findsNothing);
 
-    await tester.tap(find.text('Create Agent'));
-    await tester.pumpAndSettle();
+    await tester.tap(find.text('CREATE AGENT'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 10));
 
     expect(find.byType(AlertDialog), findsOneWidget);
-    expect(find.text('Create Agent'), findsNWidgets(2));
+    expect(find.text('CREATE AGENT'), findsOneWidget); // the floating action button
+    expect(find.text('Create Agent'), findsOneWidget); // the dialog title
   });
 
   testWidgets('create agent dialog calls create agent', (WidgetTester tester) async {
     final MockCocoonService mockCocoonService = MockCocoonService();
     final AgentState agentState = AgentState(
-      cocoonServiceValue: mockCocoonService,
-      authServiceValue: MockSignInService(),
+      cocoonService: mockCocoonService,
+      authService: MockGoogleSignInService(),
     );
+
+    when(mockCocoonService.fetchAgentStatuses()).thenAnswer((_) => Completer<CocoonResponse<List<Agent>>>().future);
 
     await tester.pumpWidget(
       MaterialApp(
-        home: ChangeNotifierProvider<AgentState>(
-          create: (_) => agentState,
-          child: AgentDashboard(
-            agentState: agentState,
+        home: ValueProvider<AgentState>(
+          value: agentState,
+          child: ValueProvider<GoogleSignInService>(
+            value: agentState.authService,
+            child: const AgentDashboardPage(),
           ),
         ),
       ),
@@ -77,7 +72,7 @@ void main() {
 
     verifyNever(mockCocoonService.createAgent(any, any, any));
 
-    await tester.tap(find.text('Create Agent'));
+    await tester.tap(find.text('CREATE AGENT'));
     await tester.pump();
 
     await checkOutput(
@@ -92,6 +87,9 @@ void main() {
     );
 
     verify(mockCocoonService.createAgent(any, any, any)).called(1);
+
+    await tester.pumpWidget(Container());
+    agentState.dispose();
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
@@ -100,10 +98,15 @@ void main() {
     String lastError;
     agentState.errors.addListener((String message) => lastError = message);
 
-    final AgentDashboardPage buildDashboardPage = AgentDashboardPage(agentState: agentState);
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: buildDashboardPage),
+        home: ValueProvider<AgentState>(
+          value: agentState,
+          child: ValueProvider<GoogleSignInService>(
+            value: agentState.authService,
+            child: const AgentDashboardPage(),
+          ),
+        ),
       ),
     );
 
@@ -125,7 +128,7 @@ void main() {
     expect(find.text(lastError), findsOneWidget);
 
     // Snackbar message should go away after its duration
-    await tester.pump(AgentDashboardPage.errorSnackbarDuration); // wait the duration
+    await tester.pump(ErrorBrookWatcher.errorSnackbarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
@@ -133,12 +136,44 @@ void main() {
   });
 
   testWidgets('agent filter is passed to agent list', (WidgetTester tester) async {
-    final AgentState agentState = AgentState();
+    final GoogleSignInService mockAuthService = MockGoogleSignInService();
+    final MockCocoonService mockCocoonService = MockCocoonService();
+    final AgentState agentState = AgentState(
+      authService: mockAuthService,
+      cocoonService: mockCocoonService,
+    );
+
+    when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
+      (_) async => CocoonResponse<List<Agent>>()
+        ..data = List<Agent>.generate(
+          10,
+          (int i) => Agent()
+            ..agentId = 'dash-test-$i'
+            ..capabilities.add('dash')
+            ..isHealthy = i % 2 == 0
+            ..isHidden = false
+            ..healthCheckTimestamp = Int64(DateTime(2000, 1, 1, i).millisecondsSinceEpoch)
+            ..healthDetails = 'ssh-connectivity: succeeded\n'
+                'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
+                'android-device-ZY223D6B7B: succeeded\n'
+                'has-healthy-devices: succeeded\n'
+                'Found 1 healthy devices\n\n'
+                'cocoon-authentication: succeeded\n'
+                'cocoon-connection: succeeded\n'
+                'able-to-perform-health-check: succeeded\n',
+        ),
+    );
+
     await tester.pumpWidget(
       MaterialApp(
-        home: AgentDashboardPage(
-          agentState: agentState,
-          agentFilter: 'dash-test-3',
+        home: ValueProvider<AgentState>(
+          value: agentState,
+          child: ValueProvider<GoogleSignInService>(
+            value: mockAuthService,
+            child: const AgentDashboardPage(
+              agentFilter: 'dash-test-3',
+            ),
+          ),
         ),
       ),
     );
@@ -148,44 +183,8 @@ void main() {
     expect(find.byType(AgentTile), findsOneWidget);
     // agent id shows in the search bar and the agent tile
     expect(find.text('dash-test-3'), findsNWidgets(2));
+
+    await tester.pumpWidget(Container());
+    agentState.dispose();
   });
 }
-
-class FakeAgentState extends ChangeNotifier implements AgentState {
-  @override
-  GoogleSignInService authService = MockSignInService();
-
-  @override
-  final ErrorSink errors = ErrorSink();
-
-  @override
-  Duration get refreshRate => null;
-
-  @override
-  Future<void> signIn() => null;
-
-  @override
-  Future<void> signOut() => null;
-
-  @override
-  List<Agent> agents = <Agent>[];
-
-  @override
-  Future<String> authorizeAgent(Agent agent) async => 'abc123';
-
-  @override
-  Future<String> createAgent(String agentId, List<String> capabilities) async => 'def456';
-
-  @override
-  Future<void> reserveTask(Agent agent) => null;
-
-  @override
-  Future<void> startFetchingStateUpdates() => null;
-
-  @override
-  Timer refreshTimer;
-}
-
-class MockCocoonService extends Mock implements CocoonService {}
-
-class MockSignInService extends Mock implements GoogleSignInService {}

@@ -8,13 +8,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
-import 'package:test/test.dart' as test;
 
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
-import 'package:app_flutter/state/flutter_build.dart';
+import 'package:app_flutter/state_provider.dart';
 
 import 'utils/fake_google_account.dart';
+import 'utils/mocks.dart';
 
 void main() {
   GoogleSignInService mockAuthService;
@@ -34,10 +34,11 @@ void main() {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: SignInButton(
-          authService: mockAuthService,
+      ValueProvider<GoogleSignInService>(
+        value: mockAuthService,
+        child: const Directionality(
+          textDirection: TextDirection.ltr,
+          child: SignInButton(),
         ),
       ),
     );
@@ -51,10 +52,11 @@ void main() {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: SignInButton(
-          authService: mockAuthService,
+      ValueProvider<GoogleSignInService>(
+        value: mockAuthService,
+        child: const Directionality(
+          textDirection: TextDirection.ltr,
+          child: SignInButton(),
         ),
       ),
     );
@@ -75,10 +77,11 @@ void main() {
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: AppBar(
-          leading: SignInButton(
-            authService: mockAuthService,
+      ValueProvider<GoogleSignInService>(
+        value: mockAuthService,
+        child: MaterialApp(
+          home: AppBar(
+            leading: const SignInButton(),
           ),
         ),
       ),
@@ -86,7 +89,7 @@ void main() {
     await tester.pump();
     // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
     if (!kIsWeb) {
-      expect(tester.takeException(), const test.TypeMatcher<NetworkImageLoadException>());
+      expect(tester.takeException(), isInstanceOf<NetworkImageLoadException>());
     }
 
     expect(find.text('SIGN IN'), findsNothing);
@@ -100,17 +103,18 @@ void main() {
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: AppBar(
-          leading: SignInButton(
-            authService: mockAuthService,
+      ValueProvider<GoogleSignInService>(
+        value: mockAuthService,
+        child: MaterialApp(
+          home: AppBar(
+            leading: const SignInButton(),
           ),
         ),
       ),
     );
     await tester.pump();
     if (!kIsWeb) {
-      expect(tester.takeException(), const test.TypeMatcher<NetworkImageLoadException>());
+      expect(tester.takeException(), isInstanceOf<NetworkImageLoadException>());
     }
 
     await tester.tap(find.byType(Image));
@@ -123,7 +127,3 @@ void main() {
     verify(mockAuthService.signOut()).called(1);
   });
 }
-
-class MockFlutterBuildState extends Mock implements FlutterBuildState {}
-
-class MockGoogleSignInService extends Mock implements GoogleSignInService {}

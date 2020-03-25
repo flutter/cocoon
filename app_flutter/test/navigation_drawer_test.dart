@@ -10,6 +10,8 @@ import 'package:mockito/mockito.dart';
 import 'package:app_flutter/main.dart';
 import 'package:app_flutter/navigation_drawer.dart';
 
+import 'utils/wrapper.dart';
+
 void main() {
   group('NavigationDrawer', () {
     testWidgets('lists all pages', (WidgetTester tester) async {
@@ -204,7 +206,7 @@ void main() {
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(const FakeInserter(child: MyApp()));
 
       void test({@required bool isHome}) {
         final ListTile home = tester.widget(find.ancestor(of: find.text('Home'), matching: find.byType(ListTile)));

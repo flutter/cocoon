@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/rendering.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 /// Service class for interacting with Google Sign In authentication for Cocoon backend.
-class GoogleSignInService {
+class GoogleSignInService extends ChangeNotifier {
   /// Creates a new [GoogleSignIn].
   GoogleSignInService({GoogleSignIn googleSignIn})
       : _googleSignIn = googleSignIn ??
@@ -20,9 +20,6 @@ class GoogleSignInService {
 
     _googleSignIn.signInSilently();
   }
-
-  /// A callback for notifying listeners there has been an update.
-  VoidCallback notifyListeners;
 
   /// A list of Google API OAuth Scopes this project needs access to.
   ///
