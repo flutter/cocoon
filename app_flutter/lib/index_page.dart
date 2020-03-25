@@ -8,10 +8,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'app_bar.dart';
 import 'error_brook_watcher.dart';
+import 'header_text.dart';
 import 'navigation_drawer.dart';
 import 'state/index.dart';
 
-/// Index page
+/// Index page.
 ///
 /// Expects an [IndexState] to be available via [Provider].
 class IndexPage extends StatelessWidget {
@@ -41,8 +42,7 @@ class IndexPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   separator,
-                  // TODO(ianh): Factor out into a HeaderText widget.
-                  Text('Select a dashboard', style: Theme.of(context).textTheme.headline4, textAlign: TextAlign.center),
+                  const HeaderText('Select a dashboard'),
                   separator,
                   RaisedButton.icon(
                     icon: Icon(Icons.build),
