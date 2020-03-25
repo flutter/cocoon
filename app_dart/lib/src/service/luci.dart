@@ -97,12 +97,14 @@ class LuciService {
         <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
+      final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
       });
       results[builder] ??= <LuciTask>[];
       results[builder].add(LuciTask(
         commitSha: commit,
+        ref: ref,
         status: _luciStatusToTaskStatus[build.status],
       ));
     }
@@ -152,12 +154,17 @@ class LuciBuilder {
 class LuciTask {
   const LuciTask({
     @required this.commitSha,
+    @required this.ref,
     @required this.status,
   })  : assert(commitSha != null),
+        assert(ref != null),
         assert(status != null);
 
   /// The GitHub commit at which this task is being run.
   final String commitSha;
+
+  // The GitHub ref at which this task is being run.
+  final String ref;
 
   /// The status of this task. See the [Task] class for supported values.
   final String status;
