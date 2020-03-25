@@ -68,7 +68,7 @@ void main() {
     );
 
     when(mockCocoonService.createAgent(any, any, any))
-        .thenAnswer((_) async => CocoonResponse<String>()..data = 'abc123');
+        .thenAnswer((_) async => const CocoonResponse<String>.data('abc123'));
 
     verifyNever(mockCocoonService.createAgent(any, any, any));
 
@@ -144,8 +144,8 @@ void main() {
     );
 
     when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
-      (_) async => CocoonResponse<List<Agent>>()
-        ..data = List<Agent>.generate(
+      (_) async => CocoonResponse<List<Agent>>.data(
+        List<Agent>.generate(
           10,
           (int i) => Agent()
             ..agentId = 'dash-test-$i'
@@ -162,6 +162,7 @@ void main() {
                 'cocoon-connection: succeeded\n'
                 'able-to-perform-health-check: succeeded\n',
         ),
+      ),
     );
 
     await tester.pumpWidget(

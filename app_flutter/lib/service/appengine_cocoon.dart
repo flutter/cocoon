@@ -52,14 +52,14 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<CommitStatus>>()..error = '/api/public/get-status returned ${response.statusCode}';
+      return CocoonResponse<List<CommitStatus>>.error('/api/public/get-status returned ${response.statusCode}');
     }
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<CommitStatus>>()..data = _commitStatusesFromJson(jsonResponse['Statuses']);
+      return CocoonResponse<List<CommitStatus>>.data(_commitStatusesFromJson(jsonResponse['Statuses']));
     } catch (error) {
-      return CocoonResponse<List<CommitStatus>>()..error = error.toString();
+      return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
   }
 
@@ -76,21 +76,21 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<bool>()..error = '/api/public/build-status returned ${response.statusCode}';
+      return CocoonResponse<bool>.error('/api/public/build-status returned ${response.statusCode}');
     }
 
     Map<String, Object> jsonResponse;
     try {
       jsonResponse = jsonDecode(response.body);
     } catch (error) {
-      return CocoonResponse<bool>()..error = '/api/public/build-status had a malformed response';
+      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
     }
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
-      return CocoonResponse<bool>()..error = '/api/public/build-status had a malformed response';
+      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
     }
 
-    return CocoonResponse<bool>()..data = jsonResponse['AnticipatedBuildStatus'] == 'Succeeded';
+    return CocoonResponse<bool>.data(jsonResponse['AnticipatedBuildStatus'] == 'Succeeded');
   }
 
   @override
@@ -101,14 +101,14 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<Agent>>()..error = '/api/public/get-status returned ${response.statusCode}';
+      return CocoonResponse<List<Agent>>.error('/api/public/get-status returned ${response.statusCode}');
     }
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<Agent>>()..data = _agentStatusesFromJson(jsonResponse['AgentStatuses']);
+      return CocoonResponse<List<Agent>>.data(_agentStatusesFromJson(jsonResponse['AgentStatuses']));
     } catch (error) {
-      return CocoonResponse<List<Agent>>()..error = error.toString();
+      return CocoonResponse<List<Agent>>.error(error.toString());
     }
   }
 
@@ -120,15 +120,15 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>()..error = '/api/public/get-branches returned ${response.statusCode}';
+      return CocoonResponse<List<String>>.error('/api/public/get-branches returned ${response.statusCode}');
     }
 
     try {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       final List<String> branches = jsonResponse['Branches'].cast<String>();
-      return CocoonResponse<List<String>>()..data = branches;
+      return CocoonResponse<List<String>>.data(branches);
     } catch (error) {
-      return CocoonResponse<List<String>>()..error = error.toString();
+      return CocoonResponse<List<String>>.error(error.toString());
     }
   }
 
@@ -189,20 +189,20 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<String>()..error = '/api/create-agent did not respond with 200';
+      return const CocoonResponse<String>.error('/api/create-agent did not respond with 200');
     }
 
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
       if (responseBody['Token'] == null) {
-        return CocoonResponse<String>()..error = '/api/create-agent returned unexpected response';
+        return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
       }
     } catch (e) {
-      return CocoonResponse<String>()..error = '/api/create-agent returned unexpected response';
+      return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
     }
 
-    return CocoonResponse<String>()..data = responseBody['Token'];
+    return CocoonResponse<String>.data(responseBody['Token']);
   }
 
   @override
@@ -222,20 +222,20 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<String>()..error = '/api/authorize-agent did not respond with 200';
+      return const CocoonResponse<String>.error('/api/authorize-agent did not respond with 200');
     }
 
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
       if (responseBody['Token'] == null) {
-        return CocoonResponse<String>()..error = '/api/authorize-agent returned unexpected response';
+        return const CocoonResponse<String>.error('/api/authorize-agent returned unexpected response');
       }
     } catch (e) {
-      return CocoonResponse<String>()..error = '/api/authorize-agent returned unexpected response';
+      return const CocoonResponse<String>.error('/api/authorize-agent returned unexpected response');
     }
 
-    return CocoonResponse<String>()..data = responseBody['Token'];
+    return CocoonResponse<String>.data(responseBody['Token']);
   }
 
   @override
