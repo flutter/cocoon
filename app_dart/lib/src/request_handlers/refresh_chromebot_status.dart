@@ -17,7 +17,6 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
-
 import '../service/luci.dart';
 
 @immutable
@@ -75,6 +74,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
+  /// Update chromebot tasks statuses in datastore for [builder],
+  /// based on latest [luciTasks] statuses.
   Future<void> _updateStatus(
       LuciBuilder builder,
       List<Branch> branches,
@@ -98,8 +99,9 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           }
         }
         await transaction.commit();
-      } catch (error) {
-        rethrow;
+      } catch (error, stackTrace) {
+        log.error(
+            'Update chromebot status failed for builder: $builder:\n$error\n$stackTrace');
       }
     });
   }
