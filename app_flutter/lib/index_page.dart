@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'app_bar.dart';
 import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
-import 'sign_in_button.dart';
 import 'state/index.dart';
 
 /// Index page
@@ -25,19 +25,12 @@ class IndexPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
     final IndexState indexState = Provider.of<IndexState>(context);
     return AnimatedBuilder(
       animation: indexState,
       builder: (BuildContext context, Widget child) => Scaffold(
-        appBar: AppBar(
-          // TODO(ianh): factor out this code so other pages can use it too without code duplication
-          title: const Text('Cocoon'),
-          actions: <Widget>[
-            SignInButton(
-              colorBrightness: theme.appBarTheme.brightness ?? theme.primaryColorBrightness,
-            ),
-          ],
+        appBar: const CocoonAppBar(
+          title: Text('Cocoon'),
         ),
         body: ErrorBrookWatcher(
           errors: indexState.errors,

@@ -7,9 +7,9 @@ import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
 import 'agent_list.dart';
+import 'app_bar.dart';
 import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
-import 'sign_in_button.dart';
 import 'state/agent.dart';
 
 /// Shows current status of Flutter infra agents.
@@ -55,11 +55,8 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
     return AnimatedBuilder(
       animation: _agentState,
       builder: (BuildContext context, Widget child) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Infra Agents'),
-          actions: const <Widget>[
-            SignInButton(),
-          ],
+        appBar: const CocoonAppBar(
+          title: Text('Infra Agents'),
         ),
         body: ErrorBrookWatcher(
           errors: _agentState.errors,
