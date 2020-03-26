@@ -48,24 +48,17 @@ class AgentDashboardPage extends StatelessWidget {
         ),
         body: ErrorBrookWatcher(
           errors: _agentState.errors,
-          child: Column(
-            // TODO(ianh): Replace with a more idiomatic solution.
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // Without this container the ListView will not be centered.
-              Container(),
-              Expanded(
-                child: SizedBox(
-                  width: 500,
-                  child: AgentList(
-                    // TODO(ianh): stop passing both the state and the value from the state
-                    agents: _agentState.agents,
-                    agentState: _agentState,
-                    agentFilter: agentFilter ?? ModalRoute.of(context).settings.arguments as String,
-                  ),
-                ),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: 500,
+              child: AgentList(
+                // TODO(ianh): stop passing both the state and the value from the state
+                agents: _agentState.agents,
+                agentState: _agentState,
+                agentFilter: agentFilter ?? ModalRoute.of(context).settings.arguments as String,
               ),
-            ],
+            ),
           ),
         ),
         drawer: const NavigationDrawer(),
