@@ -12,6 +12,7 @@ import 'package:mockito/mockito.dart';
 import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/agent_tile.dart';
 import 'package:app_flutter/error_brook_watcher.dart';
+import 'package:app_flutter/now.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/sign_in_button.dart';
@@ -99,12 +100,15 @@ void main() {
     agentState.errors.addListener((String message) => lastError = message);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: ValueProvider<AgentState>(
-          value: agentState,
-          child: ValueProvider<GoogleSignInService>(
-            value: agentState.authService,
-            child: const AgentDashboardPage(),
+      Now.fixed(
+        dateTime: DateTime(2000),
+        child: MaterialApp(
+          home: ValueProvider<AgentState>(
+            value: agentState,
+            child: ValueProvider<GoogleSignInService>(
+              value: agentState.authService,
+              child: const AgentDashboardPage(),
+            ),
           ),
         ),
       ),
@@ -166,13 +170,16 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: ValueProvider<AgentState>(
-          value: agentState,
-          child: ValueProvider<GoogleSignInService>(
-            value: mockAuthService,
-            child: const AgentDashboardPage(
-              agentFilter: 'dash-test-3',
+      Now.fixed(
+        dateTime: DateTime(2000),
+        child: MaterialApp(
+          home: ValueProvider<AgentState>(
+            value: agentState,
+            child: ValueProvider<GoogleSignInService>(
+              value: mockAuthService,
+              child: const AgentDashboardPage(
+                agentFilter: 'dash-test-3',
+              ),
             ),
           ),
         ),

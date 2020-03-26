@@ -10,11 +10,20 @@ import 'package:cocoon_service/protos.dart' show Agent;
 
 import 'package:app_flutter/agent_health_details.dart';
 import 'package:app_flutter/agent_health_details_bar.dart';
+import 'package:app_flutter/now.dart';
+
+final DateTime pingTime = DateTime(2010, 5, 6, 12, 30);
+final DateTime soonTime = pingTime.add(
+  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+);
+final DateTime laterTime = pingTime.add(
+  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
+);
 
 void main() {
   testWidgets('healthy bar', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -31,8 +40,11 @@ able-to-perform-health-check: succeeded''';
     final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: AgentHealthDetailsBar(healthDetails),
+      Now.fixed(
+        dateTime: soonTime,
+        child: MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
       ),
     );
 
@@ -44,7 +56,7 @@ able-to-perform-health-check: succeeded''';
 
   testWidgets('timed out icon', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt('100')
+      ..healthCheckTimestamp = Int64(100)
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -61,8 +73,11 @@ able-to-perform-health-check: succeeded''';
     final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: AgentHealthDetailsBar(healthDetails),
+      Now.fixed(
+        dateTime: soonTime,
+        child: MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
       ),
     );
 
@@ -74,15 +89,18 @@ able-to-perform-health-check: succeeded''';
 
   testWidgets('unhealthy bar', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt('100')
+      ..healthCheckTimestamp = Int64(100)
       ..isHealthy = false
       ..healthDetails = '';
 
     final AgentHealthDetails healthDetails = AgentHealthDetails(agent);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: AgentHealthDetailsBar(healthDetails),
+      Now.fixed(
+        dateTime: soonTime,
+        child: MaterialApp(
+          home: AgentHealthDetailsBar(healthDetails),
+        ),
       ),
     );
 

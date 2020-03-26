@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import 'agent_health_details.dart';
+import 'now.dart';
 
 /// An icon bar to display information from [AgentHealthDetails].
 class AgentHealthDetailsBar extends StatelessWidget {
@@ -18,9 +19,10 @@ class AgentHealthDetailsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final DateTime now = Now.of(context);
     return Row(
       children: <Widget>[
-        if (!healthDetails.pingedRecently)
+        if (!healthDetails.pingedRecently(now))
           Tooltip(
             message: 'Agent timed out',
             child: Icon(Icons.timer, color: theme.errorColor),
