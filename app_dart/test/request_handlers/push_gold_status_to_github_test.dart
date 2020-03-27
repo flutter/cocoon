@@ -109,6 +109,7 @@ void main() {
         });
         config.githubClient = github;
         config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
+        config.goldenBranchNotificationValue = 'goldenBranchNotification';
         clientContext.isDevelopmentEnvironment = false;
       });
 
@@ -187,7 +188,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            'This check is waiting for all other checks to be completed.',
+            'This check is waiting for the all clear from Gold.',
           );
           db.values[status.key] = status;
 
@@ -362,6 +363,120 @@ void main() {
             slug,
             pr.number,
             argThat(contains(config.goldenBreakingChangeMessageValue)),
+          ));
+        });
+
+        test('applies to different branches, comments appropriately for changes', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          branch = 'release-candidate';
+
+          // Change detected by Gold
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+            'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+            .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+              (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not label and comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          // Should provide context for changes detected on a branch
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBranchNotification)),
+          )).called(1);
+        });
+
+        test('applies to different branches, will not comment more than once', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          branch = 'release-candidate';
+
+          // Change detected by Gold
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+            'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+            .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+              (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.goldenBranchNotificationValue,
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not label and comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          // Should not provide comment since it already has done so.
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBranchNotification)),
           ));
         });
 
