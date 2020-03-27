@@ -266,9 +266,6 @@ void main() {
     });
 
     testWidgets('devicelab agent button redirects to agent page', (WidgetTester tester) async {
-      // TODO(ianh): remove the navigator observer since we don't seem to use it
-      final MockNavigatorObserver navigatorObserver = MockNavigatorObserver();
-
       await tester.pumpWidget(
         FakeInserter(
           child: MaterialApp(
@@ -279,7 +276,6 @@ void main() {
                 commit: Commit(),
               ),
             ),
-            navigatorObservers: <NavigatorObserver>[navigatorObserver],
             routes: <String, WidgetBuilder>{
               AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
             },
@@ -607,6 +603,3 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   final SizedBox taskBoxWidget = find.byKey(Key(expectedColor.toString())).evaluate().first.widget as SizedBox;
   expect(taskBoxWidget, isNotNull);
 }
-
-/// Class for testing interactions on [NavigatorObserver].
-class MockNavigatorObserver extends Mock implements NavigatorObserver {}
