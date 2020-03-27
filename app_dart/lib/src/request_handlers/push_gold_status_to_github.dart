@@ -127,7 +127,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                 pr,
                 slug,
                 isMasterBranch,
-                await _isFirstComment(gitHubClient, pr, slug),
               );
             }
           }
@@ -229,6 +228,10 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return 'All golden file tests have passed.';
   }
 
+  String _getTriageUrl(int number) {
+    return 'https://flutter-gold.skia.org/search?issue=$number&new_clstore=true';
+  }
+
   /// Creates a comment on a given pull request identified to have golden file
   /// changes and applies the `will affect goldens` label.
   Future<void> _commentAndApplyGoldLabels(
@@ -236,24 +239,23 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     PullRequest pr,
     RepositorySlug slug,
     bool isMasterBranch,
-    bool isFirstComment,
   ) async {
     String body;
     if (!isMasterBranch) {
-      body = config.goldenBranchNotification +
+      body = config.goldenBranchMessage +
           '\n\n' +
-          'Click [here to view the diffs](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true).';
+          'Click [here to view the diffs](${_getTriageUrl(pr.number)}';
       await gitHubClient.issues.createComment(slug, pr.number, body);
       return;
-    } else if (isFirstComment) {
+    } else if (await _isFirstComment(gitHubClient, pr, slug)) {
       body = 'Golden file changes have been found for this pull '
-              'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+              'request. Click [here to view and triage](${_getTriageUrl(pr.number)}) '
               '(e.g. because this is an intentional change).\n\n' +
           config.goldenBreakingChangeMessage +
           '\n\n';
     } else {
-      body = 'Golden file changes remain available for triage from new commit, '
-          'Click [here to view](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true).\n\n';
+      body = 'Golden file changes are available for triage from new commit, '
+          'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
     }
     body +=
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
@@ -278,7 +280,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await for (IssueComment comment in comments) {
       if (comment.body.contains(
               'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}') ||
-          comment.body.contains(config.goldenBranchNotification)) {
+          comment.body.contains(config.goldenBranchMessage)) {
         return true;
       }
     }

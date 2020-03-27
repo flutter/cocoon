@@ -109,7 +109,7 @@ void main() {
         });
         config.githubClient = github;
         config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
-        config.goldenBranchNotificationValue = 'goldenBranchNotification';
+        config.goldenBranchMessageValue = 'goldenBranchNotification';
         clientContext.isDevelopmentEnvironment = false;
       });
 
@@ -421,7 +421,7 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBranchNotification)),
+            argThat(contains(config.goldenBranchMessage)),
           )).called(1);
         });
 
@@ -454,7 +454,7 @@ void main() {
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.goldenBranchNotificationValue,
+              IssueComment()..body = config.goldenBranchMessageValue,
             ),
           );
 
@@ -479,7 +479,7 @@ void main() {
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBranchNotification)),
+            argThat(contains(config.goldenBranchMessage)),
           ));
         });
 

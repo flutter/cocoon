@@ -114,7 +114,7 @@ class Config {
       'For more information about working with golden files, see the wiki page '
       '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 
-  String get goldenBranchNotification => 'Golden file changes have been found '
+  String get goldenBranchMessage => 'Golden file changes have been found '
       'for this pull request, however this pull request is no staged to land on '
       'the master branch.\n\n'
       'This can happen when images have changes on the master branch and have not '
