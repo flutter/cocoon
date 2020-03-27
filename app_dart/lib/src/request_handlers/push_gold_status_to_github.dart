@@ -111,7 +111,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             // Checks are still running, we have to wait.
             log.debug('Waiting for checks to be completed.');
             statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
-              'This check is waiting for the all clear from Gold.');
+                'This check is waiting for the all clear from Gold.');
           } else {
             // Get Gold status.
             final String goldStatus = await _getGoldStatus(pr, log);

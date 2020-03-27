@@ -366,7 +366,9 @@ void main() {
           ));
         });
 
-        test('applies to different branches, comments appropriately for changes', () async {
+        test(
+            'applies to different branches, comments appropriately for changes',
+            () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
@@ -383,17 +385,17 @@ void main() {
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(tryjobDigests()));
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-            'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-            .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              .thenAnswer(
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer(
               (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
           );
@@ -423,7 +425,8 @@ void main() {
           )).called(1);
         });
 
-        test('applies to different branches, will not comment more than once', () async {
+        test('applies to different branches, will not comment more than once',
+            () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc');
           prsFromGitHub = <PullRequest>[pr];
@@ -440,17 +443,17 @@ void main() {
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse =
-          MockHttpClientResponse(utf8.encode(tryjobDigests()));
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-            'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-            .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              .thenAnswer(
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer(
               (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.goldenBranchNotificationValue,
             ),
           );
