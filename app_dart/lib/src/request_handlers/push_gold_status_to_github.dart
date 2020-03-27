@@ -77,78 +77,80 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
-      bool isMasterBranch = true;
+      final bool isMasterBranch = pr.base.ref == 'master';
       // Query current checks for this pr.
       final List<CirrusResult> cirrusResults =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
 
-      // More than one CirrusResult is possible for a given sha, since
-      // flutter/flutter uses branching.
-      for (CirrusResult result in cirrusResults) {
-        if (result.branch != 'pull/${pr.number}') {
-          isMasterBranch = false;
-        }
-        final List<dynamic> cirrusChecks = result.tasks;
-        for (dynamic check in cirrusChecks) {
-          final String status = check['status'] as String;
-          final String taskName = check['name'] as String;
+      if (!cirrusResults.any((CirrusResult cirrusResult) =>
+          cirrusResult.branch == 'pull/${pr.number}')) {
+        log.debug(
+            'Skip pull request #${pr.number}, commit ${pr.head.sha} since no valid CirrusResult was found');
+        continue;
+      }
+      final List<dynamic> cirrusChecks = cirrusResults
+          .singleWhere((CirrusResult cirrusResult) =>
+              cirrusResult.branch == 'pull/${pr.number}')
+          .tasks;
+      for (dynamic check in cirrusChecks) {
+        final String status = check['status'] as String;
+        final String taskName = check['name'] as String;
 
+        log.debug(
+            'Found Cirrus build status for pull request #${pr.number}, commit '
+            '${pr.head.sha}: $taskName ($status)');
+
+        cirrusCheckStatuses.add(status);
+        if (taskName.contains('framework')) {
+          // Any pull request that runs a framework shard runs golden file
+          // tests. Once identified, all checks will be awaited to check Gold
+          // status.
+          runsGoldenFileTests = true;
+        }
+      }
+
+      if (runsGoldenFileTests) {
+        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
+          // Checks are still running, we have to wait.
+          log.debug('Waiting for checks to be completed.');
+          statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
+              'This check is waiting for the all clear from Gold.');
+        } else {
+          // Get Gold status.
+          final String goldStatus = await _getGoldStatus(pr, log);
+          statusRequest =
+              _createStatus(goldStatus, _getStatusDescription(goldStatus));
           log.debug(
-              'Found Cirrus build status for pull request #${pr.number}, commit '
-              '${pr.head.sha}: $taskName ($status)');
-
-          cirrusCheckStatuses.add(status);
-          if (taskName.contains('framework')) {
-            // Any pull request that runs a framework shard runs golden file
-            // tests. Once identified, all checks will be awaited to check Gold
-            // status.
-            runsGoldenFileTests = true;
+              'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
+          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+              !await _alreadyCommented(gitHubClient, pr, slug)) {
+            log.debug('Notifying for triage.');
+            await _commentAndApplyGoldLabels(
+              gitHubClient,
+              pr,
+              slug,
+              isMasterBranch,
+            );
           }
         }
 
-        if (runsGoldenFileTests) {
-          if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
-            // Checks are still running, we have to wait.
-            log.debug('Waiting for checks to be completed.');
-            statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
-                'This check is waiting for the all clear from Gold.');
-          } else {
-            // Get Gold status.
-            final String goldStatus = await _getGoldStatus(pr, log);
-            statusRequest =
-                _createStatus(goldStatus, _getStatusDescription(goldStatus));
+        // Push updates if there is a status change (detected by unique description)
+        // or this is a new commit.
+        if (lastUpdate.description != statusRequest.description ||
+            lastUpdate.head != pr.head.sha) {
+          try {
             log.debug(
-                'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-            if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
-                !await _alreadyCommented(gitHubClient, pr, slug)) {
-              log.debug('Notifying for triage.');
-              await _commentAndApplyGoldLabels(
-                gitHubClient,
-                pr,
-                slug,
-                isMasterBranch,
-              );
-            }
-          }
-
-          // Push updates if there is a status change (detected by unique description)
-          // or this is a new commit.
-          if (lastUpdate.description != statusRequest.description ||
-              lastUpdate.head != pr.head.sha) {
-            try {
-              log.debug(
-                  'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
-              await gitHubClient.repositories
-                  .createStatus(slug, pr.head.sha, statusRequest);
-              lastUpdate.status = statusRequest.state;
-              lastUpdate.head = pr.head.sha;
-              lastUpdate.updates += 1;
-              lastUpdate.description = statusRequest.description;
-              statusUpdates.add(lastUpdate);
-            } catch (error) {
-              log.error(
-                  'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
-            }
+                'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
+            await gitHubClient.repositories
+                .createStatus(slug, pr.head.sha, statusRequest);
+            lastUpdate.status = statusRequest.state;
+            lastUpdate.head = pr.head.sha;
+            lastUpdate.updates += 1;
+            lastUpdate.description = statusRequest.description;
+            statusUpdates.add(lastUpdate);
+          } catch (error) {
+            log.error(
+                'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
         }
       }
