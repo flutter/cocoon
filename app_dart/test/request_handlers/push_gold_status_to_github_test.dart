@@ -709,7 +709,7 @@ void main() {
             slug,
             pr.number,
             argThat(contains(
-                'Golden file changes remain available for triage from new commit,')),
+                'Golden file changes are available for triage from new commit,')),
           )).called(1);
         });
 
