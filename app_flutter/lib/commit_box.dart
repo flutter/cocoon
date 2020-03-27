@@ -4,12 +4,12 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
 import 'canvaskit_widget.dart';
+import 'progress_button.dart';
 import 'status_grid.dart';
 
 /// Displays Git commit information.
@@ -159,12 +159,8 @@ class CommitOverlayContents extends StatelessWidget {
                 ButtonBar(
                   children: <Widget>[
                     ProgressButton(
-                      defaultWidget: const Text('GitHub'),
-                      progressWidget: const CircularProgressIndicator(),
-                      width: 100,
-                      height: 50,
+                      child: const Text('GitHub'),
                       onPressed: _openGithub,
-                      animate: false,
                     ),
                   ],
                 ),
@@ -178,6 +174,6 @@ class CommitOverlayContents extends StatelessWidget {
 
   Future<void> _openGithub() async {
     final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
-    launch(githubUrl);
+    await launch(githubUrl);
   }
 }

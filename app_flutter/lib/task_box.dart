@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'agent_dashboard_page.dart';
+import 'progress_button.dart';
 import 'state/flutter_build.dart';
 import 'status_grid.dart';
 import 'task_attempt_summary.dart';
@@ -232,7 +232,6 @@ class TaskOverlayEntry extends StatelessWidget {
           ),
         ),
         Positioned(
-          width: 350,
           // Move this overlay to be where the parent is
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
@@ -323,58 +322,99 @@ class TaskOverlayContents extends StatelessWidget {
     final Duration runDuration = endTime.difference(startTime);
 
     return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          ListTile(
-            leading: Tooltip(message: taskStatus, child: statusIcon[taskStatus]),
-            title: SelectableText(task.name),
-            subtitle: isDevicelab(task)
-                ? Text('Attempts: ${task.attempts}\n'
-                    'Run time: ${runDuration.inMinutes} minutes\n'
-                    'Queue time: ${queueDuration.inSeconds} seconds\n'
-                    'Flaky: ${task.isFlaky}')
-                : const Text('Task was run outside of devicelab'),
-            contentPadding: const EdgeInsets.all(16.0),
-          ),
-          if (isDevicelab(task)) TaskAttemptSummary(task: task),
-          ButtonBar(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              if (isDevicelab(task))
-                FlatButton(
-                  child: Text(task.reservedForAgentId),
-                  onPressed: () {
-                    // Close the current overlay
-                    closeCallback();
-
-                    // Open the agent dashboard
-                    Navigator.pushNamed(
-                      context,
-                      AgentDashboardPage.routeName,
-                      arguments: task.reservedForAgentId,
-                    );
-                  },
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Tooltip(
+                      message: taskStatus,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
+                        child: statusIcon[taskStatus],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListBody(
+                        children: <Widget>[
+                          SelectableText(
+                            task.name,
+                            style: Theme.of(context).textTheme.bodyText1,
+                          ),
+                          if (isDevicelab(task))
+                            Text(
+                              'Attempts: ${task.attempts}\n'
+                              'Run time: ${runDuration.inMinutes} minutes\n'
+                              'Queue time: ${queueDuration.inSeconds} seconds\n'
+                              'Flaky: ${task.isFlaky}',
+                              style: Theme.of(context).textTheme.bodyText2,
+                            )
+                          else
+                            Text(
+                              'Task was run outside of devicelab',
+                              style: Theme.of(context).textTheme.bodyText2,
+                            ),
+                          if (isDevicelab(task)) TaskAttemptSummary(task: task),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ProgressButton(
-                defaultWidget: const Text('Log'),
-                progressWidget: const CircularProgressIndicator(),
-                width: 60,
-                height: 50,
-                onPressed: _viewLog,
-                animate: false,
               ),
-              if (isDevicelab(task))
-                ProgressButton(
-                  defaultWidget: const Text('Rerun'),
-                  progressWidget: const CircularProgressIndicator(),
-                  width: 70,
-                  height: 50,
-                  onPressed: _rerunTask,
-                  animate: false,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  if (isDevicelab(task))
+                    RaisedButton(
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'FIND ',
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: task.reservedForAgentId,
+                              style: const TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onPressed: () {
+                        // Close the current overlay
+                        closeCallback();
+
+                        // Open the agent dashboard
+                        Navigator.pushNamed(
+                          context,
+                          AgentDashboardPage.routeName,
+                          arguments: task.reservedForAgentId,
+                        );
+                      },
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: ProgressButton(
+                      child: const Text('DOWNLOAD ALL LOGS'),
+                      onPressed: _viewLog,
+                    ),
+                  ),
+                  if (isDevicelab(task))
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: ProgressButton(
+                        child: const Text('RERUN'),
+                        onPressed: _rerunTask,
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -188,7 +188,7 @@ void main() {
 
       expect(find.text(expectedTask.name), findsOneWidget);
       expect(find.text(expectedTaskInfoString), findsOneWidget);
-      expect(find.text(expectedTask.reservedForAgentId), findsOneWidget);
+      expect(find.text('FIND ${expectedTask.reservedForAgentId}'), findsOneWidget);
 
       // Since the overlay is on screen, the indicator should be showing
       expect(find.byKey(const Key('task-overlay-key')), findsOneWidget);
@@ -291,7 +291,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      await tester.tap(find.text(expectedTask.reservedForAgentId));
+      await tester.tap(find.text('FIND ${expectedTask.reservedForAgentId}'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
@@ -426,7 +426,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun'));
+      await tester.tap(find.text('RERUN'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
@@ -462,7 +462,7 @@ void main() {
       expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
 
       // Click the rerun task button
-      await tester.tap(find.text('Rerun'));
+      await tester.tap(find.text('RERUN'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
@@ -502,7 +502,7 @@ void main() {
       await tester.pump();
 
       // View log
-      await tester.tap(find.text('Log'));
+      await tester.tap(find.text('DOWNLOAD ALL LOGS'));
       await tester.pump();
 
       expect(
@@ -542,7 +542,7 @@ void main() {
       verifyNever(buildState.downloadLog(any, any));
 
       // Click log button
-      await tester.tap(find.text('Log'));
+      await tester.tap(find.text('DOWNLOAD ALL LOGS'));
       await tester.pump();
 
       verify(buildState.downloadLog(any, any)).called(1);
@@ -567,7 +567,7 @@ void main() {
       await tester.pump();
 
       // Click log button
-      await tester.tap(find.text('Log'));
+      await tester.tap(find.text('DOWNLOAD ALL LOGS'));
       await tester.pump();
 
       // expect error snackbar to be shown
