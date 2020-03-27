@@ -44,9 +44,6 @@ class FakeFlutterBuildState extends ChangeNotifier implements FlutterBuildState 
   Future<bool> rerunTask(Task task) => null;
 
   @override
-  Future<void> startFetchingUpdates() => null;
-
-  @override
   List<CommitStatus> statuses = <CommitStatus>[];
 
   @override

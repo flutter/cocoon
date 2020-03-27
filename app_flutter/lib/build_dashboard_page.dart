@@ -15,25 +15,12 @@ import 'status_grid.dart';
 ///
 /// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [StatusGrid].
-class BuildDashboardPage extends StatefulWidget {
+class BuildDashboardPage extends StatelessWidget {
   const BuildDashboardPage({
     Key key,
   }) : super(key: key);
 
   static const String routeName = '/build';
-
-  @override
-  State<BuildDashboardPage> createState() => _BuildDashboardPageState();
-}
-
-class _BuildDashboardPageState extends State<BuildDashboardPage> {
-  FlutterBuildState _buildState;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _buildState = Provider.of<FlutterBuildState>(context)..startFetchingUpdates();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +40,7 @@ class _BuildDashboardPageState extends State<BuildDashboardPage> {
       true: Text('Tree is Open'),
     };
 
+    final FlutterBuildState _buildState = Provider.of<FlutterBuildState>(context);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(

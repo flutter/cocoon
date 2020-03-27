@@ -27,30 +27,21 @@ class FlutterBuildState extends ChangeNotifier {
   /// Authentication service for managing Google Sign In.
   final GoogleSignInService authService;
 
-  /// How often to query the Cocoon backend for the current build state.
-  @visibleForTesting
-  final Duration refreshRate = const Duration(seconds: 10);
-
-  /// Timer that calls [_fetchBuildStatusUpdate] on a set interval.
-  @visibleForTesting
-  @protected
-  Timer refreshTimer;
-
-  /// The current status of the commits loaded.
-  List<CommitStatus> _statuses = <CommitStatus>[];
-  List<CommitStatus> get statuses => _statuses;
-
-  /// Whether or not flutter/flutter currently passes tests.
-  bool _isTreeBuilding;
-  bool get isTreeBuilding => _isTreeBuilding;
-
   /// Git branches from flutter/flutter for managing Flutter releases.
-  List<String> _branches = <String>['master'];
   List<String> get branches => _branches;
+  List<String> _branches = <String>['master'];
 
   /// The current flutter/flutter git branch to show data from.
-  String _currentBranch = 'master';
   String get currentBranch => _currentBranch;
+  String _currentBranch = 'master';
+
+  /// The current status of the commits loaded.
+  List<CommitStatus> get statuses => _statuses;
+  List<CommitStatus> _statuses = <CommitStatus>[];
+
+  /// Whether or not flutter/flutter currently passes tests.
+  bool get isTreeBuilding => _isTreeBuilding;
+  bool _isTreeBuilding;
 
   /// Whether more [List<CommitStatus>] can be loaded from Cocoon.
   ///
@@ -73,24 +64,91 @@ class FlutterBuildState extends ChangeNotifier {
   static const String errorMessageFetchingBranches =
       'An error occured fetching branches from flutter/flutter on Cocoon.';
 
-  /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  // TODO(ianh): make this automatically trigger when listeners are added, and cancel when they're removed.
-  Future<void> startFetchingUpdates() async {
-    if (refreshTimer != null && refreshTimer.isActive) {
-      // There's already an update loop, no need to make another.
-      return;
+  /// How often to query the Cocoon backend for the current build state.
+  @visibleForTesting
+  final Duration refreshRate = const Duration(seconds: 10);
+
+  /// Timer that calls [_fetchStatusUpdates] on a set interval.
+  @visibleForTesting
+  @protected
+  Timer refreshTimer;
+
+  // There's no way to cancel futures in the standard library so instead we just track
+  // if we've been disposed, and if so, we drop everything on the floor.
+  bool _active = true;
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (!hasListeners) {
+      _startFetchingStatusUpdates();
+      assert(refreshTimer != null);
     }
+    super.addListener(listener);
+  }
 
-    /// [Timer.periodic] does not necessarily run at the start of the timer.
-    _fetchBuildStatusUpdate();
+  @override
+  void removeListener(VoidCallback listener) {
+    super.removeListener(listener);
+    if (!hasListeners) {
+      refreshTimer?.cancel();
+      refreshTimer = null;
+    }
+  }
 
-    _fetchFlutterBranches().then((List<String> branchResponse) => _branches = branchResponse);
+  /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
+  void _startFetchingStatusUpdates() {
+    assert(refreshTimer == null);
+    _fetchStatusUpdates();
+    refreshTimer = Timer.periodic(refreshRate, _fetchStatusUpdates);
+  }
 
-    refreshTimer = Timer.periodic(refreshRate, (_) => _fetchBuildStatusUpdate());
+  /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
+  ///
+  /// If fetched [statuses] is not on the current branch it will be discarded.
+  Future<void> _fetchStatusUpdates([Timer timer]) async {
+    await Future.wait<void>(<Future<void>>[
+      () async {
+        final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
+        if (!_active) {
+          return null;
+        }
+        if (response.error != null) {
+          _errors.send('$errorMessageFetchingBranches: ${response.error}');
+        } else {
+          _branches = response.data;
+          notifyListeners();
+        }
+      }(),
+      () async {
+        final CocoonResponse<List<CommitStatus>> response =
+            await cocoonService.fetchCommitStatuses(branch: _currentBranch);
+        if (!_active) {
+          return null;
+        }
+        if (response.error != null) {
+          _errors.send('$errorMessageFetchingStatuses: ${response.error}');
+        } else {
+          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
+          notifyListeners();
+        }
+      }(),
+      () async {
+        final CocoonResponse<bool> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        if (!_active) {
+          return null;
+        }
+        if (response.error != null) {
+          _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
+        } else {
+          _isTreeBuilding = response.data;
+          notifyListeners();
+        }
+      }(),
+    ]);
   }
 
   /// Update build state to be on [branch] and erase previous branch data.
-  Future<void> updateCurrentBranch(String branch) async {
+  Future<void> updateCurrentBranch(String branch) {
     _currentBranch = branch;
     _moreStatusesExist = true;
     _isTreeBuilding = null;
@@ -100,42 +158,7 @@ class FlutterBuildState extends ChangeNotifier {
     notifyListeners();
 
     /// To prevent delays, make an immediate request for dashboard data.
-    _fetchBuildStatusUpdate();
-  }
-
-  /// Request the latest [statuses] and [isTreeBuilding] from [CocoonService].
-  ///
-  /// If fetched [statuses] is not on the current branch it will be discarded.
-  Future<void> _fetchBuildStatusUpdate() async {
-    await Future.wait(<Future<void>>[
-      cocoonService.fetchCommitStatuses(branch: _currentBranch).then((CocoonResponse<List<CommitStatus>> response) {
-        if (response.error != null) {
-          _errors.send('$errorMessageFetchingStatuses: ${response.error}');
-        } else {
-          _mergeRecentCommitStatusesWithStoredStatuses(response.data);
-        }
-        notifyListeners();
-      }),
-      cocoonService.fetchTreeBuildStatus(branch: _currentBranch).then((CocoonResponse<bool> response) {
-        if (response.error != null) {
-          _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
-        } else {
-          _isTreeBuilding = response.data;
-        }
-        notifyListeners();
-      }),
-    ]);
-  }
-
-  /// Request the latests [branches] from [CocoonService].
-  Future<List<String>> _fetchFlutterBranches() async {
-    return cocoonService.fetchFlutterBranches().then((CocoonResponse<List<String>> response) {
-      if (response.error != null) {
-        _errors.send('$errorMessageFetchingBranches: ${response.error}');
-      }
-
-      return response.data;
-    });
+    return _fetchStatusUpdates();
   }
 
   /// Handle merging status updates with the current data in [statuses].
@@ -230,6 +253,9 @@ class FlutterBuildState extends ChangeNotifier {
       lastCommitStatus: _statuses.last,
       branch: _currentBranch,
     );
+    if (!_active) {
+      return;
+    }
     if (response.error != null) {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
@@ -260,13 +286,6 @@ class FlutterBuildState extends ChangeNotifier {
 
   Future<bool> downloadLog(Task task, Commit commit) async {
     return cocoonService.downloadLog(task, await authService.idToken, commit.sha);
-  }
-
-  @override
-  void dispose() {
-    authService.removeListener(notifyListeners);
-    refreshTimer?.cancel();
-    super.dispose();
   }
 
   /// Assert that [statuses] is ordered from newest commit to oldest.
@@ -311,5 +330,13 @@ class FlutterBuildState extends ChangeNotifier {
 
     final CommitStatus exampleStatus = statuses.first;
     return exampleStatus.branch == _currentBranch;
+  }
+
+  @override
+  void dispose() {
+    authService.removeListener(notifyListeners);
+    refreshTimer?.cancel();
+    _active = false;
+    super.dispose();
   }
 }

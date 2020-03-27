@@ -29,8 +29,8 @@ class AgentState extends ChangeNotifier {
   final GoogleSignInService authService;
 
   /// The current status of the commits loaded.
-  List<Agent> _agents = <Agent>[];
   List<Agent> get agents => _agents;
+  List<Agent> _agents = <Agent>[];
 
   /// A [Brook] that reports when errors occur that relate to this [AgentState].
   Brook<String> get errors => _errors;
@@ -49,7 +49,7 @@ class AgentState extends ChangeNotifier {
   @visibleForTesting
   final Duration refreshRate = const Duration(minutes: 1);
 
-  /// Timer that calls [_fetchAgentStatusUpdate] on a set interval.
+  /// Timer that calls [_fetchStatusUpdates] on a set interval.
   @visibleForTesting
   @protected
   Timer refreshTimer;
@@ -61,7 +61,7 @@ class AgentState extends ChangeNotifier {
   @override
   void addListener(VoidCallback listener) {
     if (!hasListeners) {
-      _startFetchingStateUpdates();
+      _startFetchingStatusUpdates();
       assert(refreshTimer != null);
     }
     super.addListener(listener);
@@ -77,17 +77,17 @@ class AgentState extends ChangeNotifier {
   }
 
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
-  void _startFetchingStateUpdates() {
+  void _startFetchingStatusUpdates() {
     assert(refreshTimer == null);
-    _fetchAgentStatusUpdate(null);
-    refreshTimer = Timer.periodic(refreshRate, _fetchAgentStatusUpdate);
+    _fetchStatusUpdates();
+    refreshTimer = Timer.periodic(refreshRate, _fetchStatusUpdates);
   }
 
   /// Request the latest agent statuses from [CocoonService].
   ///
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageFetchingStatuses].
-  Future<void> _fetchAgentStatusUpdate(Timer timer) async {
+  Future<void> _fetchStatusUpdates([Timer timer]) async {
     final CocoonResponse<List<Agent>> response = await cocoonService.fetchAgentStatuses();
     if (!_active) {
       return;

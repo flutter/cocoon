@@ -62,7 +62,9 @@ void main() {
         cocoonService: service,
         authService: MockGoogleSignInService(),
       );
-      buildState.startFetchingUpdates();
+      void listener1() {}
+      buildState.addListener(listener1);
+
       await tester.pumpWidget(
         MaterialApp(
           home: ValueProvider<FlutterBuildState>(
