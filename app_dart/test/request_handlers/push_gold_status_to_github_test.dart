@@ -109,6 +109,7 @@ void main() {
         });
         config.githubClient = github;
         config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
+        config.goldenBranchMessageValue = 'goldenBranchNotification';
         clientContext.isDevelopmentEnvironment = false;
       });
 
@@ -125,10 +126,11 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha) {
+      PullRequest newPullRequest(int number, String sha, String baseRef) {
         return PullRequest()
           ..number = 123
-          ..head = (PullRequestHead()..sha = 'abc');
+          ..head = (PullRequestHead()..sha = 'abc')
+          ..base = (PullRequestHead()..ref = baseRef);
       }
 
       group('does not update GitHub or Datastore', () {
@@ -153,7 +155,7 @@ void main() {
             <String, String>{'status': 'EXECUTING', 'name': 'tool-test-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'tool-test-2'}
           ];
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -181,13 +183,13 @@ void main() {
 
         test('same commit, checks running, last status running', () async {
           // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            'This check is waiting for all other checks to be completed.',
+            'This check is waiting for the all clear from Gold.',
           );
           db.values[status.key] = status;
 
@@ -223,7 +225,7 @@ void main() {
 
         test('same commit, checks complete, last status complete', () async {
           // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
               pr,
@@ -265,7 +267,7 @@ void main() {
             'same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
             () async {
           // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
               pr,
@@ -329,7 +331,7 @@ void main() {
       group('updates GitHub and Datastore', () {
         test('new commit, checks running', () async {
           // New commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -365,9 +367,126 @@ void main() {
           ));
         });
 
+        test(
+            'applies to different branches, comments appropriately for changes',
+            () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'release');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          branch = 'pull/123';
+
+          // Change detected by Gold
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              .thenAnswer(
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not label and comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          // Should provide context for changes detected on a branch
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBranchMessage)),
+          )).called(1);
+        });
+
+        test('applies to different branches, will not comment more than once',
+            () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'release');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          branch = 'pull/123';
+
+          // Change detected by Gold
+          final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+          final MockHttpClientResponse mockHttpResponse =
+              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          when(mockHttpClient.getUrl(Uri.parse(
+                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+              .thenAnswer(
+                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer(
+              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.goldenBranchMessageValue,
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not label and comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          // Should not provide comment since it already has done so.
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBranchMessage)),
+          ));
+        });
+
         test('new commit, checks complete, no changes detected', () async {
           // New commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -417,7 +536,7 @@ void main() {
         test('new commit, checks complete, change detected, should comment',
             () async {
           // New commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -475,7 +594,7 @@ void main() {
             'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
             () async {
           // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
               pr,
@@ -535,7 +654,7 @@ void main() {
         test('uses shorter comment after first comment to reduce noise',
             () async {
           // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
               pr,
@@ -591,14 +710,14 @@ void main() {
             slug,
             pr.number,
             argThat(contains(
-                'Golden file changes remain available for triage from new commit,')),
+                'Golden file changes are available for triage from new commit,')),
           )).called(1);
         });
 
         test('same commit, checks complete, new status, should not comment',
             () async {
           // Same commit: abc
-          final PullRequest pr = newPullRequest(123, 'abc');
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
               pr,
@@ -659,8 +778,8 @@ void main() {
       test(
           'Completed pull request does not skip follow-up prs with early return',
           () async {
-        final PullRequest completedPR = newPullRequest(123, 'abc');
-        final PullRequest followUpPR = newPullRequest(456, 'def');
+        final PullRequest completedPR = newPullRequest(123, 'abc', 'master');
+        final PullRequest followUpPR = newPullRequest(456, 'def', 'master');
         prsFromGitHub = <PullRequest>[
           completedPR,
           followUpPR,

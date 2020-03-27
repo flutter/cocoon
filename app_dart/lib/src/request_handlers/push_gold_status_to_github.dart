@@ -77,15 +77,15 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
+      final bool isMasterBranch = pr.base.ref == 'master';
       // Query current checks for this pr.
       final List<CirrusResult> cirrusResults =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
 
-      // TODO(katelovett): flutter gold will need to support branching, https://github.com/flutter/flutter/issues/52700
       if (!cirrusResults.any((CirrusResult cirrusResult) =>
           cirrusResult.branch == 'pull/${pr.number}')) {
-        log.debug('Skip pull request #${pr.number}, commit '
-            '${pr.head.sha} since no valid CirrusResult was found');
+        log.debug(
+            'Skip pull request #${pr.number}, commit ${pr.head.sha} since no valid CirrusResult was found');
         continue;
       }
       final List<dynamic> cirrusChecks = cirrusResults
@@ -102,8 +102,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
         cirrusCheckStatuses.add(status);
         if (taskName.contains('framework')) {
-          // Any pull request that runs a framework shard runs golden file tests,
-          // Once identified, all checks will be awaited to check Gold status.
+          // Any pull request that runs a framework shard runs golden file
+          // tests. Once identified, all checks will be awaited to check Gold
+          // status.
           runsGoldenFileTests = true;
         }
       }
@@ -113,7 +114,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // Checks are still running, we have to wait.
           log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
-              'This check is waiting for all other checks to be completed.');
+              'This check is waiting for the all clear from Gold.');
         } else {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
@@ -124,11 +125,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
-            await _commentAndApplyGoldLabel(
-                await _isFirstComment(gitHubClient, pr, slug),
-                gitHubClient,
-                pr,
-                slug);
+            await _commentAndApplyGoldLabels(
+              gitHubClient,
+              pr,
+              slug,
+              isMasterBranch,
+            );
           }
         }
 
@@ -228,24 +230,34 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return 'All golden file tests have passed.';
   }
 
+  String _getTriageUrl(int number) {
+    return 'https://flutter-gold.skia.org/search?issue=$number&new_clstore=true';
+  }
+
   /// Creates a comment on a given pull request identified to have golden file
   /// changes and applies the `will affect goldens` label.
-  Future<void> _commentAndApplyGoldLabel(
-    bool isFirstComment,
+  Future<void> _commentAndApplyGoldLabels(
     GitHub gitHubClient,
     PullRequest pr,
     RepositorySlug slug,
+    bool isMasterBranch,
   ) async {
     String body;
-    if (isFirstComment) {
+    if (!isMasterBranch) {
+      body = config.goldenBranchMessage +
+          '\n\n' +
+          'Click [here to view the diffs](${_getTriageUrl(pr.number)}';
+      await gitHubClient.issues.createComment(slug, pr.number, body);
+      return;
+    } else if (await _isFirstComment(gitHubClient, pr, slug)) {
       body = 'Golden file changes have been found for this pull '
-              'request. Click [here to view and triage](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true) '
+              'request. Click [here to view and triage](${_getTriageUrl(pr.number)}) '
               '(e.g. because this is an intentional change).\n\n' +
           config.goldenBreakingChangeMessage +
           '\n\n';
     } else {
-      body = 'Golden file changes remain available for triage from new commit, '
-          'Click [here to view](https://flutter-gold.skia.org/search?issue=${pr.number}&new_clstore=true).\n\n';
+      body = 'Golden file changes are available for triage from new commit, '
+          'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
     }
     body +=
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
@@ -269,7 +281,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(
-          'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
+              'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}') ||
+          comment.body.contains(config.goldenBranchMessage)) {
         return true;
       }
     }
@@ -285,7 +298,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(
-          'Golden file changes have been found for this pull request.')) {
+          'Golden file changes have been found for this pull request')) {
         return false;
       }
     }
