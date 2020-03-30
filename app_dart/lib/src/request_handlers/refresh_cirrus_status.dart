@@ -126,7 +126,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
       return statuses;
     }
     for (Map<String, dynamic> runStatus in cirrusResults
-        .singleWhere(
+        .firstWhere(
             (CirrusResult cirrusResult) => cirrusResult.branch == branch)
         .tasks) {
       final String status = runStatus['status'] as String;
