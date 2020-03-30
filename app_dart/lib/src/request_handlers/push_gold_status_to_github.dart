@@ -89,7 +89,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
       final List<dynamic> cirrusChecks = cirrusResults
-          .singleWhere((CirrusResult cirrusResult) =>
+          .firstWhere((CirrusResult cirrusResult) =>
               cirrusResult.branch == 'pull/${pr.number}')
           .tasks;
       for (dynamic check in cirrusChecks) {

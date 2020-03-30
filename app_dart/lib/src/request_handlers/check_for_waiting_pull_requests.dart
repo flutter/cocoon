@@ -273,7 +273,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       return allSuccess;
     }
     final List<Map<String, dynamic>> cirrusStatuses = cirrusResults
-        .singleWhere(
+        .firstWhere(
             (CirrusResult cirrusResult) => cirrusResult.branch == branch)
         .tasks;
     if (cirrusStatuses == null) {
