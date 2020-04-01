@@ -3,10 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
+import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
+import 'package:grpc/grpc.dart';
+import 'package:retry/retry.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
@@ -16,7 +20,27 @@ import '../model/appengine/task.dart';
 import '../model/appengine/time_series.dart';
 import '../model/appengine/time_series_value.dart';
 
-typedef DatastoreServiceProvider = DatastoreService Function();
+/// Function signature for a [DatastoreService] provider.
+typedef DatastoreServiceProvider = DatastoreService Function(
+    {DatastoreDB db, int maxEntityGroups});
+
+/// Function signature that will be executed with retries.
+typedef RetryHandler = Function();
+
+/// Runs a db transaction with retries.
+///
+/// It uses quadratic backoff starting with 50ms and 3 max attempts.
+Future<void> runTransactionWithRetries(RetryHandler retryHandler,
+    {int delayMilliseconds = 50, int maxAttempts = 3}) {
+  final RetryOptions r = RetryOptions(
+      delayFactor: Duration(milliseconds: delayMilliseconds),
+      maxAttempts: maxAttempts);
+  return r.retry(
+    retryHandler,
+    retryIf: (Exception e) =>
+        e is gcloud_datastore.TransactionAbortedError || e is GrpcError,
+  );
+}
 
 /// Service class for interacting with App Engine cloud datastore.
 ///
@@ -27,15 +51,21 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService({
-    @required this.db,
-  }) : assert(db != null);
+  const DatastoreService(
+    this.db,
+    this.maxEntityGroups,
+  ) : assert(db != null, maxEntityGroups != null);
+
+  /// Maximum number of entity groups to process at once.
+  final int maxEntityGroups;
 
   /// The backing [DatastoreDB] object. Guaranteed to be non-null.
   final DatastoreDB db;
 
-  static DatastoreService defaultProvider() {
-    return DatastoreService(db: dbService);
+  /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
+  static DatastoreService defaultProvider(
+      {DatastoreDB db, int maxEntityGroups}) {
+    return DatastoreService(db ?? dbService, maxEntityGroups ?? 5);
   }
 
   /// Queries for recent commits.
@@ -197,5 +227,61 @@ class DatastoreService {
       }
       return previousStatusUpdates.single;
     }
+  }
+
+  /// Shards [rows] into several sublists of size [maxEntityGroups].
+  Future<List<List<Model>>> shard(List<Model> rows) async {
+    final List<List<Model>> shards = <List<Model>>[];
+    for (int i = 0; i < rows.length; i += maxEntityGroups) {
+      shards.add(rows.sublist(i, i + min<int>(rows.length, maxEntityGroups)));
+    }
+    return shards;
+  }
+
+  /// Inserts [rows] into datastore sharding the inserts if needed.
+  Future<void> insert(List<Model> rows) async {
+    final List<List<Model>> shards = await shard(rows);
+    for (List<Model> shard in shards) {
+      await runTransactionWithRetries(() async {
+        await db.withTransaction<void>((Transaction transaction) async {
+          transaction.queueMutations(inserts: shard);
+          await transaction.commit();
+        });
+      });
+    }
+  }
+
+  /// Looks up registers by [keys].
+  Future<List<T>> lookupByKey<T extends Model>(List<Key> keys) async {
+    List<T> results = <T>[];
+    await runTransactionWithRetries(() async {
+      await db.withTransaction<void>((Transaction transaction) async {
+        results = await transaction.lookup<T>(keys);
+      });
+    });
+    return results;
+  }
+
+  /// Looks up registers by value using a single [key].
+  Future<T> lookupByValue<T extends Model>(Key key,
+      {T Function() orElse}) async {
+    T result;
+    await runTransactionWithRetries(() async {
+      await db.withTransaction<void>((Transaction transaction) async {
+        result = await db.lookupValue<T>(key, orElse: orElse);
+      });
+    });
+    return result;
+  }
+
+  /// Runs a function inside a transaction providing a [Transaction] parameter.
+  Future<T> withTransaction<T>(Future<T> Function(Transaction) handler) async {
+    T result;
+    await runTransactionWithRetries(() async {
+      await db.withTransaction<void>((Transaction transaction) async {
+        result = await handler(transaction);
+      });
+    });
+    return result;
   }
 }

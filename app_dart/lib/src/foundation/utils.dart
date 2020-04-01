@@ -8,15 +8,10 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:gcloud/datastore.dart';
 import 'package:github/server.dart';
-import 'package:grpc/grpc.dart';
-import 'package:retry/retry.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
-
-typedef RetryHandler = Function();
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -71,20 +66,6 @@ Future<List<String>> loadBranchRegExps(
   }
   log.error('GitHub not responding; giving up');
   return <String>['master'];
-}
-
-// Runs a db transaction with retries.
-//
-// It uses quadratic backoff starting with 50ms and 3 max attempts.
-Future<void> runTransactionWithRetries(RetryHandler retryHandler,
-    {int delayMilliseconds = 50, int maxAttempts = 3}) {
-  final RetryOptions r = RetryOptions(
-      delayFactor: Duration(milliseconds: delayMilliseconds),
-      maxAttempts: maxAttempts);
-  return r.retry(
-    retryHandler,
-    retryIf: (Exception e) => e is TransactionAbortedError || e is GrpcError,
-  );
 }
 
 Future<List<Branch>> getBranches(

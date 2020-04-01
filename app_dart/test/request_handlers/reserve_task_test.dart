@@ -184,7 +184,7 @@ void main() {
       agent = Agent(agentId: 'aid', capabilities: <String>['linux/android']);
       commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      taskProvider = TaskProvider(datastore: DatastoreService(db: config.db));
+      taskProvider = TaskProvider(datastore: DatastoreService(config.db, 5));
     });
 
     test('if no commits in query returns null', () async {

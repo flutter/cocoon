@@ -10,7 +10,6 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
@@ -33,7 +32,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting ReservationProvider reservationProvider,
     @visibleForTesting AccessTokenProvider accessTokenProvider,
   })  : taskProvider = taskProvider ??
-            TaskProvider(datastore: DatastoreService(db: config.db)),
+            TaskProvider(
+                datastore: DatastoreService(config.db, config.maxEntityGroups)),
         reservationProvider =
             reservationProvider ?? ReservationProvider(config),
         accessTokenProvider =

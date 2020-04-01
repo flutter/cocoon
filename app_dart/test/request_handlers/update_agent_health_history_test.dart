@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
@@ -34,13 +35,15 @@ void main() {
 
     setUp(() {
       tabledataResourceApi = FakeTabledataResourceApi();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       db = FakeDatastoreDB();
+      config =
+          FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
       log = FakeLogging();
       handler = UpdateAgentHealthHistory(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: () => DatastoreService(db: db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         loggingProvider: () => log,
       );
     });

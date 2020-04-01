@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.d
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
@@ -45,15 +46,17 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       cirrusGraphQLClient = FakeGraphQLClient();
-      config = FakeConfig(cirrusGraphQLClient: cirrusGraphQLClient);
       db = FakeDatastoreDB();
+      config =
+          FakeConfig(cirrusGraphQLClient: cirrusGraphQLClient, dbValue: db);
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockHttpClient();
       handler = PushGoldStatusToGithub(
         config,
         auth,
-        datastoreProvider: () => DatastoreService(db: db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         loggingProvider: () => log,
         goldClient: mockHttpClient,
       );

@@ -1,0 +1,168 @@
+// Copyright 2020 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/datastore.dart' as gcloud_datastore;
+import 'package:gcloud/db.dart';
+import 'package:test/test.dart';
+import 'package:grpc/grpc.dart';
+
+import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_datastore.dart';
+
+class Counter {
+  int count = 0;
+  void increase() {
+    count = count + 1;
+  }
+
+  int value() {
+    return count;
+  }
+}
+
+void main() {
+  group('Datastore', () {
+    FakeConfig config;
+    FakeDatastoreDB db;
+    DatastoreService datastoreService;
+    Commit commit;
+
+    setUp(() {
+      db = FakeDatastoreDB();
+      config = FakeConfig(dbValue: db);
+      datastoreService = DatastoreService(config.db, 5);
+      commit = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'abc_master'),
+          sha: 'abc_master',
+          branch: 'master');
+    });
+
+    group('DatasourceService', () {
+      setUp(() {});
+
+      test('defaultProvider returns a DatasourceService object', () async {
+        expect(
+            DatastoreService.defaultProvider(
+                db: config.db, maxEntityGroups: config.maxEntityGroups),
+            isA<DatastoreService>());
+      });
+
+      test('QueryRecentCommits', () async {
+        for (String branch in <String>['master', 'release']) {
+          final Commit commit = Commit(
+              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+              sha: 'abc_$branch',
+              branch: branch);
+          config.db.values[commit.key] = commit;
+        }
+        // Defaults to master
+        List<Commit> commits =
+            await datastoreService.queryRecentCommits().toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].branch, equals('master'));
+        // Explicit branch
+        commits = await datastoreService
+            .queryRecentCommits(branch: 'release')
+            .toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].branch, equals('release'));
+      });
+      test('QueryRecentCommitsNoBranch', () async {
+        // Empty results
+        List<Commit> commits =
+            await datastoreService.queryRecentCommits().toList();
+        expect(commits, isEmpty);
+        for (String branch in <String>['master', 'release']) {
+          final Commit commit = Commit(
+              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+              sha: 'abc_$branch',
+              branch: branch);
+          config.db.values[commit.key] = commit;
+        }
+        // Results from two branches
+        commits = await datastoreService.queryRecentCommitsNoBranch().toList();
+        expect(commits, hasLength(2));
+      });
+    });
+
+    test('Shard', () async {
+      // default maxEntityGroups = 5
+      List<List<Model>> shards =
+          await datastoreService.shard(<Commit>[Commit()]);
+      expect(shards, hasLength(1));
+      // maxEntityGroups = 1
+      config.maxEntityGroups = 1;
+      datastoreService = DatastoreService(config.db, config.maxEntityGroups);
+      shards =
+          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      expect(shards, hasLength(3));
+    });
+
+    test('Insert', () async {
+      await datastoreService.insert(<Commit>[commit]);
+      expect(config.db.values[commit.key], equals(commit));
+    });
+
+    test('LookupByKey', () async {
+      config.db.values[commit.key] = commit;
+      final List<Commit> commits =
+          await datastoreService.lookupByKey(<Key>[commit.key]);
+      expect(commits, hasLength(1));
+      expect(commits[0], equals(commit));
+    });
+
+    test('LookupByValue', () async {
+      config.db.values[commit.key] = commit;
+      final Commit expected = await datastoreService.lookupByValue(commit.key);
+      expect(expected, equals(commit));
+    });
+
+    test('WithTransaction', () async {
+      final String expected = await datastoreService
+          .withTransaction((Transaction transaction) async {
+        transaction.queueMutations(inserts: <Commit>[commit]);
+        await transaction.commit();
+        return 'success';
+      });
+      expect(expected, equals('success'));
+      expect(config.db.values[commit.key], equals(commit));
+    });
+  });
+
+  group('RunTransactionWithRetry', () {
+    test('retriesOnGrpcError', () async {
+      final Counter counter = Counter();
+      try {
+        await runTransactionWithRetries(() async {
+          counter.increase();
+          throw GrpcError.aborted();
+        });
+      } catch (e) {
+        expect(e, isA<GrpcError>());
+      }
+      expect(counter.value(), greaterThan(1));
+    });
+    test('retriesTransactionAbortedError', () async {
+      final Counter counter = Counter();
+      try {
+        await runTransactionWithRetries(() async {
+          counter.increase();
+          throw gcloud_datastore.TransactionAbortedError();
+        });
+      } catch (e) {
+        expect(e, isA<gcloud_datastore.TransactionAbortedError>());
+      }
+      expect(counter.value(), greaterThan(1));
+    });
+    test('DoesNotRetryOnSuccess', () async {
+      final Counter counter = Counter();
+      await runTransactionWithRetries(() async {
+        counter.increase();
+      });
+      expect(counter.value(), equals(1));
+    });
+  });
+}

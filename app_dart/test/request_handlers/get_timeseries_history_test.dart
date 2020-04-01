@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:cocoon_service/src/model/appengine/time_series_value.dart';
 import 'package:cocoon_service/src/request_handlers/get_timeseries_history.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -21,8 +22,8 @@ void main() {
     NoAuthRequestHandlerTester tester;
 
     setUp(() {
-      config = FakeConfig();
       db = FakeDatastoreDB();
+      config = FakeConfig(dbValue: db);
       tester = NoAuthRequestHandlerTester();
       tester.requestData = <String, dynamic>{
         'TimeSeriesKey':
@@ -30,7 +31,8 @@ void main() {
       };
       handler = GetTimeSeriesHistory(
         config,
-        datastoreProvider: () => DatastoreService(db: db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
       );
     });
 
