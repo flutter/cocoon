@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
@@ -96,18 +97,20 @@ void main() {
       });
 
       yieldedCommitCount = 0;
+      db = FakeDatastoreDB();
       config = FakeConfig(
           tabledataResourceApi: tabledataResourceApi,
-          githubService: githubService);
+          githubService: githubService,
+          dbValue: db);
       auth = FakeAuthenticationProvider();
-      db = FakeDatastoreDB();
       httpClient = FakeHttpClient();
       branchHttpClient = FakeHttpClient();
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
-        datastoreProvider: () => DatastoreService(db: db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         httpClientProvider: () => httpClient,
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,

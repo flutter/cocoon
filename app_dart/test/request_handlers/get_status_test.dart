@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -46,7 +47,8 @@ void main() {
           FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
         config,
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         buildStatusProvider: buildStatusProvider,
       );
     });
@@ -107,7 +109,8 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         buildStatusProvider: buildStatusProvider,
       );
 
@@ -136,7 +139,8 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         buildStatusProvider: buildStatusProvider,
       );
 
@@ -186,7 +190,8 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         buildStatusProvider: buildStatusProvider,
       );
 

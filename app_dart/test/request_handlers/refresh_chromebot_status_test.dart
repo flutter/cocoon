@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -63,7 +64,8 @@ void main() {
         config,
         FakeAuthenticationProvider(),
         luciServiceProvider: (_) => mockLuciService,
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );

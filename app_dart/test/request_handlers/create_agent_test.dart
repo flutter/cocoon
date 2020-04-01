@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/request_handlers/create_agent.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -30,7 +31,8 @@ void main() {
       handler = CreateAgent(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
       );
     });
 

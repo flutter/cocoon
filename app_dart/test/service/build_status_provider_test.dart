@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 
 List<Commit> oneCommit = <Commit>[
@@ -80,11 +81,14 @@ void main() {
   group('BuildStatusProvider', () {
     FakeDatastoreDB db;
     BuildStatusProvider buildStatusProvider;
+    FakeConfig config;
 
     setUp(() {
       db = FakeDatastoreDB();
+      config = FakeConfig(dbValue: db);
       buildStatusProvider = BuildStatusProvider(
-          datastoreProvider: () => DatastoreService(db: db));
+          datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+              DatastoreService(config.db, 5));
     });
 
     group('calculateStatus', () {

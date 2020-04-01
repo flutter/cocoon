@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
@@ -43,7 +44,8 @@ void main() {
       handler = UpdateTaskStatus(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: () => DatastoreService(db: config.db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
       );
     });
 

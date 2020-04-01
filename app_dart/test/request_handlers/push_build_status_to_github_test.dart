@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
@@ -79,16 +80,18 @@ void main() {
       tabledataResourceApi = FakeTabledataResourceApi();
       branchHttpClient = FakeHttpClient();
       final FakeGithubService githubService = FakeGithubService();
+      db = FakeDatastoreDB();
       config = FakeConfig(
           tabledataResourceApi: tabledataResourceApi,
-          githubService: githubService);
-      db = FakeDatastoreDB();
+          githubService: githubService,
+          dbValue: db);
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
       handler = PushBuildStatusToGithub(
         config,
         auth,
-        datastoreProvider: () => DatastoreService(db: db),
+        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+            DatastoreService(config.db, 5),
         loggingProvider: () => log,
         buildStatusProvider: buildStatusProvider,
         branchHttpClientProvider: () => branchHttpClient,
