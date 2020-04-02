@@ -15,7 +15,6 @@
 # Runner for flutter tests. It expects a single parameter with the full
 # path to the flutter project where tests will be run.
 
-
 set -e
 
 echo "Running flutter tests from $1"

@@ -9,7 +9,7 @@ import 'package:app_flutter/widgets/now.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
 
 import 'fake_agent_state.dart';
-import 'fake_flutter_build.dart';
+import 'fake_build.dart';
 import 'fake_index_state.dart';
 import 'mocks.dart';
 
@@ -27,7 +27,7 @@ class FakeInserter extends StatelessWidget {
       agentState: FakeAgentState(authService: authService),
       buildState: FakeBuildState(authService: authService),
       child: Now.fixed(
-        dateTime: DateTime(2000),
+        dateTime: DateTime.utc(2000),
         child: child,
       ),
     );

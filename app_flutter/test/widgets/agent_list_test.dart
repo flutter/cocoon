@@ -13,7 +13,7 @@ import 'package:app_flutter/widgets/agent_list.dart';
 import 'package:app_flutter/widgets/agent_tile.dart';
 import 'package:app_flutter/widgets/now.dart';
 
-final DateTime pingTime1 = DateTime(2010, 5, 6, 12, 30);
+final DateTime pingTime1 = DateTime.utc(2010, 5, 6, 12, 30);
 final DateTime pingTime2 = pingTime1.add(const Duration(minutes: 1));
 final DateTime pingTime3 = pingTime1.add(const Duration(minutes: 2));
 final DateTime soonTime = pingTime1.add(

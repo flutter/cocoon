@@ -2,15 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
-import 'canvaskit_widget.dart';
+import 'commit_author_avatar.dart';
 import 'progress_button.dart';
-import 'status_grid.dart';
+
+// TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,
+// so that all our popups have the same look and feel and we don't duplicate code.
 
 /// Displays Git commit information.
 ///
@@ -37,39 +38,11 @@ class _CommitBoxState extends State<CommitBox> {
 
   @override
   Widget build(BuildContext context) {
-    int authorHash = widget.commit.author.hashCode;
-    return SizedBox(
-      width: StatusGrid.cellSize,
-      height: StatusGrid.cellSize,
-      child: GestureDetector(
-        onTap: _handleTap,
-        // TODO(chillers): Show a Network Image in CanvasKit. https://github.com/flutter/flutter/issues/45955
-        // Just show the first letter of the contributor's username.
-        child: CanvasKitWidget(
-          canvaskit: Container(
-            margin: const EdgeInsets.all(1.0),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color.fromRGBO(authorHash & 255, authorHash >>= 8 & 255, authorHash >>= 8 & 255, 1),
-            ),
-            child: Center(
-              child: Text(
-                widget.commit.author.substring(0, 1).toUpperCase(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          other: CachedNetworkImage(
-            imageUrl: widget.commit.authorAvatarUrl,
-            placeholder: (_, String url) => Container(color: Colors.grey),
-            errorWidget: (_, String url, Object error) => const Icon(Icons.error),
-          ),
-        ),
+    return InkWell(
+      onTap: _handleTap,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: CommitAuthorAvatar(commit: widget.commit),
       ),
     );
   }
@@ -120,7 +93,6 @@ class CommitOverlayContents extends StatelessWidget {
   Widget build(BuildContext context) {
     final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
     final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
-
     return Stack(
       children: <Widget>[
         // This is the area a user can click (the rest of the screen) to close the overlay.
@@ -143,13 +115,7 @@ class CommitOverlayContents extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 ListTile(
-                  leading: CircleAvatar(
-                    radius: 25.0,
-                    backgroundImage: CachedNetworkImageProvider(
-                      commit.authorAvatarUrl,
-                    ),
-                    backgroundColor: Colors.transparent,
-                  ),
+                  leading: CommitAuthorAvatar(commit: commit),
                   // TODO(chillers): Show commit message here instead: https://github.com/flutter/cocoon/issues/435
                   // Shorten the SHA as we only need first 7 digits to be able
                   // to lookup the commit.
@@ -159,7 +125,7 @@ class CommitOverlayContents extends StatelessWidget {
                 ButtonBar(
                   children: <Widget>[
                     ProgressButton(
-                      child: const Text('GitHub'),
+                      child: const Text('OPEN GITHUB'),
                       onPressed: _openGithub,
                     ),
                   ],
