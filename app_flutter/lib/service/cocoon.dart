@@ -21,7 +21,7 @@ abstract class CocoonService {
     if (kReleaseMode) {
       return AppEngineCocoonService();
     }
-    return DevelopmentCocoonService();
+    return DevelopmentCocoonService(DateTime.now());
   }
 
   /// Gets build information on the most recent commits.

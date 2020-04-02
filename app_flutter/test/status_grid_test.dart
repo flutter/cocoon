@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +29,7 @@ void main() {
     TaskMatrix taskMatrix;
 
     setUpAll(() async {
-      service = DevelopmentCocoonService(random: math.Random(0));
+      service = DevelopmentCocoonService(DateTime(2020));
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       statuses = response.data;
       taskMatrix = TaskMatrix(statuses: statuses);
