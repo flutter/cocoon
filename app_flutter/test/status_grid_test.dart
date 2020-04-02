@@ -2,16 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math' as math;
+
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
-
+import 'package:app_flutter/commit_box.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/flutter_build.dart';
-import 'package:app_flutter/commit_box.dart';
 import 'package:app_flutter/state_provider.dart';
 import 'package:app_flutter/status_grid.dart';
 import 'package:app_flutter/task_box.dart';
@@ -30,9 +31,7 @@ void main() {
     TaskMatrix taskMatrix;
 
     setUpAll(() async {
-      // TODO(ianh): DevelopmentCocoonService has randomness, which introduces the possibility of flakes.
-      // We should either pin the seed or use a more direct fake that isn't random.
-      service = DevelopmentCocoonService();
+      service = DevelopmentCocoonService(random: math.Random(0));
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       statuses = response.data;
       taskMatrix = TaskMatrix(statuses: statuses);

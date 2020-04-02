@@ -13,7 +13,7 @@ import 'cocoon.dart';
 ///
 /// This creates fake data that mimicks what production will send.
 class DevelopmentCocoonService implements CocoonService {
-  DevelopmentCocoonService({Random rand}) : random = rand ?? Random();
+  DevelopmentCocoonService({Random random}) : random = random ?? Random();
 
   final Random random;
 
