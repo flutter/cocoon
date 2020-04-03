@@ -6,6 +6,8 @@ import 'dart:convert' show json;
 import 'package:github/server.dart';
 import 'package:http/http.dart';
 
+import '../datastore/cocoon_config.dart';
+
 class GithubService {
   const GithubService(this.github);
 
@@ -13,12 +15,12 @@ class GithubService {
 
   /// Lists the commits of the provided repository [slug] and [branch].
   Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch) async {
-    const Duration time = Duration(hours: 1);
+      RepositorySlug slug, String branch, int hours, Config config) async {
+    final Duration time = Duration(hours: hours);
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
-    final List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
+    List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
@@ -29,6 +31,11 @@ class GithubService {
     )) {
       commits.addAll((json.decode(response.body) as List<dynamic>)
           .cast<Map<String, dynamic>>());
+    }
+
+    /// Take the latest single commit for a new release branch.
+    if (hours == config.newBranchHours) {
+      commits = commits.take(1).toList();
     }
 
     return commits.map((dynamic commit) {

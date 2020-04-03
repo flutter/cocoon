@@ -50,6 +50,7 @@ void main() {
     List<String> githubCommits;
     List<String> githubBranches;
     int yieldedCommitCount;
+    int newBranchHours;
 
     Stream<Branch> branchStream() async* {
       for (String branchName in githubBranches) {
@@ -62,8 +63,8 @@ void main() {
       }
     }
 
-    List<RepositoryCommit> commitList() {
-      final List<RepositoryCommit> commits = <RepositoryCommit>[];
+    List<RepositoryCommit> commitList(int hours) {
+      List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
@@ -77,6 +78,9 @@ void main() {
           ..sha = sha
           ..author = author
           ..commit = gitCommit);
+      }
+      if (hours == newBranchHours) {
+        commits = commits.take(1).toList();
       }
       return commits;
     }
@@ -97,6 +101,7 @@ void main() {
       });
 
       yieldedCommitCount = 0;
+      newBranchHours = 168;
       db = FakeDatastoreDB();
       config = FakeConfig(
           tabledataResourceApi: tabledataResourceApi,
@@ -116,8 +121,8 @@ void main() {
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
 
-      githubService.listCommitsBranch = (String branch) {
-        return commitList();
+      githubService.listCommitsBranch = (String branch, int hours) {
+        return commitList(hours);
       };
 
       const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
@@ -171,6 +176,18 @@ void main() {
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+    });
+
+    test('inserts the latest single commit if a new branch is found', () async {
+      githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      githubBranches = <String>['flutter-0.0-candidate.0'];
+      config.newBranchHoursValue = 168;
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      httpClient.request.response.body = singleTaskManifestYaml;
+      branchHttpClient.request.response.body = branchRegExp;
+      await tester.get<Body>(handler);
+      expect(db.values.values.whereType<Commit>().length, 1);
     });
 
     test('skips commits for which transaction commit fails', () async {
