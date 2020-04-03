@@ -41,18 +41,15 @@ class TaskAttemptSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: task.attempts * 50.0,
-      child: ListView(
-        children: List<Widget>.generate(task.attempts, (int i) {
-          final int attemptNumber = i + 1; // attempts start at 1, not 0
-          return FlatButton(
-            child: Text('Log for Attempt #$attemptNumber'),
-            // If the given task attempt does not exist, such as in profile mode, it will redirect to show all logs.
-            onPressed: () => launch(_stackdriverUrl(task, attemptNumber)),
-          );
-        }),
-      ),
+    return ListBody(
+      children: List<Widget>.generate(task.attempts, (int i) {
+        final int attemptNumber = i + 1; // attempts start at 1, not 0
+        return RaisedButton(
+          child: Text('OPEN LOG FOR ATTEMPT #$attemptNumber'),
+          // If the given task attempt does not exist, such as in profile mode, it will redirect to show all logs.
+          onPressed: () => launch(_stackdriverUrl(task, attemptNumber)),
+        );
+      }),
     );
   }
 

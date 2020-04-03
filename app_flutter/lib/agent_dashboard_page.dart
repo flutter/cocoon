@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:provider/provider.dart';
 
 import 'agent_list.dart';
 import 'app_bar.dart';
 import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
+import 'progress_button.dart';
 import 'state/agent.dart';
 
 /// Shows current status of Flutter infra agents.
@@ -136,9 +136,8 @@ class _CreateAgentDialogState extends State<CreateAgentDialog> {
               ),
               Container(height: 25),
               ProgressButton(
-                defaultWidget: const Text('Create'),
-                progressWidget: const CircularProgressIndicator(),
-                onPressed: () async => _createAgent(context),
+                child: const Text('Create'),
+                onPressed: () => _createAgent(context),
               )
             ],
           ),

@@ -15,41 +15,53 @@ void main() {
     testWidgets('shows nothing for 0 attempts', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: TaskAttemptSummary(
-            task: Task()..attempts = 0,
+          home: Column(
+            children: <Widget>[
+              TaskAttemptSummary(
+                task: Task()..attempts = 0,
+              ),
+            ],
           ),
         ),
       );
 
-      expect(find.byType(FlatButton), findsNothing);
+      expect(find.byType(RaisedButton), findsNothing);
     });
 
     testWidgets('shows only 1 button for 1 attempt', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: TaskAttemptSummary(
-            task: Task()..attempts = 1,
+          home: Column(
+            children: <Widget>[
+              TaskAttemptSummary(
+                task: Task()..attempts = 1,
+              ),
+            ],
           ),
         ),
       );
 
-      expect(find.byType(FlatButton), findsOneWidget);
-      expect(find.text('Log for Attempt #1'), findsOneWidget);
+      expect(find.byType(RaisedButton), findsNWidgets(1));
+      expect(find.text('OPEN LOG FOR ATTEMPT #1'), findsOneWidget);
     });
 
     testWidgets('shows multiple buttons for multiple attempts', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: TaskAttemptSummary(
-            task: Task()..attempts = 3,
+          home: Column(
+            children: <Widget>[
+              TaskAttemptSummary(
+                task: Task()..attempts = 3,
+              ),
+            ],
           ),
         ),
       );
 
-      expect(find.byType(FlatButton), findsNWidgets(3));
-      expect(find.text('Log for Attempt #1'), findsOneWidget);
-      expect(find.text('Log for Attempt #2'), findsOneWidget);
-      expect(find.text('Log for Attempt #3'), findsOneWidget);
+      expect(find.byType(RaisedButton), findsNWidgets(3));
+      expect(find.text('OPEN LOG FOR ATTEMPT #1'), findsOneWidget);
+      expect(find.text('OPEN LOG FOR ATTEMPT #2'), findsOneWidget);
+      expect(find.text('OPEN LOG FOR ATTEMPT #3'), findsOneWidget);
     });
 
     testWidgets('opens expected stackdriver url', (WidgetTester tester) async {
@@ -61,15 +73,19 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: TaskAttemptSummary(
-            task: Task()
-              ..key = (RootKey()..child = (Key()..name = 'loggylog'))
-              ..attempts = 1,
+          home: Column(
+            children: <Widget>[
+              TaskAttemptSummary(
+                task: Task()
+                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
+                  ..attempts = 1,
+              ),
+            ],
           ),
         ),
       );
 
-      await tester.tap(find.byType(FlatButton));
+      await tester.tap(find.byType(RaisedButton));
       await tester.pump();
 
       expect(
@@ -98,15 +114,19 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: TaskAttemptSummary(
-            task: Task()
-              ..key = (RootKey()..child = (Key()..name = 'loggylog'))
-              ..attempts = 3,
+          home: Column(
+            children: <Widget>[
+              TaskAttemptSummary(
+                task: Task()
+                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
+                  ..attempts = 3,
+              ),
+            ],
           ),
         ),
       );
 
-      await tester.tap(find.text('Log for Attempt #2'));
+      await tester.tap(find.text('OPEN LOG FOR ATTEMPT #2'));
       await tester.pump();
 
       expect(
