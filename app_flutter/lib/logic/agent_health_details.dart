@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
@@ -22,6 +22,7 @@ import 'package:cocoon_service/protos.dart' show Agent;
 /// cocoon-connection: succeeded
 /// able-to-perform-health-check: succeeded
 /// ```
+@immutable
 class AgentHealthDetails {
   factory AgentHealthDetails(Agent agent) {
     final String healthDetails = agent.healthDetails;

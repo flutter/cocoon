@@ -5,12 +5,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'agent_list.dart';
-import 'app_bar.dart';
-import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
-import 'progress_button.dart';
 import 'state/agent.dart';
+import 'widgets/agent_list.dart';
+import 'widgets/app_bar.dart';
+import 'widgets/error_brook_watcher.dart';
+import 'widgets/progress_button.dart';
 
 /// Shows current status of Flutter infra agents.
 ///

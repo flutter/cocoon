@@ -7,11 +7,11 @@ import 'package:provider/provider.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
+import '../logic/task_matrix.dart' as task_matrix;
+import '../state/build.dart';
 import 'commit_box.dart';
-import 'state/flutter_build.dart';
 import 'task_box.dart';
 import 'task_icon.dart';
-import 'task_matrix.dart' as task_matrix;
 
 /// Container that manages the layout and data handling for [StatusGrid].
 ///
@@ -28,7 +28,7 @@ class StatusGridContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FlutterBuildState buildState = Provider.of<FlutterBuildState>(context);
+    final BuildState buildState = Provider.of<BuildState>(context);
     return AnimatedBuilder(
       animation: buildState,
       builder: (BuildContext context, Widget child) {
@@ -93,7 +93,7 @@ class StatusGrid extends StatelessWidget {
   final task_matrix.TaskMatrix taskMatrix;
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
-  final FlutterBuildState buildState;
+  final BuildState buildState;
 
   /// Used for testing to lookup the widget corresponding to a position in [StatusGrid].
   @visibleForTesting

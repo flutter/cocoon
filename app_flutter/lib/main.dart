@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'agent_dashboard_page.dart';
 import 'build_dashboard_page.dart';
 import 'index_page.dart';
-import 'now.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
 import 'state/agent.dart';
-import 'state/flutter_build.dart';
+import 'state/build.dart';
 import 'state/index.dart';
-import 'state_provider.dart';
+import 'widgets/now.dart';
+import 'widgets/state_provider.dart';
 
 void main() {
   final GoogleSignInService authService = GoogleSignInService();
@@ -23,7 +23,7 @@ void main() {
       signInService: authService,
       indexState: IndexState(authService: authService),
       agentState: AgentState(authService: authService, cocoonService: cocoonService),
-      buildState: FlutterBuildState(authService: authService, cocoonService: cocoonService),
+      buildState: BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
   );

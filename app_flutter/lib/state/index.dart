@@ -4,9 +4,8 @@
 
 import 'package:flutter/foundation.dart';
 
+import '../logic/brooks.dart';
 import '../service/google_authentication.dart';
-
-import 'brooks.dart';
 
 /// State for the index page.
 class IndexState extends ChangeNotifier {

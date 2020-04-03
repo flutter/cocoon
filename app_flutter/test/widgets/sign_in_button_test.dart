@@ -10,11 +10,11 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/sign_in_button.dart';
-import 'package:app_flutter/state_provider.dart';
+import 'package:app_flutter/widgets/sign_in_button.dart';
+import 'package:app_flutter/widgets/state_provider.dart';
 
-import 'utils/fake_google_account.dart';
-import 'utils/mocks.dart';
+import '../utils/fake_google_account.dart';
+import '../utils/mocks.dart';
 
 void main() {
   GoogleSignInService mockAuthService;

@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
-import 'agent_health_details.dart';
+import '../logic/agent_health_details.dart';
+import '../state/agent.dart';
 import 'agent_tile.dart';
 import 'now.dart';
-import 'state/agent.dart';
 
 /// Shows [List<Agent>] that have [Agent.agentId] that contains [agentFilter] in
 /// a ListView of [AgentTile].

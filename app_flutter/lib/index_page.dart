@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'app_bar.dart';
-import 'error_brook_watcher.dart';
-import 'header_text.dart';
 import 'navigation_drawer.dart';
 import 'state/index.dart';
+import 'widgets/app_bar.dart';
+import 'widgets/error_brook_watcher.dart';
+import 'widgets/header_text.dart';
 
 /// Index page.
 ///

@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app_flutter/canvaskit_widget.dart';
+import 'package:app_flutter/widgets/canvaskit_widget.dart';
 
 void main() {
   group('CanvasKitWidget', () {

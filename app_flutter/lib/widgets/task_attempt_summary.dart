@@ -3,10 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
-import 'package:url_launcher/url_launcher.dart';
 
 /// Show information regarding each attempt for a Task.
 ///

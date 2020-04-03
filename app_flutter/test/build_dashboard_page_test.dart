@@ -4,19 +4,20 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/protos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:cocoon_service/protos.dart';
+
 import 'package:app_flutter/build_dashboard_page.dart';
-import 'package:app_flutter/error_brook_watcher.dart';
 import 'package:app_flutter/main.dart' as app show lightTheme;
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/sign_in_button.dart';
-import 'package:app_flutter/state/flutter_build.dart';
-import 'package:app_flutter/state_provider.dart';
+import 'package:app_flutter/state/build.dart';
+import 'package:app_flutter/widgets/error_brook_watcher.dart';
+import 'package:app_flutter/widgets/sign_in_button.dart';
+import 'package:app_flutter/widgets/state_provider.dart';
 
 import 'utils/fake_flutter_build.dart';
 import 'utils/mocks.dart';
@@ -24,7 +25,7 @@ import 'utils/output.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    final FlutterBuildState buildState = FlutterBuildState(
+    final BuildState buildState = BuildState(
       cocoonService: MockCocoonService(),
       authService: MockGoogleSignInService(),
     );
@@ -39,7 +40,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
             value: buildState.authService,
@@ -55,11 +56,11 @@ void main() {
   });
 
   testWidgets('shows branch dropdown button', (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState();
+    final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
       MaterialApp(
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
@@ -77,12 +78,12 @@ void main() {
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = null;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: app.lightTheme,
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
@@ -99,12 +100,12 @@ void main() {
   });
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = false;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: app.lightTheme,
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
@@ -121,12 +122,12 @@ void main() {
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
-    final FlutterBuildState fakeBuildState = FakeFlutterBuildState()..isTreeBuilding = true;
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: app.lightTheme,
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
@@ -144,12 +145,11 @@ void main() {
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
     String lastError;
-    final FakeFlutterBuildState buildState = FakeFlutterBuildState()
-      ..errors.addListener((String message) => lastError = message);
+    final FakeBuildState buildState = FakeBuildState()..errors.addListener((String message) => lastError = message);
 
     await tester.pumpWidget(
       MaterialApp(
-        home: ValueProvider<FlutterBuildState>(
+        home: ValueProvider<BuildState>(
           value: buildState,
           child: ValueProvider<GoogleSignInService>(
             value: buildState.authService,

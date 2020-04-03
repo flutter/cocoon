@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'agent_health_details.dart';
+import '../logic/agent_health_details.dart';
 import 'now.dart';
 
 /// An icon bar to display information from [AgentHealthDetails].

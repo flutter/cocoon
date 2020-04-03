@@ -9,8 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-import 'package:app_flutter/task_helper.dart';
-import 'package:app_flutter/task_icon.dart';
+import 'package:app_flutter/logic/task_helper.dart';
+import 'package:app_flutter/widgets/task_icon.dart';
 
 void main() {
   group('TaskIcon', () {

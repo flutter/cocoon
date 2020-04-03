@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
-import 'agent_health_details.dart';
+import '../logic/agent_health_details.dart';
+import '../state/agent.dart';
 import 'agent_health_details_bar.dart';
 import 'now.dart';
-import 'state/agent.dart';
 
 /// Values to be used in [PopupMenu] to know what action to execute.
 enum _AgentTileAction { details, authorize, reserve }

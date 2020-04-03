@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
-import 'package:app_flutter/task_helper.dart';
+import 'package:app_flutter/logic/task_helper.dart';
 
 void main() {
   group('TaskHelper', () {

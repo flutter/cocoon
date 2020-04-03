@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app_flutter/index_page.dart';
-import 'package:app_flutter/sign_in_button.dart';
+import 'package:app_flutter/widgets/sign_in_button.dart';
 
 import 'utils/wrapper.dart';
 
