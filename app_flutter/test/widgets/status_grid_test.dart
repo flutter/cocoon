@@ -2,23 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app_flutter/commit_box.dart';
+import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
+
+import 'package:app_flutter/logic/task_matrix.dart' show TaskMatrix;
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
-import 'package:app_flutter/state/flutter_build.dart';
-import 'package:app_flutter/state_provider.dart';
-import 'package:app_flutter/status_grid.dart';
-import 'package:app_flutter/task_box.dart';
-import 'package:app_flutter/task_icon.dart';
-import 'package:app_flutter/task_matrix.dart' show TaskMatrix;
+import 'package:app_flutter/state/build.dart';
+import 'package:app_flutter/widgets/commit_box.dart';
+import 'package:app_flutter/widgets/state_provider.dart';
+import 'package:app_flutter/widgets/status_grid.dart';
+import 'package:app_flutter/widgets/task_box.dart';
+import 'package:app_flutter/widgets/task_icon.dart';
 
-import 'utils/fake_flutter_build.dart';
-import 'utils/mocks.dart';
+import '../utils/fake_flutter_build.dart';
+import '../utils/mocks.dart';
 
 void main() {
   group('StatusGrid', () {
@@ -43,8 +43,8 @@ void main() {
     testWidgets('shows loading indicator when statuses is empty', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ValueProvider<FlutterBuildState>(
-            value: FakeFlutterBuildState(),
+          home: ValueProvider<BuildState>(
+            value: FakeBuildState(),
             child: const StatusGridContainer(),
           ),
         ),
@@ -55,7 +55,7 @@ void main() {
     });
 
     testWidgets('commits show in the same column (indirectly via StatusGridContainer)', (WidgetTester tester) async {
-      final FlutterBuildState buildState = FlutterBuildState(
+      final BuildState buildState = BuildState(
         cocoonService: service,
         authService: MockGoogleSignInService(),
       );
@@ -64,7 +64,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ValueProvider<FlutterBuildState>(
+          home: ValueProvider<BuildState>(
             value: buildState,
             child: const StatusGridContainer(),
           ),
@@ -88,7 +88,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: statuses,
             taskMatrix: taskMatrix,
           ),
@@ -109,7 +109,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: statuses,
             taskMatrix: taskMatrix,
           ),
@@ -163,7 +163,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: statusesWithSkips,
             taskMatrix: taskMatrix,
             insertCellKeys: true,
@@ -211,7 +211,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: statusesWithSkips,
             taskMatrix: taskMatrix,
             insertCellKeys: true,
@@ -235,7 +235,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: statuses,
             taskMatrix: taskMatrix,
             insertCellKeys: true,
@@ -266,7 +266,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState(),
+            buildState: FakeBuildState(),
             statuses: smallRangeOfStatusesToShowLoader,
             taskMatrix: smallTaskMatrix,
             insertCellKeys: true,
@@ -288,7 +288,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: StatusGrid(
-            buildState: FakeFlutterBuildState()..moreStatusesExist = false,
+            buildState: FakeBuildState()..moreStatusesExist = false,
             statuses: smallRangeOfStatusesToShowLoader,
             taskMatrix: smallTaskMatrix,
             insertCellKeys: true,

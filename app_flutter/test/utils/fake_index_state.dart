@@ -4,9 +4,9 @@
 
 import 'package:flutter/foundation.dart';
 
+import 'package:app_flutter/logic/brooks.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/index.dart';
-import 'package:app_flutter/state/brooks.dart';
 
 import 'mocks.dart';
 

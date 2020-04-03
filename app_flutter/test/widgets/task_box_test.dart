@@ -11,13 +11,13 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
 import 'package:app_flutter/agent_dashboard_page.dart';
-import 'package:app_flutter/state/flutter_build.dart';
-import 'package:app_flutter/task_attempt_summary.dart';
-import 'package:app_flutter/task_box.dart';
-import 'package:app_flutter/task_helper.dart';
+import 'package:app_flutter/logic/task_helper.dart';
+import 'package:app_flutter/state/build.dart';
+import 'package:app_flutter/widgets/task_attempt_summary.dart';
+import 'package:app_flutter/widgets/task_box.dart';
 
-import 'utils/mocks.dart';
-import 'utils/wrapper.dart';
+import '../utils/mocks.dart';
+import '../utils/wrapper.dart';
 
 void main() {
   group('TaskBox', () {
@@ -28,10 +28,10 @@ void main() {
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..reason = 'Because I said so'
       ..isFlaky = false;
-    MockFlutterBuildState buildState;
+    MockBuildState buildState;
 
     setUp(() {
-      buildState = MockFlutterBuildState();
+      buildState = MockBuildState();
     });
 
     tearDown(() {
@@ -589,7 +589,7 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
   await tester.pumpWidget(
     MaterialApp(
       home: TaskBox(
-        buildState: FlutterBuildState(
+        buildState: BuildState(
           authService: MockGoogleSignInService(),
           cocoonService: MockCocoonService(),
         ),

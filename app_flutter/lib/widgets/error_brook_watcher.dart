@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'state/brooks.dart';
+import '../logic/brooks.dart';
 
 /// Show error messages as snackbars.
 ///

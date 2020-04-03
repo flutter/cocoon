@@ -9,16 +9,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:cocoon_service/protos.dart';
+
 import 'package:app_flutter/agent_dashboard_page.dart';
-import 'package:app_flutter/agent_tile.dart';
-import 'package:app_flutter/error_brook_watcher.dart';
-import 'package:app_flutter/now.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/sign_in_button.dart';
 import 'package:app_flutter/state/agent.dart';
-import 'package:app_flutter/state_provider.dart';
-import 'package:cocoon_service/protos.dart';
+import 'package:app_flutter/widgets/agent_tile.dart';
+import 'package:app_flutter/widgets/error_brook_watcher.dart';
+import 'package:app_flutter/widgets/now.dart';
+import 'package:app_flutter/widgets/sign_in_button.dart';
+import 'package:app_flutter/widgets/state_provider.dart';
 
 import 'utils/fake_agent_state.dart';
 import 'utils/mocks.dart';

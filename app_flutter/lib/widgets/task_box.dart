@@ -7,12 +7,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, Task;
 
-import 'agent_dashboard_page.dart';
+import '../agent_dashboard_page.dart';
+import '../logic/task_helper.dart';
+import '../state/build.dart';
 import 'progress_button.dart';
-import 'state/flutter_build.dart';
 import 'status_grid.dart';
 import 'task_attempt_summary.dart';
-import 'task_helper.dart';
 
 /// Displays information from a [Task].
 ///
@@ -32,7 +32,7 @@ class TaskBox extends StatefulWidget {
         super(key: key);
 
   /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.
-  final FlutterBuildState buildState;
+  final BuildState buildState;
 
   /// [Task] to show information from.
   final Task task;
@@ -183,8 +183,8 @@ class TaskOverlayEntry extends StatelessWidget {
   /// The parent context that has the size of the whole screen
   final BuildContext parentContext;
 
-  /// A reference to the [FlutterBuildState] for performing operations on this [Task].
-  final FlutterBuildState buildState;
+  /// A reference to the [BuildState] for performing operations on this [Task].
+  final BuildState buildState;
 
   /// The [Task] to display in the overlay
   final Task task;
@@ -271,8 +271,8 @@ class TaskOverlayContents extends StatelessWidget {
 
   final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar) showSnackbarCallback;
 
-  /// A reference to the [FlutterBuildState] for performing operations on this [Task].
-  final FlutterBuildState buildState;
+  /// A reference to the [BuildState] for performing operations on this [Task].
+  final BuildState buildState;
 
   /// The [Task] to display in the overlay
   final Task task;

@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
-import 'package:app_flutter/commit_box.dart';
+import 'package:app_flutter/widgets/commit_box.dart';
 
 void main() {
   group('CommitBox', () {

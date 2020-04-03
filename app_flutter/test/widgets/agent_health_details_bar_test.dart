@@ -8,9 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
-import 'package:app_flutter/agent_health_details.dart';
-import 'package:app_flutter/agent_health_details_bar.dart';
-import 'package:app_flutter/now.dart';
+import 'package:app_flutter/logic/agent_health_details.dart';
+import 'package:app_flutter/widgets/agent_health_details_bar.dart';
+import 'package:app_flutter/widgets/now.dart';
 
 final DateTime pingTime = DateTime(2010, 5, 6, 12, 30);
 final DateTime soonTime = pingTime.add(

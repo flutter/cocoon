@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Key, RootKey, Task;
 
-import 'package:app_flutter/task_attempt_summary.dart';
+import 'package:app_flutter/widgets/task_attempt_summary.dart';
 
 void main() {
   group('TaskAttemptSummary', () {

@@ -6,11 +6,12 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:app_flutter/agent_health_details.dart';
-import 'package:app_flutter/agent_list.dart';
-import 'package:app_flutter/agent_tile.dart';
-import 'package:app_flutter/now.dart';
 import 'package:cocoon_service/protos.dart' show Agent;
+
+import 'package:app_flutter/logic/agent_health_details.dart';
+import 'package:app_flutter/widgets/agent_list.dart';
+import 'package:app_flutter/widgets/agent_tile.dart';
+import 'package:app_flutter/widgets/now.dart';
 
 final DateTime pingTime1 = DateTime(2010, 5, 6, 12, 30);
 final DateTime pingTime2 = pingTime1.add(const Duration(minutes: 1));

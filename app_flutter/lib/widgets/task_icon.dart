@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-import 'task_helper.dart';
+import '../logic/task_helper.dart';
 
 /// Header icon for all [Task] that map to the same [task.stageName] and [task.name].
 ///

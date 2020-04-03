@@ -8,13 +8,13 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, Task;
 
+import '../logic/brooks.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
-import 'brooks.dart';
 
 /// State for the Flutter Build Dashboard.
-class FlutterBuildState extends ChangeNotifier {
-  FlutterBuildState({
+class BuildState extends ChangeNotifier {
+  BuildState({
     @required this.cocoonService,
     @required this.authService,
   }) {
@@ -50,7 +50,7 @@ class FlutterBuildState extends ChangeNotifier {
   bool get moreStatusesExist => _moreStatusesExist;
   bool _moreStatusesExist = true;
 
-  /// A [Brook] that reports when errors occur that relate to this [FlutterBuildState].
+  /// A [Brook] that reports when errors occur that relate to this [BuildState].
   Brook<String> get errors => _errors;
   final ErrorSink _errors = ErrorSink();
 

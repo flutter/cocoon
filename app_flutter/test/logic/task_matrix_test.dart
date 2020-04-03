@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/task_box.dart';
-import 'package:app_flutter/task_matrix.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show CommitStatus, Stage, Task;
+
+import 'package:app_flutter/logic/task_matrix.dart';
+import 'package:app_flutter/widgets/task_box.dart';
 
 void main() {
   group('TaskMatrix', () {

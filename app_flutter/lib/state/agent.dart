@@ -8,10 +8,9 @@ import 'package:flutter/foundation.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
+import '../logic/brooks.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
-
-import 'brooks.dart';
 
 /// State for the agents in Flutter infra.
 class AgentState extends ChangeNotifier {

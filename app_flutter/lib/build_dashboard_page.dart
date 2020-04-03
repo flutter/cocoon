@@ -5,11 +5,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'app_bar.dart';
-import 'error_brook_watcher.dart';
 import 'navigation_drawer.dart';
-import 'state/flutter_build.dart';
-import 'status_grid.dart';
+import 'state/build.dart';
+import 'widgets/app_bar.dart';
+import 'widgets/error_brook_watcher.dart';
+import 'widgets/status_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
@@ -40,7 +40,7 @@ class BuildDashboardPage extends StatelessWidget {
       true: Text('Tree is Open'),
     };
 
-    final FlutterBuildState _buildState = Provider.of<FlutterBuildState>(context);
+    final BuildState _buildState = Provider.of<BuildState>(context);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(

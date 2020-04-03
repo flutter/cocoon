@@ -9,10 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Agent;
 
+import 'package:app_flutter/logic/brooks.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/agent.dart';
-import 'package:app_flutter/state/brooks.dart';
 
 import 'mocks.dart';
 
