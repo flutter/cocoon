@@ -25,7 +25,7 @@ void main() {
     FakeConfig config;
     FakeClientContext clientContext;
     FakeKeyHelper keyHelper;
-    FakeBuildStatusProvider buildStatusProvider;
+    FakeBuildStatusService buildStatusService;
     RequestHandlerTester tester;
     GetStatus handler;
 
@@ -43,13 +43,13 @@ void main() {
           FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
       config = FakeConfig(keyHelperValue: keyHelper);
-      buildStatusProvider =
-          FakeBuildStatusProvider(commitStatuses: <CommitStatus>[]);
+      buildStatusService =
+          FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
         config,
         datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
             DatastoreService(config.db, 5),
-        buildStatusProvider: buildStatusProvider,
+        buildStatusProvider: (_) => buildStatusService,
       );
     });
 
@@ -102,7 +102,7 @@ void main() {
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusProvider = FakeBuildStatusProvider(
+      buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
             CommitStatus(commit1, const <Stage>[]),
             CommitStatus(commit2, const <Stage>[])
@@ -111,7 +111,7 @@ void main() {
         config,
         datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
             DatastoreService(config.db, 5),
-        buildStatusProvider: buildStatusProvider,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       final Map<String, dynamic> result = await decodeHandlerBody();
@@ -132,7 +132,7 @@ void main() {
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusProvider = FakeBuildStatusProvider(
+      buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
             CommitStatus(commit1, const <Stage>[]),
             CommitStatus(commit2, const <Stage>[])
@@ -141,7 +141,7 @@ void main() {
         config,
         datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
             DatastoreService(config.db, 5),
-        buildStatusProvider: buildStatusProvider,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       const String expectedLastCommitKeyEncoded =
@@ -183,7 +183,7 @@ void main() {
           branch: 'flutter-1.1-candidate.1');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusProvider = FakeBuildStatusProvider(
+      buildStatusService = FakeBuildStatusService(
           commitStatuses: <CommitStatus>[
             CommitStatus(commit1, const <Stage>[]),
             CommitStatus(commit2, const <Stage>[])
@@ -192,7 +192,7 @@ void main() {
         config,
         datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
             DatastoreService(config.db, 5),
-        buildStatusProvider: buildStatusProvider,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       const String branch = 'flutter-1.1-candidate.1';

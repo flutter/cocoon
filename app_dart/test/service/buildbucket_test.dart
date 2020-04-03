@@ -32,7 +32,7 @@ void main() {
 
   group('Client tests', () {
     MockHttpClient mockHttpClient;
-    MockAccessTokenProvider mockAccessTokenProvider;
+    MockAccessTokenService mockAccessTokenProvider;
 
     const BuilderId builderId = BuilderId(
       bucket: 'prod',
@@ -42,7 +42,7 @@ void main() {
 
     setUp(() {
       mockHttpClient = MockHttpClient();
-      mockAccessTokenProvider = MockAccessTokenProvider();
+      mockAccessTokenProvider = MockAccessTokenService();
     });
 
     Future<T> _httpTest<R extends JsonBody, T>(
@@ -59,7 +59,7 @@ void main() {
       final BuildBucketClient client = BuildBucketClient(
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
-        accessTokenProvider: mockAccessTokenProvider,
+        accessTokenService: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
@@ -91,7 +91,7 @@ void main() {
       final BuildBucketClient client = BuildBucketClient(
         buildBucketUri: 'https://localhost',
         httpClient: mockHttpClient,
-        accessTokenProvider: mockAccessTokenProvider,
+        accessTokenService: mockAccessTokenProvider,
       );
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse =
@@ -322,4 +322,4 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
   }
 }
 
-class MockAccessTokenProvider extends Mock implements AccessTokenProvider {}
+class MockAccessTokenService extends Mock implements AccessTokenService {}

@@ -23,13 +23,13 @@ class GetStatus extends RequestHandler<Body> {
     Config config, {
     @visibleForTesting
         this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting BuildStatusProvider buildStatusProvider,
+    @visibleForTesting BuildStatusServiceProvider buildStatusProvider,
   })  : buildStatusProvider =
-            buildStatusProvider ?? const BuildStatusProvider(),
+            buildStatusProvider ?? BuildStatusService.defaultProvider,
         super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusProvider buildStatusProvider;
+  final BuildStatusServiceProvider buildStatusProvider;
 
   static const String lastCommitKeyParam = 'lastCommitKey';
   static const String branchParam = 'branch';
@@ -39,13 +39,16 @@ class GetStatus extends RequestHandler<Body> {
     final String encodedLastCommitKey =
         request.uri.queryParameters[lastCommitKeyParam];
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final BuildStatusService buildStatusService =
+        buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
     final int lastCommitTimestamp =
         await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
-    final List<SerializableCommitStatus> statuses = await buildStatusProvider
+    final List<SerializableCommitStatus> statuses = await buildStatusService
         .retrieveCommitStatus(
             limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
         .map<SerializableCommitStatus>((CommitStatus status) =>
