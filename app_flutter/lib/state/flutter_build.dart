@@ -233,14 +233,12 @@ class FlutterBuildState extends ChangeNotifier {
     List<CommitStatus> statuses,
     CommitStatus statusToFind,
   ) {
-    for (int index = 0; index < statuses.length; index++) {
+    for (int index = 0; index < statuses.length; index += 1) {
       final CommitStatus current = _statuses[index];
-
       if (current.commit.key == statusToFind.commit.key) {
         return index;
       }
     }
-
     return -1;
   }
 
@@ -260,7 +258,6 @@ class FlutterBuildState extends ChangeNotifier {
       _errors.send('$errorMessageFetchingStatuses: ${response.error}');
       return;
     }
-
     final List<CommitStatus> newStatuses = response.data;
 
     /// Handle the case where release branches only have a few commits.
@@ -304,18 +301,14 @@ class FlutterBuildState extends ChangeNotifier {
 
   /// Assert that there are no duplicate commits in [statuses].
   bool _statusesAreUnique(List<CommitStatus> statuses) {
-    final Map<RootKey, bool> uniqueStatuses = <RootKey, bool>{};
-
-    for (int i = 0; i < statuses.length; i++) {
+    final Set<RootKey> uniqueStatuses = <RootKey>{};
+    for (int i = 0; i < statuses.length; i += 1) {
       final Commit current = statuses[i].commit;
-
-      if (uniqueStatuses.containsKey(current.key)) {
+      if (uniqueStatuses.contains(current.key)) {
         return false;
-      } else {
-        uniqueStatuses[current.key] = true;
       }
+      uniqueStatuses.add(current.key);
     }
-
     return true;
   }
 
