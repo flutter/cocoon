@@ -29,18 +29,15 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
   const ReserveTask(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @required @visibleForTesting TaskServiceProvider taskServiceProvider,
-    @required @visibleForTesting ReservationServiceProvider reservationServiceProvider,
-    @required @visibleForTesting AccessTokenServiceProvider accessTokenServiceProvider,
+    @visibleForTesting TaskServiceProvider taskServiceProvider,
+    @visibleForTesting ReservationServiceProvider reservationServiceProvider,
+    @visibleForTesting AccessTokenServiceProvider accessTokenServiceProvider,
   })  : taskServiceProvider =
             taskServiceProvider ?? TaskService.defaultProvider,
         reservationServiceProvider =
             reservationServiceProvider ?? ReservationService.defaultProvider,
         accessTokenServiceProvider =
             accessTokenServiceProvider ?? AccessTokenService.defaultProvider,
-        assert(taskServiceProvider != null),
-        assert(reservationServiceProvider != null),
-        assert(accessTokenServiceProvider != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskServiceProvider taskServiceProvider;

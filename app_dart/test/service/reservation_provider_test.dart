@@ -46,6 +46,9 @@ void main() {
         reservationServiceProvider: (_) => reservationService,
         accessTokenServiceProvider: (_) => accessTokenService,
       );
+      tester
+        ..context = FakeAuthenticatedContext(agent: agent)
+        ..requestData = <String, dynamic>{'AgentID': 'aid'};
     });
 
     test('retries until reservation can be secured', () async {
