@@ -13,14 +13,21 @@ import '../model/appengine/task.dart';
 
 import 'datastore.dart';
 
-/// Class that calculates the current build status.
-class BuildStatusProvider {
-  const BuildStatusProvider({
-    DatastoreServiceProvider datastoreProvider,
-  }) : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider;
+/// Function signature for a [BuildStatusService] provider.
+typedef BuildStatusServiceProvider = BuildStatusService Function(
+    DatastoreService datastoreService);
 
-  final DatastoreServiceProvider datastoreProvider;
+/// Class that calculates the current build status.
+class BuildStatusService {
+  const BuildStatusService(this.datastoreService)
+      : assert(datastoreService != null);
+
+  final DatastoreService datastoreService;
+
+  /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
+  static BuildStatusService defaultProvider(DatastoreService datastoreService) {
+    return BuildStatusService(datastoreService);
+  }
 
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
@@ -110,11 +117,10 @@ class BuildStatusProvider {
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus(
       {int limit, int timestamp, String branch}) async* {
-    final DatastoreService datastore = datastoreProvider();
-    await for (Commit commit in datastore.queryRecentCommits(
+    await for (Commit commit in datastoreService.queryRecentCommits(
         limit: limit, timestamp: timestamp, branch: branch)) {
       final List<Stage> stages =
-          await datastore.queryTasksGroupedByStage(commit);
+          await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
   }

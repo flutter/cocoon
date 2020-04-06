@@ -24,7 +24,7 @@ class BuildBucketClient {
   /// specified or null.
   BuildBucketClient({
     this.buildBucketUri = kDefaultBuildBucketUri,
-    this.accessTokenProvider,
+    this.accessTokenService,
     HttpClient httpClient,
   })  : assert(buildBucketUri != null),
         httpClient = httpClient ?? HttpClient();
@@ -45,7 +45,7 @@ class BuildBucketClient {
   ///
   /// If this is non-null, an access token will be attached to any outbound
   /// HTTP requests issued by this client.
-  final AccessTokenProvider accessTokenProvider;
+  final AccessTokenService accessTokenService;
 
   /// The [HttpClient] to use for requests.
   ///
@@ -63,8 +63,8 @@ class BuildBucketClient {
     httpRequest.headers.add(HttpHeaders.contentTypeHeader, 'application/json');
     httpRequest.headers.add(HttpHeaders.acceptHeader, 'application/json');
 
-    if (accessTokenProvider != null) {
-      final AccessToken token = await accessTokenProvider.createAccessToken(
+    if (accessTokenService != null) {
+      final AccessToken token = await accessTokenService.createAccessToken(
         scopes: <String>[
           'openid',
           'https://www.googleapis.com/auth/userinfo.profile',

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -21,20 +22,28 @@ const Map<BuildStatus, String> _buildStatusLookup = <BuildStatus, String>{
 class GetBuildStatus extends RequestHandler<Body> {
   const GetBuildStatus(
     Config config, {
-    @visibleForTesting BuildStatusProvider buildStatusProvider,
-  })  : buildStatusProvider =
-            buildStatusProvider ?? const BuildStatusProvider(),
+    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+    @visibleForTesting BuildStatusServiceProvider buildStatusProvider,
+  })  : datastoreProvider =
+            datastoreProvider ?? DatastoreService.defaultProvider,
+        buildStatusProvider =
+            buildStatusProvider ?? BuildStatusService.defaultProvider,
         super(config: config);
 
-  final BuildStatusProvider buildStatusProvider;
+  final DatastoreServiceProvider datastoreProvider;
+  final BuildStatusServiceProvider buildStatusProvider;
 
   static const String branchParam = 'branch';
 
   @override
   Future<Body> get() async {
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final BuildStatusService buildStatusService =
+        buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     final BuildStatus status =
-        await buildStatusProvider.calculateCumulativeStatus(branch: branch);
+        await buildStatusService.calculateCumulativeStatus(branch: branch);
 
     return Body.forJson(<String, dynamic>{
       'AnticipatedBuildStatus': _buildStatusLookup[status],

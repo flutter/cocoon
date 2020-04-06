@@ -29,22 +29,22 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting LoggingProvider loggingProvider,
-    @visibleForTesting BuildStatusProvider buildStatusProvider,
+    @visibleForTesting BuildStatusServiceProvider buildStatusServiceProvider,
     @visibleForTesting
         this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : datastoreProvider =
             datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        buildStatusProvider =
-            buildStatusProvider ?? const BuildStatusProvider(),
+        buildStatusServiceProvider =
+            buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
         assert(branchHttpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final LoggingProvider loggingProvider;
-  final BuildStatusProvider buildStatusProvider;
+  final BuildStatusServiceProvider buildStatusServiceProvider;
   final HttpClientProvider branchHttpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
 
@@ -53,6 +53,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider();
     final GithubService githubService = await config.createGithubService();
+    final BuildStatusService buildStatusService =
+        buildStatusServiceProvider(datastore);
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
@@ -64,7 +66,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
     for (Branch branch in branches) {
-      final BuildStatus buildStatus = await buildStatusProvider
+      final BuildStatus buildStatus = await buildStatusService
           .calculateCumulativeStatus(branch: branch.name);
       final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];

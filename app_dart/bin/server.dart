@@ -15,7 +15,7 @@ Future<void> main() async {
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
-      accessTokenProvider: AccessTokenProvider(config),
+      accessTokenService: AccessTokenService.defaultProvider(config),
     );
 
     final Map<String, RequestHandler<dynamic>> handlers =

@@ -39,7 +39,7 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeLogging log;
-    FakeBuildStatusProvider buildStatusProvider;
+    FakeBuildStatusService buildStatusService;
     ApiRequestHandlerTester tester;
     PushBuildStatusToGithub handler;
     FakeTabledataResourceApi tabledataResourceApi;
@@ -76,7 +76,7 @@ void main() {
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
-      buildStatusProvider = FakeBuildStatusProvider();
+      buildStatusService = FakeBuildStatusService();
       tabledataResourceApi = FakeTabledataResourceApi();
       branchHttpClient = FakeHttpClient();
       final FakeGithubService githubService = FakeGithubService();
@@ -93,7 +93,7 @@ void main() {
         datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
             DatastoreService(config.db, 5),
         loggingProvider: () => log,
-        buildStatusProvider: buildStatusProvider,
+        buildStatusServiceProvider: (_) => buildStatusService,
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
@@ -164,7 +164,7 @@ void main() {
 
         test('if there are no PRs', () async {
           githubBranches = <String>['master'];
-          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           final TableDataList tableDataList =
@@ -181,7 +181,7 @@ void main() {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           githubBranches = <String>['master'];
-          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.succeeded);
           db.values[status.key] = status;
@@ -197,7 +197,7 @@ void main() {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           githubBranches = <String>['flutter-0.0-candidate.0'];
-          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
@@ -216,7 +216,7 @@ void main() {
           githubPullRequestsOther = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           githubBranches = <String>['flutter-0.0-candidate.0'];
-          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
@@ -236,7 +236,7 @@ void main() {
           final PullRequest prMaster = newPullRequest(id: 0, sha: '0');
           final PullRequest prOther = newPullRequest(id: 1, sha: '1');
           githubBranches = <String>['flutter-0.0-candidate.0', 'master'];
-          buildStatusProvider.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate statusOther =
               newStatusUpdate(prOther, BuildStatus.failed);
           db.values[statusOther.key] = statusOther;

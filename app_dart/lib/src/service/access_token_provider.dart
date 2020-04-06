@@ -8,13 +8,21 @@ import 'package:http/http.dart' as http;
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
 
+/// Function signature for a [TaskService] provider.
+typedef AccessTokenServiceProvider = AccessTokenService Function(Config config);
+
 /// A provider for Oauth2 tokens from Service Account JSON.
-class AccessTokenProvider {
+class AccessTokenService {
   /// Creates a new Access Token provider.
-  const AccessTokenProvider(this.config) : assert(config != null);
+  const AccessTokenService(this.config) : assert(config != null);
 
   /// The Cocoon configuration.
   final Config config;
+
+  /// Creates and returns a [AccessTokenService] using a [Config] object.
+  static AccessTokenService defaultProvider(Config config) {
+    return AccessTokenService(config);
+  }
 
   /// Returns an OAuth 2.0 access token for the device lab service account.
   Future<AccessToken> createAccessToken({

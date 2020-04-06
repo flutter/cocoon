@@ -5,18 +5,14 @@
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
-class FakeBuildStatusProvider implements BuildStatusProvider {
-  FakeBuildStatusProvider({
+class FakeBuildStatusService implements BuildStatusService {
+  FakeBuildStatusService({
     this.cumulativeStatus,
     this.commitStatuses,
   });
 
   BuildStatus cumulativeStatus;
   List<CommitStatus> commitStatuses;
-
-  @override
-  DatastoreServiceProvider get datastoreProvider =>
-      throw UnsupportedError('Unsupported');
 
   @override
   Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
@@ -40,4 +36,7 @@ class FakeBuildStatusProvider implements BuildStatusProvider {
             commitStatus.commit.timestamp < timestamp &&
             commitStatus.commit.branch == branch));
   }
+
+  @override
+  DatastoreService get datastoreService => throw UnimplementedError();
 }

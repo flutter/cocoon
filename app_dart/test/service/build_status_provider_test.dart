@@ -80,21 +80,21 @@ List<Task> middleTaskRerunGreen = <Task>[
 void main() {
   group('BuildStatusProvider', () {
     FakeDatastoreDB db;
-    BuildStatusProvider buildStatusProvider;
+    BuildStatusService buildStatusService;
     FakeConfig config;
+    DatastoreService datastoreService;
 
     setUp(() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
-      buildStatusProvider = BuildStatusProvider(
-          datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-              DatastoreService(config.db, 5));
+      datastoreService = DatastoreService(config.db, 5);
+      buildStatusService = BuildStatusService.defaultProvider(datastoreService);
     });
 
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
@@ -102,7 +102,7 @@ void main() {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -114,7 +114,7 @@ void main() {
           return row++ == 0 ? allGreen : middleTaskFailed;
         });
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -122,7 +122,7 @@ void main() {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
@@ -130,7 +130,7 @@ void main() {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -143,7 +143,7 @@ void main() {
           return row++ == 0 ? middleTaskInProgress : allGreen;
         });
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -156,7 +156,7 @@ void main() {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
@@ -167,7 +167,7 @@ void main() {
           return row++ == 0 ? middleTaskRerunning : allGreen;
         });
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.failed);
       });
 
@@ -178,7 +178,7 @@ void main() {
           return row++ == 0 ? middleTaskRerunGreen : allRed;
         });
         final BuildStatus status =
-            await buildStatusProvider.calculateCumulativeStatus();
+            await buildStatusService.calculateCumulativeStatus();
         expect(status, BuildStatus.succeeded);
       });
 
@@ -206,12 +206,12 @@ void main() {
 
         // Test master branch.
         final List<CommitStatus> statuses1 =
-            await buildStatusProvider.retrieveCommitStatus(limit: 5).toList();
+            await buildStatusService.retrieveCommitStatus(limit: 5).toList();
         expect(statuses1.length, 1);
         expect(statuses1.first.commit.branch, 'master');
 
         // Test dev branch.
-        final List<CommitStatus> statuses2 = await buildStatusProvider
+        final List<CommitStatus> statuses2 = await buildStatusService
             .retrieveCommitStatus(limit: 5, branch: 'flutter-0.0-candidate.0')
             .toList();
         expect(statuses2.length, 1);
