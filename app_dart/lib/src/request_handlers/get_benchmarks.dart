@@ -28,7 +28,8 @@ class GetBenchmarks extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     const int maxRecords = 50;
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final DatastoreDB db = datastore.db;
 
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];

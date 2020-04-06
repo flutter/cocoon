@@ -17,6 +17,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/datastore.dart';
 import '../service/stackdriver_logger.dart';
 
 @immutable
@@ -24,6 +25,8 @@ class AppendLog extends ApiRequestHandler<Body> {
   AppendLog(
     Config config,
     AuthenticationProvider authenticationProvider, {
+    @visibleForTesting
+        this.datastoreProvider = DatastoreService.defaultProvider,
     StackdriverLoggerService stackdriverLogger,
     @visibleForTesting Uint8List requestBodyValue,
   })  : stackdriverLogger =
@@ -34,11 +37,14 @@ class AppendLog extends ApiRequestHandler<Body> {
             requestBodyValue: requestBodyValue);
 
   final StackdriverLoggerService stackdriverLogger;
+  final DatastoreServiceProvider datastoreProvider;
 
   static const String ownerKeyParam = 'ownerKey';
 
   @override
   Future<Body> post() async {
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
       throw const BadRequestException(
@@ -50,7 +56,8 @@ class AppendLog extends ApiRequestHandler<Body> {
         KeyHelper(applicationContext: clientContext.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
-    final Task task = await config.db.lookupValue<Model>(ownerKey, orElse: () {
+    final Task task =
+        await datastore.lookupByValue<Model>(ownerKey, orElse: () {
       throw const InternalServerError(
           'Invalid owner key. Owner entity does not exist');
     }) as Task;
@@ -61,11 +68,7 @@ class AppendLog extends ApiRequestHandler<Body> {
       data: requestBody,
     );
 
-    await config.db.withTransaction<void>((Transaction transaction) async {
-      transaction.queueMutations(inserts: <LogChunk>[logChunk]);
-      await transaction.commit();
-    });
-
+    await datastore.insert(<LogChunk>[logChunk]);
     await writeToStackdriver('${encodedOwnerKey}_${task.attempts}');
 
     return Body.empty;

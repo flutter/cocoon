@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
@@ -59,7 +58,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     const RepositorySlug slug = RepositorySlug('flutter', 'engine');
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     await for (PullRequest pr in github.pullRequests.list(slug)) {
@@ -90,20 +90,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
     }
-
-    final int maxEntityGroups = config.maxEntityGroups;
-    for (int i = 0; i < updates.length; i += maxEntityGroups) {
-      await runTransactionWithRetries(() async {
-        await datastore.db
-            .withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(
-              inserts: updates.skip(i).take(maxEntityGroups).toList());
-          await transaction.commit();
-        });
-      });
-    }
+    await datastore.insert(updates);
     log.debug('Committed all updates');
-
     return Body.empty;
   }
 

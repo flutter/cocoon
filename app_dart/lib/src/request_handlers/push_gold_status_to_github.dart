@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -44,7 +43,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.
@@ -155,15 +155,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
     }
-
-    final int maxEntityGroups = config.maxEntityGroups;
-    for (int i = 0; i < statusUpdates.length; i += maxEntityGroups) {
-      await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(
-            inserts: statusUpdates.skip(i).take(maxEntityGroups).toList());
-        await transaction.commit();
-      });
-    }
+    await datastore.insert(statusUpdates);
     log.debug('Committed all updates');
 
     return Body.empty;

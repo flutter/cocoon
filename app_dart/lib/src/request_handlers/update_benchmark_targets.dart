@@ -39,7 +39,8 @@ class UpdateBenchmarkTargets
         <String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
     final ClientContext clientContext = authContext.clientContext;
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
     double goal = requestData[goalParam] as double;

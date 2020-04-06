@@ -51,7 +51,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final Map<LuciBuilder, List<LuciTask>> luciTasks =
         await luciService.getRecentTasks(
       repo: 'flutter',

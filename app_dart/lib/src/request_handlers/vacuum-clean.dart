@@ -39,7 +39,9 @@ class VacuumClean extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final int maxRetries = config.maxTaskRetries;
-    final List<Task> tasks = await datastoreProvider()
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final List<Task> tasks = await datastore
         .queryRecentTasks(commitLimit: config.commitNumber)
         .map<Task>((FullTask fullTask) => fullTask.task)
         .where(shouldBeVacuumCleaned)
@@ -71,22 +73,9 @@ class VacuumClean extends ApiRequestHandler<Body> {
     /// Update the tasks in batches, taking care not to overload the datastore.
     final List<List<Task>> updates = updatesByCommit.values.toList();
     log.debug('Partitioned updated into ${updates.length} buckets');
-    for (int i = 0; i < updates.length; i += config.maxEntityGroups) {
-      await config.db.withTransaction<void>((Transaction transaction) async {
-        try {
-          for (List<Task> inserts
-              in updates.skip(i).take(config.maxEntityGroups)) {
-            transaction.queueMutations(inserts: inserts);
-          }
-
-          await transaction.commit();
-        } catch (error) {
-          await transaction.rollback();
-          rethrow;
-        }
-      });
+    for (List<Task> update in updates) {
+      await datastore.insert(update);
     }
-
     return Body.empty;
   }
 
