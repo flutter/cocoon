@@ -90,8 +90,7 @@ void main() {
       handler = PushBuildStatusToGithub(
         config,
         auth,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         loggingProvider: () => log,
         buildStatusServiceProvider: (_) => buildStatusService,
         branchHttpClientProvider: () => branchHttpClient,

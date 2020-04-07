@@ -30,7 +30,9 @@ void main() {
       handler = UpdateBenchmarkTargets(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
+        datastoreProvider: (
+          DatastoreDB db,
+        ) =>
             DatastoreService(config.db, 5),
       );
     });

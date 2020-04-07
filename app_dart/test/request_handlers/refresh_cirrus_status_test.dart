@@ -62,8 +62,7 @@ void main() {
       handler = RefreshCirrusStatus(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
       );
 

@@ -44,9 +44,7 @@ void main() {
       setUp(() {});
 
       test('defaultProvider returns a DatasourceService object', () async {
-        expect(
-            DatastoreService.defaultProvider(
-                db: config.db, maxEntityGroups: config.maxEntityGroups),
+        expect(DatastoreService.defaultProvider(config.db),
             isA<DatastoreService>());
       });
 
@@ -94,8 +92,7 @@ void main() {
           await datastoreService.shard(<Commit>[Commit()]);
       expect(shards, hasLength(1));
       // maxEntityGroups = 1
-      config.maxEntityGroups = 1;
-      datastoreService = DatastoreService(config.db, config.maxEntityGroups);
+      datastoreService = DatastoreService(config.db, 1);
       shards =
           await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
       expect(shards, hasLength(3));

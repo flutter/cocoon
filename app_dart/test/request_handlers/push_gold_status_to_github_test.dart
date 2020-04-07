@@ -55,8 +55,7 @@ void main() {
       handler = PushGoldStatusToGithub(
         config,
         auth,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         loggingProvider: () => log,
         goldClient: mockHttpClient,
       );

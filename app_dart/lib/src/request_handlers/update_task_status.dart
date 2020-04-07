@@ -46,8 +46,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);

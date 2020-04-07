@@ -39,8 +39,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final int maxRetries = config.maxTaskRetries;
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final List<Task> tasks = await datastore
         .queryRecentTasks(commitLimit: config.commitNumber)
         .map<Task>((FullTask fullTask) => fullTask.task)

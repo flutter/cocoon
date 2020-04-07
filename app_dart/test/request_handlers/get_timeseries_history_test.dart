@@ -31,8 +31,7 @@ void main() {
       };
       handler = GetTimeSeriesHistory(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
     });
 

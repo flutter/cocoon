@@ -56,8 +56,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GithubService githubService = await config.createGithubService();
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 

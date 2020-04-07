@@ -58,11 +58,6 @@ class Config {
     return Uint8List.fromList(result.value.codeUnits);
   }
 
-  /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
-  /// be touched in any given transaction, or the backing datastore will throw
-  /// an error.
-  int get maxEntityGroups => 5;
-
   DatastoreDB get db => _db;
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');

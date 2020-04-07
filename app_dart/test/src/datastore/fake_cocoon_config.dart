@@ -19,7 +19,6 @@ import 'fake_datastore.dart';
 // ignore: must_be_immutable
 class FakeConfig implements Config {
   FakeConfig({
-    this.maxEntityGroups = 5,
     this.githubClient,
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
@@ -81,9 +80,6 @@ class FakeConfig implements Config {
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
-
-  @override
-  int maxEntityGroups;
 
   @override
   Future<GitHub> createGitHubClient() async => githubClient;

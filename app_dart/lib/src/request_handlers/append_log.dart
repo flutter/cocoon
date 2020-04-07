@@ -43,8 +43,7 @@ class AppendLog extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
       throw const BadRequestException(
