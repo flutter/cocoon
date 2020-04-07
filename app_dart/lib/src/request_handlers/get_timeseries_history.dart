@@ -40,7 +40,8 @@ class GetTimeSeriesHistory
     checkRequiredParameters(<String>[timeSeriesKeyParam]);
     // This number inherites from earlier GO backend. Up to change if necessary.
     const int maxRecords = 6000;
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final KeyHelper keyHelper = KeyHelper(
         applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
     final Set<Commit> commits =

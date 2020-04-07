@@ -48,7 +48,8 @@ class GetLog extends ApiRequestHandler<Body> {
         KeyHelper(applicationContext: context.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final Task task =
         await datastore.db.lookupValue<Task>(ownerKey, orElse: () => null);
     if (task == null) {

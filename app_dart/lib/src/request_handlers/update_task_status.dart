@@ -46,7 +46,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
 
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =
         KeyHelper(applicationContext: clientContext.applicationContext);
@@ -95,44 +96,26 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       task.status = newStatus;
       task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
     }
-
-    await runTransactionWithRetries(() async {
-      await datastore.db.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: <Task>[task]);
-        await transaction.commit();
-      });
-    });
-
+    await datastore.insert(<Task>[task]);
     if (task.endTimestamp > 0) {
       await _insertBigquery(commit, task);
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
+    for (String scoreKey in scoreKeys) {
+      final TimeSeries series =
+          await _getOrCreateTimeSeries(task, scoreKey, datastore);
+      final num value = resultData[scoreKey] as num;
 
-    if (newStatus == Task.statusSucceeded && scoreKeys.isNotEmpty) {
-      for (String scoreKey in scoreKeys) {
-        await runTransactionWithRetries(() async {
-          await datastore.db
-              .withTransaction<void>((Transaction transaction) async {
-            final TimeSeries series =
-                await _getOrCreateTimeSeries(transaction, task, scoreKey);
-            final num value = resultData[scoreKey] as num;
-
-            final TimeSeriesValue seriesValue = TimeSeriesValue(
-              key: series.key.append(TimeSeriesValue),
-              createTimestamp: DateTime.now().millisecondsSinceEpoch,
-              revision: commit.sha,
-              taskKey: task.key,
-              value: value.toDouble(),
-            );
-
-            transaction.queueMutations(inserts: <TimeSeriesValue>[seriesValue]);
-            await transaction.commit();
-          });
-        });
-      }
+      final TimeSeriesValue seriesValue = TimeSeriesValue(
+        key: series.key.append(TimeSeriesValue),
+        createTimestamp: DateTime.now().millisecondsSinceEpoch,
+        revision: commit.sha,
+        taskKey: task.key,
+        value: value.toDouble(),
+      );
+      await datastore.insert(<TimeSeriesValue>[seriesValue]);
     }
-
     return UpdateTaskStatusResponse(task);
   }
 
@@ -171,15 +154,15 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }
 
   Future<TimeSeries> _getOrCreateTimeSeries(
-    Transaction transaction,
     Task task,
     String scoreKey,
+    DatastoreService datastore,
   ) async {
     final String id = '${task.name}.$scoreKey';
     final Key timeSeriesKey =
         Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
     TimeSeries series =
-        (await transaction.lookup<TimeSeries>(<Key>[timeSeriesKey])).single;
+        (await datastore.lookupByKey<TimeSeries>(<Key>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(
@@ -189,7 +172,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         label: scoreKey,
         unit: 'ms',
       );
-      transaction.queueMutations(inserts: <TimeSeries>[series]);
+      await datastore.insert(<TimeSeries>[series]);
     }
 
     return series;

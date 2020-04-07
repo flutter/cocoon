@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -57,7 +56,8 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(
+        db: config.db, maxEntityGroups: config.maxEntityGroups);
     final GraphQLClient client = await config.createCirrusGraphQLClient();
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
@@ -87,13 +87,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
           continue;
         }
         task.task.status = newTaskStatus;
-        await runTransactionWithRetries(() async {
-          await config.db
-              .withTransaction<void>((Transaction transaction) async {
-            transaction.queueMutations(inserts: <Task>[task.task]);
-            await transaction.commit();
-          });
-        });
+        await datastore.insert(<Task>[task.task]);
       }
     }
     return Body.empty;
