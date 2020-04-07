@@ -46,8 +46,8 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
   @override
   Future<ReserveTaskResponse> post() async {
-    final DatastoreService datastore = DatastoreService.defaultProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore =
+        DatastoreService.defaultProvider(config.db);
     final TaskService taskService = taskServiceProvider(datastore);
     final ReservationService reservationService =
         reservationServiceProvider(datastore);

@@ -37,8 +37,7 @@ class GetBuildStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService =
         buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';

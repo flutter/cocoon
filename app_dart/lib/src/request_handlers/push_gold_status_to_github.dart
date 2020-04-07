@@ -43,8 +43,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.

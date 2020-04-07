@@ -47,8 +47,7 @@ void main() {
           FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
     });
@@ -109,8 +108,7 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
 
@@ -139,8 +137,7 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
 
@@ -190,8 +187,7 @@ void main() {
           ]);
       handler = GetStatus(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         buildStatusProvider: (_) => buildStatusService,
       );
 

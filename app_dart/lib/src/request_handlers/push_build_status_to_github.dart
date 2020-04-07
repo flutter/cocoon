@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
@@ -51,7 +50,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final Logging log = loggingProvider();
-    final DatastoreService datastore = datastoreProvider();
+    final DatastoreService datastore = datastoreProvider(config.db);
     final GithubService githubService = await config.createGithubService();
     final BuildStatusService buildStatusService =
         buildStatusServiceProvider(datastore);
@@ -71,16 +70,13 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
       log.debug('Computed build result of $buildStatus');
-
       // Insert build status to bigquery.
       await _insertBigquery(buildStatus, branch.name);
-
       final List<PullRequest> pullRequests =
           await githubService.listPullRequests(slug, branch.name);
       for (PullRequest pr in pullRequests) {
         final GithubBuildStatusUpdate update =
             await datastore.queryLastStatusUpdate(slug, pr);
-
         if (update.status != buildStatus.githubStatus) {
           log.debug(
               'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
@@ -105,15 +101,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
       /// Whenever github status is updated, [update.updates] will be synchronized in
       /// datastore [GithubBuildStatusUpdate].
-      final int maxEntityGroups = config.maxEntityGroups;
-      for (int i = 0; i < updates.length; i += maxEntityGroups) {
-        await datastore.db
-            .withTransaction<void>((Transaction transaction) async {
-          transaction.queueMutations(
-              inserts: updates.skip(i).take(maxEntityGroups).toList());
-          await transaction.commit();
-        });
-      }
+      await datastore.insert(updates);
       log.debug('Committed all updates');
     }
 

@@ -34,8 +34,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
   @override
   Future<Body> post() async {
     checkRequiredParameters(<String>[keyParam]);
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final String encodedKey = requestData[keyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper =

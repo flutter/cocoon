@@ -39,8 +39,7 @@ class GetStatus extends RequestHandler<Body> {
     final String encodedLastCommitKey =
         request.uri.queryParameters[lastCommitKeyParam];
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService =
         buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;

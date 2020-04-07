@@ -31,8 +31,7 @@ void main() {
       handler = ResetDevicelabTask(
         config,
         FakeAuthenticationProvider(),
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
     });
 

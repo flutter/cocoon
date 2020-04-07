@@ -64,8 +64,7 @@ void main() {
         config,
         FakeAuthenticationProvider(),
         luciServiceProvider: (_) => mockLuciService,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );

@@ -56,8 +56,7 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final GraphQLClient client = await config.createCirrusGraphQLClient();
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);

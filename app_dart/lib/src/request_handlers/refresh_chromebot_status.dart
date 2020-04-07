@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
@@ -51,8 +50,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final Map<LuciBuilder, List<LuciTask>> luciTasks =
         await luciService.getRecentTasks(
       repo: 'flutter',
@@ -82,23 +80,20 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       List<Branch> branches,
       DatastoreService datastore,
       Map<LuciBuilder, List<LuciTask>> luciTasks) async {
-    await config.db.withTransaction<void>((Transaction transaction) async {
-      for (Branch branch in branches) {
-        await for (FullTask task in datastore.queryRecentTasks(
-            taskName: builder.taskName, branch: branch.name)) {
-          for (LuciTask luciTask in luciTasks[builder]) {
-            if (luciTask.commitSha == task.commit.sha &&
-                luciTask.ref == 'refs/heads/${branch.name}') {
-              final Task update = task.task;
-              update.status = luciTask.status;
-              transaction.queueMutations(inserts: <Task>[update]);
-              // Stop updating task whenever we find the latest status of the same commit.
-              break;
-            }
+    for (Branch branch in branches) {
+      await for (FullTask task in datastore.queryRecentTasks(
+          taskName: builder.taskName, branch: branch.name)) {
+        for (LuciTask luciTask in luciTasks[builder]) {
+          if (luciTask.commitSha == task.commit.sha &&
+              luciTask.ref == 'refs/heads/${branch.name}') {
+            final Task update = task.task;
+            update.status = luciTask.status;
+            await datastore.insert(<Task>[update]);
+            // Stop updating task whenever we find the latest status of the same commit.
+            break;
           }
         }
       }
-      await transaction.commit();
-    });
+    }
   }
 }

@@ -45,8 +45,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final TabledataResourceApi tabledataResourceApi =
         await config.createTabledataResourceApi();
-    final DatastoreService datastore = datastoreProvider(
-        db: config.db, maxEntityGroups: config.maxEntityGroups);
+    final DatastoreService datastore = datastoreProvider(config.db);
     final Query<Agent> agentQuery = datastore.db.query<Agent>()
       ..order('agentId');
     final List<Agent> agents =

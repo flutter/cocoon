@@ -20,9 +20,13 @@ import '../model/appengine/task.dart';
 import '../model/appengine/time_series.dart';
 import '../model/appengine/time_series_value.dart';
 
+/// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
+/// be touched in any given transaction, or the backing datastore will throw
+/// an error.
+const int defaultMaxEntityGroups = 5;
+
 /// Function signature for a [DatastoreService] provider.
-typedef DatastoreServiceProvider = DatastoreService Function(
-    {DatastoreDB db, int maxEntityGroups});
+typedef DatastoreServiceProvider = DatastoreService Function(DatastoreDB db);
 
 /// Function signature that will be executed with retries.
 typedef RetryHandler = Function();
@@ -63,9 +67,8 @@ class DatastoreService {
   final DatastoreDB db;
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
-  static DatastoreService defaultProvider(
-      {DatastoreDB db, int maxEntityGroups}) {
-    return DatastoreService(db ?? dbService, maxEntityGroups ?? 5);
+  static DatastoreService defaultProvider(DatastoreDB db) {
+    return DatastoreService(db ?? dbService, defaultMaxEntityGroups);
   }
 
   /// Queries for recent commits.
