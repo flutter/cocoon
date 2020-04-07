@@ -102,10 +102,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     // TODO(tvolkert): PushBuildStatusToGithub
-    if (newStatus != Task.statusSucceeded || scoreKeys.isEmpty) {
-      return UpdateTaskStatusResponse(task);
-    }
-
     for (String scoreKey in scoreKeys) {
       final TimeSeries series =
           await _getOrCreateTimeSeries(task, scoreKey, datastore);

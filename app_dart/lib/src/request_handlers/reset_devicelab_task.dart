@@ -50,9 +50,10 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
       throw const BadRequestException(
           'Not allowed to restart task in progress.');
     }
-    task.reason = '';
-    task.status = Task.statusNew;
-    task.reservedForAgentId = '';
+    task
+      ..reason = ''
+      ..status = Task.statusNew
+      ..reservedForAgentId = '';
     await datastore.insert(<Task>[task]);
 
     return Body.empty;
