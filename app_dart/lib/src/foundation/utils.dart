@@ -75,7 +75,7 @@ Future<List<String>> getBranchList(
     GitHubBackoffCalculator gitHubBackoffCalculator) async {
   final List<String> regExps = await loadBranchRegExps(
       branchHttpClientProvider, log, gitHubBackoffCalculator);
-  // TODO(keyonghan): save this list in cocoon config datastore, https://github.com/flutter/flutter/issues/54297
+  // TODO(keyonghan): save this list in the cocoon config datastore, https://github.com/flutter/flutter/issues/54297
   const List<String> branchList = <String>[
     'master',
     'flutter-1.17-candidate.0',
