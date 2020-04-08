@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/commit.dart';
+import '../model/appengine/key_helper.dart';
 import '../model/appengine/time_series.dart';
 import '../model/appengine/time_series_value.dart';
 import '../request_handling/body.dart';
@@ -25,20 +26,26 @@ class GetBenchmarks extends RequestHandler<Body> {
 
   final DatastoreServiceProvider datastoreProvider;
 
+  static const String branchParam = 'branch';
+
   @override
   Future<Body> get() async {
+    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     const int maxRecords = 50;
     final DatastoreService datastore = datastoreProvider();
     final DatastoreDB db = datastore.db;
+    final KeyHelper keyHelper = config.keyHelper;
 
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
-    final Set<Commit> commits =
-        await datastore.queryRecentCommits(limit: maxRecords).toSet();
+    final Set<Commit> commits = await datastore
+        .queryRecentCommits(limit: maxRecords, branch: branch)
+        .toSet();
     await for (TimeSeries series in db.query<TimeSeries>().run()) {
       final Query<TimeSeriesValue> query =
           db.query<TimeSeriesValue>(ancestorKey: series.key)
+            //..filter('branch =', branch)
             ..order('-createTimestamp')
-            ..limit(maxRecords);
+            ..limit(100);
 
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
@@ -75,7 +82,10 @@ class GetBenchmarks extends RequestHandler<Body> {
       }
 
       benchmarks.add(<String, dynamic>{
-        'Timeseries': SerializableTimeSeries(series: series),
+        'Timeseries': <String, dynamic>{
+          'Timeseries': SerializableTimeSeries(series: series).facade,
+          'Key': keyHelper.encode(series.key)
+        },
         'Values': values,
       });
     }

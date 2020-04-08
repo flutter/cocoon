@@ -58,6 +58,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   String get selectedValue => _selectedValue;
   set selectedValue(String value) {
     _selectedValue = value;
+    reloadData(branch: value);
   }
 
   bool get isShowArchived => _isShowArchived;
@@ -86,7 +87,6 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     Map<String, dynamic> branchJson =
         json.decode((await _httpClient.get('/api/public/get-branches')).body);
     _values = new BranchList.fromJson(branchJson).branches;
-    //_values = ['a', 'b', 'c'];
   }
 
   @override
@@ -94,7 +94,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     getBranches();
     reloadData(initialLoad: true);
     _reloadTimer =
-        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
+        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData(branch: _selectedValue));
     getAuthenticationStatus('/').then((AuthenticationStatus status) {
       _userIsAuthenticated = status.isAuthenticated;
     });
@@ -105,10 +105,10 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _reloadTimer?.cancel();
   }
 
-  Future<Null> reloadData({bool initialLoad: false}) async {
+  Future<Null> reloadData({bool initialLoad: false, String branch: 'master'}) async {
     isLoading = true;
     Map<String, dynamic> statusJson =
-        json.decode((await _httpClient.get('/api/public/get-benchmarks')).body);
+        json.decode((await _httpClient.get('/api/public/get-benchmarks?branch=$branch')).body);
     _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
