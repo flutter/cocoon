@@ -47,6 +47,7 @@ class FakeConfig implements Config {
     this.flutterSlugValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
+    this.flutterBranchesValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -81,6 +82,7 @@ class FakeConfig implements Config {
   Set<String> rollerAccountsValue;
   int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
+  String flutterBranchesValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -121,6 +123,9 @@ class FakeConfig implements Config {
 
   @override
   int get newBranchHours => newBranchHoursValue;
+
+  @override
+  Future<String> get flutterBranches async => flutterBranchesValue;
 
   @override
   KeyHelper get keyHelper => keyHelperValue;

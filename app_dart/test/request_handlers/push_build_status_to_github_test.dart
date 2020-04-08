@@ -162,7 +162,7 @@ void main() {
         });
 
         test('if there are no PRs', () async {
-          githubBranches = <String>['master'];
+          config.flutterBranchesValue = 'master';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
@@ -179,7 +179,7 @@ void main() {
         test('if status has not changed since last update', () async {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          githubBranches = <String>['master'];
+          config.flutterBranchesValue = 'master';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.succeeded);
@@ -195,7 +195,7 @@ void main() {
         test('if there is no pr found for a targeted branch', () async {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          githubBranches = <String>['flutter-0.0-candidate.0'];
+          config.flutterBranchesValue = 'flutter-0.0-candidate.0';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
@@ -214,7 +214,7 @@ void main() {
         test('if status has changed since last update', () async {
           githubPullRequestsOther = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
-          githubBranches = <String>['flutter-0.0-candidate.0'];
+          config.flutterBranchesValue = 'flutter-0.0-candidate.0';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
@@ -234,7 +234,7 @@ void main() {
           githubPullRequestsOther = <int>[1];
           final PullRequest prMaster = newPullRequest(id: 0, sha: '0');
           final PullRequest prOther = newPullRequest(id: 1, sha: '1');
-          githubBranches = <String>['flutter-0.0-candidate.0', 'master'];
+          config.flutterBranchesValue = 'flutter-0.0-candidate.0,master';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
           final GithubBuildStatusUpdate statusOther =
               newStatusUpdate(prOther, BuildStatus.failed);

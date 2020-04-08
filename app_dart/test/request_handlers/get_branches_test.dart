@@ -60,7 +60,7 @@ void main() {
     });
 
     test('returns branches matching regExps', () async {
-      githubBranches = <String>['flutter-1.1-candidate.1', 'master', 'test'];
+      config.flutterBranchesValue = 'flutter-1.1-candidate.1,master,test';
 
       branchHttpClient.request.response.body = branchRegExp;
 
