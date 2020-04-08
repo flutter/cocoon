@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -33,11 +32,9 @@ class GetBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final List<Branch> branchList = await getBranches(
+    final List<String> branchList = await getBranchList(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
-    return Body.forJson(<String, List<String>>{
-      'Branches': branchList.map((Branch branch) => branch.name).toList()
-    });
+    return Body.forJson(<String, List<String>>{'Branches': branchList});
   }
 }

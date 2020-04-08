@@ -68,6 +68,40 @@ Future<List<String>> loadBranchRegExps(
   return <String>['master'];
 }
 
+Future<List<String>> getBranchList(
+    Config config,
+    HttpClientProvider branchHttpClientProvider,
+    Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator) async {
+  final List<String> regExps = await loadBranchRegExps(
+      branchHttpClientProvider, log, gitHubBackoffCalculator);
+  // TODO(keyonghan): save this list in the cocoon config datastore, https://github.com/flutter/flutter/issues/54297
+  const List<String> branchList = <String>[
+    'master',
+    'flutter-1.17-candidate.0',
+    'flutter-1.17-candidate.1',
+    'flutter-1.17-candidate.2',
+    'flutter-1.17-candidate.3',
+    'flutter-1.17-candidate.4',
+    'flutter-1.17-candidate.5',
+    'flutter-1.18-candidate.0',
+    'flutter-1.18-candidate.1',
+    'flutter-1.18-candidate.2',
+    'flutter-1.18-candidate.3',
+    'flutter-1.18-candidate.4',
+    'v1.12.13-hotfixes'
+  ];
+  final List<String> branches = <String>[];
+
+  for (String branch in branchList) {
+    if (!regExps.any((String regExp) => RegExp(regExp).hasMatch(branch))) {
+      continue;
+    }
+    branches.add(branch);
+  }
+  return branches;
+}
+
 Future<List<Branch>> getBranches(
     Config config,
     HttpClientProvider branchHttpClientProvider,

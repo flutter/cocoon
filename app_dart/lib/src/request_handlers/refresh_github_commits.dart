@@ -57,16 +57,16 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GithubService githubService = await config.createGithubService();
     final DatastoreService datastore = datastoreProvider(config.db);
-    final List<Branch> branches = await getBranches(
+    final List<String> branches = await getBranchList(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
-    for (Branch branch in branches) {
+    for (String branch in branches) {
       // TODO(keyonghan): use time of latest commit for [hours] in github API query, https://github.com/flutter/flutter/issues/54284
       int hours = config.existingBranchHours;
 
-      if (branch.name != 'master') {
+      if (branch != 'master') {
         final Set<Commit> commits = await datastore
-            .queryRecentCommits(limit: 1, branch: branch.name)
+            .queryRecentCommits(limit: 1, branch: branch)
             .toSet();
 
         /// Set [hours] to be longer if a new branch is found.
@@ -76,16 +76,16 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       }
 
       final List<RepositoryCommit> commits =
-          await githubService.listCommits(slug, branch.name, hours, config);
+          await githubService.listCommits(slug, branch, hours, config);
       final List<Commit> newCommits =
-          await _getNewCommits(commits, datastore, branch.name);
+          await _getNewCommits(commits, datastore, branch);
 
       if (newCommits.isEmpty) {
         // Nothing to do.
         continue;
       }
       log.debug(
-          'Found ${newCommits.length} new commits for branch ${branch.name} on GitHub');
+          'Found ${newCommits.length} new commits for branch $branch on GitHub');
 
       //Save [Commit] to BigQuery and create [Task] in Datastore.
       await _saveData(newCommits, datastore);

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -57,7 +56,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       requireTaskName: true,
     );
 
-    final List<Branch> branches = await getBranches(
+    final List<String> branches = await getBranchList(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
     for (LuciBuilder builder in luciTasks.keys) {
@@ -77,15 +76,15 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   /// based on latest [luciTasks] statuses.
   Future<void> _updateStatus(
       LuciBuilder builder,
-      List<Branch> branches,
+      List<String> branches,
       DatastoreService datastore,
       Map<LuciBuilder, List<LuciTask>> luciTasks) async {
-    for (Branch branch in branches) {
+    for (String branch in branches) {
       await for (FullTask task in datastore.queryRecentTasks(
-          taskName: builder.taskName, branch: branch.name)) {
+          taskName: builder.taskName, branch: branch)) {
         for (LuciTask luciTask in luciTasks[builder]) {
           if (luciTask.commitSha == task.commit.sha &&
-              luciTask.ref == 'refs/heads/${branch.name}') {
+              luciTask.ref == 'refs/heads/$branch') {
             final Task update = task.task;
             update.status = luciTask.status;
             await datastore.insert(<Task>[update]);
