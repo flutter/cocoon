@@ -7,7 +7,6 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-import 'package:angular_components/angular_components.dart';
 import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/benchmark/benchmark_card.dart';
 import 'package:cocoon/benchmark/benchmark_history.dart';
@@ -27,12 +26,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     NgClass,
     BenchmarkCard,
     BenchmarkHistory,
-    MaterialDropdownSelectComponent,
-    DomPopupSourceFactory,
     formDirectives,
-  ],
-  providers: const [
-    popupBindings,
   ],
 )
 class BenchmarkGrid implements OnInit, OnDestroy {
@@ -45,19 +39,11 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   Timer _reloadTimer;
   bool _isShowArchived = false;
   bool _userIsAuthenticated = false;
-  List<String> _values = ['master'];
-  String _selectedValue = 'master';
 
   String _taskTextFilter;
   String get taskTextFilter => _taskTextFilter;
   set taskTextFilter(String value) {
     applyTextFilter(value);
-  }
-
-  List<String> get values => _values;
-  String get selectedValue => _selectedValue;
-  set selectedValue(String value) {
-    _selectedValue = value;
   }
 
   bool get isShowArchived => _isShowArchived;
@@ -82,16 +68,8 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _applyFilters();
   }
 
-  Future<void> getBranches() async {
-    Map<String, dynamic> branchJson =
-        json.decode((await _httpClient.get('/api/public/get-branches')).body);
-    _values = new BranchList.fromJson(branchJson).branches;
-    //_values = ['a', 'b', 'c'];
-  }
-
   @override
   void ngOnInit() {
-    getBranches();
     reloadData(initialLoad: true);
     _reloadTimer =
         new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
