@@ -32,25 +32,10 @@ void main() {
     FakeGraphQLClient cirrusGraphQLClient;
     List<dynamic> statuses = <dynamic>[];
     String cirrusBranch;
-    const List<String> githubBranches = <String>[
-      'master',
-      'flutter-0.0-candidate.0'
-    ];
-
-    Stream<Branch> branchStream() async* {
-      for (String branchName in githubBranches) {
-        final CommitDataUser author = CommitDataUser('a', 1, 'b');
-        final GitCommit gitCommit = GitCommit();
-        final CommitData commitData = CommitData('sha', gitCommit, 'test',
-            'test', 'test', author, author, <Map<String, dynamic>>[]);
-        final Branch branch = Branch(branchName, commitData);
-        yield branch;
-      }
-    }
+    const String githubBranches = 'master,flutter-0.0-candidate.0';
 
     setUp(() {
       final FakeGithubService githubService = FakeGithubService();
-      final MockRepositoriesService repositories = MockRepositoriesService();
       datastoreDB = FakeDatastoreDB();
       branchHttpClient = FakeHttpClient();
       cirrusGraphQLClient = FakeGraphQLClient();
@@ -58,7 +43,8 @@ void main() {
       config = FakeConfig(
           dbValue: datastoreDB,
           cirrusGraphQLClient: cirrusGraphQLClient,
-          githubService: githubService);
+          githubService: githubService,
+          flutterBranchesValue: githubBranches);
       handler = RefreshCirrusStatus(
         config,
         FakeAuthenticationProvider(),
@@ -75,12 +61,6 @@ void main() {
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createQueryResult(statuses, cirrusBranch);
       };
-
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(githubService.github.repositories).thenReturn(repositories);
-      when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
-        return branchStream();
-      });
     });
 
     test('update cirrus status when all tasks succeeded', () async {

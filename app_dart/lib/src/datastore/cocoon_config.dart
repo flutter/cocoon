@@ -60,6 +60,9 @@ class Config {
 
   DatastoreDB get db => _db;
 
+  // TODO(keyonghan): [FlutterBranches] should be refreshed periodically, https://github.com/flutter/flutter/issues/54315
+  Future<String> get flutterBranches => _getSingleValue('FlutterBranches');
+
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');

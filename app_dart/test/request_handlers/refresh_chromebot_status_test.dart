@@ -83,7 +83,7 @@ void main() {
           Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
-      githubBranches = <String>['master'];
+      config.flutterBranchesValue = 'master';
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
@@ -129,7 +129,7 @@ void main() {
       config.db.values[commitOther.key] = commitOther;
       config.db.values[taskMaster.key] = taskMaster;
       config.db.values[taskOther.key] = taskOther;
-      githubBranches = <String>['master', 'flutter-0.0-candidate.0'];
+      config.flutterBranchesValue = 'master,flutter-0.0-candidate.0';
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
