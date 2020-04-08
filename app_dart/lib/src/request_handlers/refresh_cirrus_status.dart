@@ -58,18 +58,18 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final GraphQLClient client = await config.createCirrusGraphQLClient();
-    final List<Branch> branches = await getBranches(
+    final List<String> branches = await getBranchList(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
     const int commitLimit = 15;
 
-    for (Branch branch in branches) {
+    for (String branch in branches) {
       await for (FullTask task in datastore.queryRecentTasks(
-          taskName: 'cirrus', commitLimit: commitLimit, branch: branch.name)) {
+          taskName: 'cirrus', commitLimit: commitLimit, branch: branch)) {
         final String sha = task.commit.sha;
         final String existingTaskStatus = task.task.status;
 
         log.debug(
-            'Found Cirrus task for branch ${branch.name}, commit $sha, with existing status $existingTaskStatus');
+            'Found Cirrus task for branch $branch, commit $sha, with existing status $existingTaskStatus');
 
         const String name = 'flutter';
         final List<CirrusResult> cirrusResults =

@@ -62,18 +62,18 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
-    final List<Branch> branches = await getBranches(
+    final List<String> branches = await getBranchList(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
-    for (Branch branch in branches) {
-      final BuildStatus buildStatus = await buildStatusService
-          .calculateCumulativeStatus(branch: branch.name);
+    for (String branch in branches) {
+      final BuildStatus buildStatus =
+          await buildStatusService.calculateCumulativeStatus(branch: branch);
       final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
       log.debug('Computed build result of $buildStatus');
       // Insert build status to bigquery.
-      await _insertBigquery(buildStatus, branch.name);
+      await _insertBigquery(buildStatus, branch);
       final List<PullRequest> pullRequests =
-          await githubService.listPullRequests(slug, branch.name);
+          await githubService.listPullRequests(slug, branch);
       for (PullRequest pr in pullRequests) {
         final GithubBuildStatusUpdate update =
             await datastore.queryLastStatusUpdate(slug, pr);
