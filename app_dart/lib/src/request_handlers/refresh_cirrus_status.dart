@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 

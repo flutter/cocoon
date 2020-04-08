@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:github/server.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
