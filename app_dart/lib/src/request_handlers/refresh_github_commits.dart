@@ -61,6 +61,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
     for (Branch branch in branches) {
+      // TODO(keyonghan): use time of latest commit for [hours] in github API query, https://github.com/flutter/flutter/issues/54284
       int hours = config.existingBranchHours;
 
       if (branch.name != 'master') {
