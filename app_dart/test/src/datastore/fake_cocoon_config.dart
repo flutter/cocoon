@@ -23,6 +23,8 @@ class FakeConfig implements Config {
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.commitNumberValue,
+    this.existingBranchHoursValue,
+    this.newBranchHoursValue,
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
@@ -57,6 +59,8 @@ class FakeConfig implements Config {
   ServiceAccountInfo deviceLabServiceAccountValue;
   int maxTaskRetriesValue;
   int commitNumberValue;
+  int existingBranchHoursValue;
+  int newBranchHoursValue;
   FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
@@ -111,6 +115,12 @@ class FakeConfig implements Config {
 
   @override
   int get commitNumber => commitNumberValue;
+
+  @override
+  int get existingBranchHours => existingBranchHoursValue;
+
+  @override
+  int get newBranchHours => newBranchHoursValue;
 
   @override
   KeyHelper get keyHelper => keyHelperValue;
