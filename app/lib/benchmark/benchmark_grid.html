@@ -2,20 +2,15 @@
   Copyright (c) 2018 The Chromium Authors. All rights reserved.
   Use of this source code is governed by a BSD-style license that can be
   found in the LICENSE file.
-
+-->
 
 <div *ngIf="isLoading" style="position: fixed; top: 0; left: 0; z-index: 1000; background-color: #AAFFAA;">Loading...</div>
--->
+
 <div style="margin: 5px;">
   <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
-  <input type="text" [(ngModel)]="taskTextFilter" placeholder="Filter visible benchmarks"/>&nbsp;
-  <material-dropdown-select
-    buttonText="{{selectedValue}}"
-    [(selection)]="selectedValue"
-    [options]="values">
-  </material-dropdown-select>
+  <input type="text" [(ngModel)]="taskTextFilter" placeholder="Filter visible benchmarks"/>
 </div>
-<!--
+
 <div *ngIf="zoomInto != null" class="benchmark-history-container">
   <benchmark-history
       [userIsAuthenticated]="userIsAuthenticated"
@@ -32,5 +27,3 @@
         (onZoomIn)="zoomInto = benchmark">
     </benchmark-card>
 </div>
-
--->
