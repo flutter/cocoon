@@ -236,8 +236,8 @@ class DatastoreService {
   Future<List<List<Model>>> shard(List<Model> rows) async {
     final List<List<Model>> shards = <List<Model>>[];
     for (int i = 0; i < rows.length; i += maxEntityGroups) {
-      shards.add(
-          rows.sublist(i, i + min<int>(rows.length - i, i + maxEntityGroups)));
+      shards
+          .add(rows.sublist(i, i + min<int>(rows.length - i, maxEntityGroups)));
     }
     return shards;
   }
