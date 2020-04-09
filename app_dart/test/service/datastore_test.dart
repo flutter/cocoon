@@ -88,19 +88,26 @@ void main() {
 
     test('Shard', () async {
       // default maxEntityGroups = 5
-      List<List<Model>> shards =
-          await datastoreService.shard(<Commit>[Commit()]);
-      expect(shards, hasLength(1));
-      // maxEntityGroups = 1
-      datastoreService = DatastoreService(config.db, 1);
-      shards =
-          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
-      expect(shards, hasLength(3));
+      List<List<Model>> shards = await datastoreService.shard(
+          <Commit>[Commit(), Commit(), Commit(), Commit(), Commit(), Commit()]);
+      expect(shards, hasLength(2));
+      expect(shards[0], hasLength(5));
+      expect(shards[1], hasLength(1));
       // maxEntigroups = 2
       datastoreService = DatastoreService(config.db, 2);
       shards =
           await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
       expect(shards, hasLength(2));
+      expect(shards[0], hasLength(2));
+      expect(shards[1], hasLength(1));
+      // maxEntityGroups = 1
+      datastoreService = DatastoreService(config.db, 1);
+      shards =
+          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      expect(shards, hasLength(3));
+      expect(shards[0], hasLength(1));
+      expect(shards[1], hasLength(1));
+      expect(shards[2], hasLength(1));
     });
 
     test('Insert', () async {
