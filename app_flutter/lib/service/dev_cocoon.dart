@@ -76,7 +76,7 @@ class DevelopmentCocoonService implements CocoonService {
     return List<Agent>.generate(
       10,
       (int i) => Agent()
-        ..agentId = 'fake-${_agentKinds[i % _agentKinds.length]}-${i.remainder(_agentKinds.length)}'
+        ..agentId = 'fake-${_agentKinds[i % _agentKinds.length]}-${i ~/ _agentKinds.length}'
         ..capabilities.add('dash')
         ..isHealthy = _random.nextBool()
         ..isHidden = false
