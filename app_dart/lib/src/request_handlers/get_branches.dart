@@ -19,22 +19,14 @@ import '../request_handling/request_handler.dart';
 @immutable
 class GetBranches extends RequestHandler<Body> {
   const GetBranches(
-    Config config, {
-    @visibleForTesting
-        this.branchHttpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-  })  : assert(branchHttpClientProvider != null),
-        assert(gitHubBackoffCalculator != null),
-        super(config: config);
-
-  final HttpClientProvider branchHttpClientProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
+    Config config,
+  ) : super(config: config);
 
   @override
   Future<Body> get() async {
-    final List<String> branchList = await getBranchList(
-        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
+    final String branches = await config.flutterBranches;
 
-    return Body.forJson(<String, List<String>>{'Branches': branchList});
+    return Body.forJson(
+        <String, List<String>>{'Branches': branches.split(',')});
   }
 }

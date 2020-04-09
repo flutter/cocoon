@@ -56,14 +56,13 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       requireTaskName: true,
     );
 
-    final List<String> branches = await getBranchList(
-        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
+    final String branches = await config.flutterBranches;
 
     for (LuciBuilder builder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
         await _updateStatus(
           builder,
-          branches,
+          branches.split(','),
           datastore,
           luciTasks,
         );

@@ -26,11 +26,6 @@ import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_github_service.dart';
 
-const String branchRegExp = '''
-      master
-      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
-      ''';
-
 void main() {
   group('PushBuildStatusToGithub', () {
     FakeConfig config;
@@ -46,7 +41,6 @@ void main() {
     FakeHttpClient branchHttpClient;
     List<int> githubPullRequestsMaster;
     List<int> githubPullRequestsOther;
-    List<String> githubBranches;
     MockRepositoriesService repositoriesService;
 
     List<PullRequest> pullRequestList(String branch) {
@@ -59,17 +53,6 @@ void main() {
           ..head = (PullRequestHead()..sha = pr.toString()));
       }
       return pullRequests;
-    }
-
-    Stream<Branch> branchStream() async* {
-      for (String branchName in githubBranches) {
-        final CommitDataUser author = CommitDataUser('a', 1, 'b');
-        final GitCommit gitCommit = GitCommit();
-        final CommitData commitData = CommitData('sha', gitCommit, 'test',
-            'test', 'test', author, author, <Map<String, dynamic>>[]);
-        final Branch branch = Branch(branchName, commitData);
-        yield branch;
-      }
     }
 
     setUp(() {
@@ -105,10 +88,6 @@ void main() {
 
       repositoriesService = MockRepositoriesService();
       when(githubService.github.repositories).thenReturn(repositoriesService);
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(repositoriesService.listBranches(slug)).thenAnswer((_) {
-        return branchStream();
-      });
     });
 
     group('in development environment', () {
@@ -164,7 +143,6 @@ void main() {
         test('if there are no PRs', () async {
           config.flutterBranchesValue = 'master';
           buildStatusService.cumulativeStatus = BuildStatus.succeeded;
-          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           final TableDataList tableDataList =
               await tabledataResourceApi.list('test', 'test', 'test');
@@ -184,7 +162,6 @@ void main() {
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.succeeded);
           db.values[status.key] = status;
-          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
@@ -200,7 +177,6 @@ void main() {
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
-          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
@@ -219,7 +195,6 @@ void main() {
           final GithubBuildStatusUpdate status =
               newStatusUpdate(pr, BuildStatus.failed);
           db.values[status.key] = status;
-          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
@@ -242,7 +217,6 @@ void main() {
           final GithubBuildStatusUpdate statusMaster =
               newStatusUpdate(prMaster, BuildStatus.failed);
           db.values[statusMaster.key] = statusMaster;
-          branchHttpClient.request.response.body = branchRegExp;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(statusMaster.updates, 1);

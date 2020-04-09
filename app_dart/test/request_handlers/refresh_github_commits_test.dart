@@ -32,10 +32,6 @@ tasks:
     stage: devicelab
     required_agent_capabilities: ["linux/android"]
 ''';
-const String branchRegExp = '''
-      master
-      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
-      ''';
 
 void main() {
   group('RefreshGithubCommits', () {
@@ -48,20 +44,8 @@ void main() {
     RefreshGithubCommits handler;
 
     List<String> githubCommits;
-    List<String> githubBranches;
     int yieldedCommitCount;
     int newBranchHours;
-
-    Stream<Branch> branchStream() async* {
-      for (String branchName in githubBranches) {
-        final CommitDataUser author = CommitDataUser('a', 1, 'b');
-        final GitCommit gitCommit = GitCommit();
-        final CommitData commitData = CommitData('sha', gitCommit, 'test',
-            'test', 'test', author, author, <Map<String, dynamic>>[]);
-        final Branch branch = Branch(branchName, commitData);
-        yield branch;
-      }
-    }
 
     List<RepositoryCommit> commitList(int hours) {
       List<RepositoryCommit> commits = <RepositoryCommit>[];
@@ -124,11 +108,7 @@ void main() {
         return commitList(hours);
       };
 
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
       when(githubService.github.repositories).thenReturn(repositories);
-      when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
-        return branchStream();
-      });
     });
 
     test('succeeds when GitHub returns no commits', () async {
@@ -148,7 +128,6 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
-      branchHttpClient.request.response.body = branchRegExp;
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().first;
       expect(db.values.values.whereType<Commit>().length, 2);
@@ -168,7 +147,6 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 4);
       expect(db.values.values.whereType<Task>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
-      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 6);
       expect(db.values.values.whereType<Task>().length, 10);
@@ -184,7 +162,6 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
-      branchHttpClient.request.response.body = branchRegExp;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
     });
@@ -202,7 +179,6 @@ void main() {
         }
       };
       httpClient.request.response.body = singleTaskManifestYaml;
-      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 2);
       expect(db.values.values.whereType<Task>().length, 10);
@@ -226,7 +202,6 @@ void main() {
       githubCommits = <String>['1'];
       config.flutterBranchesValue = 'master';
       httpClient.request.response.body = singleTaskManifestYaml;
-      branchHttpClient.request.response.body = branchRegExp;
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -244,7 +219,6 @@ void main() {
       config.flutterBranchesValue = 'master';
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-      branchHttpClient.request.response.body = branchRegExp;
       await expectLater(
           tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
       expect(retry, 3);
