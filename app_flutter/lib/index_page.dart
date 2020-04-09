@@ -45,25 +45,25 @@ class IndexPage extends StatelessWidget {
                   const HeaderText('Select a dashboard'),
                   separator,
                   RaisedButton.icon(
-                    icon: Icon(Icons.build),
+                    icon: const Icon(Icons.build),
                     label: const Text('BUILD'),
                     onPressed: () => Navigator.pushReplacementNamed(context, '/build'),
                   ),
                   separator,
                   RaisedButton.icon(
-                    icon: Icon(Icons.show_chart),
+                    icon: const Icon(Icons.show_chart),
                     label: const Text('BENCHMARKS'),
                     onPressed: () => launch('/benchmarks.html'),
                   ),
                   separator,
                   RaisedButton.icon(
-                    icon: Icon(Icons.show_chart),
+                    icon: const Icon(Icons.show_chart),
                     label: const Text('BENCHMARKS ON SKIA PERF'),
                     onPressed: () => launch('https://flutter-perf.skia.org/'),
                   ),
                   separator,
                   RaisedButton.icon(
-                    icon: Icon(Icons.info_outline),
+                    icon: const Icon(Icons.info_outline),
                     label: const Text('REPOSITORY'),
                     onPressed: () => launch('/repository.html'),
                   ),
@@ -71,7 +71,7 @@ class IndexPage extends StatelessWidget {
                   const Divider(thickness: 2.0),
                   separator,
                   RaisedButton.icon(
-                    icon: Icon(Icons.android),
+                    icon: const Icon(Icons.android),
                     label: const Text('INFRA AGENTS'),
                     onPressed: () => Navigator.pushReplacementNamed(context, '/agents'),
                   ),

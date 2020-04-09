@@ -19,53 +19,53 @@ class NavigationDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: <Widget>[
-          DrawerHeader(
-            decoration: const FlutterLogoDecoration(
+          const DrawerHeader(
+            decoration: FlutterLogoDecoration(
               margin: EdgeInsets.only(bottom: 24.0),
             ),
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: const Text('Flutter Dashboard'),
+              child: Text('Flutter Dashboard'),
             ),
           ),
           ListTile(
             title: const Text('Home'),
-            leading: Icon(Icons.home),
+            leading: const Icon(Icons.home),
             onTap: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
             selected: currentRoute == '/',
           ),
           ListTile(
             title: const Text('Build'),
-            leading: Icon(Icons.build),
+            leading: const Icon(Icons.build),
             onTap: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
             selected: currentRoute == '/build',
           ),
           ListTile(
             title: const Text('Benchmarks'),
-            leading: Icon(Icons.show_chart),
+            leading: const Icon(Icons.show_chart),
             onTap: () => launch('/benchmarks.html'),
           ),
           ListTile(
             title: const Text('Benchmarks on Skia Perf'),
-            leading: Icon(Icons.show_chart),
+            leading: const Icon(Icons.show_chart),
             onTap: () => launch('https://flutter-perf.skia.org/'),
           ),
           ListTile(
             title: const Text('Repository'),
-            leading: Icon(Icons.info_outline),
+            leading: const Icon(Icons.info_outline),
             onTap: () => launch('/repository.html'),
           ),
           const Divider(thickness: 2.0),
           ListTile(
             title: const Text('Infra Agents'),
-            leading: Icon(Icons.android),
+            leading: const Icon(Icons.android),
             onTap: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
             selected: currentRoute == '/agents',
           ),
           const Divider(thickness: 2.0),
           ListTile(
             title: const Text('Source Code'),
-            leading: Icon(Icons.code),
+            leading: const Icon(Icons.code),
             onTap: () => launch('https://github.com/flutter/cocoon'),
           ),
           const AboutListTile(

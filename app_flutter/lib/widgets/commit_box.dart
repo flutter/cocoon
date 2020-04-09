@@ -56,7 +56,7 @@ class _CommitBoxState extends State<CommitBox> {
               child: Text(
                 widget.commit.author.substring(0, 1).toUpperCase(),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,

@@ -68,7 +68,7 @@ class AgentTile extends StatelessWidget {
               value: _AgentTileAction.reserve,
             ),
           ],
-          icon: Icon(Icons.more_vert),
+          icon: const Icon(Icons.more_vert),
           onSelected: (_AgentTileAction value) {
             switch (value) {
               case _AgentTileAction.details:
@@ -92,16 +92,16 @@ class AgentTile extends StatelessWidget {
   /// A lookup function for showing the leading icon based on [agentId].
   Icon _getIconFromId(String agentId) {
     if (agentId.contains('vm')) {
-      return Icon(Icons.dns);
+      return const Icon(Icons.dns);
     } else if (agentId.contains('linux')) {
-      return Icon(Icons.android);
+      return const Icon(Icons.android);
     } else if (agentId.contains('mac')) {
-      return Icon(Icons.phone_iphone);
+      return const Icon(Icons.phone_iphone);
     } else if (agentId.contains('windows')) {
-      return Icon(Icons.desktop_windows);
+      return const Icon(Icons.desktop_windows);
     }
 
-    return Icon(Icons.device_unknown);
+    return const Icon(Icons.device_unknown);
   }
 
   void _showHealthDetailsDialog(BuildContext context, String rawHealthDetails) {

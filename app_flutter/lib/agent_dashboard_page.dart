@@ -63,7 +63,7 @@ class AgentDashboardPage extends StatelessWidget {
         ),
         drawer: const NavigationDrawer(),
         floatingActionButton: FloatingActionButton.extended(
-          icon: Icon(Icons.add),
+          icon: const Icon(Icons.add),
           label: const Text('CREATE AGENT'),
           onPressed: () => _showCreateAgentDialog(context, _agentState),
         ),

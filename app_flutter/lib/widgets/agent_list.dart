@@ -92,11 +92,11 @@ class _AgentListState extends State<AgentList> {
             });
           },
           controller: filterAgentsController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Filter',
             hintText: 'Filter',
             prefixIcon: Icon(Icons.search),
-            border: const OutlineInputBorder(
+            border: OutlineInputBorder(
               borderRadius: BorderRadius.all(
                 Radius.circular(25.0),
               ),
