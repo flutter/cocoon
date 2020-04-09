@@ -96,6 +96,11 @@ void main() {
       shards =
           await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
       expect(shards, hasLength(3));
+      // maxEntigroups = 2
+      datastoreService = DatastoreService(config.db, 2);
+      shards =
+          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      expect(shards, hasLength(2));
     });
 
     test('Insert', () async {
