@@ -43,9 +43,9 @@ class GetBenchmarks extends RequestHandler<Body> {
     await for (TimeSeries series in db.query<TimeSeries>().run()) {
       final Query<TimeSeriesValue> query =
           db.query<TimeSeriesValue>(ancestorKey: series.key)
-            //..filter('branch =', branch)
+            ..filter('branch =', branch)
             ..order('-createTimestamp')
-            ..limit(100);
+            ..limit(maxRecords);
 
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
