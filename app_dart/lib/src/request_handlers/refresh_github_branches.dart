@@ -16,12 +16,11 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
 
-/// Queries GitHub for the list of available branches, fliters ones according 
+/// Queries GitHub for the list of available branches, fliters ones according
 /// to [branch_regexps], and updates [FlutterBranches] in datastore if values are
 /// changed.
 @immutable
-class RefreshGithubBranches
-    extends ApiRequestHandler<Body> {
+class RefreshGithubBranches extends ApiRequestHandler<Body> {
   const RefreshGithubBranches(
     Config config,
     AuthenticationProvider authenticationProvider, {

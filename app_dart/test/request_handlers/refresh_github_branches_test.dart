@@ -42,7 +42,9 @@ void main() {
     setUp(() {
       final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
-      config = FakeConfig(githubService: githubService,);
+      config = FakeConfig(
+        githubService: githubService,
+      );
       tester = ApiRequestHandlerTester();
       branchHttpClient = FakeHttpClient();
       handler = RefreshGithubBranches(
