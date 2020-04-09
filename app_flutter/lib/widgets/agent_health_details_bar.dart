@@ -28,7 +28,7 @@ class AgentHealthDetailsBar extends StatelessWidget {
             child: Icon(Icons.timer, color: theme.errorColor),
           ),
         if (healthDetails.cocoonAuthentication)
-          Tooltip(
+          const Tooltip(
             message: 'Cocoon authentication passed',
             child: Icon(Icons.verified_user),
           )
@@ -38,7 +38,7 @@ class AgentHealthDetailsBar extends StatelessWidget {
             child: Icon(Icons.error, color: theme.errorColor),
           ),
         if (healthDetails.cocoonConnection)
-          Tooltip(
+          const Tooltip(
             message: 'Cocoon connected',
             child: Icon(Icons.network_wifi),
           )
@@ -48,7 +48,7 @@ class AgentHealthDetailsBar extends StatelessWidget {
             child: Icon(Icons.perm_scan_wifi, color: theme.errorColor),
           ),
         if (healthDetails.hasHealthyDevices)
-          Tooltip(
+          const Tooltip(
             message: 'Devices healthy',
             child: Icon(Icons.devices),
           )

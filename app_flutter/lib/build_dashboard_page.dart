@@ -50,7 +50,7 @@ class BuildDashboardPage extends StatelessWidget {
           actions: <Widget>[
             DropdownButton<String>(
                 value: _buildState.currentBranch,
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_downward,
                   color: Colors.white,
                 ),

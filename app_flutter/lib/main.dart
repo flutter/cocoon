@@ -30,14 +30,14 @@ void main() {
 }
 
 final ThemeData lightTheme = ThemeData.from(
-  colorScheme: ColorScheme.light(
+  colorScheme: const ColorScheme.light(
     primary: Colors.green,
     secondary: Colors.blueAccent,
   ),
 );
 
 final ThemeData darkTheme = ThemeData.from(
-  colorScheme: ColorScheme.dark(
+  colorScheme: const ColorScheme.dark(
     primary: Colors.green,
     secondary: Colors.blueAccent,
   ),
