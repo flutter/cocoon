@@ -242,9 +242,25 @@ class BuildState extends ChangeNotifier {
     return -1;
   }
 
+  Future<void> _moreStatuses;
+
   /// When the user reaches the end of [statuses], we load more from Cocoon
   /// to create an infinite scroll effect.
-  Future<void> fetchMoreCommitStatuses() async {
+  ///
+  /// This method is idempotent (calling it when it's already running will
+  /// just return the same Future without kicking off more work).
+  Future<void> fetchMoreCommitStatuses() {
+    if (_moreStatuses != null) {
+      return _moreStatuses;
+    }
+    _moreStatuses = _fetchMoreCommitStatusesInternal();
+    _moreStatuses.whenComplete(() {
+      _moreStatuses = null;
+    });
+    return _moreStatuses;
+  }
+
+  Future<void> _fetchMoreCommitStatusesInternal() async {
     assert(_statuses.isNotEmpty);
 
     final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(

@@ -80,7 +80,7 @@ class DevelopmentCocoonService implements CocoonService {
         ..capabilities.add('dash')
         ..isHealthy = _random.nextBool()
         ..isHidden = false
-        ..healthCheckTimestamp = Int64.parseInt(DateTime.now().millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = Int64.parseInt(now.millisecondsSinceEpoch.toString())
         ..healthDetails = 'ssh-connectivity: succeeded\n'
             'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
             'android-device-ZY223D6B7B: succeeded\n'
@@ -166,39 +166,82 @@ class DevelopmentCocoonService implements CocoonService {
     'Skipped',
   ];
 
+  static const Map<String, int> _minAttempts = <String, int>{
+    'New': 0,
+    'In Progress': 1,
+    'Succeeded': 1,
+    'Succeeded Flaky': 1,
+    'Failed': 1,
+    'Underperformed': 1,
+    'Underperfomed In Progress': 1,
+    'Skipped': 0,
+  };
+
+  static const Map<String, int> _maxAttempts = <String, int>{
+    'New': 0,
+    'In Progress': 1,
+    'Succeeded': 1,
+    'Succeeded Flaky': 2,
+    'Failed': 2,
+    'Underperformed': 2,
+    'Underperfomed In Progress': 2,
+    'Skipped': 0,
+  };
+
   Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
     final int age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
+    // The [statusesProbability] list is an list of proportional
+    // weights to give each of the values in _statuses when randomly
+    // determining the status. So e.g. if one is 150, another 50, and
+    // the rest 0, then the first has a 75% chance of being picked,
+    // the second a 25% chance, and the rest a 0% chance.
     final List<int> statusesProbability = <int>[
       // bigger = more probable
-      math.max(1, 40 - age * 2), // blue
-      math.max(0, 80 - age * 10), // spinny
+      math.max(index % 2, 20 - age * 2), // blue
+      math.max(0, 10 - age * 2), // spinny
       math.min(10 + age * 2, 100), // green
       math.min(1 + age ~/ 3, 30), // yellow
-      math.min(2 + age ~/ 4, 50), // red
-      3, // orange
+      if (index % 15 == 0) // red
+        5
+      else if (index % 25 == 0) // red
+        15
+      else
+        1,
+      1, // orange
       1, // orange spinny
-      if (index == now.millisecondsSinceEpoch % 20)
+      if (index == now.millisecondsSinceEpoch % 20) // white
         math.max(0, 1000 - age * 20)
       else if (index == now.millisecondsSinceEpoch % 22)
         math.max(0, 1000 - age * 10)
       else
-        0, // white
+        0,
     ];
+    // max is the sum of all the values in statusesProbability.
     final int max = statusesProbability.fold(0, (int c, int p) => c + p);
+    // weightedIndex is the random number in the range 0 <= weightedIndex < max.
     int weightedIndex = random.nextInt(max);
+    // statusIndex is the actual index into _statuses that corresponds
+    // to the randomly selected weightedIndex. So if
+    // statusesProbability is 10,20,30 and weightedIndex is 15, then
+    // the statusIndex will be 1 (corresponding to the second entry,
+    // the one with weight 20, since lists are zero-indexed).
     int statusIndex = 0;
     while (weightedIndex > statusesProbability[statusIndex]) {
       weightedIndex -= statusesProbability[statusIndex];
       statusIndex += 1;
     }
+    // Finally we get the actual status using statusIndex as an index into _statuses.
     final String status = _statuses[statusIndex];
+    final int minAttempts = _minAttempts[status];
+    final int maxAttempts = _maxAttempts[status];
+    final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
     return Task()
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + index + 10000)
       ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
       ..name = 'task $index'
-      ..attempts = random.nextInt(4) == 0 ? 1 : 0
+      ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'

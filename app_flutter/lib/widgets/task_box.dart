@@ -3,56 +3,47 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
+import 'package:cocoon_service/protos.dart' show Task;
 
-import '../agent_dashboard_page.dart';
-import '../logic/task_helper.dart';
-import '../state/build.dart';
-import 'progress_button.dart';
-import 'status_grid.dart';
-import 'task_attempt_summary.dart';
+typedef ShowSnackBarCallback = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar snackBar);
 
-/// Displays information from a [Task].
-///
-/// If [Task.status] is "In Progress", it will show as a "New" task
-/// with a [CircularProgressIndicator] in the box.
-/// Shows a black box for unknown statuses.
-class TaskBox extends StatefulWidget {
-  const TaskBox({
-    Key key,
-    @required this.buildState,
-    @required this.task,
-    @required this.commit,
-    @visibleForTesting this.insertColorKeys = false,
-  })  : assert(task != null),
-        assert(buildState != null),
-        assert(commit != null),
-        super(key: key);
+class TaskBox {
+  const TaskBox._();
 
-  /// Reference to the build state to perform actions on this [Task], like rerunning or viewing the log.
-  final BuildState buildState;
+  /// How big to make each square in the grid.
+  static const double cellSize = 36;
 
-  /// [Task] to show information from.
-  final Task task;
-
-  /// [Commit] for cirrus tasks to show log.
-  final Commit commit;
-
-  /// Test variable for storing the color in the key.
-  final bool insertColorKeys;
-
-  /// Status messages that map to TaskStatus enums.
+  /// Status messages that map to [TaskStatus] enums.
   // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
   static const String statusFailed = 'Failed';
   static const String statusNew = 'New';
   static const String statusSkipped = 'Skipped';
   static const String statusSucceeded = 'Succeeded';
+  static const String statusInProgress = 'In Progress';
+
+  // Synthetic status messages created by [effectiveTaskStatus].
   static const String statusSucceededButFlaky = 'Succeeded Flaky';
   static const String statusUnderperformed = 'Underperformed';
   static const String statusUnderperformedInProgress = 'Underperfomed In Progress';
-  static const String statusInProgress = 'In Progress';
+
+  static String effectiveTaskStatus(Task task) {
+    final bool attempted = task.attempts > 1;
+    if (attempted) {
+      switch (task.status) {
+        case TaskBox.statusSucceeded:
+          return TaskBox.statusSucceededButFlaky;
+          break;
+        case TaskBox.statusNew:
+          return TaskBox.statusUnderperformed;
+          break;
+        case TaskBox.statusInProgress:
+          return TaskBox.statusUnderperformedInProgress;
+          break;
+      }
+    }
+    return task.status;
+  }
 
   /// A lookup table to define the background color for this TaskBox.
   ///
@@ -60,399 +51,11 @@ class TaskBox extends StatefulWidget {
   static const Map<String, Color> statusColor = <String, Color>{
     statusFailed: Colors.red,
     statusNew: Colors.blue,
-    statusInProgress: Colors.blue,
     statusSkipped: Colors.transparent,
     statusSucceeded: Colors.green,
+    statusInProgress: Colors.blue,
     statusSucceededButFlaky: Colors.yellow,
     statusUnderperformed: Colors.orange,
     statusUnderperformedInProgress: Colors.orange,
   };
-
-  @override
-  _TaskBoxState createState() => _TaskBoxState();
-}
-
-class _TaskBoxState extends State<TaskBox> {
-  OverlayEntry _taskOverlay;
-
-  /// [Task.status] modified to take into account [Task.attempts] to create
-  /// a more descriptive status.
-  ///
-  /// For example, [Task.status] = "In Progress" and [Task.attempts] > 1 results
-  /// in the status of [statusUnderperformedInProgress].
-  String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool attempted = widget.task.attempts > 1;
-
-    status = widget.task.status;
-    if (attempted) {
-      if (status == TaskBox.statusSucceeded) {
-        status = TaskBox.statusSucceededButFlaky;
-      } else if (status == TaskBox.statusNew) {
-        status = TaskBox.statusUnderperformed;
-      } else if (status == TaskBox.statusInProgress) {
-        status = TaskBox.statusUnderperformedInProgress;
-      }
-    }
-
-    final Color taskColor = TaskBox.statusColor.containsKey(status) ? TaskBox.statusColor[status] : Colors.black;
-
-    return SizedBox(
-      key: widget.insertColorKeys ? Key(taskColor.toString()) : null,
-      width: StatusGrid.cellSize,
-      height: StatusGrid.cellSize,
-      child: GestureDetector(
-        onTap: _handleTap,
-        child: Container(
-          margin: const EdgeInsets.all(1.0),
-          color: taskColor,
-          child: taskIndicators(widget.task, status),
-        ),
-      ),
-    );
-  }
-
-  /// Compiles a stack of indicators to show on a [TaskBox].
-  ///
-  /// If [Task.isFlaky], show a question mark.
-  /// If [status] is in progress, show an in progress indicator.
-  Stack taskIndicators(Task task, String status) {
-    return Stack(
-      children: <Widget>[
-        if (task.isFlaky)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(10.0, 12.0, 10.0, 12.0),
-            child: Icon(
-              Icons.help,
-              color: Colors.white60,
-              size: 25,
-            ),
-          ),
-        if (status == TaskBox.statusInProgress || status == TaskBox.statusUnderperformedInProgress)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(10.0, 12.0, 10.0, 12.0),
-            child: Icon(
-              Icons.timelapse,
-              color: Colors.white60,
-              size: 25,
-            ),
-          ),
-      ],
-    );
-  }
-
-  void _handleTap() {
-    _taskOverlay = OverlayEntry(
-      builder: (_) => TaskOverlayEntry(
-        buildState: widget.buildState,
-        parentContext: context,
-        task: widget.task,
-        taskStatus: status,
-        closeCallback: _closeOverlay,
-        commit: widget.commit,
-      ),
-    );
-
-    Overlay.of(context).insert(_taskOverlay);
-  }
-
-  void _closeOverlay() => _taskOverlay.remove();
-}
-
-/// Displays the information from [Task] and allows interacting with a [Task].
-///
-/// This is intended to be inserted in an [OverlayEntry] as it requires
-/// [closeCallback] that will remove the widget from the tree.
-class TaskOverlayEntry extends StatelessWidget {
-  const TaskOverlayEntry({
-    Key key,
-    @required this.parentContext,
-    @required this.task,
-    @required this.taskStatus,
-    @required this.closeCallback,
-    @required this.buildState,
-    this.commit,
-  })  : assert(parentContext != null),
-        assert(buildState != null),
-        assert(task != null),
-        assert(closeCallback != null),
-        super(key: key);
-
-  /// The parent context that has the size of the whole screen
-  final BuildContext parentContext;
-
-  /// A reference to the [BuildState] for performing operations on this [Task].
-  final BuildState buildState;
-
-  /// The [Task] to display in the overlay
-  final Task task;
-
-  /// [Commit] for cirrus tasks to show log.
-  final Commit commit;
-
-  /// [Task.status] modified to take into account [Task.attempts] to create
-  /// a more descriptive status.
-  final String taskStatus;
-
-  /// This callback removes the parent overlay from the widget tree.
-  ///
-  /// On a click that is outside the area of the overlay (the rest of the screen),
-  /// this callback is called closing the overlay.
-  final void Function() closeCallback;
-
-  @override
-  Widget build(BuildContext context) {
-    final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
-    final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
-
-    return Stack(
-      children: <Widget>[
-        /// This is a focus container to emphasize the [TaskBox] that this
-        /// [Overlay] is currently showing information from.
-        Positioned(
-          top: offsetLeft.dy,
-          left: offsetLeft.dx,
-          width: renderBox.size.width,
-          height: renderBox.size.height,
-          child: Container(
-            color: Colors.white70,
-            key: const Key('task-overlay-key'),
-          ),
-        ),
-        // This is the area a user can click (the rest of the screen) to close the overlay.
-        GestureDetector(
-          onTap: closeCallback,
-          child: Container(
-            width: MediaQuery.of(parentContext).size.width,
-            height: MediaQuery.of(parentContext).size.height,
-            // Color must be defined otherwise the container can't be clicked on
-            color: Colors.transparent,
-          ),
-        ),
-        Positioned(
-          // Move this overlay to be where the parent is
-          top: offsetLeft.dy + (renderBox.size.height / 2),
-          left: offsetLeft.dx + (renderBox.size.width / 2),
-          child: TaskOverlayContents(
-            showSnackbarCallback: Scaffold.of(parentContext).showSnackBar,
-            buildState: buildState,
-            task: task,
-            taskStatus: taskStatus,
-            commit: commit,
-            closeCallback: closeCallback,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Displays the information from [Task] and allows interacting with a [Task].
-///
-/// This is intended to be inserted in [TaskOverlayEntry].
-///
-/// Offers the functionality of opening the log for this [Task] and rerunning
-/// this [Task] through the build system.
-class TaskOverlayContents extends StatelessWidget {
-  const TaskOverlayContents({
-    Key key,
-    @required this.showSnackbarCallback,
-    @required this.buildState,
-    @required this.task,
-    @required this.taskStatus,
-    @required this.closeCallback,
-    this.commit,
-  })  : assert(showSnackbarCallback != null),
-        assert(buildState != null),
-        assert(task != null),
-        super(key: key);
-
-  final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar) showSnackbarCallback;
-
-  /// A reference to the [BuildState] for performing operations on this [Task].
-  final BuildState buildState;
-
-  /// The [Task] to display in the overlay
-  final Task task;
-
-  /// [Task.status] modified to take into account [Task.attempts] to create
-  /// a more descriptive status.
-  final String taskStatus;
-
-  /// [Commit] for cirrus tasks to show log.
-  final Commit commit;
-
-  /// This callback removes the parent overlay from the widget tree.
-  ///
-  /// This is used in this scope to close this overlay on redirection to view
-  /// the agent for this task in the agent dashboard.
-  final void Function() closeCallback;
-
-  @visibleForTesting
-  static const String rerunErrorMessage = 'Failed to rerun task.';
-  @visibleForTesting
-  static const String rerunSuccessMessage = 'Devicelab is rerunning the task. This can take a minute to propagate.';
-  @visibleForTesting
-  static const Duration rerunSnackbarDuration = Duration(seconds: 15);
-  @visibleForTesting
-  static const String downloadLogErrorMessage = 'Failed to download task log.';
-  @visibleForTesting
-  static const Duration downloadLogSnackbarDuration = Duration(seconds: 15);
-
-  /// A lookup table to define the [Icon] for this [taskStatus].
-  static const Map<String, Icon> statusIcon = <String, Icon>{
-    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
-    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
-    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
-    TaskBox.statusUnderperformed: Icon(Icons.new_releases, color: Colors.orange, size: 32),
-    TaskBox.statusUnderperformedInProgress: Icon(Icons.autorenew, color: Colors.orange, size: 32),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
-    final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
-    final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
-
-    final Duration queueDuration = startTime.difference(createTime);
-    final Duration runDuration = endTime.difference(startTime);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Tooltip(
-                      message: taskStatus,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
-                        child: statusIcon[taskStatus],
-                      ),
-                    ),
-                    Expanded(
-                      child: ListBody(
-                        children: <Widget>[
-                          SelectableText(
-                            task.name,
-                            style: Theme.of(context).textTheme.bodyText1,
-                          ),
-                          if (isDevicelab(task))
-                            Text(
-                              'Attempts: ${task.attempts}\n'
-                              'Run time: ${runDuration.inMinutes} minutes\n'
-                              'Queue time: ${queueDuration.inSeconds} seconds\n'
-                              'Flaky: ${task.isFlaky}',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            )
-                          else
-                            Text(
-                              'Task was run outside of devicelab',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                          if (isDevicelab(task)) TaskAttemptSummary(task: task),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  if (isDevicelab(task))
-                    RaisedButton(
-                      child: Text.rich(
-                        TextSpan(
-                          text: 'FIND ',
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: task.reservedForAgentId,
-                              style: const TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onPressed: () {
-                        // Close the current overlay
-                        closeCallback();
-
-                        // Open the agent dashboard
-                        Navigator.pushNamed(
-                          context,
-                          AgentDashboardPage.routeName,
-                          arguments: task.reservedForAgentId,
-                        );
-                      },
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: ProgressButton(
-                      child: const Text('DOWNLOAD ALL LOGS'),
-                      onPressed: _viewLog,
-                    ),
-                  ),
-                  if (isDevicelab(task))
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: ProgressButton(
-                        child: const Text('RERUN'),
-                        onPressed: _rerunTask,
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _rerunTask() async {
-    final bool success = await buildState.rerunTask(task);
-    final Text snackbarText = success ? const Text(rerunSuccessMessage) : const Text(rerunErrorMessage);
-    showSnackbarCallback(
-      SnackBar(
-        content: snackbarText,
-        duration: rerunSnackbarDuration,
-      ),
-    );
-  }
-
-  /// If [task] is in the devicelab, download the log. Otherwise, open the
-  /// url closest to where the log will be.
-  ///
-  /// If a devicelab log fails to download, show an error snackbar.
-  Future<void> _viewLog() async {
-    if (isDevicelab(task)) {
-      final bool success = await buildState.downloadLog(task, commit);
-
-      if (!success) {
-        /// Only show [Snackbar] on failure since the user's device will
-        /// indicate a download has been made.
-        showSnackbarCallback(
-          const SnackBar(
-            content: Text(downloadLogErrorMessage),
-            duration: rerunSnackbarDuration,
-          ),
-        );
-      }
-
-      return;
-    }
-
-    /// Tasks outside of devicelab have public logs that we just redirect to.
-    launch(logUrl(task, commit: commit));
-  }
 }

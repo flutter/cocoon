@@ -11,7 +11,7 @@ import 'package:app_flutter/service/dev_cocoon.dart';
 
 void main() {
   testWidgets('DevelopmentCocoonService agents don\'t duplicate', (WidgetTester tester) async {
-    final DevelopmentCocoonService cocoon = DevelopmentCocoonService(DateTime(0));
+    final DevelopmentCocoonService cocoon = DevelopmentCocoonService(DateTime.utc(0));
     CocoonResponse<List<Agent>> agents;
     await tester.runAsync<void>(() async {
       agents = await cocoon.fetchAgentStatuses();

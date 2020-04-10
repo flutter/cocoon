@@ -9,12 +9,12 @@ import 'navigation_drawer.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
-import 'widgets/status_grid.dart';
+import 'widgets/task_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
 /// The tree's current build status is reflected in [AppBar].
-/// The results from tasks run on individual commits is shown in [StatusGrid].
+/// The results from tasks run on individual commits is shown in [TaskGrid].
 class BuildDashboardPage extends StatelessWidget {
   const BuildDashboardPage({
     Key key,
@@ -77,7 +77,7 @@ class BuildDashboardPage extends StatelessWidget {
         body: ErrorBrookWatcher(
           errors: _buildState.errors,
           child: const SizedBox.expand(
-            child: StatusGridContainer(),
+            child: TaskGridContainer(),
           ),
         ),
         drawer: const NavigationDrawer(),

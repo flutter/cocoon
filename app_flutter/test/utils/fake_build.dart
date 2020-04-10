@@ -19,6 +19,9 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   FakeBuildState({
     GoogleSignInService authService,
     CocoonService cocoonService,
+    this.statuses = const <CommitStatus>[],
+    this.moreStatusesExist = true,
+    this.rerunTaskResult,
   })  : authService = authService ?? MockGoogleSignInService(),
         cocoonService = cocoonService ?? MockCocoonService();
 
@@ -41,13 +44,14 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Duration get refreshRate => null;
 
   @override
-  Future<bool> rerunTask(Task task) => null;
+  Future<bool> rerunTask(Task task) async => rerunTaskResult;
+  final bool rerunTaskResult;
 
   @override
-  List<CommitStatus> statuses = <CommitStatus>[];
+  final List<CommitStatus> statuses;
 
   @override
-  bool moreStatusesExist = true;
+  final bool moreStatusesExist;
 
   @override
   Future<bool> downloadLog(Task task, Commit commit) => null;

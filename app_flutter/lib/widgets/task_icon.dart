@@ -5,23 +5,22 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:cocoon_service/protos.dart' show Task;
+import '../logic/qualified_task.dart';
 
-import '../logic/task_helper.dart';
-
-/// Header icon for all [Task] that map to the same [task.stageName] and [task.name].
+/// Header icon for all [Task]s that map to the same [Task.stageName]
+/// and [Task.name].
 ///
-/// Intended to be used in the first row of [StatusGrid].
-/// Shows an icon based on [task.stageName], defaulting to [Icons.help] if it can't be mapped.
-/// On tap, shows [task.name].
+/// Intended to be used in the first row of [TaskGrid]. Shows an
+/// icon based on [qualifiedTask.stage], defaulting to [Icons.help] if
+/// it can't be mapped. On tap, shows the task.
 class TaskIcon extends StatelessWidget {
   const TaskIcon({
     Key key,
-    @required this.task,
+    @required this.qualifiedTask,
   }) : super(key: key);
 
   /// [Task] to get information from.
-  final Task task;
+  final QualifiedTask qualifiedTask;
 
   /// A lookup table for matching [stageName] to [Image].
   ///
@@ -37,20 +36,18 @@ class TaskIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget icon = const Icon(Icons.help);
-    if (task.stageName == StageName.luci && task.name == 'linux_bot') {
+    if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {
       icon = Image.asset('assets/fuchsia.png');
-    } else if (stageIcons.containsKey(task.stageName)) {
-      icon = stageIcons[task.stageName];
+    } else if (stageIcons.containsKey(qualifiedTask.stage)) {
+      icon = stageIcons[qualifiedTask.stage];
     }
-    return GestureDetector(
-      onTap: () => launch(sourceConfigurationUrl(task)),
+    return InkWell(
+      onTap: () => launch(qualifiedTask.sourceConfigurationUrl),
       child: Tooltip(
-        message: task.name,
-        child: Container(
-          margin: const EdgeInsets.all(7.5),
+        message: '${qualifiedTask.task} (${qualifiedTask.stage})',
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
           child: icon,
-          width: 100,
-          height: 100,
         ),
       ),
     );

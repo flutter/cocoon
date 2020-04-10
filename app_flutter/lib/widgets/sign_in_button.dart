@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
-import 'canvaskit_widget.dart';
+import 'web_image.dart';
 
 enum _SignInButtonAction { logout }
 
@@ -33,13 +33,13 @@ class SignInButton extends StatelessWidget {
           return PopupMenuButton<_SignInButtonAction>(
             // TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
             // CanvasKit currently cannot render a NetworkImage because of CORS issues.
-            child: CanvasKitWidget(
-              canvaskit: Padding(
+            child: WebImage(
+              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
+              imageUrl: authService.user?.photoUrl,
+              placeholder: (BuildContext context, String url) => Padding(
                 child: Text(authService.user.email),
                 padding: const EdgeInsets.only(right: 10.0, top: 20.0),
               ),
-              // TODO(chillers): Switch to use avatar widget provided by google_sign_in plugin
-              other: Image.network(authService.user?.photoUrl),
             ),
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[

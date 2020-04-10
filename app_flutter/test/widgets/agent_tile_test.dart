@@ -17,7 +17,7 @@ import 'package:app_flutter/widgets/now.dart';
 import '../utils/mocks.dart';
 import '../utils/output.dart';
 
-final DateTime healthyTime = DateTime(2010, 5, 6, 12, 30);
+final DateTime healthyTime = DateTime.utc(2010, 5, 6, 12, 30);
 final DateTime nowTime = healthyTime.add(
   const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
 );

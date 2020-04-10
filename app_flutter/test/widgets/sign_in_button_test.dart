@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +15,16 @@ import 'package:app_flutter/widgets/state_provider.dart';
 import '../utils/fake_google_account.dart';
 import '../utils/mocks.dart';
 
+final Widget testApp = MaterialApp(
+  home: Scaffold(
+    appBar: AppBar(
+      actions: const <Widget>[
+        SignInButton(),
+      ],
+    ),
+  ),
+);
+
 void main() {
   GoogleSignInService mockAuthService;
 
@@ -25,39 +34,32 @@ void main() {
 
   tearDown(() {
     clearInteractions(mockAuthService);
-
-    // Image.Network caches images which must be cleared.
-    PaintingBinding.instance.imageCache.clear();
   });
 
-  testWidgets('shows sign in when not authenticated', (WidgetTester tester) async {
+  testWidgets('SignInButton shows sign in when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
         value: mockAuthService,
-        child: const Directionality(
-          textDirection: TextDirection.ltr,
-          child: SignInButton(),
-        ),
+        child: testApp,
       ),
     );
     await tester.pump();
 
     expect(find.byType(GoogleUserCircleAvatar), findsNothing);
     expect(find.text('SIGN IN'), findsOneWidget);
+    expect(find.text('test@flutter.dev'), findsNothing);
+    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.not_authenticated.png'));
   });
 
-  testWidgets('calls sign in on tap when not authenticated', (WidgetTester tester) async {
+  testWidgets('SignInButton calls sign in on tap when not authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
         value: mockAuthService,
-        child: const Directionality(
-          textDirection: TextDirection.ltr,
-          child: SignInButton(),
-        ),
+        child: testApp,
       ),
     );
     await tester.pump();
@@ -70,7 +72,7 @@ void main() {
     verify(mockAuthService.signIn()).called(1);
   });
 
-  testWidgets('shows avatar when authenticated', (WidgetTester tester) async {
+  testWidgets('SignInButton shows avatar when authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
@@ -79,24 +81,18 @@ void main() {
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
         value: mockAuthService,
-        child: MaterialApp(
-          home: AppBar(
-            leading: const SignInButton(),
-          ),
-        ),
+        child: testApp,
       ),
     );
     await tester.pump();
-    // TODO(chillers): Remove this web check once issue is resolved. https://github.com/flutter/flutter/issues/44370
-    if (!kIsWeb) {
-      expect(tester.takeException(), isInstanceOf<NetworkImageLoadException>());
-    }
 
+    // TODO(chillers): look for GoogleUserCircleAvatar once we use that (see sign_in_button.dart)
     expect(find.text('SIGN IN'), findsNothing);
-    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('test@flutter.dev'), findsOneWidget);
+    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.authenticated.png'));
   });
 
-  testWidgets('calls sign out on tap when authenticated', (WidgetTester tester) async {
+  testWidgets('SignInButton calls sign out on tap when authenticated', (WidgetTester tester) async {
     when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
@@ -105,19 +101,12 @@ void main() {
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
         value: mockAuthService,
-        child: MaterialApp(
-          home: AppBar(
-            leading: const SignInButton(),
-          ),
-        ),
+        child: testApp,
       ),
     );
     await tester.pump();
-    if (!kIsWeb) {
-      expect(tester.takeException(), isInstanceOf<NetworkImageLoadException>());
-    }
 
-    await tester.tap(find.byType(Image));
+    await tester.tap(find.byType(SignInButton));
     await tester.pumpAndSettle();
 
     verifyNever(mockAuthService.signOut());
