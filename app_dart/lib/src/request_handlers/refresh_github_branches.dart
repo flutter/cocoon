@@ -54,7 +54,8 @@ class RefreshGithubBranches extends ApiRequestHandler<Body> {
     final String newValue =
         branches.map((Branch branch) => branch.name).toList().join(',');
     final Map<String, String> map = <String, String>{'branches': newValue};
-    final Map<String, dynamic> jsonValue = json.decode(result.value) as Map<String, dynamic>;
+    final Map<String, dynamic> jsonValue =
+        json.decode(result.value) as Map<String, dynamic>;
     final String oldValue = jsonValue['branches'] as String;
 
     if (oldValue != newValue) {
