@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+# This script provisions a salt minion on a Flutter test bed, it supports Linux and macOS.
+
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 
 # Installs salt minion.
