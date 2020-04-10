@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
@@ -67,7 +69,7 @@ void main() {
       final CocoonConfig cocoonConfig = CocoonConfig()
         ..id = 'FlutterBranches'
         ..parentKey = config.db.emptyKey
-        ..value = 'test';
+        ..value = json.encode(<String, dynamic>{'branches': 'test'});
       config.db.values[cocoonConfig.key] = cocoonConfig;
 
       expect(cocoonConfig.id, 'FlutterBranches');
@@ -76,7 +78,10 @@ void main() {
       await tester.get(handler);
 
       // Length of the hashed code using [dbcrypt] is 60
-      expect(cocoonConfig.value, 'master,flutter-1.1-candidate.0');
+      expect(
+          cocoonConfig.value,
+          json.encode(
+              <String, dynamic>{'branches': 'master,flutter-1.1-candidate.0'}));
     });
   });
 }
