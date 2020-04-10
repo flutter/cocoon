@@ -21,7 +21,6 @@ export 'src/request_handlers/push_engine_status_to_github.dart';
 export 'src/request_handlers/push_gold_status_to_github.dart';
 export 'src/request_handlers/refresh_chromebot_status.dart';
 export 'src/request_handlers/refresh_cirrus_status.dart';
-export 'src/request_handlers/refresh_github_branches.dart';
 export 'src/request_handlers/refresh_github_commits.dart';
 export 'src/request_handlers/reserve_task.dart';
 export 'src/request_handlers/reset_devicelab_task.dart';

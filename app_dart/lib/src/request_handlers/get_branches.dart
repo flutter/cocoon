@@ -10,6 +10,8 @@ import '../datastore/cocoon_config.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
+/// Returns  repo [config.flutterSlug] branches that match pre-defined
+/// branch regular expressions.
 @immutable
 class GetBranches extends RequestHandler<Body> {
   const GetBranches(

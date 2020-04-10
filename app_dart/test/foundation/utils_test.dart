@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:github/server.dart';
@@ -108,9 +109,9 @@ void main() {
       test('returns matched branches', () async {
         githubBranches = <String>['dev', 'flutter-0.0-candidate.0'];
         branchHttpClient.request.response.body = branchRegExp;
-        final List<Branch> branches = await getBranches(config,
+        final Uint8List branches = await getBranches(config,
             () => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(branches.length, 1);
+        expect(String.fromCharCodes(branches).split(',').length, 1);
       });
     });
 

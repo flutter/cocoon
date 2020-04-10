@@ -14,8 +14,10 @@ import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
-
 import '../../cocoon_service.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
@@ -36,6 +38,18 @@ class Config {
   static const Duration configCacheTtl = Duration(hours: 12);
 
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
+
+  Future<List<String>> _getFlutterBranches() async {
+    final Uint8List cacheValue = await _cache.getOrCreate(
+      configCacheName,
+      'flutterBranches',
+      createFn: () => getBranches(this, Providers.freshHttpClient,
+          loggingService, twoSecondLinearBackoff),
+      ttl: configCacheTtl,
+    );
+
+    return String.fromCharCodes(cacheValue).split(',');
+  }
 
   Future<String> _getSingleValue(String id) async {
     final Uint8List cacheValue = await _cache.getOrCreate(
@@ -60,13 +74,7 @@ class Config {
 
   DatastoreDB get db => _db;
 
-  Future<List<String>> get flutterBranches async {
-    final String rawValue = await _getSingleValue('test');
-    final Map<String, dynamic> jsonValue =
-        json.decode(rawValue) as Map<String, dynamic>;
-    final String branches = jsonValue['branches'] as String;
-    return branches.split(',');
-  }
+  Future<List<String>> get flutterBranches => _getFlutterBranches();
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
