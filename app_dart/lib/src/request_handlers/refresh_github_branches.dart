@@ -44,7 +44,7 @@ class RefreshGithubBranches extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
-    const String id = 'test';
+    const String id = 'FlutterBranches';
 
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
@@ -54,8 +54,10 @@ class RefreshGithubBranches extends ApiRequestHandler<Body> {
     final String newValue =
         branches.map((Branch branch) => branch.name).toList().join(',');
     final Map<String, String> map = <String, String>{'branches': newValue};
+    final Map<String, dynamic> jsonValue = json.decode(result.value) as Map<String, dynamic>;
+    final String oldValue = jsonValue['branches'] as String;
 
-    if (result.value != newValue) {
+    if (oldValue != newValue) {
       result.value = jsonEncode(map);
       await datastore.db.commit(inserts: <CocoonConfig>[result]);
     }
