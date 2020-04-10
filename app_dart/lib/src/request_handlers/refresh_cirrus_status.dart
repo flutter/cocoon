@@ -57,10 +57,9 @@ class RefreshCirrusStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final GraphQLClient client = await config.createCirrusGraphQLClient();
-    final String branches = await config.flutterBranches;
     const int commitLimit = 15;
 
-    for (String branch in branches.split(',')) {
+    for (String branch in await config.flutterBranches) {
       await for (FullTask task in datastore.queryRecentTasks(
           taskName: 'cirrus', commitLimit: commitLimit, branch: branch)) {
         final String sha = task.commit.sha;

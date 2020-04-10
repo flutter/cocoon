@@ -113,7 +113,7 @@ void main() {
 
     test('succeeds when GitHub returns no commits', () async {
       githubCommits = <String>[];
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
       final Body body = await tester.get<Body>(handler);
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
@@ -124,7 +124,10 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = 'flutter-1.1-candidate.1,master';
+      config.flutterBranchesValue = <String>[
+        'flutter-1.1-candidate.1',
+        'master'
+      ];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
@@ -137,7 +140,7 @@ void main() {
     test('stops requesting GitHub commits when it finds an existing commit',
         () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
       for (String sha in dbCommits) {
         final Commit commit = shaToCommit(sha, 'master');
@@ -157,7 +160,7 @@ void main() {
 
     test('inserts the latest single commit if a new branch is found', () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      config.flutterBranchesValue = 'flutter-0.0-candidate.0';
+      config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
       config.newBranchHoursValue = 168;
 
       expect(db.values.values.whereType<Commit>().length, 0);
@@ -168,7 +171,7 @@ void main() {
 
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
@@ -200,7 +203,7 @@ void main() {
       };
 
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
@@ -216,7 +219,7 @@ void main() {
       httpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
 
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
       await expectLater(

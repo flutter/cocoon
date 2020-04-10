@@ -82,7 +82,7 @@ class FakeConfig implements Config {
   Set<String> rollerAccountsValue;
   int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
-  String flutterBranchesValue;
+  List<String> flutterBranchesValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -125,7 +125,7 @@ class FakeConfig implements Config {
   int get newBranchHours => newBranchHoursValue;
 
   @override
-  Future<String> get flutterBranches async => flutterBranchesValue;
+  Future<List<String>> get flutterBranches async => flutterBranchesValue;
 
   @override
   KeyHelper get keyHelper => keyHelperValue;

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:github/server.dart';
 import 'package:meta/meta.dart';
@@ -16,7 +17,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
 
-/// Queries GitHub for the list of available branches, fliters ones according
+/// Queries GitHub for the list of available branches, filters ones according
 /// to [branch_regexps], and updates [FlutterBranches] in datastore if values are
 /// changed.
 @immutable
@@ -43,7 +44,7 @@ class RefreshGithubBranches extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<Branch> branches = await getBranches(
         config, branchHttpClientProvider, log, gitHubBackoffCalculator);
-    const String id = 'FlutterBranches';
+    const String id = 'test';
 
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
@@ -52,9 +53,10 @@ class RefreshGithubBranches extends ApiRequestHandler<Body> {
         await datastore.db.lookupValue<CocoonConfig>(cocoonConfig.key);
     final String newValue =
         branches.map((Branch branch) => branch.name).toList().join(',');
+    final Map<String, String> map = <String, String>{'branches': newValue};
 
     if (result.value != newValue) {
-      result.value = newValue;
+      result.value = jsonEncode(map);
       await datastore.db.commit(inserts: <CocoonConfig>[result]);
     }
 

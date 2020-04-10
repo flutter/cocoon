@@ -18,9 +18,8 @@ class GetBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String branches = await config.flutterBranches;
+    final List<String> branches = await config.flutterBranches;
 
-    return Body.forJson(
-        <String, List<String>>{'Branches': branches.split(',')});
+    return Body.forJson(<String, List<String>>{'Branches': branches});
   }
 }

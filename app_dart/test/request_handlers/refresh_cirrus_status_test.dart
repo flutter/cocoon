@@ -32,7 +32,10 @@ void main() {
     FakeGraphQLClient cirrusGraphQLClient;
     List<dynamic> statuses = <dynamic>[];
     String cirrusBranch;
-    const String githubBranches = 'master,flutter-0.0-candidate.0';
+    const List<String> githubBranches = <String>[
+      'master',
+      'flutter-0.0-candidate.0'
+    ];
 
     setUp(() {
       final FakeGithubService githubService = FakeGithubService();

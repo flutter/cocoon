@@ -60,8 +60,13 @@ class Config {
 
   DatastoreDB get db => _db;
 
-  // TODO(keyonghan): [FlutterBranches] should be refreshed periodically, https://github.com/flutter/flutter/issues/54315
-  Future<String> get flutterBranches => _getSingleValue('FlutterBranches');
+  Future<List<String>> get flutterBranches async {
+    final String rawValue = await _getSingleValue('test');
+    final Map<String, dynamic> jsonValue =
+        json.decode(rawValue) as Map<String, dynamic>;
+    final String branches = jsonValue['branches'] as String;
+    return branches.split(',');
+  }
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 

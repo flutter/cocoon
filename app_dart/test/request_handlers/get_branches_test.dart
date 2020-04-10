@@ -26,7 +26,10 @@ void main() {
     });
 
     test('returns branches matching regExps', () async {
-      config.flutterBranchesValue = 'flutter-1.1-candidate.1,master';
+      config.flutterBranchesValue = <String>[
+        'flutter-1.1-candidate.1',
+        'master'
+      ];
 
       final Body body = await tester.get(handler);
       final Map<String, dynamic> result = await utf8.decoder
