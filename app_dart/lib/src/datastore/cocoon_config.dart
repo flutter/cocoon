@@ -16,7 +16,6 @@ import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
