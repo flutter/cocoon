@@ -35,10 +35,8 @@ typedef RetryHandler = Function();
 ///
 /// It uses quadratic backoff starting with 50ms and 3 max attempts.
 Future<void> runTransactionWithRetries(RetryHandler retryHandler,
-    {int delayMilliseconds = 50, int maxAttempts = 3}) {
-  final RetryOptions r = RetryOptions(
-      delayFactor: Duration(milliseconds: delayMilliseconds),
-      maxAttempts: maxAttempts);
+    {int maxAttempts = 8}) {
+  final RetryOptions r = RetryOptions(maxAttempts: maxAttempts);
   return r.retry(
     retryHandler,
     retryIf: (Exception e) =>
