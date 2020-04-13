@@ -16,6 +16,7 @@ import 'package:gcloud/db.dart';
 import 'package:github/server.dart';
 import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -40,6 +41,7 @@ void main() {
     String branch;
     MockHttpClient mockHttpClient;
     RepositorySlug slug;
+    RetryOptions retryOptions;
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -52,10 +54,21 @@ void main() {
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockHttpClient();
+      retryOptions = const RetryOptions(
+        delayFactor: Duration(milliseconds: 1),
+        maxDelay: Duration(milliseconds: 2),
+        maxAttempts: 2,
+      );
       handler = PushGoldStatusToGithub(
         config,
         auth,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) {
+          return DatastoreService(
+            config.db,
+            5,
+            retryOptions: retryOptions,
+          );
+        },
         loggingProvider: () => log,
         goldClient: mockHttpClient,
       );

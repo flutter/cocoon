@@ -33,12 +33,15 @@ typedef RetryHandler = Function();
 
 /// Runs a db transaction with retries.
 ///
-/// It uses quadratic backoff starting with 50ms and 3 max attempts.
+/// It uses quadratic backoff starting with 200ms and 3 max attempts.
+/// for context please read https://github.com/flutter/flutter/issues/54615.
 Future<void> runTransactionWithRetries(RetryHandler retryHandler,
-    {int delayMilliseconds = 50, int maxAttempts = 3}) {
-  final RetryOptions r = RetryOptions(
-      delayFactor: Duration(milliseconds: delayMilliseconds),
-      maxAttempts: maxAttempts);
+    {RetryOptions retryOptions}) {
+  final RetryOptions r = retryOptions ??
+      const RetryOptions(
+        maxDelay: Duration(seconds: 10),
+        maxAttempts: 3,
+      );
   return r.retry(
     retryHandler,
     retryIf: (Exception e) =>
@@ -55,16 +58,23 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService(
-    this.db,
-    this.maxEntityGroups,
-  ) : assert(db != null, maxEntityGroups != null);
+  const DatastoreService(this.db, this.maxEntityGroups,
+      {RetryOptions retryOptions})
+      : assert(db != null, maxEntityGroups != null),
+        retryOptions = retryOptions ??
+            const RetryOptions(
+              maxDelay: Duration(seconds: 10),
+              maxAttempts: 3,
+            );
 
   /// Maximum number of entity groups to process at once.
   final int maxEntityGroups;
 
   /// The backing [DatastoreDB] object. Guaranteed to be non-null.
   final DatastoreDB db;
+
+  /// Transaction retry configurations.
+  final RetryOptions retryOptions;
 
   /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
   static DatastoreService defaultProvider(DatastoreDB db) {
@@ -251,7 +261,7 @@ class DatastoreService {
           transaction.queueMutations(inserts: shard);
           await transaction.commit();
         });
-      });
+      }, retryOptions: retryOptions);
     }
   }
 
@@ -262,7 +272,7 @@ class DatastoreService {
       await db.withTransaction<void>((Transaction transaction) async {
         results = await transaction.lookup<T>(keys);
       });
-    });
+    }, retryOptions: retryOptions);
     return results;
   }
 
@@ -274,7 +284,7 @@ class DatastoreService {
       await db.withTransaction<void>((Transaction transaction) async {
         result = await db.lookupValue<T>(key, orElse: orElse);
       });
-    });
+    }, retryOptions: retryOptions);
     return result;
   }
 
@@ -285,7 +295,7 @@ class DatastoreService {
       await db.withTransaction<void>((Transaction transaction) async {
         result = await handler(transaction);
       });
-    });
+    }, retryOptions: retryOptions);
     return result;
   }
 }
