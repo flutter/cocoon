@@ -7,7 +7,6 @@ import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:angular/angular.dart';
-import 'package:angular_components/angular_components.dart';
 import 'package:angular_forms/angular_forms.dart';
 import 'package:cocoon/benchmark/benchmark_card.dart';
 import 'package:cocoon/benchmark/benchmark_history.dart';
@@ -27,12 +26,7 @@ typedef bool _BenchmarkPredicate(BenchmarkData data);
     NgClass,
     BenchmarkCard,
     BenchmarkHistory,
-    MaterialDropdownSelectComponent,
-    DomPopupSourceFactory,
     formDirectives,
-  ],
-  providers: const [
-    popupBindings,
   ],
 )
 class BenchmarkGrid implements OnInit, OnDestroy {
@@ -45,20 +39,11 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   Timer _reloadTimer;
   bool _isShowArchived = false;
   bool _userIsAuthenticated = false;
-  List<String> _values = ['master'];
-  String _selectedValue = 'master';
 
   String _taskTextFilter;
   String get taskTextFilter => _taskTextFilter;
   set taskTextFilter(String value) {
     applyTextFilter(value);
-  }
-
-  List<String> get values => _values;
-  String get selectedValue => _selectedValue;
-  set selectedValue(String value) {
-    _selectedValue = value;
-    reloadData(branch: value);
   }
 
   bool get isShowArchived => _isShowArchived;
@@ -83,18 +68,11 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _applyFilters();
   }
 
-  Future<void> getBranches() async {
-    Map<String, dynamic> branchJson =
-        json.decode((await _httpClient.get('/api/public/get-branches')).body);
-    _values = new BranchList.fromJson(branchJson).branches;
-  }
-
   @override
   void ngOnInit() {
-    getBranches();
     reloadData(initialLoad: true);
     _reloadTimer =
-        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData(branch: _selectedValue));
+        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData());
     getAuthenticationStatus('/').then((AuthenticationStatus status) {
       _userIsAuthenticated = status.isAuthenticated;
     });
@@ -105,10 +83,10 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _reloadTimer?.cancel();
   }
 
-  Future<Null> reloadData({bool initialLoad: false, String branch: 'master'}) async {
+  Future<Null> reloadData({bool initialLoad: false}) async {
     isLoading = true;
     Map<String, dynamic> statusJson =
-        json.decode((await _httpClient.get('/api/public/get-benchmarks?branch=$branch')).body);
+        json.decode((await _httpClient.get('/api/public/get-benchmarks')).body);
     _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {

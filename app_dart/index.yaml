@@ -45,9 +45,3 @@ indexes:
   properties:
   - name: CreateTimestamp
     direction: desc
-- kind: TimeseriesValue
-  ancestor: yes
-  properties:
-  - name: Branch
-  - name: CreateTimestamp
-    direction: desc
