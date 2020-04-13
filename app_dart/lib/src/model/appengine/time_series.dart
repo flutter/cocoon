@@ -5,8 +5,6 @@
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'key_converter.dart';
-
 part 'time_series.g.dart';
 
 /// Class that represents a quantifiable metric that is tracked at every commit
@@ -96,33 +94,3 @@ class TimeSeries extends Model {
   }
 }
 
-/// The serialized representation of a [TimeSeries].
-// TODO(tvolkert): Directly serialize [TimeSeries] once frontends migrate to new format.
-@JsonSerializable(createFactory: false)
-class SerializableTimeSeries {
-  const SerializableTimeSeries({
-    this.series,
-  });
-
-  @JsonKey(name: 'Timeseries')
-  final TimeSeries series;
-
-  @JsonKey(name: 'Key')
-  @KeyConverter()
-  Key get key => series.key;
-
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'Archived': series.archived,
-      'Baseline': series.baseline,
-      'Goal': series.goal,
-      'ID': series.timeSeriesId,
-      'Label': series.label,
-      'TaskName': series.taskName,
-      'Unit': series.unit,
-    };
-  }
-
-  /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$SerializableTimeSeriesToJson(this);
-}

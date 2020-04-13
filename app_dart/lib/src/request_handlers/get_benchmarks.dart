@@ -83,7 +83,7 @@ class GetBenchmarks extends RequestHandler<Body> {
 
       benchmarks.add(<String, dynamic>{
         'Timeseries': <String, dynamic>{
-          'Timeseries': SerializableTimeSeries(series: series).facade,
+          'Timeseries': series,
           'Key': keyHelper.encode(series.key)
         },
         'Values': values,
