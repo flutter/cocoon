@@ -42,22 +42,20 @@ void main() {
       config = FakeConfig(keyHelperValue: keyHelper);
       handler = GetBenchmarks(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
     });
 
     test('reports statuses without input branch', () async {
       final TimeSeries timeSeries = TimeSeries(
-        key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
-        taskName: 'test',
-        label: 'test1',
-        archived: false,
-        baseline: 0,
-        goal: 0,
-        timeSeriesId: 'abc',
-        unit: 's'
-      );
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
+          taskName: 'test',
+          label: 'test1',
+          archived: false,
+          baseline: 0,
+          goal: 0,
+          timeSeriesId: 'abc',
+          unit: 's');
 
       final TimeSeriesValue timeSeriesValue = TimeSeriesValue(
         key: timeSeries.key.append(TimeSeriesValue, id: 123),
@@ -79,8 +77,7 @@ void main() {
       config.db.values[commit2.key] = commit2;
       handler = GetBenchmarks(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
       expect(config.db.values.length, 4);
@@ -89,21 +86,21 @@ void main() {
 
       expect(result['Benchmarks'].length, 1);
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark =
+          benchmarks.first as Map<String, dynamic>;
       expect(benchmark['Values'].length, 2);
     });
 
     test('reports statuses with input branch', () async {
       final TimeSeries timeSeries = TimeSeries(
-        key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
-        taskName: 'test',
-        label: 'test1',
-        archived: false,
-        baseline: 0,
-        goal: 0,
-        timeSeriesId: 'abc',
-        unit: 's'
-      );
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
+          taskName: 'test',
+          label: 'test1',
+          archived: false,
+          baseline: 0,
+          goal: 0,
+          timeSeriesId: 'abc',
+          unit: 's');
 
       final TimeSeriesValue timeSeriesValue = TimeSeriesValue(
         key: timeSeries.key.append(TimeSeriesValue, id: 123),
@@ -125,8 +122,7 @@ void main() {
       config.db.values[commit2.key] = commit2;
       handler = GetBenchmarks(
         config,
-        datastoreProvider: ({DatastoreDB db, int maxEntityGroups}) =>
-            DatastoreService(config.db, 5),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
       const String branch = 'flutter-1.1-candidate.1';
@@ -140,7 +136,8 @@ void main() {
 
       expect(result['Benchmarks'].length, 1);
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark =
+          benchmarks.first as Map<String, dynamic>;
       expect(benchmark['Values'].length, 1);
     });
   });
