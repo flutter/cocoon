@@ -28,4 +28,3 @@ Map<String, dynamic> _$TimeSeriesToJson(TimeSeries instance) =>
       'TaskName': instance.taskName,
       'Unit': instance.unit,
     };
-

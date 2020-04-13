@@ -93,4 +93,3 @@ class TimeSeries extends Model {
     return buf.toString();
   }
 }
-
