@@ -111,18 +111,6 @@ class SerializableTimeSeries {
   @KeyConverter()
   Key get key => series.key;
 
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'Archived': series.archived,
-      'Baseline': series.baseline,
-      'Goal': series.goal,
-      'ID': series.timeSeriesId,
-      'Label': series.label,
-      'TaskName': series.taskName,
-      'Unit': series.unit,
-    };
-  }
-
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$SerializableTimeSeriesToJson(this);
 }
