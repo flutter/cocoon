@@ -320,6 +320,21 @@ class Timeseries {
 }
 
 @JsonSerializable(nullable: true)
+class BranchList {
+  const BranchList({
+    this.branches,
+  });
+
+  factory BranchList.fromJson(Map<String, dynamic> json) =>
+      _$BranchListFromJson(json);
+
+  @JsonKey(name: 'Branches')
+  final List<String> branches;
+
+  Map<String, dynamic> toJson() => _$BranchListToJson(this);
+}
+
+@JsonSerializable(nullable: true)
 class TimeseriesValue {
   const TimeseriesValue({
     this.createTimestamp,

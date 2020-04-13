@@ -110,6 +110,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         key: series.key.append(TimeSeriesValue),
         createTimestamp: DateTime.now().millisecondsSinceEpoch,
         revision: commit.sha,
+        branch: commit.branch,
         taskKey: task.key,
         value: value.toDouble(),
       );

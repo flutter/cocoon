@@ -28,10 +28,3 @@ Map<String, dynamic> _$TimeSeriesToJson(TimeSeries instance) =>
       'TaskName': instance.taskName,
       'Unit': instance.unit,
     };
-
-Map<String, dynamic> _$SerializableTimeSeriesToJson(
-        SerializableTimeSeries instance) =>
-    <String, dynamic>{
-      'Timeseries': instance.series,
-      'Key': const KeyConverter().toJson(instance.key),
-    };
