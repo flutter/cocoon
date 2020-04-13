@@ -8,6 +8,7 @@ import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 import 'package:grpc/grpc.dart';
+import 'package:retry/retry.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
@@ -142,13 +143,23 @@ void main() {
   });
 
   group('RunTransactionWithRetry', () {
+    RetryOptions retryOptions;
+
+    setUp(() {
+      retryOptions = const RetryOptions(
+        delayFactor: Duration(milliseconds: 1),
+        maxDelay: Duration(milliseconds: 2),
+        maxAttempts: 2,
+      );
+    });
+
     test('retriesOnGrpcError', () async {
       final Counter counter = Counter();
       try {
         await runTransactionWithRetries(() async {
           counter.increase();
           throw GrpcError.aborted();
-        });
+        }, retryOptions: retryOptions);
       } catch (e) {
         expect(e, isA<GrpcError>());
       }
@@ -160,7 +171,7 @@ void main() {
         await runTransactionWithRetries(() async {
           counter.increase();
           throw gcloud_datastore.TransactionAbortedError();
-        });
+        }, retryOptions: retryOptions);
       } catch (e) {
         expect(e, isA<gcloud_datastore.TransactionAbortedError>());
       }
@@ -170,7 +181,7 @@ void main() {
       final Counter counter = Counter();
       await runTransactionWithRetries(() async {
         counter.increase();
-      });
+      }, retryOptions: retryOptions);
       expect(counter.value(), equals(1));
     });
   });
