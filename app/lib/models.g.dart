@@ -265,6 +265,17 @@ Map<String, dynamic> _$TimeseriesToJson(Timeseries instance) =>
       'Archived': instance.isArchived,
     };
 
+BranchList _$BranchListFromJson(Map<String, dynamic> json) {
+  return BranchList(
+    branches: (json['Branches'] as List)?.map((e) => e as String)?.toList(),
+  );
+}
+
+Map<String, dynamic> _$BranchListToJson(BranchList instance) =>
+    <String, dynamic>{
+      'Branches': instance.branches,
+    };
+
 TimeseriesValue _$TimeseriesValueFromJson(Map<String, dynamic> json) {
   return TimeseriesValue(
     createTimestamp: json['CreateTimestamp'] as int,

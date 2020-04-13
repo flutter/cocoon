@@ -22,6 +22,7 @@ class TimeSeriesValue extends Model {
     this.createTimestamp,
     this.taskKey,
     this.revision,
+    this.branch,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -63,6 +64,10 @@ class TimeSeriesValue extends Model {
   @StringProperty(propertyName: 'Revision', required: true)
   @JsonKey(name: 'Revision')
   String revision;
+
+  /// The branch of [commit].
+  @StringProperty(propertyName: 'Branch')
+  String branch;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$TimeSeriesValueToJson(this);

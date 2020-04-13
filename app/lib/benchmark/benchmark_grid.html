@@ -8,7 +8,12 @@
 
 <div style="margin: 5px;">
   <button id="toggleArchived" (click)="toggleArchived()">{{isShowArchived ? "Hide" : "Show"}} Archived</button>
-  <input type="text" [(ngModel)]="taskTextFilter" placeholder="Filter visible benchmarks"/>
+  <input type="text" [(ngModel)]="taskTextFilter" placeholder="Filter visible benchmarks"/>&nbsp;
+  <material-dropdown-select
+    buttonText="{{selectedValue}}"
+    [(selection)]="selectedValue"
+    [options]="values">
+  </material-dropdown-select>
 </div>
 
 <div *ngIf="zoomInto != null" class="benchmark-history-container">
