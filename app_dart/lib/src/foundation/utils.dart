@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -68,27 +69,7 @@ Future<List<String>> loadBranchRegExps(
   return <String>['master'];
 }
 
-Future<List<String>> getBranchList(
-    Config config,
-    HttpClientProvider branchHttpClientProvider,
-    Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  final List<String> regExps = await loadBranchRegExps(
-      branchHttpClientProvider, log, gitHubBackoffCalculator);
-  final String flutterBranches = await config.flutterBranches;
-  final List<String> branchList = flutterBranches.split(',').toList();
-  final List<String> branches = <String>[];
-
-  for (String branch in branchList) {
-    if (!regExps.any((String regExp) => RegExp(regExp).hasMatch(branch))) {
-      continue;
-    }
-    branches.add(branch);
-  }
-  return branches;
-}
-
-Future<List<Branch>> getBranches(
+Future<Uint8List> getBranches(
     Config config,
     HttpClientProvider branchHttpClientProvider,
     Logging log,
@@ -107,5 +88,9 @@ Future<List<Branch>> getBranches(
     }
     branches.add(branch);
   }
-  return branches;
+  return Uint8List.fromList(branches
+      .map((Branch branch) => branch.name)
+      .toList()
+      .join(',')
+      .codeUnits);
 }

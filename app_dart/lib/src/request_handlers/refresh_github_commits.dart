@@ -57,10 +57,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GithubService githubService = await config.createGithubService();
     final DatastoreService datastore = datastoreProvider(config.db);
-    final List<String> branches = await getBranchList(
-        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
 
-    for (String branch in branches) {
+    for (String branch in await config.flutterBranches) {
       // TODO(keyonghan): use time of latest commit for [hours] in github API query, https://github.com/flutter/flutter/issues/54284
       int hours = config.existingBranchHours;
 

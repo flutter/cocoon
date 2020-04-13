@@ -7,34 +7,21 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
-import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
-/// Queries GitHub for the list of all available branches on
-/// [config.flutterSlug] repo, and returns list of branches
-/// that match pre-defined branch regular expressions.
+/// Returns  repo [config.flutterSlug] branches that match pre-defined
+/// branch regular expressions.
 @immutable
 class GetBranches extends RequestHandler<Body> {
   const GetBranches(
-    Config config, {
-    @visibleForTesting
-        this.branchHttpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-  })  : assert(branchHttpClientProvider != null),
-        assert(gitHubBackoffCalculator != null),
-        super(config: config);
-
-  final HttpClientProvider branchHttpClientProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
+    Config config,
+  ) : super(config: config);
 
   @override
   Future<Body> get() async {
-    final List<String> branchList = await getBranchList(
-        config, branchHttpClientProvider, log, gitHubBackoffCalculator);
+    final List<String> branches = await config.flutterBranches;
 
-    return Body.forJson(<String, List<String>>{'Branches': branchList});
+    return Body.forJson(<String, List<String>>{'Branches': branches});
   }
 }

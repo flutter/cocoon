@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -17,12 +16,6 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/service/fake_github_service.dart';
-
-const String branchRegExp = '''
-      master
-      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
-      ''';
 
 void main() {
   group('RefreshChromebotStatus', () {
@@ -30,26 +23,11 @@ void main() {
     ApiRequestHandlerTester tester;
     MockLuciService mockLuciService;
     RefreshChromebotStatus handler;
-    List<String> githubBranches;
     FakeHttpClient branchHttpClient;
 
-    Stream<Branch> branchStream() async* {
-      for (String branchName in githubBranches) {
-        final CommitDataUser author = CommitDataUser('a', 1, 'b');
-        final GitCommit gitCommit = GitCommit();
-        final CommitData commitData = CommitData('sha', gitCommit, 'test',
-            'test', 'test', author, author, <Map<String, dynamic>>[]);
-        final Branch branch = Branch(branchName, commitData);
-        yield branch;
-      }
-    }
-
     setUp(() {
-      final FakeGithubService githubService = FakeGithubService();
-      final MockRepositoriesService repositories = MockRepositoriesService();
       branchHttpClient = FakeHttpClient();
       config = FakeConfig(
-        githubService: githubService,
         luciBuildersValue: const <Map<String, String>>[
           <String, String>{
             'name': 'Builder1',
@@ -68,12 +46,6 @@ void main() {
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
-
-      const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-      when(githubService.github.repositories).thenReturn(repositories);
-      when(repositories.listBranches(slug)).thenAnswer((Invocation _) {
-        return branchStream();
-      });
     });
 
     test('updates datastore entry for task', () async {
@@ -83,7 +55,7 @@ void main() {
           Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
-      config.flutterBranchesValue = 'master';
+      config.flutterBranchesValue = <String>['master'];
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
@@ -107,7 +79,6 @@ void main() {
       });
 
       expect(task.status, Task.statusNew);
-      branchHttpClient.request.response.body = branchRegExp;
       await tester.get(handler);
       expect(task.status, Task.statusSucceeded);
     });
@@ -129,7 +100,10 @@ void main() {
       config.db.values[commitOther.key] = commitOther;
       config.db.values[taskMaster.key] = taskMaster;
       config.db.values[taskOther.key] = taskOther;
-      config.flutterBranchesValue = 'master,flutter-0.0-candidate.0';
+      config.flutterBranchesValue = <String>[
+        'master',
+        'flutter-0.0-candidate.0'
+      ];
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks =
           Map<LuciBuilder, List<LuciTask>>.fromIterable(
@@ -154,7 +128,6 @@ void main() {
 
       expect(taskMaster.status, Task.statusNew);
       expect(taskOther.status, Task.statusNew);
-      branchHttpClient.request.response.body = branchRegExp;
       await tester.get(handler);
       expect(taskMaster.status, Task.statusSucceeded);
       expect(taskOther.status, Task.statusSucceeded);
@@ -164,7 +137,3 @@ void main() {
 
 // ignore: must_be_immutable
 class MockLuciService extends Mock implements LuciService {}
-
-class MockGitHub extends Mock implements GitHub {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
