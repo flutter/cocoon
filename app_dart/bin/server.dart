@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handlers/sync_metrics_center.dart';
 import 'package:gcloud/db.dart';
 
 Future<void> main() async {
@@ -43,6 +44,7 @@ Future<void> main() async {
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
+      '/api/sync-metrics-center': SyncMetricsCenter(config, authProvider),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history':
           UpdateAgentHealthHistory(config, authProvider),
