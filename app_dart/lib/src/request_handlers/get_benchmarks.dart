@@ -30,26 +30,95 @@ class GetBenchmarks extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
+    const String master = 'master';
     const int maxRecords = 50;
+
+    final String branch = request.uri.queryParameters[branchParam] ?? master;
     final DatastoreService datastore = datastoreProvider(config.db);
     final DatastoreDB db = datastore.db;
+    final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
     final KeyHelper keyHelper = config.keyHelper;
 
-    final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
-    final Set<Commit> commits = await datastore
-        .queryRecentCommits(limit: maxRecords, branch: branch)
-        .toSet();
+    Map<String, Result> releaseBranchMap = <String, Result>{};
+    Map<String, Result> masterMap = <String, Result>{};
+    int masterLimit = maxRecords;
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    if (branch != master) {
+      final List<Commit> releaseBranchCommits = await datastore
+          .queryRecentCommits(limit: maxRecords, branch: branch)
+          .toList();
+      masterLimit = maxRecords > releaseBranchCommits.length
+          ? maxRecords - releaseBranchCommits.length
+          : 0;
+      releaseBranchMap = await getBenchmarks(releaseBranchCommits.length,
+          branch, db, releaseBranchCommits, benchmarks, timestamp);
+      //log.debug('releaseBranchMap.last: ${releaseBranchMap.keys.first}');
+      //log.debug('releaseBranchMap.last length: ${releaseBranchMap[releaseBranchMap.keys.first].timeSeriesValues.length}');
+      //log.debug('releaseBranchMap.last: ${releaseBranchMap[releaseBranchMap.keys.first].timeSeriesValues.map((e) => e.value.toString()).toList().join(',')}');
+      timestamp = releaseBranchCommits.last.timestamp;
+    }
+    if (branch == master || masterLimit > 0) {
+      final List<Commit> masterCommits = await datastore
+          .queryRecentCommits(timestamp: timestamp+1, limit: masterLimit)
+          .toList();
+      masterMap = await getBenchmarks(
+          masterLimit, master, db, masterCommits, benchmarks, timestamp);
+      //log.debug('masterMap.last: ${masterMap.keys.first}');
+      //log.debug('masterMap.last length: ${masterMap[masterMap.keys.first].timeSeriesValues.length}');
+      //log.debug('masterMap.last length: ${masterMap[masterMap.keys.first].timeSeriesValues.map((e) => e.value.toString()).toList().join(',')}');
+    }
+
+    for (String task in releaseBranchMap.keys) {
+      //log.debug('!!!!!$task');
+      //log.debug('releaseBranchMap containsKey: ${releaseBranchMap.containsKey(task)}');
+      //log.debug('masterMap containsKey: ${masterMap.containsKey(task)}');
+      final List<TimeSeriesValue> timeSeriesValues = <TimeSeriesValue>[];
+      timeSeriesValues.addAll(
+          releaseBranchMap[task].timeSeriesValues ?? <TimeSeriesValue>[]);
+      timeSeriesValues.addAll(masterMap.containsKey(task)
+          ? masterMap[task].timeSeriesValues ?? <TimeSeriesValue>[]
+          : <TimeSeriesValue>[]);
+      benchmarks.add(<String, dynamic>{
+        'Timeseries': <String, dynamic>{
+          'Timeseries': releaseBranchMap[task].timeSeries,
+          'Key': keyHelper.encode(releaseBranchMap[task].timeSeries.key)
+        },
+        'Values': timeSeriesValues,
+      });
+    }
+
+    return Body.forJson(<String, dynamic>{
+      'Benchmarks': benchmarks,
+    });
+  }
+
+  Future<Map<String, Result>> getBenchmarks(
+      int limit,
+      String branch,
+      DatastoreDB db,
+      List<Commit> commits,
+      List<Map<String, dynamic>> benchmarks,
+      int timestamp) async {
+    final Map<String, Result> map = <String, Result>{};
+
     await for (TimeSeries series in db.query<TimeSeries>().run()) {
-      final Query<TimeSeriesValue> query =
-          db.query<TimeSeriesValue>(ancestorKey: series.key)
-            ..filter('branch =', branch)
-            ..order('-createTimestamp')
-            ..limit(maxRecords);
+      //log.debug('--------TimeSeries: ${series.taskName}.${series.label}');
+      final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(
+          ancestorKey: series.key)
+        ..filter('branch =', branch)
+        ..filter(
+            'createTimestamp <',
+            DateTime.fromMillisecondsSinceEpoch(timestamp)
+                .add(const Duration(hours: 1))
+                .millisecondsSinceEpoch)
+        ..order('-createTimestamp')
+        ..limit(limit);
 
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
       await for (TimeSeriesValue value in query.run()) {
+        //log.debug('--------TimeSeriesValue: ${value.value}, commit: ${value.revision}');
         valuesByCommit[value.revision] = value;
       }
 
@@ -58,6 +127,7 @@ class GetBenchmarks extends RequestHandler<Body> {
         TimeSeriesValue value;
 
         if (valuesByCommit.containsKey(commit.sha)) {
+          //log.debug('++++++++commit: ${commit.sha}');
           value = valuesByCommit[commit.sha];
           if (value.value < 0) {
             // We sometimes get negative values, e.g. memory delta between runs
@@ -81,17 +151,25 @@ class GetBenchmarks extends RequestHandler<Body> {
         values.add(value);
       }
 
+      map['${series.taskName}.${series.label}'] = Result(series, values);
+      /*
       benchmarks.add(<String, dynamic>{
         'Timeseries': <String, dynamic>{
           'Timeseries': series,
           'Key': keyHelper.encode(series.key)
         },
         'Values': values,
-      });
+      });*/
     }
-
-    return Body.forJson(<String, dynamic>{
-      'Benchmarks': benchmarks,
-    });
+    return map;
   }
+}
+
+class Result {
+  const Result(this.timeSeries, this.timeSeriesValues)
+      : assert(timeSeries != null),
+        assert(timeSeriesValues != null);
+
+  final TimeSeries timeSeries;
+  final List<TimeSeriesValue> timeSeriesValues;
 }
