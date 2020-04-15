@@ -153,7 +153,8 @@ void main() {
       final Map<String, dynamic> benchmark =
           benchmarks.first as Map<String, dynamic>;
       expect(benchmark['Values'].length, 2);
-      final List<dynamic> timeSeriesValues = benchmark['Values'] as List<dynamic>;
+      final List<dynamic> timeSeriesValues =
+          benchmark['Values'] as List<dynamic>;
       expect(timeSeriesValues[0]['Value'], 1.0);
       expect(timeSeriesValues[1]['Value'], 2.0);
     });

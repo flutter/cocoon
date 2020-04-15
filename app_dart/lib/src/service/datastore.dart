@@ -114,7 +114,10 @@ class DatastoreService {
   /// If startFrom is nil, starts from the latest available record.
   /// [startFrom] to be implemented...
   Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries,
-      {int limit = 1500, String startFrom, String branch = 'master', int timestamp}) {
+      {int limit = 1500,
+      String startFrom,
+      String branch = 'master',
+      int timestamp}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     final Query<TimeSeriesValue> query =
         db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)

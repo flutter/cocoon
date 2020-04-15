@@ -62,7 +62,7 @@ class GetBenchmarks extends RequestHandler<Body> {
 
     /// Query all remaining commits from master.
     if (branch == master || masterLimit > 0) {
-      /// `+1` is to guarantee picking up the master commit, from which 
+      /// `+1` is to guarantee picking up the master commit, from which
       /// the release branch is derived.
       final List<Commit> masterCommits = await datastore
           .queryRecentCommits(timestamp: timestamp + 1, limit: masterLimit)
@@ -78,12 +78,13 @@ class GetBenchmarks extends RequestHandler<Body> {
       'Benchmarks': benchmarks,
     });
   }
-  
+
   /// Combine results for both release and master branches.
   void _combineValues(Map<String, Result> releaseBranchMap,
       Map<String, Result> masterMap, List<Map<String, dynamic>> benchmarks) {
     final KeyHelper keyHelper = config.keyHelper;
-    final Map<String, Result> map = releaseBranchMap.isNotEmpty?releaseBranchMap:masterMap;
+    final Map<String, Result> map =
+        releaseBranchMap.isNotEmpty ? releaseBranchMap : masterMap;
     for (String task in map.keys) {
       final List<TimeSeriesValue> timeSeriesValues = <TimeSeriesValue>[];
 
@@ -116,8 +117,9 @@ class GetBenchmarks extends RequestHandler<Body> {
     await for (TimeSeries series in datastore.db.query<TimeSeries>().run()) {
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
+
       /// Adding `1` hour to [timestamp] to guarantee all [values] belonging to
-      /// commits are picked up. It is not uncommon that [values] are inserted 
+      /// commits are picked up. It is not uncommon that [values] are inserted
       /// into `datastore` later than [commit]. `1` hour is a reasonable timeframe
       /// considering executing time of a commit row is less than `1` hour now.
       await for (TimeSeriesValue value in datastore.queryRecentTimeSeriesValues(
