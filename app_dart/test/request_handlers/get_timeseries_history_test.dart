@@ -66,7 +66,7 @@ void main() {
               .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
 
-      final Commit commit = Commit(sha: 'abc', timestamp: 4);
+      final Commit commit = Commit(sha: 'abc', timestamp: 4, branch: 'test');
       final List<Commit> reportedCommits = <Commit>[
         commit,
       ];

@@ -148,6 +148,9 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
+  // Default number of commits to return for benchmark dashboard.
+  int get maxRecords => 50;
+
   // Repository status context for github status.
   String get flutterBuild => 'flutter-build';
 

@@ -47,6 +47,7 @@ void main() {
     });
 
     test('reports statuses without input branch', () async {
+      config.maxRecordsValue = 2;
       final TimeSeries timeSeries = TimeSeries(
           key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
           taskName: 'test',
@@ -57,30 +58,33 @@ void main() {
           timeSeriesId: 'abc',
           unit: 's');
 
-      final TimeSeriesValue timeSeriesValue = TimeSeriesValue(
-        key: timeSeries.key.append(TimeSeriesValue, id: 123),
-        value: 1,
-      );
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3,
+      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 1),
+          value: 1,
           branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+      final Commit commit1 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'abc'),
           timestamp: 1,
           branch: 'master');
-      config.db.values[timeSeriesValue.key] = timeSeriesValue;
+      final Commit commit2 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'def'),
+          timestamp: 2,
+          branch: 'master');
+      final Commit commit3 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'ghi'),
+          timestamp: 3,
+          branch: 'master');
+      config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
       config.db.values[timeSeries.key] = timeSeries;
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
+      config.db.values[commit3.key] = commit3;
       handler = GetBenchmarks(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
-      expect(config.db.values.length, 4);
+      expect(config.db.values.length, 5);
 
       final Map<String, dynamic> result = await decodeHandlerBody();
 
@@ -92,6 +96,7 @@ void main() {
     });
 
     test('reports statuses with input branch', () async {
+      config.maxRecordsValue = 2;
       final TimeSeries timeSeries = TimeSeries(
           key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
           taskName: 'test',
@@ -102,24 +107,33 @@ void main() {
           timeSeriesId: 'abc',
           unit: 's');
 
-      final TimeSeriesValue timeSeriesValue = TimeSeriesValue(
-        key: timeSeries.key.append(TimeSeriesValue, id: 123),
-        value: 1,
-      );
+      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 123),
+          value: 1,
+          branch: 'flutter-1.1-candidate.1');
+      final TimeSeriesValue timeSeriesValue2 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 456),
+          value: 2,
+          branch: 'master');
       final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
-          timestamp: 3,
+          key: config.db.emptyKey.append(Commit, id: 'abc'),
+          timestamp: 1,
           branch: 'master');
       final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
-          timestamp: 1,
+          key: config.db.emptyKey.append(Commit, id: 'def'),
+          timestamp: 2,
+          branch: 'master');
+      final Commit commit3 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'ghi'),
+          timestamp: 3,
           branch: 'flutter-1.1-candidate.1');
-      config.db.values[timeSeriesValue.key] = timeSeriesValue;
+      config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
+      config.db.values[timeSeriesValue2.key] = timeSeriesValue2;
       config.db.values[timeSeries.key] = timeSeries;
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
+      config.db.values[commit3.key] = commit3;
+
       handler = GetBenchmarks(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -127,7 +141,7 @@ void main() {
 
       const String branch = 'flutter-1.1-candidate.1';
 
-      expect(config.db.values.length, 4);
+      expect(config.db.values.length, 6);
 
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         GetBenchmarks.branchParam: branch,
@@ -138,7 +152,10 @@ void main() {
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
       final Map<String, dynamic> benchmark =
           benchmarks.first as Map<String, dynamic>;
-      expect(benchmark['Values'].length, 1);
+      expect(benchmark['Values'].length, 2);
+      final List<dynamic> timeSeriesValues = benchmark['Values'] as List<dynamic>;
+      expect(timeSeriesValues[0]['Value'], 1.0);
+      expect(timeSeriesValues[1]['Value'], 2.0);
     });
   });
 }

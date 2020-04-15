@@ -48,6 +48,7 @@ class FakeConfig implements Config {
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
+    this.maxRecordsValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -83,6 +84,7 @@ class FakeConfig implements Config {
   int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
+  int maxRecordsValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -114,6 +116,9 @@ class FakeConfig implements Config {
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue;
+
+  @override
+  int get maxRecords => maxRecordsValue;
 
   @override
   int get commitNumber => commitNumberValue;
