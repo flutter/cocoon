@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 import 'dart:convert' show json;
 
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart';
 
 import '../datastore/cocoon_config.dart';
