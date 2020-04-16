@@ -24,10 +24,15 @@ dependencies:
   http: ^0.12.0
   json_annotation: ^3.0.0
   meta: ^1.1.7
+  metrics_center:
+    # TODO(liyuqian): once metrics_center is properly reviewed, add it to
+    # flutter/packages, publish on pub.dev, and use the published package here.
+    git: https://github.com/liyuqian/metrics_center.git
   mime: ^0.9.0
   neat_cache: ^1.0.1
   protobuf: ^1.0.0
   yaml: ^2.1.16
+
 
 dev_dependencies:
   build_runner: ^1.0.0

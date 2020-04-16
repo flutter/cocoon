@@ -31,6 +31,7 @@ class SyncMetricsCenter extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final Logging logger = loggingProvider();
     logger.debug('started syncing metrics center');
+
     return Body.empty;
   }
 }
