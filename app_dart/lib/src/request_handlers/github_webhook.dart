@@ -68,11 +68,15 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(String rawRequest) async {
-    final PullRequest event = await _getPullRequest(rawRequest);
-    if (event == null) {
+    // ignore: undefined_class
+    final PullRequestEvent pullRequestEvent = await _getPullRequestEvent(rawRequest);
+    if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
-    final String eventAction = _getEventProperty(rawRequest, 'action');
+    // ignore: invalid_assignment
+    final String eventAction = pullRequestEvent.action;
+    // ignore: invalid_assignment
+    final PullRequest event = pullRequestEvent.pullRequest;
 
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -295,14 +299,6 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<bool> _checkForCqLabel(List<IssueLabel> labels) async {
     final String cqLabelName = config.cqLabelName;
     return labels.any((IssueLabel label) => label.name == cqLabelName);
-  }
-
-  // Eliminate when github.dart exports PullRequestEvent again.
-  // TODO(wutong): https://github.com/SpinlockLabs/github.dart/issues/220
-  T _getEventProperty<T>(String pullRequestJson, String property) {
-    final Map<String, dynamic> event =
-        json.decode(pullRequestJson) as Map<String, dynamic>;
-    return event[property] as T;
   }
 
   Future<void> _cancelLuci(
@@ -558,20 +554,17 @@ class GithubWebhook extends RequestHandler<Body> {
     return bodySignature == signature;
   }
 
-  Future<PullRequest> _getPullRequest(String request) async {
+  // TODO(wutong): remove the ignores when PullRequestEvent is properly
+  // exported, https://github.com/SpinlockLabs/github.dart/issues/220
+  //
+  // ignore: non_type_as_type_argument
+  Future<PullRequestEvent> _getPullRequestEvent(String request) async {
     if (request == null) {
       return null;
     }
     try {
-      final Map<String, dynamic> pullRequestJson =
-          _getEventProperty(request, 'pull_request');
-      final PullRequest event = PullRequest.fromJson(pullRequestJson);
-
-      if (event == null) {
-        return null;
-      }
-
-      return event;
+      // ignore: undefined_identifier, return_of_invalid_type
+      return PullRequestEvent.fromJson(json.decode(request));
     } on FormatException {
       return null;
     }
