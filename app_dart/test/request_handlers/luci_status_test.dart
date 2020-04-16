@@ -134,8 +134,9 @@ void main() {
           RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
-        )).captured.single.toJSON(),
-        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+        )).captured.single.toJson(),
+        jsonDecode(
+            '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
       );
     });
 
@@ -161,8 +162,9 @@ void main() {
           RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
-        )).captured.single.toJSON(),
-        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?foo=bar&reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+        )).captured.single.toJson(),
+        jsonDecode(
+            '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?foo=bar&reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
       );
     });
 
@@ -204,8 +206,9 @@ void main() {
           RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
-        )).captured.single.toJSON(),
-        '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+        )).captured.single.toJson(),
+        jsonDecode(
+            '{"state":"pending","target_url":"https://ci.chromium.org/b/8905920700440101120?reload=30","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
       );
     });
 
@@ -236,8 +239,9 @@ void main() {
         RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      )).captured.single.toJson(),
+      jsonDecode(
+          '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
     );
   });
 
@@ -306,8 +310,9 @@ void main() {
         RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux","context":"Linux"}',
+      )).captured.single.toJson(),
+      jsonDecode(
+          '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux","context":"Linux"}'),
     );
   });
 
@@ -322,8 +327,9 @@ void main() {
         RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      )).captured.single.toJson(),
+      jsonDecode(
+          '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
     );
   });
 
@@ -338,8 +344,9 @@ void main() {
         RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"success","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}',
+      )).captured.single.toJson(),
+      jsonDecode(
+          '{"state":"success","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
     );
   });
 
@@ -357,8 +364,9 @@ void main() {
         RepositorySlug('flutter', 'engine'),
         ref,
         captureAny,
-      )).captured.single.toJSON(),
-      '{"state":"success","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Host Engine","context":"Linux Host Engine"}',
+      )).captured.single.toJson(),
+      jsonDecode(
+          '{"state":"success","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Host Engine","context":"Linux Host Engine"}'),
     );
   });
 }
