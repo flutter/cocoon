@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';

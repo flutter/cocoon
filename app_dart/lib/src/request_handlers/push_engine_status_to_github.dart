@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -57,7 +57,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
 
-    const RepositorySlug slug = RepositorySlug('flutter', 'engine');
+    final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
     final GitHub github = await config.createGitHubClient();
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];

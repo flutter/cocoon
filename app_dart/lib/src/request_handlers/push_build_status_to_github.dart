@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
@@ -59,7 +59,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
     for (String branch in await config.flutterBranches) {

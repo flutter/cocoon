@@ -12,7 +12,7 @@ import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:test/test.dart';
@@ -131,7 +131,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          const RepositorySlug('flutter', 'flutter'),
+          RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -158,7 +158,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          const RepositorySlug('flutter', 'flutter'),
+          RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -179,7 +179,7 @@ void main() {
 
       await tester.post(handler);
       verifyNever(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'flutter'),
+        RepositorySlug('flutter', 'flutter'),
         ref,
         any,
       ));
@@ -201,7 +201,7 @@ void main() {
       await tester.post(handler);
       expect(
         verify(mockRepositoriesService.createStatus(
-          const RepositorySlug('flutter', 'flutter'),
+          RepositorySlug('flutter', 'flutter'),
           ref,
           captureAny,
         )).captured.single.toJSON(),
@@ -221,7 +221,7 @@ void main() {
 
       await tester.post(handler);
       verifyNever(mockRepositoriesService.createStatus(
-          const RepositorySlug('flutter', 'flutter'), ref, any));
+          RepositorySlug('flutter', 'flutter'), ref, any));
     });
   });
 
@@ -233,7 +233,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'flutter'),
+        RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -284,7 +284,7 @@ void main() {
       ),
     );
     verifyNever(mockRepositoriesService.createStatus(
-      const RepositorySlug('flutter', 'flutter'),
+      RepositorySlug('flutter', 'flutter'),
       ref,
       captureAny,
     ));
@@ -303,7 +303,7 @@ void main() {
     verifyNever(buildBucketClient.scheduleBuild(any));
     expect(
       verify(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'flutter'),
+        RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -319,7 +319,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'flutter'),
+        RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -335,7 +335,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'flutter'),
+        RepositorySlug('flutter', 'flutter'),
         ref,
         captureAny,
       )).captured.single.toJSON(),
@@ -354,7 +354,7 @@ void main() {
     await tester.post(handler);
     expect(
       verify(mockRepositoriesService.createStatus(
-        const RepositorySlug('flutter', 'engine'),
+        RepositorySlug('flutter', 'engine'),
         ref,
         captureAny,
       )).captured.single.toJSON(),

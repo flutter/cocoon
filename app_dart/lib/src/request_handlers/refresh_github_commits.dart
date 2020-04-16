@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -54,7 +54,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GithubService githubService = await config.createGithubService();
     final DatastoreService datastore = datastoreProvider(config.db);
 
