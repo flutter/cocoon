@@ -24,6 +24,12 @@ const Set<String> supportedRepos = <String>{'engine', 'flutter', 'cocoon'};
 /// List of repos that require CQ+1 label.
 const Set<String> needsCQLabelList = <String>{'flutter/flutter'};
 
+/// List of repos that require check for golden triage.
+const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
+
+/// List of repos that require check for labels and tests.
+const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter'};
+
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
   GithubWebhook(Config config, this.buildBucketClient, {HttpClient skiaClient})
@@ -69,7 +75,8 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _handlePullRequest(String rawRequest) async {
     // ignore: undefined_class
-    final PullRequestEvent pullRequestEvent = await _getPullRequestEvent(rawRequest);
+    final PullRequestEvent pullRequestEvent =
+        await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
@@ -90,8 +97,12 @@ class GithubWebhook extends RequestHandler<Body> {
         if (pr.merged) {
           await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
-          await _cancelLuci(pr.head.repo.name, pr.number, pr.head.sha,
-              'Pull request closed');
+          await _cancelLuci(
+            pr.head.repo.name,
+            pr.number,
+            pr.head.sha,
+            'Pull request closed',
+          );
         }
         break;
       case 'edited':
@@ -121,13 +132,16 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
         // them.
-        if (!needsCQLabelList
-            .contains(pr.head.repo.fullName.toLowerCase())) {
+        if (!needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
           break;
         }
         if (!await _checkForCqLabel(pr.labels)) {
-          await _cancelLuci(pr.head.repo.name, pr.number, pr.head.sha,
-              'Tryjobs canceled (label removed)');
+          await _cancelLuci(
+            pr.head.repo.name,
+            pr.number,
+            pr.head.sha,
+            'Tryjobs canceled (label removed)',
+          );
         }
         break;
       // Ignore the rest of the events.
@@ -369,7 +383,7 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequest pr,
     List<IssueLabel> labels,
   ) async {
-    if (needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase()) &&
+    if (kNeedsCheckGoldenTriage.contains(pr.head.repo.fullName.toLowerCase()) &&
         await _isIgnoredForGold(eventAction, pr)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
@@ -390,7 +404,8 @@ class GithubWebhook extends RequestHandler<Body> {
     String eventAction,
     PullRequest pr,
   ) async {
-    if (needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+    if (kNeedsCheckLabelsAndTests
+        .contains(pr.head.repo.fullName.toLowerCase())) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _checkBaseRef(gitHubClient, pr);
