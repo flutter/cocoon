@@ -19,10 +19,10 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
 /// List of Github supported repos.
-const Set<String> supportedRepos = <String>{'engine', 'flutter', 'cocoon'};
+const Set<String> kSupportedRepos = <String>{'engine', 'flutter', 'cocoon'};
 
 /// List of repos that require CQ+1 label.
-const Set<String> needsCQLabelList = <String>{'flutter/flutter'};
+const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
 
 /// List of repos that require check for golden triage.
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
@@ -120,7 +120,7 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
-        if (needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+        if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
           await _scheduleIfMergeable(pr);
         }
         break;
@@ -132,7 +132,7 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
         // them.
-        if (!needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+        if (!kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
           break;
         }
         if (!await _checkForCqLabel(pr.labels)) {
@@ -162,7 +162,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // null indicates unknown. Err on the side of allowing the job to run.
 
     // For flutter/flutter tests need to be optimized before enforcing CQ.
-    if (needsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+    if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
       if (!await _checkForCqLabel(pr.labels)) {
         return;
       }
@@ -239,7 +239,7 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(number != null);
     assert(sha != null);
     assert(repositoryName != null);
-    if (!supportedRepos.contains(repositoryName)) {
+    if (!kSupportedRepos.contains(repositoryName)) {
       log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException(
           'Repository $repositoryName is not supported by this service.');
@@ -317,7 +317,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _cancelLuci(
       String repositoryName, int number, String sha, String reason) async {
-    if (!supportedRepos.contains(repositoryName)) {
+    if (!kSupportedRepos.contains(repositoryName)) {
       throw BadRequestException(
           'This service does not support repository $repositoryName.');
     }
