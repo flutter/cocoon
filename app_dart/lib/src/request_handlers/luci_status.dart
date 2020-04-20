@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';

@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -50,7 +50,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GitHub gitHubClient = await config.createGitHubClient();
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<GithubGoldStatusUpdate> statusUpdates =

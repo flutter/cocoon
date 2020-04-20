@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';

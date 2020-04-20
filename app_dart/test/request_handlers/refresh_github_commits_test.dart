@@ -14,7 +14,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 

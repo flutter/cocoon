@@ -4,7 +4,7 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 
 /// A fake GithubService implementation.

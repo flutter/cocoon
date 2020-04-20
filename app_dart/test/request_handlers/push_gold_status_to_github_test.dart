@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
@@ -80,7 +80,7 @@ void main() {
         return createCirrusQueryResult(statuses, branch);
       };
 
-      slug = const RepositorySlug('flutter', 'flutter');
+      slug = RepositorySlug('flutter', 'flutter');
       statuses.clear();
       branch = 'test';
     });

@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -101,7 +101,7 @@ void main() {
         log = FakeLogging();
 
         when(githubService.github.repositories).thenReturn(repositoriesService);
-        const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+        final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
         when(repositoriesService.listBranches(slug)).thenAnswer((_) {
           return branchStream();
         });

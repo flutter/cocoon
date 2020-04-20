@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';

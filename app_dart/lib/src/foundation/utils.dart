@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
@@ -76,7 +76,7 @@ Future<Uint8List> getBranches(
     GitHubBackoffCalculator gitHubBackoffCalculator) async {
   final GithubService githubService = await config.createGithubService();
   final GitHub github = githubService.github;
-  const RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+  final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
   final Stream<Branch> branchList = github.repositories.listBranches(slug);
   final List<String> regExps = await loadBranchRegExps(
       branchHttpClientProvider, log, gitHubBackoffCalculator);

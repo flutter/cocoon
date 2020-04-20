@@ -8,8 +8,7 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart';
-import 'package:github/server.dart' hide createGitHubClient;
-import 'package:github/server.dart' as gh show createGitHubClient;
+import 'package:github/github.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:googleapis/bigquery/v2.dart' as bigquery;
@@ -158,7 +157,7 @@ class Config {
       'Flutter build is currently broken. Please do not merge this '
       'PR unless it contains a fix to the broken build.';
 
-  RepositorySlug get flutterSlug => const RepositorySlug('flutter', 'flutter');
+  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
@@ -333,9 +332,7 @@ class Config {
 
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
-    return gh.createGitHubClient(
-      auth: Authentication.withToken(githubToken),
-    );
+    return GitHub(auth: Authentication.withToken(githubToken));
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {

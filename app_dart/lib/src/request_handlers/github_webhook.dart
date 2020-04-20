@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:github/server.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -19,10 +19,16 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
 /// List of Github supported repos.
-const Set<String> supportedRepos = <String>{'engine', 'flutter', 'cocoon'};
+const Set<String> kSupportedRepos = <String>{'engine', 'flutter', 'cocoon'};
 
 /// List of repos that require CQ+1 label.
-const Set<String> needsCQLabelList = <String>{'flutter/flutter'};
+const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
+
+/// List of repos that require check for golden triage.
+const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
+
+/// List of repos that require check for labels and tests.
+const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter'};
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -68,35 +74,33 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(String rawRequest) async {
-    final PullRequestEvent event = await _getPullRequest(rawRequest);
-    final List<IssueLabel> existingLabels =
-        _getProperty<List<dynamic>>(rawRequest, 'labels')
-            .cast<Map<String, dynamic>>()
-            .map<IssueLabel>(IssueLabel.fromJSON)
-            .toList();
-    final bool isDraft = _getProperty(rawRequest, 'draft');
-    if (event == null) {
+    // ignore: undefined_class
+    final PullRequestEvent pullRequestEvent =
+        await _getPullRequestEvent(rawRequest);
+    if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
+    // ignore: invalid_assignment
+    final String eventAction = pullRequestEvent.action;
+    // ignore: invalid_assignment
+    final PullRequest pr = pullRequestEvent.pullRequest;
+
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
-    switch (event.action) {
+    switch (eventAction) {
       case 'closed':
         // On a successful merge, check for gold.
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        if (event.pullRequest.merged) {
-          await _checkForGoldenTriage(
-            event,
-            existingLabels,
-          );
+        if (pr.merged) {
+          await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
           await _cancelLuci(
-            event.repository.name,
-            event.number,
-            event.pullRequest.head.sha,
+            pr.head.repo.name,
+            pr.number,
+            pr.head.sha,
             'Pull request closed',
           );
         }
@@ -104,49 +108,38 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'edited':
         // Editing a PR should not trigger new jobs, but may update whether
         // it has tests.
-        await _checkForLabelsAndTests(event, isDraft);
+        await _checkForLabelsAndTests(eventAction, pr);
         break;
       case 'opened':
       case 'ready_for_review':
       case 'reopened':
         // These cases should trigger LUCI jobs.
-        await _checkForLabelsAndTests(event, isDraft);
-        await _scheduleIfMergeable(
-          event,
-          labels: existingLabels,
-        );
+        await _checkForLabelsAndTests(eventAction, pr);
+        await _scheduleIfMergeable(pr);
         break;
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
-        if (needsCQLabelList
-            .contains(event.repository.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(
-            event,
-            labels: existingLabels,
-          );
+        if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+          await _scheduleIfMergeable(pr);
         }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await _scheduleIfMergeable(
-          event,
-          labels: existingLabels,
-        );
+        await _scheduleIfMergeable(pr);
         break;
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
         // them.
-        if (!needsCQLabelList
-            .contains(event.repository.fullName.toLowerCase())) {
+        if (!kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
           break;
         }
-        if (!await _checkForCqLabel(existingLabels)) {
+        if (!await _checkForCqLabel(pr.labels)) {
           await _cancelLuci(
-            event.repository.name,
-            event.number,
-            event.pullRequest.head.sha,
+            pr.head.repo.name,
+            pr.number,
+            pr.head.sha,
             'Tryjobs canceled (label removed)',
           );
         }
@@ -164,31 +157,28 @@ class GithubWebhook extends RequestHandler<Body> {
 
   /// This method assumes that jobs should be cancelled if they are already
   /// runnning.
-  Future<void> _scheduleIfMergeable(
-    PullRequestEvent event, {
-    @required List<IssueLabel> labels,
-  }) async {
+  Future<void> _scheduleIfMergeable(PullRequest pr) async {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
 
     // For flutter/flutter tests need to be optimized before enforcing CQ.
-    if (needsCQLabelList.contains(event.repository.fullName.toLowerCase())) {
-      if (!await _checkForCqLabel(labels)) {
+    if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+      if (!await _checkForCqLabel(pr.labels)) {
         return;
       }
     }
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await _cancelLuci(
-      event.repository.name,
-      event.number,
-      event.pullRequest.head.sha,
+      pr.head.repo.name,
+      pr.number,
+      pr.head.sha,
       'Newer commit available',
     );
     await _scheduleLuci(
-      number: event.number,
-      sha: event.pullRequest.head.sha,
-      repositoryName: event.repository.name,
+      number: pr.number,
+      sha: pr.head.sha,
+      repositoryName: pr.head.repo.name,
     );
   }
 
@@ -249,7 +239,7 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(number != null);
     assert(sha != null);
     assert(repositoryName != null);
-    if (!supportedRepos.contains(repositoryName)) {
+    if (!kSupportedRepos.contains(repositoryName)) {
       log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException(
           'Repository $repositoryName is not supported by this service.');
@@ -325,20 +315,9 @@ class GithubWebhook extends RequestHandler<Body> {
     return labels.any((IssueLabel label) => label.name == cqLabelName);
   }
 
-  // Eliminate when github.dart implements missing features:
-  // TODO(dnfield): labels - https://github.com/DirectMyFile/github.dart/pull/155
-  // TODO(Piinks): drafts - https://github.com/DirectMyFile/github.dart/issues/161
-  T _getProperty<T>(String pullRequestJson, String property) {
-    final Map<String, dynamic> decoded =
-        json.decode(pullRequestJson) as Map<String, dynamic>;
-    final Map<String, dynamic> decodedPr =
-        decoded['pull_request'] as Map<String, dynamic>;
-    return decodedPr[property] as T;
-  }
-
   Future<void> _cancelLuci(
       String repositoryName, int number, String sha, String reason) async {
-    if (!supportedRepos.contains(repositoryName)) {
+    if (!kSupportedRepos.contains(repositoryName)) {
       throw BadRequestException(
           'This service does not support repository $repositoryName.');
     }
@@ -370,7 +349,7 @@ class GithubWebhook extends RequestHandler<Body> {
     await buildBucketClient.batch(BatchRequest(requests: requests));
   }
 
-  Future<bool> _isIgnoredForGold(PullRequestEvent event) async {
+  Future<bool> _isIgnoredForGold(String eventAction, PullRequest pr) async {
     bool ignored = false;
     String rawResponse;
     try {
@@ -382,14 +361,14 @@ class GithubWebhook extends RequestHandler<Body> {
       for (Map<String, dynamic> ignore
           in ignores.cast<Map<String, dynamic>>()) {
         if ((ignore['note'] as String).isNotEmpty &&
-            event.number.toString() == ignore['note'].split('/').last) {
+            pr.number.toString() == ignore['note'].split('/').last) {
           ignored = true;
           break;
         }
       }
     } on IOException catch (e) {
       log.error('Request to Flutter Gold for ignores failed for PR '
-          '#${event.number} on action: ${event.action}.\n'
+          '#${pr.number} on action: $eventAction.\n'
           'error: $e');
     } on FormatException catch (_) {
       log.error('Format Exception from Flutter Gold ignore request.\n'
@@ -400,36 +379,37 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _checkForGoldenTriage(
-    PullRequestEvent event,
+    String eventAction,
+    PullRequest pr,
     List<IssueLabel> labels,
   ) async {
-    if (event.repository.fullName.toLowerCase() == 'flutter/flutter' &&
-        await _isIgnoredForGold(event)) {
+    if (kNeedsCheckGoldenTriage.contains(pr.head.repo.fullName.toLowerCase()) &&
+        await _isIgnoredForGold(eventAction, pr)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
-        await _pingForTriage(gitHubClient, event);
+        await _pingForTriage(gitHubClient, pr);
       } finally {
         gitHubClient.dispose();
       }
     }
   }
 
-  Future<void> _pingForTriage(
-      GitHub gitHubClient, PullRequestEvent event) async {
+  Future<void> _pingForTriage(GitHub gitHubClient, PullRequest pr) async {
     final String body = config.goldenTriageMessage;
-    final RepositorySlug slug = event.repository.slug();
-    await gitHubClient.issues.createComment(slug, event.number, body);
+    final RepositorySlug slug = pr.head.repo.slug();
+    await gitHubClient.issues.createComment(slug, pr.number, body);
   }
 
   Future<void> _checkForLabelsAndTests(
-    PullRequestEvent event,
-    bool isDraft,
+    String eventAction,
+    PullRequest pr,
   ) async {
-    if (event.repository.fullName.toLowerCase() == 'flutter/flutter') {
+    if (kNeedsCheckLabelsAndTests
+        .contains(pr.head.repo.fullName.toLowerCase())) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
-        await _checkBaseRef(gitHubClient, event);
-        await _applyLabels(gitHubClient, event, isDraft);
+        await _checkBaseRef(gitHubClient, pr);
+        await _applyLabels(gitHubClient, eventAction, pr);
       } finally {
         gitHubClient.dispose();
       }
@@ -437,16 +417,13 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _applyLabels(
-    GitHub gitHubClient,
-    PullRequestEvent event,
-    bool isDraft,
-  ) async {
-    if (event.sender.login == 'engine-flutter-autoroll') {
+      GitHub gitHubClient, String eventAction, PullRequest pr) async {
+    if (pr.user.login == 'engine-flutter-autoroll') {
       return;
     }
-    final RepositorySlug slug = event.repository.slug();
+    final RepositorySlug slug = pr.head.repo.slug();
     final Stream<PullRequestFile> files =
-        gitHubClient.pullRequests.listFiles(slug, event.number);
+        gitHubClient.pullRequests.listFiles(slug, pr.number);
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
@@ -475,7 +452,7 @@ class GithubWebhook extends RequestHandler<Body> {
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
       }
-      if (await _isIgnoredForGold(event)) {
+      if (await _isIgnoredForGold(eventAction, pr)) {
         isGoldenChange = true;
         labels.add('will affect goldens');
         labels.add('severe: API break');
@@ -517,57 +494,56 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    if (isDraft) {
+    if (pr.draft) {
       labels.add('work in progress; do not review');
     }
 
     if (labels.isNotEmpty) {
       await gitHubClient.issues
-          .addLabelsToIssue(slug, event.number, labels.toList());
+          .addLabelsToIssue(slug, pr.number, labels.toList());
     }
 
-    if (!hasTests && needsTests && !isDraft) {
+    if (!hasTests && needsTests && !pr.draft) {
       final String body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
-        await gitHubClient.issues.createComment(slug, event.number, body);
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number, body);
       }
     }
 
     if (isGoldenChange) {
       final String body = config.goldenBreakingChangeMessage;
-      if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
-        await gitHubClient.issues.createComment(slug, event.number, body);
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number, body);
       }
     }
   }
 
   Future<void> _checkBaseRef(
     GitHub gitHubClient,
-    PullRequestEvent event,
+    PullRequest pr,
   ) async {
-    if (event.pullRequest.base.ref != 'master') {
-      final String body =
-          await _getWrongBaseComment(event.pullRequest.base.ref);
-      final RepositorySlug slug = event.repository.slug();
-      if (!await _alreadyCommented(gitHubClient, event, slug, body)) {
+    if (pr.base.ref != 'master') {
+      final String body = await _getWrongBaseComment(pr.base.ref);
+      final RepositorySlug slug = pr.head.repo.slug();
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.pullRequests.edit(
           slug,
-          event.number,
+          pr.number,
           base: 'master',
         );
-        await gitHubClient.issues.createComment(slug, event.number, body);
+        await gitHubClient.issues.createComment(slug, pr.number, body);
       }
     }
   }
 
   Future<bool> _alreadyCommented(
     GitHub gitHubClient,
-    PullRequestEvent event,
+    PullRequest pr,
     RepositorySlug slug,
     String message,
   ) async {
     final Stream<IssueComment> comments =
-        gitHubClient.issues.listCommentsByIssue(slug, event.number);
+        gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(message)) {
         return true;
@@ -593,19 +569,17 @@ class GithubWebhook extends RequestHandler<Body> {
     return bodySignature == signature;
   }
 
-  Future<PullRequestEvent> _getPullRequest(String request) async {
+  // TODO(wutong): remove the ignores when PullRequestEvent is properly
+  // exported, https://github.com/SpinlockLabs/github.dart/issues/220
+  //
+  // ignore: non_type_as_type_argument
+  Future<PullRequestEvent> _getPullRequestEvent(String request) async {
     if (request == null) {
       return null;
     }
     try {
-      final PullRequestEvent event = PullRequestEvent.fromJSON(
-          json.decode(request) as Map<String, dynamic>);
-
-      if (event == null) {
-        return null;
-      }
-
-      return event;
+      // ignore: undefined_identifier, return_of_invalid_type
+      return PullRequestEvent.fromJson(json.decode(request));
     } on FormatException {
       return null;
     }
