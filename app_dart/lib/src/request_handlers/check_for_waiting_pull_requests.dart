@@ -9,7 +9,8 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.data.gql.dart';
 import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.op.gql.dart';
 import 'package:cocoon_service/src/service/github/labeled_pull_requests_with_reviews.var.gql.dart';
-import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart' show StatusState, CommentAuthorAssociation, PullRequestReviewState;
+import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart'
+    show StatusState, CommentAuthorAssociation, PullRequestReviewState;
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -101,9 +102,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         documentNode: LabeledPullRequestsWithReviews.document,
         fetchPolicy: FetchPolicy.noCache,
         variables: (LabeledPullRequestsWithReviewsVarBuilder()
-            ..sOwner = owner
-            ..sName = name
-            ..sLabelName = labelName).variables,
+              ..sOwner = owner
+              ..sName = name
+              ..sLabelName = labelName)
+            .variables,
       ),
     );
 
@@ -173,12 +175,18 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final String labelId = data.repository.labels.nodes[0].id;
     log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    final List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes> pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
-    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest in pullRequests) {
-      final $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit commit = pullRequest.commits.nodes[0].commit;
+    final List<
+            $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes>
+        pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest
+        in pullRequests) {
+      final $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit
+          commit = pullRequest.commits.nodes[0].commit;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate = DateTime.parse((commit.pushedDate ?? commit.committedDate).value).toUtc();
+      final DateTime utcDate =
+          DateTime.parse((commit.pushedDate ?? commit.committedDate).value)
+              .toUtc();
       if (utcDate
           .add(const Duration(hours: 1))
           .isAfter(DateTime.now().toUtc())) {
@@ -196,7 +204,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit.oid.value;
-      final List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses = commit.status.contexts;
+      final List<
+              $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
+          statuses = commit.status.contexts;
       final checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes; // ?????
       // List<Map<String, dynamic>> checkRuns;
       // if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
@@ -234,7 +244,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _checkStatuses(
     String sha,
     Set<String> failures,
-    List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses,
+    List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
+        statuses,
     List<dynamic> checkRuns,  /// ?????
     String name,
     String branch,
@@ -249,7 +260,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     };
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
-    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts status in statuses) {
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts status
+        in statuses) {
       final String name = status.context;
       if (status.state != StatusState.SUCCESS) {
         allSuccess = false;
@@ -316,12 +328,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> reviewNodes,
+  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes>
+      reviewNodes,
   Set<String> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
-  for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review in reviewNodes) {
+  for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review
+      in reviewNodes) {
     // Ignore reviews from non-members/owners.
     if (review.authorAssociation != CommentAuthorAssociation.MEMBER &&
         review.authorAssociation != CommentAuthorAssociation.OWNER) {
