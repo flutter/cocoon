@@ -48,6 +48,7 @@ class FakeConfig implements Config {
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
+    this.metricsCenterServiceAccountValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -83,6 +84,7 @@ class FakeConfig implements Config {
   int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
+  Map<String, dynamic> metricsCenterServiceAccountValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -169,6 +171,10 @@ class FakeConfig implements Config {
 
   @override
   List<Map<String, dynamic>> get luciTryBuilders => luciTryBuildersValue;
+
+  @override
+  Future<Map<String, dynamic>> get metricsCenterServiceAccountJson async =>
+      metricsCenterServiceAccountValue;
 
   @override
   Logging get loggingService => loggingServiceValue;

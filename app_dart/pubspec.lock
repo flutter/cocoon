@@ -363,7 +363,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "06b426100613a2de4fedf01367148411882c4ffa"
+      resolved-ref: acaafc6c0b97510391dc1a92f85f4ddd84b43f4f
       url: "https://github.com/liyuqian/metrics_center.git"
     source: git
     version: "0.0.0"

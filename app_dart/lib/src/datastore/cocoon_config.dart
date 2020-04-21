@@ -330,6 +330,11 @@ class Config {
         }
       ];
 
+  Future<Map<String, dynamic>> get metricsCenterServiceAccountJson async {
+    final String rawValue = await _getSingleValue('MetricsCenterServiceAccount');
+    return json.decode(rawValue) as Map<String, dynamic>;
+  }
+
   Future<GitHub> createGitHubClient() async {
     final String githubToken = await githubOAuthToken;
     return GitHub(auth: Authentication.withToken(githubToken));
