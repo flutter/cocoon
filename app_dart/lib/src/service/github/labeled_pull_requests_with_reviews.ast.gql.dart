@@ -1,8 +1,8 @@
 import 'package:gql/ast.dart' as _i1;
 
-const LabeledPullRequcodeestsWithReviews = _i1.OperationDefinitionNode(
+const LabeledPullRequestsWithReviews = _i1.OperationDefinitionNode(
     type: _i1.OperationType.query,
-    name: _i1.NameNode(value: 'LabeledPullRequcodeestsWithReviews'),
+    name: _i1.NameNode(value: 'LabeledPullRequestsWithReviews'),
     variableDefinitions: [
       _i1.VariableDefinitionNode(
           variable: _i1.VariableNode(name: _i1.NameNode(value: 'sOwner')),
@@ -304,4 +304,4 @@ const LabeledPullRequcodeestsWithReviews = _i1.OperationDefinitionNode(
           ]))
     ]));
 const document =
-    _i1.DocumentNode(definitions: [LabeledPullRequcodeestsWithReviews]);
+    _i1.DocumentNode(definitions: [LabeledPullRequestsWithReviews]);

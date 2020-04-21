@@ -1,4 +1,4 @@
-class LabeledPullRequcodeestsWithReviewsVarBuilder {
+class LabeledPullRequestsWithReviewsVarBuilder {
   final Map<String, dynamic> variables = <String, dynamic>{};
 
   set sOwner(String value) => variables['sOwner'] = value;

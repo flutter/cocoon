@@ -58,7 +58,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     GraphQLClient client,
   ) async {
     int mergeCount = 0;
-    final $LabeledPullRequcodeestsWithReviews data = await _queryGraphQL(
+    final $LabeledPullRequestsWithReviews data = await _queryGraphQL(
       owner,
       name,
       log,
@@ -88,7 +88,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
   }
 
-  Future<$LabeledPullRequcodeestsWithReviews> _queryGraphQL(
+  Future<$LabeledPullRequestsWithReviews> _queryGraphQL(
     String owner,
     String name,
     Logging log,
@@ -98,9 +98,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
     final QueryResult result = await client.query(
       QueryOptions(
-        documentNode: LabeledPullRequcodeestsWithReviews.document,
+        documentNode: LabeledPullRequestsWithReviews.document,
         fetchPolicy: FetchPolicy.noCache,
-        variables: (LabeledPullRequcodeestsWithReviewsVarBuilder()
+        variables: (LabeledPullRequestsWithReviewsVarBuilder()
             ..sOwner = owner
             ..sName = name
             ..sLabelName = labelName).variables,
@@ -112,7 +112,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       throw const BadRequestException('GraphQL query failed');
     }
 
-    return $LabeledPullRequcodeestsWithReviews(result.data as Map<String, dynamic>);
+    return $LabeledPullRequestsWithReviews(result.data as Map<String, dynamic>);
   }
 
   Future<bool> _removeLabel(
@@ -161,8 +161,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   ///
   /// This method will not return null, but may return an empty list.
   Future<List<_AutoMergeQueryResult>> _parseQueryData(
-      final $LabeledPullRequcodeestsWithReviews data, String name) async {
-    if (data.repository == null || data.repository.isEmpty) {
+      final $LabeledPullRequestsWithReviews data, String name) async {
+    if (data.repository == null) {
       throw StateError('Query did not return a repository.');
     }
 
@@ -173,9 +173,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final String labelId = data.repository.labels.nodes[0].id;
     log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    final List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes> pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
-    for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest in pullRequests) {
-      final $LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit commit = pullRequest.commits.nodes[0].commit;
+    final List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes> pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest in pullRequests) {
+      final $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit commit = pullRequest.commits.nodes[0].commit;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
       final DateTime utcDate = DateTime.parse((commit.pushedDate ?? commit.committedDate).value).toUtc();
@@ -196,7 +196,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit.oid.value;
-      final List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses = commit.status.contexts;
+      final List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses = commit.status.contexts;
       final checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes; // ?????
       // List<Map<String, dynamic>> checkRuns;
       // if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
@@ -234,7 +234,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   Future<bool> _checkStatuses(
     String sha,
     Set<String> failures,
-    List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses,
+    List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts> statuses,
     List<dynamic> checkRuns,  /// ?????
     String name,
     String branch,
@@ -249,7 +249,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     };
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
-    for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts status in statuses) {
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts status in statuses) {
       final String name = status.context;
       if (status.state != StatusState.SUCCESS) {
         allSuccess = false;
@@ -316,12 +316,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-  List<$LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> reviewNodes,
+  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> reviewNodes,
   Set<String> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
-  for ($LabeledPullRequcodeestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review in reviewNodes) {
+  for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review in reviewNodes) {
     // Ignore reviews from non-members/owners.
     if (review.authorAssociation != CommentAuthorAssociation.MEMBER &&
         review.authorAssociation != CommentAuthorAssociation.OWNER) {

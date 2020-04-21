@@ -1,4 +1,4 @@
-query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
+query LabeledPullRequestsWithReviews($sOwner: String!, $sName: String!, $sLabelName: String!) {
   repository(owner: $sOwner, name: $sName) {
     labels(first: 1, query: $sLabelName) {
       nodes {

@@ -93,7 +93,7 @@ void main() {
       githubGraphQLClient.verifyQueries(
         <QueryOptions>[
           QueryOptions(
-            documentNode: LabeledPullRequcodeestsWithReviews.document,
+            documentNode: LabeledPullRequestsWithReviews.document,
             fetchPolicy: FetchPolicy.noCache,
             variables: <String, dynamic>{
               'sOwner': 'flutter',
@@ -102,7 +102,7 @@ void main() {
             },
           ),
           QueryOptions(
-            documentNode: LabeledPullRequcodeestsWithReviews.document,
+            documentNode: LabeledPullRequestsWithReviews.document,
             fetchPolicy: FetchPolicy.noCache,
             variables: <String, dynamic>{
               'sOwner': 'flutter',
