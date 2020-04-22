@@ -23,7 +23,7 @@ import '../request_handling/body.dart';
 /// them to `BigQuery`.
 @immutable
 class RefreshGitilesCommits
-    extends ApiRequestHandler<RefreshGitilesCommitsResponse> {
+    extends ApiRequestHandler<Body> {
   const RefreshGitilesCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
@@ -63,17 +63,15 @@ class RefreshGitilesCommits
   static const String refs = 'refs/heads/master';
 
   @override
-  Future<RefreshGitilesCommitsResponse> get() async {
-    final List<Map<String, dynamic>> listResult = <Map<String, dynamic>>[];
+  Future<Body> get() async {
     final HttpClient httpClient = httpClientProvider();
     for (String repo in repoMap.keys) {
       final List<Map<String, dynamic>> list = await _getCommitList(
           httpClient, repoMap[repo].address, '${repoMap[repo].path}$refs');
       await _insertBigquery(list, repo);
-      listResult.add(list[0]);
     }
 
-    return RefreshGitilesCommitsResponse(listResult);
+    return Body.empty;
   }
 
   int _getMilliseconds(String time) {
@@ -274,20 +272,6 @@ class RefreshGitilesCommits
         },
       });
     }
-  }
-}
-
-class RefreshGitilesCommitsResponse extends JsonBody {
-  const RefreshGitilesCommitsResponse(this.commitList)
-      : assert(commitList != null);
-
-  final List<Map<String, dynamic>> commitList;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'CommitList': commitList,
-    };
   }
 }
 
