@@ -40,6 +40,7 @@ Future<void> main() async {
       '/api/refresh-chromebot-status':
           RefreshChromebotStatus(config, authProvider),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
+      '/api/refresh-gitiles-commits': RefreshGitilesCommits(config, authProvider),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),

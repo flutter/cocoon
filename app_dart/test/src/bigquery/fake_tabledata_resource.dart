@@ -18,7 +18,11 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       String datasetId,
       String tableId,
       {String $fields}) async {
-    rows = request.rows;
+    if (rows == null) {
+      rows = request.rows;
+    } else {
+      rows.addAll(request.rows);
+    }
     return TableDataInsertAllResponse.fromJson(<String, String>{});
   }
 
@@ -29,11 +33,18 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       String startIndex,
       String pageToken,
       String $fields}) async {
+    if (rows == null) {
+      return TableDataList();
+    }
     final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
     for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows) {
       final Map<String, Object> value = tableDataInsertAllRequestRows.json;
       final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
-      tableCellList.add(<String, Object>{'v': value});
+      if (selectedFields == 'CommitTime') {
+        tableCellList.add(<String, Object>{'v': '0'});
+      }else {
+        tableCellList.add(<String, Object>{'v': value});
+      }
       tableRowList.add(<String, Object>{'f': tableCellList});
     }
 
