@@ -42,7 +42,7 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
       if (selectedFields == 'CommitTime') {
         tableCellList.add(<String, Object>{'v': '0'});
-      }else {
+      } else {
         tableCellList.add(<String, Object>{'v': value});
       }
       tableRowList.add(<String, Object>{'f': tableCellList});

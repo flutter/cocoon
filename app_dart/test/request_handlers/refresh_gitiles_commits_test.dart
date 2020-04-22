@@ -63,8 +63,9 @@ void main() {
 
     test('insert to bigquery for non-roller commit list', () async {
       httpClient.request.response.body = skiaCommits;
-      
+
       await tester.get(handler);
+
       /// Insert happens four times `skia, dart, engine, flutter`. Each time
       /// it inserts two commits in [skiaCommits].
       expect(tabledataResourceApi.rows.length, 8);
@@ -73,8 +74,9 @@ void main() {
     test('insert to bigquery for commit list with roll commit', () async {
       httpClient.request.response.body = commits;
       rollHttpClient.request.response.body = rollCommits;
-      
+
       await tester.get(handler);
+
       /// Insert happens four times `skia, dart, engine, flutter`. Each time
       /// it inserts one commit in [commits] and two commits in [rollCommits].
       expect(tabledataResourceApi.rows.length, 12);

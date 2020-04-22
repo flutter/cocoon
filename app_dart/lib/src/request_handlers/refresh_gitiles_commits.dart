@@ -18,7 +18,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
 /// Queries `gitiles` for the list of recent commits of different repos,
-/// and creates corresponding rows in the `BigQuery` for any new commits. 
+/// and creates corresponding rows in the `BigQuery` for any new commits.
 /// For parent repo roll commits, obtains its sub-repo commits and inserts
 /// them to `BigQuery`.
 @immutable
@@ -67,8 +67,8 @@ class RefreshGitilesCommits
     final List<Map<String, dynamic>> listResult = <Map<String, dynamic>>[];
     final HttpClient httpClient = httpClientProvider();
     for (String repo in repoMap.keys) {
-      final List<Map<String, dynamic>> list = await _getCommitList(httpClient,
-          repoMap[repo].address, '${repoMap[repo].path}$refs');
+      final List<Map<String, dynamic>> list = await _getCommitList(
+          httpClient, repoMap[repo].address, '${repoMap[repo].path}$refs');
       await _insertBigquery(list, repo);
       listResult.add(list[0]);
     }
@@ -84,8 +84,8 @@ class RefreshGitilesCommits
     return DateTime.parse(newCommitTime).millisecondsSinceEpoch;
   }
 
-  Future<List<Map<String, dynamic>>> _getCommitList(final HttpClient client, 
-      String address, String path) async {
+  Future<List<Map<String, dynamic>>> _getCommitList(
+      final HttpClient client, String address, String path) async {
     final Uri url =
         Uri.https(address, path, <String, String>{'format': 'JSON'});
     //final HttpClient client = httpClientProvider();
@@ -153,16 +153,16 @@ class RefreshGitilesCommits
 
     await _insertCommit(commitRequestRows, tabledataResourceApi, table);
     if (skiaRollCommitRequestRows.isNotEmpty) {
-      await _insertCommit(skiaRollCommitRequestRows, tabledataResourceApi,
-          'skiaRoller');
+      await _insertCommit(
+          skiaRollCommitRequestRows, tabledataResourceApi, 'skiaRoller');
     }
     if (dartRollCommitRequestRows.isNotEmpty) {
-      await _insertCommit(dartRollCommitRequestRows, tabledataResourceApi,
-          'dartRoller');
+      await _insertCommit(
+          dartRollCommitRequestRows, tabledataResourceApi, 'dartRoller');
     }
     if (engineRollCommitRequestRows.isNotEmpty) {
-      await _insertCommit(engineRollCommitRequestRows, tabledataResourceApi,
-          'engineRoller');
+      await _insertCommit(
+          engineRollCommitRequestRows, tabledataResourceApi, 'engineRoller');
     }
   }
 
@@ -259,7 +259,8 @@ class RefreshGitilesCommits
 
     final List<String> subjectSplit = subject.split(' ');
     final HttpClient rollHttpClient = rollHttpClientProvider();
-    final List<Map<String, dynamic>> rollCommitList = await _getCommitList(rollHttpClient, 
+    final List<Map<String, dynamic>> rollCommitList = await _getCommitList(
+        rollHttpClient,
         repoMap[priorRepo].address,
         '${repoMap[priorRepo].path}${subjectSplit[2]}');
     log.debug('$subject, ${rollCommitList.length}');
@@ -277,22 +278,10 @@ class RefreshGitilesCommits
 }
 
 class RefreshGitilesCommitsResponse extends JsonBody {
-  const RefreshGitilesCommitsResponse(this.commitList) : assert(commitList != null);
+  const RefreshGitilesCommitsResponse(this.commitList)
+      : assert(commitList != null);
 
   final List<Map<String, dynamic>> commitList;
-
-  @override
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'CommitList': commitList,
-    };
-  }
-}
-
-class RefreshGitilesCommitsResponse2 extends JsonBody {
-  const RefreshGitilesCommitsResponse2(this.commitList) : assert(commitList != null);
-
-  final String commitList;
 
   @override
   Map<String, dynamic> toJson() {
