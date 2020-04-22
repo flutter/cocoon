@@ -11,6 +11,7 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
+import 'package:path/path.dart' as path;
 
 import 'exceptions.dart';
 
@@ -33,15 +34,19 @@ class StaticFileHandler extends RequestHandler<Body> {
   Future<Body> get() async {
     final HttpResponse response = request.response;
 
+    /// The map of mimeTypes not found in [mime] package.
+    final Map<String, String> mimeTypeMap = <String, String>{
+      '.map': 'application/json',
+    };
+
     final String resultPath = filePath == '/' ? '/index.html' : filePath;
 
     /// The file path in app_dart to the files to serve
     const String basePath = 'build/web';
-
     final File file = fs.file('$basePath$resultPath');
-
     if (file.existsSync()) {
-      final String mimeType = lookupMimeType(resultPath);
+      final String mimeType =
+          lookupMimeType(resultPath) ?? mimeTypeMap[path.extension(file.path)];
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {

@@ -24,12 +24,14 @@ void main() {
 
     const String indexFileName = 'index.html';
     const String indexFileContent = 'some html';
+    const String dartMapFileName = 'main.dart.js.map';
 
     setUp(() {
       tester = RequestHandlerTester();
       fs = MemoryFileSystem();
       fs.file('build/web/$indexFileName').createSync(recursive: true);
       fs.file('build/web/$indexFileName').writeAsString(indexFileContent);
+      fs.file('build/web/$dartMapFileName').writeAsString('[{}]');
     });
 
     Future<String> _decodeHandlerBody(Body body) {
@@ -52,6 +54,16 @@ void main() {
       expect(body, isNotNull);
       final String response = await _decodeHandlerBody(body);
       expect(response, indexFileContent);
+    });
+
+    test('DartMap file does not raise exception', () async {
+      final StaticFileHandler staticFileHandler =
+          StaticFileHandler('/$dartMapFileName', config: config, fs: fs);
+
+      final Body body = await tester.get(staticFileHandler);
+      expect(body, isNotNull);
+      final String response = await _decodeHandlerBody(body);
+      expect(response, '[{}]');
     });
   });
 }
