@@ -22,8 +22,7 @@ import '../request_handling/body.dart';
 /// For parent repo roll commits, obtains its sub-repo commits and inserts
 /// them to `BigQuery`.
 @immutable
-class RefreshGitilesCommits
-    extends ApiRequestHandler<Body> {
+class RefreshGitilesCommits extends ApiRequestHandler<Body> {
   const RefreshGitilesCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
