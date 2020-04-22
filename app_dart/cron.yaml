@@ -28,3 +28,6 @@ cron:
 - description: insert agent health status to bigquery
   url: /api/update-agent-health-history
   schedule: every 1 minutes
+- description: refresh commits from gitiles
+  url: /api/refresh-gitiles-commits
+  schedule: every 10 minutes
