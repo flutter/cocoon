@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright 2020 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+#
 # Runs a smoke test.
 #
 # This is useful to validate the runtime requirements of a Cocoon agent. It's intended to run
