@@ -23,20 +23,20 @@ const String jsonGetStatsResponse = '''
         "Statuses": [
           {
           "Checklist": {
-            "Key": "iamatestkey", 
+            "Key": "iamatestkey",
             "Checklist": {
               "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon", 
-              "CreateTimestamp": 123456789, 
+              "FlutterRepositoryPath": "flutter/cocoon",
+              "CreateTimestamp": 123456789,
               "Commit": {
-                "Sha": "ShaShankHash", 
+                "Sha": "ShaShankHash",
                 "Author": {
-                  "Login": "ShaSha", 
+                  "Login": "ShaSha",
                   "avatar_url": "https://flutter.dev"
                   }
                 }
               }
-            }, 
+            },
             "Stages": [
               {
                 "Name": "devicelab",
@@ -63,7 +63,7 @@ const String jsonGetStatsResponse = '''
               }
             ]
           }
-        ], 
+        ],
         "AgentStatuses":[
           {
             "AgentID":"flutter-devicelab-linux-1",
@@ -525,14 +525,16 @@ void main() {
 
   group('AppEngine CocoonService create agent', () {
     AppEngineCocoonService service;
+    Client mockClient;
+    Response fakeRespose;
 
     setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('{"Token": "abc123"}', 200);
-      }));
+      mockClient = MockClient((Request request) async => fakeRespose);
+      service = AppEngineCocoonService(client: mockClient);
     });
 
     test('should return token if request succeeds', () async {
+      fakeRespose = Response('{"Token": "abc123"}', 200);
       final CocoonResponse<String> response = await service.createAgent(
         'id123',
         <String>['im', 'capable'],
@@ -543,45 +545,38 @@ void main() {
     });
 
     test('should return error if request failed', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 500);
-      }));
-
+      fakeRespose = Response('', 500);
       expect((await service.createAgent('id123', <String>['im', 'not', 'capable'], 'fakeAccessToken')).error,
           '/api/create-agent did not respond with 200');
     });
 
     test('should return error if token is null', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 200);
-      }));
+      fakeRespose = Response('', 200);
       expect((await service.createAgent('id123', <String>['im', 'capable'], 'fakeAccessToken')).error,
           '/api/create-agent returned unexpected response');
     });
 
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
-      final Client mockClient = MockHttpClient();
-      when(mockClient.post(argThat(endsWith('/api/create-agent')),
-              headers: captureAnyNamed('headers'), body: captureAnyNamed('body')))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      mockClient = MockClient((Request request) async {
+        expect(request.url.toString(), kIsWeb ? '/api/create-agent' : '$_baseApiUrl/api/create-agent');
+        return Response('', 200);
+      });
       service = AppEngineCocoonService(client: mockClient);
-
       await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
+    });
 
-      if (kIsWeb) {
-        verify(mockClient.post(
-          '/api/create-agent',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      } else {
-        verify(mockClient.post(
-          '$_baseApiUrl/api/create-agent',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      }
+    test('should send correct headers and body', () async {
+      mockClient = MockClient((Request request) async {
+        expect(request.headers, <String, String>{
+          'X-Flutter-IdToken': 'fakeAccessToken',
+          'content-type': 'text/plain; charset=utf-8',
+        });
+        expect(request.body, '{"AgentID":"id123","Capabilities":["none"]}');
+        return Response('', 200);
+      });
+      service = AppEngineCocoonService(client: mockClient);
+      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
     });
   });
 

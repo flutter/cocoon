@@ -183,7 +183,7 @@ class AppEngineCocoonService implements CocoonService {
       createAgentUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
       body: jsonEncode(<String, Object>{
-        'AgentId': agentId,
+        'AgentID': agentId,
         'Capabilities': capabilities,
       }),
     );
@@ -217,7 +217,7 @@ class AppEngineCocoonService implements CocoonService {
       authorizeAgentUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
       body: jsonEncode(<String, Object>{
-        'AgentId': agent.agentId,
+        'AgentID': agent.agentId,
       }),
     );
 
@@ -249,7 +249,7 @@ class AppEngineCocoonService implements CocoonService {
       reserveTaskUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
       body: jsonEncode(<String, Object>{
-        'AgentId': agent.agentId,
+        'AgentID': agent.agentId,
       }),
     );
 
