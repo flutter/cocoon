@@ -525,12 +525,10 @@ void main() {
 
   group('AppEngine CocoonService create agent', () {
     AppEngineCocoonService service;
-    Client mockClient;
     Response fakeRespose;
 
     setUp(() {
-      mockClient = MockClient((Request request) async => fakeRespose);
-      service = AppEngineCocoonService(client: mockClient);
+      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeRespose));
     });
 
     test('should return token if request succeeds', () async {
@@ -558,38 +556,36 @@ void main() {
 
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
-      mockClient = MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         expect(request.url.toString(), kIsWeb ? '/api/create-agent' : '$_baseApiUrl/api/create-agent');
         return Response('', 200);
-      });
-      service = AppEngineCocoonService(client: mockClient);
+      }));
       await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
     });
 
     test('should send correct headers and body', () async {
-      mockClient = MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         expect(request.headers, <String, String>{
           'X-Flutter-IdToken': 'fakeAccessToken',
           'content-type': 'text/plain; charset=utf-8',
         });
         expect(request.body, '{"AgentID":"id123","Capabilities":["none"]}');
         return Response('', 200);
-      });
-      service = AppEngineCocoonService(client: mockClient);
+      }));
       await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
     });
   });
 
   group('AppEngine CocoonService authorize agent', () {
     AppEngineCocoonService service;
+    Response fakeResponse;
 
     setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('{"Token": "abc123"}', 200);
-      }));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeResponse));
     });
 
     test('should return token if request succeeds', () async {
+      fakeResponse = Response('{"Token": "abc123"}', 200);
       final CocoonResponse<String> response = await service.authorizeAgent(
         Agent()..agentId = 'id123',
         'fakeAccessToken',
@@ -599,45 +595,38 @@ void main() {
     });
 
     test('should return error if request failed', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 500);
-      }));
-
+      fakeResponse = Response('', 500);
       expect((await service.authorizeAgent(Agent()..agentId = 'id123', 'fakeAccessToken')).error,
           '/api/authorize-agent did not respond with 200');
     });
 
     test('should return error if token is null', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 200);
-      }));
+      fakeResponse = Response('', 200);
       expect((await service.authorizeAgent(Agent()..agentId = 'id123', 'fakeAccessToken')).error,
           '/api/authorize-agent returned unexpected response');
     });
 
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
-      final Client mockClient = MockHttpClient();
-      when(mockClient.post(argThat(endsWith('/api/authorize-agent')),
-              headers: captureAnyNamed('headers'), body: captureAnyNamed('body')))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
-      service = AppEngineCocoonService(client: mockClient);
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        expect(request.url.toString(), kIsWeb ? '/api/authorize-agent' : '$_baseApiUrl/api/authorize-agent');
+        return Response('', 200);
+      }));
 
       await service.authorizeAgent(Agent()..agentId = 'id123', 'fakeAccessToken');
+    });
 
-      if (kIsWeb) {
-        verify(mockClient.post(
-          '/api/authorize-agent',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      } else {
-        verify(mockClient.post(
-          '$_baseApiUrl/api/authorize-agent',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      }
+    test('should send correct headers and body', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        expect(request.headers, <String, String>{
+          'X-Flutter-IdToken': 'fakeAccessToken',
+          'content-type': 'text/plain; charset=utf-8',
+        });
+        expect(request.body, '{"AgentID":"id123"}');
+        return Response('', 200);
+      }));
+
+      await service.authorizeAgent(Agent()..agentId = 'id123', 'fakeAccessToken');
     });
   });
 
