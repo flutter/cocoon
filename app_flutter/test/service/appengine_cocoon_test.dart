@@ -525,14 +525,14 @@ void main() {
 
   group('AppEngine CocoonService create agent', () {
     AppEngineCocoonService service;
-    Response fakeRespose;
+    Response fakeResponse;
 
     setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeRespose));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeResponse));
     });
 
     test('should return token if request succeeds', () async {
-      fakeRespose = Response('{"Token": "abc123"}', 200);
+      fakeResponse = Response('{"Token": "abc123"}', 200);
       final CocoonResponse<String> response = await service.createAgent(
         'id123',
         <String>['im', 'capable'],
@@ -543,13 +543,13 @@ void main() {
     });
 
     test('should return error if request failed', () async {
-      fakeRespose = Response('', 500);
+      fakeResponse = Response('', 500);
       expect((await service.createAgent('id123', <String>['im', 'not', 'capable'], 'fakeAccessToken')).error,
           '/api/create-agent did not respond with 200');
     });
 
     test('should return error if token is null', () async {
-      fakeRespose = Response('', 200);
+      fakeResponse = Response('', 200);
       expect((await service.createAgent('id123', <String>['im', 'capable'], 'fakeAccessToken')).error,
           '/api/create-agent returned unexpected response');
     });
@@ -632,57 +632,48 @@ void main() {
 
   group('AppEngine CocoonService reserve task', () {
     AppEngineCocoonService service;
+    Response fakeResponse;
 
     setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('{"Task": "randomdata"}', 200);
-      }));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeResponse));
     });
 
     test('should not throw exception if request succeeds', () async {
+      fakeResponse = Response('{"Task": "randomdata"}', 200);
       await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
     });
 
     test('should throw error if request failed', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 500);
-      }));
-
+      fakeResponse = Response('', 500);
       expect(
           service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'), throwsA(const TypeMatcher<Exception>()));
     });
 
     test('should throw error if task is null', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response('', 200);
-      }));
+      fakeResponse = Response('', 200);
       expect(
           service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'), throwsA(const TypeMatcher<Exception>()));
     });
 
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
-      final Client mockClient = MockHttpClient();
-      when(mockClient.post(argThat(endsWith('/api/reserve-task')),
-              headers: captureAnyNamed('headers'), body: captureAnyNamed('body')))
-          .thenAnswer((_) => Future<Response>.value(Response('{"Task": "randomdata"}', 200)));
-      service = AppEngineCocoonService(client: mockClient);
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        expect(request.url.toString(), kIsWeb ? '/api/reserve-task' : '$_baseApiUrl/api/reserve-task');
+        return Response('{"Task": "randomdata"}', 200);
+      }));
+      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
+    });
 
-      await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-
-      if (kIsWeb) {
-        verify(mockClient.post(
-          '/api/reserve-task',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      } else {
-        verify(mockClient.post(
-          '$_baseApiUrl/api/reserve-task',
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-      }
+    test('should send correct headers and body', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        expect(request.headers, <String, String>{
+          'X-Flutter-IdToken': 'fakeAccessToken',
+          'content-type': 'text/plain; charset=utf-8',
+        });
+        expect(request.body, '{"AgentID":"id123"}');
+        return Response('{"Task": "randomdata"}', 200);
+      }));
+      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
     });
   });
 
