@@ -3,19 +3,17 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:gcloud/db.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/key_helper.dart';
-import '../model/appengine/task.dart';
+import '../model/luci/buildbucket.dart' as bb;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
 @immutable
@@ -32,31 +30,35 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final BuildBucketClient buildBucketClient;
 
-  static const String keyParam = 'Key';
+  static const String luciBuilderNameParam = 'LuciBuilderName';
+  static const String commitShaParam = 'CommitSha';
 
   @override
   Future<Body> post() async {
-    checkRequiredParameters(<String>[keyParam]);
-    final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData[keyParam] as String;
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key key = keyHelper.decode(encodedKey);
-
-    final LuciBuildService luciBuildService = LuciBuildService(
-      config: config,
-      buildBucketClient: buildBucketClient,
-    );
-    // TODO
-    await luciBuildService.rescheduleBuild(
-      build: null,
-      sha: null,
-      builderName: null,
-      retries: 0,
-    );
-
-
+    checkRequiredParameters(<String>[luciBuilderNameParam, commitShaParam]);
+    final String luciBuilderName = requestData[luciBuilderNameParam] as String;
+    final String commitSha = requestData[commitShaParam] as String;
+    await buildBucketClient.scheduleBuild(bb.ScheduleBuildRequest(
+      builderId: bb.BuilderId(
+        project: 'flutter',
+        bucket: 'try',
+        builder: luciBuilderName,
+      ),
+      gitilesCommit: GitilesCommit(
+        host: 'chromium.googlesource.com',
+        project: 'external/github.com/flutter/flutter',
+        ref: 'refs/heads/master',
+        hash: commitSha,
+      ),
+      tags: const <String, List<String>>{},
+      properties: const <String, String>{},
+      notify: bb.NotificationConfig(
+        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
+        userData: json.encode(<String, dynamic>{
+          'retries': 1,
+        }),
+      ),
+    ));
     return Body.empty;
   }
 }
