@@ -57,51 +57,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
     );
     final BuildPushMessage buildMessage = BuildPushMessage.fromJson(
         json.decode(envelope.message.data) as Map<String, dynamic>);
-    final LuciBuildService luciService = LuciBuildService(
-      config: config,
-      buildBucketClient: buildBucketClient,
-    );
-    await luciService.updateLuciTask(buildMessage: buildMessage);
-    return Body.empty;
-  }
-
-  Future<bool> _authenticateRequest(HttpHeaders headers) async {
-    final http.Client client = httpClient;
-    final Oauth2Api oauth2api = Oauth2Api(client);
-    final String idToken = headers.value(HttpHeaders.authorizationHeader);
-    if (idToken == null || !idToken.startsWith('Bearer ')) {
-      return false;
-    }
-    final Tokeninfo info = await oauth2api.tokeninfo(
-      idToken: idToken.substring('Bearer '.length),
-    );
-    if (info.expiresIn == null || info.expiresIn < 1) {
-      return false;
-    }
-    final ServiceAccountInfo devicelabServiceAccount =
-        await config.deviceLabServiceAccount;
-    return info.email == devicelabServiceAccount.email;
-  }
-}
-
-class LuciBuildService {
-  LuciBuildService({
-    @required Config config,
-    @required BuildBucketClient buildBucketClient,
-  }) : _config = config,
-       _buildBucketClient = buildBucketClient;
-
-  final Config _config;
-  final BuildBucketClient _buildBucketClient;
-
-
-  Future<void> updateLuciTask({
-    @required BuildPushMessage buildMessage,
-  }) async {
     final Build build = buildMessage.build;
     final Map<String, dynamic> userData =
         jsonDecode(buildMessage.userData) as Map<String, dynamic>;
     final String builderName = build.tagsByName('builder').single;
+
     const String shaPrefix = 'sha/git/';
     final String sha = build
         .tagsByName('buildset')
@@ -126,6 +86,7 @@ class LuciBuildService {
         );
         break;
     }
+    return Body.empty;
   }
 
   /// Reschedules jobs that failed for infra reasons up to
@@ -145,7 +106,7 @@ class LuciBuildService {
         case FailureReason.buildbucketFailure:
         case FailureReason.infraFailure:
           // infra failed
-          await rescheduleBuild(
+          await _rescheduleBuild(
             sha: sha,
             builderName: builderName,
             build: build,
@@ -174,13 +135,13 @@ class LuciBuildService {
   /// The buildset, user_agent, and github_link tags are applied to match the
   /// original build. The build properties from the original build are also
   /// preserved.
-  Future<void> rescheduleBuild({
+  Future<void> _rescheduleBuild({
     @required String sha,
     @required String builderName,
     @required Build build,
     @required int retries,
   }) async {
-    if (retries >= _config.luciTryInfraFailureRetries) {
+    if (retries >= config.luciTryInfraFailureRetries) {
       // Too many retries.
       await _setCompletedStatus(
         ref: sha,
@@ -190,7 +151,7 @@ class LuciBuildService {
       );
       return;
     }
-    await _buildBucketClient.scheduleBuild(bb.ScheduleBuildRequest(
+    await buildBucketClient.scheduleBuild(bb.ScheduleBuildRequest(
       builderId: bb.BuilderId(
         project: build.project,
         bucket: 'try',
@@ -212,19 +173,30 @@ class LuciBuildService {
     ));
   }
 
-  Future<void> _setCompletedStatus({
-    @required String ref,
-    @required String builderName,
-    @required String buildUrl,
-    @required Result result,
-  }) async {
-    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
-    final GitHub gitHubClient = await _config.createGitHubClient();
-    final CreateStatus status = _statusForResult(result)
-      ..context = builderName
-      ..description = 'Flutter LUCI Build: $builderName'
-      ..targetUrl = buildUrl;
-    await gitHubClient.repositories.createStatus(slug, ref, status);
+  Future<bool> _authenticateRequest(HttpHeaders headers) async {
+    final http.Client client = httpClient;
+    final Oauth2Api oauth2api = Oauth2Api(client);
+    final String idToken = headers.value(HttpHeaders.authorizationHeader);
+    if (idToken == null || !idToken.startsWith('Bearer ')) {
+      return false;
+    }
+    final Tokeninfo info = await oauth2api.tokeninfo(
+      idToken: idToken.substring('Bearer '.length),
+    );
+    if (info.expiresIn == null || info.expiresIn < 1) {
+      return false;
+    }
+    final ServiceAccountInfo devicelabServiceAccount =
+        await config.deviceLabServiceAccount;
+    return info.email == devicelabServiceAccount.email;
+  }
+
+  Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
+    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
+    final String repoName = builders.firstWhere(
+        (Map<String, dynamic> builder) =>
+            builder['name'] == builderName)['repo'] as String;
+    return RepositorySlug('flutter', repoName);
   }
 
   CreateStatus _statusForResult(Result result) {
@@ -240,12 +212,19 @@ class LuciBuildService {
     throw StateError('unreachable');
   }
 
-  Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
-    final List<Map<String, dynamic>> builders = _config.luciTryBuilders;
-    final String repoName = builders.firstWhere(
-        (Map<String, dynamic> builder) =>
-            builder['name'] == builderName)['repo'] as String;
-    return RepositorySlug('flutter', repoName);
+  Future<void> _setCompletedStatus({
+    @required String ref,
+    @required String builderName,
+    @required String buildUrl,
+    @required Result result,
+  }) async {
+    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
+    final GitHub gitHubClient = await config.createGitHubClient();
+    final CreateStatus status = _statusForResult(result)
+      ..context = builderName
+      ..description = 'Flutter LUCI Build: $builderName'
+      ..targetUrl = buildUrl;
+    await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 
   Future<void> _setPendingStatus({
@@ -254,7 +233,7 @@ class LuciBuildService {
     @required String buildUrl,
   }) async {
     final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
-    final GitHub gitHubClient = await _config.createGitHubClient();
+    final GitHub gitHubClient = await config.createGitHubClient();
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
