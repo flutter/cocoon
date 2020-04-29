@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
@@ -135,7 +136,16 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
-    final String postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
+
+    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+    String postResetTaskUrl;
+    if (qualifiedTask.isDevicelab) {
+      postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
+    } else if (qualifiedTask.isLuci) {
+      postResetTaskUrl = apiEndpoint('/api/reset-luci-task');
+    } else {
+      assert(false);
+    }
 
     /// This endpoint only returns a status code.
     final http.Response response = await _client.post(postResetTaskUrl,

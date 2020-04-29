@@ -169,6 +169,7 @@ class TaskOverlayContents extends StatelessWidget {
     final Duration runDuration = endTime.difference(startTime);
 
     final String taskStatus = TaskBox.effectiveTaskStatus(task);
+    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
 
     return Card(
       child: Padding(
@@ -196,7 +197,7 @@ class TaskOverlayContents extends StatelessWidget {
                             task.name,
                             style: Theme.of(context).textTheme.bodyText1,
                           ),
-                          if (QualifiedTask.fromTask(task).isDevicelab)
+                          if (qualifiedTask.isDevicelab)
                             Text(
                               'Attempts: ${task.attempts}\n'
                               'Run time: ${runDuration.inMinutes} minutes\n'
@@ -209,7 +210,7 @@ class TaskOverlayContents extends StatelessWidget {
                               'Task was run outside of devicelab',
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
-                          if (QualifiedTask.fromTask(task).isDevicelab) TaskAttemptSummary(task: task),
+                          if (qualifiedTask.isDevicelab) TaskAttemptSummary(task: task),
                         ],
                       ),
                     ),
@@ -219,7 +220,7 @@ class TaskOverlayContents extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  if (QualifiedTask.fromTask(task).isDevicelab)
+                  if (qualifiedTask.isDevicelab)
                     RaisedButton(
                       child: Text.rich(
                         TextSpan(
@@ -251,7 +252,7 @@ class TaskOverlayContents extends StatelessWidget {
                       onPressed: _viewLog,
                     ),
                   ),
-                  if (QualifiedTask.fromTask(task).isDevicelab)
+                  if (qualifiedTask.isDevicelab || qualifiedTask.isLuci)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: ProgressButton(
