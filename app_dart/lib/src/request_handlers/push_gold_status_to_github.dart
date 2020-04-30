@@ -255,7 +255,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
     }
     body += 'If you are still iterating on this change and are not ready to '
-        'resolve the images on the Flutter Gold dashboard, consider making this PR '
+        'resolve the images on the Flutter Gold dashboard, consider marking this PR '
         'as a draft pull request above. You will still be able to view image results '
         'on the dashboard, and the check will not try to resolve itself until '
         'marked ready for review.\n\n'
