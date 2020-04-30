@@ -144,7 +144,6 @@ class RefreshGitilesCommits extends ApiRequestHandler<Body> {
     }
 
     if (commitRequestRows.isEmpty) {
-      log.debug('no new commits found for repo $repo');
       return;
     }
 
@@ -228,7 +227,7 @@ class RefreshGitilesCommits extends ApiRequestHandler<Body> {
       priorRepo = 'dart';
     } else if (subject.startsWith('Roll src\/third_party\/skia')) {
       priorRepo = 'skia';
-    } else if (subject.startsWith('Roll engine')) {
+    } else if (subject.startsWith('Roll engine') || subject.contains('Roll src\/third_party')) {
       priorRepo = 'engine';
     }
     return priorRepo;
@@ -255,12 +254,28 @@ class RefreshGitilesCommits extends ApiRequestHandler<Body> {
     }
 
     final List<String> subjectSplit = subject.split(' ');
+
+    /// This is for the special case of `flutter` repo with subject: 
+    /// `[engineSha] Roll src/third_party...`. For such case, inserting
+    /// only [engineSha] record is enough. This is different from case with 
+    /// subject `Roll engine ...`, for which it needs to query all engine
+    ///  commits included in this flutter commit.
+    if (subjectSplit[1] == 'Roll') {
+      rollCommitRequestRows.add(<String, Object>{
+        'json': <String, Object>{
+          'RollFromSha': subjectSplit[0],
+          'RollToSha': rollCommit['commit'] as String,
+          'RollTime': commitTime,
+        },
+      });
+      log.debug('$subject, ${rollCommitRequestRows.length}');
+      return;
+    }
     final HttpClient rollHttpClient = rollHttpClientProvider();
     final List<Map<String, dynamic>> rollCommitList = await _getCommitList(
         rollHttpClient,
         repoMap[priorRepo].address,
         '${repoMap[priorRepo].path}${subjectSplit[2]}');
-    log.debug('$subject, ${rollCommitList.length}');
 
     for (Map<String, dynamic> commit in rollCommitList) {
       rollCommitRequestRows.add(<String, Object>{
@@ -271,6 +286,7 @@ class RefreshGitilesCommits extends ApiRequestHandler<Body> {
         },
       });
     }
+    log.debug('$subject, ${rollCommitRequestRows.length}');
   }
 }
 
