@@ -17,15 +17,18 @@ final DateTime pingTime1 = DateTime.utc(2010, 5, 6, 12, 30);
 final DateTime pingTime2 = pingTime1.add(const Duration(minutes: 1));
 final DateTime pingTime3 = pingTime1.add(const Duration(minutes: 2));
 final DateTime soonTime = pingTime1.add(
-  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+  const Duration(
+      minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
 );
 final DateTime laterTime = pingTime1.add(
-  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
+  const Duration(
+      minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
 );
 
 void main() {
   group('AgentList', () {
-    testWidgets('empty list of agents shows loading indicator', (WidgetTester tester) async {
+    testWidgets('empty list of agents shows loading indicator',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         Now.fixed(
           dateTime: soonTime,
@@ -37,7 +40,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('list of agents shows unhealthy agents first', (WidgetTester tester) async {
+    testWidgets('list of agents shows unhealthy agents first',
+        (WidgetTester tester) async {
       final List<Agent> agents = <Agent>[
         Agent()
           ..agentId = 'healthy1'
@@ -108,7 +112,8 @@ able-to-perform-health-check: succeeded''',
           dateTime: soonTime,
           child: MaterialApp(
             home: Scaffold(
-              body: AgentList(agents: agents, agentFilter: 'pigeon', insertKeys: true),
+              body: AgentList(
+                  agents: agents, agentFilter: 'pigeon', insertKeys: true),
             ),
           ),
         ),

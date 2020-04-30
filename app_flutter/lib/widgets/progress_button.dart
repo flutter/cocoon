@@ -62,7 +62,8 @@ class _ProgressButtonState extends State<ProgressButton> {
       children: <Widget>[
         RaisedButton(
           child: widget.child,
-          onPressed: _busy ? null : widget.onPressed != null ? _handlePressed : null,
+          onPressed:
+              _busy ? null : widget.onPressed != null ? _handlePressed : null,
         ),
         if (_busy)
           const Positioned(

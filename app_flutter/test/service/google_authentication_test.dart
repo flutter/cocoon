@@ -18,8 +18,10 @@ void main() {
 
     setUp(() {
       mockSignIn = MockGoogleSignInPlugin();
-      when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
-      when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(false));
+      when(mockSignIn.onCurrentUserChanged)
+          .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn.isSignedIn())
+          .thenAnswer((_) => Future<bool>.value(false));
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
 
@@ -40,9 +42,12 @@ void main() {
     });
 
     test('id token will prompt sign in', () async {
-      final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
-        ..authentication = Future<GoogleSignInAuthentication>.value(FakeGoogleSignInAuthentication());
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
+      final GoogleSignInAccount testAccountWithAuthentication =
+          FakeGoogleSignInAccount()
+            ..authentication = Future<GoogleSignInAuthentication>.value(
+                FakeGoogleSignInAuthentication());
+      when(mockSignIn.signIn()).thenAnswer((_) =>
+          Future<GoogleSignInAccount>.value(testAccountWithAuthentication));
 
       verifyNever(mockSignIn.isSignedIn());
       verifyNever(mockSignIn.signIn());
@@ -62,10 +67,12 @@ void main() {
 
     setUp(() {
       mockSignIn = MockGoogleSignInPlugin();
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
+      when(mockSignIn.signIn())
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(testAccount));
       when(mockSignIn.currentUser).thenReturn(testAccount);
       when(mockSignIn.isSignedIn()).thenAnswer((_) => Future<bool>.value(true));
-      when(mockSignIn.onCurrentUserChanged).thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
+      when(mockSignIn.onCurrentUserChanged)
+          .thenAnswer((_) => const Stream<GoogleSignInAccount>.empty());
 
       authService = GoogleSignInService(googleSignIn: mockSignIn);
     });
@@ -88,16 +95,20 @@ void main() {
     });
 
     test('id token available with logged in user', () async {
-      final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
-        ..authentication = Future<GoogleSignInAuthentication>.value(FakeGoogleSignInAuthentication());
+      final GoogleSignInAccount testAccountWithAuthentication =
+          FakeGoogleSignInAccount()
+            ..authentication = Future<GoogleSignInAuthentication>.value(
+                FakeGoogleSignInAuthentication());
       authService.user = testAccountWithAuthentication;
 
       expect(await authService.idToken, 'id123');
     });
 
     test('is not authenticated after failure in sign in', () async {
-      when(mockSignIn.signInSilently()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
-      when(mockSignIn.signIn()).thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
+      when(mockSignIn.signInSilently())
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
+      when(mockSignIn.signIn())
+          .thenAnswer((_) => Future<GoogleSignInAccount>.value(null));
 
       await authService.signIn();
 

@@ -24,6 +24,7 @@ export 'src/request_handlers/refresh_cirrus_status.dart';
 export 'src/request_handlers/refresh_github_commits.dart';
 export 'src/request_handlers/reserve_task.dart';
 export 'src/request_handlers/reset_devicelab_task.dart';
+export 'src/request_handlers/reset_luci_task.dart';
 export 'src/request_handlers/update_agent_health.dart';
 export 'src/request_handlers/update_agent_health_history.dart';
 export 'src/request_handlers/update_benchmark_targets.dart';

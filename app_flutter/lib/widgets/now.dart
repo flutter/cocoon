@@ -82,6 +82,8 @@ class _Clock extends ValueNotifier<DateTime> {
     //
     // By scheduling a new tick each time, we also ensure that we skip past any seconds that
     // we were too busy to service without increasing the load on the device.
-    _timer = Timer(Duration(milliseconds: 1000 - (value.millisecondsSinceEpoch % 1000)), _tick);
+    _timer = Timer(
+        Duration(milliseconds: 1000 - (value.millisecondsSinceEpoch % 1000)),
+        _tick);
   }
 }

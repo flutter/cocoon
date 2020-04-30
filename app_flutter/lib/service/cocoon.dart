@@ -47,7 +47,7 @@ abstract class CocoonService {
   /// Send rerun [Task] command to devicelab.
   ///
   /// Will not rerun tasks that are outside of devicelab.
-  Future<bool> rerunTask(Task task, String idToken);
+  Future<bool> rerunTask(Task task, String idToken, String commitSha);
 
   /// Writes the log for [Task] to local storage of the current device.
   /// Returns true if successful, false if failed.
@@ -56,7 +56,8 @@ abstract class CocoonService {
   /// Creates [Agent] with the given information.
   ///
   /// Returns an auth token used to authorize the agent.
-  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken);
+  Future<CocoonResponse<String>> createAgent(
+      String agentId, List<String> capabilities, String idToken);
 
   /// Generate a new access token for [agent].
   Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken);

@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Task;
 
-typedef ShowSnackBarCallback = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(SnackBar snackBar);
+typedef ShowSnackBarCallback
+    = ScaffoldFeatureController<SnackBar, SnackBarClosedReason> Function(
+        SnackBar snackBar);
 
 class TaskBox {
   const TaskBox._();
@@ -25,7 +27,8 @@ class TaskBox {
   // Synthetic status messages created by [effectiveTaskStatus].
   static const String statusSucceededButFlaky = 'Succeeded Flaky';
   static const String statusUnderperformed = 'Underperformed';
-  static const String statusUnderperformedInProgress = 'Underperfomed In Progress';
+  static const String statusUnderperformedInProgress =
+      'Underperfomed In Progress';
 
   static String effectiveTaskStatus(Task task) {
     final bool attempted = task.attempts > 1;

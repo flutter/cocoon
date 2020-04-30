@@ -44,7 +44,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Duration get refreshRate => null;
 
   @override
-  Future<bool> rerunTask(Task task) async => rerunTaskResult;
+  Future<bool> rerunTask(Task task, Commit commit) async => rerunTaskResult;
   final bool rerunTaskResult;
 
   @override

@@ -17,6 +17,8 @@ class HeaderText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: Theme.of(context).textTheme.headline4, textAlign: TextAlign.center);
+    return Text(text,
+        style: Theme.of(context).textTheme.headline4,
+        textAlign: TextAlign.center);
   }
 }

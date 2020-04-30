@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
+import 'package:cocoon_service/protos.dart'
+    show CommitStatus, Commit, Stage, Task;
 
 import '../logic/qualified_task.dart';
 import '../state/build.dart';
@@ -23,9 +24,11 @@ class TaskGridContainer extends StatelessWidget {
   const TaskGridContainer({Key key}) : super(key: key);
 
   @visibleForTesting
-  static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
+  static const String errorFetchCommitStatus =
+      'An error occurred fetching commit statuses';
   @visibleForTesting
-  static const String errorFetchTreeStatus = 'An error occurred fetching tree build status';
+  static const String errorFetchTreeStatus =
+      'An error occurred fetching tree build status';
   @visibleForTesting
   static const Duration errorSnackbarDuration = Duration(seconds: 8);
 
@@ -137,9 +140,12 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses) {
+  List<List<LatticeCell>> _processCommitStatuses(
+      List<CommitStatus> commitStatuses) {
     // 1: PREPARE ROWS
-    final List<_Row> rows = commitStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<_Row> rows = commitStatuses
+        .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit))
+        .toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
@@ -147,7 +153,8 @@ class _TaskGridState extends State<TaskGrid> {
       commitCount += 1;
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
-          final QualifiedTask qualifiedTask = QualifiedTask(task.stageName, task.name);
+          final QualifiedTask qualifiedTask =
+              QualifiedTask(task.stageName, task.name);
           if (commitCount <= 25) {
             double score = 0.0;
             if (task.attempts > 1) {
@@ -209,10 +216,12 @@ class _TaskGridState extends State<TaskGrid> {
           LatticeCell(
             builder: (BuildContext context) => CommitBox(commit: row.commit),
           ),
-          ...tasks.map<LatticeCell>((QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
+          ...tasks.map<LatticeCell>(
+              (QualifiedTask task) => row.cells[task] ?? const LatticeCell()),
         ],
       ),
-      if (widget.buildState.moreStatusesExist) _generateLoadingRow(tasks.length + 1),
+      if (widget.buildState.moreStatusesExist)
+        _generateLoadingRow(tasks.length + 1),
     ];
   }
 
@@ -221,7 +230,9 @@ class _TaskGridState extends State<TaskGrid> {
   Painter _painterFor(Task task) {
     final String status = TaskBox.effectiveTaskStatus(task);
     final Paint paint = Paint()
-      ..color = TaskBox.statusColor.containsKey(status) ? TaskBox.statusColor[status] : Colors.black;
+      ..color = TaskBox.statusColor.containsKey(status)
+          ? TaskBox.statusColor[status]
+          : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -247,8 +258,10 @@ class _TaskGridState extends State<TaskGrid> {
     return null;
   }
 
-  static final List<String> _loadingMessage =
-      'LOADING... '.runes.map<String>((int codepoint) => String.fromCharCode(codepoint)).toList();
+  static final List<String> _loadingMessage = 'LOADING... '
+      .runes
+      .map<String>((int codepoint) => String.fromCharCode(codepoint))
+      .toList();
 
   static const TextStyle loadingStyle = TextStyle(
     fontSize: TaskBox.cellSize * 0.9,
@@ -260,7 +273,8 @@ class _TaskGridState extends State<TaskGrid> {
       final String character = _loadingMessage[index % _loadingMessage.length];
       return LatticeCell(
         builder: (BuildContext context) {
-          widget.buildState.fetchMoreCommitStatuses(); // This is safe to call many times.
+          widget.buildState
+              .fetchMoreCommitStatuses(); // This is safe to call many times.
           return Text(
             character,
             style: loadingStyle,
@@ -279,7 +293,8 @@ class _TaskGridState extends State<TaskGrid> {
       _taskOverlay = OverlayEntry(
         builder: (BuildContext context) => TaskOverlayEntry(
           position: (this.context.findRenderObject() as RenderBox)
-              .localToGlobal(localPosition, ancestor: Overlay.of(context).context.findRenderObject()),
+              .localToGlobal(localPosition,
+                  ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
           showSnackBarCallback: Scaffold.of(this.context).showSnackBar,
           closeCallback: _closeOverlay,

@@ -23,21 +23,25 @@ T getDescendant<T extends Widget>({@required Element of}) {
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
+    await tester
+        .pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.byType(SignInButton), findsOneWidget);
   });
 
   testWidgets('shows menu for navigation drawer', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
+    await tester
+        .pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.byIcon(Icons.menu), findsOneWidget);
 
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pump(); // start animation of drawer opening
-    await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
+    await tester
+        .pump(const Duration(seconds: 1)); // end animation of drawer opening
 
-    final List<Element> raisedButtons = find.byType(RawMaterialButton).evaluate().toList();
+    final List<Element> raisedButtons =
+        find.byType(RawMaterialButton).evaluate().toList();
 
     final List<Element> listTiles = find.byType(ListTile).evaluate().toList();
 
@@ -48,14 +52,17 @@ void main() {
     expect(getDescendant<Text>(of: listTiles.first).data, 'Home');
 
     for (int index = 0; index < raisedButtons.length - 1; index += 1) {
-      expect(getDescendant<Icon>(of: raisedButtons[index]).icon, getDescendant<Icon>(of: listTiles[index + 1]).icon);
+      expect(getDescendant<Icon>(of: raisedButtons[index]).icon,
+          getDescendant<Icon>(of: listTiles[index + 1]).icon);
       expect(getDescendant<Text>(of: raisedButtons[index]).data,
           getDescendant<Text>(of: listTiles[index + 1]).data.toUpperCase());
     }
   });
 
-  testWidgets('shows navigation buttons for dashboards', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
+  testWidgets('shows navigation buttons for dashboards',
+      (WidgetTester tester) async {
+    await tester
+        .pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.text('BUILD'), findsOneWidget);
     expect(find.text('BENCHMARKS'), findsOneWidget);

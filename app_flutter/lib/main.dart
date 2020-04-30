@@ -22,8 +22,10 @@ void main() {
     StateProvider(
       signInService: authService,
       indexState: IndexState(authService: authService),
-      agentState: AgentState(authService: authService, cocoonService: cocoonService),
-      buildState: BuildState(authService: authService, cocoonService: cocoonService),
+      agentState:
+          AgentState(authService: authService, cocoonService: cocoonService),
+      buildState:
+          BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
   );
@@ -55,8 +57,10 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
         IndexPage.routeName: (BuildContext context) => const IndexPage(),
-        AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
-        BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
+        AgentDashboardPage.routeName: (BuildContext context) =>
+            const AgentDashboardPage(),
+        BuildDashboardPage.routeName: (BuildContext context) =>
+            const BuildDashboardPage(),
       },
     );
   }

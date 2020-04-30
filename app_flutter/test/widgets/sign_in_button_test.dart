@@ -36,8 +36,10 @@ void main() {
     clearInteractions(mockAuthService);
   });
 
-  testWidgets('SignInButton shows sign in when not authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+  testWidgets('SignInButton shows sign in when not authenticated',
+      (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
@@ -50,11 +52,14 @@ void main() {
     expect(find.byType(GoogleUserCircleAvatar), findsNothing);
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('test@flutter.dev'), findsNothing);
-    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.not_authenticated.png'));
+    await expectLater(find.byType(Overlay),
+        matchesGoldenFile('sign_in_button.not_authenticated.png'));
   });
 
-  testWidgets('SignInButton calls sign in on tap when not authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(false));
+  testWidgets('SignInButton calls sign in on tap when not authenticated',
+      (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) async => Future<bool>.value(false));
 
     await tester.pumpWidget(
       ValueProvider<GoogleSignInService>(
@@ -72,8 +77,10 @@ void main() {
     verify(mockAuthService.signIn()).called(1);
   });
 
-  testWidgets('SignInButton shows avatar when authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
+  testWidgets('SignInButton shows avatar when authenticated',
+      (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);
@@ -89,11 +96,14 @@ void main() {
     // TODO(chillers): look for GoogleUserCircleAvatar once we use that (see sign_in_button.dart)
     expect(find.text('SIGN IN'), findsNothing);
     expect(find.text('test@flutter.dev'), findsOneWidget);
-    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.authenticated.png'));
+    await expectLater(find.byType(Overlay),
+        matchesGoldenFile('sign_in_button.authenticated.png'));
   });
 
-  testWidgets('SignInButton calls sign out on tap when authenticated', (WidgetTester tester) async {
-    when(mockAuthService.isAuthenticated).thenAnswer((_) async => Future<bool>.value(true));
+  testWidgets('SignInButton calls sign out on tap when authenticated',
+      (WidgetTester tester) async {
+    when(mockAuthService.isAuthenticated)
+        .thenAnswer((_) async => Future<bool>.value(true));
 
     final GoogleSignInAccount user = FakeGoogleSignInAccount();
     when(mockAuthService.user).thenReturn(user);

@@ -29,7 +29,8 @@ void main() {
     expect(find.text(expectedLabel), findsNothing);
 
     final Finder taskIcon = find.byType(TaskIcon);
-    final TestGesture gesture = await tester.startGesture(tester.getCenter(taskIcon));
+    final TestGesture gesture =
+        await tester.startGesture(tester.getCenter(taskIcon));
     await tester.pump(kLongPressTimeout);
 
     expect(find.text(expectedLabel), findsOneWidget);
@@ -37,10 +38,13 @@ void main() {
     await gesture.up();
   });
 
-  testWidgets('Tapping TaskIcon opens source configuration url', (WidgetTester tester) async {
-    const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
+  testWidgets('Tapping TaskIcon opens source configuration url',
+      (WidgetTester tester) async {
+    const MethodChannel urlLauncherChannel =
+        MethodChannel('plugins.flutter.io/url_launcher');
     final List<MethodCall> log = <MethodCall>[];
-    urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
+    urlLauncherChannel.setMockMethodCallHandler(
+        (MethodCall methodCall) async => log.add(methodCall));
 
     const QualifiedTask devicelabTask = QualifiedTask('devicelab', 'test');
 
@@ -74,7 +78,8 @@ void main() {
     );
   });
 
-  testWidgets('Unknown stage name shows helper icon in TaskIcon', (WidgetTester tester) async {
+  testWidgets('Unknown stage name shows helper icon in TaskIcon',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
@@ -88,7 +93,8 @@ void main() {
     expect(find.byIcon(Icons.help), findsOneWidget);
   });
 
-  testWidgets('TaskIcon shows the right icon for cirrus', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for cirrus',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
@@ -99,11 +105,16 @@ void main() {
       ),
     );
 
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/cirrus.png');
+    expect((tester.widget(find.byType(Image)) as Image).image,
+        isInstanceOf<AssetImage>());
+    expect(
+        ((tester.widget(find.byType(Image)) as Image).image as AssetImage)
+            .assetName,
+        'assets/cirrus.png');
   });
 
-  testWidgets('TaskIcon shows the right icon for devicelab', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for devicelab',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
@@ -114,11 +125,16 @@ void main() {
       ),
     );
 
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/android.png');
+    expect((tester.widget(find.byType(Image)) as Image).image,
+        isInstanceOf<AssetImage>());
+    expect(
+        ((tester.widget(find.byType(Image)) as Image).image as AssetImage)
+            .assetName,
+        'assets/android.png');
   });
 
-  testWidgets('TaskIcon shows the right icon for devicelab', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for devicelab',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
@@ -129,7 +145,11 @@ void main() {
       ),
     );
 
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
+    expect((tester.widget(find.byType(Image)) as Image).image,
+        isInstanceOf<AssetImage>());
+    expect(
+        ((tester.widget(find.byType(Image)) as Image).image as AssetImage)
+            .assetName,
+        'assets/windows.png');
   });
 }

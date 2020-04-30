@@ -36,13 +36,16 @@ class AgentState extends ChangeNotifier {
   final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses = 'An error occured fetching agent statuses from Cocoon';
+  static const String errorMessageFetchingStatuses =
+      'An error occured fetching agent statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageCreatingAgent = 'An error occurred creating agent';
+  static const String errorMessageCreatingAgent =
+      'An error occurred creating agent';
 
   @visibleForTesting
-  static const String errorMessageAuthorizingAgent = 'An error occurred authorizing agent';
+  static const String errorMessageAuthorizingAgent =
+      'An error occurred authorizing agent';
 
   /// How often to query the Cocoon backend for the current agent statuses.
   @visibleForTesting
@@ -87,7 +90,8 @@ class AgentState extends ChangeNotifier {
   /// If an error occurs, [errors] will be updated with
   /// the message [errorMessageFetchingStatuses].
   Future<void> _fetchStatusUpdates([Timer timer]) async {
-    final CocoonResponse<List<Agent>> response = await cocoonService.fetchAgentStatuses();
+    final CocoonResponse<List<Agent>> response =
+        await cocoonService.fetchAgentStatuses();
     if (!_active) {
       return;
     }

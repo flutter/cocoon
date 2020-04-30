@@ -11,10 +11,12 @@ import 'package:app_flutter/logic/agent_health_details.dart';
 
 final DateTime pingTime = DateTime.utc(2010, 5, 6, 12, 30);
 final DateTime soonTime = pingTime.add(
-  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+  const Duration(
+      minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
 );
 final DateTime laterTime = pingTime.add(
-  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
+  const Duration(
+      minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive * 2),
 );
 
 void main() {

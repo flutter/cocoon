@@ -28,7 +28,8 @@ void main() {
       expect(find.byType(RaisedButton), findsNothing);
     });
 
-    testWidgets('shows only 1 button for 1 attempt', (WidgetTester tester) async {
+    testWidgets('shows only 1 button for 1 attempt',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -45,7 +46,8 @@ void main() {
       expect(find.text('OPEN LOG FOR ATTEMPT #1'), findsOneWidget);
     });
 
-    testWidgets('shows multiple buttons for multiple attempts', (WidgetTester tester) async {
+    testWidgets('shows multiple buttons for multiple attempts',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -65,7 +67,8 @@ void main() {
     });
 
     testWidgets('opens expected stackdriver url', (WidgetTester tester) async {
-      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
@@ -105,8 +108,11 @@ void main() {
       );
     });
 
-    testWidgets('opens expected stackdriver url for when there are multiple tasks', (WidgetTester tester) async {
-      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets(
+        'opens expected stackdriver url for when there are multiple tasks',
+        (WidgetTester tester) async {
+      const MethodChannel channel =
+          MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);

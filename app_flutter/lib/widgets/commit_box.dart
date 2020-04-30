@@ -139,7 +139,8 @@ class CommitOverlayContents extends StatelessWidget {
   }
 
   Future<void> _openGithub() async {
-    final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
+    final String githubUrl =
+        'https://github.com/${commit.repository}/commit/${commit.sha}';
     await launch(githubUrl);
   }
 }

@@ -13,7 +13,8 @@ class GoogleSignInService extends ChangeNotifier {
             GoogleSignIn(
               scopes: _googleScopes,
             ) {
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount accountValue) {
+    _googleSignIn.onCurrentUserChanged
+        .listen((GoogleSignInAccount accountValue) {
       user = accountValue;
       notifyListeners();
     });
@@ -53,7 +54,8 @@ class GoogleSignInService extends ChangeNotifier {
       await signIn();
     }
 
-    final String idToken = await user?.authentication?.then((GoogleSignInAuthentication key) => key.idToken);
+    final String idToken = await user?.authentication
+        ?.then((GoogleSignInAuthentication key) => key.idToken);
     assert(idToken != null && idToken.isNotEmpty);
 
     return idToken;

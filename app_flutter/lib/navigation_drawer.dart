@@ -31,13 +31,15 @@ class NavigationDrawer extends StatelessWidget {
           ListTile(
             title: const Text('Home'),
             leading: const Icon(Icons.home),
-            onTap: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
+            onTap: () =>
+                Navigator.pushReplacementNamed(context, IndexPage.routeName),
             selected: currentRoute == '/',
           ),
           ListTile(
             title: const Text('Build'),
             leading: const Icon(Icons.build),
-            onTap: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
+            onTap: () => Navigator.pushReplacementNamed(
+                context, BuildDashboardPage.routeName),
             selected: currentRoute == '/build',
           ),
           ListTile(
@@ -59,7 +61,8 @@ class NavigationDrawer extends StatelessWidget {
           ListTile(
             title: const Text('Infra Agents'),
             leading: const Icon(Icons.android),
-            onTap: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
+            onTap: () => Navigator.pushReplacementNamed(
+                context, AgentDashboardPage.routeName),
             selected: currentRoute == '/agents',
           ),
           const Divider(thickness: 2.0),

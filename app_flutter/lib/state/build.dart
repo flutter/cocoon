@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, Task;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, RootKey, Task;
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
@@ -55,10 +56,12 @@ class BuildState extends ChangeNotifier {
   final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses = 'An error occured fetching build statuses from Cocoon';
+  static const String errorMessageFetchingStatuses =
+      'An error occured fetching build statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageFetchingTreeStatus = 'An error occured fetching tree status from Cocoon';
+  static const String errorMessageFetchingTreeStatus =
+      'An error occured fetching tree status from Cocoon';
 
   @visibleForTesting
   static const String errorMessageFetchingBranches =
@@ -108,7 +111,8 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchStatusUpdates([Timer timer]) async {
     await Future.wait<void>(<Future<void>>[
       () async {
-        final CocoonResponse<List<String>> response = await cocoonService.fetchFlutterBranches();
+        final CocoonResponse<List<String>> response =
+            await cocoonService.fetchFlutterBranches();
         if (!_active) {
           return null;
         }
@@ -133,7 +137,8 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<bool> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<bool> response =
+            await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
         if (!_active) {
           return null;
         }
@@ -192,11 +197,13 @@ class BuildState extends ChangeNotifier {
     }
 
     assert(_statusesInOrder(recentStatuses));
-    final List<CommitStatus> mergedStatuses = List<CommitStatus>.from(recentStatuses);
+    final List<CommitStatus> mergedStatuses =
+        List<CommitStatus>.from(recentStatuses);
 
     /// Bisect statuses to find the set that doesn't exist in [recentStatuses].
     final CommitStatus lastRecentStatus = recentStatuses.last;
-    final int lastKnownIndex = _findCommitStatusIndex(_statuses, lastRecentStatus);
+    final int lastKnownIndex =
+        _findCommitStatusIndex(_statuses, lastRecentStatus);
 
     /// If this assertion error occurs, the Cocoon backend needs to be updated
     /// to return more commit statuses. This error will only occur if there
@@ -263,7 +270,8 @@ class BuildState extends ChangeNotifier {
   Future<void> _fetchMoreCommitStatusesInternal() async {
     assert(_statuses.isNotEmpty);
 
-    final CocoonResponse<List<CommitStatus>> response = await cocoonService.fetchCommitStatuses(
+    final CocoonResponse<List<CommitStatus>> response =
+        await cocoonService.fetchCommitStatuses(
       lastCommitStatus: _statuses.last,
       branch: _currentBranch,
     );
@@ -293,12 +301,13 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
-  Future<bool> rerunTask(Task task) async {
-    return cocoonService.rerunTask(task, await authService.idToken);
+  Future<bool> rerunTask(Task task, Commit commit) async {
+    return cocoonService.rerunTask(task, await authService.idToken, commit.sha);
   }
 
   Future<bool> downloadLog(Task task, Commit commit) async {
-    return cocoonService.downloadLog(task, await authService.idToken, commit.sha);
+    return cocoonService.downloadLog(
+        task, await authService.idToken, commit.sha);
   }
 
   /// Assert that [statuses] is ordered from newest commit to oldest.

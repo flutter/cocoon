@@ -44,21 +44,25 @@ class AppEngineCocoonService implements CocoonService {
     String branch,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
-      if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
+      if (lastCommitStatus != null)
+        'lastCommitKey': lastCommitStatus.commit.key.child.name,
       'branch': branch ?? _defaultBranch,
     };
-    final String getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
+    final String getStatusUrl =
+        apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<CommitStatus>>.error('/api/public/get-status returned ${response.statusCode}');
+      return CocoonResponse<List<CommitStatus>>.error(
+          '/api/public/get-status returned ${response.statusCode}');
     }
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<CommitStatus>>.data(_commitStatusesFromJson(jsonResponse['Statuses']));
+      return CocoonResponse<List<CommitStatus>>.data(
+          _commitStatusesFromJson(jsonResponse['Statuses']));
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -71,27 +75,32 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, String> queryParameters = <String, String>{
       'branch': branch ?? _defaultBranch,
     };
-    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status', queryParameters: queryParameters);
+    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status',
+        queryParameters: queryParameters);
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<bool>.error('/api/public/build-status returned ${response.statusCode}');
+      return CocoonResponse<bool>.error(
+          '/api/public/build-status returned ${response.statusCode}');
     }
 
     Map<String, Object> jsonResponse;
     try {
       jsonResponse = jsonDecode(response.body);
     } catch (error) {
-      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
+      return const CocoonResponse<bool>.error(
+          '/api/public/build-status had a malformed response');
     }
 
     if (!_isBuildStatusResponseValid(jsonResponse)) {
-      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
+      return const CocoonResponse<bool>.error(
+          '/api/public/build-status had a malformed response');
     }
 
-    return CocoonResponse<bool>.data(jsonResponse['AnticipatedBuildStatus'] == 'Succeeded');
+    return CocoonResponse<bool>.data(
+        jsonResponse['AnticipatedBuildStatus'] == 'Succeeded');
   }
 
   @override
@@ -102,12 +111,14 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<Agent>>.error('/api/public/get-status returned ${response.statusCode}');
+      return CocoonResponse<List<Agent>>.error(
+          '/api/public/get-status returned ${response.statusCode}');
     }
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<Agent>>.data(_agentStatusesFromJson(jsonResponse['AgentStatuses']));
+      return CocoonResponse<List<Agent>>.data(
+          _agentStatusesFromJson(jsonResponse['AgentStatuses']));
     } catch (error) {
       return CocoonResponse<List<Agent>>.error(error.toString());
     }
@@ -121,7 +132,8 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>.error('/api/public/get-branches returned ${response.statusCode}');
+      return CocoonResponse<List<String>>.error(
+          '/api/public/get-branches returned ${response.statusCode}');
     }
 
     try {
@@ -134,7 +146,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> rerunTask(Task task, String idToken) async {
+  Future<bool> rerunTask(Task task, String idToken, String commitSha) async {
     assert(idToken != null);
 
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
@@ -153,7 +165,11 @@ class AppEngineCocoonService implements CocoonService {
           'X-Flutter-IdToken': idToken,
         },
         body: jsonEncode(<String, String>{
-          'Key': task.key.child.name,
+          if (qualifiedTask.isDevicelab) 'Key': task.key.child.name,
+          if (qualifiedTask.isLuci) ...<String, Object>{
+            'LuciBuilderName': task.name,
+            'CommitSha': commitSha,
+          }
         }));
 
     return response.statusCode == HttpStatus.ok;
@@ -168,8 +184,11 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
-    final Map<String, String> queryParameters = <String, String>{'ownerKey': task.key.child.name};
-    final String getTaskLogUrl = apiEndpoint('/api/get-log', queryParameters: queryParameters);
+    final Map<String, String> queryParameters = <String, String>{
+      'ownerKey': task.key.child.name
+    };
+    final String getTaskLogUrl =
+        apiEndpoint('/api/get-log', queryParameters: queryParameters);
 
     // Only show the first 7 characters of the commit sha. This amount is unique
     // enough to allow lookup of a commit.
@@ -181,7 +200,8 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken) async {
+  Future<CocoonResponse<String>> createAgent(
+      String agentId, List<String> capabilities, String idToken) async {
     assert(agentId != null);
     assert(capabilities.isNotEmpty);
     assert(idToken != null);
@@ -199,24 +219,28 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      return const CocoonResponse<String>.error('/api/create-agent did not respond with 200');
+      return const CocoonResponse<String>.error(
+          '/api/create-agent did not respond with 200');
     }
 
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
       if (responseBody['Token'] == null) {
-        return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
+        return const CocoonResponse<String>.error(
+            '/api/create-agent returned unexpected response');
       }
     } catch (e) {
-      return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
+      return const CocoonResponse<String>.error(
+          '/api/create-agent returned unexpected response');
     }
 
     return CocoonResponse<String>.data(responseBody['Token']);
   }
 
   @override
-  Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken) async {
+  Future<CocoonResponse<String>> authorizeAgent(
+      Agent agent, String idToken) async {
     assert(agent != null);
     assert(idToken != null);
 
@@ -232,17 +256,20 @@ class AppEngineCocoonService implements CocoonService {
     );
 
     if (response.statusCode != HttpStatus.ok) {
-      return const CocoonResponse<String>.error('/api/authorize-agent did not respond with 200');
+      return const CocoonResponse<String>.error(
+          '/api/authorize-agent did not respond with 200');
     }
 
     Map<String, Object> responseBody;
     try {
       responseBody = jsonDecode(response.body);
       if (responseBody['Token'] == null) {
-        return const CocoonResponse<String>.error('/api/authorize-agent returned unexpected response');
+        return const CocoonResponse<String>.error(
+            '/api/authorize-agent returned unexpected response');
       }
     } catch (e) {
-      return const CocoonResponse<String>.error('/api/authorize-agent returned unexpected response');
+      return const CocoonResponse<String>.error(
+          '/api/authorize-agent returned unexpected response');
     }
 
     return CocoonResponse<String>.data(responseBody['Token']);
@@ -327,10 +354,12 @@ class AppEngineCocoonService implements CocoonService {
 
     for (final Map<String, Object> jsonAgent in jsonAgentStatuses) {
       final List<Object> objectCapabilities = jsonAgent['Capabilities'];
-      final List<String> capabilities = objectCapabilities.map((Object value) => value.toString()).toList();
+      final List<String> capabilities =
+          objectCapabilities.map((Object value) => value.toString()).toList();
       final Agent agent = Agent()
         ..agentId = jsonAgent['AgentID']
-        ..healthCheckTimestamp = Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
+        ..healthCheckTimestamp =
+            Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
         ..isHealthy = jsonAgent['IsHealthy']
         ..capabilities.addAll(capabilities)
         ..healthDetails = jsonAgent['HealthDetails'];
@@ -415,7 +444,8 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
 
     final Map<String, Object> taskData = json['Task'];
-    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
+    final List<Object> objectRequiredCapabilities =
+        taskData['RequiredCapabilities'];
 
     return Task()
       ..key = (RootKey()..child = (Key()..name = json['Key']))

@@ -60,7 +60,8 @@ class _PulseState extends State<Pulse> with SingleTickerProviderStateMixin {
     return AnimatedBuilder(
       animation: _controller,
       builder: (BuildContext context, Widget child) {
-        final double t = math.sin(_controller.value) / 4.0 + 0.75; // from 0.5 to 1.0
+        final double t =
+            math.sin(_controller.value) / 4.0 + 0.75; // from 0.5 to 1.0
         return Transform.scale(
           scale: t,
           child: DecoratedBox(

@@ -36,7 +36,8 @@ class TaskIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget icon = const Icon(Icons.help);
-    if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {
+    if (qualifiedTask.stage == StageName.luci &&
+        qualifiedTask.task == 'linux_bot') {
       icon = Image.asset('assets/fuchsia.png');
     } else if (stageIcons.containsKey(qualifiedTask.stage)) {
       icon = stageIcons[qualifiedTask.stage];

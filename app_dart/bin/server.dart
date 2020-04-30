@@ -43,6 +43,8 @@ Future<void> main() async {
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
+      '/api/reset-luci-task': ResetLuciTask(config, authProvider,
+          buildBucketClient: buildBucketClient),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history':
           UpdateAgentHealthHistory(config, authProvider),

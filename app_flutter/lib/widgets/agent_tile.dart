@@ -47,14 +47,17 @@ class AgentTile extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: agentHealthDetails.isHealthy(now) ? Colors.green : theme.errorColor,
+          backgroundColor: agentHealthDetails.isHealthy(now)
+              ? Colors.green
+              : theme.errorColor,
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
         title: Text(agent.agentId),
         subtitle: AgentHealthDetailsBar(agentHealthDetails),
         trailing: PopupMenuButton<_AgentTileAction>(
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<_AgentTileAction>>[
+          itemBuilder: (BuildContext context) =>
+              <PopupMenuEntry<_AgentTileAction>>[
             const PopupMenuItem<_AgentTileAction>(
               child: Text('Raw health details'),
               value: _AgentTileAction.details,
@@ -81,7 +84,8 @@ class AgentTile extends StatelessWidget {
                 _reserveTask(context, agent);
                 break;
               default:
-                throw Exception('$value is not a valid operation on AgentTile popup menu');
+                throw Exception(
+                    '$value is not a valid operation on AgentTile popup menu');
             }
           },
         ),
