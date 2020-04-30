@@ -141,11 +141,13 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha, String baseRef) {
+      PullRequest newPullRequest(int number, String sha, String baseRef,
+          {bool draft = false}) {
         return PullRequest()
           ..number = 123
           ..head = (PullRequestHead()..sha = 'abc')
-          ..base = (PullRequestHead()..ref = baseRef);
+          ..base = (PullRequestHead()..ref = baseRef)
+          ..draft = draft;
       }
 
       group('does not update GitHub or Datastore', () {
@@ -773,6 +775,85 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
 
           // Should not label or comment
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
+          ));
+        });
+
+        test('delivers pending state for draft PRs, does not query Gold',
+            () async {
+          // New commit, draft PR
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', draft: true);
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          branch = 'pull/123';
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
+          ));
+        });
+
+        test('delivers pending state for failing checks, does not query Gold',
+            () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks failed
+          statuses = <dynamic>[
+            <String, String>{'status': 'FAILED', 'name': 'framework-1'},
+            <String, String>{'status': 'ABORTED', 'name': 'framework-2'}
+          ];
+          branch = 'pull/123';
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
           verifyNever(issuesService.addLabelsToIssue(
             slug,
             pr.number,

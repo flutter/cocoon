@@ -109,8 +109,12 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
-        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains)) {
-          // Checks are still running, we have to wait.
+        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
+            cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
+            pr.draft) {
+          // If checks on an open PR are running or failing, the gold status
+          // should just be pending. Any draft PRs are considered pending
+          // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
               'This check is waiting for the all clear from Gold.');
@@ -250,7 +254,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       body = 'Golden file changes are available for triage from new commit, '
           'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
     }
-    body +=
+    body += 'If you are still iterating on this change and are not ready to '
+        'resolve the images on the Flutter Gold dashboard, consider marking this PR '
+        'as a draft pull request above. You will still be able to view image results '
+        'on the dashboard, and the check will not try to resolve itself until '
+        'marked ready for review.\n\n'
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
