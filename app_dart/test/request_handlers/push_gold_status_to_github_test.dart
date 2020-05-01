@@ -212,7 +212,7 @@ void main() {
 
           // Checks still running
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'pending'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -287,7 +287,9 @@ void main() {
           ));
         });
 
-        test('same commit, cirrus checks complete, luci still running, last status running', () async {
+        test(
+            'same commit, cirrus checks complete, luci still running, last status running',
+            () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -295,12 +297,13 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            'This check is waiting for the all clear from Gold.',);
+            'This check is waiting for the all clear from Gold.',
+          );
           db.values[status.key] = status;
 
           // Luci running, Cirrus checks complete
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'pending'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -409,7 +412,7 @@ void main() {
 
           // Checks running
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'pending'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -456,7 +459,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -521,7 +524,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -585,7 +588,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -642,7 +645,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -711,7 +714,7 @@ void main() {
 
           // Checks complete
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -778,7 +781,7 @@ void main() {
 
           // Checks complete
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -848,7 +851,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -912,7 +915,7 @@ void main() {
 
           // Checks completed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'success'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -958,7 +961,7 @@ void main() {
 
           // Checks failed
           when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
-              (_) => Stream<RepositoryStatus>.value(
+            (_) => Stream<RepositoryStatus>.value(
               RepositoryStatus()
                 ..state = 'failed'
                 ..description = 'Flutter LUCI Build: Linux',
@@ -1016,7 +1019,7 @@ void main() {
 
         // Checks completed
         when(repositoriesService.listStatuses(slug, any)).thenAnswer(
-            (_) => Stream<RepositoryStatus>.value(
+          (_) => Stream<RepositoryStatus>.value(
             RepositoryStatus()
               ..state = 'success'
               ..description = 'Flutter LUCI Build: Linux',

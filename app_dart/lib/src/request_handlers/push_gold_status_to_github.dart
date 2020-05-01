@@ -111,10 +111,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (runsGoldenFileTests) {
         // Make sure we account for any running Luci builds
-        final List<String> luciIncompleteStates = <String>['failure', 'unreachable', 'pending'];
+        final List<String> luciIncompleteStates = <String>[
+          'failure',
+          'unreachable',
+          'pending'
+        ];
         final List<String> luciStatuses = <String>[];
         final Stream<RepositoryStatus> statusStream =
-          gitHubClient.repositories.listStatuses(slug, pr.head.sha);
+            gitHubClient.repositories.listStatuses(slug, pr.head.sha);
         await for (RepositoryStatus status in statusStream) {
           if (status.description.contains('LUCI')) {
             luciStatuses.add(status.state);
