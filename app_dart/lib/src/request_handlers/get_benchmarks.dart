@@ -35,41 +35,48 @@ class GetBenchmarks extends RequestHandler<Body> {
   Future<Body> get() async {
     const String master = 'master';
 
-    final int maxRecords = config.maxRecords;
     final String branch = request.uri.queryParameters[branchParam] ?? master;
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
 
     Map<String, Result> releaseBranchMap = <String, Result>{};
     Map<String, Result> masterMap = <String, Result>{};
-    int masterLimit = maxRecords;
-    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    int numberOfMasterCommits = config.maxRecords;
+    int lastTimestampOfReleaseBranchCommits =
+        DateTime.now().millisecondsSinceEpoch;
 
     /// Query all commits of the release branch first. Then calcalute the
     /// number of commits to retrieve from master branch, and obtain
     /// the starting [timestamp] to filter master commits.
     if (branch != master) {
       final List<Commit> releaseBranchCommits = await datastore
-          .queryRecentCommits(limit: maxRecords, branch: branch)
+          .queryRecentCommits(limit: config.maxRecords, branch: branch)
           .toList();
-      releaseBranchMap = await _getBenchmarks(releaseBranchCommits.length,
-          branch, datastore, releaseBranchCommits, benchmarks, timestamp);
-      masterLimit = maxRecords > releaseBranchCommits.length
-          ? maxRecords - releaseBranchCommits.length
+      releaseBranchMap = await _getBenchmarks(
+          releaseBranchCommits.length,
+          branch,
+          datastore,
+          releaseBranchCommits,
+          benchmarks,
+          lastTimestampOfReleaseBranchCommits);
+      numberOfMasterCommits = config.maxRecords > releaseBranchCommits.length
+          ? config.maxRecords - releaseBranchCommits.length
           : 0;
-      timestamp = releaseBranchCommits.last.timestamp;
+      lastTimestampOfReleaseBranchCommits = releaseBranchCommits.last.timestamp;
     }
 
     /// Query all remaining commits from master.
-    if (branch == master || masterLimit > 0) {
+    if (branch == master || numberOfMasterCommits > 0) {
       /// `+1` is to guarantee picking up the master commit, from which
       /// the release branch is derived.
       final List<Commit> masterCommits = await datastore
-          .queryRecentCommits(timestamp: timestamp + 1, limit: masterLimit)
+          .queryRecentCommits(
+              timestamp: lastTimestampOfReleaseBranchCommits + 1,
+              limit: numberOfMasterCommits)
           .toList();
 
-      masterMap = await _getBenchmarks(
-          masterLimit, master, datastore, masterCommits, benchmarks, timestamp);
+      masterMap = await _getBenchmarks(numberOfMasterCommits, master, datastore,
+          masterCommits, benchmarks, lastTimestampOfReleaseBranchCommits);
     }
 
     _combineValues(releaseBranchMap, masterMap, benchmarks);
@@ -79,7 +86,9 @@ class GetBenchmarks extends RequestHandler<Body> {
     });
   }
 
-  /// Combine results for both release and master branches.
+  /// Combine results for both release and master branches. [releaseBranchMap] contains
+  /// data from `release branch`, whereas [masterMap] contains data from `master`. Combined
+  /// results will be saved/returned via [benchmarks].
   void _combineValues(Map<String, Result> releaseBranchMap,
       Map<String, Result> masterMap, List<Map<String, dynamic>> benchmarks) {
     final KeyHelper keyHelper = config.keyHelper;
