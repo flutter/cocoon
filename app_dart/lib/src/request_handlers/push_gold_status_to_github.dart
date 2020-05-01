@@ -77,7 +77,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
       final bool isMasterBranch = pr.base.ref == 'master';
-      // Query current checks for this pr.
+
+      // Query current Cirrus checks for this pr.
       final List<CirrusResult> cirrusResults =
           await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
 
@@ -109,8 +110,20 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
+        // Make sure we account for any running Luci builds
+        final List<String> luciIncompleteStates = <String>['failure', 'unreachable', 'pending'];
+        final List<String> luciStatuses = <String>[];
+        final Stream<RepositoryStatus> statusStream =
+          gitHubClient.repositories.listStatuses(slug, pr.head.sha);
+        await for (RepositoryStatus status in statusStream) {
+          if (status.description.contains('LUCI')) {
+            luciStatuses.add(status.state);
+          }
+        }
+
         if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
             cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
+            luciStatuses.any(luciIncompleteStates.contains) ||
             pr.draft) {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are considered pending
@@ -264,10 +277,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
       'severe: API break',
-      // TODO(Piinks): Add CQ+1 label when https://github.com/flutter/flutter/pull/49815
-      // lands to keep everything in sync across both CIs. The comment feedback
-      // will need to reflect that the Luci checks will need to run and be
-      // triaged as well.
     ]);
   }
 
