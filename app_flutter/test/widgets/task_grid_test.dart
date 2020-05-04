@@ -41,6 +41,7 @@ void main() {
   });
 
   testWidgets('TaskGridContainer with DevelopmentCocoonService', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
       authService: MockGoogleSignInService(),
@@ -58,7 +59,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     final int commitCount = tester.elementList(find.byType(CommitBox)).length;
     expect(commitCount, 16); // based on screen size this is how many show up
@@ -87,6 +87,7 @@ void main() {
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
     // ✓☐☐
@@ -137,7 +138,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withSkips.png'));
   });
@@ -188,6 +188,7 @@ void main() {
   });
 
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final List<CommitStatus> commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
@@ -215,7 +216,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withoutL.png'));
 
@@ -283,6 +283,7 @@ void main() {
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
@@ -440,7 +441,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.differentTypes.png'));
   });

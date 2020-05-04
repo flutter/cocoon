@@ -52,6 +52,7 @@ class TestGrid extends StatelessWidget {
 
 void main() {
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -75,7 +76,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
@@ -105,6 +105,7 @@ void main() {
   });
 
   testWidgets('TaskOverlay shows when flaky is true', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -127,7 +128,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     expect(find.text(flakyTask.name), findsNothing);
     expect(find.text(flakyTaskInfoString), findsNothing);
@@ -232,6 +232,7 @@ void main() {
   });
 
   testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     const String expectedTaskInfoString = 'Task was run outside of devicelab';
     await tester.pumpWidget(
       MaterialApp(
@@ -244,7 +245,6 @@ void main() {
         ),
       ),
     );
-    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     expect(find.text(expectedTaskInfoString), findsNothing);
     await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_closed.png'));
