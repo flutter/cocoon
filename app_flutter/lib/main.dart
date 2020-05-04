@@ -40,6 +40,7 @@ final ThemeData darkTheme = ThemeData.from(
   colorScheme: const ColorScheme.dark(
     primary: Colors.green,
     secondary: Colors.blueAccent,
+    background: Color(0xBB000000),
   ),
 );
 

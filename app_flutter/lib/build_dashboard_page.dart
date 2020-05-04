@@ -68,7 +68,7 @@ class BuildDashboardPage extends StatelessWidget {
                   (String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: const TextStyle(color: Colors.black)),
+                      child: Text(value),
                     );
                   },
                 ).toList()),

@@ -22,18 +22,7 @@ import 'package:app_flutter/widgets/task_icon.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/mocks.dart';
-
-Future<void> precacheAssets(WidgetTester tester) async {
-  await tester.runAsync(() async {
-    for (final Image widget in TaskIcon.stageIcons.values) {
-      await precacheImage(
-        widget.image,
-        tester.element(find.byType(TaskGrid)),
-      );
-    }
-  });
-  await tester.pump();
-}
+import '../utils/task_icons.dart';
 
 void main() {
   testWidgets('TaskGridContainer shows loading indicator when statuses is empty', (WidgetTester tester) async {
@@ -69,7 +58,7 @@ void main() {
         ),
       ),
     );
-    await precacheAssets(tester);
+    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     final int commitCount = tester.elementList(find.byType(CommitBox)).length;
     expect(commitCount, 16); // based on screen size this is how many show up
@@ -148,7 +137,7 @@ void main() {
         ),
       ),
     );
-    await precacheAssets(tester);
+    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withSkips.png'));
   });
@@ -226,7 +215,7 @@ void main() {
         ),
       ),
     );
-    await precacheAssets(tester);
+    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withoutL.png'));
 
@@ -451,7 +440,7 @@ void main() {
         ),
       ),
     );
-    await precacheAssets(tester);
+    await precacheTaskIcons(tester, find.byType(TaskGrid));
 
     await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.differentTypes.png'));
   });
