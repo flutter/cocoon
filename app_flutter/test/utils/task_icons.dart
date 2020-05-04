@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 ///
 /// This calls `tester.pump()` once after precaching the images.
 Future<void> precacheTaskIcons(WidgetTester tester) async {
-  final List<String> assets = Directory(path.join(path.dirname(Platform.script.path), 'assets'))
+  final List<String> assets = Directory(path.join(path.dirname(Platform.script.path), '..', 'assets'))
       .listSync()
       .map((FileSystemEntity entity) => entity.path)
       .toList();
