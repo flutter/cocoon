@@ -53,6 +53,7 @@ class TestGrid extends StatelessWidget {
 void main() {
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
+
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -76,6 +77,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
