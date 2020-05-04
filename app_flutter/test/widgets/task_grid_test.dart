@@ -59,6 +59,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     final int commitCount = tester.elementList(find.byType(CommitBox)).length;
     expect(commitCount, 16); // based on screen size this is how many show up
