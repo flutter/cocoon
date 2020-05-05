@@ -33,9 +33,10 @@ class GetBenchmarks extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    const String master = 'master';
+    final String defaultBranch = config.defaultBranch;
 
-    final String branch = request.uri.queryParameters[branchParam] ?? master;
+    final String branch =
+        request.uri.queryParameters[branchParam] ?? defaultBranch;
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
 
@@ -46,9 +47,9 @@ class GetBenchmarks extends RequestHandler<Body> {
         DateTime.now().millisecondsSinceEpoch;
 
     /// Query all commits of the release branch first. Then calcalute the
-    /// number of commits to retrieve from master branch, and obtain
-    /// the starting [timestamp] to filter master commits.
-    if (branch != master) {
+    /// number of commits to retrieve from [defaultBranch] branch, and obtain
+    /// the starting [timestamp] to filter [defaultBranch] commits.
+    if (branch != defaultBranch) {
       final List<Commit> releaseBranchCommits = await datastore
           .queryRecentCommits(limit: config.maxRecords, branch: branch)
           .toList();
@@ -65,9 +66,9 @@ class GetBenchmarks extends RequestHandler<Body> {
       lastTimestampOfReleaseBranchCommits = releaseBranchCommits.last.timestamp;
     }
 
-    /// Query all remaining commits from master.
-    if (branch == master || numberOfMasterCommits > 0) {
-      /// `+1` is to guarantee picking up the master commit, from which
+    /// Query all remaining commits from [defaultBranch].
+    if (branch == defaultBranch || numberOfMasterCommits > 0) {
+      /// `+1` is to guarantee picking up the [defaultBranch] commit, from which
       /// the release branch is derived.
       final List<Commit> masterCommits = await datastore
           .queryRecentCommits(
@@ -75,8 +76,13 @@ class GetBenchmarks extends RequestHandler<Body> {
               limit: numberOfMasterCommits)
           .toList();
 
-      masterMap = await _getBenchmarks(numberOfMasterCommits, master, datastore,
-          masterCommits, benchmarks, lastTimestampOfReleaseBranchCommits);
+      masterMap = await _getBenchmarks(
+          numberOfMasterCommits,
+          defaultBranch,
+          datastore,
+          masterCommits,
+          benchmarks,
+          lastTimestampOfReleaseBranchCommits);
     }
 
     _combineValues(releaseBranchMap, masterMap, benchmarks);
@@ -86,8 +92,8 @@ class GetBenchmarks extends RequestHandler<Body> {
     });
   }
 
-  /// Combine results for both release and master branches. [releaseBranchMap] contains
-  /// data from `release branch`, whereas [masterMap] contains data from `master`. Combined
+  /// Combine results for both release and [defaultBranch] branches. [releaseBranchMap] contains
+  /// data from `release branch`, whereas [masterMap] contains data from [defaultBranch]. Combined
   /// results will be saved/returned via [benchmarks].
   void _combineValues(Map<String, Result> releaseBranchMap,
       Map<String, Result> masterMap, List<Map<String, dynamic>> benchmarks) {
@@ -175,6 +181,7 @@ class GetBenchmarks extends RequestHandler<Body> {
   }
 }
 
+/// This class is to hold temporary results pairs for [timeSeries] and [timeSeriesValues].
 class Result {
   const Result(this.timeSeries, this.timeSeriesValues)
       : assert(timeSeries != null),

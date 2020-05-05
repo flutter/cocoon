@@ -148,6 +148,8 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
+  String get defaultBranch => 'master';
+
   // Default number of commits to return for benchmark dashboard.
   int get maxRecords => 50;
 

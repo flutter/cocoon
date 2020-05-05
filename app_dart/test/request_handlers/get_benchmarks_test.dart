@@ -39,7 +39,8 @@ void main() {
       keyHelper =
           FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
-      config = FakeConfig(keyHelperValue: keyHelper);
+      config =
+          FakeConfig(keyHelperValue: keyHelper, defaultBranchValue: 'master');
       handler = GetBenchmarks(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -155,6 +156,12 @@ void main() {
       expect(benchmark['Values'].length, 2);
       final List<dynamic> timeSeriesValues =
           benchmark['Values'] as List<dynamic>;
+
+      /// Value of 1.0 corresponds to the case of [timeSeriesValue1] whose branch
+      /// is `flutter-1.1-candidate.1`, whereas value of 2.0 corresponds to the case
+      /// of [timeSeriesValue2] whose branch is `master`. When we inject [branchParam]
+      /// with value `flutter-1.1-candidate.1`, it will return the [commit] list of
+      /// `flutter-1.1-candidate.1` first, and then append [commit] list of `master`.
       expect(timeSeriesValues[0]['Value'], 1.0);
       expect(timeSeriesValues[1]['Value'], 2.0);
     });
