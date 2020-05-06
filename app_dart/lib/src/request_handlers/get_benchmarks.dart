@@ -43,8 +43,7 @@ class GetBenchmarks extends RequestHandler<Body> {
     Map<String, Result> releaseBranchMap = <String, Result>{};
     Map<String, Result> masterMap = <String, Result>{};
     int numberOfMasterCommits = config.maxRecords;
-    int lastTimestampOfReleaseBranchCommits =
-        DateTime.now().millisecondsSinceEpoch;
+    int lastMsOfReleaseBranchCommit = DateTime.now().millisecondsSinceEpoch;
 
     /// Query all commits of the release branch first. Then calcalute the
     /// number of commits to retrieve from [defaultBranch] branch, and obtain
@@ -59,11 +58,11 @@ class GetBenchmarks extends RequestHandler<Body> {
           datastore,
           releaseBranchCommits,
           benchmarks,
-          lastTimestampOfReleaseBranchCommits);
+          lastMsOfReleaseBranchCommit);
       numberOfMasterCommits = config.maxRecords > releaseBranchCommits.length
           ? config.maxRecords - releaseBranchCommits.length
           : 0;
-      lastTimestampOfReleaseBranchCommits = releaseBranchCommits.last.timestamp;
+      lastMsOfReleaseBranchCommit = releaseBranchCommits.last.timestamp;
     }
 
     /// Query all remaining commits from [defaultBranch].
@@ -72,17 +71,12 @@ class GetBenchmarks extends RequestHandler<Body> {
       /// the release branch is derived.
       final List<Commit> masterCommits = await datastore
           .queryRecentCommits(
-              timestamp: lastTimestampOfReleaseBranchCommits + 1,
+              timestamp: lastMsOfReleaseBranchCommit + 1,
               limit: numberOfMasterCommits)
           .toList();
 
-      masterMap = await _getBenchmarks(
-          numberOfMasterCommits,
-          defaultBranch,
-          datastore,
-          masterCommits,
-          benchmarks,
-          lastTimestampOfReleaseBranchCommits);
+      masterMap = await _getBenchmarks(numberOfMasterCommits, defaultBranch,
+          datastore, masterCommits, benchmarks, lastMsOfReleaseBranchCommit);
     }
 
     _combineValues(releaseBranchMap, masterMap, benchmarks);

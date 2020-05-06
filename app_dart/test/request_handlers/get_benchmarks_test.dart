@@ -47,17 +47,54 @@ void main() {
       );
     });
 
-    test('reports statuses without input branch', () async {
+    test('returns empty when no commits exist', () async {
+      config.maxRecordsValue = 2;
+      handler = GetBenchmarks(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+      );
+
+      final Map<String, dynamic> result = await decodeHandlerBody();
+
+      expect(result['Benchmarks'].length, 0);
+    });
+
+    test(
+        'returns all available data when there are less commits than the maxRecordsValue',
+        () async {
       config.maxRecordsValue = 2;
       final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
-          taskName: 'test',
-          label: 'test1',
-          archived: false,
-          baseline: 0,
-          goal: 0,
-          timeSeriesId: 'abc',
-          unit: 's');
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+
+      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 1),
+          value: 1,
+          branch: 'master');
+      final Commit commit1 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'abc'),
+          timestamp: 1,
+          branch: 'master');
+      config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
+      config.db.values[timeSeries.key] = timeSeries;
+      config.db.values[commit1.key] = commit1;
+      handler = GetBenchmarks(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+      );
+
+      final Map<String, dynamic> result = await decodeHandlerBody();
+      final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
+      final Map<String, dynamic> benchmark =
+          benchmarks.first as Map<String, dynamic>;
+
+      expect(benchmark['Values'].length, 1);
+    });
+
+    test('returns only maxRecordsValue commits even though there are more',
+        () async {
+      config.maxRecordsValue = 2;
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
       final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
           key: timeSeries.key.append(TimeSeriesValue, id: 1),
@@ -85,28 +122,72 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
-      expect(config.db.values.length, 5);
-
       final Map<String, dynamic> result = await decodeHandlerBody();
-
-      expect(result['Benchmarks'].length, 1);
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
       final Map<String, dynamic> benchmark =
           benchmarks.first as Map<String, dynamic>;
+
       expect(benchmark['Values'].length, 2);
     });
 
-    test('reports statuses with input branch', () async {
+    test(
+        'returns only release branch commits when there are more release branch commits than the maxRecordsValue - with input branch',
+        () async {
+      config.maxRecordsValue = 1;
+      final TimeSeries timeSeries = TimeSeries(
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+
+      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 123),
+          value: 1,
+          branch: 'flutter-1.1-candidate.1');
+      final TimeSeriesValue timeSeriesValue2 = TimeSeriesValue(
+          key: timeSeries.key.append(TimeSeriesValue, id: 456),
+          value: 2,
+          branch: 'master');
+      final Commit commit1 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'abc'),
+          timestamp: 1,
+          branch: 'master');
+      final Commit commit2 = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'ghi'),
+          timestamp: 3,
+          branch: 'flutter-1.1-candidate.1');
+      config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
+      config.db.values[timeSeriesValue2.key] = timeSeriesValue2;
+      config.db.values[timeSeries.key] = timeSeries;
+      config.db.values[commit1.key] = commit1;
+      config.db.values[commit2.key] = commit2;
+
+      handler = GetBenchmarks(
+        config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+      );
+
+      const String branch = 'flutter-1.1-candidate.1';
+
+      tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
+        GetBenchmarks.branchParam: branch,
+      });
+      final Map<String, dynamic> result = await decodeHandlerBody();
+      final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
+      final Map<String, dynamic> benchmark =
+          benchmarks.first as Map<String, dynamic>;
+      expect(benchmark['Values'].length, 1);
+      final List<dynamic> timeSeriesValues =
+          benchmark['Values'] as List<dynamic>;
+
+      /// Value of 1.0 corresponds to the case of [timeSeriesValue1] whose branch
+      /// is `flutter-1.1-candidate.1`.
+      expect(timeSeriesValues[0]['Value'], 1.0);
+    });
+
+    test(
+        'returns combined release and master branch commits when there are less release branch commits than maxRecordsValue - with input branch',
+        () async {
       config.maxRecordsValue = 2;
       final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'),
-          taskName: 'test',
-          label: 'test1',
-          archived: false,
-          baseline: 0,
-          goal: 0,
-          timeSeriesId: 'abc',
-          unit: 's');
+          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
       final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
           key: timeSeries.key.append(TimeSeriesValue, id: 123),
@@ -142,18 +223,16 @@ void main() {
 
       const String branch = 'flutter-1.1-candidate.1';
 
-      expect(config.db.values.length, 6);
-
       tester.request = FakeHttpRequest(queryParametersValue: <String, String>{
         GetBenchmarks.branchParam: branch,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
-
-      expect(result['Benchmarks'].length, 1);
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
       final Map<String, dynamic> benchmark =
           benchmarks.first as Map<String, dynamic>;
+
       expect(benchmark['Values'].length, 2);
+
       final List<dynamic> timeSeriesValues =
           benchmark['Values'] as List<dynamic>;
 
