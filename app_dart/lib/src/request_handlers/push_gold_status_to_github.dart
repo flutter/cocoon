@@ -120,7 +120,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final Stream<RepositoryStatus> statusStream =
             gitHubClient.repositories.listStatuses(slug, pr.head.sha);
         await for (RepositoryStatus status in statusStream) {
-          if (status.description.contains('LUCI')) {
+          if (status.description != null &&
+              status.description.contains('LUCI')) {
             log.debug('Found Luci build status for pull request #${pr.number}, '
                 'commit ${pr.head.sha}: ${status.description} (${status.state})');
             luciStatuses.add(status.state);
