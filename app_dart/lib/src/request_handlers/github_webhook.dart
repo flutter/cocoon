@@ -98,9 +98,9 @@ class GithubWebhook extends RequestHandler<Body> {
           await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
           await _cancelLuci(
-            pr.head.repo.name,
+            pr.base.repo.name,
             pr.number,
-            pr.head.sha,
+            pr.base.sha,
             'Pull request closed',
           );
         }
@@ -120,7 +120,7 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
-        if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+        if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
           await _scheduleIfMergeable(pr);
         }
         break;
@@ -132,14 +132,14 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
         // them.
-        if (!kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+        if (!kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
           break;
         }
         if (!await _checkForCqLabel(pr.labels)) {
           await _cancelLuci(
-            pr.head.repo.name,
+            pr.base.repo.name,
             pr.number,
-            pr.head.sha,
+            pr.base.sha,
             'Tryjobs canceled (label removed)',
           );
         }
@@ -162,7 +162,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // null indicates unknown. Err on the side of allowing the job to run.
 
     // For flutter/flutter tests need to be optimized before enforcing CQ.
-    if (kNeedsCQLabelList.contains(pr.head.repo.fullName.toLowerCase())) {
+    if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
       if (!await _checkForCqLabel(pr.labels)) {
         return;
       }
@@ -170,15 +170,15 @@ class GithubWebhook extends RequestHandler<Body> {
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await _cancelLuci(
-      pr.head.repo.name,
+      pr.base.repo.name,
       pr.number,
-      pr.head.sha,
+      pr.base.sha,
       'Newer commit available',
     );
     await _scheduleLuci(
       number: pr.number,
-      sha: pr.head.sha,
-      repositoryName: pr.head.repo.name,
+      sha: pr.base.sha,
+      repositoryName: pr.base.repo.name,
     );
   }
 
@@ -383,7 +383,7 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequest pr,
     List<IssueLabel> labels,
   ) async {
-    if (kNeedsCheckGoldenTriage.contains(pr.head.repo.fullName.toLowerCase()) &&
+    if (kNeedsCheckGoldenTriage.contains(pr.base.repo.fullName.toLowerCase()) &&
         await _isIgnoredForGold(eventAction, pr)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
@@ -396,7 +396,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _pingForTriage(GitHub gitHubClient, PullRequest pr) async {
     final String body = config.goldenTriageMessage;
-    final RepositorySlug slug = pr.head.repo.slug();
+    final RepositorySlug slug = pr.base.repo.slug();
     await gitHubClient.issues.createComment(slug, pr.number, body);
   }
 
@@ -405,7 +405,7 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequest pr,
   ) async {
     if (kNeedsCheckLabelsAndTests
-        .contains(pr.head.repo.fullName.toLowerCase())) {
+        .contains(pr.base.repo.fullName.toLowerCase())) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _checkBaseRef(gitHubClient, pr);
@@ -421,7 +421,7 @@ class GithubWebhook extends RequestHandler<Body> {
     if (pr.user.login == 'engine-flutter-autoroll') {
       return;
     }
-    final RepositorySlug slug = pr.head.repo.slug();
+    final RepositorySlug slug = pr.base.repo.slug();
     final Stream<PullRequestFile> files =
         gitHubClient.pullRequests.listFiles(slug, pr.number);
     final Set<String> labels = <String>{};
@@ -524,7 +524,7 @@ class GithubWebhook extends RequestHandler<Body> {
   ) async {
     if (pr.base.ref != 'master') {
       final String body = await _getWrongBaseComment(pr.base.ref);
-      final RepositorySlug slug = pr.head.repo.slug();
+      final RepositorySlug slug = pr.base.repo.slug();
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.pullRequests.edit(
           slug,
