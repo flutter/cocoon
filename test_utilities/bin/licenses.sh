@@ -8,7 +8,9 @@
 
 set -e
 
-pushd licenses > /dev/null
+dir=$(dirname $0)
+
+pushd $dir/../../licenses > /dev/null
 pub get
 dart check_licenses.dart
 
