@@ -801,9 +801,33 @@ void main() {
           );
         });
 
-        request.body = '{"action": "$action", "number": 583, "draft": false, '
-            '"pull_request": {"id": 354272971, "number": 583, "labels":[], '
-            '"head": {"sha": "the_sha", "repo": {"name": "cocoon", "full_name": "flutter/cocoon"}}}}';
+        request.body = '''
+{
+  "action": "$action",
+  "number": 583,
+  "draft": false,
+  "pull_request": {
+    "id": 354272971,
+    "number": 583,
+    "labels": [],
+    "base": {
+      "sha": "the_base_sha",
+      "repo": {
+        "name": "cocoon",
+        "full_name": "flutter/cocoon"
+      }
+    },
+    "head": {
+      "sha": "the_head_sha",
+      "repo": {
+        "name": "cocoon",
+        "full_name": "digiter/cocoon"
+      }
+    }
+  }
+}
+''';
+
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -839,7 +863,7 @@ void main() {
             '"builder":"Cocoon"},"properties":{"git_url":'
             '"https://github.com/flutter/cocoon","git_ref":'
             '"refs/pull/583/head"},"tags":[{"key":"buildset","value":'
-            '"pr/git/583"},{"key":"buildset","value":"sha/git/the_sha"},'
+            '"pr/git/583"},{"key":"buildset","value":"sha/git/the_head_sha"},'
             '{"key":"user_agent","value":"flutter-cocoon"},{"key":'
             '"github_link","value":'
             '"https://github.com/flutter/cocoon/pull/583"}],"notify":'
