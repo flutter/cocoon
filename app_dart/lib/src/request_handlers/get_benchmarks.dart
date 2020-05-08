@@ -127,6 +127,8 @@ class GetBenchmarks extends RequestHandler<Body> {
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
 
+      // TODO(keyonghan): optimize query to return only expected data, https://github.com/flutter/flutter/issues/56731.
+
       /// Adding `1` hour to [timestamp] to guarantee all [values] belonging to
       /// commits are picked up. It is not uncommon that [values] are inserted
       /// into `datastore` later than [commit]. `1` hour is a reasonable timeframe
