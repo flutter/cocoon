@@ -98,9 +98,9 @@ class GithubWebhook extends RequestHandler<Body> {
           await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
           await _cancelLuci(
-            pr.base.repo.name,
+            pr.head.repo.name,
             pr.number,
-            pr.base.sha,
+            pr.head.sha,
             'Pull request closed',
           );
         }
@@ -137,9 +137,9 @@ class GithubWebhook extends RequestHandler<Body> {
         }
         if (!await _checkForCqLabel(pr.labels)) {
           await _cancelLuci(
-            pr.base.repo.name,
+            pr.head.repo.name,
             pr.number,
-            pr.base.sha,
+            pr.head.sha,
             'Tryjobs canceled (label removed)',
           );
         }
@@ -170,15 +170,15 @@ class GithubWebhook extends RequestHandler<Body> {
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await _cancelLuci(
-      pr.base.repo.name,
+      pr.head.repo.name,
       pr.number,
-      pr.base.sha,
+      pr.head.sha,
       'Newer commit available',
     );
     await _scheduleLuci(
       number: pr.number,
-      sha: pr.base.sha,
-      repositoryName: pr.base.repo.name,
+      sha: pr.head.sha,
+      repositoryName: pr.head.repo.name,
     );
   }
 
