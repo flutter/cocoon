@@ -2,7 +2,8 @@
 # Copyright 2019 The Flutter Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-#:: This file is used by
+
+# This file is used by
 # https://github.com/flutter/tests/tree/master/registry/flutter_cocoon.test
 # to run the tests of certain packages in this repository as a presubmit
 # for the flutter/flutter repository.
