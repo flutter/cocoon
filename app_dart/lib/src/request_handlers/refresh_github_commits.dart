@@ -218,7 +218,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       newTask(
           'mac_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
       newTask('linux_bot', 'chromebot', <String>['can-update-chromebots'],
-          false, 0),
+          true, 0),
       newTask('windows_bot', 'chromebot', <String>['can-update-chromebots'],
           false, 0),
     ];
