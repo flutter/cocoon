@@ -26,6 +26,10 @@ class TaskIcon extends StatelessWidget {
   ///
   /// [stageName] is based on the backend.
   Widget stageIconForBrightness(Brightness brightness) {
+    // Pass this as the `color` for Image's that are black and white icons.
+    // This only works in the CanvasKit implementation currently, not in DOM. If
+    // this needs to run in the DOM implementation, it will need to include
+    // different assets.
     final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
     if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {

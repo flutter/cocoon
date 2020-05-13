@@ -49,29 +49,35 @@ class BuildDashboardPage extends StatelessWidget {
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             DropdownButton<String>(
-                value: _buildState.currentBranch,
-                icon: const Icon(
-                  Icons.arrow_downward,
-                  color: Colors.white,
-                ),
-                iconSize: 24,
-                elevation: 16,
-                style: const TextStyle(color: Colors.white),
-                underline: Container(
-                  height: 2,
-                  color: Colors.white,
-                ),
-                onChanged: (String branch) {
-                  _buildState.updateCurrentBranch(branch);
+              value: _buildState.currentBranch,
+              icon: const Icon(
+                Icons.arrow_downward,
+                color: Colors.white,
+              ),
+              iconSize: 24,
+              elevation: 16,
+              style: const TextStyle(color: Colors.white),
+              underline: Container(
+                height: 2,
+                color: Colors.white,
+              ),
+              onChanged: (String branch) {
+                _buildState.updateCurrentBranch(branch);
+              },
+              items: _buildState.branches.map<DropdownMenuItem<String>>(
+                (String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        color: theme.brightness == Brightness.light ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  );
                 },
-                items: _buildState.branches.map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  },
-                ).toList()),
+              ).toList(),
+            ),
           ],
         ),
         body: ErrorBrookWatcher(
