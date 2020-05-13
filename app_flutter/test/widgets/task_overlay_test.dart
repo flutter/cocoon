@@ -11,16 +11,15 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 
 import 'package:app_flutter/agent_dashboard_page.dart';
-import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
-import 'package:app_flutter/widgets/task_icon.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/mocks.dart';
+import '../utils/task_icons.dart';
 import '../utils/wrapper.dart';
 
 class TestGrid extends StatelessWidget {
@@ -53,6 +52,8 @@ class TestGrid extends StatelessWidget {
 
 void main() {
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -76,12 +77,6 @@ void main() {
         ),
       ),
     );
-    await tester.runAsync(() async {
-      await precacheImage(
-        TaskIcon.stageIcons[StageName.devicelab].image,
-        tester.element(find.byType(TestGrid)),
-      );
-    });
     await tester.pump();
 
     expect(find.text(expectedTask.name), findsNothing);
@@ -112,6 +107,7 @@ void main() {
   });
 
   testWidgets('TaskOverlay shows when flaky is true', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -134,13 +130,6 @@ void main() {
         ),
       ),
     );
-    await tester.runAsync(() async {
-      await precacheImage(
-        TaskIcon.stageIcons[StageName.devicelab].image,
-        tester.element(find.byType(TestGrid)),
-      );
-    });
-    await tester.pump();
 
     expect(find.text(flakyTask.name), findsNothing);
     expect(find.text(flakyTaskInfoString), findsNothing);
@@ -245,6 +234,7 @@ void main() {
   });
 
   testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
     const String expectedTaskInfoString = 'Task was run outside of devicelab';
     await tester.pumpWidget(
       MaterialApp(
@@ -257,13 +247,6 @@ void main() {
         ),
       ),
     );
-    await tester.runAsync(() async {
-      await precacheImage(
-        TaskIcon.stageIcons[StageName.cirrus].image,
-        tester.element(find.byType(TestGrid)),
-      );
-    });
-    await tester.pump();
 
     expect(find.text(expectedTaskInfoString), findsNothing);
     await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_closed.png'));

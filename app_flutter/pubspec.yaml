@@ -38,7 +38,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  path: ^1.6.4
   test: ^1.6.0
   mockito: ^4.0.0
 

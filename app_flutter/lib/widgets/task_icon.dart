@@ -25,22 +25,50 @@ class TaskIcon extends StatelessWidget {
   /// A lookup table for matching [stageName] to [Image].
   ///
   /// [stageName] is based on the backend.
-  static final Map<String, Image> stageIcons = <String, Image>{
-    StageName.cirrus: Image.asset('assets/cirrus.png'),
-    StageName.luci: Image.asset('assets/chromium.png'),
-    StageName.devicelab: Image.asset('assets/android.png'),
-    StageName.devicelabWin: Image.asset('assets/windows.png'),
-    StageName.devicelabIOs: Image.asset('assets/apple.png'),
-  };
+  Widget stageIconForBrightness(Brightness brightness) {
+    // Pass this as the `color` for Image's that are black and white icons.
+    // This only works in the CanvasKit implementation currently, not in DOM. If
+    // this needs to run in the DOM implementation, it will need to include
+    // different assets.
+    final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
+
+    if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {
+      return Image.asset(
+        'assets/fuchsia.png',
+      );
+    }
+    switch (qualifiedTask.stage) {
+      case StageName.cirrus:
+        return Image.asset(
+          'assets/cirrus.png',
+          color: blendFilter,
+        );
+      case StageName.luci:
+        return Image.asset(
+          'assets/chromium.png',
+        );
+      case StageName.devicelab:
+        return Image.asset(
+          'assets/android.png',
+        );
+      case StageName.devicelabWin:
+        return Image.asset(
+          'assets/windows.png',
+        );
+      case StageName.devicelabIOs:
+        return Image.asset(
+          'assets/apple.png',
+          color: blendFilter,
+        );
+    }
+    return const Icon(Icons.help);
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget icon = const Icon(Icons.help);
-    if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {
-      icon = Image.asset('assets/fuchsia.png');
-    } else if (stageIcons.containsKey(qualifiedTask.stage)) {
-      icon = stageIcons[qualifiedTask.stage];
-    }
+    final Brightness brightness = Theme.of(context).brightness;
+    final Widget icon = stageIconForBrightness(brightness);
+
     return InkWell(
       onTap: () => launch(qualifiedTask.sourceConfigurationUrl),
       child: Tooltip(
