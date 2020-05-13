@@ -211,6 +211,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks still running
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -252,6 +259,56 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
+          statuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              'will affect goldens',
+              'severe: API break',
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
+          ));
+        });
+
+        test(
+            'same commit, cirrus checks complete, luci still running, last status running',
+            () async {
+          // Same commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            'This check is waiting for the all clear from Gold.',
+          );
+          db.values[status.key] = status;
+
+          // Luci running, Cirrus checks complete
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -354,6 +411,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks running
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'EXECUTING', 'name': 'framework-2'}
@@ -394,6 +458,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -452,6 +523,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -509,6 +587,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -559,6 +644,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -621,6 +713,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -681,6 +780,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -744,6 +850,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -801,6 +914,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -840,6 +960,13 @@ void main() {
           db.values[status.key] = status;
 
           // Checks failed
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'failed'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
           statuses = <dynamic>[
             <String, String>{'status': 'FAILED', 'name': 'framework-1'},
             <String, String>{'status': 'ABORTED', 'name': 'framework-2'}
@@ -891,6 +1018,13 @@ void main() {
         db.values[followUpStatus.key] = followUpStatus;
 
         // Checks completed
+        when(repositoriesService.listStatuses(slug, any)).thenAnswer(
+          (_) => Stream<RepositoryStatus>.value(
+            RepositoryStatus()
+              ..state = 'success'
+              ..description = 'Flutter LUCI Build: Linux',
+          ),
+        );
         statuses = <dynamic>[
           <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
           <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
@@ -927,6 +1061,53 @@ void main() {
         expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+      });
+
+      test('accounts for null status description when parsing for Luci builds',
+          () async {
+        // Same commit
+        final PullRequest pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+        final GithubGoldStatusUpdate status = newStatusUpdate(
+          pr,
+          GithubGoldStatusUpdate.statusRunning,
+          'abc',
+          'This check is waiting for the all clear from Gold.',
+        );
+        db.values[status.key] = status;
+
+        // Luci running, Cirrus checks complete
+        when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+          (_) => Stream<RepositoryStatus>.value(
+            RepositoryStatus()..state = 'pending',
+          ),
+        );
+        statuses = <dynamic>[
+          <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+          <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+        ];
+
+        final Body body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(status.updates, 0);
+        expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+        expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+        // Should not apply labels or make comments
+        verifyNever(issuesService.addLabelsToIssue(
+          slug,
+          pr.number,
+          <String>[
+            'will affect goldens',
+            'severe: API break',
+          ],
+        ));
+
+        verifyNever(issuesService.createComment(
+          slug,
+          pr.number,
+          argThat(contains(config.goldenBreakingChangeMessageValue)),
+        ));
       });
     });
   });

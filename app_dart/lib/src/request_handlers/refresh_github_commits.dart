@@ -217,8 +217,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       newTask('cirrus', 'cirrus', <String>['can-update-github'], false, 0),
       newTask(
           'mac_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
-      newTask('linux_bot', 'chromebot', <String>['can-update-chromebots'],
-          false, 0),
+      newTask(
+          'linux_bot', 'chromebot', <String>['can-update-chromebots'], true, 0),
       newTask('windows_bot', 'chromebot', <String>['can-update-chromebots'],
           false, 0),
     ];
