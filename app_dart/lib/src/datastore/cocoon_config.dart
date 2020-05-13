@@ -86,8 +86,7 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Release-process) for information '
       'about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
-      'than master. The circumstances where this is valid are very rare.\n\n'
-      '/cc @dnfield';
+      'than master, unless this is an intentional hotfix/cherrypick.';
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
