@@ -87,6 +87,54 @@ void main() {
     buildState.dispose();
   });
 
+  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    final BuildState buildState = BuildState(
+      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: const Material(
+            child: TaskGridContainer(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final int commitCount = tester.elementList(find.byType(CommitBox)).length;
+    expect(commitCount, 16); // based on screen size this is how many show up
+
+    final double xPosition = tester.getTopLeft(find.byType(CommitBox).first).dx;
+
+    for (int index = 0; index < commitCount; index += 1) {
+      // All the x positions should match the first instance if they're all in the same column
+      expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
+    }
+
+    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.origin.dark.png'));
+
+    // Check if the LOADING... indicator appears.
+    await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
+    await tester.pump();
+    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_y.dark.png'));
+
+    // Check the right edge after the data comes in.
+    await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
+    await tester.pump();
+    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_x.dark.png'));
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
+  });
+
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
