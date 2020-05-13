@@ -48,6 +48,8 @@ class FakeConfig implements Config {
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
     this.maxRecordsValue,
+    this.defaultBranchValue,
+    this.metricsCenterServiceAccountValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -83,6 +85,8 @@ class FakeConfig implements Config {
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
   int maxRecordsValue;
+  String defaultBranchValue;
+  Map<String, dynamic> metricsCenterServiceAccountValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -243,4 +247,8 @@ class FakeConfig implements Config {
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return '${slug.owner}/${slug.name}' == 'flutter/cocoon';
   }
+
+  @override
+  Future<Map<String, dynamic>> get metricsCenterServiceAccountJson async =>
+      metricsCenterServiceAccountValue;
 }

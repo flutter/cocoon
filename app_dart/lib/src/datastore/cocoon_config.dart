@@ -485,6 +485,16 @@ class Config {
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
   }
+
+  /// Returns the service account that reads/writes metrics center data store.
+  ///
+  /// The account was created in the go/flutter-metrics-center effort.
+  /// IAM Link: https://pantheon.corp.google.com/iam-admin/serviceaccounts/details/101597572749149071496?project=flutter-cirrus
+  Future<Map<String, dynamic>> get metricsCenterServiceAccountJson async {
+    final String rawValue =
+        await _getSingleValue('MetricsCenterServiceAccount');
+    return json.decode(rawValue) as Map<String, dynamic>;
+  }
 }
 
 @Kind(name: 'CocoonConfig', idType: IdType.String)

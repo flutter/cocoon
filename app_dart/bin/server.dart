@@ -72,6 +72,7 @@ Future<void> main() async {
         githubStatusService,
         githubChecksService,
       ),
+      '/api/push-benchmark-to-center': PushBenchmarkToCenter(config),
       '/api/push-build-status-to-github':
           PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github':
