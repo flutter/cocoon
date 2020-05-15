@@ -130,9 +130,8 @@ void main() {
       expect(benchmark['Values'].length, 2);
     });
 
-    test(
-        'returns only release branch commits when there are more release branch commits than the maxRecordsValue - with input branch',
-        () async {
+    /// This is for case where there are more release branch commits than the [maxRecordsValue]
+    test('returns only release branch commits - with input branch', () async {
       config.maxRecordsValue = 1;
       final TimeSeries timeSeries = TimeSeries(
           key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
@@ -182,8 +181,8 @@ void main() {
       expect(timeSeriesValues[0]['Value'], 1.0);
     });
 
-    test(
-        'returns combined release and master branch commits when there are less release branch commits than maxRecordsValue - with input branch',
+    /// This is for case when there are less release branch commits than [maxRecordsValue]
+    test('returns both release and master branch commits - with input branch',
         () async {
       config.maxRecordsValue = 2;
       final TimeSeries timeSeries = TimeSeries(
