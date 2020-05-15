@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 import 'package:github/hooks.dart';
 
