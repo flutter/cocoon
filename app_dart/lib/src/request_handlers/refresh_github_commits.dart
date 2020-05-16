@@ -253,9 +253,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       client.close(force: true);
     }
 
-    log.error('GitHub not responding; giving up');
+    log.error('GitHub not responding; giving up.');
     response.headers.set(HttpHeaders.retryAfterHeader, '120');
     throw const HttpStatusException(HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }
-
