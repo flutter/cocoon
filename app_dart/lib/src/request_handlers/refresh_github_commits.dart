@@ -258,3 +258,4 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     throw const HttpStatusException(HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }
+
