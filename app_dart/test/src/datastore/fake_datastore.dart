@@ -167,9 +167,9 @@ class FakeQuery<T extends Model> implements Query<T> {
 
   @override
   Stream<T> run() {
-    Iterable<T> resultsView = results.skip(start).take(count);
+    Iterable<T> resultsView = results;
 
-    // This considers only the special case when there exists [branch] filter.
+    // This considers only the special case when there exists [branch] or [pr] filter.
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
@@ -178,6 +178,7 @@ class FakeQuery<T extends Model> implements Query<T> {
             .where((T result) => result.toString().contains(value.toString()));
       }
     }
+    resultsView = resultsView.skip(start).take(count);
 
     if (db.onQuery.containsKey(T)) {
       resultsView = db.onQuery[T](resultsView).cast<T>();

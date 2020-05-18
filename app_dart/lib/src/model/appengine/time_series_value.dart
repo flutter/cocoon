@@ -84,6 +84,7 @@ class TimeSeriesValue extends Model {
       ..write(', createTimestamp: $createTimestamp')
       ..write(', taskKey: ${taskKey?.id}')
       ..write(', revision: $revision')
+      ..write(', branch: $branch')
       ..write(')');
     return buf.toString();
   }

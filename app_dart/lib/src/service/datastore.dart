@@ -25,6 +25,9 @@ import '../model/appengine/time_series_value.dart';
 /// an error.
 const int defaultMaxEntityGroups = 5;
 
+/// This number inherits from old GO backend, and is upto change if necessary.
+const int defaultTimeSeriesValuesNumber = 1500;
+
 /// Function signature for a [DatastoreService] provider.
 typedef DatastoreServiceProvider = DatastoreService Function(DatastoreDB db);
 
@@ -114,10 +117,15 @@ class DatastoreService {
   /// If startFrom is nil, starts from the latest available record.
   /// [startFrom] to be implemented...
   Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries,
-      {int limit = 1500, String startFrom, String branch = 'master'}) {
+      {int limit = defaultTimeSeriesValuesNumber,
+      String startFrom,
+      String branch = 'master',
+      int timestamp}) {
+    timestamp ??= DateTime.now().millisecondsSinceEpoch;
     final Query<TimeSeriesValue> query =
         db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
           ..filter('branch =', branch)
+          ..filter('createTimestamp <', timestamp)
           ..limit(limit)
           ..order('-createTimestamp');
     return query.run();

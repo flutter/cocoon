@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -16,6 +15,10 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/datastore.dart';
 
+/// Return benchmarks for [TimeSeries]. If request is for `master` branch,
+/// it will return results of recent [maxRecords] commits. If request is for
+/// a `release` branch, it queries all commits of the branch first and then
+/// appends remaining [masterLimit] commits from master.
 @immutable
 class GetBenchmarks extends RequestHandler<Body> {
   const GetBenchmarks(
@@ -30,26 +33,113 @@ class GetBenchmarks extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    const int maxRecords = 50;
+    final String defaultBranch = config.defaultBranch;
+
+    final String branch =
+        request.uri.queryParameters[branchParam] ?? defaultBranch;
     final DatastoreService datastore = datastoreProvider(config.db);
-    final DatastoreDB db = datastore.db;
-    final KeyHelper keyHelper = config.keyHelper;
-
     final List<Map<String, dynamic>> benchmarks = <Map<String, dynamic>>[];
-    final Set<Commit> commits = await datastore
-        .queryRecentCommits(limit: maxRecords, branch: branch)
-        .toSet();
-    await for (TimeSeries series in db.query<TimeSeries>().run()) {
-      final Query<TimeSeriesValue> query =
-          db.query<TimeSeriesValue>(ancestorKey: series.key)
-            ..filter('branch =', branch)
-            ..order('-createTimestamp')
-            ..limit(maxRecords);
 
+    Map<String, Result> releaseBranchMap = <String, Result>{};
+    Map<String, Result> masterMap = <String, Result>{};
+    int numberOfMasterCommits = config.maxRecords;
+    int lastMsOfReleaseBranchCommit = DateTime.now().millisecondsSinceEpoch;
+
+    /// Query all commits of the release branch first. Then calcalute the
+    /// number of commits to retrieve from [defaultBranch] branch, and obtain
+    /// the starting [timestamp] to filter [defaultBranch] commits.
+    if (branch != defaultBranch) {
+      final List<Commit> releaseBranchCommits = await datastore
+          .queryRecentCommits(limit: config.maxRecords, branch: branch)
+          .toList();
+      releaseBranchMap = await _getBenchmarks(
+          releaseBranchCommits.length,
+          branch,
+          datastore,
+          releaseBranchCommits,
+          benchmarks,
+          lastMsOfReleaseBranchCommit);
+      numberOfMasterCommits = config.maxRecords > releaseBranchCommits.length
+          ? config.maxRecords - releaseBranchCommits.length
+          : 0;
+      lastMsOfReleaseBranchCommit = releaseBranchCommits.last.timestamp;
+    }
+
+    /// Query all remaining commits from [defaultBranch].
+    if (branch == defaultBranch || numberOfMasterCommits > 0) {
+      /// `+1` is to guarantee picking up the [defaultBranch] commit, from which
+      /// the release branch is derived.
+      final List<Commit> masterCommits = await datastore
+          .queryRecentCommits(
+              timestamp: lastMsOfReleaseBranchCommit + 1,
+              limit: numberOfMasterCommits)
+          .toList();
+
+      masterMap = await _getBenchmarks(numberOfMasterCommits, defaultBranch,
+          datastore, masterCommits, benchmarks, lastMsOfReleaseBranchCommit);
+    }
+
+    _combineValues(releaseBranchMap, masterMap, benchmarks);
+
+    return Body.forJson(<String, dynamic>{
+      'Benchmarks': benchmarks,
+    });
+  }
+
+  /// Combine results for both release and [defaultBranch] branches. [releaseBranchMap] contains
+  /// data from `release branch`, whereas [masterMap] contains data from [defaultBranch]. Combined
+  /// results will be saved/returned via [benchmarks].
+  void _combineValues(Map<String, Result> releaseBranchMap,
+      Map<String, Result> masterMap, List<Map<String, dynamic>> benchmarks) {
+    final KeyHelper keyHelper = config.keyHelper;
+    final Map<String, Result> map =
+        releaseBranchMap.isNotEmpty ? releaseBranchMap : masterMap;
+    for (String task in map.keys) {
+      final List<TimeSeriesValue> timeSeriesValues = <TimeSeriesValue>[];
+
+      timeSeriesValues.addAll(releaseBranchMap.containsKey(task)
+          ? releaseBranchMap[task].timeSeriesValues ?? <TimeSeriesValue>[]
+          : <TimeSeriesValue>[]);
+      timeSeriesValues.addAll(masterMap.containsKey(task)
+          ? masterMap[task].timeSeriesValues ?? <TimeSeriesValue>[]
+          : <TimeSeriesValue>[]);
+
+      benchmarks.add(<String, dynamic>{
+        'Timeseries': <String, dynamic>{
+          'Timeseries': map[task].timeSeries,
+          'Key': keyHelper.encode(map[task].timeSeries.key)
+        },
+        'Values': timeSeriesValues,
+      });
+    }
+  }
+
+  Future<Map<String, Result>> _getBenchmarks(
+      int limit,
+      String branch,
+      DatastoreService datastore,
+      List<Commit> commits,
+      List<Map<String, dynamic>> benchmarks,
+      int timestamp) async {
+    final Map<String, Result> map = <String, Result>{};
+
+    await for (TimeSeries series in datastore.db.query<TimeSeries>().run()) {
       final Map<String, TimeSeriesValue> valuesByCommit =
           <String, TimeSeriesValue>{};
-      await for (TimeSeriesValue value in query.run()) {
+
+      // TODO(keyonghan): optimize query to return only expected data, https://github.com/flutter/flutter/issues/56731.
+
+      /// Adding `1` hour to [timestamp] to guarantee all [values] belonging to
+      /// commits are picked up. It is not uncommon that [values] are inserted
+      /// into `datastore` later than [commit]. `1` hour is a reasonable timeframe
+      /// considering executing time of a commit row is less than `1` hour now.
+      await for (TimeSeriesValue value in datastore.queryRecentTimeSeriesValues(
+          series,
+          limit: limit,
+          branch: branch,
+          timestamp: DateTime.fromMillisecondsSinceEpoch(timestamp)
+              .add(const Duration(hours: 1))
+              .millisecondsSinceEpoch)) {
         valuesByCommit[value.revision] = value;
       }
 
@@ -81,17 +171,18 @@ class GetBenchmarks extends RequestHandler<Body> {
         values.add(value);
       }
 
-      benchmarks.add(<String, dynamic>{
-        'Timeseries': <String, dynamic>{
-          'Timeseries': series,
-          'Key': keyHelper.encode(series.key)
-        },
-        'Values': values,
-      });
+      map['${series.taskName}.${series.label}'] = Result(series, values);
     }
-
-    return Body.forJson(<String, dynamic>{
-      'Benchmarks': benchmarks,
-    });
+    return map;
   }
+}
+
+/// This class is to hold temporary results pairs for [timeSeries] and [timeSeriesValues].
+class Result {
+  const Result(this.timeSeries, this.timeSeriesValues)
+      : assert(timeSeries != null),
+        assert(timeSeriesValues != null);
+
+  final TimeSeries timeSeries;
+  final List<TimeSeriesValue> timeSeriesValues;
 }
