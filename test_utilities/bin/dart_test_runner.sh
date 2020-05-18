@@ -11,7 +11,6 @@ set -e
 # Build and analize
 echo "Running tests from $1"
 pushd $1 > /dev/null
-flutter clean
 pub get
 
 echo "############# files that require formatting ###########"
