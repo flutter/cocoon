@@ -20,7 +20,12 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
 /// List of Github supported repos.
-const Set<String> kSupportedRepos = <String>{'engine', 'flutter', 'cocoon'};
+const Set<String> kSupportedRepos = <String>{
+  'cocoon',
+  'engine',
+  'flutter',
+  'packages',
+};
 
 /// List of repos that require CQ+1 label.
 const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};

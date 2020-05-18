@@ -331,7 +331,11 @@ class Config {
         <String, String>{
           'name': 'Mac Web Engine',
           'repo': 'engine',
-        }
+        },
+        <String, String>{
+          'name': 'fuchsia_ctl',
+          'repo': 'packages',
+        },
       ];
 
   Future<GitHub> createGitHubClient() async {
