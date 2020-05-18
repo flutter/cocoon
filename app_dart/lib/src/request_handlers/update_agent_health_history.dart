@@ -83,7 +83,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
       log.info(
           'Succeeded to insert ${tableDataInsertAllRequestRows.length} rows to $projectId-$dataset-$table');
-    } catch (ApiRequestError) {
+    } on ApiRequestError {
       log.error('Failed to add commits to BigQuery: $ApiRequestError');
     }
 

@@ -148,7 +148,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } catch (ApiRequestError) {
+    } on ApiRequestError {
       log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
     }
   }

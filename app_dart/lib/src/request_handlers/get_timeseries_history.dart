@@ -50,7 +50,7 @@ class GetTimeSeriesHistory
     try {
       timeSeriesKey =
           keyHelper.decode(requestData[timeSeriesKeyParam] as String);
-    } catch (FormatException) {
+    } on FormatException {
       throw BadRequestException(
           'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
