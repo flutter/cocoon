@@ -147,7 +147,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     /// Insert [commits] to [BigQuery]
     try {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
-    } catch (ApiRequestError) {
+    } on ApiRequestError {
       log.warning('Failed to add commits to BigQuery: $ApiRequestError');
     }
   }
@@ -272,7 +272,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     log.error('GitHub not responding; giving up');
     response.headers.set(HttpHeaders.retryAfterHeader, '120');
-    throw HttpStatusException(
+    throw const HttpStatusException(
         HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }

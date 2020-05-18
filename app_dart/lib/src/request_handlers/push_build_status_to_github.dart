@@ -131,7 +131,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } catch (ApiRequestError) {
+    } on ApiRequestError {
       log.warning('Failed to add build status to BigQuery: $ApiRequestError');
     }
   }

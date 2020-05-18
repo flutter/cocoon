@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
+import 'package:github/hooks.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
@@ -579,7 +580,8 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     try {
       // ignore: undefined_identifier, return_of_invalid_type
-      return PullRequestEvent.fromJson(json.decode(request));
+      return PullRequestEvent.fromJson(
+          json.decode(request) as Map<String, dynamic>);
     } on FormatException {
       return null;
     }
