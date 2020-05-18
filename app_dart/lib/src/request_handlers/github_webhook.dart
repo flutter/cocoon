@@ -75,15 +75,12 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(String rawRequest) async {
-    // ignore: undefined_class
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
-    // ignore: invalid_assignment
     final String eventAction = pullRequestEvent.action;
-    // ignore: invalid_assignment
     final PullRequest pr = pullRequestEvent.pullRequest;
 
     // See the API reference:
