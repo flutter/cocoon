@@ -21,9 +21,9 @@ import '../service/buildbucket.dart';
 
 /// List of Github supported repos.
 const Set<String> kSupportedRepos = <String>{
+  'cocoon',
   'engine',
   'flutter',
-  'cocoon',
   'packages',
 };
 
