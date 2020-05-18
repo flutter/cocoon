@@ -8,8 +8,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 import 'package:github/hooks.dart';
+import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/service_account_info.dart';
@@ -80,15 +80,12 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(String rawRequest) async {
-    // ignore: undefined_class
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
-    // ignore: invalid_assignment
     final String eventAction = pullRequestEvent.action;
-    // ignore: invalid_assignment
     final PullRequest pr = pullRequestEvent.pullRequest;
 
     // See the API reference:
@@ -575,16 +572,11 @@ class GithubWebhook extends RequestHandler<Body> {
     return bodySignature == signature;
   }
 
-  // TODO(wutong): remove the ignores when PullRequestEvent is properly
-  // exported, https://github.com/SpinlockLabs/github.dart/issues/220
-  //
-  // ignore: non_type_as_type_argument
   Future<PullRequestEvent> _getPullRequestEvent(String request) async {
     if (request == null) {
       return null;
     }
     try {
-      // ignore: undefined_identifier, return_of_invalid_type
       return PullRequestEvent.fromJson(
           json.decode(request) as Map<String, dynamic>);
     } on FormatException {
