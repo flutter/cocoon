@@ -1,4 +1,4 @@
-# Copyright 2019 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Flutter Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -20,4 +20,10 @@ tasks:
 
   - task: app_flutter
     script: test_utilities/bin/flutter_test_runner.sh
+
+  - task: licenses
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: licenses_check
+    script: test_utilities/bin/licenses.sh
 

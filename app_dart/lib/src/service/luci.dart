@@ -1,4 +1,4 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
+// Copyright 2019 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -95,7 +95,21 @@ class LuciService {
 
     final Map<LuciBuilder, List<LuciTask>> results =
         <LuciBuilder, List<LuciTask>>{};
+    // hfhghghg
+    Map<GitilesCommit, Build> filteredBuilds;
     for (Build build in builds) {
+      if (filteredBuilds.containsKey(build.input.gitilesCommit)) {
+        final Build existing = filteredBuilds[build.input.gitilesCommit];
+        if (existing.startTime.millisecondsSinceEpoch <
+            build.startTime.millisecondsSinceEpoch) {
+          filteredBuilds[build.input.gitilesCommit] = build;
+        }
+      } else {
+        filteredBuilds[build.input.gitilesCommit] = build;
+      }
+    }
+    // vbvhgjhj
+    for (Build build in filteredBuilds.values) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {

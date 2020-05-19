@@ -1,0 +1,15 @@
+name: license_checks
+description: Script to check licenses.
+
+environment:
+  # The pub client defaults to an <2.0.0 sdk constraint which we need to explicitly overwrite.
+  sdk: ">=2.2.2 <3.0.0"
+
+dependencies:
+  path: 1.7.0
+  platform: 2.2.1
+
+dev_dependencies:
+  mockito: 4.1.1
+  test_api: 0.2.15
+

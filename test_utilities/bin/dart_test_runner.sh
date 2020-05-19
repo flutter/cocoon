@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2019 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Flutter Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -11,6 +11,7 @@ set -e
 # Build and analize
 echo "Running tests from $1"
 pushd $1 > /dev/null
+flutter clean
 pub get
 
 echo "############# files that require formatting ###########"
@@ -24,6 +25,9 @@ fi
 
 # See https://github.com/dart-lang/sdk/issues/25551 for why this is necessary.
 pub global run tuneup check
-pub run test --test-randomize-ordering-seed=random
+if [ -d 'test' ]; then
+  # Only try tests if test folder exist.
+  pub run test --test-randomize-ordering-seed=random
+fi
 
 popd > /dev/null
