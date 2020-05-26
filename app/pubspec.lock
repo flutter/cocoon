@@ -112,7 +112,7 @@ packages:
       name: build_modules
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.5.0"
+    version: "1.0.11"
   build_resolvers:
     dependency: transitive
     description:
@@ -147,7 +147,7 @@ packages:
       name: build_web_compilers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "1.2.3"
   built_collection:
     dependency: transitive
     description:
@@ -687,4 +687,4 @@ packages:
     source: hosted
     version: "2.2.0"
 sdks:
-  dart: ">=2.6.0 <2.9.0"
+  dart: ">=2.6.0 <=2.9.0-8.2.beta"
