@@ -65,11 +65,8 @@ Future<void> verifyNoMissingLicense(String workingDirectory,
       overrideMinimumMatches ?? 1, _generateLicense(':: '));
   await _verifyNoMissingLicenseForExtension(workingDirectory, 'ps1',
       overrideMinimumMatches ?? 1, _generateLicense('# '));
-  await _verifyNoMissingLicenseForExtension(
-      workingDirectory,
-      'html',
-      overrideMinimumMatches ?? 1,
-      '<!DOCTYPE HTML>\n<!-- ${_generateLicense('')} -->',
+  await _verifyNoMissingLicenseForExtension(workingDirectory, 'html',
+      overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->',
       trailingBlank: false);
   await _verifyNoMissingLicenseForExtension(workingDirectory, 'xml',
       overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->');
