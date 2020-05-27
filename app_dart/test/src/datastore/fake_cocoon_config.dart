@@ -196,4 +196,9 @@ class FakeConfig implements Config {
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue;
+
+  @override
+  bool githubPresubmitSupportedRepo(String repositoryName) {
+    return <String>['flutter', 'cocoon'].contains(repositoryName);
+  }
 }

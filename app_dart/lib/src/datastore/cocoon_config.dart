@@ -29,6 +29,13 @@ class Config {
 
   final CacheService _cache;
 
+  /// List of Github presubmit supported repos.
+  static const Set<String> supportedRepos = <String>{
+    'engine',
+    'flutter',
+    'cocoon'
+  };
+
   @visibleForTesting
   static const String configCacheName = 'config';
 
@@ -384,6 +391,10 @@ class Config {
   Future<GithubService> createGithubService() async {
     final GitHub github = await createGitHubClient();
     return GithubService(github);
+  }
+
+  bool githubPresubmitSupportedRepo(String repositoryName) {
+    return supportedRepos.contains(repositoryName);
   }
 }
 

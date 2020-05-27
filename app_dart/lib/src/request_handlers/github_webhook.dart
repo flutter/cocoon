@@ -19,14 +19,6 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
-/// List of Github supported repos.
-const Set<String> kSupportedRepos = <String>{
-  'cocoon',
-  'engine',
-  'flutter',
-  'packages',
-};
-
 /// List of repos that require CQ+1 label.
 const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
 
@@ -242,7 +234,7 @@ class GithubWebhook extends RequestHandler<Body> {
     assert(number != null);
     assert(sha != null);
     assert(repositoryName != null);
-    if (!kSupportedRepos.contains(repositoryName)) {
+    if (!config.githubPresubmitSupportedRepo(repositoryName)) {
       log.error('Unsupported repo on webhook: $repositoryName');
       throw BadRequestException(
           'Repository $repositoryName is not supported by this service.');
@@ -320,7 +312,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _cancelLuci(
       String repositoryName, int number, String sha, String reason) async {
-    if (!kSupportedRepos.contains(repositoryName)) {
+    if (!config.githubPresubmitSupportedRepo(repositoryName)) {
       throw BadRequestException(
           'This service does not support repository $repositoryName.');
     }
