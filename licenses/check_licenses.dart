@@ -69,7 +69,7 @@ Future<void> verifyNoMissingLicense(String workingDirectory,
       workingDirectory,
       'html',
       overrideMinimumMatches ?? 1,
-      '<!DOCTYPE HTML>\n<!-- ${_generateLicense('')} -->',
+      '<!-- ${_generateLicense('')} -->',
       trailingBlank: false);
   await _verifyNoMissingLicenseForExtension(workingDirectory, 'xml',
       overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->');
