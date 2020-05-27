@@ -145,7 +145,7 @@ class BuildStatusWidget extends StatelessWidget {
     }
 
     return ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           child: Icon(Icons.devices),
           radius: _kAvatarRadius,
         ),
@@ -184,7 +184,7 @@ class FailingAgentWidget extends StatelessWidget {
       ),
       for (String agentName in failingAgents)
         ListTile(
-            leading: CircleAvatar(
+            leading: const CircleAvatar(
               child: Icon(Icons.desktop_windows),
               radius: _kAvatarRadius,
               foregroundColor: Colors.white,
@@ -224,13 +224,13 @@ class _CommitResultWidget extends StatelessWidget {
     Widget icon;
     Color backgroundColor;
     if (commitTestResult.failedTestCount > 0) {
-      icon = Icon(Icons.error);
+      icon = const Icon(Icons.error);
       backgroundColor = Colors.redAccent;
     } else if (commitTestResult.inProgressTestCount > 0) {
-      icon = _PendingIcon(child: Icon(Icons.sync));
+      icon = const _PendingIcon(child: const Icon(Icons.sync));
       backgroundColor = Colors.grey[600];
     } else {
-      icon = Icon(Icons.check);
+      icon = const Icon(Icons.check);
       backgroundColor = Colors.green;
     }
 
@@ -254,15 +254,15 @@ class _CommitResultWidget extends StatelessWidget {
               TextSpan(
                   text:
                       'Fail: ${commitTestResult.failingTests.length == 1 ? commitTestResult.failingTests.first : commitTestResult.failedTestCount}\n',
-                  style: TextStyle(color: Colors.redAccent)),
+                  style: const TextStyle(color: Colors.redAccent)),
             if (commitTestResult.failedFlakyTestCount > 0)
               TextSpan(
                   text: 'Flake: ${commitTestResult.failedFlakyTestCount}\n',
-                  style: TextStyle(color: Colors.orange)),
+                  style: const TextStyle(color: Colors.orange)),
             if (commitTestResult.inProgressTestCount > 0)
               TextSpan(
                   text: 'In progress: ${commitTestResult.inProgressTestCount}',
-                  style: TextStyle(color: Colors.grey)),
+                  style: const TextStyle(color: Colors.grey)),
           ], style: Theme.of(context).textTheme.subtitle),
         ),
         trailing: CircleAvatar(

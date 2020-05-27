@@ -75,12 +75,12 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget>
             initialModel: FlutterPluginsRepositoryStatus(),
             child: pluginsRepositoryDetails),
       ),
-      _RepositoryTabMapper(
+      const _RepositoryTabMapper(
           tab: Tab(
               text: 'Infrastructure',
               icon: Icon(Icons.build, size: tabIconSize)),
           tabContents: const InfrastructureDetails()),
-      _RepositoryTabMapper(
+      const _RepositoryTabMapper(
           tab: Tab(
               text: 'Roll History',
               icon: Icon(Icons.merge_type, size: tabIconSize)),
@@ -145,7 +145,7 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget>
       appBar: AppBar(
         actions: <Widget>[
           IconButton(
-            icon: (tab.isPaused ? Icon(Icons.play_arrow) : Icon(Icons.pause)),
+            icon: (tab.isPaused ? const Icon(Icons.play_arrow) : const Icon(Icons.pause)),
             tooltip: (tab.isPaused ? 'Switch tabs' : 'Stop switching tabs'),
             onPressed: () {
               setState(() {
@@ -167,7 +167,7 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget>
           ),
         ],
         leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => window.location.href = '/'),
         bottom: TabBar(
             controller: _tabController,
