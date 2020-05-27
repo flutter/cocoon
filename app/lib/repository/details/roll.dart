@@ -129,7 +129,7 @@ class RollSheriffWidget extends StatelessWidget {
     final RollSheriff sheriff = ModelBinding.of<RollSheriff>(context);
     if (sheriff?.currentSheriff != null) {
       return ListTile(
-          leading: CircleAvatar(
+          leading: const CircleAvatar(
             child: Icon(Icons.security),
           ),
           title: Text('${sheriff.currentSheriff} 🤠'),
