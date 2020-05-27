@@ -19,10 +19,12 @@ void main() {
       expect(suite.pullRequests, hasLength(1));
       final PullRequest pullRequest = suite.pullRequests[0];
       expect(pullRequest.base.ref, equals('master'));
-      expect(pullRequest.base.sha, equals('cc430b2e8d6448dfbacf5bcbbd6160cd1fe9dc0b'));
+      expect(pullRequest.base.sha,
+          equals('cc430b2e8d6448dfbacf5bcbbd6160cd1fe9dc0b'));
       expect(pullRequest.base.repo.name, equals('cocoon'));
       expect(pullRequest.head.ref, equals('update_licenses'));
-      expect(pullRequest.head.sha, equals('5763f4c2b3b5e529f4b35c655761a7e818eced2e'));
+      expect(pullRequest.head.sha,
+          equals('5763f4c2b3b5e529f4b35c655761a7e818eced2e'));
       expect(pullRequest.head.repo.name, equals('cocoon'));
     });
   });
