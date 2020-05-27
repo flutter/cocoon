@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// Data models to serialize/deserialize json messages coming from github
+/// checks api. For more information please read:
+///   https://developer.github.com/v3/checks/.
+
 import 'package:github/github.dart' hide CheckSuite;
 import 'package:github/hooks.dart';
 import 'package:json_annotation/json_annotation.dart';
