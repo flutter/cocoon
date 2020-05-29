@@ -32,6 +32,7 @@ class Task extends Model {
     this.requiredCapabilities,
     this.reservedForAgentId = '',
     this.stageName,
+    this.buildId,
     String status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -132,6 +133,11 @@ class Task extends Model {
   @JsonKey(name: 'Reason')
   String reason;
 
+  /// The build ID of luci build.
+  @IntProperty(propertyName: 'BuildID', required: false)
+  @JsonKey(name: 'BuildID')
+  int buildId;
+
   /// The list of capabilities that agents are required to have to run this
   /// task.
   ///
@@ -195,6 +201,7 @@ class Task extends Model {
       ..write(', reservedForAgentId: $reservedForAgentId')
       ..write(', stageName: $stageName')
       ..write(', status: $status')
+      ..write(', buildId: $buildId')
       ..write(')');
     return buf.toString();
   }

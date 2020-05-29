@@ -4,12 +4,14 @@
 
 import 'dart:async';
 
+import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -55,13 +57,12 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       repo: 'flutter',
       requireTaskName: true,
     );
-
     final List<String> branches = await config.flutterBranches;
 
-    for (LuciBuilder builder in luciTasks.keys) {
+    for (LuciBuilder luciBuilder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
         await _updateStatus(
-          builder,
+          luciBuilder,
           branches,
           datastore,
           luciTasks,
@@ -79,19 +80,79 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       DatastoreService datastore,
       Map<LuciBuilder, List<LuciTask>> luciTasks) async {
     for (String branch in branches) {
-      await for (FullTask task in datastore.queryRecentTasks(
-          taskName: builder.taskName, branch: branch)) {
-        for (LuciTask luciTask in luciTasks[builder]) {
+      final List<FullTask> tasks = await datastore
+          .queryRecentTasks(taskName: builder.taskName, branch: branch)
+          .toList();
+      final List<LuciTask> allLuciTasks = luciTasks[builder];
+      final Set<LuciTask> updatedLuciTasks = <LuciTask>{};
+
+      /// Scan both [tasks] and [luciTasks] from old to new, since [luciTasks] may
+      /// contain new re-run builds which are not in datastore yet. If matched, then
+      /// update accordingly.
+      for (int i = tasks.length - 1; i >= 0; i--) {
+        final FullTask task = tasks[i];
+        for (int j = allLuciTasks.length - 1; j >= 0; j--) {
+          final LuciTask luciTask = allLuciTasks[j];
           if (luciTask.commitSha == task.commit.sha &&
-              luciTask.ref == 'refs/heads/$branch') {
+              luciTask.ref == 'refs/heads/$branch' &&
+              (task.task.buildId == null ||
+                  task.task.buildId == luciTask.buildId) &&
+              !updatedLuciTasks.contains(luciTask)) {
             final Task update = task.task;
             update.status = luciTask.status;
+            update.buildId = luciTask.buildId;
             await datastore.insert(<Task>[update]);
-            // Stop updating task whenever we find the latest status of the same commit.
+            updatedLuciTasks.add(luciTask);
             break;
           }
         }
       }
+
+      final List<Task> newTasks =
+          _getNewTasks(updatedLuciTasks, builder, allLuciTasks, datastore);
+      await datastore.insert(newTasks);
     }
+  }
+
+  /// Get new re-run luci builds by excluding existing updated ones. /api/
+  /// refresh-github-commits always inserts luci tasks for any new commit.
+  /// However when people re-run luci builds afterwards, there are no
+  /// corresponding tasks in datastore to be updated.
+  ///
+  /// When there are re-run luci builds, `_getNewTasks` returns them to be
+  /// inserted into datastore.
+  ///
+  /// The best time to add re-run luci builds to datastore is when
+  /// re-running them (push rather than pull).
+  // TODO(keyonghan): add new tasks to datastore when re-running luci builds,
+  // https://github.com/flutter/flutter/issues/58268
+  List<Task> _getNewTasks(Set<LuciTask> updatedLuciTasks, LuciBuilder builder,
+      List<LuciTask> allLuciTasks, DatastoreService datastore) {
+    final List<Task> tasks = <Task>[];
+    for (LuciTask luciTask in allLuciTasks) {
+      if (!updatedLuciTasks.contains(luciTask) &&
+          updatedLuciTasks.any((LuciTask e) =>
+              e.commitSha == luciTask.commitSha && e.ref == luciTask.ref)) {
+        final String id =
+            'flutter/flutter/${luciTask.ref.split('/')[2]}/${luciTask.commitSha}';
+        final Key key = datastore.db.emptyKey.append(Commit, id: id);
+        tasks.add(Task(
+          key: key.append(Task),
+          commitKey: key,
+          createTimestamp: DateTime.now().millisecondsSinceEpoch,
+          startTimestamp: 0,
+          endTimestamp: 0,
+          name: builder.taskName,
+          attempts: 0,
+          isFlaky: false,
+          timeoutInMinutes: 0,
+          requiredCapabilities: <String>['can-update-chromebots'],
+          stageName: 'chromebot',
+          status: luciTask.status,
+          buildId: luciTask.buildId,
+        ));
+      }
+    }
+    return tasks;
   }
 }

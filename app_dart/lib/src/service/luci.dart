@@ -106,6 +106,7 @@ class LuciService {
         commitSha: commit,
         ref: ref,
         status: _luciStatusToTaskStatus[build.status],
+        buildId: build.number,
       ));
     }
     return results;
@@ -156,9 +157,11 @@ class LuciTask {
     @required this.commitSha,
     @required this.ref,
     @required this.status,
+    @required this.buildId,
   })  : assert(commitSha != null),
         assert(ref != null),
-        assert(status != null);
+        assert(status != null),
+        assert(buildId != null);
 
   /// The GitHub commit at which this task is being run.
   final String commitSha;
@@ -168,4 +171,7 @@ class LuciTask {
 
   /// The status of this task. See the [Task] class for supported values.
   final String status;
+
+  /// The build id of this task.
+  final int buildId;
 }

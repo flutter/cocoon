@@ -18,6 +18,7 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'Flaky': instance.isFlaky,
       'TimeoutInMinutes': instance.timeoutInMinutes,
       'Reason': instance.reason,
+      'BuildID': instance.buildId,
       'RequiredCapabilities': instance.requiredCapabilities,
       'ReservedForAgentID': instance.reservedForAgentId,
       'StageName': instance.stageName,
