@@ -93,10 +93,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final FullTask task = tasks[i];
         for (int j = allLuciTasks.length - 1; j >= 0; j--) {
           final LuciTask luciTask = allLuciTasks[j];
-          if (luciTask.commitSha == task.commit.sha &&
-              luciTask.ref == 'refs/heads/$branch' &&
-              (task.task.buildId == null ||
-                  task.task.buildId == luciTask.buildId) &&
+          if (_taskMatched(task, luciTask, branch) &&
               !updatedLuciTasks.contains(luciTask)) {
             final Task update = task.task;
             update.status = luciTask.status;
@@ -112,6 +109,12 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           _getNewTasks(updatedLuciTasks, builder, allLuciTasks, datastore);
       await datastore.insert(newTasks);
     }
+  }
+
+  bool _taskMatched(FullTask task, LuciTask luciTask, String branch) {
+    return luciTask.commitSha == task.commit.sha &&
+        luciTask.ref == 'refs/heads/$branch' &&
+        (task.task.buildId == null || task.task.buildId == luciTask.buildId);
   }
 
   /// Get new re-run luci builds by excluding existing updated ones. /api/
