@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
