@@ -191,14 +191,6 @@ class LuciStatusHandler extends RequestHandler<Body> {
     return info.email == devicelabServiceAccount.email;
   }
 
-  Future<RepositorySlug> _getRepoNameForBuilder(String builderName) async {
-    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
-    final String repoName = builders.firstWhere(
-        (Map<String, dynamic> builder) =>
-            builder['name'] == builderName)['repo'] as String;
-    return RepositorySlug('flutter', repoName);
-  }
-
   CreateStatus _statusForResult(Result result) {
     switch (result) {
       case Result.canceled:
@@ -218,7 +210,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required String buildUrl,
     @required Result result,
   }) async {
-    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
+    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     final GitHub gitHubClient = await config.createGitHubClient();
     final CreateStatus status = _statusForResult(result)
       ..context = builderName
@@ -232,7 +224,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required String builderName,
     @required String buildUrl,
   }) async {
-    final RepositorySlug slug = await _getRepoNameForBuilder(builderName);
+    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     final GitHub gitHubClient = await config.createGitHubClient();
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
