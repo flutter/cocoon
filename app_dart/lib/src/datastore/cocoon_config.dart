@@ -335,12 +335,10 @@ class Config {
           'name': 'Windows Web Engine',
           'repo': 'engine',
         },
-        // TODO(fujino): Re-enable after
-        // https://github.com/flutter/flutter/issues/58012 is fixed.
-        //<String, String>{
-        //  'name': 'Mac Web Engine',
-        //  'repo': 'engine',
-        //},
+        <String, String>{
+          'name': 'Mac Web Engine',
+          'repo': 'engine',
+        },
         <String, String>{
           'name': 'fuchsia_ctl',
           'repo': 'packages',
