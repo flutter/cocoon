@@ -49,6 +49,42 @@ class LuciService {
   /// The AppEngine context to use for requests. Guaranteed to be non-null.
   final ClientContext clientContext;
 
+  /// Gets the list of recent LUCI tasks, broken out by the [BranchLuciBuilder]
+  ///  that owns them.
+  ///
+  /// The list of known LUCI builders is specified in [LuciBuilder.all].
+  Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>
+      getBranchRecentTasks({
+    String repo,
+    bool requireTaskName = false,
+  }) async {
+    assert(requireTaskName != null);
+    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
+    final Iterable<Build> builds =
+        await getBuilds(repo, requireTaskName, builders);
+
+    final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
+        <BranchLuciBuilder, Map<String, List<LuciTask>>>{};
+    for (Build build in builds) {
+      final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
+      final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
+      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+        return builder.name == build.builderId.builder;
+      });
+      final BranchLuciBuilder branchLuciBuilder =
+          BranchLuciBuilder(luciBuilder: builder, branch: ref.split('/')[2]);
+      results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
+      results[branchLuciBuilder][commit] ??= <LuciTask>[];
+      results[branchLuciBuilder][commit].add(LuciTask(
+        commitSha: commit,
+        ref: ref,
+        status: _luciStatusToTaskStatus[build.status],
+        buildId: build.number,
+      ));
+    }
+    return results;
+  }
+
   /// Gets the list of recent LUCI tasks, broken out by the [LuciBuilder] that
   /// owns them.
   ///
@@ -58,6 +94,31 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
+    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
+    final Iterable<Build> builds =
+        await getBuilds(repo, requireTaskName, builders);
+
+    final Map<LuciBuilder, List<LuciTask>> results =
+        <LuciBuilder, List<LuciTask>>{};
+    for (Build build in builds) {
+      final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
+      final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
+      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
+        return builder.name == build.builderId.builder;
+      });
+      results[builder] ??= <LuciTask>[];
+      results[builder].add(LuciTask(
+        commitSha: commit,
+        ref: ref,
+        status: _luciStatusToTaskStatus[build.status],
+        buildId: build.number,
+      ));
+    }
+    return results;
+  }
+
+  Future<Iterable<Build>> getBuilds(
+      String repo, bool requireTaskName, List<LuciBuilder> builders) async {
     final BuildBucketClient buildBucketClient = BuildBucketClient();
 
     bool includeBuilder(LuciBuilder builder) {
@@ -70,7 +131,6 @@ class LuciService {
       return true;
     }
 
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
     final List<Request> searchRequests =
         builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
       return Request(
@@ -92,25 +152,19 @@ class LuciService {
     final Iterable<Build> builds = batchResponse.responses
         .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
         .expand<Build>((SearchBuildsResponse response) => response.builds);
-
-    final Map<LuciBuilder, List<LuciTask>> results =
-        <LuciBuilder, List<LuciTask>>{};
-    for (Build build in builds) {
-      final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
-      final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
-      final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
-        return builder.name == build.builderId.builder;
-      });
-      results[builder] ??= <LuciTask>[];
-      results[builder].add(LuciTask(
-        commitSha: commit,
-        ref: ref,
-        status: _luciStatusToTaskStatus[build.status],
-        buildId: build.number,
-      ));
-    }
-    return results;
+    return builds;
   }
+}
+
+@immutable
+class BranchLuciBuilder {
+  const BranchLuciBuilder({
+    this.luciBuilder,
+    this.branch,
+  });
+
+  final String branch;
+  final LuciBuilder luciBuilder;
 }
 
 @immutable
