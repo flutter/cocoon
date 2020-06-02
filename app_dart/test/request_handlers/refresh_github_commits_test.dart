@@ -161,7 +161,6 @@ void main() {
     test('inserts the latest single commit if a new branch is found', () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
       config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-      config.newBranchHoursValue = 168;
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;

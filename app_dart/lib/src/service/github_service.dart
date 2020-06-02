@@ -15,27 +15,39 @@ class GithubService {
   final GitHub github;
 
   /// Lists the commits of the provided repository [slug] and [branch].
-  Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch, int hours, Config config) async {
-    final Duration time = Duration(hours: hours);
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch,
+      int lastCommitTimestamp, Config config) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
+    /// Return only one page when this is a new branch. Otherwise it will
+    /// return all commits prior to this release branch commit, leading to
+    /// heavy workload.
+    int pages;
+    if (lastCommitTimestamp == 0) {
+      pages = 1;
+    }
+
     List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
+
+    /// [lastCommitTimestamp+1] excludes last commit itself.
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.now().toUtc().subtract(time).toIso8601String()
+        'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestamp + 1)
+            .toUtc()
+            .toIso8601String(),
       },
+      pages: pages,
     )) {
       commits.addAll((json.decode(response.body) as List<dynamic>)
           .cast<Map<String, dynamic>>());
     }
 
     /// Take the latest single commit for a new release branch.
-    if (hours == config.newBranchHours) {
+    if (lastCommitTimestamp == 0) {
       commits = commits.take(1).toList();
     }
 

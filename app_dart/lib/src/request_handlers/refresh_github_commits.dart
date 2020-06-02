@@ -59,22 +59,16 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     for (String branch in await config.flutterBranches) {
-      // TODO(keyonghan): use time of latest commit for [hours] in github API query, https://github.com/flutter/flutter/issues/54284
-      int hours = config.existingBranchHours;
-
-      if (branch != 'master') {
-        final Set<Commit> commits = await datastore
-            .queryRecentCommits(limit: 1, branch: branch)
-            .toSet();
-
-        /// Set [hours] to be longer if a new branch is found.
-        if (commits.isEmpty) {
-          hours = config.newBranchHours;
-        }
+      final List<Commit> lastCommit =
+          await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
+      int lastCommitTimestamp = 0;
+      if (lastCommit.isNotEmpty) {
+        lastCommitTimestamp = lastCommit[0].timestamp;
       }
 
-      final List<RepositoryCommit> commits =
-          await githubService.listCommits(slug, branch, hours, config);
+      final List<RepositoryCommit> commits = await githubService.listCommits(
+          slug, branch, lastCommitTimestamp, config);
+
       final List<Commit> newCommits =
           await _getNewCommits(commits, datastore, branch);
 
@@ -88,7 +82,6 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       //Save [Commit] to BigQuery and create [Task] in Datastore.
       await _saveData(newCommits, datastore);
     }
-
     return Body.empty;
   }
 
