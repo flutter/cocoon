@@ -21,11 +21,11 @@ class LuciBuildService {
   BuildBucketClient buildBucketClient;
   Config config;
   ServiceAccountInfo serviceAccount;
-  static const List<Status> failStatusList = <Status>[
+  static const Set<Status> failStatusList = <Status>{
     Status.canceled,
     Status.failure,
     Status.infraFailure
-  ];
+  };
 
   /// Returns a map of the BuildBucket builds for a given [repositoryName]
   /// [prNumber] and [commitSha] using the [builderName] as key and [Build]
