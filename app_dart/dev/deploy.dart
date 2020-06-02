@@ -96,6 +96,7 @@ Future<bool> _buildAngularDartApp() async {
   final Process pubProcess = await Process.start('pub', <String>['get'],
       workingDirectory: angularDartProjectDirectory);
   await stdout.addStream(pubProcess.stdout);
+  await stderr.addStream(pubProcess.stderr);
   if (await pubProcess.exitCode != 0) {
     return false;
   }
@@ -114,6 +115,7 @@ Future<bool> _buildAngularDartApp() async {
     workingDirectory: angularDartProjectDirectory,
   );
   await stdout.addStream(buildProcess.stdout);
+  await stderr.addStream(buildProcess.stderr);
 
   // The Angular Dart build dashboard page has been replaced with a Flutter
   // version. There are some administrative features missing in the Flutter
