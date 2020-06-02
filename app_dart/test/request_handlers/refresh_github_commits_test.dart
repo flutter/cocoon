@@ -71,7 +71,9 @@ void main() {
     Commit shaToCommit(String sha, String branch) {
       return Commit(
           key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-          sha: sha);
+          sha: sha,
+          branch: branch,
+          timestamp: int.parse(sha));
     }
 
     setUp(() {
@@ -172,7 +174,7 @@ void main() {
 
       /// Pre-insert one commit first, otherwise it will insert only one
       /// commit for a new branch.
-      const List<String> dbCommits = <String>['0'];
+      const List<String> dbCommits = <String>['4'];
       for (String sha in dbCommits) {
         final Commit commit = shaToCommit(sha, 'master');
         db.values[commit.key] = commit;
@@ -192,7 +194,9 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['0', '1', '3']);
+          <String>['4', '1', '3']);
+      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
+          <int>[4, 1, 3]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
