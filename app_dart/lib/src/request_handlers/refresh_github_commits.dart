@@ -61,13 +61,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastCommit =
           await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
-      int lastCommitTimestamp = 0;
+      int lastCommitTimestampMills = 0;
       if (lastCommit.isNotEmpty) {
-        lastCommitTimestamp = lastCommit[0].timestamp;
+        lastCommitTimestampMills = lastCommit[0].timestamp;
       }
 
       final List<RepositoryCommit> commits = await githubService.listCommits(
-          slug, branch, lastCommitTimestamp, config);
+          slug, branch, lastCommitTimestampMills, config);
 
       final List<Commit> newCommits =
           await _getNewCommits(commits, datastore, branch);
