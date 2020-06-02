@@ -12,7 +12,7 @@ import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import 'buildbucket.dart';
 
-/// Class with utilities to interact with LUCI buildbucket to get, trigger
+/// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
@@ -21,7 +21,7 @@ class LuciBuildService {
   BuildBucketClient buildBucketClient;
   Config config;
   ServiceAccountInfo serviceAccount;
-  List<Status> failStatusList = <Status>[
+  static const List<Status> failStatusList = <Status>[
     Status.canceled,
     Status.failure,
     Status.infraFailure

@@ -19,13 +19,36 @@ void main() {
   ServiceAccountInfo serviceAccountInfo;
   FakeConfig config;
   MockBuildBucketClient mockBuildBucketClient;
+  LuciBuildService service;
   group('buildsForRepositoryAndPr', () {
+    const Build macBuild = Build(
+      id: 999,
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'prod',
+        builder: 'Mac',
+      ),
+      status: Status.started,
+    );
+
+    const Build linuxBuild = Build(
+      id: 998,
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'prod',
+        builder: 'Linux',
+      ),
+      status: Status.started,
+    );
+
     setUp(() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
+      service =
+          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     });
-    test('emptyResponse', () async {
+    test('Empty responses are handled correctly', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -37,55 +60,32 @@ void main() {
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-      final Map<String, Build> builders =
+      final Map<String, Build> builds =
           await service.buildsForRepositoryAndPr('cocoon', 1, 'abcd');
-      expect(builders.keys, isEmpty);
+      expect(builds.keys, isEmpty);
     });
 
-    test('someBuilders', () async {
+    test('Response returning a couple of builds', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  Build(
-                    id: 999,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Mac',
-                    ),
-                    status: Status.started,
-                  )
-                ],
+                builds: <Build>[macBuild],
               ),
             ),
             Response(
               searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  Build(
-                    id: 998,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.started,
-                  )
-                ],
+                builds: <Build>[linuxBuild],
               ),
             ),
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-      final Map<String, Build> builders =
+      final Map<String, Build> builds =
           await service.buildsForRepositoryAndPr('cocoon', 1, 'abcd');
-      expect(builders.keys.toList(), equals(<String>['Mac', 'Linux']));
+      expect(builds,
+          equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
   group('scheduleBuilds', () {
@@ -93,8 +93,10 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
+      service =
+          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     });
-    test('alreadyStarted', () async {
+    test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -116,8 +118,6 @@ void main() {
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
@@ -125,7 +125,7 @@ void main() {
       );
       expect(result, isFalse);
     });
-    test('alreadyScheduled', () async {
+    test('try to schedule builds already scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -147,8 +147,6 @@ void main() {
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
@@ -156,7 +154,7 @@ void main() {
       );
       expect(result, isFalse);
     });
-    test('emptyListBuild', () async {
+    test('Schedule builds when the current list of builds is empty', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[],
@@ -166,8 +164,6 @@ void main() {
           (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]')
                   as List<dynamic>)
               .cast<Map<String, dynamic>>();
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
@@ -175,9 +171,7 @@ void main() {
       );
       expect(result, isTrue);
     });
-    test('unsupportedRepo', () async {
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    test('Try to schedule build on a unsupported repo', () async {
       expect(
           () async => await service.scheduleBuilds(
                 prNumber: 1,
@@ -193,19 +187,19 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
+      service =
+          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     });
-    test('emptyList', () async {
+    test('Cancel builds when build list is empty', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       await service.cancelBuilds('cocoon', 1, 'abc', 'new builds');
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
-    test('withScheduledBuild', () async {
+    test('Cancel builds that are scheduled', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -224,14 +218,16 @@ void main() {
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       await service.cancelBuilds('cocoon', 1, 'abc', 'new builds');
-      verify(mockBuildBucketClient.batch(any)).called(2);
+      expect(
+          verify(mockBuildBucketClient.batch(captureAny))
+              .captured[1]
+              .requests[0]
+              .cancelBuild
+              .toJson(),
+          json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
     });
-    test('unsupportedRepo', () async {
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    test('Cancel builds from unsuported repo', () async {
       expect(
           () async => await service.cancelBuilds(
                 'notsupported',
@@ -248,19 +244,19 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
+      service =
+          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     });
-    test('emptyList', () async {
+    test('Failed builds from an empty list', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       final List<Build> result = await service.failedBuilds('cocoon', 1, 'abc');
       expect(result, isEmpty);
     });
-    test('withFailures', () async {
+    test('Failed builds from a list of builds with failures', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -279,8 +275,6 @@ void main() {
           ],
         );
       });
-      final LuciBuildService service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       final List<Build> result = await service.failedBuilds('cocoon', 1, 'abc');
       expect(result, hasLength(1));
     });
@@ -290,11 +284,12 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-    });
-    test('worksProperly', () async {
-      config.luciTryInfraFailureRetriesValue = 3;
-      final LuciBuildService service =
+      service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    });
+    test('Reschedule an existing build', () async {
+      config.luciTryInfraFailureRetriesValue = 3;
+
       final Map<String, List<String>> tags = <String, List<String>>{
         'buildset': <String>['123'],
         'user_agent': <String>['cocoon'],
