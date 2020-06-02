@@ -46,7 +46,7 @@ void main() {
     List<String> githubCommits;
     int yieldedCommitCount;
 
-    List<RepositoryCommit> commitList(int lastCommitTimestamp) {
+    List<RepositoryCommit> commitList(int lastCommitTimestampMills) {
       List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
@@ -62,7 +62,7 @@ void main() {
           ..author = author
           ..commit = gitCommit);
       }
-      if (lastCommitTimestamp == 0) {
+      if (lastCommitTimestampMills == 0) {
         commits = commits.take(1).toList();
       }
       return commits;

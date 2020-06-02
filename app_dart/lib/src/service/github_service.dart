@@ -16,7 +16,7 @@ class GithubService {
 
   /// Lists the commits of the provided repository [slug] and [branch].
   Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch,
-      int lastCommitTimestamp, Config config) async {
+      int lastCommitTimestampMills, Config config) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
@@ -24,7 +24,7 @@ class GithubService {
     /// return all commits prior to this release branch commit, leading to
     /// heavy workload.
     int pages;
-    if (lastCommitTimestamp == 0) {
+    if (lastCommitTimestampMills == 0) {
       pages = 1;
     }
 
@@ -36,9 +36,10 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestamp + 1)
-            .toUtc()
-            .toIso8601String(),
+        'since':
+            DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1)
+                .toUtc()
+                .toIso8601String(),
       },
       pages: pages,
     )) {
@@ -47,7 +48,7 @@ class GithubService {
     }
 
     /// Take the latest single commit for a new release branch.
-    if (lastCommitTimestamp == 0) {
+    if (lastCommitTimestampMills == 0) {
       commits = commits.take(1).toList();
     }
 
