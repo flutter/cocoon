@@ -180,6 +180,9 @@ class Config {
         'engine-flutter-autoroll',
       };
 
+  /// Luci flutter prod pool.
+  String get luciFlutterProdPool => 'luci.flutter.prod';
+
   /// A List of builders for LUCI
   List<Map<String, dynamic>> get luciBuilders => <Map<String, String>>[
         <String, String>{

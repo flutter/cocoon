@@ -91,6 +91,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           final Task update = datastoreTask.task;
           update.status = luciTask.status;
           update.buildId = luciTask.buildId;
+          update.builderName = builder.name;
+          update.luciPoolName = config.luciFlutterProdPool;
           await datastore.insert(<Task>[update]);
           updatedLuciTasks.add(luciTask);
           break;

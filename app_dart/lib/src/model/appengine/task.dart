@@ -33,6 +33,8 @@ class Task extends Model {
     this.reservedForAgentId = '',
     this.stageName,
     this.buildId,
+    this.builderName,
+    this.luciPoolName,
     String status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -137,6 +139,16 @@ class Task extends Model {
   @IntProperty(propertyName: 'BuildID')
   @JsonKey(name: 'BuildID')
   int buildId;
+
+  /// The builder name of luci build.
+  @StringProperty(propertyName: 'BuilderName')
+  @JsonKey(name: 'BuilderName')
+  String builderName;
+
+  /// The luci pool where the luci task runs.
+  @StringProperty(propertyName: 'LuciPoolName')
+  @JsonKey(name: 'LuciPoolName')
+  String luciPoolName;
 
   /// The list of capabilities that agents are required to have to run this
   /// task.
