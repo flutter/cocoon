@@ -45,9 +45,8 @@ void main() {
 
     List<String> githubCommits;
     int yieldedCommitCount;
-    int newBranchHours;
 
-    List<RepositoryCommit> commitList(int hours) {
+    List<RepositoryCommit> commitList(int lastCommitTimestamp) {
       List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
@@ -63,7 +62,7 @@ void main() {
           ..author = author
           ..commit = gitCommit);
       }
-      if (hours == newBranchHours) {
+      if (lastCommitTimestamp == 0) {
         commits = commits.take(1).toList();
       }
       return commits;
@@ -85,7 +84,6 @@ void main() {
       });
 
       yieldedCommitCount = 0;
-      newBranchHours = 168;
       db = FakeDatastoreDB();
       config = FakeConfig(
           tabledataResourceApi: tabledataResourceApi,
@@ -171,6 +169,15 @@ void main() {
     test('skips commits for which transaction commit fails', () async {
       githubCommits = <String>['1', '2', '3'];
       config.flutterBranchesValue = <String>['master'];
+
+      /// Pre-insert one commit first, otherwise it will insert only one
+      /// commit for a new branch.
+      const List<String> dbCommits = <String>['0'];
+      for (String sha in dbCommits) {
+        final Commit commit = shaToCommit(sha, 'master');
+        db.values[commit.key] = commit;
+      }
+
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
@@ -182,12 +189,10 @@ void main() {
       };
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 2);
+      expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '3']);
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
-          <int>[1, 3]);
+          <String>['0', '1', '3']);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
