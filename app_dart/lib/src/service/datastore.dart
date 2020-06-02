@@ -212,9 +212,9 @@ class DatastoreService {
       );
     } else {
       if (previousStatusUpdates.length > 1) {
-        return previousStatusUpdates.reduce(
-            (GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
-                current.updateTimestamp < next.updateTimestamp ? next : current);
+        return previousStatusUpdates.reduce((GithubBuildStatusUpdate current,
+                GithubBuildStatusUpdate next) =>
+            current.updateTimestamp < next.updateTimestamp ? next : current);
       }
       return previousStatusUpdates.single;
     }
