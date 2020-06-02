@@ -208,12 +208,13 @@ class DatastoreService {
         head: pr.head.sha,
         status: null,
         updates: 0,
+        updateTimestamp: DateTime.now().millisecondsSinceEpoch,
       );
     } else {
       if (previousStatusUpdates.length > 1) {
-        throw StateError(
-            'GithubBuildStatusUpdate should have no more than one entries on '
-            'repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}');
+        return previousStatusUpdates.reduce(
+            (GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
+                current.updateTimestamp < next.updateTimestamp ? next : current);
       }
       return previousStatusUpdates.single;
     }

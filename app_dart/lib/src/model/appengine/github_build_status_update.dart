@@ -15,6 +15,7 @@ class GithubBuildStatusUpdate extends Model {
     this.head,
     this.status,
     this.updates,
+    this.updateTimestamp,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -39,6 +40,9 @@ class GithubBuildStatusUpdate extends Model {
   @IntProperty(propertyName: 'Updates', required: true)
   int updates;
 
+  @IntProperty(propertyName: 'UpdateTimestamp')
+  int updateTimestamp;
+
   @override
   String toString() {
     final StringBuffer buf = StringBuffer()
@@ -51,6 +55,7 @@ class GithubBuildStatusUpdate extends Model {
       ..write(', head: $head')
       ..write(', lastStatus: $status')
       ..write(', updates: $updates')
+      ..write(', updateTimestamp: $updateTimestamp')
       ..write(')');
     return buf.toString();
   }
