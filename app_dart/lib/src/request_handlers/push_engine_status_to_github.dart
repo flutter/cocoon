@@ -82,6 +82,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
           await github.repositories.createStatus(slug, pr.head.sha, request);
           update.status = latestStatus;
           update.updates += 1;
+          update.updateTimestamp = DateTime.now().millisecondsSinceEpoch;
           updates.add(update);
         } catch (error) {
           log.error(
