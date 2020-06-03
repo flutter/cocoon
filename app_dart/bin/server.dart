@@ -8,9 +8,14 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
 
+/// For local development, you might want to set this to true.
+const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
+
 Future<void> main() async {
   await withAppEngineServices(() async {
-    final CacheService cache = CacheService();
+    final bool inMemoryCache =
+        Platform.environment[_kCocoonUseInMemoryCache] == 'true';
+    final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
