@@ -396,6 +396,14 @@ class Config {
   bool githubPresubmitSupportedRepo(String repositoryName) {
     return supportedRepos.contains(repositoryName);
   }
+
+  Future<RepositorySlug> repoNameForBuilder(String builderName) async {
+    final List<Map<String, dynamic>> builders = luciTryBuilders;
+    final String repoName = builders.firstWhere(
+        (Map<String, dynamic> builder) =>
+            builder['name'] == builderName)['repo'] as String;
+    return RepositorySlug('flutter', repoName);
+  }
 }
 
 @Kind(name: 'CocoonConfig', idType: IdType.String)
