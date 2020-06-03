@@ -21,7 +21,7 @@ class LuciBuildService {
   BuildBucketClient buildBucketClient;
   Config config;
   ServiceAccountInfo serviceAccount;
-  static const Set<Status> failStatusList = <Status>{
+  static const Set<Status> failStatusSet = <Status>{
     Status.canceled,
     Status.failure,
     Status.infraFailure
@@ -198,7 +198,7 @@ class LuciBuildService {
     final Map<String, Build> builds =
         await buildsForRepositoryAndPr(repositoryName, prNumber, commitSha);
     return builds.values
-        .where((Build build) => failStatusList.contains(build.status))
+        .where((Build build) => failStatusSet.contains(build.status))
         .toList();
   }
 
