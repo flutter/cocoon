@@ -33,7 +33,8 @@ class Config {
   static const Set<String> supportedRepos = <String>{
     'engine',
     'flutter',
-    'cocoon'
+    'cocoon',
+    'packages',
   };
 
   @visibleForTesting
