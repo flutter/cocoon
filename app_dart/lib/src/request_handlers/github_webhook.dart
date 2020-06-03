@@ -26,7 +26,10 @@ const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
 
 /// List of repos that require check for labels and tests.
-const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
+const Set<String> kNeedsCheckLabelsAndTests = <String>{
+  'flutter/flutter',
+  'flutter/engine'
+};
 
 final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
@@ -537,8 +540,7 @@ class GithubWebhook extends RequestHandler<Body> {
           filename.endsWith('.mm') ||
           filename.endsWith('.m') ||
           filename.endsWith('.java') ||
-          filename.endsWith('.cc')
-      ) {
+          filename.endsWith('.cc')) {
         needsTests = true;
       }
 

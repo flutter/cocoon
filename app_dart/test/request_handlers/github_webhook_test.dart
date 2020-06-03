@@ -342,7 +342,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+          PullRequestFile()
+            ..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
         ),
       );
 
@@ -354,7 +355,7 @@ void main() {
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
-          responses: <Response>[ ],
+          responses: <Response>[],
         );
       });
 
@@ -403,7 +404,7 @@ void main() {
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
-          responses: <Response>[ ],
+          responses: <Response>[],
         );
       });
 
@@ -446,14 +447,16 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()..filename = 'shell/platform/android/io/flutter/Blah.java',
-          PullRequestFile()..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
+          PullRequestFile()
+            ..filename = 'shell/platform/android/io/flutter/Blah.java',
+          PullRequestFile()
+            ..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
         ]),
       );
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
-          responses: <Response>[ ],
+          responses: <Response>[],
         );
       });
 
@@ -505,7 +508,7 @@ void main() {
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
-          responses: <Response>[ ],
+          responses: <Response>[],
         );
       });
 
