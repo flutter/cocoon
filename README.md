@@ -112,7 +112,9 @@ server will serve them.
 
 Set the environment variables `GCLOUD_PROJECT` and `GCLOUD_KEY`.
 Running `dart bin/server.dart` will give more explanation on what
-these values should be.
+these values should be. You should also set `COCOON_USE_IN_MEMORY_CACHE`
+to `true` as you typically don't have access to the remote redis
+instance during local development.
 
 If you see `Serving requests at 0.0.0.0:8080` the dev server is working.
 
