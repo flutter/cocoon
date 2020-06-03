@@ -208,13 +208,16 @@ class DatastoreService {
         head: pr.head.sha,
         status: null,
         updates: 0,
-        updateTimestamp: DateTime.now().millisecondsSinceEpoch,
+        updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
       );
     } else {
+      /// Duplicate cases rarely happen. It happens only when race condition
+      /// occurs in app engine. When multiple records exist, the latest one
+      /// is returned.
       if (previousStatusUpdates.length > 1) {
         return previousStatusUpdates.reduce((GithubBuildStatusUpdate current,
                 GithubBuildStatusUpdate next) =>
-            current.updateTimestamp < next.updateTimestamp ? next : current);
+            current.updateTimeMillis < next.updateTimeMillis ? next : current);
       }
       return previousStatusUpdates.single;
     }

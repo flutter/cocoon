@@ -15,7 +15,7 @@ class GithubBuildStatusUpdate extends Model {
     this.head,
     this.status,
     this.updates,
-    this.updateTimestamp,
+    this.updateTimeMillis,
   }) {
     parentKey = key?.parent;
     id = key?.id;
@@ -40,8 +40,9 @@ class GithubBuildStatusUpdate extends Model {
   @IntProperty(propertyName: 'Updates', required: true)
   int updates;
 
-  @IntProperty(propertyName: 'UpdateTimestamp')
-  int updateTimestamp;
+  /// The last time when the status is updated for the PR.
+  @IntProperty(propertyName: 'UpdateTimeMillis')
+  int updateTimeMillis;
 
   @override
   String toString() {
@@ -55,7 +56,7 @@ class GithubBuildStatusUpdate extends Model {
       ..write(', head: $head')
       ..write(', lastStatus: $status')
       ..write(', updates: $updates')
-      ..write(', updateTimestamp: $updateTimestamp')
+      ..write(', updateTimeMillis: $updateTimeMillis')
       ..write(')');
     return buf.toString();
   }

@@ -198,6 +198,7 @@ void main() {
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
+          expect(status.updateTimeMillis, isNotNull);
           expect(status.status, BuildStatus.succeeded.githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
