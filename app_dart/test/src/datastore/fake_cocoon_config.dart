@@ -199,6 +199,6 @@ class FakeConfig implements Config {
 
   @override
   bool githubPresubmitSupportedRepo(String repositoryName) {
-    return <String>['flutter', 'cocoon'].contains(repositoryName);
+    return <String>['flutter', 'engine', 'cocoon'].contains(repositoryName);
   }
 }

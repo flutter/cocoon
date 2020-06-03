@@ -172,7 +172,7 @@ void main() {
       )).called(1);
     });
 
-    test('Labels PRs, comment if no tests', () async {
+    test('Framework labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -219,7 +219,7 @@ void main() {
       )).called(1);
     });
 
-    test('Labels PRs, no dart files', () async {
+    test('Framework labels PRs, no dart files', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -260,7 +260,7 @@ void main() {
       ));
     });
 
-    test('Labels PRs, no comment if tests', () async {
+    test('Framework labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, 'master');
@@ -316,6 +316,215 @@ void main() {
           'a: internationalization',
         ],
       )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Engine labels PRs, comment if no tests', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()
+            ..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>['platform-ios'],
+      )).called(1);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      )).called(1);
+    });
+
+    test('Engine labels PRs, no code files', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'DEPS',
+        ),
+      );
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        any,
+      ));
+    });
+
+    test('Engine labels PRs, no comment if Java tests', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()
+            ..filename = 'shell/platform/android/io/flutter/Blah.java',
+          PullRequestFile()
+            ..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
+        ]),
+      );
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verify(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        <String>[
+          'platform-android',
+        ],
+      )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Engine labels PRs, no comment if cc tests', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'master',
+        repoName: 'engine',
+        repoFullName: 'flutter/engine',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'engine');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'fml/blah.cc',
+          PullRequestFile()..filename = 'fml/blah_unittests.cc',
+        ]),
+      );
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verifyNever(issuesService.addLabelsToIssue(
+        slug,
+        issueNumber,
+        any,
+      ));
 
       verifyNever(issuesService.createComment(
         slug,

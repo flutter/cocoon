@@ -26,7 +26,12 @@ const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
 
 /// List of repos that require check for labels and tests.
-const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter'};
+const Set<String> kNeedsCheckLabelsAndTests = <String>{
+  'flutter/flutter',
+  'flutter/engine'
+};
+
+final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -399,19 +404,23 @@ class GithubWebhook extends RequestHandler<Body> {
     String eventAction,
     PullRequest pr,
   ) async {
-    if (kNeedsCheckLabelsAndTests
-        .contains(pr.base.repo.fullName.toLowerCase())) {
+    final String repo = pr.base.repo.fullName.toLowerCase();
+    if (kNeedsCheckLabelsAndTests.contains(repo)) {
       final GitHub gitHubClient = await config.createGitHubClient();
       try {
         await _checkBaseRef(gitHubClient, pr);
-        await _applyLabels(gitHubClient, eventAction, pr);
+        if (repo == 'flutter/flutter') {
+          await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
+        } else if (repo == 'flutter/engine') {
+          await _applyEngineRepoLabels(gitHubClient, eventAction, pr);
+        }
       } finally {
         gitHubClient.dispose();
       }
     }
   }
 
-  Future<void> _applyLabels(
+  Future<void> _applyFrameworkRepoLabels(
       GitHub gitHubClient, String eventAction, PullRequest pr) async {
     if (pr.user.login == 'engine-flutter-autoroll') {
       return;
@@ -507,6 +516,54 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (isGoldenChange) {
       final String body = config.goldenBreakingChangeMessage;
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number, body);
+      }
+    }
+  }
+
+  Future<void> _applyEngineRepoLabels(
+      GitHub gitHubClient, String eventAction, PullRequest pr) async {
+    if (pr.user.login == 'skia-flutter-autoroll') {
+      return;
+    }
+    final RepositorySlug slug = pr.base.repo.slug();
+    final Stream<PullRequestFile> files =
+        gitHubClient.pullRequests.listFiles(slug, pr.number);
+    final Set<String> labels = <String>{};
+    bool hasTests = false;
+    bool needsTests = false;
+
+    await for (PullRequestFile file in files) {
+      final String filename = file.filename.toLowerCase();
+      if (filename.endsWith('.dart') ||
+          filename.endsWith('.mm') ||
+          filename.endsWith('.m') ||
+          filename.endsWith('.java') ||
+          filename.endsWith('.cc')) {
+        needsTests = true;
+      }
+
+      if (kEngineTestRegExp.hasMatch(filename)) {
+        hasTests = true;
+      }
+
+      if (filename.startsWith('shell/platform/darwin/ios')) {
+        labels.add('platform-ios');
+      }
+
+      if (filename.startsWith('shell/platform/android')) {
+        labels.add('platform-android');
+      }
+    }
+
+    if (labels.isNotEmpty) {
+      await gitHubClient.issues
+          .addLabelsToIssue(slug, pr.number, labels.toList());
+    }
+
+    if (!hasTests && needsTests && !pr.draft) {
+      final String body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.issues.createComment(slug, pr.number, body);
       }
