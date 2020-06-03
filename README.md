@@ -116,10 +116,10 @@ these values should be.
 
 If you see `Serving requests at 0.0.0.0:8080` the dev server is working.
 
-You may need to [create a service account in the GCP
-dashboard](https://pantheon.corp.google.com/iam-admin/serviceaccounts?project=flutter-dashboard&supportedpurview=project)
-to develop and test some features; these cannot be tested if you do
-not work for Google currently.
+To develop and test some features, you need to have a local `key.json` 
+copy of a service account in the GCP dashboard. Please refer to the 
+internal team doc for how to get a local copy; these cannot be tested if 
+you do not work for Google currently.
 
 ### Building the server for deployment
 
