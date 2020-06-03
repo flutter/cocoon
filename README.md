@@ -118,7 +118,7 @@ If you see `Serving requests at 0.0.0.0:8080` the dev server is working.
 
 To develop and test some features, you need to have a local `key.json` 
 copy of a service account ([dart-cocoon](https://pantheon.corp.google.com/iam-admin/serviceaccounts/details/110857733037195084916?project=flutter-dashboard)) in the GCP dashboard. Please refer to the 
-internal team doc for how to get a local copy; these cannot be tested if 
+[internal team doc](https://g3doc.corp.google.com/company/teams/flutter/cocoon/local_run.md?cl=head) for how to get a local copy; these cannot be tested if 
 you do not work for Google currently.
 
 ### Building the server for deployment
