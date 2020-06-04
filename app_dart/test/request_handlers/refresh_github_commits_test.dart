@@ -25,6 +25,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/utils.dart';
 
 const String singleTaskManifestYaml = '''
 tasks:
@@ -236,9 +237,3 @@ void main() {
 String toSha(Commit commit) => commit.sha;
 
 int toTimestamp(Commit commit) => commit.timestamp;
-
-class MockGitHub extends Mock implements GitHub {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
-
-class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}

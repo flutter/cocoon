@@ -7,7 +7,6 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/task_provider.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
@@ -120,5 +119,3 @@ void main() {
     });
   });
 }
-
-class MockTaskService extends Mock implements TaskService {}

@@ -25,6 +25,7 @@ import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/utils.dart';
 
 void main() {
   group('PushBuildStatusToGithub', () {
@@ -233,14 +234,3 @@ void main() {
     });
   });
 }
-
-class ThrowingGitHub implements GitHub {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
-}
-
-class MockGitHub extends Mock implements GitHub {}
-
-class MockPullRequestsService extends Mock implements PullRequestsService {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}

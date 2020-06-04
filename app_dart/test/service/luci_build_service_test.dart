@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -14,6 +13,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
+import '../src/utils.dart';
 
 void main() {
   ServiceAccountInfo serviceAccountInfo;
@@ -306,6 +306,3 @@ void main() {
     });
   });
 }
-
-// ignore: must_be_immutable
-class MockBuildBucketClient extends Mock implements BuildBucketClient {}
