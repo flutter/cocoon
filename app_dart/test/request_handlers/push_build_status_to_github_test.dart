@@ -204,7 +204,8 @@ void main() {
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
 
-        test('update if statuses have changed since last update - multiple branches',
+        test(
+            'update if statuses have changed since last update - multiple branches',
             () async {
           githubPullRequestsMaster = <int>[0];
           githubPullRequestsOther = <int>[1];
