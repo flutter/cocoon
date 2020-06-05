@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/utils.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;

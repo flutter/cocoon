@@ -24,7 +24,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_graphql_client.dart';
-import '../src/utils.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('PushGoldStatusToGithub', () {

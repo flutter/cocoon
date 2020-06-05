@@ -25,7 +25,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
-import '../src/utils.dart';
+import '../src/utilities/mocks.dart';
 
 const String singleTaskManifestYaml = '''
 tasks:

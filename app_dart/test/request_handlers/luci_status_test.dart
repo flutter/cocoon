@@ -20,7 +20,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/utils.dart';
+import '../src/utilities/mocks.dart';
 
 const String ref = 'deadbeef';
 
