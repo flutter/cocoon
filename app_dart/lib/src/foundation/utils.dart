@@ -27,11 +27,9 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<List<String>> loadBranchRegExps(
-    HttpClientProvider branchHttpClientProvider,
-    Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  const String path = '/flutter/cocoon/master/app_dart/dev/branch_regexps.txt';
+Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
+    Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
+  const String path = '/flutter/cocoon/master/app_dart/dev/branches.txt';
   final Uri url = Uri.https('raw.githubusercontent.com', path);
 
   final HttpClient client = branchHttpClientProvider();
@@ -70,27 +68,11 @@ Future<List<String>> loadBranchRegExps(
 }
 
 Future<Uint8List> getBranches(
-    Config config,
     HttpClientProvider branchHttpClientProvider,
     Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  final GithubService githubService = await config.createGithubService();
-  final GitHub github = githubService.github;
-  final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-  final Stream<Branch> branchList = github.repositories.listBranches(slug);
-  final List<String> regExps = await loadBranchRegExps(
+  final List<String> branches = await loadBranches(
       branchHttpClientProvider, log, gitHubBackoffCalculator);
-  final List<Branch> branches = <Branch>[];
 
-  await for (Branch branch in branchList) {
-    if (!regExps.any((String regExp) => RegExp(regExp).hasMatch(branch.name))) {
-      continue;
-    }
-    branches.add(branch);
-  }
-  return Uint8List.fromList(branches
-      .map((Branch branch) => branch.name)
-      .toList()
-      .join(',')
-      .codeUnits);
+  return Uint8List.fromList(branches.join(',').codeUnits);
 }

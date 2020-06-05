@@ -1,4 +1,0 @@
-^flutter-1+\.17+-candidate\.3+$
-^flutter-1+\.18+-candidate\.11+$
-^flutter-1+\.19+-candidate\.4+$
-master

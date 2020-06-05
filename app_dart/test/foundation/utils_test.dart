@@ -6,26 +6,21 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
-import '../src/service/fake_github_service.dart';
-import '../src/utilities/mocks.dart';
 
 const String branchRegExp = '''
       master
-      ^flutter-[0-9]+\.[0-9]+-candidate\.[0-9]+
+      flutter-1.1-candidate.1
       ''';
 
 void main() {
   group('Test utils', () {
-    group('LoadBranchRegExps', () {
+    group('LoadBranches', () {
       FakeHttpClient branchHttpClient;
       FakeLogging log;
 
@@ -34,14 +29,14 @@ void main() {
         log = FakeLogging();
       });
 
-      test('returns branches matching regExps', () async {
+      test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranchRegExps(
+        final List<String> branches = await loadBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(branches.length, 2);
+        expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
-      test('retries regExps download upon HTTP failure', () async {
+      test('retries branches download upon HTTP failure', () async {
         int retry = 0;
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
           request.response.statusCode =
@@ -50,23 +45,22 @@ void main() {
         };
 
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranchRegExps(
+        final List<String> branches = await loadBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(retry, 2);
-        expect(branches,
-            <String>['master', '^flutter-[0-9]+.[0-9]+-candidate.[0-9]+']);
+        expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
       });
 
-      test('gives up regExps download after 3 tries', () async {
+      test('gives up branches download after 3 tries', () async {
         int retry = 0;
         branchHttpClient.onIssueRequest =
             (FakeHttpClientRequest request) => retry++;
         branchHttpClient.request.response.statusCode =
             HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranchRegExps(
+        final List<String> branches = await loadBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(branches, <String>['master']);
         expect(retry, 3);
@@ -76,43 +70,18 @@ void main() {
     });
 
     group('GetBranches', () {
-      FakeConfig config;
       FakeHttpClient branchHttpClient;
       FakeLogging log;
-      List<String> githubBranches = <String>[];
-
-      Stream<Branch> branchStream() async* {
-        for (String branchName in githubBranches) {
-          final CommitDataUser author = CommitDataUser('a', 1, 'b');
-          final GitCommit gitCommit = GitCommit();
-          final CommitData commitData = CommitData('sha', gitCommit, 'test',
-              'test', 'test', author, author, <Map<String, dynamic>>[]);
-          final Branch branch = Branch(branchName, commitData);
-          yield branch;
-        }
-      }
 
       setUp(() {
-        final FakeGithubService githubService = FakeGithubService();
-        //final MockGitHub github = MockGitHub();
-        final MockRepositoriesService repositoriesService =
-            MockRepositoriesService();
         branchHttpClient = FakeHttpClient();
-        config = FakeConfig(githubService: githubService);
         log = FakeLogging();
-
-        when(githubService.github.repositories).thenReturn(repositoriesService);
-        final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-        when(repositoriesService.listBranches(slug)).thenAnswer((_) {
-          return branchStream();
-        });
       });
       test('returns matched branches', () async {
-        githubBranches = <String>['dev', 'flutter-0.0-candidate.0'];
         branchHttpClient.request.response.body = branchRegExp;
-        final Uint8List branches = await getBranches(config,
+        final Uint8List branches = await getBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(String.fromCharCodes(branches).split(',').length, 1);
+        expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
       });
     });
 
