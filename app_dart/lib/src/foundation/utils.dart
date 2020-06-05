@@ -8,10 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:github/github.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
