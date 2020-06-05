@@ -66,17 +66,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       log.debug('Last known Gold status for #${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
-      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-          lastUpdate.head == pr.head.sha) {
+      if ((lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
+              lastUpdate.head == pr.head.sha) ||
+          (pr.base.ref != 'master')) {
         log.debug('Completed status already reported for this commit.');
-        // We have already seen this commit and it is completed.
+        // We have already seen this commit and it is completed or, this is not
+        // a change staged to land on master, which we should ignore.
         continue;
       }
 
       log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
-      final bool isMasterBranch = pr.base.ref == 'master';
 
       // Query current Cirrus checks for this pr.
       final List<CirrusResult> cirrusResults =
@@ -148,12 +149,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
               !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
-            await _commentAndApplyGoldLabels(
-              gitHubClient,
-              pr,
-              slug,
-              isMasterBranch,
-            );
+            await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
         }
 
@@ -255,16 +251,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     GitHub gitHubClient,
     PullRequest pr,
     RepositorySlug slug,
-    bool isMasterBranch,
   ) async {
     String body;
-    if (!isMasterBranch) {
-      body = config.goldenBranchMessage +
-          '\n\n' +
-          'Click [here to view the diffs](${_getTriageUrl(pr.number)}';
-      await gitHubClient.issues.createComment(slug, pr.number, body);
-      return;
-    } else if (await _isFirstComment(gitHubClient, pr, slug)) {
+    if (await _isFirstComment(gitHubClient, pr, slug)) {
       body = 'Golden file changes have been found for this pull '
               'request. Click [here to view and triage](${_getTriageUrl(pr.number)}) '
               '(e.g. because this is an intentional change).\n\n' +
@@ -296,8 +285,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(
-              'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}') ||
-          comment.body.contains(config.goldenBranchMessage)) {
+          'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
         return true;
       }
     }
