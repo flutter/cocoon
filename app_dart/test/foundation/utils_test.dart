@@ -77,7 +77,7 @@ void main() {
         branchHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
-      test('returns matched branches', () async {
+      test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
         final Uint8List branches = await getBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
