@@ -81,7 +81,8 @@ void main() {
         branchHttpClient.request.response.body = branchRegExp;
         final Uint8List branches = await getBranches(
             () => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
+        expect(
+            String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
       });
     });
 

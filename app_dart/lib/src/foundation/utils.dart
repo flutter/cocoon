@@ -67,10 +67,8 @@ Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
   return <String>['master'];
 }
 
-Future<Uint8List> getBranches(
-    HttpClientProvider branchHttpClientProvider,
-    Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator) async {
+Future<Uint8List> getBranches(HttpClientProvider branchHttpClientProvider,
+    Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
   final List<String> branches = await loadBranches(
       branchHttpClientProvider, log, gitHubBackoffCalculator);
 
