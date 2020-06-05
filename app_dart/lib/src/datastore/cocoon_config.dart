@@ -129,12 +129,6 @@ class Config {
       'For more information about working with golden files, see the wiki page '
       '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 
-  String get goldenBranchMessage => 'Golden file changes have been found '
-      'for this pull request, however this pull request is not staged to land on '
-      'the master branch.\n\n'
-      'This can happen when images have changes on the master branch and have not '
-      'been updated for this branch. If this is the case, you can disregard.';
-
   int get maxTaskRetries => 2;
 
   /// The number of times to retry a LUCI job on infra failures.
