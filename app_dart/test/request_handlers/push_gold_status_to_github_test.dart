@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
@@ -25,6 +24,7 @@ import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_graphql_client.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('PushGoldStatusToGithub', () {
@@ -1023,52 +1023,6 @@ void main() {
       });
     });
   });
-}
-
-class ThrowingGitHub implements GitHub {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
-}
-
-class MockGitHub extends Mock implements GitHub {}
-
-class MockIssuesService extends Mock implements IssuesService {}
-
-class MockPullRequestsService extends Mock implements PullRequestsService {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
-
-class MockHttpClient extends Mock implements HttpClient {}
-
-class MockHttpClientRequest extends Mock implements HttpClientRequest {}
-
-class MockHttpClientResponse extends Mock implements HttpClientResponse {
-  MockHttpClientResponse(this.response);
-
-  final List<int> response;
-
-  @override
-  StreamSubscription<List<int>> listen(
-    void onData(List<int> event), {
-    Function onError,
-    void onDone(),
-    bool cancelOnError,
-  }) {
-    return Stream<List<int>>.fromFuture(Future<List<int>>.value(response))
-        .listen(onData,
-            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-}
-
-class MockHttpImageResponse extends Mock implements HttpClientResponse {
-  MockHttpImageResponse(this.response);
-
-  final List<List<int>> response;
-
-  @override
-  Future<void> forEach(void action(List<int> element)) async {
-    response.forEach(action);
-  }
 }
 
 QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {

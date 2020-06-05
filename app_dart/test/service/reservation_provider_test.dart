@@ -6,9 +6,7 @@ import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/reserve_task.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/reservation_provider.dart';
-import 'package:cocoon_service/src/service/task_provider.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -16,6 +14,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;
@@ -84,9 +83,3 @@ void main() {
     });
   });
 }
-
-class MockTaskService extends Mock implements TaskService {}
-
-class MockReservationService extends Mock implements ReservationService {}
-
-class MockAccessTokenService extends Mock implements AccessTokenService {}

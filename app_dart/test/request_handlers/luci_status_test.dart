@@ -20,6 +20,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/utilities/mocks.dart';
 
 const String ref = 'deadbeef';
 
@@ -31,7 +32,7 @@ void main() {
 
   LuciStatusHandler handler;
   FakeConfig config;
-  MockGitHubClient mockGitHubClient;
+  MockGitHub mockGitHubClient;
   FakeHttpRequest request;
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
@@ -85,7 +86,7 @@ void main() {
       {"name": "Windows Android AOT Engine", "repo": "engine"}
     ]''') as List<dynamic>).cast<Map<String, dynamic>>();
 
-    mockGitHubClient = MockGitHubClient();
+    mockGitHubClient = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
     when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
     config.githubClient = mockGitHubClient;
@@ -371,10 +372,6 @@ void main() {
   });
 }
 
-class MockGitHubClient extends Mock implements GitHub {}
-
-class MockRepositoriesService extends Mock implements RepositoriesService {}
-
 String pushMessageJson(
   String status, {
   String result,
@@ -441,6 +438,3 @@ String buildPushMessageJson(String status,
   "user_data": "{\\"retries\\": $retries}"
 }'''),
     );
-
-// ignore: must_be_immutable, Test mock.
-class MockBuildBucketClient extends Mock implements BuildBucketClient {}
