@@ -7,22 +7,24 @@ import 'dart:convert' show json;
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
-import '../datastore/cocoon_config.dart';
-
 class GithubService {
   const GithubService(this.github);
 
   final GitHub github;
 
-  /// Lists the commits of the provided repository [slug] and [branch].
-  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch,
-      int lastCommitTimestampMills, Config config) async {
+  /// Lists commits of the provided repository [slug] and [branch]. When
+  /// [lastCommitTimestampMills] equals 0, it means a new release branch is
+  /// found and only the branched commit will be returned. Otherwise, it returns
+  /// all newer commits since [lastCommitTimestampMills].
+  Future<List<RepositoryCommit>> listCommits(
+      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
-    /// Return only one page when this is a new branch. Otherwise it will
-    /// return all commits prior to this release branch commit, leading to
-    /// heavy workload.
+    /// The [pages] defines the number of pages of returned http request
+    /// results. Return only one page when this is a new branch. Otherwise
+    ///  it will return all commits prior to this release branch commit,
+    /// leading to heavy workload.
     int pages;
     if (lastCommitTimestampMills == 0) {
       pages = 1;

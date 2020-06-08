@@ -16,8 +16,8 @@ class FakeGithubService implements GithubService {
   final GitHub github = MockGitHub();
 
   @override
-  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch,
-      int lastCommitTimestampMills, Config config) async {
+  Future<List<RepositoryCommit>> listCommits(
+      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     return listCommitsBranch(branch, lastCommitTimestampMills);
   }
 
