@@ -89,6 +89,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
             await github.repositories.createStatus(slug, pr.head.sha, request);
             update.status = buildStatus.githubStatus;
             update.updates += 1;
+            update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
             updates.add(update);
           } catch (error) {
             log.error(

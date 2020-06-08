@@ -208,12 +208,16 @@ class DatastoreService {
         head: pr.head.sha,
         status: null,
         updates: 0,
+        updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
       );
     } else {
+      /// Duplicate cases rarely happen. It happens only when race condition
+      /// occurs in app engine. When multiple records exist, the latest one
+      /// is returned.
       if (previousStatusUpdates.length > 1) {
-        throw StateError(
-            'GithubBuildStatusUpdate should have no more than one entries on '
-            'repository ${slug.fullName}, pr ${pr.number}, head ${pr.head.sha}');
+        return previousStatusUpdates.reduce((GithubBuildStatusUpdate current,
+                GithubBuildStatusUpdate next) =>
+            current.updateTimeMillis < next.updateTimeMillis ? next : current);
       }
       return previousStatusUpdates.single;
     }
