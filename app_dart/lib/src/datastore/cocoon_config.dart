@@ -48,8 +48,8 @@ class Config {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(this, Providers.freshHttpClient,
-          loggingService, twoSecondLinearBackoff),
+      createFn: () => getBranches(
+          Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
       ttl: configCacheTtl,
     );
 
