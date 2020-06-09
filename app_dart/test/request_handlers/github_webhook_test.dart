@@ -1162,7 +1162,7 @@ void main() {
                       builderId: BuilderId(
                         project: 'flutter',
                         bucket: 'prod',
-                        builder: 'Linux',
+                        builder: 'Linux Host',
                       ),
                       status: Status.started,
                     )

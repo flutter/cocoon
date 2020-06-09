@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
+import '../model/luci/push_message.dart' as push_message;
 import 'buildbucket.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
@@ -213,7 +214,7 @@ class LuciBuildService {
   Future<void> rescheduleBuild({
     @required String commitSha,
     @required String builderName,
-    @required Build build,
+    @required push_message.Build build,
     @required int retries,
   }) async {
     if (retries >= config.luciTryInfraFailureRetries) {
@@ -222,16 +223,17 @@ class LuciBuildService {
     }
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
-        project: build.builderId.project,
-        bucket: build.builderId.bucket,
-        builder: build.builderId.builder,
+        project: build.project,
+        bucket: build.bucket,
+        builder: builderName,
       ),
       tags: <String, List<String>>{
-        'buildset': build.tags['buildset'],
-        'user_agent': build.tags['user_agent'],
-        'github_link': build.tags['github_link'],
+        'buildset': build.tagsByName('buildset'),
+        'user_agent': build.tagsByName('user_agent'),
+        'github_link': build.tagsByName('github_link'),
       },
-      properties: build.input.properties,
+      properties: (build.buildParameters['properties'] as Map<String, dynamic>)
+          .cast<String, String>(),
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
         userData: json.encode(<String, dynamic>{

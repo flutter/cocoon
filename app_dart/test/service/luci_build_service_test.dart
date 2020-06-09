@@ -7,6 +7,8 @@ import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/model/luci/push_message.dart'
+    as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:mockito/mockito.dart';
@@ -14,6 +16,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/utilities/mocks.dart';
+import '../src/utilities/push_message.dart';
 
 void main() {
   ServiceAccountInfo serviceAccountInfo;
@@ -289,17 +292,12 @@ void main() {
     });
     test('Reschedule an existing build', () async {
       config.luciTryInfraFailureRetriesValue = 3;
-
-      final Map<String, List<String>> tags = <String, List<String>>{
-        'buildset': <String>['123'],
-        'user_agent': <String>['cocoon'],
-        'github_link': <String>['the_link']
-      };
-      final Build build = Build(
-          id: 123,
-          builderId: const BuilderId(),
-          tags: tags,
-          input: const Input());
+      final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
+        'COMPLETED',
+        result: 'FAILURE',
+        builderName: 'Linux Host Engine',
+      ))['build'] as Map<String, dynamic>;
+      final push_message.Build build = push_message.Build.fromJson(json);
       await service.rescheduleBuild(
           commitSha: 'abc', builderName: 'mybuild', build: build, retries: 1);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
