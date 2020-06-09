@@ -67,7 +67,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
       if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-              lastUpdate.head == pr.head.sha) {
+          lastUpdate.head == pr.head.sha) {
         log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
         // a change staged to land on master, which we should ignore.
