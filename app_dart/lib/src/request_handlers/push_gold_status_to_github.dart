@@ -66,14 +66,18 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       log.debug('Last known Gold status for #${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
-      if ((lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-              lastUpdate.head == pr.head.sha) ||
-          (pr.base.ref != 'master')) {
-        log.debug(pr.base.ref == 'master'
-            ? 'This PR is not staged to land on master, skipping.'
-            : 'Completed status already reported for this commit.');
+      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
+              lastUpdate.head == pr.head.sha) {
+        log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
         // a change staged to land on master, which we should ignore.
+        continue;
+      }
+
+      if (pr.base.ref != 'master') {
+        log.debug('This change is not staged to land on master, skipping.');
+        // This is potentially a release branch, or another change not landing
+        // on master, we don't need a Gold check.
         continue;
       }
 
