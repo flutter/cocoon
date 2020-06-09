@@ -61,6 +61,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastProcessedCommit =
           await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
+
+      /// That [lastCommitTimestampMills] equals 0 means a new release branch is detected.
       int lastCommitTimestampMills = 0;
       if (lastProcessedCommit.isNotEmpty) {
         lastCommitTimestampMills = lastProcessedCommit[0].timestamp;

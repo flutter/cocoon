@@ -33,6 +33,7 @@ class GithubService {
     List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
 
     /// [lastCommitTimestamp+1] excludes last commit itself.
+    /// Github api url: https://developer.github.com/v3/repos/commits/#list-commits
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
@@ -49,7 +50,7 @@ class GithubService {
           .cast<Map<String, dynamic>>());
     }
 
-    /// Take the latest single commit for a new release branch.
+    /// When a release branch is first detected only the most recent commit would be needed.
     if (lastCommitTimestampMills == 0) {
       commits = commits.take(1).toList();
     }
