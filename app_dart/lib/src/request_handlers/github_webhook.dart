@@ -6,14 +6,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/service_account_info.dart';
-import '../model/luci/buildbucket.dart';
+
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -49,6 +50,10 @@ class GithubWebhook extends RequestHandler<Body> {
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
+    final ServiceAccountInfo serviceAccountInfo =
+        await config.deviceLabServiceAccount;
+    final LuciBuildService luciBuildService =
+        LuciBuildService(config, buildBucketClient, serviceAccountInfo);
     if (gitHubEvent == null ||
         request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
@@ -64,7 +69,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final String stringRequest = utf8.decode(requestBytes);
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(stringRequest);
+          await _handlePullRequest(stringRequest, luciBuildService);
           break;
       }
 
@@ -76,7 +81,8 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  Future<void> _handlePullRequest(String rawRequest) async {
+  Future<void> _handlePullRequest(
+      String rawRequest, LuciBuildService luciBuilderService) async {
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
@@ -97,7 +103,7 @@ class GithubWebhook extends RequestHandler<Body> {
         if (pr.merged) {
           await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
-          await _cancelLuci(
+          await luciBuilderService.cancelBuilds(
             pr.head.repo.name,
             pr.number,
             pr.head.sha,
@@ -115,19 +121,19 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'reopened':
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(eventAction, pr);
-        await _scheduleIfMergeable(pr);
+        await _scheduleIfMergeable(pr, luciBuilderService);
         break;
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
         if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(pr);
+          await _scheduleIfMergeable(pr, luciBuilderService);
         }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await _scheduleIfMergeable(pr);
+        await _scheduleIfMergeable(pr, luciBuilderService);
         break;
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
@@ -136,7 +142,7 @@ class GithubWebhook extends RequestHandler<Body> {
           break;
         }
         if (!await _checkForCqLabel(pr.labels)) {
-          await _cancelLuci(
+          await luciBuilderService.cancelBuilds(
             pr.head.repo.name,
             pr.number,
             pr.head.sha,
@@ -157,7 +163,8 @@ class GithubWebhook extends RequestHandler<Body> {
 
   /// This method assumes that jobs should be cancelled if they are already
   /// runnning.
-  Future<void> _scheduleIfMergeable(PullRequest pr) async {
+  Future<void> _scheduleIfMergeable(
+      PullRequest pr, LuciBuildService luciBuilderService) async {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
 
@@ -169,184 +176,23 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     // Always cancel running builds so we don't ever schedule duplicates.
-    await _cancelLuci(
+    await luciBuilderService.cancelBuilds(
       pr.head.repo.name,
       pr.number,
       pr.head.sha,
       'Newer commit available',
     );
-    await _scheduleLuci(
-      number: pr.number,
-      sha: pr.head.sha,
+    await luciBuilderService.scheduleBuilds(
+      prNumber: pr.number,
+      commitSha: pr.head.sha,
       repositoryName: pr.head.repo.name,
     );
-  }
-
-  /// This method checks if there are running builds for this PR
-  Future<List<Build>> _buildsForRepositoryAndPr(
-    String repositoryName,
-    int number,
-    String sha,
-    BuildBucketClient buildBucketClient,
-    ServiceAccountInfo serviceAccount,
-  ) async {
-    final BatchResponse batch =
-        await buildBucketClient.batch(BatchRequest(requests: <Request>[
-      Request(
-        searchBuilds: SearchBuildsRequest(
-          predicate: BuildPredicate(
-            builderId: const BuilderId(
-              project: 'flutter',
-              bucket: 'try',
-            ),
-            createdBy: serviceAccount.email,
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$number'],
-              'github_link': <String>[
-                'https://github.com/flutter/$repositoryName/pull/$number'
-              ],
-              'user_agent': const <String>['flutter-cocoon'],
-            },
-          ),
-        ),
-      ),
-      Request(
-        searchBuilds: SearchBuildsRequest(
-          predicate: BuildPredicate(
-            builderId: const BuilderId(
-              project: 'flutter',
-              bucket: 'try',
-            ),
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$number'],
-              'user_agent': const <String>['recipe'],
-            },
-          ),
-        ),
-      ),
-    ]));
-    return batch.responses
-        .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse response) => response.builds ?? <Build>[])
-        .toList();
-  }
-
-  Future<bool> _scheduleLuci({
-    @required int number,
-    @required String sha,
-    @required String repositoryName,
-  }) async {
-    assert(number != null);
-    assert(sha != null);
-    assert(repositoryName != null);
-    if (!config.githubPresubmitSupportedRepo(repositoryName)) {
-      log.error('Unsupported repo on webhook: $repositoryName');
-      throw BadRequestException(
-          'Repository $repositoryName is not supported by this service.');
-    }
-    final ServiceAccountInfo serviceAccount =
-        await config.deviceLabServiceAccount;
-
-    final List<Build> builds = await _buildsForRepositoryAndPr(
-      repositoryName,
-      number,
-      sha,
-      buildBucketClient,
-      serviceAccount,
-    );
-    if (builds != null &&
-        builds.any((Build build) {
-          return build.status == Status.scheduled ||
-              build.status == Status.started;
-        })) {
-      return false;
-    }
-
-    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
-    final List<String> builderNames = builders
-        .where(
-            (Map<String, dynamic> builder) => builder['repo'] == repositoryName)
-        .map<String>(
-            (Map<String, dynamic> builder) => builder['name'] as String)
-        .toList();
-    if (builderNames.isEmpty) {
-      throw InternalServerError('$repositoryName does not have any builders');
-    }
-
-    final List<Request> requests = <Request>[];
-    for (String builder in builderNames) {
-      final BuilderId builderId = BuilderId(
-        project: 'flutter',
-        bucket: 'try',
-        builder: builder,
-      );
-      requests.add(
-        Request(
-          scheduleBuild: ScheduleBuildRequest(
-            builderId: builderId,
-            tags: <String, List<String>>{
-              'buildset': <String>['pr/git/$number', 'sha/git/$sha'],
-              'user_agent': const <String>['flutter-cocoon'],
-              'github_link': <String>[
-                'https://github.com/flutter/$repositoryName/pull/$number'
-              ],
-            },
-            properties: <String, String>{
-              'git_url': 'https://github.com/flutter/$repositoryName',
-              'git_ref': 'refs/pull/$number/head',
-            },
-            notify: NotificationConfig(
-              pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-              userData: json.encode(const <String, dynamic>{
-                'retries': 0,
-              }),
-            ),
-          ),
-        ),
-      );
-    }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
-    return true;
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
   Future<bool> _checkForCqLabel(List<IssueLabel> labels) async {
     final String cqLabelName = config.cqLabelName;
     return labels.any((IssueLabel label) => label.name == cqLabelName);
-  }
-
-  Future<void> _cancelLuci(
-      String repositoryName, int number, String sha, String reason) async {
-    if (!config.githubPresubmitSupportedRepo(repositoryName)) {
-      throw BadRequestException(
-          'This service does not support repository $repositoryName.');
-    }
-    final ServiceAccountInfo serviceAccount =
-        await config.deviceLabServiceAccount;
-    final List<Build> builds = await _buildsForRepositoryAndPr(
-      repositoryName,
-      number,
-      sha,
-      buildBucketClient,
-      serviceAccount,
-    );
-    if (builds == null ||
-        !builds.any((Build build) {
-          return build.status == Status.scheduled ||
-              build.status == Status.started;
-        })) {
-      return;
-    }
-    final List<Request> requests = <Request>[];
-    for (Build build in builds) {
-      requests.add(
-        Request(
-          cancelBuild:
-              CancelBuildRequest(id: build.id, summaryMarkdown: reason),
-        ),
-      );
-    }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
   }
 
   Future<bool> _isIgnoredForGold(String eventAction, PullRequest pr) async {
