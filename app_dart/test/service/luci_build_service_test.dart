@@ -283,24 +283,33 @@ void main() {
     });
   });
   group('rescheduleBuild', () {
+    push_message.Build build;
+
     setUp(() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
       service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-    });
-    test('Reschedule an existing build', () async {
       config.luciTryInfraFailureRetriesValue = 3;
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
         'COMPLETED',
         result: 'FAILURE',
         builderName: 'Linux Host Engine',
       ))['build'] as Map<String, dynamic>;
-      final push_message.Build build = push_message.Build.fromJson(json);
-      await service.rescheduleBuild(
+      build = push_message.Build.fromJson(json);
+    });
+    test('Reschedule an existing build', () async {
+      final bool rescheduled = await service.rescheduleBuild(
           commitSha: 'abc', builderName: 'mybuild', build: build, retries: 1);
+      expect(rescheduled, isTrue);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+    });
+    test('Reschedule after too many retries', () async {
+      final bool rescheduled = await service.rescheduleBuild(
+          commitSha: 'abc', builderName: 'mybuild', build: build, retries: 3);
+      expect(rescheduled, isFalse);
+      verifyNever(mockBuildBucketClient.scheduleBuild(any));
     });
   });
 }

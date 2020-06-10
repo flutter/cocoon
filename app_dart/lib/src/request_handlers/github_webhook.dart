@@ -52,7 +52,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
     final ServiceAccountInfo serviceAccountInfo =
         await config.deviceLabServiceAccount;
-    final LuciBuildService luciBuilderService =
+    final LuciBuildService luciBuildService =
         LuciBuildService(config, buildBucketClient, serviceAccountInfo);
     if (gitHubEvent == null ||
         request.headers.value('X-Hub-Signature') == null) {
@@ -69,7 +69,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final String stringRequest = utf8.decode(requestBytes);
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(stringRequest, luciBuilderService);
+          await _handlePullRequest(stringRequest, luciBuildService);
           break;
       }
 
@@ -83,7 +83,6 @@ class GithubWebhook extends RequestHandler<Body> {
 
   Future<void> _handlePullRequest(
       String rawRequest, LuciBuildService luciBuilderService) async {
-    // ignore: undefined_class
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {

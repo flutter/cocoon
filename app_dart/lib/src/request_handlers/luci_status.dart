@@ -112,13 +112,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
       switch (build.failureReason) {
         case FailureReason.buildbucketFailure:
         case FailureReason.infraFailure:
-          final bool result = await luciBuildService.rescheduleBuild(
+          final bool rescheduled = await luciBuildService.rescheduleBuild(
             commitSha: sha,
             builderName: builderName,
             build: build,
             retries: retries,
           );
-          if (result) {
+          if (rescheduled) {
             await _setPendingStatus(
               ref: sha,
               builderName: builderName,
@@ -211,6 +211,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
     String updatedBuildUrl = '';
     if (buildUrl.isNotEmpty) {
+      // If buildUrl is not empty then append a query parameter to refresh the page
+      // content every 30 seconds. A resulting updatedBuild url will look like:
+      // https://ci.chromium.org/p/flutter/builders/try/Linux%20Web%20Engine/5275?reload=30
       updatedBuildUrl =
           '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
     }
