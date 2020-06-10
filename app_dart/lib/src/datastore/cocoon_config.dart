@@ -306,10 +306,6 @@ class Config {
           'repo': 'engine',
         },
         <String, String>{
-          'name': 'Mac Engine Drone',
-          'repo': 'engine',
-        },
-        <String, String>{
           'name': 'Mac Host Engine',
           'repo': 'engine',
         },
