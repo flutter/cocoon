@@ -112,16 +112,23 @@ class LuciStatusHandler extends RequestHandler<Body> {
       switch (build.failureReason) {
         case FailureReason.buildbucketFailure:
         case FailureReason.infraFailure:
-          await luciBuildService.rescheduleBuild(
+          final bool result = await luciBuildService.rescheduleBuild(
             commitSha: sha,
             builderName: builderName,
             build: build,
             retries: retries,
           );
+          if (result) {
+            await _setPendingStatus(
+              ref: sha,
+              builderName: builderName,
+              buildUrl: '',
+            );
+            return;
+          }
           break;
         case FailureReason.invalidBuildDefinition:
         case FailureReason.buildFailure:
-          // the commit failed
           break;
       }
     }
@@ -202,10 +209,15 @@ class LuciStatusHandler extends RequestHandler<Body> {
       }
     }
 
+    String updatedBuildUrl = '';
+    if (buildUrl.isNotEmpty) {
+      updatedBuildUrl =
+          '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
+    }
     final CreateStatus status = CreateStatus('pending')
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'
-      ..targetUrl = '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
+      ..targetUrl = updatedBuildUrl;
     await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 }

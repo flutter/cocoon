@@ -211,7 +211,7 @@ class LuciBuildService {
   /// The buildset, user_agent, and github_link tags are applied to match the
   /// original build. The build properties from the original build are also
   /// preserved.
-  Future<void> rescheduleBuild({
+  Future<bool> rescheduleBuild({
     @required String commitSha,
     @required String builderName,
     @required push_message.Build build,
@@ -219,7 +219,7 @@ class LuciBuildService {
   }) async {
     if (retries >= config.luciTryInfraFailureRetries) {
       // Too many retries.
-      return;
+      return false;
     }
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
@@ -241,5 +241,6 @@ class LuciBuildService {
         }),
       ),
     ));
+    return true;
   }
 }

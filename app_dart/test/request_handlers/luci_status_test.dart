@@ -253,6 +253,17 @@ void main() {
         result: 'FAILURE',
         failureReason: 'INFRA_FAILURE')) as Uint8List;
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+    mockGitHubClient = MockGitHub();
+    config.githubClient = mockGitHubClient;
+    final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
+      RepositoryStatus()
+        ..context = 'Linux'
+        ..state = 'failure',
+    ];
+    when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
+    when(mockRepositoriesService.listStatuses(any, ref)).thenAnswer((_) {
+      return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
+    });
 
     await tester.post(handler);
     expect(
@@ -296,11 +307,11 @@ void main() {
         captureAny,
       )).captured.single.toJson(),
       jsonDecode(
-          '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux","context":"Linux"}'),
+          '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'),
     );
   });
 
-  test('Does not schedule after infra failure and too many retries', () async {
+  test('Does not schedule after too many retries with infra failure', () async {
     request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED',
         builderName: 'Linux',
         result: 'FAILURE',
