@@ -136,8 +136,8 @@ class Task extends Model {
   String reason;
 
   /// The build ID of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
-  @IntProperty(propertyName: 'BuildID')
-  @JsonKey(name: 'BuildID')
+  @IntProperty(propertyName: 'BuildNumber')
+  @JsonKey(name: 'BuildNumber')
   int buildNumber;
 
   /// The builder name of luci build.
