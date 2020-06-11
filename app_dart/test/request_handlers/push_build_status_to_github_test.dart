@@ -208,10 +208,10 @@ void main() {
         test(
             'update if statuses have changed since last update - multiple branches',
             () async {
-          githubPullRequestsMaster = <int>[0];
-          githubPullRequestsOther = <int>[1];
-          final PullRequest prMaster = newPullRequest(id: 0, sha: '0');
-          final PullRequest prOther = newPullRequest(id: 1, sha: '1');
+          githubPullRequestsMaster = <int>[123];
+          githubPullRequestsOther = <int>[456];
+          final PullRequest prMaster = newPullRequest(id: 123, sha: '123');
+          final PullRequest prOther = newPullRequest(id: 456, sha: '456');
           config.flutterBranchesValue = <String>[
             'flutter-0.0-candidate.0',
             'master'
