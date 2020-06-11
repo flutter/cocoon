@@ -90,7 +90,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
             _buildIdMatched(datastoreTask, luciTask)) {
           final Task update = datastoreTask.task;
           update.status = luciTask.status;
-          update.buildId = luciTask.buildNumber;
+          update.buildNumber = luciTask.buildNumber;
           update.builderName = builder.name;
           update.luciPoolName = config.luciFlutterProdPool;
           await datastore.insert(<Task>[update]);
@@ -102,7 +102,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   }
 
   bool _buildIdMatched(FullTask task, LuciTask luciTask) {
-    return task.task.buildId == null ||
-        task.task.buildId == luciTask.buildNumber;
+    return task.task.buildNumber == null ||
+        task.task.buildNumber == luciTask.buildNumber;
   }
 }

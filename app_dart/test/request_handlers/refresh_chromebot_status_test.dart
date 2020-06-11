@@ -152,10 +152,10 @@ void main() {
       });
 
       expect(task.status, Task.statusNew);
-      expect(task.buildId, isNull);
+      expect(task.buildNumber, isNull);
       await tester.get(handler);
       expect(task.status, Task.statusSucceeded);
-      expect(task.buildId, 1);
+      expect(task.buildNumber, 1);
     });
 
     test('update task status when buildId matches one luci build', () async {
@@ -164,7 +164,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 123),
           status: Task.statusNew,
-          buildId: 1);
+          buildNumber: 1);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -203,7 +203,7 @@ void main() {
       final Task task = Task(
           key: commit.key.append(Task, id: 123),
           status: Task.statusNew,
-          buildId: 1);
+          buildNumber: 1);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 

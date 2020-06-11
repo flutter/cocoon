@@ -32,7 +32,7 @@ class Task extends Model {
     this.requiredCapabilities,
     this.reservedForAgentId = '',
     this.stageName,
-    this.buildId,
+    this.buildNumber,
     this.builderName,
     this.luciPoolName,
     String status,
@@ -138,7 +138,7 @@ class Task extends Model {
   /// The build ID of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   @IntProperty(propertyName: 'BuildID')
   @JsonKey(name: 'BuildID')
-  int buildId;
+  int buildNumber;
 
   /// The builder name of luci build.
   @StringProperty(propertyName: 'BuilderName')
@@ -213,7 +213,7 @@ class Task extends Model {
       ..write(', reservedForAgentId: $reservedForAgentId')
       ..write(', stageName: $stageName')
       ..write(', status: $status')
-      ..write(', buildId: $buildId')
+      ..write(', buildNumber: $buildNumber')
       ..write(')');
     return buf.toString();
   }
@@ -267,7 +267,7 @@ class DatastoreLuciTask extends Task {
     int attempts = 0,
     String stageName = 'chromebot',
     String status = Task.statusNew,
-    int buildId,
+    int buildNumber,
     String builderName,
     String luciPoolName,
   }) : super(
@@ -280,7 +280,7 @@ class DatastoreLuciTask extends Task {
             attempts: attempts,
             stageName: stageName,
             status: status,
-            buildId: buildId,
+            buildNumber: buildNumber,
             builderName: builderName,
             luciPoolName: luciPoolName);
 }
