@@ -51,6 +51,10 @@ class GithubService {
     }
 
     /// When a release branch is first detected only the most recent commit would be needed.
+    ///
+    /// If for the worst case, a new release branch consists of a useful cherry pick commit
+    /// which should be considered as well, here is the todo.
+    // TODO(keyonghan): https://github.com/flutter/flutter/issues/59275
     if (lastCommitTimestampMills == 0) {
       commits = commits.take(1).toList();
     }
