@@ -79,7 +79,7 @@ class LuciService {
         commitSha: commit,
         ref: ref,
         status: _luciStatusToTaskStatus[build.status],
-        buildId: build.number,
+        buildNumber: build.number,
       ));
     }
     return results;
@@ -111,12 +111,16 @@ class LuciService {
         commitSha: commit,
         ref: ref,
         status: _luciStatusToTaskStatus[build.status],
-        buildId: build.number,
+        buildNumber: build.number,
       ));
     }
     return results;
   }
 
+  /// Gets list of [build] for [repo] and available Luci [builders]
+  /// predefined in cocoon config.
+  ///
+  /// Latest builds of each builder will be returned from new to old.
   Future<Iterable<Build>> getBuilds(
       String repo, bool requireTaskName, List<LuciBuilder> builders) async {
     final BuildBucketClient buildBucketClient = BuildBucketClient();
@@ -211,11 +215,11 @@ class LuciTask {
     @required this.commitSha,
     @required this.ref,
     @required this.status,
-    @required this.buildId,
+    @required this.buildNumber,
   })  : assert(commitSha != null),
         assert(ref != null),
         assert(status != null),
-        assert(buildId != null);
+        assert(buildNumber != null);
 
   /// The GitHub commit at which this task is being run.
   final String commitSha;
@@ -226,6 +230,6 @@ class LuciTask {
   /// The status of this task. See the [Task] class for supported values.
   final String status;
 
-  /// The build id of this task.
-  final int buildId;
+  /// The build number of this task.
+  final int buildNumber;
 }

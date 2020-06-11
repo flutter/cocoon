@@ -68,7 +68,7 @@ void main() {
                           commitSha: 'def',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 1)
+                          buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -105,7 +105,7 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 1)
+                          buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -140,7 +140,7 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 1)
+                          buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -179,7 +179,7 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 1)
+                          buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -218,7 +218,7 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 2)
+                          buildNumber: 2)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -256,12 +256,12 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildId: 1),
+                          buildNumber: 1),
                       const LuciTask(
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusFailed,
-                          buildId: 2)
+                          buildNumber: 2)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -298,7 +298,7 @@ void main() {
                           commitSha: 'def',
                           ref: 'refs/heads/master',
                           status: Task.statusFailed,
-                          buildId: 1),
+                          buildNumber: 1),
                     ],
                   });
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
@@ -312,7 +312,7 @@ void main() {
                           commitSha: 'def',
                           ref: 'refs/heads/test',
                           status: Task.statusSucceeded,
-                          buildId: 2)
+                          buildNumber: 2)
                     ],
                   });
       luciTasks.addAll(testLuciTasks);
