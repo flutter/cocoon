@@ -255,3 +255,96 @@ class FullTask {
   ///  The [Commit] object references by this [task]'s [Task.commitKey].
   final Commit commit;
 }
+
+class DatastoreLuciTask extends Task {
+  DatastoreLuciTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name,
+    int attempts = 0,
+    bool isFlaky = false,
+    int timeoutInMinutes = 0,
+    List<String> requiredCapabilities = const <String>['can-update-chromebots'],
+    String stageName = 'chromebot',
+    String status = Task.statusNew,
+    int buildId,
+    String builderName,
+    String luciPoolName,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            isFlaky: isFlaky,
+            timeoutInMinutes: timeoutInMinutes,
+            requiredCapabilities: requiredCapabilities,
+            stageName: stageName,
+            status: status,
+            buildId: buildId,
+            builderName: builderName,
+            luciPoolName: luciPoolName);
+}
+
+class DatastoreCirrusTask extends Task {
+  DatastoreCirrusTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name = 'cirrus',
+    int attempts = 0,
+    bool isFlaky = false,
+    int timeoutInMinutes = 0,
+    List<String> requiredCapabilities = const <String>['can-update-github'],
+    String stageName = 'cirrus',
+    String status = Task.statusNew,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            isFlaky: isFlaky,
+            timeoutInMinutes: timeoutInMinutes,
+            requiredCapabilities: requiredCapabilities,
+            stageName: stageName,
+            status: status);
+}
+
+class DeviceLabTask extends Task {
+  DeviceLabTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name,
+    int attempts = 0,
+    bool isFlaky,
+    int timeoutInMinutes = 0,
+    List<String> requiredCapabilities,
+    String stageName,
+    String status = Task.statusNew,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            isFlaky: isFlaky,
+            timeoutInMinutes: timeoutInMinutes,
+            requiredCapabilities: requiredCapabilities,
+            stageName: stageName,
+            status: status);
+}

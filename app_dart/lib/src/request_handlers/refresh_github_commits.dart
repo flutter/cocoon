@@ -178,50 +178,45 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     @required String sha,
     @required int createTimestamp,
   }) async {
-    Task newTask(
-      String name,
-      String stageName,
-      List<String> requiredCapabilities,
-      bool isFlaky,
-      int timeoutInMinutes,
-    ) {
-      return Task(
+    final List<Task> tasks = <Task>[
+      // These built-in tasks are not listed in the manifest.
+      DatastoreCirrusTask(
         key: commitKey.append(Task),
         commitKey: commitKey,
         createTimestamp: createTimestamp,
-        startTimestamp: 0,
-        endTimestamp: 0,
-        name: name,
-        attempts: 0,
-        isFlaky: isFlaky,
-        timeoutInMinutes: timeoutInMinutes,
-        requiredCapabilities: requiredCapabilities,
-        stageName: stageName,
-        status: Task.statusNew,
-      );
-    }
-
-    final List<Task> tasks = <Task>[
-      // These built-in tasks are not listed in the manifest.
-      newTask('cirrus', 'cirrus', <String>['can-update-github'], false, 0),
-      newTask(
-          'mac_bot', 'chromebot', <String>['can-update-chromebots'], false, 0),
-      newTask('linux_bot', 'chromebot', <String>['can-update-chromebots'],
-          false, 0),
-      newTask('windows_bot', 'chromebot', <String>['can-update-chromebots'],
-          false, 0),
+      ),
+      DatastoreLuciTask(
+        key: commitKey.append(Task),
+        commitKey: commitKey,
+        createTimestamp: createTimestamp,
+        name: 'mac_bot',
+      ),
+      DatastoreLuciTask(
+        key: commitKey.append(Task),
+        commitKey: commitKey,
+        createTimestamp: createTimestamp,
+        name: 'linux_bot',
+      ),
+      DatastoreLuciTask(
+        key: commitKey.append(Task),
+        commitKey: commitKey,
+        createTimestamp: createTimestamp,
+        name: 'windows_bot',
+      ),
     ];
 
     final YamlMap yaml = await _loadDevicelabManifest(sha);
     final Manifest manifest = Manifest.fromJson(yaml);
     manifest.tasks.forEach((String taskName, ManifestTask info) {
-      tasks.add(newTask(
-        taskName,
-        info.stage,
-        info.requiredAgentCapabilities,
-        info.isFlaky,
-        info.timeoutInMinutes,
-      ));
+      tasks.add(DeviceLabTask(
+          key: commitKey.append(Task),
+          commitKey: commitKey,
+          createTimestamp: createTimestamp,
+          name: taskName,
+          stageName: info.stage,
+          requiredCapabilities: info.requiredAgentCapabilities,
+          isFlaky: info.isFlaky,
+          timeoutInMinutes: info.timeoutInMinutes));
     });
 
     return tasks;
