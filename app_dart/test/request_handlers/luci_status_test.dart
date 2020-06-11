@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
@@ -38,11 +39,16 @@ void main() {
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
   MockBuildBucketClient buildBucketClient;
+  final FakeLogging log = FakeLogging();
 
   setUp(() {
     config = FakeConfig(luciTryInfraFailureRetriesValue: 2);
     buildBucketClient = MockBuildBucketClient();
-    handler = LuciStatusHandler(config, buildBucketClient);
+    handler = LuciStatusHandler(
+      config,
+      buildBucketClient,
+      loggingProvider: () => log,
+    );
     request = FakeHttpRequest();
 
     tester = RequestHandlerTester(

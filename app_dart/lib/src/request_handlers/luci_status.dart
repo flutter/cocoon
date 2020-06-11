@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
@@ -13,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/typedefs.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
@@ -40,11 +43,16 @@ import '../request_handling/request_handler.dart';
 @immutable
 class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
-  const LuciStatusHandler(Config config, this.buildBucketClient)
-      : assert(buildBucketClient != null),
+  const LuciStatusHandler(
+    Config config,
+    this.buildBucketClient, {
+    LoggingProvider loggingProvider,
+  })  : assert(buildBucketClient != null),
+        loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
         super(config: config);
 
   final BuildBucketClient buildBucketClient;
+  final LoggingProvider loggingProvider;
 
   @override
   Future<Body> post() async {
@@ -52,6 +60,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
         await config.deviceLabServiceAccount;
     final LuciBuildService luciBuildService =
         LuciBuildService(config, buildBucketClient, serviceAccountInfo);
+    final Logging log = loggingProvider();
 
     if (!await _authenticateRequest(request.headers)) {
       throw const Unauthorized();
@@ -72,7 +81,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
         .tagsByName('buildset')
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
         .substring(shaPrefix.length);
-
+    log.debug('Setting status: $buildMessage for $builderName');
     switch (buildMessage.build.status) {
       case Status.completed:
         await _rescheduleOrMarkCompleted(
