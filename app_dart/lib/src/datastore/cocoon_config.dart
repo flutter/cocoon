@@ -389,9 +389,14 @@ class Config {
 
   Future<RepositorySlug> repoNameForBuilder(String builderName) async {
     final List<Map<String, dynamic>> builders = luciTryBuilders;
-    final String repoName = builders.firstWhere(
-        (Map<String, dynamic> builder) =>
-            builder['name'] == builderName)['repo'] as String;
+    final Map<String, dynamic> builderConfig = builders.firstWhere(
+      (Map<String, dynamic> builder) => builder['name'] == builderName,
+      orElse: () => <String, dynamic>{'repo': ''},
+    );
+    final String repoName = builderConfig['repo'] as String;
+    if (repoName.isEmpty) {
+      return null;
+    }
     return RepositorySlug('flutter', repoName);
   }
 }
