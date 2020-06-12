@@ -394,6 +394,9 @@ class Config {
       orElse: () => <String, dynamic>{'repo': ''},
     );
     final String repoName = builderConfig['repo'] as String;
+    // If there is no builder config for the builderName then we
+    // return null. This is to allow the code calling this method
+    // to skip changes that depend on a builder configuration.
     if (repoName.isEmpty) {
       return null;
     }
