@@ -391,7 +391,7 @@ class Config {
     final List<Map<String, dynamic>> builders = luciTryBuilders;
     final Map<String, dynamic> builderConfig = builders.firstWhere(
       (Map<String, dynamic> builder) => builder['name'] == builderName,
-      orElse: () => <String, dynamic>{'repo': ''},
+      orElse: () => <String, String>{'repo': ''},
     );
     final String repoName = builderConfig['repo'] as String;
     // If there is no builder config for the builderName then we
