@@ -25,6 +25,7 @@ void main() {
     test('Builder exists', () async {
       final RepositorySlug result = await config.repoNameForBuilder('Cocoon');
       expect(result, isNotNull);
+      expect(result.fullName, equals('flutter/cocoon'));
     });
   });
 }
