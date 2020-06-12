@@ -83,7 +83,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
         .tagsByName('buildset')
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
         .substring(shaPrefix.length);
-    log.debug('Setting status: $buildMessage for $builderName');
+    log.debug('Setting status: ${buildMessage.toJson()} for $builderName');
     switch (buildMessage.build.status) {
       case Status.completed:
         await _rescheduleOrMarkCompleted(
@@ -124,6 +124,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       switch (build.failureReason) {
         case FailureReason.buildbucketFailure:
         case FailureReason.infraFailure:
+          log.info('Retrying: $builderName for $sha');
           final bool rescheduled = await luciBuildService.rescheduleBuild(
             commitSha: sha,
             builderName: builderName,

@@ -285,7 +285,7 @@ void main() {
         ScheduleBuildRequest(
           builderId: const BuilderId(
             project: 'flutter',
-            bucket: 'luci.flutter.prod',
+            bucket: 'prod',
             builder: 'Linux',
           ),
           tags: const <String, List<String>>{
