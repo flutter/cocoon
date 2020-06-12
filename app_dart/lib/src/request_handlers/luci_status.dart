@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -61,6 +61,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final LuciBuildService luciBuildService =
         LuciBuildService(config, buildBucketClient, serviceAccountInfo);
     final Logging log = loggingProvider();
+    final GithubStatusService githubStatusService =
+        GithubStatusService(config, luciBuildService);
 
     if (!await _authenticateRequest(request.headers)) {
       throw const Unauthorized();
@@ -90,11 +92,12 @@ class LuciStatusHandler extends RequestHandler<Body> {
           build: build,
           retries: userData['retries'] as int,
           luciBuildService: luciBuildService,
+          githubStatusService: githubStatusService,
         );
         break;
       case Status.scheduled:
       case Status.started:
-        await _setPendingStatus(
+        await githubStatusService.setPendingStatus(
           ref: sha,
           builderName: builderName,
           buildUrl: build.url,
@@ -107,13 +110,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
   /// Reschedules jobs that failed for infra reasons up to
   /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
   /// GitHub for all other cases.
-  Future<void> _rescheduleOrMarkCompleted({
-    @required String sha,
-    @required String builderName,
-    @required Build build,
-    @required int retries,
-    @required LuciBuildService luciBuildService,
-  }) async {
+  Future<void> _rescheduleOrMarkCompleted(
+      {@required String sha,
+      @required String builderName,
+      @required Build build,
+      @required int retries,
+      @required LuciBuildService luciBuildService,
+      @required GithubStatusService githubStatusService}) async {
     assert(sha != null);
     assert(builderName != null);
     assert(build != null);
@@ -128,7 +131,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
             retries: retries,
           );
           if (rescheduled) {
-            await _setPendingStatus(
+            await githubStatusService.setPendingStatus(
               ref: sha,
               builderName: builderName,
               buildUrl: '',
@@ -141,7 +144,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
           break;
       }
     }
-    await _setCompletedStatus(
+    await githubStatusService.setCompletedStatus(
       ref: sha,
       builderName: builderName,
       buildUrl: build.url,
@@ -165,81 +168,5 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final ServiceAccountInfo devicelabServiceAccount =
         await config.deviceLabServiceAccount;
     return info.email == devicelabServiceAccount.email;
-  }
-
-  CreateStatus _statusForResult(Result result) {
-    switch (result) {
-      case Result.canceled:
-      case Result.failure:
-        return CreateStatus('failure');
-        break;
-      case Result.success:
-        return CreateStatus('success');
-        break;
-    }
-    throw StateError('unreachable');
-  }
-
-  Future<void> _setCompletedStatus({
-    @required String ref,
-    @required String builderName,
-    @required String buildUrl,
-    @required Result result,
-  }) async {
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
-    if (slug == null) {
-      log.warning(
-          'Attempting to set state for non existent builder: $builderName');
-      return;
-    }
-    final GitHub gitHubClient = await config.createGitHubClient();
-    final CreateStatus status = _statusForResult(result)
-      ..context = builderName
-      ..description = 'Flutter LUCI Build: $builderName'
-      ..targetUrl = buildUrl;
-    await gitHubClient.repositories.createStatus(slug, ref, status);
-  }
-
-  Future<void> _setPendingStatus({
-    @required String ref,
-    @required String builderName,
-    @required String buildUrl,
-  }) async {
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
-    if (slug == null) {
-      log.warning(
-          'Attempting to set state for non existent builder: $builderName');
-      return;
-    }
-    final GitHub gitHubClient = await config.createGitHubClient();
-    // GitHub "only" allows setting a status for a context/ref pair 1000 times.
-    // We should avoid unnecessarily setting a pending status, e.g. if we get
-    // started and pending messages close together.
-    // We have to check for both because sometimes one or the other might come
-    // in.
-    // However, we should keep going if the _most recent_ status is not pending.
-    await for (RepositoryStatus status
-        in gitHubClient.repositories.listStatuses(slug, ref)) {
-      if (status.context == builderName) {
-        if (status.state == 'pending') {
-          return;
-        }
-        break;
-      }
-    }
-
-    String updatedBuildUrl = '';
-    if (buildUrl.isNotEmpty) {
-      // If buildUrl is not empty then append a query parameter to refresh the page
-      // content every 30 seconds. A resulting updatedBuild url will look like:
-      // https://ci.chromium.org/p/flutter/builders/try/Linux%20Web%20Engine/5275?reload=30
-      updatedBuildUrl =
-          '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
-    }
-    final CreateStatus status = CreateStatus('pending')
-      ..context = builderName
-      ..description = 'Flutter LUCI Build: $builderName'
-      ..targetUrl = updatedBuildUrl;
-    await gitHubClient.repositories.createStatus(slug, ref, status);
   }
 }

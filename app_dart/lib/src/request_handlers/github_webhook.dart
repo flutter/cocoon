@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
@@ -54,6 +55,8 @@ class GithubWebhook extends RequestHandler<Body> {
         await config.deviceLabServiceAccount;
     final LuciBuildService luciBuildService =
         LuciBuildService(config, buildBucketClient, serviceAccountInfo);
+    final GithubStatusService githubStatusService =
+        GithubStatusService(config, luciBuildService);
     if (gitHubEvent == null ||
         request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
@@ -69,7 +72,8 @@ class GithubWebhook extends RequestHandler<Body> {
       final String stringRequest = utf8.decode(requestBytes);
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(stringRequest, luciBuildService);
+          await _handlePullRequest(
+              stringRequest, luciBuildService, githubStatusService);
           break;
       }
 
@@ -82,7 +86,9 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(
-      String rawRequest, LuciBuildService luciBuilderService) async {
+      String rawRequest,
+      LuciBuildService luciBuilderService,
+      GithubStatusService githubStatusService) async {
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
@@ -121,19 +127,20 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'reopened':
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(eventAction, pr);
-        await _scheduleIfMergeable(pr, luciBuilderService);
+        await _scheduleIfMergeable(pr, luciBuilderService, githubStatusService);
         break;
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
         if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(pr, luciBuilderService);
+          await _scheduleIfMergeable(
+              pr, luciBuilderService, githubStatusService);
         }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await _scheduleIfMergeable(pr, luciBuilderService);
+        await _scheduleIfMergeable(pr, luciBuilderService, githubStatusService);
         break;
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
@@ -164,7 +171,9 @@ class GithubWebhook extends RequestHandler<Body> {
   /// This method assumes that jobs should be cancelled if they are already
   /// runnning.
   Future<void> _scheduleIfMergeable(
-      PullRequest pr, LuciBuildService luciBuilderService) async {
+      PullRequest pr,
+      LuciBuildService luciBuilderService,
+      GithubStatusService githubStatusService) async {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
 
@@ -187,6 +196,8 @@ class GithubWebhook extends RequestHandler<Body> {
       commitSha: pr.head.sha,
       repositoryName: pr.head.repo.name,
     );
+    await githubStatusService.setBuildsPendingStatus(
+        pr.head.repo.name, pr.number, pr.head.sha);
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.

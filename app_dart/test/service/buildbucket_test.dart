@@ -4,18 +4,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/request_handling/fake_http.dart';
+import '../src/utilities/mocks.dart';
 
 void main() {
   group('BatchResponse tests', () {
@@ -295,31 +293,3 @@ const String buildJson = '''${BuildBucketClient.kRpcResponseGarbage}
     "value": "1"
   }]
 }''';
-
-class MockHttpClient extends Mock implements HttpClient {}
-
-class MockHttpClientRequest extends Mock implements HttpClientRequest {
-  final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
-  @override
-  HttpHeaders get headers => _fakeHeaders;
-}
-
-class MockHttpClientResponse extends Mock implements HttpClientResponse {
-  MockHttpClientResponse(this.response);
-
-  final Uint8List response;
-
-  @override
-  StreamSubscription<Uint8List> listen(
-    void onData(Uint8List event), {
-    Function onError,
-    void onDone(),
-    bool cancelOnError,
-  }) {
-    return Stream<Uint8List>.fromFuture(Future<Uint8List>.value(response))
-        .listen(onData,
-            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-}
-
-class MockAccessTokenService extends Mock implements AccessTokenService {}

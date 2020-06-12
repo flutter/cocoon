@@ -199,8 +199,16 @@ class FakeConfig implements Config {
 
   @override
   Future<RepositorySlug> repoNameForBuilder(String builderName) async {
-    final String name =
-        (builderName == 'Linux Host Engine') ? 'engine' : 'flutter';
+    String name;
+    switch (builderName) {
+      case 'Linux Host Engine':
+        name = 'engine';
+        break;
+      case 'MacNoExists':
+        return null;
+      default:
+        name = 'flutter';
+    }
     return RepositorySlug('flutter', name);
   }
 }

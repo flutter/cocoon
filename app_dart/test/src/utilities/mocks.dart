@@ -14,6 +14,8 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 
+import '../request_handling/fake_http.dart';
+
 class MockGitHub extends Mock implements GitHub {}
 
 class MockRepositoriesService extends Mock implements RepositoriesService {}
@@ -35,7 +37,11 @@ class MockPullRequestsService extends Mock implements PullRequestsService {}
 
 class MockHttpClient extends Mock implements HttpClient {}
 
-class MockHttpClientRequest extends Mock implements HttpClientRequest {}
+class MockHttpClientRequest extends Mock implements HttpClientRequest {
+  final FakeHttpHeaders _fakeHeaders = FakeHttpHeaders();
+  @override
+  HttpHeaders get headers => _fakeHeaders;
+}
 
 class MockHttpClientResponse extends Mock implements HttpClientResponse {
   MockHttpClientResponse(this.response);
