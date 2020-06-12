@@ -178,6 +178,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required Result result,
   }) async {
     final RepositorySlug slug = await config.repoNameForBuilder(builderName);
+    if (slug == null) {
+      log.warning(
+          'Attempting to set state for non existent builder: $builderName');
+      return;
+    }
     final GitHub gitHubClient = await config.createGitHubClient();
     final CreateStatus status = _statusForResult(result)
       ..context = builderName
@@ -192,6 +197,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
     @required String buildUrl,
   }) async {
     final RepositorySlug slug = await config.repoNameForBuilder(builderName);
+    if (slug == null) {
+      log.warning(
+          'Attempting to set state for non existent builder: $builderName');
+      return;
+    }
     final GitHub gitHubClient = await config.createGitHubClient();
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
