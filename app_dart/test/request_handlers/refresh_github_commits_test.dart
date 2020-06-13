@@ -169,22 +169,19 @@ void main() {
     });
 
     test('skips commits for which transaction commit fails', () async {
-      githubCommits = <String>['1', '2', '3'];
+      githubCommits = <String>['2', '3', '4'];
       config.flutterBranchesValue = <String>['master'];
 
-      /// Pre-insert one commit first, otherwise it will insert only one
-      /// commit for a new branch.
-      const List<String> dbCommits = <String>['4'];
-      for (String sha in dbCommits) {
-        final Commit commit = shaToCommit(sha, 'master');
-        db.values[commit.key] = commit;
-      }
+      /// This test is simulating an existing branch, which must already
+      /// have at least one commit in the datastore.
+      final Commit commit = shaToCommit('1', 'master');
+      db.values[commit.key] = commit;
 
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
             .whereType<Commit>()
-            .where((Commit commit) => commit.sha == '2')
+            .where((Commit commit) => commit.sha == '3')
             .isNotEmpty) {
           throw StateError('Commit failed');
         }
@@ -194,9 +191,9 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['4', '1', '3']);
+          <String>['1', '2', '4']);
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
-          <int>[4, 1, 3]);
+          <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);

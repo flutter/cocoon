@@ -14,8 +14,9 @@ class GithubService {
 
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
-  /// found and only the branched commit will be returned. Otherwise, it returns
-  /// all newer commits since [lastCommitTimestampMills].
+  /// found and only the branched commit will be returned for now, though the
+  /// rare case that multiple commits exist. For other cases, it returns all
+  /// newer commits since [lastCommitTimestampMills].
   Future<List<RepositoryCommit>> listCommits(
       RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
