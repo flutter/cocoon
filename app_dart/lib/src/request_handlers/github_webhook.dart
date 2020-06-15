@@ -169,7 +169,10 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   /// This method assumes that jobs should be cancelled if they are already
-  /// runnning.
+  /// runnning. [githubStatusService] is used to update the status of a build
+  /// in the GitHub UI. When the build is triggered the status is set to "pending"
+  /// without a details link. Once the test starts running then the state is set
+  /// to "pending" with a details link pointing to the build in LUCI infrastructure.
   Future<void> _scheduleIfMergeable(
       PullRequest pr,
       LuciBuildService luciBuilderService,

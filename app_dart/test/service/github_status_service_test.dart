@@ -23,7 +23,7 @@ void main() {
   MockBuildBucketClient mockBuildBucketClient;
   LuciBuildService service;
   GithubStatusService githubStatusService;
-  MockGitHubClient mockGitHubClient;
+  MockGitHub mockGitHub;
   MockRepositoriesService mockRepositoriesService;
 
   const Build macBuild = Build(
@@ -31,7 +31,7 @@ void main() {
     builderId: BuilderId(
       project: 'flutter',
       bucket: 'prod',
-      builder: 'MacDoesNotExit',
+      builder: 'MacDoesNotExist',
     ),
     status: Status.scheduled,
   );
@@ -53,12 +53,12 @@ void main() {
     service =
         LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     githubStatusService = GithubStatusService(config, service);
-    mockGitHubClient = MockGitHubClient();
+    mockGitHub = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
-    when(mockGitHubClient.repositories).thenAnswer((_) {
+    when(mockGitHub.repositories).thenAnswer((_) {
       return mockRepositoriesService;
     });
-    config.githubClient = mockGitHubClient;
+    config.githubClient = mockGitHub;
   });
   group('setBuildsPendingStatus', () {
     test('Empty builds do nothing', () async {
@@ -74,10 +74,10 @@ void main() {
         );
       });
       await githubStatusService.setBuildsPendingStatus('flutter', 123, 'abc');
-      verifyNever(mockGitHubClient.repositories);
+      verifyNever(mockGitHub.repositories);
     });
 
-    test('A build list create status', () async {
+    test('A build list creates status', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -106,13 +106,13 @@ void main() {
   group('setPendingStatus', () {
     setUp(() {});
 
-    test('Builder does not exist', () async {
+    test('Status not updated if builder does not exist', () async {
       await githubStatusService.setPendingStatus(
         ref: '123hash',
         builderName: 'MacNoExists',
         buildUrl: 'myurl',
       );
-      verifyNever(mockGitHubClient.repositories);
+      verifyNever(mockGitHub.repositories);
     });
 
     test('Status not updated if it is already pending', () async {
@@ -195,7 +195,7 @@ void main() {
           builderName: 'MacNoExists',
           buildUrl: 'myurl',
           result: push_message.Result.canceled);
-      verifyNever(mockGitHubClient.repositories);
+      verifyNever(mockGitHub.repositories);
     });
 
     test('Status updated to cancelled', () async {
@@ -246,5 +246,3 @@ void main() {
     });
   });
 }
-
-class MockGitHubClient extends Mock implements GitHub {}
