@@ -7,35 +7,56 @@ import 'dart:convert' show json;
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 
-import '../datastore/cocoon_config.dart';
-
 class GithubService {
   const GithubService(this.github);
 
   final GitHub github;
 
-  /// Lists the commits of the provided repository [slug] and [branch].
+  /// Lists commits of the provided repository [slug] and [branch]. When
+  /// [lastCommitTimestampMills] equals 0, it means a new release branch is
+  /// found and only the branched commit will be returned for now, though the
+  /// rare case that multiple commits exist. For other cases, it returns all
+  /// newer commits since [lastCommitTimestampMills].
   Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch, int hours, Config config) async {
-    final Duration time = Duration(hours: hours);
+      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
+    /// The [pages] defines the number of pages of returned http request
+    /// results. Return only one page when this is a new branch. Otherwise
+    ///  it will return all commits prior to this release branch commit,
+    /// leading to heavy workload.
+    int pages;
+    if (lastCommitTimestampMills == 0) {
+      pages = 1;
+    }
+
     List<Map<String, dynamic>> commits = <Map<String, dynamic>>[];
+
+    /// [lastCommitTimestamp+1] excludes last commit itself.
+    /// Github api url: https://developer.github.com/v3/repos/commits/#list-commits
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since': DateTime.now().toUtc().subtract(time).toIso8601String()
+        'since':
+            DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1)
+                .toUtc()
+                .toIso8601String(),
       },
+      pages: pages,
     )) {
       commits.addAll((json.decode(response.body) as List<dynamic>)
           .cast<Map<String, dynamic>>());
     }
 
-    /// Take the latest single commit for a new release branch.
-    if (hours == config.newBranchHours) {
+    /// When a release branch is first detected only the most recent commit would be needed.
+    ///
+    /// If for the worst case, a new release branch consists of a useful cherry pick commit
+    /// which should be considered as well, here is the todo.
+    // TODO(keyonghan): https://github.com/flutter/flutter/issues/59275
+    if (lastCommitTimestampMills == 0) {
       commits = commits.take(1).toList();
     }
 

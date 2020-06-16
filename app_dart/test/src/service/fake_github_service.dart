@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -17,8 +16,8 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch, int hours, Config config) async {
-    return listCommitsBranch(branch, hours);
+      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
+    return listCommitsBranch(branch, lastCommitTimestampMills);
   }
 
   @override

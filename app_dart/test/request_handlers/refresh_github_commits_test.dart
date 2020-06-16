@@ -46,9 +46,8 @@ void main() {
 
     List<String> githubCommits;
     int yieldedCommitCount;
-    int newBranchHours;
 
-    List<RepositoryCommit> commitList(int hours) {
+    List<RepositoryCommit> commitList(int lastCommitTimestampMills) {
       List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
@@ -64,7 +63,7 @@ void main() {
           ..author = author
           ..commit = gitCommit);
       }
-      if (hours == newBranchHours) {
+      if (lastCommitTimestampMills == 0) {
         commits = commits.take(1).toList();
       }
       return commits;
@@ -73,7 +72,9 @@ void main() {
     Commit shaToCommit(String sha, String branch) {
       return Commit(
           key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-          sha: sha);
+          sha: sha,
+          branch: branch,
+          timestamp: int.parse(sha));
     }
 
     setUp(() {
@@ -86,7 +87,6 @@ void main() {
       });
 
       yieldedCommitCount = 0;
-      newBranchHours = 168;
       db = FakeDatastoreDB();
       config = FakeConfig(
           tabledataResourceApi: tabledataResourceApi,
@@ -162,7 +162,6 @@ void main() {
     test('inserts the latest single commit if a new branch is found', () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
       config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-      config.newBranchHoursValue = 168;
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
@@ -171,25 +170,31 @@ void main() {
     });
 
     test('skips commits for which transaction commit fails', () async {
-      githubCommits = <String>['1', '2', '3'];
+      githubCommits = <String>['2', '3', '4'];
       config.flutterBranchesValue = <String>['master'];
+
+      /// This test is simulating an existing branch, which must already
+      /// have at least one commit in the datastore.
+      final Commit commit = shaToCommit('1', 'master');
+      db.values[commit.key] = commit;
+
       db.onCommit =
           (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
         if (inserts
             .whereType<Commit>()
-            .where((Commit commit) => commit.sha == '2')
+            .where((Commit commit) => commit.sha == '3')
             .isNotEmpty) {
           throw StateError('Commit failed');
         }
       };
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 2);
+      expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '3']);
+          <String>['1', '2', '4']);
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
-          <int>[1, 3]);
+          <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
