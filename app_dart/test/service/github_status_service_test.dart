@@ -25,6 +25,7 @@ void main() {
   GithubStatusService githubStatusService;
   MockGitHub mockGitHub;
   MockRepositoriesService mockRepositoriesService;
+  RepositorySlug slug;
 
   const Build macBuild = Build(
     id: 999,
@@ -59,6 +60,7 @@ void main() {
       return mockRepositoriesService;
     });
     config.githubClient = mockGitHub;
+    slug = RepositorySlug('flutter', 'flutter');
   });
   group('setBuildsPendingStatus', () {
     test('Empty builds do nothing', () async {
@@ -73,7 +75,8 @@ void main() {
           ],
         );
       });
-      await githubStatusService.setBuildsPendingStatus('flutter', 123, 'abc');
+      await githubStatusService.setBuildsPendingStatus(
+          'flutter', 123, 'abc', slug);
       verifyNever(mockGitHub.repositories);
     });
 
@@ -93,7 +96,8 @@ void main() {
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
-      await githubStatusService.setBuildsPendingStatus('flutter', 123, 'abc');
+      await githubStatusService.setBuildsPendingStatus(
+          'flutter', 123, 'abc', slug);
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))
               .captured
@@ -158,6 +162,7 @@ void main() {
         ref: '123hash',
         builderName: 'Mac',
         buildUrl: 'url',
+        slug: slug,
       );
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))
@@ -176,6 +181,7 @@ void main() {
         ref: '123hash',
         builderName: 'Mac',
         buildUrl: 'different_url',
+        slug: slug,
       );
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))

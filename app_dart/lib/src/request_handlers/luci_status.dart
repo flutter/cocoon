@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -77,6 +78,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final Map<String, dynamic> userData =
         jsonDecode(buildMessage.userData) as Map<String, dynamic>;
     final String builderName = build.tagsByName('builder').single;
+    RepositorySlug slug = await config.repoNameForBuilder(builderName);
 
     const String shaPrefix = 'sha/git/';
     final String sha = build
@@ -93,6 +95,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
           retries: userData['retries'] as int,
           luciBuildService: luciBuildService,
           githubStatusService: githubStatusService,
+          slug: slug,
         );
         break;
       case Status.scheduled:
@@ -101,6 +104,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
           ref: sha,
           builderName: builderName,
           buildUrl: build.url,
+          slug: slug,
         );
         break;
     }
@@ -110,13 +114,15 @@ class LuciStatusHandler extends RequestHandler<Body> {
   /// Reschedules jobs that failed for infra reasons up to
   /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
   /// GitHub for all other cases.
-  Future<void> _rescheduleOrMarkCompleted(
-      {@required String sha,
-      @required String builderName,
-      @required Build build,
-      @required int retries,
-      @required LuciBuildService luciBuildService,
-      @required GithubStatusService githubStatusService}) async {
+  Future<void> _rescheduleOrMarkCompleted({
+    @required String sha,
+    @required String builderName,
+    @required Build build,
+    @required int retries,
+    @required LuciBuildService luciBuildService,
+    @required GithubStatusService githubStatusService,
+    @required RepositorySlug slug,
+  }) async {
     assert(sha != null);
     assert(builderName != null);
     assert(build != null);
@@ -136,6 +142,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
               ref: sha,
               builderName: builderName,
               buildUrl: '',
+              slug: slug,
             );
             return;
           }
@@ -150,6 +157,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
       builderName: builderName,
       buildUrl: build.url,
       result: build.result,
+      slug: slug,
     );
   }
 

@@ -10,6 +10,9 @@ import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
 import 'luci_build_service.dart';
 
+/// Github status api pending state constant.
+const String PENDING_STATE = 'pending';
+
 class GithubStatusService {
   const GithubStatusService(this.config, this.luciBuildService);
 
@@ -18,13 +21,16 @@ class GithubStatusService {
   final LuciBuildService luciBuildService;
 
   Future<void> setBuildsPendingStatus(
-      String repositoryName, int prNumber, String commitSha) async {
-    final RepositorySlug slug = RepositorySlug('flutter', repositoryName);
+    String repositoryName,
+    int prNumber,
+    String commitSha,
+    RepositorySlug slug,
+  ) async {
     final GitHub gitHubClient = await config.createGitHubClient();
     final Map<String, bb.Build> builds = await luciBuildService
         .buildsForRepositoryAndPr(repositoryName, prNumber, commitSha);
     for (bb.Build build in builds.values) {
-      final CreateStatus status = CreateStatus('pending')
+      final CreateStatus status = CreateStatus(PENDING_STATE)
         ..context = build.builderId.builder
         ..description = 'Flutter LUCI Build: ${build.builderId.builder}'
         ..targetUrl = '';
@@ -36,8 +42,9 @@ class GithubStatusService {
     @required String ref,
     @required String builderName,
     @required String buildUrl,
+    @required RepositorySlug slug,
   }) async {
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
+    //final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     // No builderName configuration, nothing to do here.
     if (slug == null) {
       return;
@@ -52,7 +59,7 @@ class GithubStatusService {
     await for (RepositoryStatus status
         in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
-        if (status.state == 'pending' &&
+        if (status.state == PENDING_STATE &&
             status.targetUrl.startsWith(buildUrl)) {
           return;
         }
@@ -68,7 +75,7 @@ class GithubStatusService {
       updatedBuildUrl =
           '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
     }
-    final CreateStatus status = CreateStatus('pending')
+    final CreateStatus status = CreateStatus(PENDING_STATE)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'
       ..targetUrl = updatedBuildUrl;
@@ -80,6 +87,7 @@ class GithubStatusService {
     @required String builderName,
     @required String buildUrl,
     @required Result result,
+    @required RepositorySlug slug,
   }) async {
     final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     // No builderName configuration, nothing to do here.
