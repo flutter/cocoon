@@ -29,7 +29,16 @@ class GithubStatusService {
     final String repositoryName = slug.name;
     final Map<String, bb.Build> builds = await luciBuildService
         .buildsForRepositoryAndPr(repositoryName, prNumber, commitSha);
+    final List<String> builderNames = config.luciTryBuilders
+        .map((Map<String, dynamic> entry) => entry['name'] as String)
+        .toList();
     for (bb.Build build in builds.values) {
+      // LUCI configuration contain more builders than the ones we would like to run.
+      // We need to ensure we are adding checks for the builders that will return a
+      // status to prevent status blocking PRs forever.
+      if (!builderNames.contains(build.builderId.builder)) {
+        continue;
+      }
       final CreateStatus status = CreateStatus(PENDING_STATE)
         ..context = build.builderId.builder
         ..description = 'Flutter LUCI Build: ${build.builderId.builder}'

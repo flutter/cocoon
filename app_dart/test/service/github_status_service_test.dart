@@ -60,6 +60,7 @@ void main() {
       return mockRepositoriesService;
     });
     config.githubClient = mockGitHub;
+    config.luciTryBuildersValue = <Map<String, dynamic>>[];
     slug = RepositorySlug('flutter', 'flutter');
   });
   group('setBuildsPendingStatus', () {
@@ -91,6 +92,37 @@ void main() {
           ],
         );
       });
+      config.luciTryBuildersValue =
+          (json.decode('[{"name": "Linux"}]') as List<dynamic>)
+              .cast<Map<String, dynamic>>();
+      final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
+      when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
+        return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
+      });
+      await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
+      expect(
+          verify(mockRepositoriesService.createStatus(any, any, captureAny))
+              .captured
+              .first
+              .toJson(),
+          jsonDecode(
+              '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
+    });
+    test('Only builds in luciTryBuilders create statuses', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[linuxBuild, macBuild],
+              ),
+            ),
+          ],
+        );
+      });
+      config.luciTryBuildersValue =
+          (json.decode('[{"name": "Linux"}]') as List<dynamic>)
+              .cast<Map<String, dynamic>>();
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
