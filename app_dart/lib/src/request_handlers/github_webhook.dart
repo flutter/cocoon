@@ -51,10 +51,10 @@ class GithubWebhook extends RequestHandler<Body> {
 
   /// Github status service to update the state of the build
   /// in the Github UI.
-  GithubStatusService githubStatusService;
+  final GithubStatusService githubStatusService;
 
   /// LUCI service class to communicate with buildBucket service.
-  LuciBuildService luciBuildService;
+  final LuciBuildService luciBuildService;
 
   @override
   Future<Body> post() async {
