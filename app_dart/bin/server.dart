@@ -6,6 +6,9 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_status_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
@@ -22,6 +25,22 @@ Future<void> main() async {
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
+    final ServiceAccountInfo serviceAccountInfo =
+        await config.deviceLabServiceAccount;
+
+    /// LUCI service class to communicate with buildBucket service.
+    final LuciBuildService luciBuildService = LuciBuildService(
+      config,
+      buildBucketClient,
+      serviceAccountInfo,
+    );
+
+    /// Github status service to update the state of the build
+    /// in the Github UI.
+    final GithubStatusService githubStatusService = GithubStatusService(
+      config,
+      luciBuildService,
+    );
 
     final Map<String, RequestHandler<dynamic>> handlers =
         <String, RequestHandler<dynamic>>{
@@ -33,8 +52,12 @@ Future<void> main() async {
       '/api/get-authentication-status':
           GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
-      '/api/github-webhook-pullrequest':
-          GithubWebhook(config, buildBucketClient),
+      '/api/github-webhook-pullrequest': GithubWebhook(
+        config,
+        buildBucketClient,
+        luciBuildService,
+        githubStatusService,
+      ),
       '/api/luci-status-handler': LuciStatusHandler(config, buildBucketClient),
       '/api/push-build-status-to-github':
           PushBuildStatusToGithub(config, authProvider),

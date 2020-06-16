@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
@@ -36,7 +36,9 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(Config config, this.buildBucketClient, {HttpClient skiaClient})
+  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService,
+      this.githubStatusService,
+      {HttpClient skiaClient})
       : assert(buildBucketClient != null),
         skiaClient = skiaClient ?? HttpClient(),
         super(config: config);
@@ -47,13 +49,16 @@ class GithubWebhook extends RequestHandler<Body> {
   /// An Http Client for querying the Skia Gold API.
   final HttpClient skiaClient;
 
+  /// Github status service to update the state of the build
+  /// in the Github UI.
+  final GithubStatusService githubStatusService;
+
+  /// LUCI service class to communicate with buildBucket service.
+  final LuciBuildService luciBuildService;
+
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
-    final ServiceAccountInfo serviceAccountInfo =
-        await config.deviceLabServiceAccount;
-    final LuciBuildService luciBuildService =
-        LuciBuildService(config, buildBucketClient, serviceAccountInfo);
     if (gitHubEvent == null ||
         request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
@@ -69,7 +74,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final String stringRequest = utf8.decode(requestBytes);
       switch (gitHubEvent) {
         case 'pull_request':
-          await _handlePullRequest(stringRequest, luciBuildService);
+          await _handlePullRequest(stringRequest);
           break;
       }
 
@@ -82,7 +87,8 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _handlePullRequest(
-      String rawRequest, LuciBuildService luciBuilderService) async {
+    String rawRequest,
+  ) async {
     final PullRequestEvent pullRequestEvent =
         await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
@@ -103,7 +109,7 @@ class GithubWebhook extends RequestHandler<Body> {
         if (pr.merged) {
           await _checkForGoldenTriage(eventAction, pr, pr.labels);
         } else {
-          await luciBuilderService.cancelBuilds(
+          await luciBuildService.cancelBuilds(
             pr.head.repo.name,
             pr.number,
             pr.head.sha,
@@ -121,19 +127,19 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'reopened':
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(eventAction, pr);
-        await _scheduleIfMergeable(pr, luciBuilderService);
+        await _scheduleIfMergeable(pr);
         break;
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
         if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(pr, luciBuilderService);
+          await _scheduleIfMergeable(pr);
         }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await _scheduleIfMergeable(pr, luciBuilderService);
+        await _scheduleIfMergeable(pr);
         break;
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
@@ -142,7 +148,7 @@ class GithubWebhook extends RequestHandler<Body> {
           break;
         }
         if (!await _checkForCqLabel(pr.labels)) {
-          await luciBuilderService.cancelBuilds(
+          await luciBuildService.cancelBuilds(
             pr.head.repo.name,
             pr.number,
             pr.head.sha,
@@ -162,9 +168,13 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   /// This method assumes that jobs should be cancelled if they are already
-  /// runnning.
+  /// runnning. [githubStatusService] is used to update the status of a build
+  /// in the GitHub UI. When the build is triggered the status is set to "pending"
+  /// without a details link. Once the test starts running then the state is set
+  /// to "pending" with a details link pointing to the build in LUCI infrastructure.
   Future<void> _scheduleIfMergeable(
-      PullRequest pr, LuciBuildService luciBuilderService) async {
+    PullRequest pr,
+  ) async {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
 
@@ -176,17 +186,19 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     // Always cancel running builds so we don't ever schedule duplicates.
-    await luciBuilderService.cancelBuilds(
+    await luciBuildService.cancelBuilds(
       pr.head.repo.name,
       pr.number,
       pr.head.sha,
       'Newer commit available',
     );
-    await luciBuilderService.scheduleBuilds(
+    await luciBuildService.scheduleBuilds(
       prNumber: pr.number,
       commitSha: pr.head.sha,
       repositoryName: pr.head.repo.name,
     );
+    await githubStatusService.setBuildsPendingStatus(
+        pr.number, pr.head.sha, pr.head.repo.slug());
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.

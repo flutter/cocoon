@@ -221,10 +221,14 @@ class LuciBuildService {
       // Too many retries.
       return false;
     }
+    // Ensure we are using V2 bucket name istead of V1.
+    // V1 bucket name  is "luci.flutter.prod" while the api
+    // is expecting just the last part after "."(prod).
+    final String bucketName = build.bucket.split('.').last;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: build.project,
-        bucket: build.bucket,
+        bucket: bucketName,
         builder: builderName,
       ),
       tags: <String, List<String>>{

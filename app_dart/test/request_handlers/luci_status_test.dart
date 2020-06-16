@@ -181,7 +181,8 @@ void main() {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
-          ..state = 'pending',
+          ..state = 'pending'
+          ..targetUrl = 'https://ci.chromium.org/b/8905920700440101120',
       ];
       request.bodyBytes =
           utf8.encode(pushMessageJson('SCHEDULED')) as Uint8List;
@@ -225,7 +226,8 @@ void main() {
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Linux Coverage'
-          ..state = 'pending',
+          ..state = 'pending'
+          ..targetUrl = 'https://ci.chromium.org/b/8905920700440101120',
       ];
       request.bodyBytes = utf8.encode(pushMessageJson('STARTED')) as Uint8List;
       request.headers.add(HttpHeaders.authorizationHeader, authHeader);
@@ -283,7 +285,7 @@ void main() {
         ScheduleBuildRequest(
           builderId: const BuilderId(
             project: 'flutter',
-            bucket: 'luci.flutter.prod',
+            bucket: 'prod',
             builder: 'Linux',
           ),
           tags: const <String, List<String>>{
