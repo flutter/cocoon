@@ -44,9 +44,8 @@ class GithubStatusService {
     @required String buildUrl,
     @required RepositorySlug slug,
   }) async {
-    //final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     // No builderName configuration, nothing to do here.
-    if (slug == null) {
+    if (await config.repoNameForBuilder(builderName) == null) {
       return;
     }
     final GitHub gitHubClient = await config.createGitHubClient();

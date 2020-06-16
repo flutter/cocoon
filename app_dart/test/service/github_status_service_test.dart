@@ -115,6 +115,7 @@ void main() {
         ref: '123hash',
         builderName: 'MacNoExists',
         buildUrl: 'myurl',
+        slug: slug,
       );
       verifyNever(mockGitHub.repositories);
     });
@@ -144,6 +145,7 @@ void main() {
         ref: '123hash',
         builderName: 'Mac',
         buildUrl: 'url',
+        slug: slug,
       );
       verifyNever(mockRepositoriesService.createStatus(any, any, captureAny));
     });
@@ -200,6 +202,7 @@ void main() {
           ref: '123hash',
           builderName: 'MacNoExists',
           buildUrl: 'myurl',
+          slug: slug,
           result: push_message.Result.canceled);
       verifyNever(mockGitHub.repositories);
     });
@@ -218,6 +221,7 @@ void main() {
           ref: '123hash',
           builderName: 'Mac',
           buildUrl: 'url',
+          slug: slug,
           result: push_message.Result.canceled);
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))
@@ -241,6 +245,7 @@ void main() {
           ref: '123hash',
           builderName: 'Mac',
           buildUrl: 'url',
+          slug: slug,
           result: push_message.Result.success);
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))

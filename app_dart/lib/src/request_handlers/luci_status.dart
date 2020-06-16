@@ -78,7 +78,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final Map<String, dynamic> userData =
         jsonDecode(buildMessage.userData) as Map<String, dynamic>;
     final String builderName = build.tagsByName('builder').single;
-    RepositorySlug slug = await config.repoNameForBuilder(builderName);
+    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
 
     const String shaPrefix = 'sha/git/';
     final String sha = build
