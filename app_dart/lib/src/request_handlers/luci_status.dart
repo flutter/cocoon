@@ -100,12 +100,15 @@ class LuciStatusHandler extends RequestHandler<Body> {
         break;
       case Status.scheduled:
       case Status.started:
-        await githubStatusService.setPendingStatus(
+        final bool success = await githubStatusService.setPendingStatus(
           ref: sha,
           builderName: builderName,
           buildUrl: build.url,
           slug: slug,
         );
+        if (!success) {
+          log.warning('Failed to set status for $builderName');
+        }
         break;
     }
     return Body.empty;
@@ -138,12 +141,15 @@ class LuciStatusHandler extends RequestHandler<Body> {
             retries: retries,
           );
           if (rescheduled) {
-            await githubStatusService.setPendingStatus(
+            final bool success = await githubStatusService.setPendingStatus(
               ref: sha,
               builderName: builderName,
               buildUrl: '',
               slug: slug,
             );
+            if (!success) {
+              log.warning('Failed to set status for $builderName');
+            }
             return;
           }
           break;

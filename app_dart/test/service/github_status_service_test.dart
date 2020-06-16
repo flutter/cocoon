@@ -75,8 +75,7 @@ void main() {
           ],
         );
       });
-      await githubStatusService.setBuildsPendingStatus(
-          'flutter', 123, 'abc', slug);
+      await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       verifyNever(mockGitHub.repositories);
     });
 
@@ -96,8 +95,7 @@ void main() {
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
-      await githubStatusService.setBuildsPendingStatus(
-          'flutter', 123, 'abc', slug);
+      await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))
               .captured
@@ -111,12 +109,13 @@ void main() {
     setUp(() {});
 
     test('Status not updated if builder does not exist', () async {
-      await githubStatusService.setPendingStatus(
+      final bool success = await githubStatusService.setPendingStatus(
         ref: '123hash',
         builderName: 'MacNoExists',
         buildUrl: 'myurl',
         slug: slug,
       );
+      expect(success, isFalse);
       verifyNever(mockGitHub.repositories);
     });
 
@@ -141,12 +140,13 @@ void main() {
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
-      await githubStatusService.setPendingStatus(
+      final bool success = await githubStatusService.setPendingStatus(
         ref: '123hash',
         builderName: 'Mac',
         buildUrl: 'url',
         slug: slug,
       );
+      expect(success, isFalse);
       verifyNever(mockRepositoriesService.createStatus(any, any, captureAny));
     });
 
@@ -160,12 +160,13 @@ void main() {
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
-      await githubStatusService.setPendingStatus(
+      final bool success = await githubStatusService.setPendingStatus(
         ref: '123hash',
         builderName: 'Mac',
         buildUrl: 'url',
         slug: slug,
       );
+      expect(success, isTrue);
       expect(
           verify(mockRepositoriesService.createStatus(any, any, captureAny))
               .captured

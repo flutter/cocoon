@@ -21,12 +21,12 @@ class GithubStatusService {
   final LuciBuildService luciBuildService;
 
   Future<void> setBuildsPendingStatus(
-    String repositoryName,
     int prNumber,
     String commitSha,
     RepositorySlug slug,
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient();
+    final String repositoryName = slug.name;
     final Map<String, bb.Build> builds = await luciBuildService
         .buildsForRepositoryAndPr(repositoryName, prNumber, commitSha);
     for (bb.Build build in builds.values) {
@@ -38,7 +38,7 @@ class GithubStatusService {
     }
   }
 
-  Future<void> setPendingStatus({
+  Future<bool> setPendingStatus({
     @required String ref,
     @required String builderName,
     @required String buildUrl,
@@ -46,7 +46,7 @@ class GithubStatusService {
   }) async {
     // No builderName configuration, nothing to do here.
     if (await config.repoNameForBuilder(builderName) == null) {
-      return;
+      return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient();
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
@@ -60,7 +60,7 @@ class GithubStatusService {
       if (status.context == builderName) {
         if (status.state == PENDING_STATE &&
             status.targetUrl.startsWith(buildUrl)) {
-          return;
+          return false;
         }
         break;
       }
@@ -79,6 +79,7 @@ class GithubStatusService {
       ..description = 'Flutter LUCI Build: $builderName'
       ..targetUrl = updatedBuildUrl;
     await gitHubClient.repositories.createStatus(slug, ref, status);
+    return true;
   }
 
   Future<void> setCompletedStatus({

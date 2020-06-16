@@ -198,7 +198,7 @@ class GithubWebhook extends RequestHandler<Body> {
       repositoryName: pr.head.repo.name,
     );
     await githubStatusService.setBuildsPendingStatus(
-        pr.head.repo.name, pr.number, pr.head.sha, pr.head.repo.slug());
+        pr.number, pr.head.sha, pr.head.repo.slug());
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
