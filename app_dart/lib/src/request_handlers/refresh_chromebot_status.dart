@@ -87,12 +87,12 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       }
       for (LuciTask luciTask in luciTasks[datastoreTask.commit.sha].reversed) {
         if (!updatedLuciTasks.contains(luciTask) &&
-            _buildIdMatched(datastoreTask, luciTask)) {
+            _buildNumberMatched(datastoreTask, luciTask)) {
           final Task update = datastoreTask.task;
           update.status = luciTask.status;
           update.buildNumber = luciTask.buildNumber;
           update.builderName = builder.name;
-          update.luciPoolName = config.luciFlutterProdPool;
+          update.luciPoolName = 'luci.flutter.prod';
           await datastore.insert(<Task>[update]);
           updatedLuciTasks.add(luciTask);
           break;
@@ -101,7 +101,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     }
   }
 
-  bool _buildIdMatched(FullTask task, LuciTask luciTask) {
+  bool _buildNumberMatched(FullTask task, LuciTask luciTask) {
     return task.task.buildNumber == null ||
         task.task.buildNumber == luciTask.buildNumber;
   }
