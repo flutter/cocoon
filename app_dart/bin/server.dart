@@ -119,6 +119,9 @@ Future<void> main() async {
       ),
     };
 
+    PushBenchmarkToCenter p = PushBenchmarkToCenter(config);
+    await p.get();
+
     return await runAppEngine((HttpRequest request) async {
       final RequestHandler<dynamic> handler = handlers[request.uri.path];
       if (handler != null) {

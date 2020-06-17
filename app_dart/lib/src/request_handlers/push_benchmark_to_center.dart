@@ -40,25 +40,30 @@ class PushBenchmarkToCenter extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final int sinceTimeMillis =
-        parseSinceTimeMillis(request.uri.queryParameters);
-    if (sinceTimeMillis == null) {
-      logger.error('The sinceTimeMillis parameter is missing');
-      return Body.empty;
-    }
-
-    final List<TimeSeriesValue> timeSeriesValues =
-        await readTimeSeriesValue(sinceTimeMillis);
     final Map<String, TimeSeries> timeSeriesMap = await readTimeSeriesMap();
 
-    final List<BenchmarkMetricPoint> points =
-        await transform(timeSeriesMap, timeSeriesValues);
-    logger.debug('Transformed ${points.length} metric points.');
-    logger.debug('The first one is ${points.first}');
+    DateTime begin = DateTime.utc(2020, 3, 1);
+    for (int i = 0; i < 2 * 31; i++) {
+      print('begin: $begin');
+      final DateTime end = begin.add(const Duration(days: 1));
+      final List<TimeSeriesValue> timeSeriesValues = await readTimeSeriesValue(
+          begin.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
+      print('begin ${begin.millisecondsSinceEpoch} end ${end.millisecondsSinceEpoch}');
+      print('timeSeriesValues len ${timeSeriesValues.length}');
+      begin = end;
 
-    final mc.FlutterDestination destination =
-        await flutterDestinationProvider(config);
-    await destination.update(points);
+      if (timeSeriesValues.isNotEmpty) {
+        final List<BenchmarkMetricPoint> points =
+          await transform(timeSeriesMap, timeSeriesValues);
+        logger.debug('Transformed ${points.length} metric points.');
+        logger.debug('The first one is ${points.first}');
+
+        final mc.FlutterDestination destination =
+            await flutterDestinationProvider(config);
+        await destination.update(points);
+      }
+    }
+
     return Body.empty;
   }
 
@@ -80,11 +85,13 @@ class PushBenchmarkToCenter extends RequestHandler<Body> {
 
   /// Reads benchmark records with [createTimestamp] later than [sinceMillis].
   /// And limits the result size to no larger than [batchSize].
-  Future<List<TimeSeriesValue>> readTimeSeriesValue(int sinceMillis,
-      {int batchSize = 1000}) async {
+  Future<List<TimeSeriesValue>> readTimeSeriesValue(
+      int beginMillis, int endMillis,
+      {int batchSize = 1000 * 1000}) async {
     final Query<TimeSeriesValue> query =
         datastoreService.db.query<TimeSeriesValue>()
-          ..filter('createTimestamp >', sinceMillis)
+          ..filter('createTimestamp >=', beginMillis)
+          ..filter('createTimestamp <', endMillis)
           ..limit(batchSize)
           ..order('createTimestamp');
     return query.run().toList();
