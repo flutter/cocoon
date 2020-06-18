@@ -214,6 +214,8 @@ class Task extends Model {
       ..write(', stageName: $stageName')
       ..write(', status: $status')
       ..write(', buildNumber: $buildNumber')
+      ..write(', builderName: $builderName')
+      ..write(', luciPoolName: $luciPoolName')
       ..write(')');
     return buf.toString();
   }

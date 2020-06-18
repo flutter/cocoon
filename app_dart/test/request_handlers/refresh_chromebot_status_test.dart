@@ -121,7 +121,8 @@ void main() {
       expect(task.status, Task.statusNew);
     });
 
-    test('update task status and buildId when buildId is null', () async {
+    test('update task status and buildNumber when buildNumber is null',
+        () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task =
@@ -158,7 +159,8 @@ void main() {
       expect(task.buildNumber, 1);
     });
 
-    test('update task status when buildId matches one luci build', () async {
+    test('update task status when buildNumber matches one luci build',
+        () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(
@@ -196,7 +198,7 @@ void main() {
     });
 
     test(
-        'does not update task status when buildId does not match any luci build',
+        'does not update task status when buildNumber does not match any luci build',
         () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
