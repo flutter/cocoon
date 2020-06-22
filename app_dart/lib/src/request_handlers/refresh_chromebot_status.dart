@@ -50,21 +50,19 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Map<LuciBuilder, List<LuciTask>> luciTasks =
-        await luciService.getRecentTasks(
+    final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+        await luciService.getBranchRecentTasks(
       repo: 'flutter',
       requireTaskName: true,
     );
 
-    final List<String> branches = await config.flutterBranches;
-
-    for (LuciBuilder builder in luciTasks.keys) {
+    for (BranchLuciBuilder branchLuciBuilder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
         await _updateStatus(
-          builder,
-          branches,
+          branchLuciBuilder.luciBuilder,
+          branchLuciBuilder.branch,
           datastore,
-          luciTasks,
+          luciTasks[branchLuciBuilder],
         );
       });
     }
@@ -73,25 +71,38 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   /// Update chromebot tasks statuses in datastore for [builder],
   /// based on latest [luciTasks] statuses.
-  Future<void> _updateStatus(
-      LuciBuilder builder,
-      List<String> branches,
-      DatastoreService datastore,
-      Map<LuciBuilder, List<LuciTask>> luciTasks) async {
-    for (String branch in branches) {
-      await for (FullTask task in datastore.queryRecentTasks(
-          taskName: builder.taskName, branch: branch)) {
-        for (LuciTask luciTask in luciTasks[builder]) {
-          if (luciTask.commitSha == task.commit.sha &&
-              luciTask.ref == 'refs/heads/$branch') {
-            final Task update = task.task;
-            update.status = luciTask.status;
-            await datastore.insert(<Task>[update]);
-            // Stop updating task whenever we find the latest status of the same commit.
-            break;
-          }
+  Future<void> _updateStatus(LuciBuilder builder, String branch,
+      DatastoreService datastore, Map<String, List<LuciTask>> luciTasks) async {
+    final List<FullTask> datastoreTasks = await datastore
+        .queryRecentTasks(taskName: builder.taskName, branch: branch)
+        .toList();
+    final Set<LuciTask> updatedLuciTasks = <LuciTask>{};
+
+    /// Since [datastoreTasks] may contain new re-run builds which are not scheduled yet in luci,
+    /// there may not be a strict one-to-one mapping. Therefore we scan both [datastoreTasks]
+    /// and [luciTasks] from old to new. If matched, then update accordingly.
+    for (FullTask datastoreTask in datastoreTasks.reversed) {
+      if (!luciTasks.containsKey(datastoreTask.commit.sha)) {
+        continue;
+      }
+      for (LuciTask luciTask in luciTasks[datastoreTask.commit.sha].reversed) {
+        if (!updatedLuciTasks.contains(luciTask) &&
+            _buildNumberMatched(datastoreTask, luciTask)) {
+          final Task update = datastoreTask.task;
+          update.status = luciTask.status;
+          update.buildNumber = luciTask.buildNumber;
+          update.builderName = builder.name;
+          update.luciPoolName = 'luci.flutter.prod';
+          await datastore.insert(<Task>[update]);
+          updatedLuciTasks.add(luciTask);
+          break;
         }
       }
     }
+  }
+
+  bool _buildNumberMatched(FullTask task, LuciTask luciTask) {
+    return task.task.buildNumber == null ||
+        task.task.buildNumber == luciTask.buildNumber;
   }
 }

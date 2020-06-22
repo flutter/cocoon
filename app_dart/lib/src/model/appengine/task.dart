@@ -32,6 +32,9 @@ class Task extends Model {
     this.requiredCapabilities,
     this.reservedForAgentId = '',
     this.stageName,
+    this.buildNumber,
+    this.builderName,
+    this.luciPoolName,
     String status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -132,6 +135,21 @@ class Task extends Model {
   @JsonKey(name: 'Reason')
   String reason;
 
+  /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
+  @IntProperty(propertyName: 'BuildNumber')
+  @JsonKey(name: 'BuildNumber')
+  int buildNumber;
+
+  /// The builder name of luci build.
+  @StringProperty(propertyName: 'BuilderName')
+  @JsonKey(name: 'BuilderName')
+  String builderName;
+
+  /// The luci pool where the luci task runs.
+  @StringProperty(propertyName: 'LuciPoolName')
+  @JsonKey(name: 'LuciPoolName')
+  String luciPoolName;
+
   /// The list of capabilities that agents are required to have to run this
   /// task.
   ///
@@ -195,6 +213,9 @@ class Task extends Model {
       ..write(', reservedForAgentId: $reservedForAgentId')
       ..write(', stageName: $stageName')
       ..write(', status: $status')
+      ..write(', buildNumber: $buildNumber')
+      ..write(', builderName: $builderName')
+      ..write(', luciPoolName: $luciPoolName')
       ..write(')');
     return buf.toString();
   }
@@ -235,4 +256,85 @@ class FullTask {
 
   ///  The [Commit] object references by this [task]'s [Task.commitKey].
   final Commit commit;
+}
+
+class DatastoreLuciTask extends Task {
+  DatastoreLuciTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name,
+    int attempts = 0,
+    String stageName = 'chromebot',
+    String status = Task.statusNew,
+    int buildNumber,
+    String builderName,
+    String luciPoolName,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            stageName: stageName,
+            status: status,
+            buildNumber: buildNumber,
+            builderName: builderName,
+            luciPoolName: luciPoolName);
+}
+
+class DatastoreCirrusTask extends Task {
+  DatastoreCirrusTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name = 'cirrus',
+    int attempts = 0,
+    String stageName = 'cirrus',
+    String status = Task.statusNew,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            stageName: stageName,
+            status: status);
+}
+
+class DeviceLabTask extends Task {
+  DeviceLabTask({
+    Key key,
+    Key commitKey,
+    int createTimestamp,
+    int startTimestamp = 0,
+    int endTimestamp = 0,
+    String name,
+    int attempts = 0,
+    bool isFlaky,
+    int timeoutInMinutes = 0,
+    List<String> requiredCapabilities,
+    String stageName,
+    String status = Task.statusNew,
+  }) : super(
+            key: key,
+            commitKey: commitKey,
+            createTimestamp: createTimestamp,
+            startTimestamp: startTimestamp,
+            endTimestamp: endTimestamp,
+            name: name,
+            attempts: attempts,
+            isFlaky: isFlaky,
+            timeoutInMinutes: timeoutInMinutes,
+            requiredCapabilities: requiredCapabilities,
+            stageName: stageName,
+            status: status);
 }

@@ -114,7 +114,8 @@ void main() {
           const LuciTask(
               commitSha: 'abc',
               ref: 'refs/heads/master',
-              status: Task.statusFailed)
+              status: Task.statusFailed,
+              buildNumber: 1)
         ],
       );
       when(mockLuciService.getRecentTasks(repo: 'engine'))
