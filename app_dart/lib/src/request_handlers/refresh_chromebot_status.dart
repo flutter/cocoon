@@ -78,9 +78,9 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         .toList();
     final Set<LuciTask> updatedLuciTasks = <LuciTask>{};
 
-    /// Scan both [datastoreTasks] and [luciTasks] from old to new, since [luciTasks] may
-    /// contain new re-run builds which are not in datastore yet. If matched, then
-    /// update accordingly.
+    /// Since [datastoreTasks] may contain new re-run builds which are not scheduled yet in luci,
+    /// there may not be a strict one-to-one mapping. Therefore we scan both [datastoreTasks]
+    /// and [luciTasks] from old to new. If matched, then update accordingly.
     for (FullTask datastoreTask in datastoreTasks.reversed) {
       if (!luciTasks.containsKey(datastoreTask.commit.sha)) {
         continue;
