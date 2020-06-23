@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -41,7 +40,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
     final int maxRetries = config.maxTaskRetries;
     final DatastoreService datastore = datastoreProvider(config.db);
     final List<Task> tasks = await datastore
-        .queryRecentTasks(commitLimit: config.commitNumber)
+        .queryRecentTasksNoBranch(commitLimit: config.commitNumber)
         .map<Task>((FullTask fullTask) => fullTask.task)
         .where(shouldBeVacuumCleaned)
         .toList();
@@ -58,23 +57,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
       }
     }
 
-    /// Partition the tasks into buckets grouped by parent commit.
-    final Map<Key, List<Task>> updatesByCommit =
-        tasks.fold<Map<Key, List<Task>>>(
-      <Key, List<Task>>{},
-      (Map<Key, List<Task>> map, Task task) {
-        map[task.commitKey] ??= <Task>[];
-        map[task.commitKey].add(task);
-        return map;
-      },
-    );
-
-    /// Update the tasks in batches, taking care not to overload the datastore.
-    final List<List<Task>> updates = updatesByCommit.values.toList();
-    log.debug('Partitioned updated into ${updates.length} buckets');
-    for (List<Task> update in updates) {
-      await datastore.insert(update);
-    }
+    await datastore.insert(tasks);
     return Body.empty;
   }
 
