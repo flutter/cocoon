@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
@@ -84,6 +85,25 @@ void main() {
         // Results from two branches
         commits = await datastoreService.queryRecentCommitsNoBranch().toList();
         expect(commits, hasLength(2));
+      });
+
+      test('QueryRecentTasksNoBranch - release branch', () async {
+        final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'abc'),
+            branch: 'release');
+        config.db.values[commit.key] = commit;
+        final Task task = Task(
+            key: commit.key.append(Task, id: 123),
+            commitKey: commit.key,
+            attempts: 1,
+            status: Task.statusInProgress,
+            startTimestamp: DateTime.now().millisecondsSinceEpoch);
+        db.values[task.key] = task;
+        final List<FullTask> fullTasks =
+            await datastoreService.queryRecentTasksNoBranch().toList();
+        expect(fullTasks, hasLength(1));
+        expect(fullTasks[0].commit.branch, 'release');
+        expect(fullTasks[0].task.id, 123);
       });
     });
 
