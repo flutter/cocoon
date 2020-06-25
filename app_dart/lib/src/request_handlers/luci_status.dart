@@ -81,6 +81,12 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final RepositorySlug slug = await config.repoNameForBuilder(builderName);
 
     const String shaPrefix = 'sha/git/';
+    log.debug('Available tags: ${build.tags.toString()}');
+    // Skip status update if we can not get the sha tag.
+    if (build.tagsByName('buildset').isEmpty) {
+      log.warning('Buildset tag not included, skipping Status Updates');
+      return Body.empty;
+    }
     final String sha = build
         .tagsByName('buildset')
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
