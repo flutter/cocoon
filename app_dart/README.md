@@ -6,7 +6,9 @@ This folder contains a Dart based backend for Cocoon.
 
 ### Running the tests
 
-`pub run test`
+```sh
+pub run test
+```
 
 ### Running codegen
 
