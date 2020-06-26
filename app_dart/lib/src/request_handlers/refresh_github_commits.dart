@@ -131,7 +131,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
               'Committed ${tasks.length} new tasks for commit ${commit.sha}');
         });
       } catch (error) {
-        log.error('Failed to add commit ${commit.sha}: $error');
+        log.warning('Failed to add commit ${commit.sha}: $error');
       }
     }
 
