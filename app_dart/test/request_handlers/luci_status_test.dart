@@ -394,4 +394,16 @@ void main() {
           '{"state":"success","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Host Engine","context":"Linux Host Engine"}'),
     );
   });
+
+  test('Requests without buildset skip status updates', () async {
+    request.bodyBytes = utf8.encode(pushMessageJsonNoBuildset(
+      'COMPLETED',
+      result: 'SUCCESS',
+      builderName: 'Linux Host Engine',
+    )) as Uint8List;
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+
+    await tester.post(handler);
+    verifyNever(mockRepositoriesService.createStatus(any, any, any));
+  });
 }
