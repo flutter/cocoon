@@ -196,8 +196,8 @@ void main() {
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
           <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
     });
 
     test('retries manifest download upon HTTP failure', () async {
