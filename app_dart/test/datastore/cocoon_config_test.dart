@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -26,6 +28,31 @@ void main() {
       final RepositorySlug result = await config.repoNameForBuilder('Cocoon');
       expect(result, isNotNull);
       expect(result.fullName, equals('flutter/cocoon'));
+    });
+  });
+  group('githubAppInstallations', () {
+    FakeDatastoreDB datastore;
+    CacheService cacheService;
+    Config config;
+    setUp(() {
+      datastore = FakeDatastoreDB();
+      cacheService = CacheService(inMemory: true);
+      config = Config(datastore, cacheService);
+    });
+    test('Builder config does not exist', () async {
+      const String configValue =
+          '{"godofredoc/cocoon":{"installation_id":"123"}}';
+      final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
+
+      await cacheService.set(
+        'config',
+        'githubapp_installations',
+        cachedValue,
+      );
+      final Map<String, dynamic> installation =
+          await config.githubAppInstallations;
+      expect(
+          installation['godofredoc/cocoon']['installation_id'], equals('123'));
     });
   });
 }

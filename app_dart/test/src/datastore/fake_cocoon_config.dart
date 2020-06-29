@@ -86,7 +86,8 @@ class FakeConfig implements Config {
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
 
   @override
-  Future<GitHub> createGitHubClient() async => githubClient;
+  Future<GitHub> createGitHubClient(String owner, String repository) async =>
+      githubClient;
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async =>
@@ -101,7 +102,9 @@ class FakeConfig implements Config {
       tabledataResourceApi;
 
   @override
-  Future<GithubService> createGithubService() async => githubService;
+  Future<GithubService> createGithubService(
+          String owner, String repository) async =>
+      githubService;
 
   @override
   FakeDatastoreDB get db => dbValue;
@@ -201,4 +204,27 @@ class FakeConfig implements Config {
     }
     return RepositorySlug('flutter', name);
   }
+
+  @override
+  Future<String> generateGithubToken(String user, String repository) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> generateJKT() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> get githubAppId => throw UnimplementedError();
+
+  @override
+  Future<Map<String, dynamic>> get githubAppInstallations =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> get githubPrivateKey => throw UnimplementedError();
+
+  @override
+  Future<String> get githubPublicKey => throw UnimplementedError();
 }

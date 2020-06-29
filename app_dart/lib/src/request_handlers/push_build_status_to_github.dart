@@ -51,15 +51,16 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider(config.db);
-    final GithubService githubService = await config.createGithubService();
     final BuildStatusService buildStatusService =
         buildStatusServiceProvider(datastore);
+    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+    final GithubService githubService =
+        await config.createGithubService(slug.owner, slug.name);
+
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
     }
-
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
     for (String branch in await config.flutterBranches) {

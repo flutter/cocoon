@@ -107,7 +107,7 @@ class GithubWebhook extends RequestHandler<Body> {
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
         if (pr.merged) {
-          await _checkForGoldenTriage(eventAction, pr, pr.labels);
+          await _checkForGoldenTriage(pullRequestEvent);
         } else {
           await luciBuildService.cancelBuilds(
             pr.head.repo.name,
@@ -120,13 +120,13 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'edited':
         // Editing a PR should not trigger new jobs, but may update whether
         // it has tests.
-        await _checkForLabelsAndTests(eventAction, pr);
+        await _checkForLabelsAndTests(pullRequestEvent);
         break;
       case 'opened':
       case 'ready_for_review':
       case 'reopened':
         // These cases should trigger LUCI jobs.
-        await _checkForLabelsAndTests(eventAction, pr);
+        await _checkForLabelsAndTests(pullRequestEvent);
         await _scheduleIfMergeable(pr);
         break;
       case 'labeled':
@@ -236,14 +236,14 @@ class GithubWebhook extends RequestHandler<Body> {
     return ignored;
   }
 
-  Future<void> _checkForGoldenTriage(
-    String eventAction,
-    PullRequest pr,
-    List<IssueLabel> labels,
-  ) async {
+  Future<void> _checkForGoldenTriage(PullRequestEvent pullRequestEvent) async {
+    final PullRequest pr = pullRequestEvent.pullRequest;
+    final String eventAction = pullRequestEvent.action;
+    final RepositorySlug slug = pullRequestEvent.repository.slug();
     if (kNeedsCheckGoldenTriage.contains(pr.base.repo.fullName.toLowerCase()) &&
         await _isIgnoredForGold(eventAction, pr)) {
-      final GitHub gitHubClient = await config.createGitHubClient();
+      final GitHub gitHubClient =
+          await config.createGitHubClient(slug.owner, slug.name);
       try {
         await _pingForTriage(gitHubClient, pr);
       } finally {
@@ -259,12 +259,14 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<void> _checkForLabelsAndTests(
-    String eventAction,
-    PullRequest pr,
-  ) async {
+      PullRequestEvent pullRequestEvent) async {
+    final PullRequest pr = pullRequestEvent.pullRequest;
+    final String eventAction = pullRequestEvent.action;
+    final RepositorySlug slug = pullRequestEvent.repository.slug();
     final String repo = pr.base.repo.fullName.toLowerCase();
     if (kNeedsCheckLabelsAndTests.contains(repo)) {
-      final GitHub gitHubClient = await config.createGitHubClient();
+      final GitHub gitHubClient =
+          await config.createGitHubClient(slug.owner, slug.name);
       try {
         await _checkBaseRef(gitHubClient, pr);
         if (repo == 'flutter/flutter') {
