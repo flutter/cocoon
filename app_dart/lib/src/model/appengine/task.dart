@@ -142,7 +142,7 @@ class Task extends Model {
   int buildNumber;
 
   /// The build number list (reruns) of luci build.
-  @StringProperty(propertyName: 'BuildNumber')
+  @StringProperty(propertyName: 'BuildNumberList')
   @JsonKey(name: 'BuildNumberList')
   String buildNumberList;
 
