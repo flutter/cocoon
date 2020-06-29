@@ -71,38 +71,36 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   /// Update chromebot tasks statuses in datastore for [builder],
   /// based on latest [luciTasks] statuses.
-  Future<void> _updateStatus(LuciBuilder builder, String branch,
-      DatastoreService datastore, Map<String, List<LuciTask>> luciTasks) async {
+  Future<void> _updateStatus(
+      LuciBuilder builder,
+      String branch,
+      DatastoreService datastore,
+      Map<String, List<LuciTask>> luciTasksMap) async {
     final List<FullTask> datastoreTasks = await datastore
         .queryRecentTasks(taskName: builder.taskName, branch: branch)
         .toList();
-    final Set<LuciTask> updatedLuciTasks = <LuciTask>{};
 
-    /// Since [datastoreTasks] may contain new re-run builds which are not scheduled yet in luci,
-    /// there may not be a strict one-to-one mapping. Therefore we scan both [datastoreTasks]
-    /// and [luciTasks] from old to new. If matched, then update accordingly.
-    for (FullTask datastoreTask in datastoreTasks.reversed) {
-      if (!luciTasks.containsKey(datastoreTask.commit.sha)) {
-        continue;
-      }
-      for (LuciTask luciTask in luciTasks[datastoreTask.commit.sha].reversed) {
-        if (!updatedLuciTasks.contains(luciTask) &&
-            _buildNumberMatched(datastoreTask, luciTask)) {
+    /// Update [devicelabTask] when first [luciTask] run finishes. There may be
+    /// reruns for the same commit and same builder. Update [devicelabTask]
+    /// [builderNumberList] when luci rerun happens, and update [devicelabTask]
+    /// status when the status of latest luci run changes.
+    for (FullTask datastoreTask in datastoreTasks) {
+      if (luciTasksMap.containsKey(datastoreTask.commit.sha)) {
+        final List<LuciTask> luciTasks = luciTasksMap[datastoreTask.commit.sha];
+        final String buildNumberList = luciTasks.reversed
+            .map((LuciTask luciTask) => luciTask.buildNumber.toString())
+            .toList()
+            .join(',');
+        if (buildNumberList != datastoreTask.task.buildNumberList ||
+            luciTasks.last.status != datastoreTask.task.status) {
           final Task update = datastoreTask.task;
-          update.status = luciTask.status;
-          update.buildNumber = luciTask.buildNumber;
+          update.status = luciTasks.first.status;
+          update.buildNumberList = buildNumberList;
           update.builderName = builder.name;
           update.luciPoolName = 'luci.flutter.prod';
           await datastore.insert(<Task>[update]);
-          updatedLuciTasks.add(luciTask);
-          break;
         }
       }
     }
-  }
-
-  bool _buildNumberMatched(FullTask task, LuciTask luciTask) {
-    return task.task.buildNumber == null ||
-        task.task.buildNumber == luciTask.buildNumber;
   }
 }
