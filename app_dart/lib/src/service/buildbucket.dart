@@ -12,6 +12,7 @@ import '../model/luci/buildbucket.dart';
 import '../request_handling/body.dart';
 import 'access_token_provider.dart';
 
+
 /// A client interface to LUCI BuildBucket
 @immutable
 class BuildBucketClient {
