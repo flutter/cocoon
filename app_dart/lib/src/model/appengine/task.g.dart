@@ -19,6 +19,7 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'TimeoutInMinutes': instance.timeoutInMinutes,
       'Reason': instance.reason,
       'BuildNumber': instance.buildNumber,
+      'BuildNumberList': instance.buildNumberList,
       'BuilderName': instance.builderName,
       'LuciPoolName': instance.luciPoolName,
       'RequiredCapabilities': instance.requiredCapabilities,

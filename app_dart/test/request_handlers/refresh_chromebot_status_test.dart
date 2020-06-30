@@ -121,7 +121,8 @@ void main() {
       expect(task.status, Task.statusNew);
     });
 
-    test('update task status and buildNumber when buildNumber is null',
+    test(
+        'update task status and buildNumber when buildNumberList does not match',
         () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
@@ -153,20 +154,20 @@ void main() {
       });
 
       expect(task.status, Task.statusNew);
-      expect(task.buildNumber, isNull);
+      expect(task.buildNumberList, isNull);
       await tester.get(handler);
       expect(task.status, Task.statusSucceeded);
-      expect(task.buildNumber, 1);
+      expect(task.buildNumberList, '1');
     });
 
-    test('update task status when buildNumber matches one luci build',
+    test('update task status and buildNumber when status does not match',
         () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(
           key: commit.key.append(Task, id: 123),
           status: Task.statusNew,
-          buildNumber: 1);
+          buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -197,15 +198,14 @@ void main() {
       expect(task.status, Task.statusSucceeded);
     });
 
-    test(
-        'does not update task status when buildNumber does not match any luci build',
+    test('update task status with latest status when multilple reruns exist',
         () async {
       final Commit commit =
           Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(
           key: commit.key.append(Task, id: 123),
           status: Task.statusNew,
-          buildNumber: 1);
+          buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -220,50 +220,12 @@ void main() {
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusSucceeded,
-                          buildNumber: 2)
-                    ],
-                  });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
-          .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
-      });
-
-      expect(task.status, Task.statusNew);
-      await tester.get(handler);
-      expect(task.status, Task.statusNew);
-    });
-
-    // Note here the first matched luci build is in the reverse order: from old to new.
-    test(
-        'update task status with first matched luci build when multiple luci builds match',
-        () async {
-      final Commit commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task =
-          Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
-      config.db.values[commit.key] = commit;
-      config.db.values[task.key] = task;
-
-      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
-              value: (dynamic builder) => <String, List<LuciTask>>{
-                    'abc': <LuciTask>[
-                      const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1),
+                          buildNumber: 2),
                       const LuciTask(
                           commitSha: 'abc',
                           ref: 'refs/heads/master',
                           status: Task.statusFailed,
-                          buildNumber: 2)
+                          buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(
@@ -276,7 +238,8 @@ void main() {
 
       expect(task.status, Task.statusNew);
       await tester.get(handler);
-      expect(task.status, Task.statusFailed);
+      expect(task.status, Task.statusSucceeded);
+      expect(task.buildNumberList, '1,2');
     });
 
     test('update task status for non master branch', () async {

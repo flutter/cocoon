@@ -33,6 +33,7 @@ class Task extends Model {
     this.reservedForAgentId = '',
     this.stageName,
     this.buildNumber,
+    this.buildNumberList,
     this.builderName,
     this.luciPoolName,
     String status,
@@ -140,6 +141,16 @@ class Task extends Model {
   @JsonKey(name: 'BuildNumber')
   int buildNumber;
 
+  /// The build number list of luci builds: comma joined string of
+  /// different build numbers.
+  ///
+  /// For the case with single run 123, [buildNumberList] = '123';
+  /// For the case with multiple reruns 123, 456, 789,
+  /// [buildNumberList] = '123,456,789'.
+  @StringProperty(propertyName: 'BuildNumberList')
+  @JsonKey(name: 'BuildNumberList')
+  String buildNumberList;
+
   /// The builder name of luci build.
   @StringProperty(propertyName: 'BuilderName')
   @JsonKey(name: 'BuilderName')
@@ -214,6 +225,7 @@ class Task extends Model {
       ..write(', stageName: $stageName')
       ..write(', status: $status')
       ..write(', buildNumber: $buildNumber')
+      ..write(', buildNumberList: $buildNumberList')
       ..write(', builderName: $builderName')
       ..write(', luciPoolName: $luciPoolName')
       ..write(')');
