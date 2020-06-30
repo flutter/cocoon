@@ -102,7 +102,7 @@ https://console.cloud.google.com/appengine/versions?project=flutter-dashboard
 for the list of current versions.
 
 ```sh
-$ dart dev/deploy.dart --project version-$(git rev-parse --short HEAD) --version VERSION
+$ dart dev/deploy.dart --version version-$(git rev-parse --short HEAD) --project flutter-dashboard
 ```
 
 The deploy script will build the Flutter project and copy it over for deployment.
