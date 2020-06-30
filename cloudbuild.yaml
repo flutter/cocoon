@@ -6,4 +6,8 @@ steps:
   args:
   - -exc
   - |
+    git clone 'https://github.com/flutter/flutter.git' tmp
+    export PATH="$PATH:tmp/flutter/bin"
+    flutter --version
     git clone 'https://github.com/flutter/cocoon.git' tmp
+
