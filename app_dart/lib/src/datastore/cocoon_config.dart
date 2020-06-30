@@ -344,7 +344,7 @@ class Config {
         },
       ];
 
-  Future<String> generateJKT() async {
+  Future<String> generateJsonWebToken() async {
     final String privateKey = await githubPrivateKey;
     final String publicKey = await githubPublicKey;
     final JWTBuilder builder = JWTBuilder();
@@ -363,7 +363,7 @@ class Config {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String appInstallation =
         appInstallations['$owner/$repository']['installation_id'] as String;
-    final String jwt = await generateJKT();
+    final String jwt = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json'

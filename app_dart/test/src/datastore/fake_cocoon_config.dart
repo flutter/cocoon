@@ -211,7 +211,7 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<String> generateJKT() {
+  Future<String> generateJsonWebToken() {
     throw UnimplementedError();
   }
 
