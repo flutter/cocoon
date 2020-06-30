@@ -1,0 +1,9 @@
+steps:
+
+- id: Initialize git
+  name: gcr.io/cloud-builders/git
+  entrypoint: /bin/bash
+  args:
+  - -exc
+  - |
+    git clone 'https://github.com/flutter/cocoon.git' tmp
