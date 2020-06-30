@@ -363,9 +363,9 @@ class Config {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
     final String appInstallation =
         appInstallations['$owner/$repository']['installation_id'] as String;
-    final String jwt = await generateJsonWebToken();
+    final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
-      'Authorization': 'Bearer $jwt',
+      'Authorization': 'Bearer $jsonWebToken',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
     final http.Response response = await http.post(
