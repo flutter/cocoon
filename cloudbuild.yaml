@@ -10,5 +10,3 @@ steps:
 - name: gcr.io/cloud-builders/gcloud
   args: ['app', 'deploy', '--project', 'tvolkert-test', '--version', 'testkeyonghan', '--no-promote', '--no-stop-previous-version']
 
-
-  
