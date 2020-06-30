@@ -1,13 +1,12 @@
 steps:
 
-- name: 'ubuntu'
-  args: ['apt-get', 'install', '-y', 'unzip']
-
 - name: gcr.io/cloud-builders/git
   entrypoint: /bin/bash
   args:
   - -exc
   - |
     git clone 'https://github.com/flutter/flutter.git' tmp
-    tmp/bin/flutter --version
+
+- name: gcr.io/cloud-builders/gcloud
+  args: ['app', 'deploy', '--project', 'tvolkert-test', '--version', 'testkeyonghan', '--no-promote', '--no-stop-previous-version']
 
