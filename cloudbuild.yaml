@@ -6,6 +6,7 @@ steps:
   args:
   - -exc
   - |
+    sudo apt-get install unzip
     git clone 'https://github.com/flutter/flutter.git' tmp
     tmp/bin/flutter --version
 
