@@ -142,10 +142,10 @@ class Task extends Model {
   int buildNumber;
 
   /// The build number list of luci builds: comma joined string of
-  /// different build numbers. 
-  /// 
+  /// different build numbers.
+  ///
   /// For the case with single run 123, [buildNumberList] = '123';
-  /// For the case with multiple reruns 123, 456, 789, 
+  /// For the case with multiple reruns 123, 456, 789,
   /// [buildNumberList] = '123,456,789'.
   @StringProperty(propertyName: 'BuildNumberList')
   @JsonKey(name: 'BuildNumberList')
