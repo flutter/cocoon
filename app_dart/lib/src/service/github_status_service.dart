@@ -25,7 +25,8 @@ class GithubStatusService {
     String commitSha,
     RepositorySlug slug,
   ) async {
-    final GitHub gitHubClient = await config.createGitHubClient();
+    final GitHub gitHubClient =
+        await config.createGitHubClient(slug.owner, slug.name);
     final String repositoryName = slug.name;
     final Map<String, bb.Build> builds = await luciBuildService
         .buildsForRepositoryAndPr(repositoryName, prNumber, commitSha);
@@ -57,7 +58,8 @@ class GithubStatusService {
     if (await config.repoNameForBuilder(builderName) == null) {
       return false;
     }
-    final GitHub gitHubClient = await config.createGitHubClient();
+    final GitHub gitHubClient =
+        await config.createGitHubClient(slug.owner, slug.name);
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
@@ -103,7 +105,8 @@ class GithubStatusService {
     if (slug == null) {
       return;
     }
-    final GitHub gitHubClient = await config.createGitHubClient();
+    final GitHub gitHubClient =
+        await config.createGitHubClient(slug.owner, slug.name);
     final CreateStatus status = statusForResult(result)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'

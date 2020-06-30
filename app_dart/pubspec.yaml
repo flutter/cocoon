@@ -28,6 +28,7 @@ dependencies:
   neat_cache: ^1.0.1
   protobuf: ^1.0.0
   yaml: ^2.1.16
+  corsac_jwt: ^0.2.2
 
 dev_dependencies:
   build_runner: ^1.0.0

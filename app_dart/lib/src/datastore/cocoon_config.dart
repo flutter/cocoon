@@ -6,13 +6,16 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/service_scope.dart' as ss;
+import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart' as bigquery;
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
-import 'package:googleapis/bigquery/v2.dart' as bigquery;
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/utils.dart';
@@ -76,6 +79,17 @@ class Config {
         await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
 
     return Uint8List.fromList(result.value.codeUnits);
+  }
+
+  // GitHub App properties.
+  Future<String> get githubPrivateKey =>
+      _getSingleValue('githubapp_private_pem');
+  Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
+  Future<String> get githubAppId => _getSingleValue('githubapp_id');
+  Future<Map<String, dynamic>> get githubAppInstallations async {
+    final String installations =
+        await _getSingleValue('githubapp_installations');
+    return jsonDecode(installations) as Map<String, dynamic>;
   }
 
   DatastoreDB get db => _db;
@@ -330,8 +344,46 @@ class Config {
         },
       ];
 
-  Future<GitHub> createGitHubClient() async {
-    final String githubToken = await githubOAuthToken;
+  Future<String> generateJsonWebToken() async {
+    final String privateKey = await githubPrivateKey;
+    final String publicKey = await githubPublicKey;
+    final JWTBuilder builder = JWTBuilder();
+    final DateTime now = DateTime.now();
+    builder
+      ..issuer = await githubAppId
+      ..issuedAt = now
+      ..expiresAt = now.add(const Duration(minutes: 10));
+    final JWTRsaSha256Signer signer =
+        JWTRsaSha256Signer(privateKey: privateKey, publicKey: publicKey);
+    final JWT signedToken = builder.getSignedToken(signer);
+    return signedToken.toString();
+  }
+
+  Future<String> generateGithubToken(String owner, String repository) async {
+    final Map<String, dynamic> appInstallations = await githubAppInstallations;
+    final String appInstallation =
+        appInstallations['$owner/$repository']['installation_id'] as String;
+    final String jsonWebToken = await generateJsonWebToken();
+    final Map<String, String> headers = <String, String>{
+      'Authorization': 'Bearer $jsonWebToken',
+      'Accept': 'application/vnd.github.machine-man-preview+json'
+    };
+    final http.Response response = await http.post(
+        'https://api.github.com/app/installations/$appInstallation/access_tokens',
+        headers: headers);
+    final Map<String, dynamic> jsonBody =
+        jsonDecode(response.body) as Map<String, dynamic>;
+    return jsonBody['token'] as String;
+  }
+
+  Future<GitHub> createGitHubClient(String owner, String repository) async {
+    final Map<String, dynamic> appInstallations = await githubAppInstallations;
+    String githubToken;
+    if (appInstallations.containsKey('$owner/$repository')) {
+      githubToken = await generateGithubToken(owner, repository);
+    } else {
+      githubToken = await githubOAuthToken;
+    }
     return GitHub(auth: Authentication.withToken(githubToken));
   }
 
@@ -373,8 +425,9 @@ class Config {
     return await BigqueryService(accessClientProvider).defaultTabledata();
   }
 
-  Future<GithubService> createGithubService() async {
-    final GitHub github = await createGitHubClient();
+  Future<GithubService> createGithubService(
+      String owner, String repository) async {
+    final GitHub github = await createGitHubClient(owner, repository);
     return GithubService(github);
   }
 

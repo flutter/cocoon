@@ -55,7 +55,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GithubService githubService = await config.createGithubService();
+    final GithubService githubService =
+        await config.createGithubService(slug.owner, slug.name);
     final DatastoreService datastore = datastoreProvider(config.db);
 
     for (String branch in await config.flutterBranches) {
