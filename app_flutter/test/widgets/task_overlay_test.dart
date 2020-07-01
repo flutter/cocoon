@@ -12,6 +12,7 @@ import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Ta
 
 import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/state/build.dart';
+import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
@@ -285,6 +286,28 @@ void main() {
     await tester.pump();
 
     expect(find.byType(TaskAttemptSummary), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TestGrid(
+            task: Task()
+              ..stageName = 'chromebot'
+              ..status = 'Succeeded'
+              ..buildNumberList = '123',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(LuciTaskAttemptSummary), findsNothing);
+
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
   testWidgets('TaskOverlay does not show TaskAttemptSummary for tasks outside of devicelab',

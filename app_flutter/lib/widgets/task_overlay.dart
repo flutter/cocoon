@@ -10,6 +10,7 @@ import 'package:cocoon_service/protos.dart' show Commit, Task;
 import '../agent_dashboard_page.dart';
 import '../logic/qualified_task.dart';
 import '../state/build.dart';
+import 'luci_task_attempt_summary.dart';
 import 'progress_button.dart';
 import 'task_attempt_summary.dart';
 import 'task_box.dart';
@@ -210,6 +211,7 @@ class TaskOverlayContents extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
                           if (QualifiedTask.fromTask(task).isDevicelab) TaskAttemptSummary(task: task),
+                          if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
                       ),
                     ),
