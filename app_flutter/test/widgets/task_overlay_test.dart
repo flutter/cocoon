@@ -83,7 +83,8 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_closed.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_closed.png'));
 
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
@@ -92,7 +93,8 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsOneWidget);
     expect(find.text('SHOW ${expectedTask.reservedForAgentId}'), findsOneWidget);
 
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_open.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_open.png'));
 
     // Since the overlay positions itself below the middle of the widget,
     // it is safe to click the widget to close it again.
@@ -103,7 +105,8 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_closed.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.normal_overlay_closed.png'));
   });
 
   testWidgets('TaskOverlay shows when flaky is true', (WidgetTester tester) async {
@@ -135,7 +138,8 @@ void main() {
     expect(find.text(flakyTaskInfoString), findsNothing);
     expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.flaky_overlay_closed.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.flaky_overlay_closed.png'));
 
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
@@ -144,7 +148,8 @@ void main() {
     expect(find.text(flakyTaskInfoString), findsOneWidget);
     expect(find.text('SHOW ${flakyTask.reservedForAgentId}'), findsOneWidget);
 
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.flaky_overlay_open.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.flaky_overlay_open.png'));
   });
 
   testWidgets('TaskOverlay computes durations correctly', (WidgetTester tester) async {
@@ -249,13 +254,15 @@ void main() {
     );
 
     expect(find.text(expectedTaskInfoString), findsNothing);
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_closed.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_closed.png'));
 
     await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTaskInfoString), findsOneWidget);
-    await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_open.png'));
+    // TODO(chillers): Fix flakiness of precacheTaskIcons. https://github.com/flutter/flutter/issues/58833
+    // await expectLater(find.byType(MaterialApp), matchesGoldenFile('task_overlay_test.nondevicelab_open.png'));
   });
 
   testWidgets('TaskOverlay shows TaskAttemptSummary for devicelab tasks', (WidgetTester tester) async {
