@@ -17,8 +17,7 @@ class StageName {
 }
 
 /// Base URLs for various endpoints that can relate to a [Task].
-const String _flutterGithubSourceUrl =
-    'https://github.com/flutter/flutter/blob/master';
+const String _flutterGithubSourceUrl = 'https://github.com/flutter/flutter/blob/master';
 const String _flutterDashboardUrl = 'https://flutter-dashboard.appspot.com';
 const String _cirrusUrl = 'https://cirrus-ci.com/github/flutter/flutter';
 const String _cirrusLogUrl = 'https://cirrus-ci.com/build/flutter/flutter';

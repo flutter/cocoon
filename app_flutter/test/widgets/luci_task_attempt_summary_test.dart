@@ -12,8 +12,7 @@ import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 
 void main() {
   group('LuciTaskAttemptSummary', () {
-    testWidgets('shows nothing for 0 attempts - when buildNumberList is empty',
-        (WidgetTester tester) async {
+    testWidgets('shows nothing for 0 attempts - when buildNumberList is empty', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -29,8 +28,7 @@ void main() {
       expect(find.byType(RaisedButton), findsNothing);
     });
 
-    testWidgets('shows only 1 button for 1 attempt',
-        (WidgetTester tester) async {
+    testWidgets('shows only 1 button for 1 attempt', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -47,8 +45,7 @@ void main() {
       expect(find.text('OPEN LOG FOR BUILD #123'), findsOneWidget);
     });
 
-    testWidgets('shows multiple buttons for multiple attempts',
-        (WidgetTester tester) async {
+    testWidgets('shows multiple buttons for multiple attempts', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Column(
@@ -67,8 +64,7 @@ void main() {
     });
 
     testWidgets('opens expected luci log url', (WidgetTester tester) async {
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);
@@ -108,10 +104,8 @@ void main() {
       );
     });
 
-    testWidgets('opens expected luci log url for when there are multiple tasks',
-        (WidgetTester tester) async {
-      const MethodChannel channel =
-          MethodChannel('plugins.flutter.io/url_launcher');
+    testWidgets('opens expected luci log url for when there are multiple tasks', (WidgetTester tester) async {
+      const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       channel.setMockMethodCallHandler((MethodCall methodCall) async {
         log.add(methodCall);

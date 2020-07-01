@@ -140,8 +140,7 @@ class TaskOverlayContents extends StatelessWidget {
   @visibleForTesting
   static const String rerunErrorMessage = 'Failed to rerun task.';
   @visibleForTesting
-  static const String rerunSuccessMessage =
-      'Devicelab is rerunning the task. This can take a minute to propagate.';
+  static const String rerunSuccessMessage = 'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
   static const Duration rerunSnackBarDuration = Duration(seconds: 15);
   @visibleForTesting
@@ -154,25 +153,18 @@ class TaskOverlayContents extends StatelessWidget {
   static const Map<String, Icon> statusIcon = <String, Icon>{
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress:
-        Icon(Icons.autorenew, color: Colors.blue, size: 32),
-    TaskBox.statusSucceeded:
-        Icon(Icons.check_circle, color: Colors.green, size: 32),
+    TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
     TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
-    TaskBox.statusUnderperformed:
-        Icon(Icons.new_releases, color: Colors.orange, size: 32),
-    TaskBox.statusUnderperformedInProgress:
-        Icon(Icons.autorenew, color: Colors.orange, size: 32),
+    TaskBox.statusUnderperformed: Icon(Icons.new_releases, color: Colors.orange, size: 32),
+    TaskBox.statusUnderperformedInProgress: Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
   @override
   Widget build(BuildContext context) {
-    final DateTime createTime =
-        DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
-    final DateTime startTime =
-        DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
-    final DateTime endTime =
-        DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
+    final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
+    final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
+    final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
     final Duration queueDuration = startTime.difference(createTime);
     final Duration runDuration = endTime.difference(startTime);
@@ -194,8 +186,7 @@ class TaskOverlayContents extends StatelessWidget {
                     Tooltip(
                       message: taskStatus,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                            left: 8.0, top: 10.0, right: 12.0),
+                        padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
                         child: statusIcon[taskStatus],
                       ),
                     ),
@@ -219,10 +210,8 @@ class TaskOverlayContents extends StatelessWidget {
                               'Task was run outside of devicelab',
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
-                          if (QualifiedTask.fromTask(task).isDevicelab)
-                            TaskAttemptSummary(task: task),
-                          if (QualifiedTask.fromTask(task).isLuci)
-                            LuciTaskAttemptSummary(task: task),
+                          if (QualifiedTask.fromTask(task).isDevicelab) TaskAttemptSummary(task: task),
+                          if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
                       ),
                     ),
@@ -240,8 +229,7 @@ class TaskOverlayContents extends StatelessWidget {
                           children: <TextSpan>[
                             TextSpan(
                               text: task.reservedForAgentId,
-                              style:
-                                  const TextStyle(fontStyle: FontStyle.italic),
+                              style: const TextStyle(fontStyle: FontStyle.italic),
                             ),
                           ],
                         ),
@@ -284,9 +272,7 @@ class TaskOverlayContents extends StatelessWidget {
 
   Future<void> _rerunTask() async {
     final bool success = await buildState.rerunTask(task);
-    final Text snackBarText = success
-        ? const Text(rerunSuccessMessage)
-        : const Text(rerunErrorMessage);
+    final Text snackBarText = success ? const Text(rerunSuccessMessage) : const Text(rerunErrorMessage);
     showSnackBarCallback(
       SnackBar(
         content: snackBarText,
