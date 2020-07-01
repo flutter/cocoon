@@ -74,6 +74,9 @@ class QualifiedTask {
   /// Whether this task is run in the devicelab or not.
   bool get isDevicelab => stage.contains(StageName.devicelab);
 
+  /// Whether this task is run in luci or not.
+  bool get isLuci => stage == StageName.luci;
+
   /// Whether the information from this task is available publically.
   ///
   /// Only devicelab tasks are not available publically.

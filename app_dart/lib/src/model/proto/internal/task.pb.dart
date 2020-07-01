@@ -29,6 +29,11 @@ class Task extends $pb.GeneratedMessage {
         ..aOS(12, 'reservedForAgentId', protoName: 'reserved_for_agentId')
         ..aOS(13, 'stageName')
         ..aOS(14, 'status')
+        ..a<$core.int>(15, 'buildNumber', $pb.PbFieldType.O3,
+            protoName: 'buildNumber')
+        ..aOS(16, 'buildNumberList', protoName: 'buildNumberList')
+        ..aOS(17, 'builderName', protoName: 'builderName')
+        ..aOS(18, 'luciPoolName', protoName: 'luciPoolName')
         ..hasRequiredFields = false;
 
   Task._() : super();
@@ -214,4 +219,52 @@ class Task extends $pb.GeneratedMessage {
   $core.bool hasStatus() => $_has(13);
   @$pb.TagNumber(14)
   void clearStatus() => clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get buildNumber => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set buildNumber($core.int v) {
+    $_setSignedInt32(14, v);
+  }
+
+  @$pb.TagNumber(15)
+  $core.bool hasBuildNumber() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearBuildNumber() => clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.String get buildNumberList => $_getSZ(15);
+  @$pb.TagNumber(16)
+  set buildNumberList($core.String v) {
+    $_setString(15, v);
+  }
+
+  @$pb.TagNumber(16)
+  $core.bool hasBuildNumberList() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearBuildNumberList() => clearField(16);
+
+  @$pb.TagNumber(17)
+  $core.String get builderName => $_getSZ(16);
+  @$pb.TagNumber(17)
+  set builderName($core.String v) {
+    $_setString(16, v);
+  }
+
+  @$pb.TagNumber(17)
+  $core.bool hasBuilderName() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearBuilderName() => clearField(17);
+
+  @$pb.TagNumber(18)
+  $core.String get luciPoolName => $_getSZ(17);
+  @$pb.TagNumber(18)
+  set luciPoolName($core.String v) {
+    $_setString(17, v);
+  }
+
+  @$pb.TagNumber(18)
+  $core.bool hasLuciPoolName() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearLuciPoolName() => clearField(18);
 }
