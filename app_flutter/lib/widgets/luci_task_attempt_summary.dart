@@ -9,7 +9,7 @@ import 'package:cocoon_service/protos.dart' show Task;
 
 /// Show information regarding each attempt for a luci Task.
 ///
-/// Currently shows a button that links to each individual log
+/// Currently shows a button that links to individual log
 /// for a Task.
 class LuciTaskAttemptSummary extends StatelessWidget {
   const LuciTaskAttemptSummary({
