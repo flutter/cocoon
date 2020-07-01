@@ -161,3 +161,4 @@ support if you haven't done so in the past.
 
 You can run `flutter packages upgrade` to update the dependencies.
 This may be necessary if you see a failure in the dependencies.
+

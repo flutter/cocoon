@@ -165,6 +165,7 @@ class GetBuildRequest extends JsonBody {
     this.id,
     this.builderId,
     this.buildNumber,
+    this.fields,
   }) : assert((id == null && builderId != null && buildNumber != null) ||
             (id != null && builderId == null && buildNumber == null));
 
@@ -188,6 +189,12 @@ class GetBuildRequest extends JsonBody {
   ///
   /// If specified, [builderId] must be specified, and [id] must be null.
   final int buildNumber;
+
+  /// The list fields to be included in the response.
+  ///
+  /// This is a comma separated list of Build proto fields to get included
+  /// in the response.
+  final String fields;
 
   @override
   Map<String, dynamic> toJson() => _$GetBuildRequestToJson(this);

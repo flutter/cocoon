@@ -129,6 +129,7 @@ GetBuildRequest _$GetBuildRequestFromJson(Map<String, dynamic> json) {
         ? null
         : BuilderId.fromJson(json['builder'] as Map<String, dynamic>),
     buildNumber: json['buildNumber'] as int,
+    fields: json['fields'] as String,
   );
 }
 
@@ -144,6 +145,7 @@ Map<String, dynamic> _$GetBuildRequestToJson(GetBuildRequest instance) {
   writeNotNull('id', const Int64Converter().toJson(instance.id));
   writeNotNull('builder', instance.builderId);
   writeNotNull('buildNumber', instance.buildNumber);
+  writeNotNull('fields', instance.fields);
   return val;
 }
 

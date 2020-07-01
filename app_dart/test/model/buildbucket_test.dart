@@ -53,4 +53,15 @@ void main() {
         GetBuildRequest.fromJson(requestBuildJson);
     expect(deserializedRequest.id, id);
   });
+
+  test('Handles fields correctly', () {
+    GetBuildRequest request = const GetBuildRequest(id: 9083774268329986752);
+    Map<String, dynamic> requestBuildJson = request.toJson();
+    expect(requestBuildJson['id'], 9083774268329986752.toString());
+    request = const GetBuildRequest(
+        id: 9083774268329986752, fields: 'summaryMarkDown');
+    requestBuildJson = request.toJson();
+    expect(requestBuildJson['id'], 9083774268329986752.toString());
+    expect(requestBuildJson['fields'], 'summaryMarkDown');
+  });
 }
