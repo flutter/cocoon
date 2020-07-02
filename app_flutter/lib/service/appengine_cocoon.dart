@@ -421,8 +421,8 @@ class AppEngineCocoonService implements CocoonService {
       ..reservedForAgentId = taskData['ReservedForAgentID']
       ..stageName = taskData['StageName']
       ..status = taskData['Status']
-      ..buildNumberList = taskData['BuildNumberList']??''
-      ..builderName = taskData['BuilderName']??''
-      ..luciPoolName = taskData['LuciPoolName']??'';
+      ..buildNumberList = taskData['BuildNumberList'] ?? ''
+      ..builderName = taskData['BuilderName'] ?? ''
+      ..luciPoolName = taskData['LuciPoolName'] ?? '';
   }
 }
