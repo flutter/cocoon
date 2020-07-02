@@ -247,10 +247,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'
       ..stageName = stageName
-      ..status = status
-      ..buildNumberList = stageName == 'chromebot' ? '$index' : ''
-      ..builderName = stageName == 'chromebot' ? 'Linux' : ''
-      ..luciBucket = stageName == 'chromebot' ? 'luci.flutter.prod' : '';
+      ..status = status;
 
     if (stageName == StageName.luci) {
       task
