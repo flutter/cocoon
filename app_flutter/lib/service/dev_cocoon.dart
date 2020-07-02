@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:fixnum/fixnum.dart';
 import 'package:cocoon_service/protos.dart';
 
+import '../logic/qualified_task.dart';
 import 'cocoon.dart';
 
 /// [CocoonService] for local development purposes.
@@ -236,7 +237,7 @@ class DevelopmentCocoonService implements CocoonService {
     final int minAttempts = _minAttempts[status];
     final int maxAttempts = _maxAttempts[status];
     final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
-    return Task()
+    final Task task = Task()
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + index + 10000)
       ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
@@ -250,5 +251,14 @@ class DevelopmentCocoonService implements CocoonService {
       ..buildNumberList = stageName == 'chromebot' ? '$index' : ''
       ..builderName = stageName == 'chromebot' ? 'Linux' : ''
       ..luciBucket = stageName == 'chromebot' ? 'luci.flutter.prod' : '';
+
+    if (stageName == StageName.luci) {
+      task
+        ..buildNumberList = '$index'
+        ..builderName = 'Linux'
+        ..luciBucket = 'luci.flutter.prod';
+    }
+
+    return task;
   }
 }
