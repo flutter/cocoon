@@ -246,6 +246,9 @@ class DevelopmentCocoonService implements CocoonService {
       ..requiredCapabilities.add('[linux/android]')
       ..reservedForAgentId = 'linux1'
       ..stageName = stageName
-      ..status = status;
+      ..status = status
+      ..buildNumberList = '$index'
+      ..builderName = 'Linux'
+      ..luciPoolName = 'luci.flutter.prod';
   }
 }
