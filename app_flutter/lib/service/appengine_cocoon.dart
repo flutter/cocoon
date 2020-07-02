@@ -423,6 +423,6 @@ class AppEngineCocoonService implements CocoonService {
       ..status = taskData['Status']
       ..buildNumberList = taskData['BuildNumberList'] ?? ''
       ..builderName = taskData['BuilderName'] ?? ''
-      ..luciPoolName = taskData['LuciPoolName'] ?? '';
+      ..luciBucket = taskData['LuciBucket'] ?? '';
   }
 }

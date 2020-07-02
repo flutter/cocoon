@@ -249,6 +249,6 @@ class DevelopmentCocoonService implements CocoonService {
       ..status = status
       ..buildNumberList = '$index'
       ..builderName = 'Linux'
-      ..luciPoolName = 'luci.flutter.prod';
+      ..luciBucket = 'luci.flutter.prod';
   }
 }

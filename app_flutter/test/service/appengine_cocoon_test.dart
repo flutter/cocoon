@@ -154,7 +154,10 @@ void main() {
             ..requiredCapabilities.add('[linux/android]')
             ..reservedForAgentId = 'linux2'
             ..stageName = 'devicelab'
-            ..status = 'Succeeded'));
+            ..status = 'Succeeded'
+            ..buildNumberList = ''
+            ..builderName = ''
+            ..luciBucket = ''));
 
       expect(statuses.data.length, 1);
       expect(statuses.data.first, expectedStatus);
