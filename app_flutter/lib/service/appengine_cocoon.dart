@@ -11,6 +11,7 @@ import 'package:fixnum/fixnum.dart';
 
 import 'package:cocoon_service/protos.dart';
 
+import '../logic/qualified_task.dart';
 import 'cocoon.dart';
 import 'downloader.dart';
 
@@ -407,7 +408,7 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, Object> taskData = json['Task'];
     final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
 
-    return Task()
+    final Task task = Task()
       ..key = (RootKey()..child = (Key()..name = json['Key']))
       ..createTimestamp = Int64(taskData['CreateTimestamp'])
       ..startTimestamp = Int64(taskData['StartTimestamp'])
@@ -421,5 +422,13 @@ class AppEngineCocoonService implements CocoonService {
       ..reservedForAgentId = taskData['ReservedForAgentID']
       ..stageName = taskData['StageName']
       ..status = taskData['Status'];
+
+    if (taskData['StageName'] == StageName.luci) {
+      task
+        ..buildNumberList = taskData['BuildNumberList'] ?? ''
+        ..builderName = taskData['BuilderName'] ?? ''
+        ..luciBucket = taskData['LuciBucket'] ?? '';
+    }
+    return task;
   }
 }

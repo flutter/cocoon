@@ -33,7 +33,7 @@ class Task extends $pb.GeneratedMessage {
             protoName: 'buildNumber')
         ..aOS(16, 'buildNumberList', protoName: 'buildNumberList')
         ..aOS(17, 'builderName', protoName: 'builderName')
-        ..aOS(18, 'luciPoolName', protoName: 'luciPoolName')
+        ..aOS(18, 'luciBucket', protoName: 'luciBucket')
         ..hasRequiredFields = false;
 
   Task._() : super();
@@ -257,14 +257,14 @@ class Task extends $pb.GeneratedMessage {
   void clearBuilderName() => clearField(17);
 
   @$pb.TagNumber(18)
-  $core.String get luciPoolName => $_getSZ(17);
+  $core.String get luciBucket => $_getSZ(17);
   @$pb.TagNumber(18)
-  set luciPoolName($core.String v) {
+  set luciBucket($core.String v) {
     $_setString(17, v);
   }
 
   @$pb.TagNumber(18)
-  $core.bool hasLuciPoolName() => $_has(17);
+  $core.bool hasLuciBucket() => $_has(17);
   @$pb.TagNumber(18)
-  void clearLuciPoolName() => clearField(18);
+  void clearLuciBucket() => clearField(18);
 }

@@ -35,7 +35,7 @@ class Task extends Model {
     this.buildNumber,
     this.buildNumberList,
     this.builderName,
-    this.luciPoolName,
+    this.luciBucket,
     String status,
   }) : _status = status {
     if (status != null && !legalStatusValues.contains(status)) {
@@ -157,9 +157,9 @@ class Task extends Model {
   String builderName;
 
   /// The luci pool where the luci task runs.
-  @StringProperty(propertyName: 'LuciPoolName')
-  @JsonKey(name: 'LuciPoolName')
-  String luciPoolName;
+  @StringProperty(propertyName: 'LuciBucket')
+  @JsonKey(name: 'luciBucket')
+  String luciBucket;
 
   /// The list of capabilities that agents are required to have to run this
   /// task.
@@ -227,7 +227,7 @@ class Task extends Model {
       ..write(', buildNumber: $buildNumber')
       ..write(', buildNumberList: $buildNumberList')
       ..write(', builderName: $builderName')
-      ..write(', luciPoolName: $luciPoolName')
+      ..write(', luciBucket: $luciBucket')
       ..write(')');
     return buf.toString();
   }

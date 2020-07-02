@@ -15,102 +15,7 @@ import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';
 import 'package:app_flutter/service/cocoon.dart';
 
-// This is based off data the Cocoon backend sends out from v1.
-// It doesn't map directly to protos since the backend does
-// not use protos yet.
-const String jsonGetStatsResponse = '''
-      {
-        "Statuses": [
-          {
-          "Checklist": {
-            "Key": "iamatestkey",
-            "Checklist": {
-              "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon",
-              "CreateTimestamp": 123456789,
-              "Commit": {
-                "Sha": "ShaShankHash",
-                "Author": {
-                  "Login": "ShaSha",
-                  "avatar_url": "https://flutter.dev"
-                  }
-                }
-              }
-            },
-            "Stages": [
-              {
-                "Name": "devicelab",
-                "Status": "Succeeded",
-                "Tasks": [
-                  {
-                    "Key": "taskKey1",
-                    "Task": {
-                      "Attempts": 1,
-                      "CreateTimestamp": 1569353940885,
-                      "EndTimestamp": 1569354700642,
-                      "Flaky": false,
-                      "Name": "complex_layout_semantics_perf",
-                      "Reason": "",
-                      "RequiredCapabilities": ["linux/android"],
-                      "ReservedForAgentID": "linux2",
-                      "StageName": "devicelab",
-                      "StartTimestamp": 1569354594672,
-                      "Status": "Succeeded",
-                      "TimeoutInMinutes": 0
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ],
-        "AgentStatuses":[
-          {
-            "AgentID":"flutter-devicelab-linux-1",
-            "HealthCheckTimestamp":1576876008093,
-            "IsHealthy":true,
-            "Capabilities":[
-              "linux/android",
-              "linux"
-            ],
-            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.29\\n\\nandroid-device-ZY223D6B7B: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-perform-health-check: succeeded\\n"
-          },
-          {
-            "AgentID":"flutter-devicelab-mac-1",
-            "HealthCheckTimestamp":1576530583142,
-            "IsHealthy":true,
-            "Capabilities":[
-              "mac/ios",
-              "mac"
-            ],
-            "HealthDetails":"ssh-connectivity: succeeded\\n    Last known IP address: 192.168.1.233\\n\\nios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\\nhas-healthy-devices: succeeded\\n    Found 1 healthy devices\\n\\ncocoon-authentication: succeeded\\ncocoon-connection: succeeded\\nable-to-build-and-sign: succeeded\\nios: succeeded\\nable-to-perform-health-check: succeeded\\n"
-          }
-        ]
-  }
-''';
-
-const String jsonGetBranchesResponse = '''
-  {
-    "Branches": [
-      "master",
-      "flutter-0.0-candidate.1"
-    ]
-  }
-''';
-
-const String jsonBuildStatusTrueResponse = '''
-  {
-    "AnticipatedBuildStatus": "Succeeded"
-  }
-''';
-
-const String jsonBuildStatusFalseResponse = '''
-  {
-    "AnticipatedBuildStatus": "Failed"
-  }
-''';
-
-const String _baseApiUrl = 'https://flutter-dashboard.appspot.com';
+import '../utils/appengine_cocoon_test_data.dart';
 
 void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {
@@ -171,7 +76,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?branch=master'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/get-status?branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?branch=master'));
       }
     });
 
@@ -186,7 +91,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?branch=stable'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/get-status?branch=stable'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?branch=stable'));
       }
     });
 
@@ -202,7 +107,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       }
     });
 
@@ -218,6 +123,53 @@ void main() {
 
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
+    });
+  });
+
+  group('AppEngine CocoonService fetchCommitStatus - luci', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(luciJsonGetStatsResponse, 200);
+      }));
+    });
+
+    test('should return expected List<CommitStatus> - luci', () async {
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
+
+      final CommitStatus expectedStatus = CommitStatus()
+        ..branch = 'master'
+        ..commit = (Commit()
+          ..timestamp = Int64(123456789)
+          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
+          ..sha = 'ShaShankHash'
+          ..author = 'ShaSha'
+          ..authorAvatarUrl = 'https://flutter.dev'
+          ..repository = 'flutter/cocoon')
+        ..stages.add(Stage()
+          ..name = 'chromebot'
+          ..taskStatus = 'Succeeded'
+          ..tasks.add(Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..name = 'linux'
+            ..attempts = 1
+            ..isFlaky = false
+            ..timeoutInMinutes = 0
+            ..reason = ''
+            ..requiredCapabilities.add('[linux]')
+            ..reservedForAgentId = ''
+            ..stageName = 'chromebot'
+            ..status = 'Succeeded'
+            ..buildNumberList = '123'
+            ..builderName = 'Linux'
+            ..luciBucket = 'luci.flutter.try'));
+
+      expect(statuses.data.length, 1);
+      expect(statuses.data.first, expectedStatus);
     });
   });
 
@@ -261,7 +213,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/build-status?branch=master'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/build-status?branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/build-status?branch=master'));
       }
     });
 
@@ -276,7 +228,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/build-status?branch=stable'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/build-status?branch=stable'));
+        verify(mockClient.get('$baseApiUrl/api/public/build-status?branch=stable'));
       }
     });
 
@@ -338,7 +290,7 @@ void main() {
         ));
       } else {
         verify(mockClient.post(
-          '$_baseApiUrl/api/reset-devicelab-task',
+          '$baseApiUrl/api/reset-devicelab-task',
           headers: captureAnyNamed('headers'),
           body: captureAnyNamed('body'),
         ));
@@ -452,7 +404,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/get-status'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status'));
       }
     });
 
@@ -504,7 +456,7 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-branches'));
       } else {
-        verify(mockClient.get('$_baseApiUrl/api/public/get-branches'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-branches'));
       }
     });
 
@@ -557,7 +509,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(), kIsWeb ? '/api/create-agent' : '$_baseApiUrl/api/create-agent');
+        expect(request.url.toString(), kIsWeb ? '/api/create-agent' : '$baseApiUrl/api/create-agent');
         return Response('', 200);
       }));
       await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
@@ -609,7 +561,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(), kIsWeb ? '/api/authorize-agent' : '$_baseApiUrl/api/authorize-agent');
+        expect(request.url.toString(), kIsWeb ? '/api/authorize-agent' : '$baseApiUrl/api/authorize-agent');
         return Response('', 200);
       }));
 
@@ -658,7 +610,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(), kIsWeb ? '/api/reserve-task' : '$_baseApiUrl/api/reserve-task');
+        expect(request.url.toString(), kIsWeb ? '/api/reserve-task' : '$baseApiUrl/api/reserve-task');
         return Response('{"Task": "randomdata"}', 200);
       }));
       service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
@@ -686,21 +638,21 @@ void main() {
       }));
     });
     test('handles url suffix', () {
-      expect(service.apiEndpoint('/test'), '$_baseApiUrl/test');
+      expect(service.apiEndpoint('/test'), '$baseApiUrl/test');
     });
 
     test('single query parameter', () {
       expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value'}),
-          '$_baseApiUrl/test?key=value');
+          '$baseApiUrl/test?key=value');
     });
 
     test('multiple query parameters', () {
       expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}),
-          '$_baseApiUrl/test?key=value&another=test');
+          '$baseApiUrl/test?key=value&another=test');
     });
 
     test('query parameter with null value', () {
-      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}), '$_baseApiUrl/test?key');
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}), '$baseApiUrl/test?key');
     });
   });
 }

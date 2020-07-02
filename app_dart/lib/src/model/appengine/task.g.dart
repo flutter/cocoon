@@ -21,7 +21,7 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'BuildNumber': instance.buildNumber,
       'BuildNumberList': instance.buildNumberList,
       'BuilderName': instance.builderName,
-      'LuciPoolName': instance.luciPoolName,
+      'luciBucket': instance.luciBucket,
       'RequiredCapabilities': instance.requiredCapabilities,
       'ReservedForAgentID': instance.reservedForAgentId,
       'StageName': instance.stageName,
