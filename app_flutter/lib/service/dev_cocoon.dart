@@ -247,8 +247,8 @@ class DevelopmentCocoonService implements CocoonService {
       ..reservedForAgentId = 'linux1'
       ..stageName = stageName
       ..status = status
-      ..buildNumberList = '$index'
-      ..builderName = 'Linux'
-      ..luciBucket = 'luci.flutter.prod';
+      ..buildNumberList = stageName == 'chromebot' ? '$index' : ''
+      ..builderName = stageName == 'chromebot' ? 'Linux' : ''
+      ..luciBucket = stageName == 'chromebot' ? 'luci.flutter.prod' : '';
   }
 }
