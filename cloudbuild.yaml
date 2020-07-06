@@ -18,5 +18,7 @@ steps:
   args: ['build.sh']
 
 - name: 'gcr.io/cloud-builders/gcloud'
+  env:
+  - 'GCLOUD_PROJECT=flutter-dashboard'
   entrypoint: '/bin/bash'
   args: ['build2.sh']
