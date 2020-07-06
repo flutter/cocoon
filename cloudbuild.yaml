@@ -15,7 +15,11 @@ steps:
 
 - name: gcr.io/tvolkert-test/flutter
   entrypoint: '/bin/bash'
-  args: ['build.sh']
+  args: ['build0.sh']
+
+- name: gcr.io/tvolkert-test/flutter
+  entrypoint: '/bin/bash'
+  args: ['build1.sh']
 
 - name: 'gcr.io/cloud-builders/gcloud'
   env:
