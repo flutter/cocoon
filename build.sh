@@ -1,5 +1,6 @@
 #!/bin/bash
 
-cd app 
-flutter pub get
-flutter pub run build_runner build --release --output build --delete-conflicting-outputs
+cd app_flutter
+rm -rf build
+flutter build web --dart-define FLUTTER_WEB_USE_SKIA=true
+
