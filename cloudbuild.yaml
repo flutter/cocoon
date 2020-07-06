@@ -32,6 +32,6 @@ steps:
   - name: 'gcr.io/$PROJECT_ID/flutter'
     args: ['--version']
 
-  tags: ['cloud-builders-community']
+  #tags: ['cloud-builders-community']
 
   
