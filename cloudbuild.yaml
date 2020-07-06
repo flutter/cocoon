@@ -7,7 +7,13 @@ steps:
 #  - |
 #    git clone 'https://github.com/flutter/flutter.git' tmp
 
-- name: gcr.io/tvolkert-test/flutter
-  args: ['--version']
 
+
+#- name: 'gcr.io/cloud-builders/git'
+#  args: ['clone', 'https://github.com/flutter/cocoon']
+#  dir: '/workspace'
+
+- name: gcr.io/tvolkert-test/flutter
+  entrypoint: '/bin/bash'
+  args: ['build.sh']
   
