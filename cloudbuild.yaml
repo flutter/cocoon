@@ -18,5 +18,5 @@ steps:
   args: ['build.sh']
 
 - name: 'gcr.io/cloud-builders/gcloud'
-entrypoint: '/bin/bash'
-args: ['build2.sh']
+  entrypoint: '/bin/bash'
+  args: ['build2.sh']
