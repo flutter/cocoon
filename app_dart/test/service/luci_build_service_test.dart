@@ -11,10 +11,12 @@ import 'package:cocoon_service/src/model/luci/push_message.dart'
     as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
+import '../src/request_handling/fake_logging.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
@@ -23,6 +25,7 @@ void main() {
   FakeConfig config;
   MockBuildBucketClient mockBuildBucketClient;
   LuciBuildService service;
+  RepositorySlug slug;
   group('buildsForRepositoryAndPr', () {
     const Build macBuild = Build(
       id: 999,
@@ -50,6 +53,7 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Empty responses are handled correctly', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -64,7 +68,7 @@ void main() {
         );
       });
       final Map<String, Build> builds =
-          await service.buildsForRepositoryAndPr('cocoon', 1, 'abcd');
+          await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
       expect(builds.keys, isEmpty);
     });
 
@@ -86,7 +90,7 @@ void main() {
         );
       });
       final Map<String, Build> builds =
-          await service.buildsForRepositoryAndPr('cocoon', 1, 'abcd');
+          await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
       expect(builds,
           equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
@@ -98,6 +102,8 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service.setLogger(FakeLogging());
+      slug = RepositorySlug('flutter', 'cocoon');
     });
     test('try to schedule builds already started', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -124,7 +130,7 @@ void main() {
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
-        repositoryName: 'cocoon',
+        slug: slug,
       );
       expect(result, isFalse);
     });
@@ -153,7 +159,7 @@ void main() {
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
-        repositoryName: 'cocoon',
+        slug: slug,
       );
       expect(result, isFalse);
     });
@@ -170,16 +176,17 @@ void main() {
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
-        repositoryName: 'cocoon',
+        slug: slug,
       );
       expect(result, isTrue);
     });
     test('Try to schedule build on a unsupported repo', () async {
+      slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.scheduleBuilds(
                 prNumber: 1,
                 commitSha: 'abc',
-                repositoryName: 'notsupported',
+                slug: slug,
               ),
           throwsA(const TypeMatcher<BadRequestException>()));
     });
@@ -192,6 +199,7 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Cancel builds when build list is empty', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -199,7 +207,7 @@ void main() {
           responses: <Response>[],
         );
       });
-      await service.cancelBuilds('cocoon', 1, 'abc', 'new builds');
+      await service.cancelBuilds(slug, 1, 'abc', 'new builds');
       verify(mockBuildBucketClient.batch(any)).called(1);
     });
     test('Cancel builds that are scheduled', () async {
@@ -221,7 +229,7 @@ void main() {
           ],
         );
       });
-      await service.cancelBuilds('cocoon', 1, 'abc', 'new builds');
+      await service.cancelBuilds(slug, 1, 'abc', 'new builds');
       expect(
           verify(mockBuildBucketClient.batch(captureAny))
               .captured[1]
@@ -231,9 +239,10 @@ void main() {
           json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
     });
     test('Cancel builds from unsuported repo', () async {
+      slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.cancelBuilds(
-                'notsupported',
+                slug,
                 1,
                 'abc',
                 'new builds',
@@ -249,6 +258,7 @@ void main() {
       mockBuildBucketClient = MockBuildBucketClient();
       service =
           LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Failed builds from an empty list', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -256,7 +266,8 @@ void main() {
           responses: <Response>[],
         );
       });
-      final List<Build> result = await service.failedBuilds('cocoon', 1, 'abc');
+      config.luciTryBuildersValue = <Map<String, dynamic>>[];
+      final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
       expect(result, isEmpty);
     });
     test('Failed builds from a list of builds with failures', () async {
@@ -278,12 +289,16 @@ void main() {
           ],
         );
       });
-      final List<Build> result = await service.failedBuilds('cocoon', 1, 'abc');
+      config.luciTryBuildersValue = (json.decode(
+                  '[{"name": "Linux", "repo": "flutter", "taskName": "linux_bot"}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+      final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
       expect(result, hasLength(1));
     });
   });
   group('rescheduleBuild', () {
-    push_message.Build build;
+    push_message.BuildPushMessage buildPushMessage;
 
     setUp(() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
@@ -296,18 +311,24 @@ void main() {
         'COMPLETED',
         result: 'FAILURE',
         builderName: 'Linux Host Engine',
-      ))['build'] as Map<String, dynamic>;
-      build = push_message.Build.fromJson(json);
+      )) as Map<String, dynamic>;
+      buildPushMessage = push_message.BuildPushMessage.fromJson(json);
     });
     test('Reschedule an existing build', () async {
       final bool rescheduled = await service.rescheduleBuild(
-          commitSha: 'abc', builderName: 'mybuild', build: build, retries: 1);
+          commitSha: 'abc',
+          builderName: 'mybuild',
+          buildPushMessage: buildPushMessage,
+          retries: 1);
       expect(rescheduled, isTrue);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
     test('Reschedule after too many retries', () async {
       final bool rescheduled = await service.rescheduleBuild(
-          commitSha: 'abc', builderName: 'mybuild', build: build, retries: 3);
+          commitSha: 'abc',
+          builderName: 'mybuild',
+          buildPushMessage: buildPushMessage,
+          retries: 3);
       expect(rescheduled, isFalse);
       verifyNever(mockBuildBucketClient.scheduleBuild(any));
     });

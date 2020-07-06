@@ -110,7 +110,7 @@ class GithubWebhook extends RequestHandler<Body> {
           await _checkForGoldenTriage(pullRequestEvent);
         } else {
           await luciBuildService.cancelBuilds(
-            pr.head.repo.name,
+            pullRequestEvent.repository.slug(),
             pr.number,
             pr.head.sha,
             'Pull request closed',
@@ -127,19 +127,19 @@ class GithubWebhook extends RequestHandler<Body> {
       case 'reopened':
         // These cases should trigger LUCI jobs.
         await _checkForLabelsAndTests(pullRequestEvent);
-        await _scheduleIfMergeable(pr);
+        await _scheduleIfMergeable(pullRequestEvent);
         break;
       case 'labeled':
         // This should only trigger a LUCI job for flutter/flutter right now,
         // since it is in the needsCQLabelList.
         if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(pr);
+          await _scheduleIfMergeable(pullRequestEvent);
         }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
-        await _scheduleIfMergeable(pr);
+        await _scheduleIfMergeable(pullRequestEvent);
         break;
       case 'unlabeled':
         // Cancel the jobs if someone removed the label on a repo that needs
@@ -149,7 +149,7 @@ class GithubWebhook extends RequestHandler<Body> {
         }
         if (!await _checkForCqLabel(pr.labels)) {
           await luciBuildService.cancelBuilds(
-            pr.head.repo.name,
+            pullRequestEvent.repository.slug(),
             pr.number,
             pr.head.sha,
             'Tryjobs canceled (label removed)',
@@ -173,11 +173,11 @@ class GithubWebhook extends RequestHandler<Body> {
   /// without a details link. Once the test starts running then the state is set
   /// to "pending" with a details link pointing to the build in LUCI infrastructure.
   Future<void> _scheduleIfMergeable(
-    PullRequest pr,
+    PullRequestEvent pullRequestEvent,
   ) async {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
-
+    final PullRequest pr = pullRequestEvent.pullRequest;
     // For flutter/flutter tests need to be optimized before enforcing CQ.
     if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
       if (!await _checkForCqLabel(pr.labels)) {
@@ -187,15 +187,15 @@ class GithubWebhook extends RequestHandler<Body> {
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await luciBuildService.cancelBuilds(
-      pr.head.repo.name,
+      pullRequestEvent.repository.slug(),
       pr.number,
       pr.head.sha,
       'Newer commit available',
     );
     await luciBuildService.scheduleBuilds(
+      slug: pullRequestEvent.repository.slug(),
       prNumber: pr.number,
       commitSha: pr.head.sha,
-      repositoryName: pr.head.repo.name,
     );
     await githubStatusService.setBuildsPendingStatus(
         pr.number, pr.head.sha, pr.head.repo.slug());

@@ -72,11 +72,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString) as Map<String, dynamic>,
     );
-    final BuildPushMessage buildMessage = BuildPushMessage.fromJson(
+    final BuildPushMessage buildPushMessage = BuildPushMessage.fromJson(
         json.decode(envelope.message.data) as Map<String, dynamic>);
-    final Build build = buildMessage.build;
-    final Map<String, dynamic> userData =
-        jsonDecode(buildMessage.userData) as Map<String, dynamic>;
+    final Build build = buildPushMessage.build;
     final String builderName = build.tagsByName('builder').single;
     final RepositorySlug slug = await config.repoNameForBuilder(builderName);
 
@@ -91,15 +89,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
         .tagsByName('buildset')
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
         .substring(shaPrefix.length);
-    log.debug('Setting status: ${buildMessage.toJson()} for $builderName');
-    switch (buildMessage.build.status) {
+    log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
+    switch (buildPushMessage.build.status) {
       case Status.completed:
-        await _rescheduleOrMarkCompleted(
+        await _markCompleted(
           sha: sha,
           builderName: builderName,
           build: build,
-          retries: userData['retries'] as int,
-          luciBuildService: luciBuildService,
           githubStatusService: githubStatusService,
           slug: slug,
         );
@@ -123,47 +119,16 @@ class LuciStatusHandler extends RequestHandler<Body> {
   /// Reschedules jobs that failed for infra reasons up to
   /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
   /// GitHub for all other cases.
-  Future<void> _rescheduleOrMarkCompleted({
+  Future<void> _markCompleted({
     @required String sha,
     @required String builderName,
     @required Build build,
-    @required int retries,
-    @required LuciBuildService luciBuildService,
     @required GithubStatusService githubStatusService,
     @required RepositorySlug slug,
   }) async {
     assert(sha != null);
     assert(builderName != null);
     assert(build != null);
-    if (build.result == Result.failure) {
-      switch (build.failureReason) {
-        case FailureReason.buildbucketFailure:
-        case FailureReason.infraFailure:
-          log.info('Retrying: $builderName for $sha');
-          final bool rescheduled = await luciBuildService.rescheduleBuild(
-            commitSha: sha,
-            builderName: builderName,
-            build: build,
-            retries: retries,
-          );
-          if (rescheduled) {
-            final bool success = await githubStatusService.setPendingStatus(
-              ref: sha,
-              builderName: builderName,
-              buildUrl: '',
-              slug: slug,
-            );
-            if (!success) {
-              log.warning('Failed to set status for $builderName');
-            }
-            return;
-          }
-          break;
-        case FailureReason.invalidBuildDefinition:
-        case FailureReason.buildFailure:
-          break;
-      }
-    }
     await githubStatusService.setCompletedStatus(
       ref: sha,
       builderName: builderName,

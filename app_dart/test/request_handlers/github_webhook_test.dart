@@ -1050,9 +1050,9 @@ void main() {
       "sha": "the_head_sha",
       "repo": {
         "name": "cocoon",
-        "full_name": "digiter/cocoon",
+        "full_name": "flutter/cocoon",
         "owner": {
-          "login": "abc"
+          "login": "flutter"
         }
       }
     }
@@ -1074,6 +1074,11 @@ void main() {
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+        config.luciTryBuildersValue = (json.decode(
+                    '[{"name": "Cocoon", "repo": "cocoon"},{"name": "Linux", "repo": "flutter"}, {"name": "Mac", "repo": "flutter"}]')
+                as List<dynamic>)
+            .cast<Map<String, dynamic>>();
 
         await tester.post(webhook);
 
