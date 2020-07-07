@@ -1,5 +1,4 @@
 #!/bin/bash
 
 cd app_dart
-version="version-$1"
-gcloud app deploy --project tvolkert-test --version "$version" --no-promote --no-stop-previous-version
+gcloud app deploy --project tvolkert-test --version "version-$1" --no-promote --no-stop-previous-version
