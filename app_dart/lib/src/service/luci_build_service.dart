@@ -148,10 +148,11 @@ class LuciBuildService {
         bucket: 'try',
         builder: builder,
       );
-      final Map<String, dynamic> userData = <String, dynamic>{};
-      userData['repo_owner'] = slug.owner;
-      userData['repo_name'] = slug.name;
-      userData['user_agent'] = 'flutter-cocoon';
+      final Map<String, dynamic> userData = <String, dynamic>{
+        'repo_owner': slug.owner,
+        'repo_name': slug.name,
+        'user_agent': 'flutter-cocoon',
+      };
       if (checkSuiteEvent != null) {
         final github.CheckRun checkRun =
             await githubClient.checks.checkRuns.createCheckRun(
