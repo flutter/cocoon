@@ -359,6 +359,10 @@ class LuciBuildService {
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
     userData['user_agent'] = 'flutter-cocoon';
+    // Retries were used to auto re-run builds when they failed with infra
+    // failure. Now with github checks api support automated retries won't be
+    // needed anymore and will be removed:
+    // https://github.com/flutter/flutter/issues/60942.
     userData['retries'] = 1;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
