@@ -8,7 +8,6 @@ import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
@@ -252,70 +251,6 @@ void main() {
       )).captured.single.toJson(),
       jsonDecode(
           '{"state":"failure","target_url":"https://ci.chromium.org/b/8905920700440101120","description":"Flutter LUCI Build: Linux Coverage","context":"Linux Coverage"}'),
-    );
-  });
-
-  test('Reschedules an infra failure', () async {
-    request.bodyBytes = utf8.encode(pushMessageJson('COMPLETED',
-        builderName: 'Linux',
-        result: 'FAILURE',
-        failureReason: 'INFRA_FAILURE')) as Uint8List;
-    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
-    mockGitHubClient = MockGitHub();
-    config.githubClient = mockGitHubClient;
-    final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
-      RepositoryStatus()
-        ..context = 'Linux'
-        ..state = 'failure',
-    ];
-    when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
-    when(mockRepositoriesService.listStatuses(any, ref)).thenAnswer((_) {
-      return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
-    });
-
-    await tester.post(handler);
-    expect(
-      jsonEncode(
-        verify(buildBucketClient.scheduleBuild(captureAny))
-            .captured
-            .single
-            .toJson(),
-      ),
-      jsonEncode(
-        ScheduleBuildRequest(
-          builderId: const BuilderId(
-            project: 'flutter',
-            bucket: 'prod',
-            builder: 'Linux',
-          ),
-          tags: const <String, List<String>>{
-            'buildset': <String>['pr/git/37647', 'sha/git/$ref'],
-            'user_agent': <String>['flutter-cocoon'],
-            'github_link': <String>[
-              'https://github.com/flutter/flutter/pull/37647'
-            ],
-          },
-          properties: const <String, String>{
-            'git_ref': 'refs/pull/37647/head',
-            'git_url': 'https://github.com/flutter/flutter',
-          },
-          notify: NotificationConfig(
-            pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-            userData: json.encode(<String, dynamic>{
-              'retries': 1,
-            }),
-          ),
-        ).toJson(),
-      ),
-    );
-    expect(
-      verify(mockRepositoriesService.createStatus(
-        RepositorySlug('flutter', 'flutter'),
-        ref,
-        captureAny,
-      )).captured.single.toJson(),
-      jsonDecode(
-          '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'),
     );
   });
 
