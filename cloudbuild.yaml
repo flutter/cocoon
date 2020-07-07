@@ -13,6 +13,6 @@ steps:
   # Deploy a new version to google cloud.
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: '/bin/bash'
-    args: ['cloud_build/deploy.sh', '$SHORT_SHA']
+    args: ['cloud_build/deploy.sh', 'tvolkert-test', '$SHORT_SHA']
   
   
