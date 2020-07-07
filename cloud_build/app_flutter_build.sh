@@ -7,6 +7,7 @@
 
 pushd app_flutter > /dev/null
 rm -rf build
+flutter doctor
 flutter pub get
 flutter config --enable-web
 flutter build web --dart-define FLUTTER_WEB_USE_SKIA=true
