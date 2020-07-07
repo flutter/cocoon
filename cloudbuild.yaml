@@ -1,0 +1,21 @@
+# Provide instructions for google Cloud Build to auto-build flutter
+# dashboard to flutter-dashboard project. Auto-build will be triggered
+# by new commits to `master` branch.
+
+steps:
+
+  # Build app_flutter.
+  - name: gcr.io/flutter-dashboard/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/app_flutter_build.sh']
+
+  # Build angular dart app.
+  - name: gcr.io/flutter-dashboard/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/app_build.sh']
+
+  # Deploy a new version to google cloud.
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/deploy.sh', '$SHORT_SHA']
+
