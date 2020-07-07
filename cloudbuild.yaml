@@ -1,28 +1,13 @@
 steps:
 
-#- name: gcr.io/cloud-builders/git
-#  entrypoint: /bin/bash
-#  args:
-#  - -exc
-#  - |
-#    git clone 'https://github.com/flutter/flutter.git' tmp
-
-
-
-#- name: 'gcr.io/cloud-builders/git'
-#  args: ['clone', 'https://github.com/flutter/cocoon']
-#  dir: '/workspace'
+- name: gcr.io/tvolkert-test/flutter
+  entrypoint: '/bin/bash'
+  args: ['cloud_build/app_flutter_build.sh']
 
 - name: gcr.io/tvolkert-test/flutter
   entrypoint: '/bin/bash'
-  args: ['build1.sh']
-
-- name: gcr.io/tvolkert-test/flutter
-  entrypoint: '/bin/bash'
-  args: ['build0.sh']
+  args: ['cloud_build/app_build.sh']
 
 - name: 'gcr.io/cloud-builders/gcloud'
-  env:
-  - 'GCLOUD_PROJECT=flutter-dashboard'
   entrypoint: '/bin/bash'
-  args: ['build2.sh']
+  args: ['cloud_build/deploy.sh']
