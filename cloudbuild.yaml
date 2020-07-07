@@ -1,13 +1,18 @@
 steps:
 
-- name: gcr.io/tvolkert-test/flutter
-  entrypoint: '/bin/bash'
-  args: ['cloud_build/app_flutter_build.sh']
-
-- name: gcr.io/tvolkert-test/flutter
-  entrypoint: '/bin/bash'
-  args: ['cloud_build/app_build.sh']
-
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: '/bin/bash'
-  args: ['cloud_build/deploy.sh']
+  # Build app_flutter.
+  - name: gcr.io/tvolkert-test/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/app_flutter_build.sh']
+  
+  # Build angular dart app.
+  - name: gcr.io/tvolkert-test/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/app_build.sh']
+  
+  # Deploy a new version to google cloud.
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/deploy.sh']
+  
+  
