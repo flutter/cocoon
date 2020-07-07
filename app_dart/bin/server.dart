@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
@@ -42,6 +43,11 @@ Future<void> main() async {
       luciBuildService,
     );
 
+    /// Github checks api service used to provide luci test execution status on the Github UI.
+    final GithubChecksService githubChecksService = GithubChecksService(
+      config,
+    );
+
     final Map<String, RequestHandler<dynamic>> handlers =
         <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
@@ -57,6 +63,7 @@ Future<void> main() async {
         buildBucketClient,
         luciBuildService,
         githubStatusService,
+        githubChecksService,
       ),
       '/api/luci-status-handler': LuciStatusHandler(config, buildBucketClient),
       '/api/push-build-status-to-github':
