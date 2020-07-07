@@ -116,9 +116,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
     return Body.empty;
   }
 
-  /// Reschedules jobs that failed for infra reasons up to
-  /// [CocoonConfig.luciTryInfraFailureRetries] times, and updates statuses on
-  /// GitHub for all other cases.
+  /// Updates the github status using the push_message [build] sent by LUCI
+  /// as a pub/sub message.
   Future<void> _markCompleted({
     @required String sha,
     @required String builderName,

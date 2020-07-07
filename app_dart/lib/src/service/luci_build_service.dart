@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -49,7 +48,7 @@ class LuciBuildService {
   /// [prNumber] and [commitSha] using the [builderName] as key and [Build]
   /// as value.
   Future<Map<String, Build>> buildsForRepositoryAndPr(
-    RepositorySlug slug,
+    github.RepositorySlug slug,
     int prNumber,
     String commitSha,
   ) async {
@@ -194,8 +193,8 @@ class LuciBuildService {
 
   /// Cancels all the current builds for a given [repositoryName], [prNumber]
   /// and [commitSha] adding a message for the cancelation reason.
-  Future<void> cancelBuilds(RepositorySlug slug, int prNumber, String commitSha,
-      String reason) async {
+  Future<void> cancelBuilds(github.RepositorySlug slug, int prNumber,
+      String commitSha, String reason) async {
     if (!config.githubPresubmitSupportedRepo(slug.name)) {
       throw BadRequestException(
           'This service does not support repository ${slug.name}');
@@ -227,7 +226,7 @@ class LuciBuildService {
   /// Gets a list of failed builds for a given [repositoryName], [prNumber] and
   /// [commitSha].
   Future<List<Build>> failedBuilds(
-    RepositorySlug slug,
+    github.RepositorySlug slug,
     int prNumber,
     String commitSha,
   ) async {
