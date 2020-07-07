@@ -5,10 +5,10 @@
 
 # Build old angular dart app to generate flutter benchmark dashboard.
 
-pushd app
+pushd app > /dev/null
 rm -rf build
 flutter pub get
 flutter pub run build_runner build --release --output build --delete-conflicting-outputs
 cp -rn build/web ../app_dart/build/
 flutter clean
-popd
+popd > /dev/null

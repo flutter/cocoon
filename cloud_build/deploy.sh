@@ -5,6 +5,6 @@
 
 # Deploy a new flutter dashboard version to google cloud.
 
-pushd app_dart
+pushd app_dart > /dev/null
 gcloud app deploy --project "$1" --version "version-$2" --no-promote --no-stop-previous-version
-popd
+popd > /dev/null
