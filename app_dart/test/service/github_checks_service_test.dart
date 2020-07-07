@@ -40,16 +40,6 @@ void main() {
     status: Status.failure,
   );
 
-  const Build macBuild = Build(
-    id: 998,
-    builderId: BuilderId(
-      project: 'flutter',
-      bucket: 'prod',
-      builder: 'Mac',
-    ),
-    status: Status.failure,
-  );
-
   setUp(() {
     config = FakeConfig();
     mockGithubChecksUtil = MockGithubChecksUtil();

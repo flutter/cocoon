@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
