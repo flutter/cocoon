@@ -316,21 +316,12 @@ void main() {
     });
     test('Reschedule an existing build', () async {
       final bool rescheduled = await service.rescheduleBuild(
-          commitSha: 'abc',
-          builderName: 'mybuild',
-          buildPushMessage: buildPushMessage,
-          retries: 1);
+        commitSha: 'abc',
+        builderName: 'mybuild',
+        buildPushMessage: buildPushMessage,
+      );
       expect(rescheduled, isTrue);
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
-    });
-    test('Reschedule after too many retries', () async {
-      final bool rescheduled = await service.rescheduleBuild(
-          commitSha: 'abc',
-          builderName: 'mybuild',
-          buildPushMessage: buildPushMessage,
-          retries: 3);
-      expect(rescheduled, isFalse);
-      verifyNever(mockBuildBucketClient.scheduleBuild(any));
     });
   });
 }

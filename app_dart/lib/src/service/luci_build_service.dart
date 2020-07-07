@@ -148,7 +148,10 @@ class LuciBuildService {
         bucket: 'try',
         builder: builder,
       );
-      final Map<String, dynamic> userData = <String, dynamic>{'retries': 0};
+      final Map<String, dynamic> userData = <String, dynamic>{};
+      userData['repo_owner'] = slug.owner;
+      userData['repo_name'] = slug.name;
+      userData['user_agent'] = 'flutter-cocoon';
       if (checkSuiteEvent != null) {
         final github.CheckRun checkRun =
             await githubClient.checks.checkRuns.createCheckRun(
@@ -158,9 +161,6 @@ class LuciBuildService {
         );
         userData['check_suite_id'] = checkSuiteEvent.checkSuite.id;
         userData['check_run_id'] = checkRun.id;
-        userData['repo_owner'] = slug.owner;
-        userData['repo_name'] = slug.name;
-        userData['user_agent'] = 'flutter-cocoon';
       }
       requests.add(
         Request(
@@ -179,9 +179,7 @@ class LuciBuildService {
             },
             notify: NotificationConfig(
               pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',
-              userData: json.encode(const <String, dynamic>{
-                'retries': 0,
-              }),
+              userData: json.encode(userData),
             ),
           ),
         ),
@@ -243,31 +241,20 @@ class LuciBuildService {
         .toList();
   }
 
-  /// Sends a [BuildBucket.scheduleBuild] request as long as the `retries`
-  /// parameter has not exceeded [CocoonConfig.luciTryInfraFailureRetries].
-  ///
-  /// If the retries have been exhausted, it sets the GitHub status to failure.
-  ///
-  /// The buildset, user_agent, and github_link tags are applied to match the
-  /// original build. The build properties from the original build are also
-  /// preserved.
+  /// Sends a [BuildBucket.scheduleBuild] the buildset, user_agent, and
+  /// github_link tags are applied to match the original build. The build
+  /// properties from the original build are also preserved.
   Future<bool> rescheduleBuild({
     @required String commitSha,
     @required String builderName,
     @required push_message.BuildPushMessage buildPushMessage,
-    @required int retries,
   }) async {
-    if (retries >= config.luciTryInfraFailureRetries) {
-      // Too many retries.
-      return false;
-    }
     // Ensure we are using V2 bucket name istead of V1.
     // V1 bucket name  is "luci.flutter.prod" while the api
     // is expecting just the last part after "."(prod).
     final String bucketName = buildPushMessage.build.bucket.split('.').last;
     final Map<String, dynamic> userData =
         jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
-    userData['retries'] += 1;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: buildPushMessage.build.project,
@@ -311,7 +298,6 @@ class LuciBuildService {
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
     userData['user_agent'] = 'flutter-cocoon';
-    userData['retries'] = 1;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
@@ -359,11 +345,6 @@ class LuciBuildService {
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
     userData['user_agent'] = 'flutter-cocoon';
-    // Retries were used to auto re-run builds when they failed with infra
-    // failure. Now with github checks api support automated retries won't be
-    // needed anymore and will be removed:
-    // TODO(godofredoc): remove retries https://github.com/flutter/flutter/issues/60942.
-    userData['retries'] = 1;
     await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
       builderId: BuilderId(
         project: 'flutter',
