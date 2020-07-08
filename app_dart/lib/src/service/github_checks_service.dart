@@ -117,6 +117,10 @@ class GithubChecksService {
     if (!userData.containsKey('check_run_id') ||
         !userData.containsKey('repo_owner') ||
         !userData.containsKey('repo_name')) {
+      log.error(
+        'UserData did not contain check_run_id,'
+        'repo_owner, or repo_name: $userData',
+      );
       return false;
     }
     final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(
