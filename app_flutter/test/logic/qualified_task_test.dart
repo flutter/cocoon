@@ -17,7 +17,12 @@ void main() {
     expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
     final Task cirrusTask = Task()..stageName = 'cirrus';
 
-    expect(logUrl(cirrusTask, commit: Commit()..sha = 'abc123'), 'https://cirrus-ci.com/build/flutter/flutter/abc123');
+    expect(
+        logUrl(cirrusTask,
+            commit: Commit()
+              ..sha = 'abc123'
+              ..branch = 'master'),
+        'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master');
 
     expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
   });

@@ -101,7 +101,7 @@ class QualifiedTask {
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
 String logUrl(Task task, {Commit commit}) {
   if (task.stageName == StageName.cirrus && commit != null) {
-    return '$_cirrusLogUrl/${commit.sha}';
+    return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
   } else if (QualifiedTask.fromTask(task).isExternal) {
     // Currently this is just LUCI, but is a catch all if new stages are added.
     return QualifiedTask.fromTask(task).sourceConfigurationUrl;

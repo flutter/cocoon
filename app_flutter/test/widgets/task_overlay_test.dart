@@ -449,7 +449,7 @@ void main() {
       log,
       <Matcher>[
         isMethodCall('launch', arguments: <String, Object>{
-          'url': 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2',
+          'url': 'https://cirrus-ci.com/build/flutter/flutter/24e8c0a2?branch=',
           'useSafariVC': true,
           'useWebView': false,
           'enableJavaScript': false,
