@@ -8,18 +8,17 @@ import 'dart:convert';
 
 const String ref = 'deadbeef';
 
-String pushMessageJson(
-  String status, {
-  String result,
-  String builderName = 'Linux Coverage',
-  String urlParam = '',
-  int retries = 0,
-  String failureReason,
-}) {
+String pushMessageJson(String status,
+    {String result,
+    String builderName = 'Linux Coverage',
+    String urlParam = '',
+    int retries = 0,
+    String failureReason,
+    String userData = '{}'}) {
   return '''{
      "message": {
        "attributes": {},
-       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam, retries: retries, failureReason: failureReason)}",
+       "data": "${buildPushMessageJson(status, result: result, builderName: builderName, urlParam: urlParam, retries: retries, failureReason: failureReason, userData: userData)}",
        "messageId": "123"
      },
      "subscription": "projects/myproject/subscriptions/mysubscription"
@@ -49,7 +48,8 @@ String buildPushMessageJson(String status,
         String builderName = 'Linux Coverage',
         String urlParam = '',
         int retries = 0,
-        String failureReason}) =>
+        String failureReason,
+        String userData}) =>
     base64.encode(utf8.encode(buildPushMessageString(
       status,
       result: result,
@@ -57,14 +57,17 @@ String buildPushMessageJson(String status,
       urlParam: urlParam,
       retries: retries,
       failureReason: failureReason,
+      userData: userData,
     )));
 
-String buildPushMessageJsonNoBuildset(String status,
-        {String result,
-        String builderName = 'Linux Coverage',
-        String urlParam = '',
-        int retries = 0,
-        String failureReason}) =>
+String buildPushMessageJsonNoBuildset(
+  String status, {
+  String result,
+  String builderName = 'Linux Coverage',
+  String urlParam = '',
+  int retries = 0,
+  String failureReason,
+}) =>
     base64.encode(utf8.encode(buildPushMessageNoBuildsetString(
       status,
       result: result,
@@ -79,7 +82,8 @@ String buildPushMessageString(String status,
     String builderName = 'Linux Coverage',
     String urlParam = '',
     int retries = 0,
-    String failureReason}) {
+    String failureReason,
+    String userData = '{}'}) {
   return '''{
   "build": {
     "bucket": "luci.flutter.prod",
@@ -118,7 +122,7 @@ String buildPushMessageString(String status,
     "utcnow_ts": "1565049194653640"
   },
   "hostname": "cr-buildbucket.appspot.com",
-  "user_data": "{\\"retries\\": $retries}"
+  "user_data": "$userData"
 }''';
 }
 
