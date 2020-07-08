@@ -46,7 +46,10 @@ class LuciStatusHandler extends RequestHandler<Body> {
   /// Creates an endpoint for listening to LUCI status updates.
   const LuciStatusHandler(
     Config config,
-    this.buildBucketClient, {
+    this.buildBucketClient,
+    this.luciBuildService,
+    this.githubStatusService,
+    this.githubChecksService, {
     LoggingProvider loggingProvider,
   })  : assert(buildBucketClient != null),
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
@@ -54,16 +57,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
 
   final BuildBucketClient buildBucketClient;
   final LoggingProvider loggingProvider;
+  final LuciBuildService luciBuildService;
+  final GithubStatusService githubStatusService;
+  final GithubChecksService githubChecksService;
 
   @override
   Future<Body> post() async {
-    final ServiceAccountInfo serviceAccountInfo =
-        await config.deviceLabServiceAccount;
-    final LuciBuildService luciBuildService =
-        LuciBuildService(config, buildBucketClient, serviceAccountInfo);
-    final GithubStatusService githubStatusService =
-        GithubStatusService(config, luciBuildService);
-    final GithubChecksService githubChecksService = GithubChecksService(config);
+    RepositorySlug slug;
 
     // Set logger in all the service classes.
     luciBuildService.setLogger(log);
@@ -80,7 +80,6 @@ class LuciStatusHandler extends RequestHandler<Body> {
         json.decode(envelope.message.data) as Map<String, dynamic>);
     final Build build = buildPushMessage.build;
     final String builderName = build.tagsByName('builder').single;
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
 
     const String shaPrefix = 'sha/git/';
     log.debug('Available tags: ${build.tags.toString()}');
@@ -94,11 +93,28 @@ class LuciStatusHandler extends RequestHandler<Body> {
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
         .substring(shaPrefix.length);
     log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
-    await githubChecksService.updateCheckStatus(
-      buildPushMessage,
-      luciBuildService,
-      slug,
-    );
+    final Map<String, dynamic> userData =
+        jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
+    if (userData != null &&
+        userData.containsKey('repo_owner') &&
+        userData.containsKey('repo_owner')) {
+      // Message is coming from a github checks api enabled repo. We need to
+      // create the slug from the data in the message and send the check status
+      // update.
+      slug = RepositorySlug(
+        userData['repo_owner'] as String,
+        userData['repo_name'] as String,
+      );
+      await githubChecksService.updateCheckStatus(
+        buildPushMessage,
+        luciBuildService,
+        slug,
+      );
+    } else {
+      // This message is coming from a repo that doesn't support checks api and
+      // we need to create the slug from the builder configuration files.
+      slug = await config.repoNameForBuilder(builderName);
+    }
     switch (buildPushMessage.build.status) {
       case Status.completed:
         await _markCompleted(

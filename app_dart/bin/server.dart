@@ -65,7 +65,13 @@ Future<void> main() async {
         githubStatusService,
         githubChecksService,
       ),
-      '/api/luci-status-handler': LuciStatusHandler(config, buildBucketClient),
+      '/api/luci-status-handler': LuciStatusHandler(
+        config,
+        buildBucketClient,
+        luciBuildService,
+        githubStatusService,
+        githubChecksService,
+      ),
       '/api/push-build-status-to-github':
           PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github':
