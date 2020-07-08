@@ -369,7 +369,8 @@ class AppEngineCocoonService implements CocoonService {
       ..sha = commit['Sha']
       ..author = author['Login']
       ..authorAvatarUrl = author['avatar_url']
-      ..repository = checklist['FlutterRepositoryPath'];
+      ..repository = checklist['FlutterRepositoryPath']
+      ..branch = checklist['Branch'];
   }
 
   List<Stage> _stagesFromJson(List<Object> json) {

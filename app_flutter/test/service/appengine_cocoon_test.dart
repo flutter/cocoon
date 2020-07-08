@@ -42,7 +42,8 @@ void main() {
           ..sha = 'ShaShankHash'
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'
-          ..repository = 'flutter/cocoon')
+          ..repository = 'flutter/cocoon'
+          ..branch = 'master')
         ..stages.add(Stage()
           ..name = 'devicelab'
           ..taskStatus = 'Succeeded'
@@ -146,7 +147,8 @@ void main() {
           ..sha = 'ShaShankHash'
           ..author = 'ShaSha'
           ..authorAvatarUrl = 'https://flutter.dev'
-          ..repository = 'flutter/cocoon')
+          ..repository = 'flutter/cocoon'
+          ..branch = 'master')
         ..stages.add(Stage()
           ..name = 'chromebot'
           ..taskStatus = 'Succeeded'
