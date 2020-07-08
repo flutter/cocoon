@@ -5,14 +5,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/reservation_provider.dart';
 import 'package:cocoon_service/src/service/task_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import '../request_handling/fake_http.dart';
 
@@ -79,3 +82,9 @@ class ThrowingGitHub implements GitHub {
 
 // ignore: must_be_immutable, Test mock.
 class MockBuildBucketClient extends Mock implements BuildBucketClient {}
+
+class MockGithubChecksService extends Mock implements GithubChecksService {}
+
+class MockLuciBuildService extends Mock implements LuciBuildService {}
+
+class MockGithubChecksUtil extends Mock implements GithubChecksUtil {}

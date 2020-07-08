@@ -5,9 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
@@ -61,9 +61,13 @@ class LuciStatusHandler extends RequestHandler<Body> {
         await config.deviceLabServiceAccount;
     final LuciBuildService luciBuildService =
         LuciBuildService(config, buildBucketClient, serviceAccountInfo);
-    final Logging log = loggingProvider();
     final GithubStatusService githubStatusService =
         GithubStatusService(config, luciBuildService);
+    final GithubChecksService githubChecksService = GithubChecksService(config);
+
+    // Set logger in all the service classes.
+    luciBuildService.setLogger(log);
+    githubChecksService.setLogger(log);
 
     if (!await _authenticateRequest(request.headers)) {
       throw const Unauthorized();
@@ -90,6 +94,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
         .firstWhere((String tag) => tag.startsWith(shaPrefix))
         .substring(shaPrefix.length);
     log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
+    await githubChecksService.updateCheckStatus(
+      buildPushMessage,
+      luciBuildService,
+      slug,
+    );
     switch (buildPushMessage.build.status) {
       case Status.completed:
         await _markCompleted(

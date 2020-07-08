@@ -13,4 +13,5 @@ message Commit {
     optional string author = 4;
     optional string authorAvatarUrl = 5;
     optional string repository = 6;
+    optional string branch = 7;
 }

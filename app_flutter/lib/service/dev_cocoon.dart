@@ -123,7 +123,8 @@ class DevelopmentCocoonService implements CocoonService {
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
       ..repository = 'flutter/cocoon'
       ..sha = commitTimestamp.hashCode.toRadixString(16).padLeft(32, '0')
-      ..timestamp = Int64(commitTimestamp);
+      ..timestamp = Int64(commitTimestamp)
+      ..branch = 'master';
   }
 
   static const List<String> _stages = <String>[
