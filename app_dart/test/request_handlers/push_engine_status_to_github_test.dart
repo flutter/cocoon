@@ -134,8 +134,6 @@ void main() {
 // ignore: must_be_immutable
 class MockLuciService extends Mock implements LuciService {}
 
-class MockGitHub extends Mock implements GitHub {}
-
 class MockIssuesService extends Mock implements IssuesService {}
 
 class MockPullRequestsService extends Mock implements PullRequestsService {}

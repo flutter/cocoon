@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_service/src/model/github/checks.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
@@ -37,7 +39,7 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
   GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService,
-      this.githubStatusService,
+      this.githubStatusService, this.githubChecksService,
       {HttpClient skiaClient})
       : assert(buildBucketClient != null),
         skiaClient = skiaClient ?? HttpClient(),
@@ -56,6 +58,9 @@ class GithubWebhook extends RequestHandler<Body> {
   /// LUCI service class to communicate with buildBucket service.
   final LuciBuildService luciBuildService;
 
+  /// Github checks service. Used to provide build status to github.
+  final GithubChecksService githubChecksService;
+
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
@@ -63,7 +68,6 @@ class GithubWebhook extends RequestHandler<Body> {
         request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
-
     final List<int> requestBytes = await request.expand((_) => _).toList();
     final String hmacSignature = request.headers.value('X-Hub-Signature');
     if (!await _validateRequest(hmacSignature, requestBytes)) {
@@ -76,6 +80,19 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'pull_request':
           await _handlePullRequest(stringRequest);
           break;
+        case 'check_suite':
+          final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
+            jsonDecode(stringRequest) as Map<String, dynamic>,
+          );
+          await githubChecksService.handleCheckSuite(
+              checkSuiteEvent, luciBuildService);
+          break;
+        case 'check_run':
+          final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
+            jsonDecode(stringRequest) as Map<String, dynamic>,
+          );
+          await githubChecksService.handleCheckRun(
+              checkRunEvent, luciBuildService);
       }
 
       return Body.empty;

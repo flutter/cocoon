@@ -23,7 +23,7 @@ pushd $1 > /dev/null
 
 flutter packages get
 flutter analyze
-flutter format --line-length=120 --set-exit-if-changed lib/ test/
+dart format --line-length=120 --set-exit-if-changed lib/ test/
 flutter test --test-randomize-ordering-seed=random
 
 popd > /dev/null

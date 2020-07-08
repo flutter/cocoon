@@ -18,6 +18,7 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
@@ -29,7 +30,7 @@ void main() {
 
     FakeHttpRequest request;
     FakeConfig config;
-    MockGitHubClient gitHubClient;
+    MockGitHub gitHubClient;
     MockIssuesService issuesService;
     MockPullRequestsService pullRequestsService;
     MockBuildBucketClient mockBuildBucketClient;
@@ -39,6 +40,7 @@ void main() {
     LuciBuildService luciBuildService;
     ServiceAccountInfo serviceAccountInfo;
     GithubStatusService githubStatusService;
+    MockGithubChecksService mockGithubChecksService;
 
     const String keyString = 'not_a_real_key';
 
@@ -53,7 +55,7 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
       request = FakeHttpRequest();
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
-      gitHubClient = MockGitHubClient();
+      gitHubClient = MockGitHub();
       mockHttpClient = MockHttpClient();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
@@ -73,8 +75,10 @@ void main() {
         luciBuildService,
       );
 
-      webhook = GithubWebhook(
-          config, mockBuildBucketClient, luciBuildService, githubStatusService,
+      mockGithubChecksService = MockGithubChecksService();
+
+      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService,
+          githubStatusService, mockGithubChecksService,
           skiaClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
@@ -1495,6 +1499,29 @@ void main() {
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
           '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
         );
+      });
+    });
+    group('checksAPI', () {
+      void _generateRequest(String bodyString) {
+        request.body = bodyString;
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
+        final String hmac = getHmac(body, key);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      }
+
+      test('CheckSuite Event is delegated to GithubChecksService', () async {
+        _generateRequest(checkSuiteString);
+        request.headers.set('X-GitHub-Event', 'check_suite');
+        await tester.post(webhook);
+        verify(mockGithubChecksService.handleCheckSuite(any, any)).called(1);
+      });
+
+      test('CheckRun Event is delegated to GithubChecksService', () async {
+        _generateRequest(checkRunString);
+        request.headers.set('X-GitHub-Event', 'check_run');
+        await tester.post(webhook);
+        verify(mockGithubChecksService.handleCheckRun(any, any)).called(1);
       });
     });
   });

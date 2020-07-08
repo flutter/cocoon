@@ -4,9 +4,11 @@
 
 /// Json messages as dart string used for checks model tests.
 
-const String checkSuiteString = '''\
+String checkSuiteString = checkSuiteTemplate('requested');
+
+String checkSuiteTemplate(String action) => '''\
 {
-    "action": "requested",
+    "action": "$action",
     "check_suite": {
         "id": 694267587,
         "node_id": "MDEwOkNoZWNrU3VpdGU2OTQyNjc1ODc=",
