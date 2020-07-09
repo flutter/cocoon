@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/github_status_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
 import 'package:github/github.dart';
@@ -39,13 +41,35 @@ void main() {
   MockRepositoriesService mockRepositoriesService;
   MockBuildBucketClient buildBucketClient;
   final FakeLogging log = FakeLogging();
+  const String serviceAccountEmail = 'test@test';
+  LuciBuildService luciBuildService;
+  ServiceAccountInfo serviceAccountInfo;
+  GithubStatusService githubStatusService;
+  MockGithubChecksService mockGithubChecksService;
 
-  setUp(() {
-    config = FakeConfig(luciTryInfraFailureRetriesValue: 2);
+  setUp(() async {
+    serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
+    config = FakeConfig(
+        luciTryInfraFailureRetriesValue: 2,
+        deviceLabServiceAccountValue: serviceAccountInfo);
     buildBucketClient = MockBuildBucketClient();
+    serviceAccountInfo = await config.deviceLabServiceAccount;
+    luciBuildService = LuciBuildService(
+      config,
+      buildBucketClient,
+      serviceAccountInfo,
+    );
+    githubStatusService = GithubStatusService(
+      config,
+      luciBuildService,
+    );
+    mockGithubChecksService = MockGithubChecksService();
     handler = LuciStatusHandler(
       config,
       buildBucketClient,
+      luciBuildService,
+      githubStatusService,
+      mockGithubChecksService,
       loggingProvider: () => log,
     );
     request = FakeHttpRequest();
@@ -330,7 +354,8 @@ void main() {
     );
   });
 
-  test('Requests without buildset skip status updates', () async {
+  test('Requests without repo_owner and repo_name do not update checks',
+      () async {
     request.bodyBytes = utf8.encode(pushMessageJsonNoBuildset(
       'COMPLETED',
       result: 'SUCCESS',
@@ -339,6 +364,19 @@ void main() {
     request.headers.add(HttpHeaders.authorizationHeader, authHeader);
 
     await tester.post(handler);
-    verifyNever(mockRepositoriesService.createStatus(any, any, any));
+    verifyNever(mockGithubChecksService.updateCheckStatus(any, any, any));
+  });
+
+  test('Requests with repo_owner and repo_name update checks', () async {
+    request.bodyBytes = utf8.encode(pushMessageJson(
+      'COMPLETED',
+      result: 'SUCCESS',
+      builderName: 'Linux Host Engine',
+      userData:
+          '{\\"repo_owner\\": \\"flutter\\", \\"repo_name\\": \\"cocoon\\"}',
+    )) as Uint8List;
+    request.headers.add(HttpHeaders.authorizationHeader, authHeader);
+    await tester.post(handler);
+    verify(mockGithubChecksService.updateCheckStatus(any, any, any)).called(1);
   });
 }
