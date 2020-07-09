@@ -80,13 +80,6 @@ class GithubWebhook extends RequestHandler<Body> {
         case 'pull_request':
           await _handlePullRequest(stringRequest);
           break;
-        case 'check_suite':
-          final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
-            jsonDecode(stringRequest) as Map<String, dynamic>,
-          );
-          await githubChecksService.handleCheckSuite(
-              checkSuiteEvent, luciBuildService);
-          break;
         case 'check_run':
           final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
             jsonDecode(stringRequest) as Map<String, dynamic>,

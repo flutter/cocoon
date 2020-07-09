@@ -153,14 +153,13 @@ class LuciBuildService {
         'repo_name': slug.name,
         'user_agent': 'flutter-cocoon',
       };
-      if (checkSuiteEvent != null) {
-        final github.CheckRun checkRun =
-            await githubClient.checks.checkRuns.createCheckRun(
-          checkSuiteEvent.repository.slug(),
-          name: builder,
-          headSha: commitSha,
+      if (checkSuiteEvent != null || config.checksSupportedRepo(slug)) {
+        final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
+          githubClient,
+          slug,
+          builder,
+          commitSha,
         );
-        userData['check_suite_id'] = checkSuiteEvent.checkSuite.id;
         userData['check_run_id'] = checkRun.id;
       }
       requests.add(

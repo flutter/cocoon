@@ -26,6 +26,7 @@ void main() {
   MockBuildBucketClient mockBuildBucketClient;
   LuciBuildService service;
   RepositorySlug slug;
+  final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
   group('buildsForRepositoryAndPr', () {
     const Build macBuild = Build(
       id: 999,
@@ -100,8 +101,12 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-      service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(
+        config,
+        mockBuildBucketClient,
+        serviceAccountInfo,
+        githubChecksUtil: mockGithubChecksUtil,
+      );
       service.setLogger(FakeLogging());
       slug = RepositorySlug('flutter', 'cocoon');
     });
@@ -164,6 +169,14 @@ void main() {
       expect(result, isFalse);
     });
     test('Schedule builds when the current list of builds is empty', () async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+          .thenAnswer((_) async {
+        return CheckRun.fromJson(const <String, dynamic>{
+          'id': 1,
+          'started_at': '2020-05-10T02:49:31Z',
+          'check_suite': <String, dynamic>{'id': 2}
+        });
+      });
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[],
