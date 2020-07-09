@@ -1,12 +1,12 @@
 steps:
 
   # Build app_flutter.
-  - name: gcr.io/tvolkert-test/flutter
+  - name: gcr.io/flutter-dashboard/flutter
     entrypoint: '/bin/bash'
     args: ['cloud_build/app_flutter_build.sh']
   
   # Build angular dart app.
-  - name: gcr.io/tvolkert-test/flutter
+  - name: gcr.io/flutter-dashboard/flutter
     entrypoint: '/bin/bash'
     args: ['cloud_build/app_build.sh']
   
