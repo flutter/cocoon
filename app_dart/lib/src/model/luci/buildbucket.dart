@@ -244,6 +244,7 @@ class SearchBuildsRequest extends JsonBody {
     @required this.predicate,
     this.pageSize,
     this.pageToken,
+    this.fields,
   }) : assert(predicate != null);
 
   /// Creates a [SearchBuildsReqeuest] object from JSON.
@@ -264,6 +265,12 @@ class SearchBuildsRequest extends JsonBody {
   /// This can be used to continue paging through results when there are more
   /// than [pageSize] builds available.
   final String pageToken;
+
+  /// The list fields to be included in the response.
+  ///
+  /// This is a comma separated list of Build proto fields to get included
+  /// in the response.
+  final String fields;
 
   @override
   Map<String, dynamic> toJson() => _$SearchBuildsRequestToJson(this);

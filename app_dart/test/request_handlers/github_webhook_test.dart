@@ -41,6 +41,7 @@ void main() {
     ServiceAccountInfo serviceAccountInfo;
     GithubStatusService githubStatusService;
     MockGithubChecksService mockGithubChecksService;
+    final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
     const String keyString = 'not_a_real_key';
 
@@ -68,6 +69,7 @@ void main() {
         config,
         mockBuildBucketClient,
         serviceAccountInfo,
+        githubChecksUtil: mockGithubChecksUtil,
       );
 
       githubStatusService = GithubStatusService(
@@ -1011,6 +1013,14 @@ void main() {
       });
 
       Future<void> _testActions(String action, {bool never = false}) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
+            .thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'check_suite': <String, dynamic>{'id': 2}
+          });
+        });
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -1220,7 +1230,7 @@ void main() {
         ],
         "notify":{
           "pubsubTopic":"projects/flutter-dashboard/topics/luci-builds",
-          "userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImNvY29vbiIsInVzZXJfYWdlbnQiOiJmbHV0dGVyLWNvY29vbiJ9"
+          "userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImNvY29vbiIsInVzZXJfYWdlbnQiOiJmbHV0dGVyLWNvY29vbiIsImNoZWNrX3J1bl9pZCI6MX0="
         }
       }
     }
@@ -1509,13 +1519,6 @@ void main() {
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       }
-
-      test('CheckSuite Event is delegated to GithubChecksService', () async {
-        _generateRequest(checkSuiteString);
-        request.headers.set('X-GitHub-Event', 'check_suite');
-        await tester.post(webhook);
-        verify(mockGithubChecksService.handleCheckSuite(any, any)).called(1);
-      });
 
       test('CheckRun Event is delegated to GithubChecksService', () async {
         _generateRequest(checkRunString);

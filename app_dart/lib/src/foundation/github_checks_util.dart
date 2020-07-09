@@ -29,6 +29,17 @@ class GithubChecksUtil {
     );
   }
 
+  Future<github.CheckSuite> getCheckSuite(
+    github.GitHub gitHubClient,
+    github.RepositorySlug slug,
+    int checkSuiteId,
+  ) async {
+    return gitHubClient.checks.checkSuites.getCheckSuite(
+      slug,
+      checkSuiteId: checkSuiteId,
+    );
+  }
+
   Future<void> updateCheckRun(
     github.GitHub gitHubClient,
     github.RepositorySlug slug,

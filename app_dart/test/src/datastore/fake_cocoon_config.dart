@@ -227,4 +227,9 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubPublicKey => throw UnimplementedError();
+
+  @override
+  bool isChecksSupportedRepo(RepositorySlug slug) {
+    return '${slug.owner}/${slug.name}' == 'flutter/cocoon';
+  }
 }

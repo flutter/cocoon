@@ -178,6 +178,7 @@ SearchBuildsRequest _$SearchBuildsRequestFromJson(Map<String, dynamic> json) {
         : BuildPredicate.fromJson(json['predicate'] as Map<String, dynamic>),
     pageSize: json['pageSize'] as int,
     pageToken: json['pageToken'] as String,
+    fields: json['fields'] as String,
   );
 }
 
@@ -193,6 +194,7 @@ Map<String, dynamic> _$SearchBuildsRequestToJson(SearchBuildsRequest instance) {
   writeNotNull('predicate', instance.predicate);
   writeNotNull('pageSize', instance.pageSize);
   writeNotNull('pageToken', instance.pageToken);
+  writeNotNull('fields', instance.fields);
   return val;
 }
 

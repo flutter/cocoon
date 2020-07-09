@@ -40,6 +40,11 @@ class Config {
     'packages',
   };
 
+  /// List of Github presubmit supported repos.
+  static const Set<String> checksSupportedRepos = <String>{
+    'flutter/cocoon',
+  };
+
   @visibleForTesting
   static const String configCacheName = 'config';
 
@@ -449,6 +454,10 @@ class Config {
       return null;
     }
     return RepositorySlug('flutter', repoName);
+  }
+
+  bool isChecksSupportedRepo(RepositorySlug slug) {
+    return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
   }
 }
 
