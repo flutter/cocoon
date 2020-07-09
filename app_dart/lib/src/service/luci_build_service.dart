@@ -44,6 +44,39 @@ class LuciBuildService {
     this.log = log;
   }
 
+  /// Returns a BuildBucket build for a given Github [slug], [commitSha] and
+  /// [builderName].
+  Future<Build> getBuild(
+    github.RepositorySlug slug,
+    String commitSha,
+    String builderName,
+  ) async {
+    final BatchResponse batch =
+        await buildBucketClient.batch(BatchRequest(requests: <Request>[
+      Request(
+        searchBuilds: SearchBuildsRequest(
+          predicate: BuildPredicate(
+            builderId: BuilderId(
+              project: 'flutter',
+              bucket: 'try',
+              builder: builderName,
+            ),
+            tags: <String, List<String>>{
+              'buildset': <String>['sha/git/$commitSha'],
+              'user_agent': const <String>['flutter-cocoon'],
+            },
+          ),
+          fields: 'builds.*.id,builds.*.builder,builds.*.tags',
+        ),
+      ),
+    ]));
+    final Iterable<Build> builds = batch.responses
+        .map((Response response) => response.searchBuilds)
+        .expand(
+            (SearchBuildsResponse response) => response.builds ?? <Build>[]);
+    return builds.first;
+  }
+
   /// Returns a map of the BuildBucket builds for a given Github [slug]
   /// [prNumber] and [commitSha] using the [builderName] as key and [Build]
   /// as value.
@@ -153,7 +186,7 @@ class LuciBuildService {
         'repo_name': slug.name,
         'user_agent': 'flutter-cocoon',
       };
-      if (checkSuiteEvent != null || config.checksSupportedRepo(slug)) {
+      if (checkSuiteEvent != null || config.isChecksSupportedRepo(slug)) {
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
           githubClient,
           slug,
@@ -283,17 +316,22 @@ class LuciBuildService {
   Future<bool> rescheduleUsingCheckRunEvent(CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
-    final github.PullRequest pr = checkRunEvent.checkRun.pullRequests[0];
+
     final github.GitHub gitHubClient =
         await config.createGitHubClient(slug.owner, slug.name);
+    final String commitSha = checkRunEvent.checkRun.headSha;
+    final String builderName = checkRunEvent.checkRun.name;
     final github.CheckRun githubCheckRun =
         await githubChecksUtil.createCheckRun(
       gitHubClient,
       slug,
       checkRunEvent.checkRun.name,
-      pr.head.sha,
+      commitSha,
     );
-    userData['check_suite_id'] = checkRunEvent.checkRun.checkSuite.id;
+    final Build build = await getBuild(slug, commitSha, builderName);
+    final String prString = build.tags['buildset']
+        .firstWhere((String element) => element.startsWith('pr/git/'));
+    final int prNumber = int.parse(prString.split('/')[2]);
     userData['check_run_id'] = githubCheckRun.id;
     userData['repo_owner'] = slug.owner;
     userData['repo_name'] = slug.name;
@@ -305,15 +343,15 @@ class LuciBuildService {
         builder: checkRunEvent.checkRun.name,
       ),
       tags: <String, List<String>>{
-        'buildset': <String>['pr/git/${pr.number}', 'sha/git/${pr.head.sha}'],
+        'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
         'user_agent': const <String>['flutter-cocoon'],
         'github_link': <String>[
-          'https://github.com/${slug.owner}/${slug.name}/pull/${pr.number}'
+          'https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'
         ],
       },
       properties: <String, String>{
         'git_url': 'https://github.com/${slug.owner}/${slug.name}',
-        'git_ref': 'refs/pull/${pr.number}/head',
+        'git_ref': 'refs/pull/$prNumber/head',
       },
       notify: NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds',

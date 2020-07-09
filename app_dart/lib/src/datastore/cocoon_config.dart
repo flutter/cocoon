@@ -456,7 +456,7 @@ class Config {
     return RepositorySlug('flutter', repoName);
   }
 
-  bool checksSupportedRepo(RepositorySlug slug) {
+  bool isChecksSupportedRepo(RepositorySlug slug) {
     return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
   }
 }

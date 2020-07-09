@@ -32,11 +32,11 @@ class GithubChecksUtil {
   Future<github.CheckSuite> getCheckSuite(
     github.GitHub gitHubClient,
     github.RepositorySlug slug,
-    int id,
+    int checkSuitId,
   ) async {
     return gitHubClient.checks.checkSuites.getCheckSuite(
       slug,
-      checkSuiteId: id,
+      checkSuiteId: checkSuitId,
     );
   }
 
