@@ -10,7 +10,7 @@
 # tasks:
 #   - task: <folder name>
 #     script: <relative path to the runner script> 
-ddddddddd
+dddddddddd
 tasks:
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
