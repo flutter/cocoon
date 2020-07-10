@@ -49,11 +49,11 @@ Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
           return branches;
         } else {
           log.warning(
-              'Attempt to download branch_regexps.txt failed (HTTP $status)');
+              'Attempt to download branches.txt failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
         log.error(
-            'Attempt to download branch_regexps.txt failed:\n$error\n$stackTrace');
+            'Attempt to download branches.txt failed:\n$error\n$stackTrace');
       }
       await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }

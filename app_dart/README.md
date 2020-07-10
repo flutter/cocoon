@@ -116,4 +116,4 @@ $ dart dev/deploy.dart --help
 
 ### Branching support for flutter repo
 
-Add targeted branches in `dev/branch_regexps.txt`, based on which cocoon API filters targeted branches and then runs tests on those branches. With tests running against different branches, the frontend then supports listing commits on a specific branch (defaulting to master).
+Add targeted branches in `dev/branches.txt`, based on which cocoon API filters targeted branches and then runs tests on those branches. With tests running against different branches, the frontend then supports listing commits on a specific branch (defaulting to master).
