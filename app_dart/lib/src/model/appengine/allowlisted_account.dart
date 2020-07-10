@@ -4,17 +4,17 @@
 
 import 'package:gcloud/db.dart';
 
-/// Class that represents a non-Google account that has been whitelisted to
+/// Class that represents a non-Google account that has been allowlisted to
 /// make API requests to the Flutter dashboard.
 ///
 /// By default, only registered agents, App Engine cronjobs, and users
 /// authenticated as "@google.com" accounts are allowed to make API requests
 /// to the Cocooon backend. This class represents instances where non-Google
-/// users have been explicitly whitelisted to make such requests.
-@Kind(name: 'WhitelistedAccount')
-class WhitelistedAccount extends Model {
-  /// Creates a new [WhitelistedAccount].
-  WhitelistedAccount({
+/// users have been explicitly allowlisted to make such requests.
+@Kind(name: 'AllowlistedAccount')
+class AllowlistedAccount extends Model {
+  /// Creates a new [AllowlistedAccount].
+  AllowlistedAccount({
     Key key,
     this.email,
   }) {
@@ -22,7 +22,7 @@ class WhitelistedAccount extends Model {
     id = key?.id;
   }
 
-  /// The email address of the account that has been whitelisted.
+  /// The email address of the account that has been allowlisted.
   @StringProperty(propertyName: 'Email', required: true)
   String email;
 

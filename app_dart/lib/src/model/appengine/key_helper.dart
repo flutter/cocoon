@@ -13,6 +13,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:meta/meta.dart';
 
 import 'agent.dart';
+import 'allowlisted_account.dart';
 import 'commit.dart';
 import 'github_build_status_update.dart';
 import 'key_helper.pb.dart';
@@ -20,7 +21,6 @@ import 'log_chunk.dart';
 import 'task.dart';
 import 'time_series.dart';
 import 'time_series_value.dart';
-import 'whitelisted_account.dart';
 
 const Set<Type> _defaultTypes = <Type>{
   Agent,
@@ -30,7 +30,7 @@ const Set<Type> _defaultTypes = <Type>{
   Task,
   TimeSeries,
   TimeSeriesValue,
-  WhitelistedAccount,
+  AllowlistedAccount,
 };
 
 /// Class used to encode and decode [Key] objects.

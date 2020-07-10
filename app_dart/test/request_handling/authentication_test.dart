@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
-import 'package:cocoon_service/src/model/appengine/whitelisted_account.dart';
+import 'package:cocoon_service/src/model/appengine/allowlisted_account.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:test/test.dart';
@@ -242,7 +242,7 @@ void main() {
         expect(result.clientContext, same(clientContext));
       });
 
-      test('fails for non-whitelisted non-Google auth users', () async {
+      test('fails for non-allowlisted non-Google auth users', () async {
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "gmail.com"}';
         config.oauthClientIdValue = 'client-id';
         await expectLater(
@@ -252,9 +252,9 @@ void main() {
         expect(httpClient.requestCount, 1);
       });
 
-      test('succeeds for whitelisted non-Google auth users', () async {
-        final WhitelistedAccount account = WhitelistedAccount(
-          key: config.db.emptyKey.append(WhitelistedAccount, id: 123),
+      test('succeeds for allowlisted non-Google auth users', () async {
+        final AllowlistedAccount account = AllowlistedAccount(
+          key: config.db.emptyKey.append(AllowlistedAccount, id: 123),
           email: 'test@gmail.com',
         );
         config.db.values[account.key] = account;
