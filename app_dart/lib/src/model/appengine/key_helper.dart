@@ -13,7 +13,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:meta/meta.dart';
 
 import 'agent.dart';
-import 'allowlisted_account.dart';
+import 'allowed_account.dart';
 import 'commit.dart';
 import 'github_build_status_update.dart';
 import 'key_helper.pb.dart';
@@ -30,7 +30,7 @@ const Set<Type> _defaultTypes = <Type>{
   Task,
   TimeSeries,
   TimeSeriesValue,
-  AllowlistedAccount,
+  AllowedAccount,
 };
 
 /// Class used to encode and decode [Key] objects.

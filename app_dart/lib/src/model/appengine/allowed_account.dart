@@ -11,10 +11,10 @@ import 'package:gcloud/db.dart';
 /// authenticated as "@google.com" accounts are allowed to make API requests
 /// to the Cocooon backend. This class represents instances where non-Google
 /// users have been explicitly allowlisted to make such requests.
-@Kind(name: 'AllowlistedAccount')
-class AllowlistedAccount extends Model {
-  /// Creates a new [AllowlistedAccount].
-  AllowlistedAccount({
+@Kind(name: 'AllowedAccount')
+class AllowedAccount extends Model {
+  /// Creates a new [AllowedAccount].
+  AllowedAccount({
     Key key,
     this.email,
   }) {

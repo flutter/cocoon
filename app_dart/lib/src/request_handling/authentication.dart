@@ -15,7 +15,7 @@ import 'package:meta/meta.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
-import '../model/appengine/allowlisted_account.dart';
+import '../model/appengine/allowed_account.dart';
 import '../model/google/token_info.dart';
 
 import 'exceptions.dart';
@@ -51,7 +51,7 @@ import 'exceptions.dart';
 ///     (unless the request _also_ contained the aforementioned headers).
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
-///     account or is an allowlisted account in Cocoon's Datastore.
+///     account or is an [AllowedAccount] in Cocoon's Datastore.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -210,8 +210,8 @@ class AuthenticationProvider {
       }
 
       if (token.hostedDomain != 'google.com') {
-        final bool isAllowlisted = await _isAllowlisted(token.email);
-        if (!isAllowlisted) {
+        final bool isAllowed = await _isAllowed(token.email);
+        if (!isAllowed) {
           throw Unauthenticated(
               '${token.email} is not authorized to access the dashboard');
         }
@@ -223,11 +223,10 @@ class AuthenticationProvider {
     }
   }
 
-  Future<bool> _isAllowlisted(String email) async {
-    final Query<AllowlistedAccount> query =
-        _config.db.query<AllowlistedAccount>()
-          ..filter('email =', email)
-          ..limit(20);
+  Future<bool> _isAllowed(String email) async {
+    final Query<AllowedAccount> query = _config.db.query<AllowedAccount>()
+      ..filter('email =', email)
+      ..limit(20);
 
     return !(await query.run().isEmpty);
   }
