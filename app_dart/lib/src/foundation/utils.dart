@@ -48,8 +48,7 @@ Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
           branches.removeWhere((String branch) => branch.isEmpty);
           return branches;
         } else {
-          log.warning(
-              'Attempt to download branches.txt failed (HTTP $status)');
+          log.warning('Attempt to download branches.txt failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
         log.error(
