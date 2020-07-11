@@ -449,10 +449,10 @@ class GithubWebhook extends RequestHandler<Body> {
     if (pr.base.ref == kDefaultBranchName) {
       return;
     }
-    final RegExp regExp = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    final RegExp releaseRef = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
     if (pr.base.ref == pr.head.ref &&
-        regExp.hasMatch(pr.base.ref) &&
-        regExp.hasMatch(pr.head.ref)) {
+        releaseRef.hasMatch(pr.base.ref) &&
+        releaseRef.hasMatch(pr.head.ref)) {
       // This is most likely a release branch
       return;
     }
@@ -487,7 +487,7 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   Future<String> _getWrongBaseComment(String base) async {
-    final String messageTemplate = config.nonMasterPullRequestMessage;
+    final String messageTemplate = config.wrongBaseBranchPullRequestMessage;
     return messageTemplate.replaceAll('{{branch}}', base);
   }
 

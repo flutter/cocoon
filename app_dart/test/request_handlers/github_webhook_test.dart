@@ -86,7 +86,8 @@ void main() {
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      config.nonMasterPullRequestMessageValue = 'nonMasterPullRequestMessage';
+      config.wrongBaseBranchPullRequestMessageValue =
+          'wrongBaseBranchPullRequestMessage';
       config.missingTestsPullRequestMessageValue =
           'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
@@ -188,20 +189,73 @@ void main() {
       verify(pullRequestsService.edit(
         slug,
         issueNumber,
-        base: 'master',
+        base: kDefaultBranchName,
       )).called(1);
 
       verify(issuesService.createComment(
         slug,
         issueNumber,
-        argThat(contains(config.nonMasterPullRequestMessageValue)),
+        argThat(contains(config.wrongBaseBranchPullRequestMessage)),
       )).called(1);
+    });
+
+    test('Does nothing against cherry pick PR', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+        'opened',
+        issueNumber,
+        'flutter-1.20-candidate.7',
+        headRef: 'flutter-1.20-candidate.7',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient
+              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verifyNever(pullRequestsService.edit(
+        slug,
+        issueNumber,
+        base: kDefaultBranchName,
+      ));
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.wrongBaseBranchPullRequestMessage)),
+      ));
     });
 
     test('Framework labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -248,7 +302,7 @@ void main() {
     test('Framework labels PRs, no dart files', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -289,7 +343,7 @@ void main() {
     test('Framework labels PRs, no comment if tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -356,7 +410,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
@@ -412,7 +466,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
@@ -461,7 +515,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
@@ -515,7 +569,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         repoName: 'engine',
         repoFullName: 'flutter/engine',
       );
@@ -562,7 +616,7 @@ void main() {
     test('No labels when only pubspec.yaml changes', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -595,7 +649,7 @@ void main() {
         () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -650,7 +704,7 @@ void main() {
       request.body = jsonTemplate(
         'closed',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         merged: true,
       );
       final Uint8List body = utf8.encode(request.body) as Uint8List;
@@ -689,7 +743,7 @@ void main() {
         () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('closed', issueNumber, 'master');
+      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -727,7 +781,7 @@ void main() {
         () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('closed', issueNumber, 'master');
+      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -776,7 +830,7 @@ void main() {
         () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('closed', issueNumber, 'master');
+      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -838,7 +892,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         isDraft: true,
       );
       final Uint8List body = utf8.encode(request.body) as Uint8List;
@@ -880,7 +934,7 @@ void main() {
     test('Will not spawn comments if they have already been made.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('opened', issueNumber, 'master');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
@@ -930,7 +984,7 @@ void main() {
       request.body = jsonTemplate(
         'opened',
         issueNumber,
-        'master',
+        kDefaultBranchName,
         login: 'engine-flutter-autoroll',
       );
       final Uint8List body = utf8.encode(request.body) as Uint8List;
@@ -982,7 +1036,8 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('synchronize', issueNumber, 'master',
+        request.body = jsonTemplate(
+            'synchronize', issueNumber, kDefaultBranchName,
             repoFullName: 'flutter/cocoon', repoName: 'cocoon');
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1000,7 +1055,7 @@ void main() {
           ]);
         });
 
-        request.body = jsonTemplate('labeled', issueNumber, 'master');
+        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1332,7 +1387,7 @@ void main() {
             ],
           );
         });
-        request.body = jsonTemplate('labeled', issueNumber, 'master',
+        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName,
             includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1384,7 +1439,8 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('unlabeled', issueNumber, 'master');
+        request.body =
+            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1441,7 +1497,8 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('unlabeled', issueNumber, 'master');
+        request.body =
+            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1494,7 +1551,8 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate('synchronize', issueNumber, 'master',
+        request.body = jsonTemplate(
+            'synchronize', issueNumber, kDefaultBranchName,
             includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1556,6 +1614,7 @@ String skiaIgnoreTemplate({String pullRequestNumber = '0000'}) {
 
 String jsonTemplate(String action, int number, String baseRef,
         {String login = 'flutter',
+        String headRef = 'wait_for_reassemble',
         bool includeCqLabel = false,
         bool includeGoldLabel = false,
         bool isDraft = false,
@@ -1659,8 +1718,8 @@ String jsonTemplate(String action, int number, String baseRef,
     "comments_url": "https://api.github.com/repos/$repoFullName/issues/$number/comments",
     "statuses_url": "https://api.github.com/repos/$repoFullName/statuses/be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
     "head": {
-      "label": "$login:wait_for_reassemble",
-      "ref": "wait_for_reassemble",
+      "label": "$login:$headRef",
+      "ref": "$headRef",
       "sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
       "user": {
         "login": "$login",
@@ -1780,7 +1839,7 @@ String jsonTemplate(String action, int number, String baseRef,
         "forks": 0,
         "open_issues": 0,
         "watchers": 1,
-        "default_branch": "master"
+        "default_branch": "$kDefaultBranchName"
       }
     },
     "base": {
@@ -1905,7 +1964,7 @@ String jsonTemplate(String action, int number, String baseRef,
         "forks": 7987,
         "open_issues": 6536,
         "watchers": 68944,
-        "default_branch": "master"
+        "default_branch": "$kDefaultBranchName"
       }
     },
     "_links": {
@@ -2041,7 +2100,7 @@ String jsonTemplate(String action, int number, String baseRef,
     "forks": 0,
     "open_issues": 2,
     "watchers": 0,
-    "default_branch": "master"
+    "default_branch": "$kDefaultBranchName"
   },
   "sender": {
     "login": "$login",

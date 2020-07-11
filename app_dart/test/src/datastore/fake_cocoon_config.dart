@@ -27,7 +27,7 @@ class FakeConfig implements Config {
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.missingTestsPullRequestMessageValue,
-    this.nonMasterPullRequestMessageValue,
+    this.wrongBaseBranchPullRequestMessageValue,
     this.goldenBreakingChangeMessageValue,
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
@@ -63,7 +63,7 @@ class FakeConfig implements Config {
   String oauthClientIdValue;
   String githubOAuthTokenValue;
   String missingTestsPullRequestMessageValue;
-  String nonMasterPullRequestMessageValue;
+  String wrongBaseBranchPullRequestMessageValue;
   String goldenBreakingChangeMessageValue;
   String goldenTriageMessageValue;
   String webhookKeyValue;
@@ -142,7 +142,8 @@ class FakeConfig implements Config {
       missingTestsPullRequestMessageValue;
 
   @override
-  String get nonMasterPullRequestMessage => nonMasterPullRequestMessageValue;
+  String get wrongBaseBranchPullRequestMessage =>
+      wrongBaseBranchPullRequestMessageValue;
 
   @override
   String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;

@@ -106,13 +106,13 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  String get nonMasterPullRequestMessage => 'This pull request was opened '
-      'against a branch other than _master_. Since Flutter pull requests should '
-      'not normally be opened against branches other than master, I have changed '
-      'the base to master. If this was intended, you may modify the base back to '
-      '{{branch}}. See the [Release Process]'
-      '(https://github.com/flutter/flutter/wiki/Release-process) for information '
-      'about how other branches get updated.\n\n'
+  String get wrongBaseBranchPullRequestMessage =>
+      'This pull request was opened against a branch other than _master_. '
+      'Since Flutter pull requests should not normally be opened against '
+      'branches other than master, I have changed the base to master. If this '
+      'was intended, you may modify the base back to {{branch}}. See the '
+      '[Release Process](https://github.com/flutter/flutter/wiki/Release-process) '
+      'for information about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
       'than master, unless this is an intentional hotfix/cherrypick.';
 
