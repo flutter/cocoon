@@ -90,6 +90,8 @@ void main() {
           'wrongHeadBranchPullRequestMessage';
       config.wrongBaseBranchPullRequestMessageValue =
           'wrongBaseBranchPullRequestMessage';
+      config.releaseBranchPullRequestMessageValue =
+          'releaseBranchPullRequestMessage';
       config.missingTestsPullRequestMessageValue =
           'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';

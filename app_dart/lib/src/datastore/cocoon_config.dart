@@ -130,6 +130,17 @@ class Config {
       'This PR has been closed. If you are sure you want to merge $branch, you '
       'may re-open this issue.';
 
+  String get releaseBranchPullRequestMessage => 'This pull request was opened '
+      'from and to a release candidate branch. This should only be done as part '
+      'of the official [Flutter release process]'
+      '(https://github.com/flutter/flutter/wiki/Release-process). If you are '
+      'attempting to make a regular contribution to the Flutter project, please '
+      'close this PR and follow the instructions at [Tree Hygiene]'
+      '(https://github.com/flutter/flutter/wiki/Tree-hygiene) for detailed '
+      'instructions on contributing to Flutter.\n\n'
+      '__Reviewers__: Use caution before merging pull requests to release '
+      'branches. Ensure the proper procedure has been followed.';
+
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
   String get missingTestsPullRequestMessage => 'It looks like this pull '

@@ -17,7 +17,6 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 
-import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -466,24 +465,26 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       return;
     }
-    if (pr.base.ref == kDefaultBranchName) {
+    if (pr.base.ref == config.defaultBranch) {
       return;
     }
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (pr.base.ref == pr.head.ref &&
-        candidateTest.hasMatch(pr.base.ref) &&
-        candidateTest.hasMatch(pr.head.ref)) {
+    if (pr.base.ref == pr.head.ref && candidateTest.hasMatch(pr.head.ref)) {
       // This is most likely a release branch
+      body = config.releaseBranchPullRequestMessage;
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number, body);
+      }
       return;
     }
 
-    // Assume this PR should be based against kDefaultBranchName.
+    // Assume this PR should be based against config.defaultBranch.
     body = _getWrongBaseComment(pr.base.ref);
     if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
       await gitHubClient.pullRequests.edit(
         slug,
         pr.number,
-        base: kDefaultBranchName,
+        base: config.defaultBranch,
       );
       await gitHubClient.issues.createComment(slug, pr.number, body);
     }

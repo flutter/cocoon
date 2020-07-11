@@ -29,6 +29,7 @@ class FakeConfig implements Config {
     this.missingTestsPullRequestMessageValue,
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
+    this.releaseBranchPullRequestMessageValue,
     this.goldenBreakingChangeMessageValue,
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
@@ -65,6 +66,7 @@ class FakeConfig implements Config {
   String missingTestsPullRequestMessageValue;
   String wrongBaseBranchPullRequestMessageValue;
   String wrongHeadBranchPullRequestMessageValue;
+  String releaseBranchPullRequestMessageValue;
   String goldenBreakingChangeMessageValue;
   String goldenTriageMessageValue;
   String webhookKeyValue;
@@ -148,6 +150,10 @@ class FakeConfig implements Config {
   @override
   String wrongHeadBranchPullRequestMessage(String branch) =>
       wrongHeadBranchPullRequestMessageValue;
+
+  @override
+  String get releaseBranchPullRequestMessage =>
+      releaseBranchPullRequestMessageValue;
 
   @override
   String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
