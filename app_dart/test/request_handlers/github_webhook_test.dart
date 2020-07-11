@@ -87,6 +87,8 @@ void main() {
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
+      config.wrongHeadBranchPullRequestMessageValue =
+          'wrongHeadBranchPullRequestMessage';
       config.wrongBaseBranchPullRequestMessageValue =
           'wrongBaseBranchPullRequestMessage';
       config.missingTestsPullRequestMessageValue =
@@ -150,6 +152,59 @@ void main() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       expect(tester.post(webhook), throwsA(isA<BadRequestException>()));
+    });
+
+    test('Closes PR opened from dev', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate(
+          'opened',
+          issueNumber,
+          kDefaultBranchName,
+          headRef: 'dev',
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.value(
+          PullRequestFile()..filename = 'packages/flutter/blah.dart',
+        ),
+      );
+
+      when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
+      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
+          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient
+              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer(
+              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer(
+          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+
+      await tester.post(webhook);
+
+      verify(pullRequestsService.edit(
+        slug,
+        issueNumber,
+        state: 'closed',
+      )).called(1);
+
+      verify(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.wrongHeadBranchPullRequestMessageValue)),
+      )).called(1);
     });
 
     test('Acts on opened against dev', () async {
