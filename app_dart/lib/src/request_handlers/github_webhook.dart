@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 
+import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -35,7 +36,6 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 };
 
 final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
-const String kDefaultBranchName = 'master';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -279,7 +279,7 @@ class GithubWebhook extends RequestHandler<Body> {
       final GitHub gitHubClient =
           await config.createGitHubClient(slug.owner, slug.name);
       try {
-        await _checkBaseRef(gitHubClient, pr);
+        await _validateRefs(gitHubClient, pr);
         if (repo == 'flutter/flutter') {
           await _applyFrameworkRepoLabels(gitHubClient, eventAction, pr);
         } else if (repo == 'flutter/engine') {
@@ -441,25 +441,44 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  /// Determine if PR was mistakenly opened against the wrong base branch.
-  Future<void> _checkBaseRef(
+  /// Validate the base and head refs of the PR.
+  Future<void> _validateRefs(
     GitHub gitHubClient,
     PullRequest pr,
   ) async {
+    final RepositorySlug slug = pr.base.repo.slug();
+    String body;
+    const List<String> releaseChannels = <String>[
+      'stable',
+      'beta',
+      'dev',
+    ];
+    // Close PRs that use a release branch as a source.
+    if (releaseChannels.contains(pr.head.ref)) {
+      body = config.wrongHeadBranchPullRequestMessage(pr.head.ref);
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.pullRequests.edit(
+          slug,
+          pr.number,
+          state: 'closed',
+        );
+        await gitHubClient.issues.createComment(slug, pr.number, body);
+      }
+      return;
+    }
     if (pr.base.ref == kDefaultBranchName) {
       return;
     }
-    final RegExp releaseRef = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
     if (pr.base.ref == pr.head.ref &&
-        releaseRef.hasMatch(pr.base.ref) &&
-        releaseRef.hasMatch(pr.head.ref)) {
+        candidateTest.hasMatch(pr.base.ref) &&
+        candidateTest.hasMatch(pr.head.ref)) {
       // This is most likely a release branch
       return;
     }
 
     // Assume this PR should be based against kDefaultBranchName.
-    final String body = await _getWrongBaseComment(pr.base.ref);
-    final RepositorySlug slug = pr.base.repo.slug();
+    body = _getWrongBaseComment(pr.base.ref);
     if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
       await gitHubClient.pullRequests.edit(
         slug,
@@ -486,7 +505,7 @@ class GithubWebhook extends RequestHandler<Body> {
     return false;
   }
 
-  Future<String> _getWrongBaseComment(String base) async {
+  String _getWrongBaseComment(String base) {
     final String messageTemplate = config.wrongBaseBranchPullRequestMessage;
     return messageTemplate.replaceAll('{{branch}}', base);
   }

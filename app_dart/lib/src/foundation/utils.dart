@@ -24,6 +24,9 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
+/// Name of the default git branch.
+const String kDefaultBranchName = 'master';
+
 Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
     Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
   const String path = '/flutter/cocoon/master/app_dart/dev/branches.txt';

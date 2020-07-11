@@ -107,14 +107,25 @@ class Config {
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
   String get wrongBaseBranchPullRequestMessage =>
-      'This pull request was opened against a branch other than _master_. '
-      'Since Flutter pull requests should not normally be opened against '
-      'branches other than master, I have changed the base to master. If this '
-      'was intended, you may modify the base back to {{branch}}. See the '
-      '[Release Process](https://github.com/flutter/flutter/wiki/Release-process) '
-      'for information about how other branches get updated.\n\n'
+      'This pull request was opened against a branch other than '
+      '_${kDefaultBranchName}_. Since Flutter pull requests should not '
+      'normally be opened against branches other than master, I have changed '
+      'the base to master. If this was intended, you may modify the base back '
+      'to {{branch}}. See the [Release Process]'
+      '(https://github.com/flutter/flutter/wiki/Release-process) for '
+      'information about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
       'than master, unless this is an intentional hotfix/cherrypick.';
+
+  String wrongHeadBranchPullRequestMessage(String branch) =>
+      'This pull request is trying merge the branch $branch, which is the name '
+      'of a release branch. This is usually a mistake. See '
+      '[Tree Hygiene](https://github.com/flutter/flutter/wiki/Tree-hygiene) '
+      'for detailed instructions on how to contribute to the Flutter project. '
+      'In particular, ensure that before you start coding, you create your '
+      'feature branch off of _${kDefaultBranchName}_.\n\n'
+      'This PR has been closed. If you are sure you want to merge $branch, you '
+      'may re-open this issue.';
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
