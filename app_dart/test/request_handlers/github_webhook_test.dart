@@ -158,10 +158,10 @@ void main() {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
-          'opened',
-          issueNumber,
-          kDefaultBranchName,
-          headRef: 'dev',
+        'opened',
+        issueNumber,
+        kDefaultBranchName,
+        headRef: 'dev',
       );
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
