@@ -25,6 +25,9 @@ import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
 
+/// Name of the default git branch.
+const String kDefaultBranchName = 'master';
+
 class Config {
   Config(this._db, this._cache) : assert(_db != null);
 
@@ -109,13 +112,13 @@ class Config {
   String get wrongBaseBranchPullRequestMessage =>
       'This pull request was opened against a branch other than '
       '_${kDefaultBranchName}_. Since Flutter pull requests should not '
-      'normally be opened against branches other than master, I have changed '
-      'the base to master. If this was intended, you may modify the base back '
-      'to {{branch}}. See the [Release Process]'
-      '(https://github.com/flutter/flutter/wiki/Release-process) for '
-      'information about how other branches get updated.\n\n'
+      'normally be opened against branches other than $kDefaultBranchName, I '
+      'have changed the base to $kDefaultBranchName. If this was intended, you '
+      'may modify the base back to {{branch}}. See the [Release Process]'
+      '(https://github.com/flutter/flutter/wiki/Release-process) for information '
+      'about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
-      'than master, unless this is an intentional hotfix/cherrypick.';
+      'than $kDefaultBranchName, unless this is an intentional hotfix/cherrypick.';
 
   String wrongHeadBranchPullRequestMessage(String branch) =>
       'This pull request is trying merge the branch $branch, which is the name '
@@ -175,7 +178,7 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
-  String get defaultBranch => 'master';
+  String get defaultBranch => kDefaultBranchName;
 
   // Default number of commits to return for benchmark dashboard.
   int get maxRecords => 50;
