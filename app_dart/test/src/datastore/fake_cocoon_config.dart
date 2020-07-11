@@ -27,7 +27,9 @@ class FakeConfig implements Config {
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.missingTestsPullRequestMessageValue,
-    this.nonMasterPullRequestMessageValue,
+    this.wrongBaseBranchPullRequestMessageValue,
+    this.wrongHeadBranchPullRequestMessageValue,
+    this.releaseBranchPullRequestMessageValue,
     this.goldenBreakingChangeMessageValue,
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
@@ -46,7 +48,6 @@ class FakeConfig implements Config {
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
     this.maxRecordsValue,
-    this.defaultBranchValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -63,7 +64,9 @@ class FakeConfig implements Config {
   String oauthClientIdValue;
   String githubOAuthTokenValue;
   String missingTestsPullRequestMessageValue;
-  String nonMasterPullRequestMessageValue;
+  String wrongBaseBranchPullRequestMessageValue;
+  String wrongHeadBranchPullRequestMessageValue;
+  String releaseBranchPullRequestMessageValue;
   String goldenBreakingChangeMessageValue;
   String goldenTriageMessageValue;
   String webhookKeyValue;
@@ -80,7 +83,6 @@ class FakeConfig implements Config {
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
   int maxRecordsValue;
-  String defaultBranchValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -110,7 +112,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB get db => dbValue;
 
   @override
-  String get defaultBranch => defaultBranchValue;
+  String get defaultBranch => kDefaultBranchName;
 
   @override
   Future<ServiceAccountInfo> get deviceLabServiceAccount async =>
@@ -142,7 +144,16 @@ class FakeConfig implements Config {
       missingTestsPullRequestMessageValue;
 
   @override
-  String get nonMasterPullRequestMessage => nonMasterPullRequestMessageValue;
+  String get wrongBaseBranchPullRequestMessage =>
+      wrongBaseBranchPullRequestMessageValue;
+
+  @override
+  String wrongHeadBranchPullRequestMessage(String branch) =>
+      wrongHeadBranchPullRequestMessageValue;
+
+  @override
+  String get releaseBranchPullRequestMessage =>
+      releaseBranchPullRequestMessageValue;
 
   @override
   String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;

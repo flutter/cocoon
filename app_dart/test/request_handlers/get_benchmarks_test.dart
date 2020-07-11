@@ -39,8 +39,7 @@ void main() {
       keyHelper =
           FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
-      config =
-          FakeConfig(keyHelperValue: keyHelper, defaultBranchValue: 'master');
+      config = FakeConfig(keyHelperValue: keyHelper);
       handler = GetBenchmarks(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),

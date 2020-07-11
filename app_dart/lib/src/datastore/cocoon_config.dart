@@ -25,6 +25,9 @@ import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
 
+/// Name of the default git branch.
+const String kDefaultBranchName = 'master';
+
 class Config {
   Config(this._db, this._cache) : assert(_db != null);
 
@@ -106,15 +109,37 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  String get nonMasterPullRequestMessage => 'This pull request was opened '
-      'against a branch other than _master_. Since Flutter pull requests should '
-      'not normally be opened against branches other than master, I have changed '
-      'the base to master. If this was intended, you may modify the base back to '
-      '{{branch}}. See the [Release Process]'
+  String get wrongBaseBranchPullRequestMessage =>
+      'This pull request was opened against a branch other than '
+      '_${kDefaultBranchName}_. Since Flutter pull requests should not '
+      'normally be opened against branches other than $kDefaultBranchName, I '
+      'have changed the base to $kDefaultBranchName. If this was intended, you '
+      'may modify the base back to {{branch}}. See the [Release Process]'
       '(https://github.com/flutter/flutter/wiki/Release-process) for information '
       'about how other branches get updated.\n\n'
       '__Reviewers__: Use caution before merging pull requests to branches other '
-      'than master, unless this is an intentional hotfix/cherrypick.';
+      'than $kDefaultBranchName, unless this is an intentional hotfix/cherrypick.';
+
+  String wrongHeadBranchPullRequestMessage(String branch) =>
+      'This pull request is trying merge the branch $branch, which is the name '
+      'of a release branch. This is usually a mistake. See '
+      '[Tree Hygiene](https://github.com/flutter/flutter/wiki/Tree-hygiene) '
+      'for detailed instructions on how to contribute to the Flutter project. '
+      'In particular, ensure that before you start coding, you create your '
+      'feature branch off of _${kDefaultBranchName}_.\n\n'
+      'This PR has been closed. If you are sure you want to merge $branch, you '
+      'may re-open this issue.';
+
+  String get releaseBranchPullRequestMessage => 'This pull request was opened '
+      'from and to a release candidate branch. This should only be done as part '
+      'of the official [Flutter release process]'
+      '(https://github.com/flutter/flutter/wiki/Release-process). If you are '
+      'attempting to make a regular contribution to the Flutter project, please '
+      'close this PR and follow the instructions at [Tree Hygiene]'
+      '(https://github.com/flutter/flutter/wiki/Tree-hygiene) for detailed '
+      'instructions on contributing to Flutter.\n\n'
+      '__Reviewers__: Use caution before merging pull requests to release '
+      'branches. Ensure the proper procedure has been followed.';
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
@@ -164,7 +189,7 @@ class Config {
 
   String get cqLabelName => 'CQ+1';
 
-  String get defaultBranch => 'master';
+  String get defaultBranch => kDefaultBranchName;
 
   // Default number of commits to return for benchmark dashboard.
   int get maxRecords => 50;
