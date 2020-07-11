@@ -35,6 +35,7 @@ const Set<String> kNeedsCheckLabelsAndTests = <String>{
 };
 
 final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
+const String kDefaultBranchName = 'master';
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
@@ -440,21 +441,32 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
+  /// Determine if PR was mistakenly opened against the wrong base branch.
   Future<void> _checkBaseRef(
     GitHub gitHubClient,
     PullRequest pr,
   ) async {
-    if (pr.base.ref != 'master') {
-      final String body = await _getWrongBaseComment(pr.base.ref);
-      final RepositorySlug slug = pr.base.repo.slug();
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
-        await gitHubClient.pullRequests.edit(
-          slug,
-          pr.number,
-          base: 'master',
-        );
-        await gitHubClient.issues.createComment(slug, pr.number, body);
-      }
+    if (pr.base.ref == kDefaultBranchName) {
+      return;
+    }
+    final RegExp regExp = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
+    if (pr.base.ref == pr.head.ref &&
+        regExp.hasMatch(pr.base.ref) &&
+        regExp.hasMatch(pr.head.ref)) {
+      // This is most likely a release branch
+      return;
+    }
+
+    // Assume this PR should be based against kDefaultBranchName.
+    final String body = await _getWrongBaseComment(pr.base.ref);
+    final RepositorySlug slug = pr.base.repo.slug();
+    if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+      await gitHubClient.pullRequests.edit(
+        slug,
+        pr.number,
+        base: kDefaultBranchName,
+      );
+      await gitHubClient.issues.createComment(slug, pr.number, body);
     }
   }
 
