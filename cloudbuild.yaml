@@ -1,5 +1,6 @@
 steps:
 
+  timeout: 1200s
   # Build app_flutter.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
@@ -14,4 +15,4 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: '/bin/bash'
     args: ['cloud_build/deploy.sh', 'tvolkert-test', '$SHORT_SHA', '$_GAE_PROMOTE']
-  timeout: 1200s
+
