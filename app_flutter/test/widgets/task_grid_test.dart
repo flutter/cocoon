@@ -21,6 +21,7 @@ import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_icon.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
@@ -71,17 +72,17 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.origin.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pump();
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_y.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pump();
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_x.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
 
     await tester.pumpWidget(Container());
     buildState.dispose();
@@ -119,17 +120,17 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.origin.dark.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pump();
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_y.dark.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pump();
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.dev.scroll_x.dark.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
 
     await tester.pumpWidget(Container());
     buildState.dispose();
@@ -188,7 +189,7 @@ void main() {
       ),
     );
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withSkips.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withSkips.png');
   });
 
   testWidgets('TaskGrid creates a task icon row and they line up', (WidgetTester tester) async {
@@ -266,7 +267,7 @@ void main() {
       ),
     );
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withoutL.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withoutL.png');
 
     await tester.pumpWidget(
       MaterialApp(
@@ -279,7 +280,7 @@ void main() {
       ),
     );
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.withL.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withL.png');
   });
 
   testWidgets('TaskGrid shows loading indicator for In Progress task', (WidgetTester tester) async {
@@ -491,7 +492,7 @@ void main() {
       ),
     );
 
-    await expectLater(find.byType(TaskGrid), matchesGoldenFile('task_grid_test.differentTypes.png'));
+    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color

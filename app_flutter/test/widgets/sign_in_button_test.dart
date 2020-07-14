@@ -13,6 +13,7 @@ import 'package:app_flutter/widgets/sign_in_button.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
 
 import '../utils/fake_google_account.dart';
+import '../utils/golden.dart';
 import '../utils/mocks.dart';
 
 final Widget testApp = MaterialApp(
@@ -50,7 +51,7 @@ void main() {
     expect(find.byType(GoogleUserCircleAvatar), findsNothing);
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('test@flutter.dev'), findsNothing);
-    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.not_authenticated.png'));
+    await expectGoldenMatches(find.byType(Overlay), 'sign_in_button.not_authenticated.png');
   });
 
   testWidgets('SignInButton calls sign in on tap when not authenticated', (WidgetTester tester) async {
@@ -89,7 +90,7 @@ void main() {
     // TODO(chillers): look for GoogleUserCircleAvatar once we use that (see sign_in_button.dart)
     expect(find.text('SIGN IN'), findsNothing);
     expect(find.text('test@flutter.dev'), findsOneWidget);
-    await expectLater(find.byType(Overlay), matchesGoldenFile('sign_in_button.authenticated.png'));
+    await expectGoldenMatches(find.byType(Overlay), 'sign_in_button.authenticated.png');
   });
 
   testWidgets('SignInButton calls sign out on tap when authenticated', (WidgetTester tester) async {
