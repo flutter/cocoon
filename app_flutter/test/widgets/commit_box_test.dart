@@ -10,6 +10,8 @@ import 'package:cocoon_service/protos.dart' show Commit;
 
 import 'package:app_flutter/widgets/commit_box.dart';
 
+import '../utils/golden.dart';
+
 void main() {
   final Commit expectedCommit = Commit()
     ..author = 'AuthoryMcAuthor Face'
@@ -33,7 +35,7 @@ void main() {
 
   testWidgets('CommitBox shows information correctly', (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
-    await expectLater(find.byType(Overlay), matchesGoldenFile('commit_box_test.idle.png'));
+    await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.idle.png');
   });
 
   testWidgets('CommitBox shows overlay on click', (WidgetTester tester) async {
@@ -48,7 +50,7 @@ void main() {
     expect(find.text(shortSha), findsOneWidget);
     expect(find.text(expectedCommit.author), findsOneWidget);
 
-    await expectLater(find.byType(Overlay), matchesGoldenFile('commit_box_test.open.png'));
+    await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.open.png');
   });
 
   testWidgets('CommitBox closes overlay on click out', (WidgetTester tester) async {
