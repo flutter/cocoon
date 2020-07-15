@@ -42,8 +42,11 @@ class PushBenchmarkToCenter extends RequestHandler<Body> {
   Future<Body> get() async {
     final Map<String, TimeSeries> timeSeriesMap = await readTimeSeriesMap();
 
-    DateTime begin = DateTime.utc(2020, 3, 1);
-    for (int i = 0; i < 2 * 31; i++) {
+    final DateTime now = DateTime.now().toUtc();
+    final DateTime twoDaysAgo = now.subtract(const Duration(days: 2));
+
+    DateTime begin = DateTime.utc(twoDaysAgo.year, twoDaysAgo.month, twoDaysAgo.day);
+    for (int i = 0; i < 1; i++) {
       print('begin: $begin');
       final DateTime end = begin.add(const Duration(days: 1));
       final List<TimeSeriesValue> timeSeriesValues = await readTimeSeriesValue(
@@ -130,9 +133,9 @@ class BenchmarkMetricPoint extends mc.MetricPoint {
               // Where this measurement was created.
               mc.kOriginIdKey: kOrigin,
               // Name of the devicelab task.
-              mc.kTaskNameKey: ts.taskName,
+              mc.kNameKey: ts.taskName,
               // Name of a metric in the task. A task might have mutiple metrics.
-              mc.kNameKey: ts.label,
+              mc.kSubResultKey: ts.label,
               // Unit of this measurement.
               mc.kUnitKey: ts.unit,
             },
