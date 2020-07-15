@@ -6,6 +6,7 @@
 # Build flutter app to generate flutter build dashboard.
 
 pushd app_flutter > /dev/null
+set -e
 rm -rf build
 flutter doctor
 flutter pub get
