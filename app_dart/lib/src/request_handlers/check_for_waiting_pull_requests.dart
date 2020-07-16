@@ -209,12 +209,17 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final List<Map<String, dynamic>> statuses =
           (commit['status']['contexts'] as List<dynamic>)
               .cast<Map<String, dynamic>>();
+      final List<Map<String, dynamic>> checkRuns =
+          (commit['checkSuites']['nodes'].single['checkRuns'].first['nodes']
+                  as List<dynamic>)
+              .cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};
 
       final bool ciSuccessful = await _checkStatuses(
         sha,
         failingStatuses,
         statuses,
+        checkRuns,
         name,
         'pull/$number',
       );
@@ -240,6 +245,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     String sha,
     Set<String> failures,
     List<Map<String, dynamic>> statuses,
+    List<Map<String, dynamic>> checkRuns,
     String name,
     String branch,
   ) async {
@@ -260,6 +266,16 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
             !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
+      }
+    }
+
+    for (Map<String, dynamic> checkRun in checkRuns) {
+      final String name = checkRun['name'] as String;
+      if (checkRun['status'] != 'COMPLETED') {
+        allSuccess = false;
+      } else if (checkRun['conclusion'] != 'SUCCESS') {
+        allSuccess = false;
+        failures.add(name);
       }
     }
 

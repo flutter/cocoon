@@ -37,6 +37,7 @@ void main() {
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> engineRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
+    List<dynamic> checks = <dynamic>[];
     String branch;
 
     setUp(() {
@@ -52,6 +53,7 @@ void main() {
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       statuses.clear();
+      checks.clear();
       PullRequestHelper._counter = 0;
 
       cirrusGraphQLClient.mutateCirrusResultForOptions =
@@ -176,6 +178,88 @@ void main() {
       _verifyQueries();
 
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with in progress checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prInProgress = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.windowsInProgress,
+        ],
+        lastCommitStatuses: const <StatusHelper>[],
+      );
+      flutterRepoPRs.add(prInProgress);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with queued checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prQueued = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.macQueued,
+        ],
+        lastCommitStatuses: const <StatusHelper>[],
+      );
+      flutterRepoPRs.add(prQueued);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with requested checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxRequested,
+        ],
+        lastCommitStatuses: const <StatusHelper>[],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with failed status and checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.linuxRequested,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Merge PR with successful status and checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: mergePullRequestMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'oid': oid,
+          },
+        ),
+      ]);
     });
 
     test('Ignores cirrus tasks statuses when no matched branch', () async {
@@ -685,6 +769,33 @@ class StatusHelper {
 }
 
 @immutable
+class CheckRunHelper {
+  const CheckRunHelper(this.name, this.status, this.conclusion);
+
+  static const CheckRunHelper luciCompletedSuccess =
+      CheckRunHelper('Linux', 'COMPLETED', 'SUCCESS');
+  static const CheckRunHelper luciCompletedFailure =
+      CheckRunHelper('Linux', 'COMPLETED', 'FAILURE');
+  static const CheckRunHelper luciCompletedNeutral =
+      CheckRunHelper('Linux', 'COMPLETED', 'NEUTRAL');
+  static const CheckRunHelper luciCompletedSkipped =
+      CheckRunHelper('Linux', 'COMPLETED', 'SKIPPED');
+  static const CheckRunHelper luciCompletedStale =
+      CheckRunHelper('Linux', 'COMPLETED', 'STALE');
+  static const CheckRunHelper luciCompletedTimedout =
+      CheckRunHelper('Linux', 'COMPLETED', 'TIMED_OUT');
+  static const CheckRunHelper windowsInProgress =
+      CheckRunHelper('Windows', 'IN_PROGRESS', '');
+  static const CheckRunHelper macQueued = CheckRunHelper('Mac', 'QUEUED', '');
+  static const CheckRunHelper linuxRequested =
+      CheckRunHelper('Linux', 'REQUESTED', '');
+
+  final String name;
+  final String status;
+  final String conclusion;
+}
+
+@immutable
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
@@ -698,7 +809,9 @@ class PullRequestHelper {
     this.lastCommitStatuses = const <StatusHelper>[
       StatusHelper.flutterBuildSuccess
     ],
-    this.lastCommitCheckRuns = const <StatusHelper>[StatusHelper.cirrusSuccess],
+    this.lastCommitCheckRuns = const <CheckRunHelper>[
+      CheckRunHelper.luciCompletedSuccess
+    ],
     this.dateTime,
   }) : _count = _counter++;
 
@@ -711,7 +824,7 @@ class PullRequestHelper {
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   final List<StatusHelper> lastCommitStatuses;
-  final List<StatusHelper> lastCommitCheckRuns;
+  final List<CheckRunHelper> lastCommitCheckRuns;
   final DateTime dateTime;
 
   Map<String, dynamic> toEntry() {
@@ -745,6 +858,24 @@ class PullRequestHelper {
                     'state': status.state,
                   };
                 }).toList(),
+              },
+              'checkSuites': <String, dynamic>{
+                'nodes': <dynamic>[
+                  <String, dynamic>{
+                    'checkRuns': <dynamic>[
+                      <String, dynamic>{
+                        'nodes':
+                            lastCommitCheckRuns.map((CheckRunHelper status) {
+                          return <String, dynamic>{
+                            'name': status.name,
+                            'status': status.status,
+                            'conclusion': status.conclusion,
+                          };
+                        }).toList(),
+                      }
+                    ]
+                  }
+                ]
               },
             },
           },
