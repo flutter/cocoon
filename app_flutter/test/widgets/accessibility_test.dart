@@ -56,17 +56,14 @@ void main() {
       }
 
       return Scaffold(
-        body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Wrap(children: avatars),
-            ]),
+        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+          Wrap(children: avatars),
+        ]),
       );
     }
 
     testWidgets('dark theme', (WidgetTester tester) async {
-      await tester.pumpWidget(
-          MaterialApp(theme: ThemeData.dark(), home: buildAuthors()));
+      await tester.pumpWidget(MaterialApp(theme: ThemeData.dark(), home: buildAuthors()));
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
