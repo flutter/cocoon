@@ -24,21 +24,24 @@ class CommitAuthorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     assert(commit.author.isNotEmpty);
-    final int authorHash = commit.author.hashCode;
     final String authorName = commit.author.substring(0, 1).toUpperCase();
-    Color authorColor = Color.fromRGBO(
-      authorHash & 0xFF,
-      (authorHash >> 8) & 0xFF,
-      (authorHash >> 16) & 0xFF,
-      1,
-    );
-    if (Theme.of(context).brightness == Brightness.dark) {
-      authorColor = HSLColor.fromColor(authorColor).withLightness(.75).toColor();
-    }
+    final int authorHash = authorName.hashCode;
+    final ThemeData theme = Theme.of(context);
+
+    final double hue = (360.0 * authorHash / (1 << 15)) % 360.0;
+    final double themeValue = HSVColor.fromColor(theme.backgroundColor).value;
+    Color authorColor = HSVColor.fromAHSV(1.0, hue, 0.4, themeValue).toColor();
+    if (theme.brightness == Brightness.dark)
+      authorColor =  HSLColor.fromColor(authorColor).withLightness(.65).toColor();
+
     final Widget avatar = CircleAvatar(
       backgroundColor: authorColor,
-      child: Text(authorName),
+      child: Text(
+        authorName,
+        style: TextStyle(color: authorColor.computeLuminance() > 0.25 ? Colors.black : Colors.white),
+      ),
     );
+
     return WebImage(
       imageUrl: commit.authorAvatarUrl,
       imageBuilder: (BuildContext context, ImageProvider provider) => CircleAvatar(
