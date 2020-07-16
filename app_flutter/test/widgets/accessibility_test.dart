@@ -12,10 +12,42 @@ void main() {
   group('Author avatars meet guidelines for theme brightness', () {
     Widget buildAuthors() {
       final List<String> names = <String>[
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-        'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4',
-        '5', '6', '7', '8', '9', '0',
+        'a',
+        'b',
+        'c',
+        'd',
+        'e',
+        'f',
+        'g',
+        'h',
+        'i',
+        'j',
+        'k',
+        'l',
+        'm',
+        'n',
+        'o',
+        'p',
+        'q',
+        'r',
+        's',
+        't',
+        'u',
+        'v',
+        'w',
+        'x',
+        'y',
+        'z',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '0',
       ];
       final List<CommitAuthorAvatar> avatars = <CommitAuthorAvatar>[];
 
@@ -24,26 +56,20 @@ void main() {
       }
 
       return Scaffold(
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Wrap(children: avatars),
-          ]
-        ),
+        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Wrap(children: avatars),
+        ]),
       );
     }
 
     testWidgets('dark theme', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(theme: ThemeData.dark(), home: buildAuthors())
-      );
+          MaterialApp(theme: ThemeData.dark(), home: buildAuthors()));
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
 
     testWidgets('light theme', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(home: buildAuthors())
-      );
+      await tester.pumpWidget(MaterialApp(home: buildAuthors()));
       await expectLater(tester, meetsGuideline(textContrastGuideline));
     });
   });
