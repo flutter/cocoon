@@ -8,7 +8,8 @@ import 'package:app_flutter/widgets/web_image.dart';
 
 void main() {
   testWidgets('WebImage.enabled', (WidgetTester tester) async {
-    expect(const WebImage(imageUrl: 'url').enabled, isFalse); // because this is a test
+    expect(const WebImage(imageUrl: 'url').enabled,
+        isFalse); // because this is a test
     expect(const WebImage(imageUrl: 'url', enabled: false).enabled, isFalse);
     expect(const WebImage(imageUrl: 'url', enabled: true).enabled, isTrue);
   });

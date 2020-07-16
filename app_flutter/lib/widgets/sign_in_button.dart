@@ -24,7 +24,8 @@ class SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
+    final GoogleSignInService authService =
+        Provider.of<GoogleSignInService>(context);
     return FutureBuilder<bool>(
       future: authService.isAuthenticated,
       builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
@@ -42,7 +43,8 @@ class SignInButton extends StatelessWidget {
               ),
             ),
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<_SignInButtonAction>>[
               const PopupMenuItem<_SignInButtonAction>(
                 value: _SignInButtonAction.logout,
                 child: Text('Log out'),

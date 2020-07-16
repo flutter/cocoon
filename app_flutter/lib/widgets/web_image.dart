@@ -44,7 +44,8 @@ class WebImage extends StatelessWidget {
       return false;
     }
     // Unlike FLUTTER_TEST, the FLUTTER_WEB_USE_SKIA key is set during compilation.
-    if (const bool.fromEnvironment('FLUTTER_WEB_USE_SKIA', defaultValue: false)) {
+    if (const bool.fromEnvironment('FLUTTER_WEB_USE_SKIA',
+        defaultValue: false)) {
       return false;
     }
     return true;

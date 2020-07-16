@@ -47,7 +47,8 @@ class IndexPage extends StatelessWidget {
                   RaisedButton.icon(
                     icon: const Icon(Icons.build),
                     label: const Text('BUILD'),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/build'),
+                    onPressed: () =>
+                        Navigator.pushReplacementNamed(context, '/build'),
                   ),
                   separator,
                   RaisedButton.icon(
@@ -73,7 +74,8 @@ class IndexPage extends StatelessWidget {
                   RaisedButton.icon(
                     icon: const Icon(Icons.android),
                     label: const Text('INFRA AGENTS'),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/agents'),
+                    onPressed: () =>
+                        Navigator.pushReplacementNamed(context, '/agents'),
                   ),
                 ],
               ),

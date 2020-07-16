@@ -10,7 +10,8 @@ import 'sign_in_button.dart';
 ///
 /// The [actions] will always have a [SignInButton] added.
 class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CocoonAppBar({Key key, this.title, this.actions, this.backgroundColor}) : super(key: key);
+  const CocoonAppBar({Key key, this.title, this.actions, this.backgroundColor})
+      : super(key: key);
 
   final Widget title;
 
@@ -31,7 +32,8 @@ class CocoonAppBar extends StatelessWidget implements PreferredSizeWidget {
         ...?actions,
         if (actions != null && actions.isNotEmpty) const SizedBox(width: 8),
         SignInButton(
-          colorBrightness: theme.appBarTheme.brightness ?? theme.primaryColorBrightness,
+          colorBrightness:
+              theme.appBarTheme.brightness ?? theme.primaryColorBrightness,
         ),
       ],
     );

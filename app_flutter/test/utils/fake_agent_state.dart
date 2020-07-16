@@ -48,7 +48,8 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
   Future<String> authorizeAgent(Agent agent) async => 'abc123';
 
   @override
-  Future<String> createAgent(String agentId, List<String> capabilities) async => 'def456';
+  Future<String> createAgent(String agentId, List<String> capabilities) async =>
+      'def456';
 
   @override
   Future<void> reserveTask(Agent agent) => null;

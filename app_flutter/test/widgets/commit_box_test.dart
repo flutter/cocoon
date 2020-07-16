@@ -33,7 +33,8 @@ void main() {
     ),
   );
 
-  testWidgets('CommitBox shows information correctly', (WidgetTester tester) async {
+  testWidgets('CommitBox shows information correctly',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
     await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.idle.png');
   });
@@ -53,7 +54,8 @@ void main() {
     await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.open.png');
   });
 
-  testWidgets('CommitBox closes overlay on click out', (WidgetTester tester) async {
+  testWidgets('CommitBox closes overlay on click out',
+      (WidgetTester tester) async {
     await tester.pumpWidget(basicApp);
 
     // Open the overlay
@@ -69,9 +71,11 @@ void main() {
     expect(find.text(shortSha), findsNothing);
   });
 
-  testWidgets('tapping GitHub button in CommitBox redirects to GitHub', (WidgetTester tester) async {
+  testWidgets('tapping GitHub button in CommitBox redirects to GitHub',
+      (WidgetTester tester) async {
     // The url_launcher calls get logged in this channel
-    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
+    const MethodChannel channel =
+        MethodChannel('plugins.flutter.io/url_launcher');
     final List<MethodCall> log = <MethodCall>[];
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       log.add(methodCall);
@@ -91,7 +95,8 @@ void main() {
       log,
       <Matcher>[
         isMethodCall('launch', arguments: <String, Object>{
-          'url': 'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
+          'url':
+              'https://github.com/${expectedCommit.repository}/commit/${expectedCommit.sha}',
           'useSafariVC': true,
           'useWebView': false,
           'enableJavaScript': false,

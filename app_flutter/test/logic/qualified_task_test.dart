@@ -14,7 +14,8 @@ void main() {
       ..stageName = 'chromebot'
       ..name = 'mac_bot';
 
-    expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+    expect(logUrl(luciTask),
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
     final Task cirrusTask = Task()..stageName = 'cirrus';
 
     expect(
@@ -24,7 +25,8 @@ void main() {
               ..branch = 'master'),
         'https://cirrus-ci.com/build/flutter/flutter/abc123?branch=master');
 
-    expect(logUrl(cirrusTask), 'https://cirrus-ci.com/github/flutter/flutter/master');
+    expect(logUrl(cirrusTask),
+        'https://cirrus-ci.com/github/flutter/flutter/master');
   });
 
   test('logUrl() for devicelab tasks redirects to cocoon backend', () {
@@ -32,7 +34,8 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'test';
 
-    expect(logUrl(devicelabTask), 'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
+    expect(logUrl(devicelabTask),
+        'https://flutter-dashboard.appspot.com/api/get-log?ownerKey=${devicelabTask.key}');
   });
 
   test('QualifiedTask.sourceConfigurationUrl for devicelab', () {

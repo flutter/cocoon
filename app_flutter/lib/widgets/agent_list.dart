@@ -77,9 +77,13 @@ class _AgentListState extends State<AgentList> {
     final DateTime now = Now.of(context);
 
     // TODO(chillers): Remove sort once backend handles sorting. https://github.com/flutter/flutter/issues/48249
-    final List<_SortableAgent> sortableAgents =
-        widget.agents.map((Agent agent) => _SortableAgent(agent, AgentHealthDetails(agent), now)).toList()..sort();
-    final List<_SortableAgent> filteredAgents = filterAgents(sortableAgents, filterAgentsController.text);
+    final List<_SortableAgent> sortableAgents = widget.agents
+        .map((Agent agent) =>
+            _SortableAgent(agent, AgentHealthDetails(agent), now))
+        .toList()
+          ..sort();
+    final List<_SortableAgent> filteredAgents =
+        filterAgents(sortableAgents, filterAgentsController.text);
 
     return Column(
       children: <Widget>[
@@ -107,7 +111,9 @@ class _AgentListState extends State<AgentList> {
           child: ListView(
             children: List<AgentTile>.generate(filteredAgents.length, (int i) {
               return AgentTile(
-                key: widget.insertKeys ? Key('$i-${filteredAgents[i].agent.agentId}') : null,
+                key: widget.insertKeys
+                    ? Key('$i-${filteredAgents[i].agent.agentId}')
+                    : null,
                 agentHealthDetails: filteredAgents[i].agentHealthDetails,
                 agentState: widget.agentState,
               );
@@ -122,12 +128,16 @@ class _AgentListState extends State<AgentList> {
   /// that contains [filter].
   ///
   /// If filter is empty, the original list of agents.
-  List<_SortableAgent> filterAgents(List<_SortableAgent> agents, String filter) {
+  List<_SortableAgent> filterAgents(
+      List<_SortableAgent> agents, String filter) {
     if (filter.isEmpty) {
       return agents;
     }
 
-    return agents.where((_SortableAgent fullAgent) => fullAgent.agent.agentId.contains(filter)).toList();
+    return agents
+        .where((_SortableAgent fullAgent) =>
+            fullAgent.agent.agentId.contains(filter))
+        .toList();
   }
 }
 

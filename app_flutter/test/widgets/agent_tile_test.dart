@@ -19,7 +19,8 @@ import '../utils/output.dart';
 
 final DateTime healthyTime = DateTime.utc(2010, 5, 6, 12, 30);
 final DateTime nowTime = healthyTime.add(
-  const Duration(minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
+  const Duration(
+      minutes: AgentHealthDetails.minutesUntilAgentIsUnresponsive ~/ 2),
 );
 
 void main() {

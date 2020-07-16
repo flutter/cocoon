@@ -21,16 +21,20 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   final Task task;
 
   @visibleForTesting
-  static const String luciProdLogBase = 'https://ci.chromium.org/p/flutter/builders/prod/';
+  static const String luciProdLogBase =
+      'https://ci.chromium.org/p/flutter/builders/prod/';
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
+    final List<String> buildNumberList = task.buildNumberList.isEmpty
+        ? <String>[]
+        : task.buildNumberList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
         return RaisedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
-          onPressed: () => launch(_luciProdLogUrl(task.builderName, buildNumberList[i])),
+          onPressed: () =>
+              launch(_luciProdLogUrl(task.builderName, buildNumberList[i])),
         );
       }),
     );

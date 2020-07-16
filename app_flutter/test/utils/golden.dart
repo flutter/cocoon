@@ -21,5 +21,6 @@ Future<void> expectGoldenMatches(
     return null;
   }
   final String goldenPath = 'goldens/' + goldenFileKey;
-  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip);
+  return expectLater(actual, matchesGoldenFile(goldenPath),
+      reason: reason, skip: skip);
 }

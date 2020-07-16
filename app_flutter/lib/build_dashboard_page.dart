@@ -71,7 +71,9 @@ class BuildDashboardPage extends StatelessWidget {
                     child: Text(
                       value,
                       style: TextStyle(
-                        color: theme.brightness == Brightness.light ? Colors.black : Colors.white,
+                        color: theme.brightness == Brightness.light
+                            ? Colors.black
+                            : Colors.white,
                       ),
                     ),
                   );

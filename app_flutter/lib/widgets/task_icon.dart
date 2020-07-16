@@ -30,9 +30,11 @@ class TaskIcon extends StatelessWidget {
     // This only works in the CanvasKit implementation currently, not in DOM. If
     // this needs to run in the DOM implementation, it will need to include
     // different assets.
-    final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
+    final Color blendFilter =
+        brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.stage == StageName.luci && qualifiedTask.task == 'linux_bot') {
+    if (qualifiedTask.stage == StageName.luci &&
+        qualifiedTask.task == 'linux_bot') {
       return Image.asset(
         'assets/fuchsia.png',
       );

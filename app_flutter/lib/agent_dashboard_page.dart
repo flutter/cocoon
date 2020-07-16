@@ -30,10 +30,12 @@ class AgentDashboardPage extends StatelessWidget {
 
   static const String routeName = '/agents';
 
-  static void _showCreateAgentDialog(BuildContext context, AgentState agentState) {
+  static void _showCreateAgentDialog(
+      BuildContext context, AgentState agentState) {
     showDialog<AlertDialog>(
       context: context,
-      builder: (BuildContext context) => CreateAgentDialog(agentState: agentState),
+      builder: (BuildContext context) =>
+          CreateAgentDialog(agentState: agentState),
     );
   }
 
@@ -56,7 +58,8 @@ class AgentDashboardPage extends StatelessWidget {
                 // TODO(ianh): stop passing both the state and the value from the state
                 agents: _agentState.agents,
                 agentState: _agentState,
-                agentFilter: agentFilter ?? ModalRoute.of(context).settings.arguments as String,
+                agentFilter: agentFilter ??
+                    ModalRoute.of(context).settings.arguments as String,
               ),
             ),
           ),
@@ -150,7 +153,8 @@ class _CreateAgentDialogState extends State<CreateAgentDialog> {
   /// to the form.
   Future<void> _createAgent(BuildContext context) async {
     final String id = _agentIdController.value.text;
-    final List<String> capabilities = _agentCapabilitiesController.value.text.split(',');
+    final List<String> capabilities =
+        _agentCapabilitiesController.value.text.split(',');
     final String token = await widget.agentState.createAgent(id, capabilities);
 
     // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020

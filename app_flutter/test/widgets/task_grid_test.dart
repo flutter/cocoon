@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/protos.dart'
+    show Commit, CommitStatus, Stage, Task;
 
 import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/build.dart';
@@ -26,7 +27,9 @@ import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
 void main() {
-  testWidgets('TaskGridContainer shows loading indicator when statuses is empty', (WidgetTester tester) async {
+  testWidgets(
+      'TaskGridContainer shows loading indicator when statuses is empty',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: ValueProvider<BuildState>(
@@ -41,7 +44,8 @@ void main() {
     expect(find.byType(LatticeScrollView), findsNothing);
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService', (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
@@ -72,23 +76,27 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.origin.png');
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pump();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pump();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.png');
 
     await tester.pumpWidget(Container());
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (WidgetTester tester) async {
+  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final BuildState buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
@@ -120,23 +128,27 @@ void main() {
       expect(tester.getTopLeft(find.byType(CommitBox).at(index)).dx, xPosition);
     }
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.origin.dark.png');
 
     // Check if the LOADING... indicator appears.
     await tester.drag(find.byType(TaskGrid), const Offset(0.0, -5000.0));
     await tester.pump();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.scroll_y.dark.png');
 
     // Check the right edge after the data comes in.
     await tester.drag(find.byType(TaskGrid), const Offset(-5000.0, 0.0));
     await tester.pump();
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.dev.scroll_x.dark.png');
 
     await tester.pumpWidget(Container());
     buildState.dispose();
   });
 
-  testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
+  testWidgets('Skipped tasks do not break the grid',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     // Matrix Diagram:
     //
@@ -189,10 +201,12 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withSkips.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.withSkips.png');
   });
 
-  testWidgets('TaskGrid creates a task icon row and they line up', (WidgetTester tester) async {
+  testWidgets('TaskGrid creates a task icon row and they line up',
+      (WidgetTester tester) async {
     final List<CommitStatus> commitStatuses = <CommitStatus>[
       CommitStatus()
         ..commit = (Commit()..author = 'Author')
@@ -234,7 +248,8 @@ void main() {
     );
 
     expect(find.byType(TaskIcon), findsNWidgets(2));
-    expect(tester.getTopLeft(find.byType(TaskIcon).at(0)).dy, tester.getTopLeft(find.byType(TaskIcon).at(1)).dy);
+    expect(tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
+        tester.getTopLeft(find.byType(TaskIcon).at(1)).dy);
   });
 
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
@@ -267,7 +282,8 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withoutL.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.withoutL.png');
 
     await tester.pumpWidget(
       MaterialApp(
@@ -280,10 +296,12 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withL.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.withL.png');
   });
 
-  testWidgets('TaskGrid shows loading indicator for In Progress task', (WidgetTester tester) async {
+  testWidgets('TaskGrid shows loading indicator for In Progress task',
+      (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -332,7 +350,8 @@ void main() {
     expect(find.byType(Pulse), findsNothing);
   });
 
-  testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
+  testWidgets('TaskGrid can handle all the various different statuses',
+      (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[
       CommitStatus()
@@ -492,18 +511,21 @@ void main() {
       ),
     );
 
-    await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
+    await expectGoldenMatches(
+        find.byType(TaskGrid), 'task_grid_test.differentTypes.png');
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color
   TaskBox.statusColor.forEach((String message, Color color) {
-    testWidgets('Is the color $color when given the message $message', (WidgetTester tester) async {
+    testWidgets('Is the color $color when given the message $message',
+        (WidgetTester tester) async {
       await expectTaskBoxColorWithMessage(tester, message, color);
     });
   });
 }
 
-Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, Color expectedColor) async {
+Future<void> expectTaskBoxColorWithMessage(
+    WidgetTester tester, String message, Color expectedColor) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Material(
@@ -534,13 +556,20 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
       ),
     ),
   );
-  final RenderRepaintBoundary renderObject = tester.renderObject(find.byType(TaskGrid)).parent as RenderRepaintBoundary;
+  final RenderRepaintBoundary renderObject = tester
+      .renderObject(find.byType(TaskGrid))
+      .parent as RenderRepaintBoundary;
   final ByteData pixels = await tester.runAsync<ByteData>(() async {
     return await (await renderObject.toImage()).toByteData();
   });
-  assert(pixels.lengthInBytes == ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
+  assert(pixels.lengthInBytes ==
+      ((TaskBox.cellSize * 3.0) * (TaskBox.cellSize * 3.0) * 4).round());
   const double padding = 4.0;
-  final int rgba = pixels
-      .getUint32(((((TaskBox.cellSize * 3.0) * (TaskBox.cellSize + padding)) + TaskBox.cellSize + padding).ceil()) * 4);
+  final int rgba = pixels.getUint32(
+      ((((TaskBox.cellSize * 3.0) * (TaskBox.cellSize + padding)) +
+                  TaskBox.cellSize +
+                  padding)
+              .ceil()) *
+          4);
   expect((rgba >> 8) | (rgba << 24) & 0xFFFFFFFF, expectedColor.value);
 }

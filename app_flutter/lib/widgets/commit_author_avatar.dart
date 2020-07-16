@@ -33,7 +33,8 @@ class CommitAuthorAvatar extends StatelessWidget {
       1,
     );
     if (Theme.of(context).brightness == Brightness.dark) {
-      authorColor = HSLColor.fromColor(authorColor).withLightness(.75).toColor();
+      authorColor =
+          HSLColor.fromColor(authorColor).withLightness(.75).toColor();
     }
     final Widget avatar = CircleAvatar(
       backgroundColor: authorColor,
@@ -41,7 +42,8 @@ class CommitAuthorAvatar extends StatelessWidget {
     );
     return WebImage(
       imageUrl: commit.authorAvatarUrl,
-      imageBuilder: (BuildContext context, ImageProvider provider) => CircleAvatar(
+      imageBuilder: (BuildContext context, ImageProvider provider) =>
+          CircleAvatar(
         backgroundImage: provider,
       ),
       placeholder: (BuildContext context, String url) => avatar,

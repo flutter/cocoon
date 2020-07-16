@@ -29,7 +29,8 @@ class TaskAttemptSummary extends StatelessWidget {
   @visibleForTesting
 
   /// This URL is configured to have Stackdriver show at the end of the log.
-  static const String stackdriverLogUrlBase = 'https://console.cloud.google.com/logs/viewer?'
+  static const String stackdriverLogUrlBase =
+      'https://console.cloud.google.com/logs/viewer?'
       'project=$_cloudProjectId&'
       'resource=global&'
       'minLogLevel=0&'

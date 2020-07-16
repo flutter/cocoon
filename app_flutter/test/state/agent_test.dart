@@ -24,8 +24,9 @@ void main() {
       mockSignInService = MockGoogleSignInService();
       mockCocoonService = MockCocoonService();
 
-      when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
-          (_) => Future<CocoonResponse<List<Agent>>>.value(CocoonResponse<List<Agent>>.data(<Agent>[Agent()])));
+      when(mockCocoonService.fetchAgentStatuses()).thenAnswer((_) =>
+          Future<CocoonResponse<List<Agent>>>.value(
+              CocoonResponse<List<Agent>>.data(<Agent>[Agent()])));
     });
 
     tearDown(() {
@@ -33,8 +34,10 @@ void main() {
       clearInteractions(mockCocoonService);
     });
 
-    testWidgets('timer should periodically fetch updates', (WidgetTester tester) async {
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
+    testWidgets('timer should periodically fetch updates',
+        (WidgetTester tester) async {
+      final AgentState agentState = AgentState(
+          cocoonService: mockCocoonService, authService: mockSignInService);
       verifyNever(mockCocoonService.fetchAgentStatuses());
 
       void listener() {}
@@ -53,8 +56,10 @@ void main() {
       agentState.dispose();
     });
 
-    testWidgets('multiple start updates should not change the timer', (WidgetTester tester) async {
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
+    testWidgets('multiple start updates should not change the timer',
+        (WidgetTester tester) async {
+      final AgentState agentState = AgentState(
+          cocoonService: mockCocoonService, authService: mockSignInService);
       void listener1() {}
       agentState.addListener(listener1);
       final Timer refreshTimer = agentState.refreshTimer;
@@ -68,9 +73,11 @@ void main() {
       agentState.dispose();
     });
 
-    testWidgets('fetching agents error should not delete previous data', (WidgetTester tester) async {
+    testWidgets('fetching agents error should not delete previous data',
+        (WidgetTester tester) async {
       String lastError;
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService)
+      final AgentState agentState = AgentState(
+          cocoonService: mockCocoonService, authService: mockSignInService)
         ..errors.addListener((String message) => lastError = message);
       verifyNever(mockCocoonService.fetchAgentStatuses());
 
@@ -82,7 +89,8 @@ void main() {
       final List<Agent> originalData = agentState.agents;
 
       when(mockCocoonService.fetchAgentStatuses()).thenAnswer(
-        (_) => Future<CocoonResponse<List<Agent>>>.value(const CocoonResponse<List<Agent>>.error('error')),
+        (_) => Future<CocoonResponse<List<Agent>>>.value(
+            const CocoonResponse<List<Agent>>.error('error')),
       );
 
       await checkOutput(
@@ -102,7 +110,8 @@ void main() {
     });
 
     test('authorize agent calls cocoon service', () async {
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
+      final AgentState agentState = AgentState(
+          cocoonService: mockCocoonService, authService: mockSignInService);
       when(mockCocoonService.authorizeAgent(any, any)).thenAnswer(
         (_) async => const CocoonResponse<String>.data('abc123'),
       );
@@ -115,7 +124,8 @@ void main() {
     });
 
     test('reserve task calls cocoon service', () async {
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
+      final AgentState agentState = AgentState(
+          cocoonService: mockCocoonService, authService: mockSignInService);
       verifyNever(mockCocoonService.reserveTask(any, any));
 
       await agentState.reserveTask(Agent());
