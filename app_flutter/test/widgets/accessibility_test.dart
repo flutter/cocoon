@@ -56,9 +56,11 @@ void main() {
       }
 
       return Scaffold(
-        body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Wrap(children: avatars),
-        ]),
+        body: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Wrap(children: avatars),
+            ]),
       );
     }
 
