@@ -14,12 +14,8 @@ Future<void> expectGoldenMatches(
   dynamic actual,
   String goldenFileKey, {
   String reason,
-  dynamic skip, // true or a String
+  dynamic skip = false, // true or a String
 }) {
-  if (!Platform.isLinux) {
-    // No-op as all golden tests for Cocoon only run on Linux.
-    return null;
-  }
   final String goldenPath = 'goldens/' + goldenFileKey;
-  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip);
+  return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
 }
