@@ -23,18 +23,14 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus(
-      {int limit = 100, int timestamp, String branch}) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
-    commitStatuses.sort((CommitStatus a, CommitStatus b) =>
-        a.commit.timestamp.compareTo(b.commit.timestamp));
+    commitStatuses.sort((CommitStatus a, CommitStatus b) => a.commit.timestamp.compareTo(b.commit.timestamp));
 
-    return Stream<CommitStatus>.fromIterable(commitStatuses.where(
-        (CommitStatus commitStatus) =>
-            commitStatus.commit.timestamp < timestamp &&
-            commitStatus.commit.branch == branch));
+    return Stream<CommitStatus>.fromIterable(commitStatuses.where((CommitStatus commitStatus) =>
+        commitStatus.commit.timestamp < timestamp && commitStatus.commit.branch == branch));
   }
 
   @override

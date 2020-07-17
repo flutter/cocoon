@@ -38,18 +38,15 @@ void main() {
     });
 
     test('updates datastore entry for benchmark targets', () async {
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey
-              .append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
+      final TimeSeries timeSeries =
+          TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'analyzer_benchmark.flutter_repo_batch'));
       config.db.values[timeSeries.key] = timeSeries;
 
       expect(timeSeries.goal, isNot(-2.3));
       expect(timeSeries.baseline, isNot(4));
 
-      final UpdateBenchmarkTargetsResponse response =
-          await tester.post(handler);
-      final TimeSeries timeSeries2 =
-          config.db.values[timeSeries.key] as TimeSeries;
+      final UpdateBenchmarkTargetsResponse response = await tester.post(handler);
+      final TimeSeries timeSeries2 = config.db.values[timeSeries.key] as TimeSeries;
 
       expect(timeSeries2.goal, 0);
       expect(response.timeSeries.baseline, 4.0);

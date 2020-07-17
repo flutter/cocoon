@@ -157,8 +157,8 @@ class ContinuousIntegrationCommand extends Command {
   Future<Null> _cleanBuildDirectories(Agent agent, CocoonTask task) async {
     Future<Null> recursivelyDeleteBuildDirectories(Directory directory) async {
       final List<FileSystemEntity> contents = directory.listSync();
-      final bool isDartPackage = contents.any((FileSystemEntity entity) =>
-          entity is File && path.basename(entity.path) == 'pubspec.yaml');
+      final bool isDartPackage =
+          contents.any((FileSystemEntity entity) => entity is File && path.basename(entity.path) == 'pubspec.yaml');
       if (isDartPackage) {
         for (FileSystemEntity entity in contents) {
           if (entity is Directory && path.basename(entity.path) == 'build') {
@@ -175,8 +175,7 @@ class ContinuousIntegrationCommand extends Command {
       }
     }
 
-    await agent.uploadLogChunk(
-        task.key, 'Deleting build/ directories, if any.\n');
+    await agent.uploadLogChunk(task.key, 'Deleting build/ directories, if any.\n');
     try {
       await recursivelyDeleteBuildDirectories(config.flutterDirectory);
     } catch (error, stack) {
@@ -190,8 +189,7 @@ class ContinuousIntegrationCommand extends Command {
   Future<Null> _runTask(CocoonTask task) async {
     TaskResult result = await runTask(agent, task);
     if (result.succeeded) {
-      await agent.reportSuccess(
-          task.key, result.data, result.benchmarkScoreKeys);
+      await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
     } else {
       await agent.reportFailure(task.key, result.reason);
     }
@@ -239,15 +237,8 @@ class ContinuousIntegrationCommand extends Command {
     //   * Mitigate "Your session has expired" issue. See flutter/flutter#17860.
     if (Platform.isMacOS) {
       await exec(
-          'security',
-          <String>[
-            'unlock-keychain',
-            '-p',
-            Platform.environment['FLUTTER_USER_SECRET'],
-            'login.keychain'
-          ],
-          canFail: false,
-          silent: true);
+          'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
+          canFail: false, silent: true);
     }
   }
 

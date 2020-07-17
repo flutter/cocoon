@@ -9,9 +9,7 @@ const String _kPausedTabIndexStorageKey = 'paused-tab-index';
 
 int get pausedTabIndex {
   final String storedValue = window.localStorage[_kPausedTabIndexStorageKey];
-  return storedValue == null
-      ? null
-      : math.max<int>(0, int.tryParse(storedValue));
+  return storedValue == null ? null : math.max<int>(0, int.tryParse(storedValue));
 }
 
 set pausedTabIndex(int taxIndex) {

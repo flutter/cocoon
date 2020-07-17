@@ -60,8 +60,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       log,
       client,
     );
-    for (_AutoMergeQueryResult queryResult
-        in await _parseQueryData(data, name)) {
+    for (_AutoMergeQueryResult queryResult in await _parseQueryData(data, name)) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -161,36 +160,27 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
   ///
   /// This method will not return null, but may return an empty list.
-  Future<List<_AutoMergeQueryResult>> _parseQueryData(
-      Map<String, dynamic> data, String name) async {
-    final Map<String, dynamic> repository =
-        data['repository'] as Map<String, dynamic>;
+  Future<List<_AutoMergeQueryResult>> _parseQueryData(Map<String, dynamic> data, String name) async {
+    final Map<String, dynamic> repository = data['repository'] as Map<String, dynamic>;
     if (repository == null || repository.isEmpty) {
       throw StateError('Query did not return a repository.');
     }
 
-    final Map<String, dynamic> label =
-        repository['labels']['nodes'].single as Map<String, dynamic>;
+    final Map<String, dynamic> label = repository['labels']['nodes'].single as Map<String, dynamic>;
     if (label == null || label.isEmpty) {
-      throw StateError(
-          'Query did not find information about the waitingForTreeToGoGreen label.');
+      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String labelId = label['id'] as String;
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
-        (label['pullRequests']['nodes'] as List<dynamic>)
-            .cast<Map<String, dynamic>>();
+        (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
     for (Map<String, dynamic> pullRequest in pullRequests) {
-      final Map<String, dynamic> commit = pullRequest['commits']['nodes']
-          .single['commit'] as Map<String, dynamic>;
+      final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate = DateTime.parse(commit['pushedDate'] as String ??
-              commit['committedDate'] as String)
-          .toUtc();
-      if (utcDate
-          .add(const Duration(hours: 1))
-          .isAfter(DateTime.now().toUtc())) {
+      final DateTime utcDate =
+          DateTime.parse(commit['pushedDate'] as String ?? commit['committedDate'] as String).toUtc();
+      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
         continue;
       }
       final String author = pullRequest['author']['login'] as String;
@@ -200,19 +190,15 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final Set<String> changeRequestAuthors = <String>{};
       final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
-            (pullRequest['reviews']['nodes'] as List<dynamic>)
-                .cast<Map<String, dynamic>>(),
+            (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
             changeRequestAuthors,
           );
 
       final String sha = commit['oid'] as String;
       final List<Map<String, dynamic>> statuses =
-          (commit['status']['contexts'] as List<dynamic>)
-              .cast<Map<String, dynamic>>();
+          (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
       final List<Map<String, dynamic>> checkRuns =
-          (commit['checkSuites']['nodes'].single['checkRuns']['nodes']
-                  as List<dynamic>)
-              .cast<Map<String, dynamic>>();
+          (commit['checkSuites']['nodes'].single['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};
 
       final bool ciSuccessful = await _checkStatuses(
@@ -262,8 +248,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String name = status['context'] as String;
       if (status['state'] != 'SUCCESS') {
         allSuccess = false;
-        if (status['state'] == 'FAILURE' &&
-            !notInAuthorsControl.contains(name)) {
+        if (status['state'] == 'FAILURE' && !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
       }
@@ -282,16 +267,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const List<String> _failedStates = <String>['FAILED', 'ABORTED'];
     const List<String> _succeededStates = <String>['COMPLETED', 'SKIPPED'];
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    final List<CirrusResult> cirrusResults =
-        await queryCirrusGraphQL(sha, cirrusClient, log, name);
-    if (!cirrusResults
-        .any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
+    final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(sha, cirrusClient, log, name);
+    if (!cirrusResults.any((CirrusResult cirrusResult) => cirrusResult.branch == branch)) {
       return allSuccess;
     }
-    final List<Map<String, dynamic>> cirrusStatuses = cirrusResults
-        .firstWhere(
-            (CirrusResult cirrusResult) => cirrusResult.branch == branch)
-        .tasks;
+    final List<Map<String, dynamic>> cirrusStatuses =
+        cirrusResults.firstWhere((CirrusResult cirrusResult) => cirrusResult.branch == branch).tasks;
     if (cirrusStatuses == null) {
       return allSuccess;
     }
@@ -336,8 +317,7 @@ bool _checkApproval(
   bool hasAtLeastOneApprove = false;
   for (Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
-    if (review['authorAssociation'] != 'MEMBER' &&
-        review['authorAssociation'] != 'OWNER') {
+    if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
       continue;
     }
 
@@ -402,17 +382,10 @@ class _AutoMergeQueryResult {
   final String labelId;
 
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge =>
-      ciSuccessful &&
-      failingStatuses.isEmpty &&
-      hasApprovedReview &&
-      changeRequestAuthors.isEmpty;
+  bool get shouldMerge => ciSuccessful && failingStatuses.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel =>
-      !hasApprovedReview ||
-      changeRequestAuthors.isNotEmpty ||
-      failingStatuses.isNotEmpty;
+  bool get shouldRemoveLabel => !hasApprovedReview || changeRequestAuthors.isNotEmpty || failingStatuses.isNotEmpty;
 
   /// An appropriate message to leave when removing the label.
   String get removalMessage {
@@ -420,24 +393,20 @@ class _AutoMergeQueryResult {
       return '';
     }
     final StringBuffer buffer = StringBuffer();
-    buffer.writeln(
-        'This pull request is not suitable for automatic merging in its '
+    buffer.writeln('This pull request is not suitable for automatic merging in its '
         'current state.');
     buffer.writeln();
     if (!hasApprovedReview && changeRequestAuthors.isEmpty) {
-      buffer.writeln(
-          '- Please get at least one approved review before re-applying this '
+      buffer.writeln('- Please get at least one approved review before re-applying this '
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
     for (String author in changeRequestAuthors) {
-      buffer.writeln(
-          '- This pull request has changes requested by @$author. Please '
+      buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
     }
     for (String status in failingStatuses) {
-      buffer.writeln(
-          '- The status or check suite $status has failed. Please fix the '
+      buffer.writeln('- The status or check suite $status has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
     }
     return buffer.toString();

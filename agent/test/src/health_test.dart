@@ -18,8 +18,7 @@ void main() {
     });
 
     test('ignores non-macOS', () async {
-      platform.FakePlatform pf = platform.FakePlatform()
-        ..operatingSystem = "linux";
+      platform.FakePlatform pf = platform.FakePlatform()..operatingSystem = "linux";
 
       HealthCheckResult result = await removeXcodeDerivedData(pf: pf, fs: fs);
 

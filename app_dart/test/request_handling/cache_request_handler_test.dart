@@ -45,12 +45,10 @@ void main() {
 
       final Uint8List serializedBody = await expectedBody.serialize().first;
 
-      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey,
-          serializedBody);
+      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
 
       final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(
-              delegate: fallbackHandlerMock, cache: cache, config: config);
+          CacheRequestHandler<Body>(delegate: fallbackHandlerMock, cache: cache, config: config);
 
       final Body body = await tester.get(cacheRequestHandler);
       final Uint8List response = await body.serialize().first;
@@ -61,12 +59,10 @@ void main() {
     test('fallback handler called when cache is empty', () async {
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
       // ignore: invalid_use_of_protected_member
-      when(fallbackHandlerMock.get())
-          .thenAnswer((_) => Future<Body>.value(Body.forString('hello!')));
+      when(fallbackHandlerMock.get()).thenAnswer((_) => Future<Body>.value(Body.forString('hello!')));
 
       final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(
-              delegate: fallbackHandlerMock, cache: cache, config: config);
+          CacheRequestHandler<Body>(delegate: fallbackHandlerMock, cache: cache, config: config);
 
       // ignore: invalid_use_of_protected_member
       verifyNever(fallbackHandlerMock.get());
@@ -79,15 +75,12 @@ void main() {
 
     test('flush cache param calls purge', () async {
       tester = RequestHandlerTester(
-          request: FakeHttpRequest(
-              path: testHttpPath,
-              queryParametersValue: <String, String>{
-            CacheRequestHandler.flushCacheQueryParam: 'true',
-          }));
+          request: FakeHttpRequest(path: testHttpPath, queryParametersValue: <String, String>{
+        CacheRequestHandler.flushCacheQueryParam: 'true',
+      }));
       final RequestHandler<Body> fallbackHandlerMock = MockRequestHandler();
       // ignore: invalid_use_of_protected_member
-      when(fallbackHandlerMock.get())
-          .thenAnswer((Invocation invocation) async => Body.empty);
+      when(fallbackHandlerMock.get()).thenAnswer((Invocation invocation) async => Body.empty);
 
       const String responseKey = '$testHttpPath:';
       const String expectedResponse = 'Hello, World!';
@@ -96,12 +89,10 @@ void main() {
       final Uint8List serializedBody = await expectedBody.serialize().first;
 
       // set an existing response for the request
-      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey,
-          serializedBody);
+      await cache.set(CacheRequestHandler.responseSubcacheName, responseKey, serializedBody);
 
       final CacheRequestHandler<Body> cacheRequestHandler =
-          CacheRequestHandler<Body>(
-              delegate: fallbackHandlerMock, cache: cache, config: config);
+          CacheRequestHandler<Body>(delegate: fallbackHandlerMock, cache: cache, config: config);
 
       // ignore: invalid_use_of_protected_member
       verifyNever(fallbackHandlerMock.get());

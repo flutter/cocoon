@@ -14,13 +14,11 @@ import '../model/appengine/task.dart';
 import 'datastore.dart';
 
 /// Function signature for a [BuildStatusService] provider.
-typedef BuildStatusServiceProvider = BuildStatusService Function(
-    DatastoreService datastoreService);
+typedef BuildStatusServiceProvider = BuildStatusService Function(DatastoreService datastoreService);
 
 /// Class that calculates the current build status.
 class BuildStatusService {
-  const BuildStatusService(this.datastoreService)
-      : assert(datastoreService != null);
+  const BuildStatusService(this.datastoreService) : assert(datastoreService != null);
 
   final DatastoreService datastoreService;
 
@@ -61,8 +59,7 @@ class BuildStatusService {
       return BuildStatus.failed;
     }
 
-    final Map<String, bool> tasksInProgress =
-        _findTasksRelevantToLatestStatus(statuses);
+    final Map<String, bool> tasksInProgress = _findTasksRelevantToLatestStatus(statuses);
     if (tasksInProgress.isEmpty) {
       return BuildStatus.failed;
     }
@@ -72,8 +69,7 @@ class BuildStatusService {
         for (Task task in stage.tasks) {
           /// If a task [isRelevantToLatestStatus] but has not run yet, we look
           /// for a previous run of the task from the previous commit.
-          final bool isRelevantToLatestStatus =
-              tasksInProgress.containsKey(task.name);
+          final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
 
           /// Tasks that are not relevant to the latest status will have a
           /// null value in the map.
@@ -98,8 +94,7 @@ class BuildStatusService {
   /// Creates a map of the tasks that need to be checked for the build status.
   ///
   /// This is based on the most recent [CommitStatus] and all of its tasks.
-  Map<String, bool> _findTasksRelevantToLatestStatus(
-      List<CommitStatus> statuses) {
+  Map<String, bool> _findTasksRelevantToLatestStatus(List<CommitStatus> statuses) {
     final Map<String, bool> tasks = <String, bool>{};
 
     for (Stage stage in statuses.first.stages) {
@@ -115,12 +110,10 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus(
-      {int limit, int timestamp, String branch}) async* {
-    await for (Commit commit in datastoreService.queryRecentCommits(
-        limit: limit, timestamp: timestamp, branch: branch)) {
-      final List<Stage> stages =
-          await datastoreService.queryTasksGroupedByStage(commit);
+  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch}) async* {
+    await for (Commit commit
+        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
+      final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
   }
@@ -134,8 +127,7 @@ class BuildStatusService {
   }
 
   bool _isRerunning(Task task) {
-    return task.attempts > 1 &&
-        (task.status == Task.statusInProgress || task.status == Task.statusNew);
+    return task.attempts > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 
@@ -163,10 +155,8 @@ class BuildStatus {
 
   final String value;
 
-  static const BuildStatus succeeded =
-      BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
-  static const BuildStatus failed =
-      BuildStatus._(GithubBuildStatusUpdate.statusFailure);
+  static const BuildStatus succeeded = BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
+  static const BuildStatus failed = BuildStatus._(GithubBuildStatusUpdate.statusFailure);
 
   String get githubStatus => value;
 

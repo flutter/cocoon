@@ -10,8 +10,7 @@ import 'package:http/http.dart';
 import 'access_client_provider.dart';
 
 class BigqueryService {
-  const BigqueryService(this.accessClientProvider)
-      : assert(accessClientProvider != null);
+  const BigqueryService(this.accessClientProvider) : assert(accessClientProvider != null);
 
   /// AccessClientProvider for OAuth 2.0 authenticated access client
   final AccessClientProvider accessClientProvider;

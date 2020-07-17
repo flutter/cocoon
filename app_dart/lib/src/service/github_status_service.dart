@@ -25,13 +25,10 @@ class GithubStatusService {
     String commitSha,
     RepositorySlug slug,
   ) async {
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
-    final Map<String, bb.Build> builds = await luciBuildService
-        .buildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<String> builderNames = config.luciTryBuilders
-        .map((Map<String, dynamic> entry) => entry['name'] as String)
-        .toList();
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final Map<String, bb.Build> builds = await luciBuildService.buildsForRepositoryAndPr(slug, prNumber, commitSha);
+    final List<String> builderNames =
+        config.luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
       // We need to ensure we are adding checks for the builders that will return a
@@ -57,19 +54,16 @@ class GithubStatusService {
     if (await config.repoNameForBuilder(builderName) == null) {
       return false;
     }
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
     // We have to check for both because sometimes one or the other might come
     // in.
     // However, we should keep going if the _most recent_ status is not pending.
-    await for (RepositoryStatus status
-        in gitHubClient.repositories.listStatuses(slug, ref)) {
+    await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
-        if (status.state == PENDING_STATE &&
-            status.targetUrl.startsWith(buildUrl)) {
+        if (status.state == PENDING_STATE && status.targetUrl.startsWith(buildUrl)) {
           return false;
         }
         break;
@@ -81,8 +75,7 @@ class GithubStatusService {
       // If buildUrl is not empty then append a query parameter to refresh the page
       // content every 30 seconds. A resulting updatedBuild url will look like:
       // https://ci.chromium.org/p/flutter/builders/try/Linux%20Web%20Engine/5275?reload=30
-      updatedBuildUrl =
-          '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
+      updatedBuildUrl = '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
     }
     final CreateStatus status = CreateStatus(PENDING_STATE)
       ..context = builderName
@@ -104,8 +97,7 @@ class GithubStatusService {
     if (slug == null) {
       return;
     }
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final CreateStatus status = statusForResult(result)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'

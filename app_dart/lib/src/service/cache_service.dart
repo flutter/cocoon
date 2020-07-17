@@ -17,15 +17,12 @@ class CacheService {
   CacheService({
     bool inMemory = false,
     int inMemoryMaxNumberEntries = 256,
-  }) : _provider = inMemory
-            ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
-            : Cache.redisCacheProvider(memorystoreUrl);
+  }) : _provider =
+            inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUrl);
 
   final CacheProvider<List<int>> _provider;
 
-  Cache<Uint8List> get cache =>
-      cacheValue ??
-      Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
+  Cache<Uint8List> get cache => cacheValue ?? Cache<List<int>>(_provider).withCodec<Uint8List>(const _CacheCodec());
 
   @visibleForTesting
   Cache<Uint8List> cacheValue;

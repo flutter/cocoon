@@ -36,50 +36,38 @@ void main() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
       datastoreService = DatastoreService(config.db, 5);
-      commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc_master'),
-          sha: 'abc_master',
-          branch: 'master');
+      commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc_master'), sha: 'abc_master', branch: 'master');
     });
 
     group('DatasourceService', () {
       setUp(() {});
 
       test('defaultProvider returns a DatasourceService object', () async {
-        expect(DatastoreService.defaultProvider(config.db),
-            isA<DatastoreService>());
+        expect(DatastoreService.defaultProvider(config.db), isA<DatastoreService>());
       });
 
       test('QueryRecentCommits', () async {
         for (String branch in <String>['master', 'release']) {
-          final Commit commit = Commit(
-              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-              sha: 'abc_$branch',
-              branch: branch);
+          final Commit commit =
+              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
           config.db.values[commit.key] = commit;
         }
         // Defaults to master
-        List<Commit> commits =
-            await datastoreService.queryRecentCommits().toList();
+        List<Commit> commits = await datastoreService.queryRecentCommits().toList();
         expect(commits, hasLength(1));
         expect(commits[0].branch, equals('master'));
         // Explicit branch
-        commits = await datastoreService
-            .queryRecentCommits(branch: 'release')
-            .toList();
+        commits = await datastoreService.queryRecentCommits(branch: 'release').toList();
         expect(commits, hasLength(1));
         expect(commits[0].branch, equals('release'));
       });
       test('QueryRecentCommitsNoBranch', () async {
         // Empty results
-        List<Commit> commits =
-            await datastoreService.queryRecentCommits().toList();
+        List<Commit> commits = await datastoreService.queryRecentCommits().toList();
         expect(commits, isEmpty);
         for (String branch in <String>['master', 'release']) {
-          final Commit commit = Commit(
-              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
-              sha: 'abc_$branch',
-              branch: branch);
+          final Commit commit =
+              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
           config.db.values[commit.key] = commit;
         }
         // Results from two branches
@@ -88,9 +76,7 @@ void main() {
       });
 
       test('QueryRecentTasksNoBranch - release branch', () async {
-        final Commit commit = Commit(
-            key: config.db.emptyKey.append(Commit, id: 'abc'),
-            branch: 'release');
+        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), branch: 'release');
         config.db.values[commit.key] = commit;
         final Task task = Task(
             key: commit.key.append(Task, id: 123),
@@ -99,8 +85,7 @@ void main() {
             status: Task.statusInProgress,
             startTimestamp: DateTime.now().millisecondsSinceEpoch);
         db.values[task.key] = task;
-        final List<FullTask> fullTasks =
-            await datastoreService.queryRecentTasksNoBranch().toList();
+        final List<FullTask> fullTasks = await datastoreService.queryRecentTasksNoBranch().toList();
         expect(fullTasks, hasLength(1));
         expect(fullTasks[0].commit.branch, 'release');
         expect(fullTasks[0].task.id, 123);
@@ -109,22 +94,20 @@ void main() {
 
     test('Shard', () async {
       // default maxEntityGroups = 5
-      List<List<Model>> shards = await datastoreService.shard(
-          <Commit>[Commit(), Commit(), Commit(), Commit(), Commit(), Commit()]);
+      List<List<Model>> shards =
+          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit(), Commit(), Commit(), Commit()]);
       expect(shards, hasLength(2));
       expect(shards[0], hasLength(5));
       expect(shards[1], hasLength(1));
       // maxEntigroups = 2
       datastoreService = DatastoreService(config.db, 2);
-      shards =
-          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      shards = await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
       expect(shards, hasLength(2));
       expect(shards[0], hasLength(2));
       expect(shards[1], hasLength(1));
       // maxEntityGroups = 1
       datastoreService = DatastoreService(config.db, 1);
-      shards =
-          await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
+      shards = await datastoreService.shard(<Commit>[Commit(), Commit(), Commit()]);
       expect(shards, hasLength(3));
       expect(shards[0], hasLength(1));
       expect(shards[1], hasLength(1));
@@ -138,8 +121,7 @@ void main() {
 
     test('LookupByKey', () async {
       config.db.values[commit.key] = commit;
-      final List<Commit> commits =
-          await datastoreService.lookupByKey(<Key>[commit.key]);
+      final List<Commit> commits = await datastoreService.lookupByKey(<Key>[commit.key]);
       expect(commits, hasLength(1));
       expect(commits[0], equals(commit));
     });
@@ -151,8 +133,7 @@ void main() {
     });
 
     test('WithTransaction', () async {
-      final String expected = await datastoreService
-          .withTransaction((Transaction transaction) async {
+      final String expected = await datastoreService.withTransaction((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         await transaction.commit();
         return 'success';

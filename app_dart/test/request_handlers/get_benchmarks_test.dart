@@ -28,16 +28,12 @@ void main() {
 
     Future<T> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return await utf8.decoder
-          .bind(body.serialize())
-          .transform(json.decoder)
-          .single as T;
+      return await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as T;
     }
 
     setUp(() {
       clientContext = FakeClientContext();
-      keyHelper =
-          FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
       config = FakeConfig(keyHelperValue: keyHelper);
       handler = GetBenchmarks(
@@ -58,21 +54,13 @@ void main() {
       expect(result['Benchmarks'].length, 0);
     });
 
-    test(
-        'returns all available data when there are less commits than the maxRecordsValue',
-        () async {
+    test('returns all available data when there are less commits than the maxRecordsValue', () async {
       config.maxRecordsValue = 2;
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+      final TimeSeries timeSeries = TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
-      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 1),
-          value: 1,
-          branch: 'master');
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          timestamp: 1,
-          branch: 'master');
+      final TimeSeriesValue timeSeriesValue1 =
+          TimeSeriesValue(key: timeSeries.key.append(TimeSeriesValue, id: 1), value: 1, branch: 'master');
+      final Commit commit1 = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), timestamp: 1, branch: 'master');
       config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
       config.db.values[timeSeries.key] = timeSeries;
       config.db.values[commit1.key] = commit1;
@@ -83,34 +71,20 @@ void main() {
 
       final Map<String, dynamic> result = await decodeHandlerBody();
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark =
-          benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
 
       expect(benchmark['Values'].length, 1);
     });
 
-    test('returns only maxRecordsValue commits even though there are more',
-        () async {
+    test('returns only maxRecordsValue commits even though there are more', () async {
       config.maxRecordsValue = 2;
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+      final TimeSeries timeSeries = TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
-      final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 1),
-          value: 1,
-          branch: 'master');
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          timestamp: 1,
-          branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'def'),
-          timestamp: 2,
-          branch: 'master');
-      final Commit commit3 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'ghi'),
-          timestamp: 3,
-          branch: 'master');
+      final TimeSeriesValue timeSeriesValue1 =
+          TimeSeriesValue(key: timeSeries.key.append(TimeSeriesValue, id: 1), value: 1, branch: 'master');
+      final Commit commit1 = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), timestamp: 1, branch: 'master');
+      final Commit commit2 = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), timestamp: 2, branch: 'master');
+      final Commit commit3 = Commit(key: config.db.emptyKey.append(Commit, id: 'ghi'), timestamp: 3, branch: 'master');
       config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
       config.db.values[timeSeries.key] = timeSeries;
       config.db.values[commit1.key] = commit1;
@@ -123,8 +97,7 @@ void main() {
 
       final Map<String, dynamic> result = await decodeHandlerBody();
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark =
-          benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
 
       expect(benchmark['Values'].length, 2);
     });
@@ -132,25 +105,15 @@ void main() {
     /// This is for case where there are more release branch commits than the [maxRecordsValue]
     test('returns only release branch commits - with input branch', () async {
       config.maxRecordsValue = 1;
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+      final TimeSeries timeSeries = TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
       final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 123),
-          value: 1,
-          branch: 'flutter-1.1-candidate.1');
-      final TimeSeriesValue timeSeriesValue2 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 456),
-          value: 2,
-          branch: 'master');
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          timestamp: 1,
-          branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'ghi'),
-          timestamp: 3,
-          branch: 'flutter-1.1-candidate.1');
+          key: timeSeries.key.append(TimeSeriesValue, id: 123), value: 1, branch: 'flutter-1.1-candidate.1');
+      final TimeSeriesValue timeSeriesValue2 =
+          TimeSeriesValue(key: timeSeries.key.append(TimeSeriesValue, id: 456), value: 2, branch: 'master');
+      final Commit commit1 = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), timestamp: 1, branch: 'master');
+      final Commit commit2 =
+          Commit(key: config.db.emptyKey.append(Commit, id: 'ghi'), timestamp: 3, branch: 'flutter-1.1-candidate.1');
       config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
       config.db.values[timeSeriesValue2.key] = timeSeriesValue2;
       config.db.values[timeSeries.key] = timeSeries;
@@ -169,11 +132,9 @@ void main() {
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark =
-          benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
       expect(benchmark['Values'].length, 1);
-      final List<dynamic> timeSeriesValues =
-          benchmark['Values'] as List<dynamic>;
+      final List<dynamic> timeSeriesValues = benchmark['Values'] as List<dynamic>;
 
       /// Value of 1.0 corresponds to the case of [timeSeriesValue1] whose branch
       /// is `flutter-1.1-candidate.1`.
@@ -181,32 +142,18 @@ void main() {
     });
 
     /// This is for case when there are less release branch commits than [maxRecordsValue]
-    test('returns both release and master branch commits - with input branch',
-        () async {
+    test('returns both release and master branch commits - with input branch', () async {
       config.maxRecordsValue = 2;
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
+      final TimeSeries timeSeries = TimeSeries(key: config.db.emptyKey.append(TimeSeries, id: 'test.test1'));
 
       final TimeSeriesValue timeSeriesValue1 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 123),
-          value: 1,
-          branch: 'flutter-1.1-candidate.1');
-      final TimeSeriesValue timeSeriesValue2 = TimeSeriesValue(
-          key: timeSeries.key.append(TimeSeriesValue, id: 456),
-          value: 2,
-          branch: 'master');
-      final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          timestamp: 1,
-          branch: 'master');
-      final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'def'),
-          timestamp: 2,
-          branch: 'master');
-      final Commit commit3 = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'ghi'),
-          timestamp: 3,
-          branch: 'flutter-1.1-candidate.1');
+          key: timeSeries.key.append(TimeSeriesValue, id: 123), value: 1, branch: 'flutter-1.1-candidate.1');
+      final TimeSeriesValue timeSeriesValue2 =
+          TimeSeriesValue(key: timeSeries.key.append(TimeSeriesValue, id: 456), value: 2, branch: 'master');
+      final Commit commit1 = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), timestamp: 1, branch: 'master');
+      final Commit commit2 = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), timestamp: 2, branch: 'master');
+      final Commit commit3 =
+          Commit(key: config.db.emptyKey.append(Commit, id: 'ghi'), timestamp: 3, branch: 'flutter-1.1-candidate.1');
       config.db.values[timeSeriesValue1.key] = timeSeriesValue1;
       config.db.values[timeSeriesValue2.key] = timeSeriesValue2;
       config.db.values[timeSeries.key] = timeSeries;
@@ -226,13 +173,11 @@ void main() {
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
       final List<dynamic> benchmarks = result['Benchmarks'] as List<dynamic>;
-      final Map<String, dynamic> benchmark =
-          benchmarks.first as Map<String, dynamic>;
+      final Map<String, dynamic> benchmark = benchmarks.first as Map<String, dynamic>;
 
       expect(benchmark['Values'].length, 2);
 
-      final List<dynamic> timeSeriesValues =
-          benchmark['Values'] as List<dynamic>;
+      final List<dynamic> timeSeriesValues = benchmark['Values'] as List<dynamic>;
 
       /// Value of 1.0 corresponds to the case of [timeSeriesValue1] whose branch
       /// is `flutter-1.1-candidate.1`, whereas value of 2.0 corresponds to the case

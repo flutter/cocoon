@@ -75,8 +75,7 @@ Deleting build/ directories, if any.
 
     test('adds log chunk to datastore', () async {
       final Commit commit = Commit(
-          key: datastoreDB.emptyKey.append(Commit,
-              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
+          key: datastoreDB.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
@@ -100,8 +99,7 @@ Deleting build/ directories, if any.
       dbKeys.remove(task.key);
       final Key logChunkKey = dbKeys[0];
 
-      final LogChunk logChunk =
-          await datastoreDB.lookupValue<LogChunk>(logChunkKey);
+      final LogChunk logChunk = await datastoreDB.lookupValue<LogChunk>(logChunkKey);
       expect(logChunk, isNotNull);
     }, skip: 'breaks in prod');
 
@@ -120,12 +118,10 @@ Deleting build/ directories, if any.
         '',
         '2019-12-05T12:55:28.473920: RunningProcesses{pid: 497, commandLine: dart bin/agent.dart ci -c',
       ];
-      verify(mockStackdriverLoggerService.writeLines('log123', expectedLines))
-          .called(1);
+      verify(mockStackdriverLoggerService.writeLines('log123', expectedLines)).called(1);
     });
   });
 }
 
 /// Mock [StackdriverLoggerService] for testing interactions.
-class MockStackdriverLoggerService extends Mock
-    implements StackdriverLoggerService {}
+class MockStackdriverLoggerService extends Mock implements StackdriverLoggerService {}

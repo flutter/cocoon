@@ -61,8 +61,7 @@ class StackdriverLoggerService {
     }
 
     final WriteLogEntriesRequest logRequest = WriteLogEntriesRequest()
-      ..entries =
-          lines.map((String line) => LogEntry()..textPayload = line).toList()
+      ..entries = lines.map((String line) => LogEntry()..textPayload = line).toList()
       ..logName = '$logPath/$logName'
       ..resource = (MonitoredResource()..type = 'global');
 

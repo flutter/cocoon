@@ -76,8 +76,8 @@ class LuciStatusHandler extends RequestHandler<Body> {
     final PushMessageEnvelope envelope = PushMessageEnvelope.fromJson(
       json.decode(requestString) as Map<String, dynamic>,
     );
-    final BuildPushMessage buildPushMessage = BuildPushMessage.fromJson(
-        json.decode(envelope.message.data) as Map<String, dynamic>);
+    final BuildPushMessage buildPushMessage =
+        BuildPushMessage.fromJson(json.decode(envelope.message.data) as Map<String, dynamic>);
     final Build build = buildPushMessage.build;
     final String builderName = build.tagsByName('builder').single;
 
@@ -88,16 +88,11 @@ class LuciStatusHandler extends RequestHandler<Body> {
       log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
-    final String sha = build
-        .tagsByName('buildset')
-        .firstWhere((String tag) => tag.startsWith(shaPrefix))
-        .substring(shaPrefix.length);
+    final String sha =
+        build.tagsByName('buildset').firstWhere((String tag) => tag.startsWith(shaPrefix)).substring(shaPrefix.length);
     log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
-    final Map<String, dynamic> userData =
-        jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
-    if (userData != null &&
-        userData.containsKey('repo_owner') &&
-        userData.containsKey('repo_name')) {
+    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
+    if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
       // Message is coming from a github checks api enabled repo. We need to
       // create the slug from the data in the message and send the check status
       // update.
@@ -175,8 +170,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     if (info.expiresIn == null || info.expiresIn < 1) {
       return false;
     }
-    final ServiceAccountInfo devicelabServiceAccount =
-        await config.deviceLabServiceAccount;
+    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
     return info.email == devicelabServiceAccount.email;
   }
 }

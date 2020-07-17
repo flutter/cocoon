@@ -118,16 +118,14 @@ class AuthenticationProvider {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
       final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent =
-          await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
       if (!clientContext.isDevelopmentEnvironment) {
         final String agentAuthToken = request.headers.value('Agent-Auth-Token');
         if (agentAuthToken == null) {
-          throw const Unauthenticated(
-              'Missing required HTTP header: Agent-Auth-Token');
+          throw const Unauthenticated('Missing required HTTP header: Agent-Auth-Token');
         }
         if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
           throw Unauthenticated('Invalid agent: $agentId');
@@ -150,16 +148,14 @@ class AuthenticationProvider {
         /// The case where [idTokenFromCookie] is not valid but [idTokenFromHeader]
         /// is requires us to catch the thrown [Unauthenticated] exception.
         try {
-          return await authenticateIdToken(idTokenFromCookie,
-              clientContext: clientContext, log: log);
+          return await authenticateIdToken(idTokenFromCookie, clientContext: clientContext, log: log);
         } on Unauthenticated {
           log.debug('Failed to authenticate cookie id token');
         }
       }
 
       if (idTokenFromHeader != null) {
-        return authenticateIdToken(idTokenFromHeader,
-            clientContext: clientContext, log: log);
+        return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
       }
     }
 
@@ -167,36 +163,31 @@ class AuthenticationProvider {
   }
 
   @visibleForTesting
-  Future<AuthenticatedContext> authenticateIdToken(String idToken,
-      {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final HttpClient client = _httpClientProvider();
     try {
-      final HttpClientRequest verifyTokenRequest =
-          await client.getUrl(Uri.https(
+      final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
         <String, String>{
           'id_token': idToken,
         },
       ));
-      final HttpClientResponse verifyTokenResponse =
-          await verifyTokenRequest.close();
+      final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
 
       if (verifyTokenResponse.statusCode != HttpStatus.ok) {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
         final String body = await utf8.decodeStream(verifyTokenResponse);
-        log.warning(
-            'Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
         throw const Unauthenticated('Invalid ID token');
       }
 
       final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
       TokenInfo token;
       try {
-        token =
-            TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+        token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
       } on FormatException {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
@@ -204,16 +195,14 @@ class AuthenticationProvider {
       final String clientId = await _config.oauthClientId;
       assert(clientId != null);
       if (token.audience != clientId) {
-        log.warning(
-            'Possible forged token: "${token.audience}" (expected "$clientId")');
+        log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
         throw const Unauthenticated('Invalid ID token');
       }
 
       if (token.hostedDomain != 'google.com') {
         final bool isAllowed = await _isAllowed(token.email);
         if (!isAllowed) {
-          throw Unauthenticated(
-              '${token.email} is not authorized to access the dashboard');
+          throw Unauthenticated('${token.email} is not authorized to access the dashboard');
         }
       }
 
@@ -234,8 +223,7 @@ class AuthenticationProvider {
   // This method is expensive (run time of ~1,500ms!). If the server starts
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(
-      List<int> serverAuthTokenHash, String clientAuthToken) {
+  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
     try {

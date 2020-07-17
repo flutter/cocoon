@@ -41,8 +41,7 @@ void main() {
     setUp(() {
       taskIdCounter = 1;
       agent = Agent(agentId: 'aid', capabilities: <String>['linux/android']);
-      commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       taskService = TaskService(DatastoreService(config.db, 5));
     });
 
@@ -65,8 +64,7 @@ void main() {
         setTaskResults(<Task>[
           newTask()..requiredCapabilities.clear(),
         ]);
-        expect(taskService.findNextTask(agent),
-            throwsA(isA<InvalidTaskException>()));
+        expect(taskService.findNextTask(agent), throwsA(isA<InvalidTaskException>()));
       });
 
       test('returns available task', () async {

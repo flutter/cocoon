@@ -36,8 +36,7 @@ void main() {
     List<PullRequest> prsFromGitHub;
     FakeGithubService githubService;
 
-    PullRequest newPullRequest(int number, String sha, String baseRef,
-        {bool draft = false}) {
+    PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
       return PullRequest()
         ..number = 123
         ..head = (PullRequestHead()..sha = 'abc')
@@ -45,8 +44,7 @@ void main() {
         ..draft = draft;
     }
 
-    GithubBuildStatusUpdate newStatusUpdate(
-        PullRequest pr, BuildStatus status) {
+    GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
       return GithubBuildStatusUpdate(
         key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
         status: status.githubStatus,
@@ -102,24 +100,17 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
-      final GithubBuildStatusUpdate status =
-          newStatusUpdate(pr, BuildStatus.succeeded);
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
       config.db.values[status.key] = status;
 
-      final Map<LuciBuilder, List<LuciTask>> luciTasks =
-          Map<LuciBuilder, List<LuciTask>>.fromIterable(
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
         await LuciBuilder.getBuilders(config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
-          const LuciTask(
-              commitSha: 'abc',
-              ref: 'refs/heads/master',
-              status: Task.statusFailed,
-              buildNumber: 1)
+          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine'))
-          .thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 

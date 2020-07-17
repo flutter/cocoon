@@ -19,8 +19,7 @@ void main() {
       config = Config(datastore, CacheService(inMemory: true));
     });
     test('Builder config does not exist', () async {
-      final RepositorySlug result =
-          await config.repoNameForBuilder('DoesNotExist');
+      final RepositorySlug result = await config.repoNameForBuilder('DoesNotExist');
       expect(result, isNull);
     });
 
@@ -40,8 +39,7 @@ void main() {
       config = Config(datastore, cacheService);
     });
     test('Builder config does not exist', () async {
-      const String configValue =
-          '{"godofredoc/cocoon":{"installation_id":"123"}}';
+      const String configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
 
       await cacheService.set(
@@ -49,10 +47,8 @@ void main() {
         'githubapp_installations',
         cachedValue,
       );
-      final Map<String, dynamic> installation =
-          await config.githubAppInstallations;
-      expect(
-          installation['godofredoc/cocoon']['installation_id'], equals('123'));
+      final Map<String, dynamic> installation = await config.githubAppInstallations;
+      expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
     });
   });
 }

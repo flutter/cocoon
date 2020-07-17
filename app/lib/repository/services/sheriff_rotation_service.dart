@@ -43,8 +43,7 @@ Future<RollSheriff> fetchSheriff({http.Client client}) async {
 
 Future<dynamic> _getStatusBody(http.Client client) async {
   try {
-    final http.Response response =
-        await client.get('https://rota-ng.appspot.com/legacy/all_rotations.js');
+    final http.Response response = await client.get('https://rota-ng.appspot.com/legacy/all_rotations.js');
     final String body = response?.body;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {

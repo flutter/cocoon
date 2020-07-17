@@ -34,16 +34,12 @@ class StatusPageStatus {
 
 class RefreshGitHubStatus extends RefreshStatusPageStatus {
   const RefreshGitHubStatus({@required Widget child})
-      : super(
-            child: child,
-            url: 'https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
+      : super(child: child, url: 'https://kctbh9vrtdwd.statuspage.io/api/v2/status.json');
 }
 
 class RefreshCoverallsStatus extends RefreshStatusPageStatus {
   const RefreshCoverallsStatus({@required Widget child})
-      : super(
-            child: child,
-            url: 'https://status.coveralls.io/api/v2/status.json');
+      : super(child: child, url: 'https://status.coveralls.io/api/v2/status.json');
 }
 
 class RefreshStatusPageStatus extends StatefulWidget {

@@ -15,7 +15,7 @@ flutter clean
 pub get
 
 echo "############# files that require formatting ###########"
-dartfmt -n --set-exit-if-changed .
+dartfmt -n --line-length=120 --set-exit-if-changed .
 echo "#######################################################"
 
 # agent doesn't use build_runner as of this writing.

@@ -21,11 +21,7 @@ void main() {
     setUp(() {
       config = FakeConfig();
       tester = ApiRequestHandlerTester();
-      tester.requestData = <String, dynamic>{
-        'AgentID': 'test',
-        'IsHealthy': true,
-        'HealthDetails': 'bar detail'
-      };
+      tester.requestData = <String, dynamic>{'AgentID': 'test', 'IsHealthy': true, 'HealthDetails': 'bar detail'};
       handler = UpdateAgentHealth(
         config,
         FakeAuthenticationProvider(),
@@ -34,8 +30,7 @@ void main() {
     });
 
     test('updates datastore entry for agent', () async {
-      final Agent agent = Agent(
-          key: config.db.emptyKey.append(Agent, id: 'test'), agentId: 'test');
+      final Agent agent = Agent(key: config.db.emptyKey.append(Agent, id: 'test'), agentId: 'test');
       config.db.values[agent.key] = agent;
 
       expect(agent.agentId, 'test');

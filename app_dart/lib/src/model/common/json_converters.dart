@@ -21,8 +21,7 @@ import 'package:json_annotation/json_annotation.dart';
 /// ```
 ///
 /// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter
-    implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
+class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dynamic>> {
   const TagsConverter();
 
   @override
@@ -98,8 +97,7 @@ class Base64Converter implements JsonConverter<String, String> {
 }
 
 /// A converter for "timestamp" fields encoded as milliseconds since epoch.
-class MillisecondsSinceEpochConverter
-    implements JsonConverter<DateTime, String> {
+class MillisecondsSinceEpochConverter implements JsonConverter<DateTime, String> {
   const MillisecondsSinceEpochConverter();
 
   @override
@@ -163,8 +161,7 @@ class BoolConverter implements JsonConverter<bool, String> {
 }
 
 /// A converter for fields with nested JSON objects in String format.
-class NestedJsonConverter
-    implements JsonConverter<Map<String, dynamic>, String> {
+class NestedJsonConverter implements JsonConverter<Map<String, dynamic>, String> {
   const NestedJsonConverter();
 
   @override

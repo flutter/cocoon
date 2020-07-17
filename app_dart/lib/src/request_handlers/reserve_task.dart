@@ -32,12 +32,9 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
     @visibleForTesting TaskServiceProvider taskServiceProvider,
     @visibleForTesting ReservationServiceProvider reservationServiceProvider,
     @visibleForTesting AccessTokenServiceProvider accessTokenServiceProvider,
-  })  : taskServiceProvider =
-            taskServiceProvider ?? TaskService.defaultProvider,
-        reservationServiceProvider =
-            reservationServiceProvider ?? ReservationService.defaultProvider,
-        accessTokenServiceProvider =
-            accessTokenServiceProvider ?? AccessTokenService.defaultProvider,
+  })  : taskServiceProvider = taskServiceProvider ?? TaskService.defaultProvider,
+        reservationServiceProvider = reservationServiceProvider ?? ReservationService.defaultProvider,
+        accessTokenServiceProvider = accessTokenServiceProvider ?? AccessTokenService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final TaskServiceProvider taskServiceProvider;
@@ -46,13 +43,10 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
   @override
   Future<ReserveTaskResponse> post() async {
-    final DatastoreService datastore =
-        DatastoreService.defaultProvider(config.db);
+    final DatastoreService datastore = DatastoreService.defaultProvider(config.db);
     final TaskService taskService = taskServiceProvider(datastore);
-    final ReservationService reservationService =
-        reservationServiceProvider(datastore);
-    final AccessTokenService accessTokenService =
-        accessTokenServiceProvider(config);
+    final ReservationService reservationService = reservationServiceProvider(datastore);
+    final AccessTokenService accessTokenService = accessTokenServiceProvider(config);
     final Map<String, dynamic> params = requestData;
     Agent agent = authContext.agent;
     if (agent != null) {
@@ -82,21 +76,16 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       }
 
       try {
-        await reservationService.secureReservation(
-            task.task, agent.id as String);
+        await reservationService.secureReservation(task.task, agent.id as String);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenService.createAccessToken(
-          scopes: const <String>[
-            'https://www.googleapis.com/auth/devstorage.read_write'
-          ],
+          scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],
         );
-        final KeyHelper keyHelper =
-            KeyHelper(applicationContext: clientContext.applicationContext);
+        final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
         return ReserveTaskResponse(task.task, task.commit, token, keyHelper);
       } on ReservationLostException {
         // Keep looking for another task.
-        log.debug(
-            'Reservation lost for task ${task.task.name} on commit ${task.commit.sha}');
+        log.debug('Reservation lost for task ${task.task.name} on commit ${task.commit.sha}');
         continue;
       }
     }
@@ -108,8 +97,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
 @immutable
 class ReserveTaskResponse extends JsonBody {
-  const ReserveTaskResponse(
-      this.task, this.commit, this.accessToken, this.keyHelper)
+  const ReserveTaskResponse(this.task, this.commit, this.accessToken, this.keyHelper)
       : assert(task != null),
         assert(commit != null),
         assert(accessToken != null),

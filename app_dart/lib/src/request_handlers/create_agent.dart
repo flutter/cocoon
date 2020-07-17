@@ -21,8 +21,7 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
   const CreateAgent(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     this.agentServiceProvider = AgentService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
@@ -37,16 +36,12 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
     checkRequiredParameters(<String>[agentIdParam, capabilitiesParam]);
 
     final String agentId = requestData[agentIdParam] as String;
-    final List<String> capabilities =
-        (requestData[capabilitiesParam] as List<dynamic>)
-            .cast<String>()
-            .toList();
+    final List<String> capabilities = (requestData[capabilitiesParam] as List<dynamic>).cast<String>().toList();
     final DatastoreService datastore = datastoreProvider(config.db);
     final AgentService agentService = agentServiceProvider();
     final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
 
-    if (await datastore.db.lookupValue<Agent>(key, orElse: () => null) !=
-        null) {
+    if (await datastore.db.lookupValue<Agent>(key, orElse: () => null) != null) {
       throw BadRequestException('Agent ID: $agentId already exists');
     }
 

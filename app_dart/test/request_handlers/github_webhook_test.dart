@@ -79,28 +79,23 @@ void main() {
 
       mockGithubChecksService = MockGithubChecksService();
 
-      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService,
-          githubStatusService, mockGithubChecksService,
+      webhook = GithubWebhook(
+          config, mockBuildBucketClient, luciBuildService, githubStatusService, mockGithubChecksService,
           skiaClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      config.wrongHeadBranchPullRequestMessageValue =
-          'wrongHeadBranchPullRequestMessage';
-      config.wrongBaseBranchPullRequestMessageValue =
-          'wrongBaseBranchPullRequestMessage';
-      config.releaseBranchPullRequestMessageValue =
-          'releaseBranchPullRequestMessage';
-      config.missingTestsPullRequestMessageValue =
-          'missingTestPullRequestMessage';
+      config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
+      config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
+      config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
+      config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
       config.goldenTriageMessageValue = 'goldenTriageMessage';
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
-      config.deviceLabServiceAccountValue =
-          const ServiceAccountInfo(email: serviceAccountEmail);
+      config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
 
       config.luciTryBuildersValue = (json.decode('''[
     {"name": "Cocoon", "repo": "cocoon"},
@@ -184,14 +179,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -232,14 +224,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -285,14 +274,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -332,14 +318,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -373,14 +356,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -415,24 +395,18 @@ void main() {
           PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
           PullRequestFile()..filename = 'dev/blah.dart',
           PullRequestFile()..filename = 'bin/internal/engine.version',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/material/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter_localizations/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
         ]),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -479,8 +453,7 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()
-            ..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
         ),
       );
 
@@ -497,10 +470,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -546,10 +518,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -584,10 +555,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()
-            ..filename = 'shell/platform/android/io/flutter/Blah.java',
-          PullRequestFile()
-            ..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
+          PullRequestFile()..filename = 'shell/platform/android/io/flutter/Blah.java',
+          PullRequestFile()..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
         ]),
       );
 
@@ -598,10 +567,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -650,10 +618,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -702,8 +669,7 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes based on Skia Gold ignore, comments to notify',
-        () async {
+    test('Labels Golden changes based on Skia Gold ignore, comments to notify', () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
@@ -713,10 +679,9 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
@@ -726,15 +691,10 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -770,22 +730,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -796,8 +750,7 @@ void main() {
       )).called(1);
     });
 
-    test('No golden triage comment when closed && !merged from labels',
-        () async {
+    test('No golden triage comment when closed && !merged from labels', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -834,8 +787,7 @@ void main() {
       ));
     });
 
-    test('No golden triage comment when closed && !merged from ignores',
-        () async {
+    test('No golden triage comment when closed && !merged from ignores', () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -845,22 +797,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -883,8 +829,7 @@ void main() {
       ));
     });
 
-    test('Cancels builds when pull request is closed without merging',
-        () async {
+    test('Cancels builds when pull request is closed without merging', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -894,22 +839,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -942,8 +881,7 @@ void main() {
       );
     });
 
-    test('Labels draft issues as work in progress, does not test pest.',
-        () async {
+    test('Labels draft issues as work in progress, does not test pest.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
@@ -958,20 +896,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -1011,14 +945,11 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -1093,8 +1024,7 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate(
-            'synchronize', issueNumber, kDefaultBranchName,
+        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName,
             repoFullName: 'flutter/cocoon', repoName: 'cocoon');
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
@@ -1104,8 +1034,7 @@ void main() {
         expect(tester.post(webhook), throwsA(isA<InternalServerError>()));
       });
 
-      test('Optional repo - Not schedule build when labeled without CQ',
-          () async {
+      test('Optional repo - Not schedule build when labeled without CQ', () async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -1125,8 +1054,7 @@ void main() {
       });
 
       Future<void> _testActions(String action, {bool never = false}) async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
-            .thenAnswer((_) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
@@ -1397,9 +1325,7 @@ void main() {
     }
   ]
 }]''';
-        expect(
-            json.encode(
-                verify(mockBuildBucketClient.batch(captureAny)).captured),
+        expect(json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
             expectedJson.replaceAll(RegExp(r'\s|\n'), ''));
       }
 
@@ -1444,8 +1370,7 @@ void main() {
             ],
           );
         });
-        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName,
-            includeCqLabel: true);
+        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1496,8 +1421,7 @@ void main() {
           );
         });
 
-        request.body =
-            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
+        request.body = jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1554,8 +1478,7 @@ void main() {
           );
         });
 
-        request.body =
-            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
+        request.body = jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1569,8 +1492,7 @@ void main() {
         );
       });
 
-      test('When synchronized, cancels existing builds and schedules new ones',
-          () async {
+      test('When synchronized, cancels existing builds and schedules new ones', () async {
         when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
           return const BatchResponse(
             responses: <Response>[
@@ -1608,15 +1530,12 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate(
-            'synchronize', issueNumber, kDefaultBranchName,
-            includeCqLabel: true);
+        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-        final MockRepositoriesService mockRepositoriesService =
-            MockRepositoriesService();
+        final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
         when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
 
         await tester.post(webhook);

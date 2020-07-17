@@ -88,25 +88,19 @@ class FakeConfig implements Config {
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
 
   @override
-  Future<GitHub> createGitHubClient(String owner, String repository) async =>
-      githubClient;
+  Future<GitHub> createGitHubClient(String owner, String repository) async => githubClient;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async =>
-      githubGraphQLClient;
+  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
 
   @override
-  Future<GraphQLClient> createCirrusGraphQLClient() async =>
-      cirrusGraphQLClient;
+  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient;
 
   @override
-  Future<TabledataResourceApi> createTabledataResourceApi() async =>
-      tabledataResourceApi;
+  Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
-  Future<GithubService> createGithubService(
-          String owner, String repository) async =>
-      githubService;
+  Future<GithubService> createGithubService(String owner, String repository) async => githubService;
 
   @override
   FakeDatastoreDB get db => dbValue;
@@ -115,8 +109,7 @@ class FakeConfig implements Config {
   String get defaultBranch => kDefaultBranchName;
 
   @override
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async =>
-      deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue;
@@ -140,20 +133,16 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  String get missingTestsPullRequestMessage =>
-      missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
 
   @override
-  String get wrongBaseBranchPullRequestMessage =>
-      wrongBaseBranchPullRequestMessageValue;
+  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue;
 
   @override
-  String wrongHeadBranchPullRequestMessage(String branch) =>
-      wrongHeadBranchPullRequestMessageValue;
+  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue;
 
   @override
-  String get releaseBranchPullRequestMessage =>
-      releaseBranchPullRequestMessageValue;
+  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue;
 
   @override
   String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
@@ -183,15 +172,13 @@ class FakeConfig implements Config {
   Logging get loggingService => loggingServiceValue;
 
   @override
-  String get waitingForTreeToGoGreenLabelName =>
-      waitingForTreeToGoGreenLabelNameValue;
+  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue;
 
   @override
   RepositorySlug get flutterSlug => flutterSlugValue;
 
   @override
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async =>
-      taskLogServiceAccountValue;
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue;
@@ -230,8 +217,7 @@ class FakeConfig implements Config {
   Future<String> get githubAppId => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get githubAppInstallations =>
-      throw UnimplementedError();
+  Future<Map<String, dynamic>> get githubAppInstallations => throw UnimplementedError();
 
   @override
   Future<String> get githubPrivateKey => throw UnimplementedError();

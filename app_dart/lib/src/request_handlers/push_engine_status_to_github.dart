@@ -24,8 +24,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
-        datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final LuciServiceProvider luciServiceProvider;
@@ -46,8 +45,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final LuciService luciService = luciServiceProvider(this);
-    final Map<LuciBuilder, List<LuciTask>> luciTasks =
-        await luciService.getRecentTasks(repo: 'engine');
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
 
     String latestStatus = GithubBuildStatusUpdate.statusSuccess;
     for (List<LuciTask> tasks in luciTasks.values) {
@@ -59,23 +57,18 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
     final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
-    final GitHub github =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub github = await config.createGitHubClient(slug.owner, slug.name);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     await for (PullRequest pr in github.pullRequests.list(slug)) {
-      final GithubBuildStatusUpdate update =
-          await datastore.queryLastStatusUpdate(slug, pr);
+      final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
 
       if (update.status != latestStatus) {
-        log.debug(
-            'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
+        log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
         final CreateStatus request = CreateStatus(latestStatus);
-        request.targetUrl =
-            'https://ci.chromium.org/p/flutter/g/engine/console';
+        request.targetUrl = 'https://ci.chromium.org/p/flutter/g/engine/console';
         request.context = 'luci-engine';
         if (latestStatus != GithubBuildStatusUpdate.statusSuccess) {
-          request.description =
-              'Flutter build is currently broken. Please do not merge this '
+          request.description = 'Flutter build is currently broken. Please do not merge this '
               'PR unless it contains a fix to the broken build.';
         }
 
@@ -86,8 +79,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
           update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
           updates.add(update);
         } catch (error) {
-          log.error(
-              'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+          log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
         }
       }
     }
