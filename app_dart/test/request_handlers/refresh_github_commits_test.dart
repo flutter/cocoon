@@ -53,10 +53,8 @@ void main() {
         final User author = User()
           ..login = 'Username'
           ..avatarUrl = 'http://example.org/avatar.jpg';
-        final GitCommitUser committer = GitCommitUser(
-            'Username',
-            'Username@abc.com',
-            DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
+        final GitCommitUser committer =
+            GitCommitUser('Username', 'Username@abc.com', DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
         final GitCommit gitCommit = GitCommit()..committer = committer;
         commits.add(RepositoryCommit()
           ..sha = sha
@@ -80,18 +78,14 @@ void main() {
     setUp(() {
       final MockRepositoriesService repositories = MockRepositoriesService();
       final FakeGithubService githubService = FakeGithubService();
-      final MockTabledataResourceApi tabledataResourceApi =
-          MockTabledataResourceApi();
+      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
-      config = FakeConfig(
-          tabledataResourceApi: tabledataResourceApi,
-          githubService: githubService,
-          dbValue: db);
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
       httpClient = FakeHttpClient();
       branchHttpClient = FakeHttpClient();
@@ -125,10 +119,7 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = <String>[
-        'flutter-1.1-candidate.1',
-        'master'
-      ];
+      config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
@@ -138,8 +129,7 @@ void main() {
       expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
-    test('stops requesting GitHub commits when it finds an existing commit',
-        () async {
+    test('stops requesting GitHub commits when it finds an existing commit', () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
       config.flutterBranchesValue = <String>['master'];
       const List<String> dbCommits = <String>['3', '4', '5', '6'];
@@ -178,12 +168,8 @@ void main() {
       final Commit commit = shaToCommit('1', 'master');
       db.values[commit.key] = commit;
 
-      db.onCommit =
-          (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
-        if (inserts
-            .whereType<Commit>()
-            .where((Commit commit) => commit.sha == '3')
-            .isNotEmpty) {
+      db.onCommit = (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
+        if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '3').isNotEmpty) {
           throw StateError('Commit failed');
         }
       };
@@ -191,10 +177,8 @@ void main() {
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
-      expect(db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '2', '4']);
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp),
-          <int>[1, 2, 4]);
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '2', '4']);
+      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
@@ -203,8 +187,7 @@ void main() {
     test('retries manifest download upon HTTP failure', () async {
       int retry = 0;
       httpClient.onIssueRequest = (FakeHttpClientRequest request) {
-        request.response.statusCode =
-            retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
+        request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
         retry++;
       };
 
@@ -228,8 +211,7 @@ void main() {
       config.flutterBranchesValue = <String>['master'];
       httpClient.request.response.body = singleTaskManifestYaml;
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-      await expectLater(
-          tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
+      await expectLater(tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
       expect(retry, 3);
       expect(db.values.values.whereType<Commit>(), isEmpty);
       expect(db.values.values.whereType<Task>(), isEmpty);

@@ -31,22 +31,19 @@ void main() {
 
       test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(
-            () => branchHttpClient, log, (int attempt) => Duration.zero);
+        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
       test('retries branches download upon HTTP failure', () async {
         int retry = 0;
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
-          request.response.statusCode =
-              retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
+          request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
           retry++;
         };
 
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(
-            () => branchHttpClient, log, (int attempt) => Duration.zero);
+        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(retry, 2);
         expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
@@ -55,13 +52,10 @@ void main() {
 
       test('gives up branches download after 3 tries', () async {
         int retry = 0;
-        branchHttpClient.onIssueRequest =
-            (FakeHttpClientRequest request) => retry++;
-        branchHttpClient.request.response.statusCode =
-            HttpStatus.serviceUnavailable;
+        branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(
-            () => branchHttpClient, log, (int attempt) => Duration.zero);
+        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(branches, <String>['master']);
         expect(retry, 3);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
@@ -79,10 +73,8 @@ void main() {
       });
       test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final Uint8List branches = await getBranches(
-            () => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(
-            String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
+        final Uint8List branches = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
       });
     });
 

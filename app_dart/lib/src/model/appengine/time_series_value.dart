@@ -28,8 +28,7 @@ class TimeSeriesValue extends Model {
     id = key?.id;
   }
 
-  factory TimeSeriesValue.fromJson(Map<String, dynamic> json) =>
-      _$TimeSeriesValueFromJson(json);
+  factory TimeSeriesValue.fromJson(Map<String, dynamic> json) => _$TimeSeriesValueFromJson(json);
 
   /// Whether data is missing for this measurement.
   @BoolProperty(propertyName: 'DataMissing')

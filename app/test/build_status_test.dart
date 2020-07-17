@@ -8,10 +8,8 @@ import 'package:test/test.dart';
 void main() {
   group('Build status', () {
     test('equals', () {
-      const CommitTestResult commitTestResult1 =
-          CommitTestResult(failingTests: <String>['test1', 'test2']);
-      const CommitTestResult commitTestResult2 =
-          CommitTestResult(failingTests: <String>['test2', 'test1']);
+      const CommitTestResult commitTestResult1 = CommitTestResult(failingTests: <String>['test1', 'test2']);
+      const CommitTestResult commitTestResult2 = CommitTestResult(failingTests: <String>['test2', 'test1']);
       BuildStatus buildStatus1 = const BuildStatus(
           anticipatedBuildStatus: 'Build',
           failingAgents: <String>['mac1', 'mac2'],

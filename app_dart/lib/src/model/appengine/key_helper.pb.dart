@@ -11,19 +11,16 @@ import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class Path_Element extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Path.Element', createEmptyInstance: create)
-        ..aQS(2, 'type')
-        ..aInt64(3, 'id')
-        ..aOS(4, 'name');
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Path.Element', createEmptyInstance: create)
+    ..aQS(2, 'type')
+    ..aInt64(3, 'id')
+    ..aOS(4, 'name');
 
   Path_Element._() : super();
   factory Path_Element() => create();
-  factory Path_Element.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Path_Element.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Path_Element.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Path_Element.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Path_Element clone() => Path_Element()..mergeFromMessage(this);
   Path_Element copyWith(void Function(Path_Element) updates) =>
@@ -32,11 +29,9 @@ class Path_Element extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Path_Element create() => Path_Element._();
   Path_Element createEmptyInstance() => create();
-  static $pb.PbList<Path_Element> createRepeated() =>
-      $pb.PbList<Path_Element>();
+  static $pb.PbList<Path_Element> createRepeated() => $pb.PbList<Path_Element>();
   @$core.pragma('dart2js:noInline')
-  static Path_Element getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<Path_Element>(create);
+  static Path_Element getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Path_Element>(create);
   static Path_Element _defaultInstance;
 
   @$pb.TagNumber(2)
@@ -77,31 +72,25 @@ class Path_Element extends $pb.GeneratedMessage {
 }
 
 class Path extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Path', createEmptyInstance: create)
-        ..pc<Path_Element>(1, 'element', $pb.PbFieldType.PG,
-            subBuilder: Path_Element.create)
-        ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Path', createEmptyInstance: create)
+    ..pc<Path_Element>(1, 'element', $pb.PbFieldType.PG, subBuilder: Path_Element.create)
+    ..hasRequiredFields = false;
 
   Path._() : super();
   factory Path() => create();
-  factory Path.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Path.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Path.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Path.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Path clone() => Path()..mergeFromMessage(this);
-  Path copyWith(void Function(Path) updates) =>
-      super.copyWith((message) => updates(message as Path));
+  Path copyWith(void Function(Path) updates) => super.copyWith((message) => updates(message as Path));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Path create() => Path._();
   Path createEmptyInstance() => create();
   static $pb.PbList<Path> createRepeated() => $pb.PbList<Path>();
   @$core.pragma('dart2js:noInline')
-  static Path getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Path>(create);
+  static Path getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Path>(create);
   static Path _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -109,31 +98,26 @@ class Path extends $pb.GeneratedMessage {
 }
 
 class Reference extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Reference', createEmptyInstance: create)
-        ..aQS(13, 'app')
-        ..aQM<Path>(14, 'path', subBuilder: Path.create)
-        ..aOS(20, 'nameSpace');
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Reference', createEmptyInstance: create)
+    ..aQS(13, 'app')
+    ..aQM<Path>(14, 'path', subBuilder: Path.create)
+    ..aOS(20, 'nameSpace');
 
   Reference._() : super();
   factory Reference() => create();
-  factory Reference.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Reference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Reference.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Reference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Reference clone() => Reference()..mergeFromMessage(this);
-  Reference copyWith(void Function(Reference) updates) =>
-      super.copyWith((message) => updates(message as Reference));
+  Reference copyWith(void Function(Reference) updates) => super.copyWith((message) => updates(message as Reference));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Reference create() => Reference._();
   Reference createEmptyInstance() => create();
   static $pb.PbList<Reference> createRepeated() => $pb.PbList<Reference>();
   @$core.pragma('dart2js:noInline')
-  static Reference getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Reference>(create);
+  static Reference getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Reference>(create);
   static Reference _defaultInstance;
 
   @$pb.TagNumber(13)

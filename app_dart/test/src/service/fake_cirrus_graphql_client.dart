@@ -58,6 +58,5 @@ class FakeCirrusGraphQLClient implements GraphQLClient {
 
   void verifyQueries(List<QueryOptions> expected) => verify(expected, queries);
 
-  void verifyMutations(List<MutationOptions> expected) =>
-      verify(expected, mutations);
+  void verifyMutations(List<MutationOptions> expected) => verify(expected, mutations);
 }

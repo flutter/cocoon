@@ -42,47 +42,44 @@ String _generateLicense(String prefix) {
       '${prefix}found in the LICENSE file.';
 }
 
-Future<void> verifyNoMissingLicense(String workingDirectory,
-    {bool checkMinimums = true}) async {
+Future<void> verifyNoMissingLicense(String workingDirectory, {bool checkMinimums = true}) async {
   final int overrideMinimumMatches = checkMinimums ? null : 0;
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'dart',
-      overrideMinimumMatches ?? 2000, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'java',
-      overrideMinimumMatches ?? 39, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'h',
-      overrideMinimumMatches ?? 30, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'm',
-      overrideMinimumMatches ?? 30, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'swift',
-      overrideMinimumMatches ?? 10, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'gradle',
-      overrideMinimumMatches ?? 100, _generateLicense('// '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'gn',
-      overrideMinimumMatches ?? 0, _generateLicense('# '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'sh',
-      overrideMinimumMatches ?? 1, '#!/bin/bash\n' + _generateLicense('# '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'bat',
-      overrideMinimumMatches ?? 1, _generateLicense(':: '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'ps1',
-      overrideMinimumMatches ?? 1, _generateLicense('# '));
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'html',
-      overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->',
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'dart', overrideMinimumMatches ?? 2000, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'java', overrideMinimumMatches ?? 39, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'h', overrideMinimumMatches ?? 30, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'm', overrideMinimumMatches ?? 30, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'swift', overrideMinimumMatches ?? 10, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'gradle', overrideMinimumMatches ?? 100, _generateLicense('// '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'gn', overrideMinimumMatches ?? 0, _generateLicense('# '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'sh', overrideMinimumMatches ?? 1, '#!/bin/bash\n' + _generateLicense('# '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'bat', overrideMinimumMatches ?? 1, _generateLicense(':: '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'ps1', overrideMinimumMatches ?? 1, _generateLicense('# '));
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'html', overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->',
       trailingBlank: false);
-  await _verifyNoMissingLicenseForExtension(workingDirectory, 'xml',
-      overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->');
+  await _verifyNoMissingLicenseForExtension(
+      workingDirectory, 'xml', overrideMinimumMatches ?? 1, '<!-- ${_generateLicense('')} -->');
 }
 
-Future<void> _verifyNoMissingLicenseForExtension(String workingDirectory,
-    String extension, int minimumMatches, String license,
+Future<void> _verifyNoMissingLicenseForExtension(
+    String workingDirectory, String extension, int minimumMatches, String license,
     {bool trailingBlank = true}) async {
   assert(!license.endsWith('\n'));
   final String licensePattern = license + '\n' + (trailingBlank ? '\n' : '');
   final List<String> errors = <String>[];
-  for (final File file in _allFiles(workingDirectory, extension,
-      minimumMatches: minimumMatches)) {
+  for (final File file in _allFiles(workingDirectory, extension, minimumMatches: minimumMatches)) {
     final String contents = file.readAsStringSync().replaceAll('\r\n', '\n');
-    if (contents.isEmpty)
-      continue; // let's not go down the /bin/true rabbit hole
+    if (contents.isEmpty) continue; // let's not go down the /bin/true rabbit hole
     if (!contents.startsWith(RegExp(licensePattern))) errors.add(file.path);
   }
   // Fail if any errors
@@ -98,13 +95,9 @@ Future<void> _verifyNoMissingLicenseForExtension(String workingDirectory,
   }
 }
 
-Iterable<File> _allFiles(String workingDirectory, String extension,
-    {@required int minimumMatches}) sync* {
-  assert(extension == null || !extension.startsWith('.'),
-      'Extension argument should not start with a period.');
-  final Set<FileSystemEntity> pending = <FileSystemEntity>{
-    Directory(workingDirectory)
-  };
+Iterable<File> _allFiles(String workingDirectory, String extension, {@required int minimumMatches}) sync* {
+  assert(extension == null || !extension.startsWith('.'), 'Extension argument should not start with a period.');
+  final Set<FileSystemEntity> pending = <FileSystemEntity>{Directory(workingDirectory)};
   int matches = 0;
   while (pending.isNotEmpty) {
     final FileSystemEntity entity = pending.first;
@@ -112,8 +105,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension,
     if (path.extension(entity.path) == '.tmpl') continue;
     if (entity is File) {
       if (_isGeneratedPluginRegistrant(entity)) continue;
-      if (path.basename(entity.path) == 'flutter_export_environment.sh')
-        continue;
+      if (path.basename(entity.path) == 'flutter_export_environment.sh') continue;
       if (path.basename(entity.path) == 'gradlew.bat') continue;
       if (path.basename(entity.path) == 'AppDelegate.h') continue;
       if (path.basename(entity.path) == 'Runner-Bridging-Header.h') continue;
@@ -148,8 +140,7 @@ bool _isGeneratedPluginRegistrant(File file) {
 }
 
 void exitWithError(List<String> messages) {
-  final String redLine =
-      '$red━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset';
+  final String redLine = '$red━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset';
   print(redLine);
   messages.forEach(print);
   print(redLine);

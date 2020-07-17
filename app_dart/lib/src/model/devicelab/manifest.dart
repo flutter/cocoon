@@ -24,8 +24,7 @@ class Manifest {
   const Manifest({this.tasks});
 
   /// Create a new [Manifest] object from its JSON representation.
-  factory Manifest.fromJson(Map<dynamic, dynamic> json) =>
-      _$ManifestFromJson(json);
+  factory Manifest.fromJson(Map<dynamic, dynamic> json) => _$ManifestFromJson(json);
 
   /// The tasks that are run in the devicelab, indexed by task name.
   @JsonKey()
@@ -49,8 +48,7 @@ class ManifestTask {
   });
 
   /// Create a new [ManifestTask] object from its JSON representation.
-  factory ManifestTask.fromJson(Map<dynamic, dynamic> json) =>
-      _$ManifestTaskFromJson(json);
+  factory ManifestTask.fromJson(Map<dynamic, dynamic> json) => _$ManifestTaskFromJson(json);
 
   /// The human-readable description of the task.
   @JsonKey()

@@ -7,8 +7,7 @@ import 'dart:core';
 
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart'
-    as push_message;
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
@@ -52,8 +51,7 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-      service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Empty responses are handled correctly', () async {
@@ -68,8 +66,7 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds =
-          await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
+      final Map<String, Build> builds = await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
       expect(builds.keys, isEmpty);
     });
 
@@ -90,10 +87,8 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds =
-          await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
-      expect(builds,
-          equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
+      final Map<String, Build> builds = await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
+      expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
   group('scheduleBuilds', () {
@@ -169,8 +164,7 @@ void main() {
       expect(result, isFalse);
     });
     test('Schedule builds when the current list of builds is empty', () async {
-      when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
-          .thenAnswer((_) async {
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
           'started_at': '2020-05-10T02:49:31Z',
@@ -183,9 +177,7 @@ void main() {
         );
       });
       config.luciTryBuildersValue =
-          (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]')
-                  as List<dynamic>)
-              .cast<Map<String, dynamic>>();
+          (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]') as List<dynamic>).cast<Map<String, dynamic>>();
       final bool result = await service.scheduleBuilds(
         prNumber: 1,
         commitSha: 'abc',
@@ -210,8 +202,7 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-      service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Cancel builds when build list is empty', () async {
@@ -243,12 +234,7 @@ void main() {
         );
       });
       await service.cancelBuilds(slug, 1, 'abc', 'new builds');
-      expect(
-          verify(mockBuildBucketClient.batch(captureAny))
-              .captured[1]
-              .requests[0]
-              .cancelBuild
-              .toJson(),
+      expect(verify(mockBuildBucketClient.batch(captureAny)).captured[1].requests[0].cancelBuild.toJson(),
           json.decode('{"id": "998", "summaryMarkdown": "new builds"}'));
     });
     test('Cancel builds from unsuported repo', () async {
@@ -269,8 +255,7 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-      service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       slug = RepositorySlug('flutter', 'cocoon');
     });
     test('Failed builds from an empty list', () async {
@@ -302,10 +287,9 @@ void main() {
           ],
         );
       });
-      config.luciTryBuildersValue = (json.decode(
-                  '[{"name": "Linux", "repo": "flutter", "taskName": "linux_bot"}]')
-              as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      config.luciTryBuildersValue =
+          (json.decode('[{"name": "Linux", "repo": "flutter", "taskName": "linux_bot"}]') as List<dynamic>)
+              .cast<Map<String, dynamic>>();
       final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
       expect(result, hasLength(1));
     });
@@ -317,8 +301,7 @@ void main() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
-      service =
-          LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       config.luciTryInfraFailureRetriesValue = 3;
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
         'COMPLETED',

@@ -17,9 +17,7 @@ import '../utils.dart';
 class RunCommand extends Command {
   RunCommand(Agent agent) : super('run', agent);
 
-  static ArgParser argParser = ArgParser()
-    ..addOption('task', abbr: 't')
-    ..addOption('revision', abbr: 'r');
+  static ArgParser argParser = ArgParser()..addOption('task', abbr: 't')..addOption('revision', abbr: 'r');
 
   @override
   Future<Null> run(ArgResults args) async {
@@ -50,8 +48,7 @@ class RunCommand extends Command {
       await killAllRunningProcessesOnWindows('dart');
     }
 
-    CocoonTask task =
-        CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
+    CocoonTask task = CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
     TaskResult result;
     try {
       if (task.revision != null) {
@@ -59,8 +56,7 @@ class RunCommand extends Command {
         // the task timeout.
         await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
       } else {
-        logger.info(
-            'NOTE: No --revision specified. Running on current checkout.');
+        logger.info('NOTE: No --revision specified. Running on current checkout.');
       }
       result = await runTask(agent, task);
     } catch (error, stackTrace) {

@@ -33,11 +33,9 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   /// from [requestData].
   @protected
   void checkRequiredParameters(List<String> requiredParameters) {
-    final Iterable<String> missingParams = requiredParameters
-      ..removeWhere(requestData.containsKey);
+    final Iterable<String> missingParams = requiredParameters..removeWhere(requestData.containsKey);
     if (missingParams.isNotEmpty) {
-      throw BadRequestException(
-          'Missing required parameter: ${missingParams.join(', ')}');
+      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
     }
   }
 
@@ -63,8 +61,7 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
   ///
   ///  * [requestBody], which specifies the raw bytes of the HTTP request body.
   @protected
-  Map<String, dynamic> get requestData =>
-      getValue<Map<String, dynamic>>(NoAuthKey.requestData);
+  Map<String, dynamic> get requestData => getValue<Map<String, dynamic>>(NoAuthKey.requestData);
 
   @override
   Future<void> service(HttpRequest request) async {
@@ -112,8 +109,6 @@ abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
 class NoAuthKey<T> extends RequestKey<T> {
   const NoAuthKey._(String name) : super(name);
 
-  static const NoAuthKey<Uint8List> requestBody =
-      NoAuthKey<Uint8List>._('requestBody');
-  static const NoAuthKey<Map<String, dynamic>> requestData =
-      NoAuthKey<Map<String, dynamic>>._('requestData');
+  static const NoAuthKey<Uint8List> requestBody = NoAuthKey<Uint8List>._('requestBody');
+  static const NoAuthKey<Map<String, dynamic>> requestData = NoAuthKey<Map<String, dynamic>>._('requestData');
 }

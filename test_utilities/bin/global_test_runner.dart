@@ -9,12 +9,7 @@ import "package:path/path.dart";
 
 // Runs all the configured tests for cocoon repo.
 Future<Null> main(List<String> rawArgs) async {
-  ArgParser argParser = ArgParser()
-    ..addOption(
-      'tests-file',
-      abbr: 't',
-      defaultsTo: '../tests.yaml'
-    );
+  ArgParser argParser = ArgParser()..addOption('tests-file', abbr: 't', defaultsTo: '../tests.yaml');
   ArgResults args = argParser.parse(rawArgs);
 
   // Load tests yaml file.
@@ -33,13 +28,13 @@ Future<Null> main(List<String> rawArgs) async {
 
 void runShellCommand(List<String> args, String taskName) async {
   Process.run('sh', args).then((result) {
-      stdout.writeln('.. stdout ..');
-      stdout.writeln(result.stdout);
-      stdout.writeln('.. stderr ..');
-      stderr.writeln(result.stderr);
-      if (result.exitCode != 0) {
-        stderr.writeln('There were failures running tests from $taskName');
-        exit(result.exitCode);
-      }
-    });
+    stdout.writeln('.. stdout ..');
+    stdout.writeln(result.stdout);
+    stdout.writeln('.. stderr ..');
+    stderr.writeln(result.stderr);
+    if (result.exitCode != 0) {
+      stderr.writeln('There were failures running tests from $taskName');
+      exit(result.exitCode);
+    }
+  });
 }

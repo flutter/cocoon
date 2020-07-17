@@ -6,8 +6,7 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
 /// Function signature for a [ReservationService] provider.
-typedef ReservationServiceProvider = ReservationService Function(
-    DatastoreService datastoreService);
+typedef ReservationServiceProvider = ReservationService Function(DatastoreService datastoreService);
 
 class ReservationService {
   const ReservationService(this.datastore);

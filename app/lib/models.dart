@@ -10,8 +10,7 @@ part 'models.g.dart';
 class GetStatusResult {
   const GetStatusResult({this.statuses, this.agentStatuses});
 
-  factory GetStatusResult.fromJson(Map<String, dynamic> json) =>
-      _$GetStatusResultFromJson(json);
+  factory GetStatusResult.fromJson(Map<String, dynamic> json) => _$GetStatusResultFromJson(json);
 
   @JsonKey(name: 'Statuses')
   final List<BuildStatus> statuses;
@@ -26,8 +25,7 @@ class GetStatusResult {
 class BuildStatus {
   const BuildStatus({this.stages, this.checklist});
 
-  factory BuildStatus.fromJson(Map<String, dynamic> json) =>
-      _$BuildStatusFromJson(json);
+  factory BuildStatus.fromJson(Map<String, dynamic> json) => _$BuildStatusFromJson(json);
 
   @JsonKey(name: 'Stages')
   final List<Stage> stages;
@@ -47,8 +45,7 @@ class AgentStatus {
     this.healthDetails,
   });
 
-  factory AgentStatus.fromJson(Map<String, dynamic> json) =>
-      _$AgentStatusFromJson(json);
+  factory AgentStatus.fromJson(Map<String, dynamic> json) => _$AgentStatusFromJson(json);
 
   @JsonKey(name: 'AgentID')
   final String agentId;
@@ -69,8 +66,7 @@ class AgentStatus {
 class CommitInfo {
   CommitInfo({this.sha, this.author});
 
-  factory CommitInfo.fromJson(Map<String, dynamic> json) =>
-      _$CommitInfoFromJson(json);
+  factory CommitInfo.fromJson(Map<String, dynamic> json) => _$CommitInfoFromJson(json);
 
   @JsonKey(name: 'Sha')
   final String sha;
@@ -85,8 +81,7 @@ class CommitInfo {
 class AuthorInfo {
   AuthorInfo({this.login, this.avatarUrl});
 
-  factory AuthorInfo.fromJson(Map<String, dynamic> json) =>
-      _$AuthorInfoFromJson(json);
+  factory AuthorInfo.fromJson(Map<String, dynamic> json) => _$AuthorInfoFromJson(json);
 
   @JsonKey(name: 'Login')
   final String login;
@@ -101,8 +96,7 @@ class AuthorInfo {
 class ChecklistEntity {
   const ChecklistEntity({this.key, this.checklist});
 
-  factory ChecklistEntity.fromJson(Map<String, dynamic> json) =>
-      _$ChecklistEntityFromJson(json);
+  factory ChecklistEntity.fromJson(Map<String, dynamic> json) => _$ChecklistEntityFromJson(json);
 
   @JsonKey(name: 'Key')
   final String key;
@@ -121,8 +115,7 @@ class Checklist {
     this.createTimestamp,
   });
 
-  factory Checklist.fromJson(Map<String, dynamic> json) =>
-      _$ChecklistFromJson(json);
+  factory Checklist.fromJson(Map<String, dynamic> json) => _$ChecklistFromJson(json);
 
   @JsonKey(name: 'FlutterRepositoryPath')
   final String flutterRepositoryPath;
@@ -155,8 +148,7 @@ class Stage {
 class TaskEntity {
   const TaskEntity({this.key, this.task});
 
-  factory TaskEntity.fromJson(Map<String, dynamic> json) =>
-      _$TaskEntityFromJson(json);
+  factory TaskEntity.fromJson(Map<String, dynamic> json) => _$TaskEntityFromJson(json);
 
   @JsonKey(name: 'Key')
   final String key;
@@ -217,8 +209,7 @@ class Task {
 class GetBenchmarksResult {
   const GetBenchmarksResult({this.benchmarks});
 
-  factory GetBenchmarksResult.fromJson(Map<String, dynamic> json) =>
-      _$GetBenchmarksResultFromJson(json);
+  factory GetBenchmarksResult.fromJson(Map<String, dynamic> json) => _$GetBenchmarksResultFromJson(json);
 
   @JsonKey(name: 'Benchmarks')
   final List<BenchmarkData> benchmarks;
@@ -230,8 +221,7 @@ class GetBenchmarksResult {
 class BenchmarkData {
   const BenchmarkData({this.timeseries, this.values});
 
-  factory BenchmarkData.fromJson(Map<String, dynamic> json) =>
-      _$BenchmarkDataFromJson(json);
+  factory BenchmarkData.fromJson(Map<String, dynamic> json) => _$BenchmarkDataFromJson(json);
 
   @JsonKey(name: 'Timeseries')
   final TimeseriesEntity timeseries;
@@ -249,8 +239,7 @@ class GetTimeseriesHistoryResult {
     this.lastPosition,
   });
 
-  factory GetTimeseriesHistoryResult.fromJson(Map<String, dynamic> json) =>
-      _$GetTimeseriesHistoryResultFromJson(json);
+  factory GetTimeseriesHistoryResult.fromJson(Map<String, dynamic> json) => _$GetTimeseriesHistoryResultFromJson(json);
 
   @JsonKey(name: 'BenchmarkData')
   final BenchmarkData benchmarkData;
@@ -268,8 +257,7 @@ class TimeseriesEntity {
     this.timeseries,
   });
 
-  factory TimeseriesEntity.fromJson(Map<String, dynamic> json) =>
-      _$TimeseriesEntityFromJson(json);
+  factory TimeseriesEntity.fromJson(Map<String, dynamic> json) => _$TimeseriesEntityFromJson(json);
 
   @JsonKey(name: 'Key')
   final String key;
@@ -292,8 +280,7 @@ class Timeseries {
     this.isArchived,
   });
 
-  factory Timeseries.fromJson(Map<String, dynamic> json) =>
-      _$TimeseriesFromJson(json);
+  factory Timeseries.fromJson(Map<String, dynamic> json) => _$TimeseriesFromJson(json);
 
   @JsonKey(name: 'ID')
   final String id;
@@ -325,8 +312,7 @@ class BranchList {
     this.branches,
   });
 
-  factory BranchList.fromJson(Map<String, dynamic> json) =>
-      _$BranchListFromJson(json);
+  factory BranchList.fromJson(Map<String, dynamic> json) => _$BranchListFromJson(json);
 
   @JsonKey(name: 'Branches')
   final List<String> branches;
@@ -343,8 +329,7 @@ class TimeseriesValue {
     this.isDataMissing,
   });
 
-  factory TimeseriesValue.fromJson(Map<String, dynamic> json) =>
-      _$TimeseriesValueFromJson(json);
+  factory TimeseriesValue.fromJson(Map<String, dynamic> json) => _$TimeseriesValueFromJson(json);
 
   @JsonKey(name: 'CreateTimestamp')
   final int createTimestamp;

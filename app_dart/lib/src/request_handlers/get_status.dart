@@ -21,11 +21,9 @@ import '../service/datastore.dart';
 class GetStatus extends RequestHandler<Body> {
   const GetStatus(
     Config config, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting BuildStatusServiceProvider buildStatusProvider,
-  })  : buildStatusProvider =
-            buildStatusProvider ?? BuildStatusService.defaultProvider,
+  })  : buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
         super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -36,31 +34,23 @@ class GetStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final String encodedLastCommitKey =
-        request.uri.queryParameters[lastCommitKeyParam];
+    final String encodedLastCommitKey = request.uri.queryParameters[lastCommitKeyParam];
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService =
-        buildStatusProvider(datastore);
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
     final int commitNumber = config.commitNumber;
-    final int lastCommitTimestamp =
-        await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
+    final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
     final List<SerializableCommitStatus> statuses = await buildStatusService
-        .retrieveCommitStatus(
-            limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
-        .map<SerializableCommitStatus>((CommitStatus status) =>
-            SerializableCommitStatus(
-                status, keyHelper.encode(status.commit.key)))
+        .retrieveCommitStatus(limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
+        .map<SerializableCommitStatus>(
+            (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
         .toList();
 
-    final Query<Agent> agentQuery = datastore.db.query<Agent>()
-      ..order('agentId');
-    final List<Agent> agents =
-        await agentQuery.run().where(_isVisible).toList();
-    agents.sort((Agent a, Agent b) =>
-        compareAsciiLowerCaseNatural(a.agentId, b.agentId));
+    final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
+    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
+    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
     return Body.forJson(<String, dynamic>{
       'Statuses': statuses,
@@ -68,8 +58,7 @@ class GetStatus extends RequestHandler<Body> {
     });
   }
 
-  Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper,
-      DatastoreService datastore) async {
+  Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper, DatastoreService datastore) async {
     /// [lastCommitTimestamp] is initially set as the current time, which allows query return
     /// latest commit list. If [owerKeyParam] is not empty, [lastCommitTimestamp] will be set
     /// as the timestamp of that [commit], and the query will return lastest commit
@@ -78,8 +67,7 @@ class GetStatus extends RequestHandler<Body> {
 
     if (encodedLastCommitKey != null) {
       final Key ownerKey = keyHelper.decode(encodedLastCommitKey);
-      final Commit commit =
-          await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
+      final Commit commit = await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
 
       lastCommitTimestamp = commit?.timestamp;
     }

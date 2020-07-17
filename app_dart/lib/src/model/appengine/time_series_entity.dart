@@ -11,8 +11,7 @@ part 'time_series_entity.g.dart';
 class TimeseriesEntity {
   const TimeseriesEntity({this.timeSeries, this.key});
 
-  factory TimeseriesEntity.fromJson(Map<String, dynamic> json) =>
-      _$TimeseriesEntityFromJson(json);
+  factory TimeseriesEntity.fromJson(Map<String, dynamic> json) => _$TimeseriesEntityFromJson(json);
 
   @JsonKey(name: 'Timeseries')
   final TimeSeries timeSeries;

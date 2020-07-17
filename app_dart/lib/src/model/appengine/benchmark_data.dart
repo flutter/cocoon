@@ -13,8 +13,7 @@ part 'benchmark_data.g.dart';
 class BenchmarkData {
   const BenchmarkData({this.timeSeriesEntity, this.values});
 
-  factory BenchmarkData.fromJson(Map<String, dynamic> json) =>
-      _$BenchmarkDataFromJson(json);
+  factory BenchmarkData.fromJson(Map<String, dynamic> json) => _$BenchmarkDataFromJson(json);
 
   @JsonKey(name: 'Timeseries')
   final TimeseriesEntity timeSeriesEntity;

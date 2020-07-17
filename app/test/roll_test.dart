@@ -14,8 +14,7 @@ void main() {
     testWidgets('running', (WidgetTester tester) async {
       const String modeText = 'running';
       const String lastRollResult = 'roll result';
-      const SkiaAutoRoll roll =
-          SkiaAutoRoll(mode: modeText, lastRollResult: lastRollResult);
+      const SkiaAutoRoll roll = SkiaAutoRoll(mode: modeText, lastRollResult: lastRollResult);
       await _pumpAutoRollWidget(tester, roll);
 
       final Finder modeFinder = find.text(modeText);
@@ -29,16 +28,14 @@ void main() {
     });
 
     testWidgets('stopped', (WidgetTester tester) async {
-      const SkiaAutoRoll roll =
-          SkiaAutoRoll(mode: 'dry run', lastRollResult: 'roll result');
+      const SkiaAutoRoll roll = SkiaAutoRoll(mode: 'dry run', lastRollResult: 'roll result');
       await _pumpAutoRollWidget(tester, roll);
       final Finder iconFinder = find.byIcon(Icons.warning);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('dry run', (WidgetTester tester) async {
-      const SkiaAutoRoll roll =
-          SkiaAutoRoll(mode: 'stopped', lastRollResult: 'roll result');
+      const SkiaAutoRoll roll = SkiaAutoRoll(mode: 'stopped', lastRollResult: 'roll result');
       await _pumpAutoRollWidget(tester, roll);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);

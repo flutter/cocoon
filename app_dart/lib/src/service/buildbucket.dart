@@ -33,8 +33,7 @@ class BuildBucketClient {
   static const String kRpcResponseGarbage = ")]}'";
 
   /// The default endpoint for BuildBucket requests.
-  static const String kDefaultBuildBucketUri =
-      'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
+  static const String kDefaultBuildBucketUri = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds';
 
   /// The base URI for build bucket requests.
   ///
@@ -72,8 +71,7 @@ class BuildBucketClient {
         ],
       );
       if (token != null) {
-        httpRequest.headers.add(
-            HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
+        httpRequest.headers.add(HttpHeaders.authorizationHeader, '${token.type} ${token.data}');
       }
     }
 
@@ -83,9 +81,7 @@ class BuildBucketClient {
 
     final String rawResponse = await utf8.decodeStream(response);
     if (response.statusCode < 300) {
-      return responseFromJson(
-          json.decode(rawResponse.substring(kRpcResponseGarbage.length))
-              as Map<String, dynamic>);
+      return responseFromJson(json.decode(rawResponse.substring(kRpcResponseGarbage.length)) as Map<String, dynamic>);
     }
     throw BuildBucketException(response.statusCode, rawResponse);
   }
@@ -114,8 +110,7 @@ class BuildBucketClient {
   /// line-item requests that were issued in [request]. If only a subset of
   /// responses were retrieved, a [BatchRequestException] will be thrown.
   Future<BatchResponse> batch(BatchRequest request) async {
-    final BatchResponse response =
-        await _postRequest<BatchRequest, BatchResponse>(
+    final BatchResponse response = await _postRequest<BatchRequest, BatchResponse>(
       '/Batch',
       request,
       BatchResponse.fromJson,

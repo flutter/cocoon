@@ -21,8 +21,7 @@ class CheckSuiteEvent extends HookEvent {
     this.repository,
   });
 
-  factory CheckSuiteEvent.fromJson(Map<String, dynamic> input) =>
-      _$CheckSuiteEventFromJson(input);
+  factory CheckSuiteEvent.fromJson(Map<String, dynamic> input) => _$CheckSuiteEventFromJson(input);
   CheckSuite checkSuite;
   String action;
   User sender;
@@ -41,8 +40,7 @@ class CheckSuite {
     this.headBranch,
   });
 
-  factory CheckSuite.fromJson(Map<String, dynamic> input) =>
-      _$CheckSuiteFromJson(input);
+  factory CheckSuite.fromJson(Map<String, dynamic> input) => _$CheckSuiteFromJson(input);
   final int id;
   final String headSha;
   final String conclusion;
@@ -62,8 +60,7 @@ class CheckRunEvent extends HookEvent {
     this.repository,
   });
 
-  factory CheckRunEvent.fromJson(Map<String, dynamic> input) =>
-      _$CheckRunEventFromJson(input);
+  factory CheckRunEvent.fromJson(Map<String, dynamic> input) => _$CheckRunEventFromJson(input);
   CheckRun checkRun;
   String action;
   User sender;
@@ -83,8 +80,7 @@ class CheckRun {
     this.checkSuite,
   });
 
-  factory CheckRun.fromJson(Map<String, dynamic> input) =>
-      _$CheckRunFromJson(input);
+  factory CheckRun.fromJson(Map<String, dynamic> input) => _$CheckRunFromJson(input);
   final int id;
   final String headSha;
   final String conclusion;

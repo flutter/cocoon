@@ -22,8 +22,7 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
   const UpdateTimeSeries(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -38,20 +37,12 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
 
   @override
   Future<UpdateTimeSeriesResponse> post() async {
-    checkRequiredParameters(<String>[
-      timeSeriesKeyParam,
-      goalParam,
-      baselineParam,
-      taskNameParam,
-      labelParam,
-      unitParam,
-      archivedParam
-    ]);
+    checkRequiredParameters(
+        <String>[timeSeriesKeyParam, goalParam, baselineParam, taskNameParam, labelParam, unitParam, archivedParam]);
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     double goal = (requestData[goalParam] as num)?.toDouble();
     double baseline = (requestData[baselineParam] as num)?.toDouble();
     final String taskName = requestData[taskNameParam] as String;
@@ -61,11 +52,9 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey =
-          keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } catch (error) {
-      throw BadRequestException(
-          'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
+      throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
     if (goal < 0) {

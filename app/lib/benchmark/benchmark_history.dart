@@ -127,14 +127,12 @@ class BenchmarkHistory {
       'Archived': _archived,
     };
 
-    http.Response response = await _httpClient.post('/api/update-timeseries',
-        body: json.encode(request));
+    http.Response response = await _httpClient.post('/api/update-timeseries', body: json.encode(request));
     if (response.statusCode == 200) {
       _statusMessage = 'New targets saved.';
       await _loadData();
     } else {
-      _statusMessage =
-          'Server responded with an error saving new targets (HTTP ${response.statusCode})';
+      _statusMessage = 'Server responded with an error saving new targets (HTTP ${response.statusCode})';
     }
   }
 
@@ -159,20 +157,16 @@ class BenchmarkHistory {
       request['StartFrom'] = lastPosition;
     }
 
-    http.Response response = await _httpClient
-        .post('/api/public/get-timeseries-history', body: json.encode(request));
-    GetTimeseriesHistoryResult result =
-        GetTimeseriesHistoryResult.fromJson(json.decode(response.body));
+    http.Response response = await _httpClient.post('/api/public/get-timeseries-history', body: json.encode(request));
+    GetTimeseriesHistoryResult result = GetTimeseriesHistoryResult.fromJson(json.decode(response.body));
 
     data = null;
     Timer.run(() {
       // force Angular to rerender
-      final double secondHighest =
-          computeSecondHighest(result.benchmarkData.values.map((t) => t.value));
+      final double secondHighest = computeSecondHighest(result.benchmarkData.values.map((t) => t.value));
       _autoUpdateGoal = (1.005 * secondHighest).toStringAsFixed(1);
       _autoUpdateBaseline = (1.05 * secondHighest).toStringAsFixed(1);
-      _autoUpdateTitle =
-          'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
+      _autoUpdateTitle = 'Autoupdate to ${_autoUpdateGoal} goal/${_autoUpdateBaseline} baseline';
 
       data = result.benchmarkData;
       final Timeseries timeseries = result.benchmarkData.timeseries.timeseries;

@@ -26,8 +26,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -48,15 +47,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam] as String;
     final Map<String, dynamic> resultData =
-        requestData[resultsParam] as Map<String, dynamic> ??
-            const <String, dynamic>{};
-    final List<String> scoreKeys =
-        (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ??
-            const <String>[];
+        requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
+    final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
 
     Key taskKey;
     try {
@@ -66,16 +61,14 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
-      throw const BadRequestException(
-          'NewStatus can be one of "Succeeded", "Failed"');
+      throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
     final Task task = await datastore.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
     });
 
-    final Commit commit =
-        await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
       throw BadRequestException('No such task: ${task.commitKey}');
     });
 
@@ -102,8 +95,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
     // TODO(tvolkert): PushBuildStatusToGithub
     for (String scoreKey in scoreKeys) {
-      final TimeSeries series =
-          await _getOrCreateTimeSeries(task, scoreKey, datastore);
+      final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey, datastore);
       final num value = resultData[scoreKey] as num;
 
       final TimeSeriesValue seriesValue = TimeSeriesValue(
@@ -120,8 +112,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {
-    final TabledataResourceApi tabledataResourceApi =
-        await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
 
     requestRows.add(<String, Object>{
@@ -142,9 +133,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     });
 
     /// [rows] to be inserted to [BigQuery]
-    final TableDataInsertAllRequest request =
-        TableDataInsertAllRequest.fromJson(
-            <String, Object>{'rows': requestRows});
+    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);
@@ -159,10 +148,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     DatastoreService datastore,
   ) async {
     final String id = '${task.name}.$scoreKey';
-    final Key timeSeriesKey =
-        Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    TimeSeries series =
-        (await datastore.lookupByKey<TimeSeries>(<Key>[timeSeriesKey])).single;
+    final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
+    TimeSeries series = (await datastore.lookupByKey<TimeSeries>(<Key>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(

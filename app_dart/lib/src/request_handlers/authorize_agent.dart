@@ -21,8 +21,7 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
   const AuthorizeAgent(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     this.agentServiceProvider = AgentService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 

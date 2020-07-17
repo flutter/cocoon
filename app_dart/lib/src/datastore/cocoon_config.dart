@@ -62,8 +62,7 @@ class Config {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(
-          Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
+      createFn: () => getBranches(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
       ttl: configCacheTtl,
     );
 
@@ -85,20 +84,17 @@ class Config {
     final CocoonConfig cocoonConfig = CocoonConfig()
       ..id = id
       ..parentKey = _db.emptyKey;
-    final CocoonConfig result =
-        await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
+    final CocoonConfig result = await _db.lookupValue<CocoonConfig>(cocoonConfig.key);
 
     return Uint8List.fromList(result.value.codeUnits);
   }
 
   // GitHub App properties.
-  Future<String> get githubPrivateKey =>
-      _getSingleValue('githubapp_private_pem');
+  Future<String> get githubPrivateKey => _getSingleValue('githubapp_private_pem');
   Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
   Future<String> get githubAppId => _getSingleValue('githubapp_id');
   Future<Map<String, dynamic>> get githubAppInstallations async {
-    final String installations =
-        await _getSingleValue('githubapp_installations');
+    final String installations = await _getSingleValue('githubapp_installations');
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
@@ -110,8 +106,7 @@ class Config {
 
   Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
 
-  String get wrongBaseBranchPullRequestMessage =>
-      'This pull request was opened against a branch other than '
+  String get wrongBaseBranchPullRequestMessage => 'This pull request was opened against a branch other than '
       '_${kDefaultBranchName}_. Since Flutter pull requests should not '
       'normally be opened against branches other than $kDefaultBranchName, I '
       'have changed the base to $kDefaultBranchName. If this was intended, you '
@@ -153,8 +148,7 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get goldenBreakingChangeMessage =>
-      'Changes to golden files are considered breaking changes, so consult '
+  String get goldenBreakingChangeMessage => 'Changes to golden files are considered breaking changes, so consult '
       '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes) '
       'to proceed. While there are exceptions to this rule, if this patch modifies '
       'an existing golden file, it is probably not an exception. Only new golden '
@@ -185,8 +179,7 @@ class Config {
   int get commitNumber => 30;
 
   // TODO(keyonghan): update all existing APIs to use this reference, https://github.com/flutter/flutter/issues/48987.
-  KeyHelper get keyHelper =>
-      KeyHelper(applicationContext: context.applicationContext);
+  KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
   String get cqLabelName => 'CQ+1';
 
@@ -199,8 +192,7 @@ class Config {
   String get flutterBuild => 'flutter-build';
 
   // Repository status description for github status.
-  String get flutterBuildDescription =>
-      'Flutter build is currently broken. Please do not merge this '
+  String get flutterBuildDescription => 'Flutter build is currently broken. Please do not merge this '
       'PR unless it contains a fix to the broken build.';
 
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
@@ -209,8 +201,7 @@ class Config {
 
   Future<ServiceAccountInfo> get deviceLabServiceAccount async {
     final String rawValue = await _getSingleValue('DevicelabServiceAccount');
-    return ServiceAccountInfo.fromJson(
-        json.decode(rawValue) as Map<String, dynamic>);
+    return ServiceAccountInfo.fromJson(json.decode(rawValue) as Map<String, dynamic>);
   }
 
   Future<ServiceAccountCredentials> get taskLogServiceAccount async {
@@ -385,26 +376,22 @@ class Config {
       ..issuer = await githubAppId
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
-    final JWTRsaSha256Signer signer =
-        JWTRsaSha256Signer(privateKey: privateKey, publicKey: publicKey);
+    final JWTRsaSha256Signer signer = JWTRsaSha256Signer(privateKey: privateKey, publicKey: publicKey);
     final JWT signedToken = builder.getSignedToken(signer);
     return signedToken.toString();
   }
 
   Future<String> generateGithubToken(String owner, String repository) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String appInstallation =
-        appInstallations['$owner/$repository']['installation_id'] as String;
+    final String appInstallation = appInstallations['$owner/$repository']['installation_id'] as String;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
       'Accept': 'application/vnd.github.machine-man-preview+json'
     };
-    final http.Response response = await http.post(
-        'https://api.github.com/app/installations/$appInstallation/access_tokens',
-        headers: headers);
-    final Map<String, dynamic> jsonBody =
-        jsonDecode(response.body) as Map<String, dynamic>;
+    final http.Response response =
+        await http.post('https://api.github.com/app/installations/$appInstallation/access_tokens', headers: headers);
+    final Map<String, dynamic> jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     return jsonBody['token'] as String;
   }
 
@@ -452,13 +439,11 @@ class Config {
   }
 
   Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
-    final AccessClientProvider accessClientProvider =
-        AccessClientProvider(await deviceLabServiceAccount);
+    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
     return await BigqueryService(accessClientProvider).defaultTabledata();
   }
 
-  Future<GithubService> createGithubService(
-      String owner, String repository) async {
+  Future<GithubService> createGithubService(String owner, String repository) async {
     final GitHub github = await createGitHubClient(owner, repository);
     return GithubService(github);
   }

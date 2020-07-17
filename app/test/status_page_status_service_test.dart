@@ -16,15 +16,11 @@ void main() {
     test('Successful fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
         final Map<String, dynamic> mapJson = <String, dynamic>{
-          'status': <String, dynamic>{
-            'description': 'Failure',
-            'indicator': 'minor'
-          }
+          'status': <String, dynamic>{'description': 'Failure', 'indicator': 'minor'}
         };
         return http.Response(json.encode(mapJson), 200);
       });
-      final StatusPageStatus status =
-          await fetchStatusPageStatus('https://www.google.com', client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status.status, 'Failure');
       expect(status.indicator, 'minor');
@@ -32,13 +28,10 @@ void main() {
 
     test('Unexpected fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
-        final Map<String, dynamic> mapJson = <String, dynamic>{
-          'bogus': 'Failure'
-        };
+        final Map<String, dynamic> mapJson = <String, dynamic>{'bogus': 'Failure'};
         return http.Response(json.encode(mapJson), 200);
       });
-      final StatusPageStatus status =
-          await fetchStatusPageStatus('https://www.google.com', client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status, isNull);
     });
@@ -47,8 +40,7 @@ void main() {
       final MockClient client = MockClient((http.Request request) async {
         return http.Response(null, 404);
       });
-      final StatusPageStatus status =
-          await fetchStatusPageStatus('https://www.google.com', client: client);
+      final StatusPageStatus status = await fetchStatusPageStatus('https://www.google.com', client: client);
 
       expect(status, isNull);
     });

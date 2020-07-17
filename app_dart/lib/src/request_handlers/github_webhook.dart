@@ -29,17 +29,14 @@ const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
 
 /// List of repos that require check for labels and tests.
-const Set<String> kNeedsCheckLabelsAndTests = <String>{
-  'flutter/flutter',
-  'flutter/engine'
-};
+const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
 
 final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService,
-      this.githubStatusService, this.githubChecksService,
+  GithubWebhook(
+      Config config, this.buildBucketClient, this.luciBuildService, this.githubStatusService, this.githubChecksService,
       {HttpClient skiaClient})
       : assert(buildBucketClient != null),
         skiaClient = skiaClient ?? HttpClient(),
@@ -64,8 +61,7 @@ class GithubWebhook extends RequestHandler<Body> {
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
-    if (gitHubEvent == null ||
-        request.headers.value('X-Hub-Signature') == null) {
+    if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
     final List<int> requestBytes = await request.expand((_) => _).toList();
@@ -84,8 +80,7 @@ class GithubWebhook extends RequestHandler<Body> {
           final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
             jsonDecode(stringRequest) as Map<String, dynamic>,
           );
-          await githubChecksService.handleCheckRun(
-              checkRunEvent, luciBuildService);
+          await githubChecksService.handleCheckRun(checkRunEvent, luciBuildService);
       }
 
       return Body.empty;
@@ -99,8 +94,7 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<void> _handlePullRequest(
     String rawRequest,
   ) async {
-    final PullRequestEvent pullRequestEvent =
-        await _getPullRequestEvent(rawRequest);
+    final PullRequestEvent pullRequestEvent = await _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
     }
@@ -207,8 +201,7 @@ class GithubWebhook extends RequestHandler<Body> {
       prNumber: pr.number,
       commitSha: pr.head.sha,
     );
-    await githubStatusService.setBuildsPendingStatus(
-        pr.number, pr.head.sha, pr.head.repo.slug());
+    await githubStatusService.setBuildsPendingStatus(pr.number, pr.head.sha, pr.head.repo.slug());
   }
 
   /// Checks the issue in the given repository for `config.cqLabelName`.
@@ -221,15 +214,13 @@ class GithubWebhook extends RequestHandler<Body> {
     bool ignored = false;
     String rawResponse;
     try {
-      final HttpClientRequest request = await skiaClient
-          .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
+      final HttpClientRequest request =
+          await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
       final HttpClientResponse response = await request.close();
       rawResponse = await utf8.decodeStream(response);
       final List<dynamic> ignores = jsonDecode(rawResponse) as List<dynamic>;
-      for (Map<String, dynamic> ignore
-          in ignores.cast<Map<String, dynamic>>()) {
-        if ((ignore['note'] as String).isNotEmpty &&
-            pr.number.toString() == ignore['note'].split('/').last) {
+      for (Map<String, dynamic> ignore in ignores.cast<Map<String, dynamic>>()) {
+        if ((ignore['note'] as String).isNotEmpty && pr.number.toString() == ignore['note'].split('/').last) {
           ignored = true;
           break;
         }
@@ -252,8 +243,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final RepositorySlug slug = pullRequestEvent.repository.slug();
     if (kNeedsCheckGoldenTriage.contains(pr.base.repo.fullName.toLowerCase()) &&
         await _isIgnoredForGold(eventAction, pr)) {
-      final GitHub gitHubClient =
-          await config.createGitHubClient(slug.owner, slug.name);
+      final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
       try {
         await _pingForTriage(gitHubClient, pr);
       } finally {
@@ -268,15 +258,13 @@ class GithubWebhook extends RequestHandler<Body> {
     await gitHubClient.issues.createComment(slug, pr.number, body);
   }
 
-  Future<void> _checkForLabelsAndTests(
-      PullRequestEvent pullRequestEvent) async {
+  Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
     final PullRequest pr = pullRequestEvent.pullRequest;
     final String eventAction = pullRequestEvent.action;
     final RepositorySlug slug = pullRequestEvent.repository.slug();
     final String repo = pr.base.repo.fullName.toLowerCase();
     if (kNeedsCheckLabelsAndTests.contains(repo)) {
-      final GitHub gitHubClient =
-          await config.createGitHubClient(slug.owner, slug.name);
+      final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
       try {
         await _validateRefs(gitHubClient, pr);
         if (repo == 'flutter/flutter') {
@@ -290,14 +278,12 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  Future<void> _applyFrameworkRepoLabels(
-      GitHub gitHubClient, String eventAction, PullRequest pr) async {
+  Future<void> _applyFrameworkRepoLabels(GitHub gitHubClient, String eventAction, PullRequest pr) async {
     if (pr.user.login == 'engine-flutter-autoroll') {
       return;
     }
     final RepositorySlug slug = pr.base.repo.slug();
-    final Stream<PullRequestFile> files =
-        gitHubClient.pullRequests.listFiles(slug, pr.number);
+    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number);
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
@@ -349,13 +335,11 @@ class GithubWebhook extends RequestHandler<Body> {
         labels.add('a: internationalization');
       }
 
-      if (file.filename.startsWith('packages/flutter_test') ||
-          file.filename.startsWith('packages/flutter_driver')) {
+      if (file.filename.startsWith('packages/flutter_test') || file.filename.startsWith('packages/flutter_driver')) {
         labels.add('a: tests');
       }
 
-      if (file.filename.contains('semantics') ||
-          file.filename.contains('accessibilty')) {
+      if (file.filename.contains('semantics') || file.filename.contains('accessibilty')) {
         labels.add('a: accessibility');
       }
 
@@ -373,8 +357,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     if (labels.isNotEmpty) {
-      await gitHubClient.issues
-          .addLabelsToIssue(slug, pr.number, labels.toList());
+      await gitHubClient.issues.addLabelsToIssue(slug, pr.number, labels.toList());
     }
 
     if (!hasTests && needsTests && !pr.draft) {
@@ -392,14 +375,12 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
-  Future<void> _applyEngineRepoLabels(
-      GitHub gitHubClient, String eventAction, PullRequest pr) async {
+  Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String eventAction, PullRequest pr) async {
     if (pr.user.login == 'skia-flutter-autoroll') {
       return;
     }
     final RepositorySlug slug = pr.base.repo.slug();
-    final Stream<PullRequestFile> files =
-        gitHubClient.pullRequests.listFiles(slug, pr.number);
+    final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number);
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
@@ -428,8 +409,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     if (labels.isNotEmpty) {
-      await gitHubClient.issues
-          .addLabelsToIssue(slug, pr.number, labels.toList());
+      await gitHubClient.issues.addLabelsToIssue(slug, pr.number, labels.toList());
     }
 
     if (!hasTests && needsTests && !pr.draft) {
@@ -496,8 +476,7 @@ class GithubWebhook extends RequestHandler<Body> {
     RepositorySlug slug,
     String message,
   ) async {
-    final Stream<IssueComment> comments =
-        gitHubClient.issues.listCommentsByIssue(slug, pr.number);
+    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
       if (comment.body.contains(message)) {
         return true;
@@ -528,8 +507,7 @@ class GithubWebhook extends RequestHandler<Body> {
       return null;
     }
     try {
-      return PullRequestEvent.fromJson(
-          json.decode(request) as Map<String, dynamic>);
+      return PullRequestEvent.fromJson(json.decode(request) as Map<String, dynamic>);
     } on FormatException {
       return null;
     }

@@ -24,8 +24,8 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
-    Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
+Future<List<String>> loadBranches(
+    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
   const String path = '/flutter/cocoon/master/app_dart/dev/branches.txt';
   final Uri url = Uri.https('raw.githubusercontent.com', path);
 
@@ -41,18 +41,14 @@ Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
 
         if (status == HttpStatus.ok) {
           final String content = await utf8.decoder.bind(clientResponse).join();
-          final List<String> branches = content
-              .split('\n')
-              .map((String branch) => branch.trim())
-              .toList();
+          final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
           branches.removeWhere((String branch) => branch.isEmpty);
           return branches;
         } else {
           log.warning('Attempt to download branches.txt failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
-        log.error(
-            'Attempt to download branches.txt failed:\n$error\n$stackTrace');
+        log.error('Attempt to download branches.txt failed:\n$error\n$stackTrace');
       }
       await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }
@@ -63,10 +59,9 @@ Future<List<String>> loadBranches(HttpClientProvider branchHttpClientProvider,
   return <String>['master'];
 }
 
-Future<Uint8List> getBranches(HttpClientProvider branchHttpClientProvider,
-    Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  final List<String> branches = await loadBranches(
-      branchHttpClientProvider, log, gitHubBackoffCalculator);
+Future<Uint8List> getBranches(
+    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
+  final List<String> branches = await loadBranches(branchHttpClientProvider, log, gitHubBackoffCalculator);
 
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
