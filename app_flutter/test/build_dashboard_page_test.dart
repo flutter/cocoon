@@ -11,7 +11,6 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart';
 
 import 'package:app_flutter/build_dashboard_page.dart';
-import 'package:app_flutter/main.dart' as app show lightTheme;
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/build.dart';
