@@ -79,10 +79,11 @@ void main() {
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
+    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: app.lightTheme,
+        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -101,10 +102,11 @@ void main() {
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
+    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: app.lightTheme,
+        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -118,15 +120,16 @@ void main() {
     expect(find.text('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, app.lightTheme.errorColor);
+    expect(appbarWidget.backgroundColor, lightTheme.errorColor);
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
+    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: app.lightTheme,
+        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -140,7 +143,7 @@ void main() {
     expect(find.text('Tree is Open'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, app.lightTheme.appBarTheme.color);
+    expect(appbarWidget.backgroundColor, lightTheme.appBarTheme.color);
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
