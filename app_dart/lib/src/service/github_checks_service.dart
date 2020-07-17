@@ -23,8 +23,7 @@ class GithubChecksService {
   GithubChecksUtil githubChecksUtil;
   Logging log;
 
-  static Set<github.CheckRunConclusion> failedStatesSet =
-      <github.CheckRunConclusion>{
+  static Set<github.CheckRunConclusion> failedStatesSet = <github.CheckRunConclusion>{
     github.CheckRunConclusion.cancelled,
     github.CheckRunConclusion.failure,
   };
@@ -40,13 +39,10 @@ class GithubChecksService {
   /// Relevant API docs:
   ///   https://docs.github.com/en/rest/reference/checks#create-a-check-suite
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
-  Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent,
-      LuciBuildService luciBuilderService) async {
+  Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, LuciBuildService luciBuilderService) async {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final github.GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
-    final github.PullRequest pullRequest =
-        checkSuiteEvent.checkSuite.pullRequests[0];
+    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests[0];
     final int pullRequestNumber = pullRequest.number;
     final String commitSha = checkSuiteEvent.checkSuite.headSha;
     switch (checkSuiteEvent.action) {
@@ -62,10 +58,8 @@ class GithubChecksService {
 
       case 'rerequested':
         // Trigger only the builds that failed.
-        final List<Build> builds = await luciBuilderService.failedBuilds(
-            slug, pullRequestNumber, commitSha);
-        final Map<String, github.CheckRun> checkRuns =
-            await githubChecksUtil.allCheckRuns(
+        final List<Build> builds = await luciBuilderService.failedBuilds(slug, pullRequestNumber, commitSha);
+        final Map<String, github.CheckRun> checkRuns = await githubChecksUtil.allCheckRuns(
           gitHubClient,
           checkSuiteEvent,
         );
@@ -86,13 +80,11 @@ class GithubChecksService {
   /// the Github UI.
   /// Relevant APIs:
   ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<void> handleCheckRun(
-      CheckRunEvent checkRunEvent, LuciBuildService luciBuildService) async {
+  Future<void> handleCheckRun(CheckRunEvent checkRunEvent, LuciBuildService luciBuildService) async {
     switch (checkRunEvent.action) {
       case 'rerequested':
         final String builderName = checkRunEvent.checkRun.name;
-        final bool success =
-            await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
         log.debug('BuilderName: $builderName State: $success');
     }
   }
@@ -106,14 +98,12 @@ class GithubChecksService {
     LuciBuildService luciBuildService,
     github.RepositorySlug slug,
   ) async {
-    final github.GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final push_message.Build build = buildPushMessage.build;
     if (buildPushMessage.userData.isEmpty) {
       return false;
     }
-    final Map<String, dynamic> userData =
-        jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
+    final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
     if (!userData.containsKey('check_run_id') ||
         !userData.containsKey('repo_owner') ||
         !userData.containsKey('repo_name')) {
@@ -130,22 +120,15 @@ class GithubChecksService {
     );
     final github.CheckRunStatus status = statusForResult(build.status);
     final github.CheckRunConclusion conclusion =
-        (buildPushMessage.build.result != null)
-            ? conclusionForResult(buildPushMessage.build.result)
-            : null;
+        (buildPushMessage.build.result != null) ? conclusionForResult(buildPushMessage.build.result) : null;
     // Do not override url for completed status.
-    final String url = status == github.CheckRunStatus.completed
-        ? checkRun.detailsUrl
-        : buildPushMessage.build.url;
+    final String url = status == github.CheckRunStatus.completed ? checkRun.detailsUrl : buildPushMessage.build.url;
     github.CheckRunOutput output;
     // If status has completed with failure then provide more details.
-    if (status == github.CheckRunStatus.completed &&
-        failedStatesSet.contains(conclusion)) {
-      final Build build = await luciBuildService.getBuildById(
-          buildPushMessage.build.id,
-          fields: 'id,builder,summaryMarkdown');
-      output = github.CheckRunOutput(
-          title: checkRun.name, summary: build.summaryMarkdown);
+    if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
+      final Build build =
+          await luciBuildService.getBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
+      output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown);
     }
     await githubChecksUtil.updateCheckRun(
       gitHubClient,

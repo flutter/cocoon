@@ -28,8 +28,7 @@ void main() {
     taskService = MockTaskService();
     reservationService = MockReservationService();
     accessTokenService = MockAccessTokenService();
-    agent =
-        Agent(key: config.db.emptyKey.append(Agent, id: 'aid'), agentId: 'aid');
+    agent = Agent(key: config.db.emptyKey.append(Agent, id: 'aid'), agentId: 'aid');
   });
 
   group('ReserveTask', () {
@@ -74,8 +73,7 @@ void main() {
       });
 
       test('returns empty response if no task available', () async {
-        when(taskService.findNextTask(agent))
-            .thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(null);
         });
         final ReserveTaskResponse response = await tester.post(handler);
@@ -88,14 +86,11 @@ void main() {
       test('returns full response if task is available', () async {
         final Task task = Task(name: 'foo_test');
         final Commit commit = Commit(sha: 'abc');
-        when(taskService.findNextTask(agent))
-            .thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(FullTask(task, commit));
         });
-        when(accessTokenService.createAccessToken(scopes: anyNamed('scopes')))
-            .thenAnswer((Invocation invocation) {
-          return Future<AccessToken>.value(
-              AccessToken('type', 'data', DateTime.utc(2019)));
+        when(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).thenAnswer((Invocation invocation) {
+          return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
         });
         final ReserveTaskResponse response = await tester.post(handler);
         expect(response.task.name, 'foo_test');
@@ -103,15 +98,13 @@ void main() {
         expect(response.accessToken.data, 'data');
         verify(taskService.findNextTask(agent)).called(1);
         verify(reservationService.secureReservation(task, 'aid')).called(1);
-        verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes')))
-            .called(1);
+        verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).called(1);
       });
 
       test('Looks up agent if not provided in the context', () async {
         tester.context = FakeAuthenticatedContext();
         config.db.values[agent.key] = agent;
-        when(taskService.findNextTask(agent))
-            .thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(null);
         });
         final ReserveTaskResponse response = await tester.post(handler);

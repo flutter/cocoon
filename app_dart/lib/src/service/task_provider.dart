@@ -10,8 +10,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
 /// Function signature for a [TaskService] provider.
-typedef TaskServiceProvider = TaskService Function(
-    DatastoreService datastoreService);
+typedef TaskServiceProvider = TaskService Function(DatastoreService datastoreService);
 
 class TaskService {
   TaskService(
@@ -28,19 +27,16 @@ class TaskService {
 
   Future<FullTask> findNextTask(Agent agent) async {
     await for (Commit commit in datastore.queryRecentCommitsNoBranch()) {
-      final List<Stage> stages =
-          await datastore.queryTasksGroupedByStage(commit);
+      final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
       for (Stage stage in stages) {
         if (!stage.isManagedByDeviceLab) {
           continue;
         }
         for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
           if (task.requiredCapabilities.isEmpty) {
-            throw InvalidTaskException(
-                'Task ${task.name} has no required capabilities');
+            throw InvalidTaskException('Task ${task.name} has no required capabilities');
           }
-          if (task.status == Task.statusNew &&
-              agent.isCapableOfPerformingTask(task)) {
+          if (task.status == Task.statusNew && agent.isCapableOfPerformingTask(task)) {
             return FullTask(task, commit);
           }
         }

@@ -32,10 +32,8 @@ void main() {
     });
 
     test('update authorization token for agent', () async {
-      final Agent agent = Agent(
-          key: config.db.emptyKey.append(Agent, id: 'test'),
-          agentId: 'test',
-          authToken: <int>[1, 2, 3]);
+      final Agent agent =
+          Agent(key: config.db.emptyKey.append(Agent, id: 'test'), agentId: 'test', authToken: <int>[1, 2, 3]);
       config.db.values[agent.key] = agent;
 
       expect(agent.agentId, 'test');

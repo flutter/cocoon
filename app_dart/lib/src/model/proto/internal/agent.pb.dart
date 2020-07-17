@@ -13,37 +13,32 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'key.pb.dart' as $0;
 
 class Agent extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Agent', createEmptyInstance: create)
-        ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
-        ..aOS(2, 'agentId')
-        ..aInt64(3, 'healthCheckTimestamp')
-        ..aOB(4, 'isHealthy')
-        ..aOB(5, 'isHidden')
-        ..pPS(6, 'capabilities')
-        ..aOS(7, 'healthDetails')
-        ..aOS(8, 'authToken')
-        ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Agent', createEmptyInstance: create)
+    ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
+    ..aOS(2, 'agentId')
+    ..aInt64(3, 'healthCheckTimestamp')
+    ..aOB(4, 'isHealthy')
+    ..aOB(5, 'isHidden')
+    ..pPS(6, 'capabilities')
+    ..aOS(7, 'healthDetails')
+    ..aOS(8, 'authToken')
+    ..hasRequiredFields = false;
 
   Agent._() : super();
   factory Agent() => create();
-  factory Agent.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Agent.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Agent.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Agent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Agent clone() => Agent()..mergeFromMessage(this);
-  Agent copyWith(void Function(Agent) updates) =>
-      super.copyWith((message) => updates(message as Agent));
+  Agent copyWith(void Function(Agent) updates) => super.copyWith((message) => updates(message as Agent));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Agent create() => Agent._();
   Agent createEmptyInstance() => create();
   static $pb.PbList<Agent> createRepeated() => $pb.PbList<Agent>();
   @$core.pragma('dart2js:noInline')
-  static Agent getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Agent>(create);
+  static Agent getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Agent>(create);
   static Agent _defaultInstance;
 
   @$pb.TagNumber(1)

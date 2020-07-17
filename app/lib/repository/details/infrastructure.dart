@@ -23,43 +23,40 @@ class InfrastructureDetails extends StatelessWidget {
         textTheme: Theme.of(context).textTheme.apply(fontSizeFactor: 1.8),
         chipTheme: ChipTheme.of(context).copyWith(
             labelPadding: const EdgeInsets.fromLTRB(10.0, 3.0, 20.0, 3.0),
-            labelStyle:
-                ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)),
+            labelStyle: ChipTheme.of(context).labelStyle.apply(fontSizeFactor: 1.8)),
       ),
       child: ModelBinding<BuildStatus>(
         initialModel: const BuildStatus(),
         child: RefreshBuildStatus(
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(children: const <Widget>[
-                    BuildStatusWidget(),
-                    ModelBinding<StatusPageStatus>(
-                        initialModel: StatusPageStatus(),
-                        child: RefreshGitHubStatus(
-                            child: StatusPageWidget(
-                          name: 'GitHub',
-                          serviceIcon: Icons.compare_arrows,
-                          url: 'https://www.githubstatus.com',
-                        ))),
-                    ModelBinding<StatusPageStatus>(
-                        initialModel: StatusPageStatus(),
-                        child: RefreshCoverallsStatus(
-                            child: StatusPageWidget(
-                          name: 'Coveralls',
-                          serviceIcon: Icons.code,
-                          url: 'https://status.coveralls.io/',
-                        )))
-                  ]),
-                ),
-                const Expanded(
-                  child: FailingAgentWidget(),
-                ),
-                const Expanded(
-                  child: CommitResultsWidget(),
-                )
+          child: Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
+            Expanded(
+              child: Column(children: const <Widget>[
+                BuildStatusWidget(),
+                ModelBinding<StatusPageStatus>(
+                    initialModel: StatusPageStatus(),
+                    child: RefreshGitHubStatus(
+                        child: StatusPageWidget(
+                      name: 'GitHub',
+                      serviceIcon: Icons.compare_arrows,
+                      url: 'https://www.githubstatus.com',
+                    ))),
+                ModelBinding<StatusPageStatus>(
+                    initialModel: StatusPageStatus(),
+                    child: RefreshCoverallsStatus(
+                        child: StatusPageWidget(
+                      name: 'Coveralls',
+                      serviceIcon: Icons.code,
+                      url: 'https://status.coveralls.io/',
+                    )))
               ]),
+            ),
+            const Expanded(
+              child: FailingAgentWidget(),
+            ),
+            const Expanded(
+              child: CommitResultsWidget(),
+            )
+          ]),
         ),
       ),
     );
@@ -67,8 +64,7 @@ class InfrastructureDetails extends StatelessWidget {
 }
 
 class StatusPageWidget extends StatelessWidget {
-  const StatusPageWidget(
-      {@required this.name, @required this.serviceIcon, @required this.url});
+  const StatusPageWidget({@required this.name, @required this.serviceIcon, @required this.url});
 
   final String name;
   final IconData serviceIcon;
@@ -76,8 +72,7 @@ class StatusPageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final StatusPageStatus githubStatus =
-        ModelBinding.of<StatusPageStatus>(context);
+    final StatusPageStatus githubStatus = ModelBinding.of<StatusPageStatus>(context);
     IconData icon;
     Color backgroundColor;
     switch (githubStatus.indicator) {
@@ -112,9 +107,7 @@ class StatusPageWidget extends StatelessWidget {
           child: Align(
             alignment: AlignmentDirectional.centerStart,
             child: Chip(
-                avatar: Icon(icon),
-                backgroundColor: backgroundColor,
-                label: Text(githubStatus.status ?? 'Unknown')),
+                avatar: Icon(icon), backgroundColor: backgroundColor, label: Text(githubStatus.status ?? 'Unknown')),
           ),
         ),
         onTap: () => window.open(url, '_blank'));
@@ -246,8 +239,7 @@ class _CommitResultWidget extends StatelessWidget {
           foregroundColor: Colors.white,
           backgroundColor: backgroundColor,
         ),
-        title: Text(
-            '[$displaySha] ${DateFormat.jm().format(commitTestResult.createDateTime)}'),
+        title: Text('[$displaySha] ${DateFormat.jm().format(commitTestResult.createDateTime)}'),
         subtitle: RichText(
           text: TextSpan(children: <TextSpan>[
             if (commitTestResult.failedTestCount > 0)
@@ -283,15 +275,13 @@ class _PendingIcon extends StatefulWidget {
   _PendingIconState createState() => _PendingIconState();
 }
 
-class _PendingIconState extends State<_PendingIcon>
-    with SingleTickerProviderStateMixin {
+class _PendingIconState extends State<_PendingIcon> with SingleTickerProviderStateMixin {
   AnimationController _controller;
   Animation<double> _opacity;
 
   @override
   void initState() {
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     _opacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
     _controller.repeat(reverse: true);
     super.initState();

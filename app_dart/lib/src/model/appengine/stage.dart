@@ -57,9 +57,7 @@ class Stage implements Comparable<Stage> {
   /// Representation of [tasks] used for JSON serialization.
   @JsonKey(name: 'Tasks')
   List<SerializableTask> get serializableTasks {
-    return tasks
-        .map<SerializableTask>((Task task) => SerializableTask(task))
-        .toList();
+    return tasks.map<SerializableTask>((Task task) => SerializableTask(task)).toList();
   }
 
   /// The aggregate status, accounting for all [tasks] in this stage.
@@ -157,9 +155,8 @@ class StageBuilder {
       return Task.statusFailed;
     }
 
-    final String commonStatus = tasks
-        .map<String>((Task task) => task.status)
-        .reduce((String a, String b) => a == b ? a : null);
+    final String commonStatus =
+        tasks.map<String>((Task task) => task.status).reduce((String a, String b) => a == b ? a : null);
     return commonStatus ?? Task.statusInProgress;
   }
 }

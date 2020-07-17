@@ -36,16 +36,14 @@ void main() {
     });
 
     test('Return exception when adding an existing agent', () async {
-      final Agent agent = Agent(
-          key: config.db.emptyKey.append(Agent, id: 'test'), agentId: 'test');
+      final Agent agent = Agent(key: config.db.emptyKey.append(Agent, id: 'test'), agentId: 'test');
       config.db.values[agent.key] = agent;
 
       expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Return token when adding a valid agent', () async {
-      final Agent agent = Agent(
-          key: config.db.emptyKey.append(Agent, id: 'abc'), agentId: 'def');
+      final Agent agent = Agent(key: config.db.emptyKey.append(Agent, id: 'abc'), agentId: 'def');
       config.db.values[agent.key] = agent;
 
       expect(config.db.values.length, 1);

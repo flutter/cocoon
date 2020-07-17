@@ -24,10 +24,8 @@ class GetBuildStatus extends RequestHandler<Body> {
     Config config, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting BuildStatusServiceProvider buildStatusProvider,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
-        buildStatusProvider =
-            buildStatusProvider ?? BuildStatusService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        buildStatusProvider = buildStatusProvider ?? BuildStatusService.defaultProvider,
         super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -38,11 +36,9 @@ class GetBuildStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService =
-        buildStatusProvider(datastore);
+    final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final BuildStatus status =
-        await buildStatusService.calculateCumulativeStatus(branch: branch);
+    final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch);
 
     return Body.forJson(<String, dynamic>{
       'AnticipatedBuildStatus': _buildStatusLookup[status],

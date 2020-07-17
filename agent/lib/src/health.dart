@@ -16,8 +16,7 @@ import 'agent.dart';
 import 'utils.dart';
 
 final RegExp _kLinuxIpAddrExp = RegExp(r'inet +(\d+\.\d+\.\d+.\d+)/\d+');
-final RegExp _kWindowsIpAddrExp =
-    RegExp(r'IPv4 Address.*: +(\d+\.\d+\.\d+.\d+)\(Preferred\)');
+final RegExp _kWindowsIpAddrExp = RegExp(r'IPv4 Address.*: +(\d+\.\d+\.\d+.\d+)\(Preferred\)');
 
 Future<AgentHealth> performHealthChecks(Agent agent) async {
   AgentHealth results = AgentHealth();
@@ -28,27 +27,23 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
     Map<String, HealthCheckResult> deviceChecks = await devices.checkDevices();
     results.addAll(deviceChecks);
 
-    bool hasHealthyDevices = deviceChecks.values
-        .where((HealthCheckResult r) => r.succeeded)
-        .isNotEmpty;
+    bool hasHealthyDevices = deviceChecks.values.where((HealthCheckResult r) => r.succeeded).isNotEmpty;
 
     results['has-healthy-devices'] = hasHealthyDevices
-        ? HealthCheckResult.success(
-            'Found ${deviceChecks.length} healthy devices')
+        ? HealthCheckResult.success('Found ${deviceChecks.length} healthy devices')
         : HealthCheckResult.failure('No attached devices were found.');
 
     results['cocoon-connection'] = await _captureErrors(() async {
       String authStatus = await agent.getAuthenticationStatus();
 
       if (authStatus != 'OK') {
-        results['cocoon-authentication'] = HealthCheckResult.failure(
-            'Failed to authenticate to Cocoon. Check config.yaml.');
+        results['cocoon-authentication'] =
+            HealthCheckResult.failure('Failed to authenticate to Cocoon. Check config.yaml.');
       } else {
         results['cocoon-authentication'] = HealthCheckResult.success();
       }
     });
-    results['remove-xcode-derived-data'] =
-        await _captureErrors(removeXcodeDerivedData);
+    results['remove-xcode-derived-data'] = await _captureErrors(removeXcodeDerivedData);
     results['remove-cached-data'] = await _captureErrors(removeCachedData);
   });
 
@@ -58,8 +53,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
 /// Catches all exceptions and turns them into [HealthCheckResult] error.
 ///
 /// Null callback results are turned into [HealthCheckResult] success.
-Future<HealthCheckResult> _captureErrors(
-    Future<dynamic> healthCheckCallback()) async {
+Future<HealthCheckResult> _captureErrors(Future<dynamic> healthCheckCallback()) async {
   Completer<HealthCheckResult> completer = Completer<HealthCheckResult>();
 
   // We intentionally ignore the future returned by the Chain because we're
@@ -70,8 +64,7 @@ Future<HealthCheckResult> _captureErrors(
   // ignore: unawaited_futures
   try {
     dynamic result = await healthCheckCallback();
-    completer.complete(
-        result is HealthCheckResult ? result : HealthCheckResult.success());
+    completer.complete(result is HealthCheckResult ? result : HealthCheckResult.success());
   } catch (error, stackTrace) {
     completer.complete(HealthCheckResult.error(error, stackTrace));
   }
@@ -97,9 +90,7 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
       ip = (await eval('hostname', <String>[], canFail: true)).trim();
     } else {
       // Expect: 3: eno1    inet 123.45.67.89/26 brd ...
-      final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eno1'],
-              canFail: true))
-          .trim();
+      final String out = (await eval('ip', ['-o', '-4', 'addr', 'show', 'eno1'], canFail: true)).trim();
       final Match match = _kLinuxIpAddrExp.firstMatch(out);
       ip = match?.group(1) ?? '';
     }
@@ -109,9 +100,8 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
     ip = match?.group(1) ?? '';
   }
 
-  return HealthCheckResult.success(ip.isEmpty
-      ? 'Unable to determine IP address. Is wired ethernet connected?'
-      : 'Last known IP address: $ip');
+  return HealthCheckResult.success(
+      ip.isEmpty ? 'Unable to determine IP address. Is wired ethernet connected?' : 'Last known IP address: $ip');
 }
 
 /// Completely removes Xcode DerivedData directory.
@@ -121,8 +111,7 @@ Future<HealthCheckResult> _scrapeRemoteAccessInfo() async {
 /// all of the remaining disk space over time.
 @visibleForTesting
 Future<HealthCheckResult> removeXcodeDerivedData(
-    {platform.Platform pf = const platform.LocalPlatform(),
-    file.FileSystem fs = const local.LocalFileSystem()}) async {
+    {platform.Platform pf = const platform.LocalPlatform(), file.FileSystem fs = const local.LocalFileSystem()}) async {
   if (!pf.isMacOS) {
     return HealthCheckResult.success();
   }
@@ -141,8 +130,7 @@ Future<HealthCheckResult> removeXcodeDerivedData(
 /// cache directories grow very fast.
 @visibleForTesting
 Future<HealthCheckResult> removeCachedData(
-    {platform.Platform pf = const platform.LocalPlatform(),
-    file.FileSystem fs = const local.LocalFileSystem()}) async {
+    {platform.Platform pf = const platform.LocalPlatform(), file.FileSystem fs = const local.LocalFileSystem()}) async {
   String home = pf.environment['HOME'];
   if (home == null) {
     return HealthCheckResult.failure('Missing \$HOME environment variable.');

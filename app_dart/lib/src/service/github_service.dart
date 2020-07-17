@@ -17,8 +17,7 @@ class GithubService {
   /// found and only the branched commit will be returned for now, though the
   /// rare case that multiple commits exist. For other cases, it returns all
   /// newer commits since [lastCommitTimestampMills].
-  Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
@@ -40,15 +39,11 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since':
-            DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1)
-                .toUtc()
-                .toIso8601String(),
+        'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1).toUtc().toIso8601String(),
       },
       pages: pages,
     )) {
-      commits.addAll((json.decode(response.body) as List<dynamic>)
-          .cast<Map<String, dynamic>>());
+      commits.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
     /// When a release branch is first detected only the most recent commit would be needed.
@@ -74,8 +69,7 @@ class GithubService {
     }).toList();
   }
 
-  Future<List<PullRequest>> listPullRequests(
-      RepositorySlug slug, String branch) async {
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
@@ -90,8 +84,7 @@ class GithubService {
         'state': 'open',
       },
     )) {
-      pullRequests.addAll((json.decode(response.body) as List<dynamic>)
-          .cast<Map<String, dynamic>>());
+      pullRequests.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
     return pullRequests.map((dynamic commit) {

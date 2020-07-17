@@ -24,12 +24,10 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-    @visibleForTesting
-        this.branchHttpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
-        datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+        datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         assert(branchHttpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
@@ -50,8 +48,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-        await luciService.getBranchRecentTasks(
+    final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks = await luciService.getBranchRecentTasks(
       repo: 'flutter',
       requireTaskName: true,
     );
@@ -72,13 +69,9 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   /// Update chromebot tasks statuses in datastore for [builder],
   /// based on latest [luciTasks] statuses.
   Future<void> _updateStatus(
-      LuciBuilder builder,
-      String branch,
-      DatastoreService datastore,
-      Map<String, List<LuciTask>> luciTasksMap) async {
-    final List<FullTask> datastoreTasks = await datastore
-        .queryRecentTasks(taskName: builder.taskName, branch: branch)
-        .toList();
+      LuciBuilder builder, String branch, DatastoreService datastore, Map<String, List<LuciTask>> luciTasksMap) async {
+    final List<FullTask> datastoreTasks =
+        await datastore.queryRecentTasks(taskName: builder.taskName, branch: branch).toList();
 
     /// Update [devicelabTask] when first [luciTask] run finishes. There may be
     /// reruns for the same commit and same builder. Update [devicelabTask]
@@ -87,10 +80,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     for (FullTask datastoreTask in datastoreTasks) {
       if (luciTasksMap.containsKey(datastoreTask.commit.sha)) {
         final List<LuciTask> luciTasks = luciTasksMap[datastoreTask.commit.sha];
-        final String buildNumberList = luciTasks.reversed
-            .map((LuciTask luciTask) => luciTask.buildNumber.toString())
-            .toList()
-            .join(',');
+        final String buildNumberList =
+            luciTasks.reversed.map((LuciTask luciTask) => luciTask.buildNumber.toString()).toList().join(',');
         if (buildNumberList != datastoreTask.task.buildNumberList ||
             luciTasks.last.status != datastoreTask.task.status) {
           final Task update = datastoreTask.task;

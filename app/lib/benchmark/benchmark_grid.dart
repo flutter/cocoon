@@ -84,8 +84,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   }
 
   Future<void> getBranches() async {
-    Map<String, dynamic> branchJson =
-        json.decode((await _httpClient.get('/api/public/get-branches')).body);
+    Map<String, dynamic> branchJson = json.decode((await _httpClient.get('/api/public/get-branches')).body);
     _values = new BranchList.fromJson(branchJson).branches;
   }
 
@@ -93,8 +92,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
   void ngOnInit() {
     getBranches();
     reloadData(initialLoad: true);
-    _reloadTimer =
-        new Timer.periodic(const Duration(seconds: 30), (_) => reloadData(branch: _selectedValue));
+    _reloadTimer = new Timer.periodic(const Duration(seconds: 30), (_) => reloadData(branch: _selectedValue));
     getAuthenticationStatus('/').then((AuthenticationStatus status) {
       _userIsAuthenticated = status.isAuthenticated;
     });
@@ -112,8 +110,7 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     _benchmarks = new GetBenchmarksResult.fromJson(statusJson).benchmarks;
     // Only query uri parameters when page loads for the first time
     if (initialLoad) {
-      Map<String, String> parameters =
-          Uri.parse(window.location.href).queryParameters;
+      Map<String, String> parameters = Uri.parse(window.location.href).queryParameters;
       _taskTextFilter = parameters != null ? parameters['filter'] : null;
     }
     applyTextFilter(_taskTextFilter);
@@ -134,20 +131,13 @@ class BenchmarkGrid implements OnInit, OnDestroy {
     List<_BenchmarkPredicate> filters = <_BenchmarkPredicate>[];
     if (_taskTextFilter != null && _taskTextFilter.trim().isNotEmpty) {
       filters.add((BenchmarkData data) {
-        bool labelMatches = data?.timeseries?.timeseries?.label
-                ?.toLowerCase()
-                ?.contains(_taskTextFilter) ==
-            true;
-        bool taskNameMatches = data?.timeseries?.timeseries?.taskName
-                ?.toLowerCase()
-                ?.contains(_taskTextFilter) ==
-            true;
+        bool labelMatches = data?.timeseries?.timeseries?.label?.toLowerCase()?.contains(_taskTextFilter) == true;
+        bool taskNameMatches = data?.timeseries?.timeseries?.taskName?.toLowerCase()?.contains(_taskTextFilter) == true;
         return labelMatches || taskNameMatches;
       });
     }
     if (!_isShowArchived) {
-      filters.add((BenchmarkData data) =>
-          !(data?.timeseries?.timeseries?.isArchived ?? true));
+      filters.add((BenchmarkData data) => !(data?.timeseries?.timeseries?.isArchived ?? true));
     }
     visibleBenchmarks = _benchmarks;
     for (_BenchmarkPredicate filter in filters) {

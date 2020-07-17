@@ -13,8 +13,7 @@ import '../models/status_page_status.dart';
 /// See https://doers.statuspage.io/api/v2/.
 /// See https://www.githubstatus.com/api.
 /// Web version of Coveralls status at https://status.coveralls.io.
-Future<StatusPageStatus> fetchStatusPageStatus(String url,
-    {http.Client client}) async {
+Future<StatusPageStatus> fetchStatusPageStatus(String url, {http.Client client}) async {
   client ??= http.Client();
   final Map<String, dynamic> fetchedStatus = await _getStatusBody(url, client);
   if (fetchedStatus == null) {
@@ -24,8 +23,7 @@ Future<StatusPageStatus> fetchStatusPageStatus(String url,
   if (status == null) {
     return null;
   }
-  return StatusPageStatus(
-      status: status['description'], indicator: status['indicator']);
+  return StatusPageStatus(status: status['description'], indicator: status['indicator']);
 }
 
 Future<dynamic> _getStatusBody(String url, http.Client client) async {

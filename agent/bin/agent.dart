@@ -13,8 +13,7 @@ import 'package:cocoon_agent/src/commands/run.dart';
 import 'package:cocoon_agent/src/utils.dart';
 
 Future<Null> main(List<String> rawArgs) async {
-  ArgParser argParser = ArgParser()
-    ..addOption('config-file', abbr: 'c', defaultsTo: 'config.yaml');
+  ArgParser argParser = ArgParser()..addOption('config-file', abbr: 'c', defaultsTo: 'config.yaml');
   argParser.addCommand('ci');
   argParser.addCommand('run', RunCommand.argParser);
 
@@ -40,8 +39,7 @@ Future<Null> main(List<String> rawArgs) async {
     registerCommand(RunCommand(agent));
 
     if (args.command == null) {
-      print(
-          'No command specified, expected one of: ${allCommands.keys.join(', ')}');
+      print('No command specified, expected one of: ${allCommands.keys.join(', ')}');
       exit(1);
     }
 

@@ -9,36 +9,28 @@ part of 'models.dart';
 GetStatusResult _$GetStatusResultFromJson(Map<String, dynamic> json) {
   return GetStatusResult(
     statuses: (json['Statuses'] as List)
-        ?.map((e) =>
-            e == null ? null : BuildStatus.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null ? null : BuildStatus.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     agentStatuses: (json['AgentStatuses'] as List)
-        ?.map((e) =>
-            e == null ? null : AgentStatus.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null ? null : AgentStatus.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }
 
-Map<String, dynamic> _$GetStatusResultToJson(GetStatusResult instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$GetStatusResultToJson(GetStatusResult instance) => <String, dynamic>{
       'Statuses': instance.statuses,
       'AgentStatuses': instance.agentStatuses,
     };
 
 BuildStatus _$BuildStatusFromJson(Map<String, dynamic> json) {
   return BuildStatus(
-    stages: (json['Stages'] as List)
-        ?.map(
-            (e) => e == null ? null : Stage.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    checklist: json['Checklist'] == null
-        ? null
-        : ChecklistEntity.fromJson(json['Checklist'] as Map<String, dynamic>),
+    stages:
+        (json['Stages'] as List)?.map((e) => e == null ? null : Stage.fromJson(e as Map<String, dynamic>))?.toList(),
+    checklist: json['Checklist'] == null ? null : ChecklistEntity.fromJson(json['Checklist'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$BuildStatusToJson(BuildStatus instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$BuildStatusToJson(BuildStatus instance) => <String, dynamic>{
       'Stages': instance.stages,
       'Checklist': instance.checklist,
     };
@@ -52,8 +44,7 @@ AgentStatus _$AgentStatusFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$AgentStatusToJson(AgentStatus instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$AgentStatusToJson(AgentStatus instance) => <String, dynamic>{
       'AgentID': instance.agentId,
       'IsHealthy': instance.isHealthy,
       'HealthCheckTimestamp': instance.healthCheckTimestamp?.toIso8601String(),
@@ -63,14 +54,11 @@ Map<String, dynamic> _$AgentStatusToJson(AgentStatus instance) =>
 CommitInfo _$CommitInfoFromJson(Map<String, dynamic> json) {
   return CommitInfo(
     sha: json['Sha'] as String,
-    author: json['Author'] == null
-        ? null
-        : AuthorInfo.fromJson(json['Author'] as Map<String, dynamic>),
+    author: json['Author'] == null ? null : AuthorInfo.fromJson(json['Author'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$CommitInfoToJson(CommitInfo instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$CommitInfoToJson(CommitInfo instance) => <String, dynamic>{
       'Sha': instance.sha,
       'Author': instance.author,
     };
@@ -82,8 +70,7 @@ AuthorInfo _$AuthorInfoFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$AuthorInfoToJson(AuthorInfo instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$AuthorInfoToJson(AuthorInfo instance) => <String, dynamic>{
       'Login': instance.login,
       'avatar_url': instance.avatarUrl,
     };
@@ -91,14 +78,11 @@ Map<String, dynamic> _$AuthorInfoToJson(AuthorInfo instance) =>
 ChecklistEntity _$ChecklistEntityFromJson(Map<String, dynamic> json) {
   return ChecklistEntity(
     key: json['Key'] as String,
-    checklist: json['Checklist'] == null
-        ? null
-        : Checklist.fromJson(json['Checklist'] as Map<String, dynamic>),
+    checklist: json['Checklist'] == null ? null : Checklist.fromJson(json['Checklist'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$ChecklistEntityToJson(ChecklistEntity instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ChecklistEntityToJson(ChecklistEntity instance) => <String, dynamic>{
       'Key': instance.key,
       'Checklist': instance.checklist,
     };
@@ -106,9 +90,7 @@ Map<String, dynamic> _$ChecklistEntityToJson(ChecklistEntity instance) =>
 Checklist _$ChecklistFromJson(Map<String, dynamic> json) {
   return Checklist(
     flutterRepositoryPath: json['FlutterRepositoryPath'] as String,
-    commit: json['Commit'] == null
-        ? null
-        : CommitInfo.fromJson(json['Commit'] as Map<String, dynamic>),
+    commit: json['Commit'] == null ? null : CommitInfo.fromJson(json['Commit'] as Map<String, dynamic>),
     createTimestamp: fromMilliseconds(json['CreateTimestamp'] as int),
   );
 }
@@ -123,8 +105,7 @@ Stage _$StageFromJson(Map<String, dynamic> json) {
   return Stage(
     name: json['Name'] as String,
     tasks: (json['Tasks'] as List)
-        ?.map((e) =>
-            e == null ? null : TaskEntity.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null ? null : TaskEntity.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }
@@ -137,14 +118,11 @@ Map<String, dynamic> _$StageToJson(Stage instance) => <String, dynamic>{
 TaskEntity _$TaskEntityFromJson(Map<String, dynamic> json) {
   return TaskEntity(
     key: json['Key'] as String,
-    task: json['Task'] == null
-        ? null
-        : Task.fromJson(json['Task'] as Map<String, dynamic>),
+    task: json['Task'] == null ? null : Task.fromJson(json['Task'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$TaskEntityToJson(TaskEntity instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$TaskEntityToJson(TaskEntity instance) => <String, dynamic>{
       'Key': instance.key,
       'Task': instance.task,
     };
@@ -178,51 +156,39 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
 GetBenchmarksResult _$GetBenchmarksResultFromJson(Map<String, dynamic> json) {
   return GetBenchmarksResult(
     benchmarks: (json['Benchmarks'] as List)
-        ?.map((e) => e == null
-            ? null
-            : BenchmarkData.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null ? null : BenchmarkData.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }
 
-Map<String, dynamic> _$GetBenchmarksResultToJson(
-        GetBenchmarksResult instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$GetBenchmarksResultToJson(GetBenchmarksResult instance) => <String, dynamic>{
       'Benchmarks': instance.benchmarks,
     };
 
 BenchmarkData _$BenchmarkDataFromJson(Map<String, dynamic> json) {
   return BenchmarkData(
-    timeseries: json['Timeseries'] == null
-        ? null
-        : TimeseriesEntity.fromJson(json['Timeseries'] as Map<String, dynamic>),
+    timeseries:
+        json['Timeseries'] == null ? null : TimeseriesEntity.fromJson(json['Timeseries'] as Map<String, dynamic>),
     values: (json['Values'] as List)
-        ?.map((e) => e == null
-            ? null
-            : TimeseriesValue.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => e == null ? null : TimeseriesValue.fromJson(e as Map<String, dynamic>))
         ?.toList(),
   );
 }
 
-Map<String, dynamic> _$BenchmarkDataToJson(BenchmarkData instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$BenchmarkDataToJson(BenchmarkData instance) => <String, dynamic>{
       'Timeseries': instance.timeseries,
       'Values': instance.values,
     };
 
-GetTimeseriesHistoryResult _$GetTimeseriesHistoryResultFromJson(
-    Map<String, dynamic> json) {
+GetTimeseriesHistoryResult _$GetTimeseriesHistoryResultFromJson(Map<String, dynamic> json) {
   return GetTimeseriesHistoryResult(
-    benchmarkData: json['BenchmarkData'] == null
-        ? null
-        : BenchmarkData.fromJson(json['BenchmarkData'] as Map<String, dynamic>),
+    benchmarkData:
+        json['BenchmarkData'] == null ? null : BenchmarkData.fromJson(json['BenchmarkData'] as Map<String, dynamic>),
     lastPosition: fromCursor(json['LastPosition']),
   );
 }
 
-Map<String, dynamic> _$GetTimeseriesHistoryResultToJson(
-        GetTimeseriesHistoryResult instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$GetTimeseriesHistoryResultToJson(GetTimeseriesHistoryResult instance) => <String, dynamic>{
       'BenchmarkData': instance.benchmarkData,
       'LastPosition': instance.lastPosition,
     };
@@ -230,14 +196,11 @@ Map<String, dynamic> _$GetTimeseriesHistoryResultToJson(
 TimeseriesEntity _$TimeseriesEntityFromJson(Map<String, dynamic> json) {
   return TimeseriesEntity(
     key: json['Key'] as String,
-    timeseries: json['Timeseries'] == null
-        ? null
-        : Timeseries.fromJson(json['Timeseries'] as Map<String, dynamic>),
+    timeseries: json['Timeseries'] == null ? null : Timeseries.fromJson(json['Timeseries'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$TimeseriesEntityToJson(TimeseriesEntity instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$TimeseriesEntityToJson(TimeseriesEntity instance) => <String, dynamic>{
       'Key': instance.key,
       'Timeseries': instance.timeseries,
     };
@@ -254,8 +217,7 @@ Timeseries _$TimeseriesFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TimeseriesToJson(Timeseries instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$TimeseriesToJson(Timeseries instance) => <String, dynamic>{
       'ID': instance.id,
       'TaskName': instance.taskName,
       'Label': instance.label,
@@ -271,8 +233,7 @@ BranchList _$BranchListFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$BranchListToJson(BranchList instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$BranchListToJson(BranchList instance) => <String, dynamic>{
       'Branches': instance.branches,
     };
 
@@ -285,8 +246,7 @@ TimeseriesValue _$TimeseriesValueFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TimeseriesValueToJson(TimeseriesValue instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$TimeseriesValueToJson(TimeseriesValue instance) => <String, dynamic>{
       'CreateTimestamp': instance.createTimestamp,
       'Revision': instance.revision,
       'Value': instance.value,

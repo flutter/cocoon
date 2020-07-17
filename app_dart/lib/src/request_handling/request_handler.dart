@@ -81,8 +81,7 @@ abstract class RequestHandler<T extends Body> {
   /// [body].
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(
-      {int status = HttpStatus.ok, Body body = Body.empty}) async {
+  Future<void> _respond({int status = HttpStatus.ok, Body body = Body.empty}) async {
     assert(status != null);
     assert(body != null);
     response.statusCode = status;
@@ -104,8 +103,7 @@ abstract class RequestHandler<T extends Body> {
   T getValue<T>(RequestKey<T> key, {bool allowNull = false}) {
     final T value = Zone.current[key] as T;
     if (!allowNull && value == null) {
-      throw StateError(
-          'Attempt to access ${key.name} while not in a request context');
+      throw StateError('Attempt to access ${key.name} while not in a request context');
     }
     return value;
   }
@@ -167,13 +165,10 @@ class RequestKey<T> {
 
   final String name;
 
-  static const RequestKey<HttpRequest> request =
-      RequestKey<HttpRequest>('request');
-  static const RequestKey<HttpResponse> response =
-      RequestKey<HttpResponse>('response');
+  static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>('request');
+  static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>('response');
   static const RequestKey<Logging> log = RequestKey<Logging>('log');
-  static const RequestKey<http.Client> httpClient =
-      RequestKey<http.Client>('httpClient');
+  static const RequestKey<http.Client> httpClient = RequestKey<http.Client>('httpClient');
 
   @override
   String toString() => '$runtimeType($name)';

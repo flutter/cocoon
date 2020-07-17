@@ -30,8 +30,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting LoggingProvider loggingProvider,
     HttpClient goldClient,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
         goldClient = goldClient ?? HttpClient(),
         super(config: config, authenticationProvider: authenticationProvider);
@@ -51,24 +50,20 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
-    final List<GithubGoldStatusUpdate> statusUpdates =
-        <GithubGoldStatusUpdate>[];
+    final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     final List<String> cirrusCheckStatuses = <String>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Get last known Gold status from datastore.
-      final GithubGoldStatusUpdate lastUpdate =
-          await datastore.queryLastGoldUpdate(slug, pr);
+      final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
 
       log.debug('Last known Gold status for #${pr.number} was with sha: '
           '${lastUpdate.head}, status: ${lastUpdate.status}, description: ${lastUpdate.description}');
 
-      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted &&
-          lastUpdate.head == pr.head.sha) {
+      if (lastUpdate.status == GithubGoldStatusUpdate.statusCompleted && lastUpdate.head == pr.head.sha) {
         log.debug('Completed status already reported for this commit.');
         // We have already seen this commit and it is completed or, this is not
         // a change staged to land on master, which we should ignore.
@@ -87,25 +82,19 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       bool runsGoldenFileTests = false;
 
       // Query current Cirrus checks for this pr.
-      final List<CirrusResult> cirrusResults =
-          await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
+      final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
 
-      if (!cirrusResults.any((CirrusResult cirrusResult) =>
-          cirrusResult.branch == 'pull/${pr.number}')) {
-        log.debug(
-            'Skip pull request #${pr.number}, commit ${pr.head.sha} since no valid CirrusResult was found');
+      if (!cirrusResults.any((CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.number}')) {
+        log.debug('Skip pull request #${pr.number}, commit ${pr.head.sha} since no valid CirrusResult was found');
         continue;
       }
-      final List<dynamic> cirrusChecks = cirrusResults
-          .firstWhere((CirrusResult cirrusResult) =>
-              cirrusResult.branch == 'pull/${pr.number}')
-          .tasks;
+      final List<dynamic> cirrusChecks =
+          cirrusResults.firstWhere((CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.number}').tasks;
       for (dynamic check in cirrusChecks) {
         final String status = check['status'] as String;
         final String taskName = check['name'] as String;
 
-        log.debug(
-            'Found Cirrus build status for pull request #${pr.number}, commit '
+        log.debug('Found Cirrus build status for pull request #${pr.number}, commit '
             '${pr.head.sha}: $taskName ($status)');
 
         cirrusCheckStatuses.add(status);
@@ -119,17 +108,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
       if (runsGoldenFileTests) {
         // Make sure we account for any running Luci builds
-        final List<String> luciIncompleteStates = <String>[
-          'failure',
-          'unreachable',
-          'pending'
-        ];
+        final List<String> luciIncompleteStates = <String>['failure', 'unreachable', 'pending'];
         final List<String> luciStatuses = <String>[];
-        final Stream<RepositoryStatus> statusStream =
-            gitHubClient.repositories.listStatuses(slug, pr.head.sha);
+        final Stream<RepositoryStatus> statusStream = gitHubClient.repositories.listStatuses(slug, pr.head.sha);
         await for (RepositoryStatus status in statusStream) {
-          if (status.description != null &&
-              status.description.contains('LUCI')) {
+          if (status.description != null && status.description.contains('LUCI')) {
             log.debug('Found Luci build status for pull request #${pr.number}, '
                 'commit ${pr.head.sha}: ${status.description} (${status.state})');
             luciStatuses.add(status.state);
@@ -144,17 +127,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // should just be pending. Any draft PRs are considered pending
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
-          statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning,
-              'This check is waiting for the all clear from Gold.');
+          statusRequest =
+              _createStatus(GithubGoldStatusUpdate.statusRunning, 'This check is waiting for the all clear from Gold.');
         } else {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
-          statusRequest =
-              _createStatus(goldStatus, _getStatusDescription(goldStatus));
-          log.debug(
-              'New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
-              !await _alreadyCommented(gitHubClient, pr, slug)) {
+          statusRequest = _createStatus(goldStatus, _getStatusDescription(goldStatus));
+          log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
+          if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
@@ -162,21 +142,17 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
         // Push updates if there is a status change (detected by unique description)
         // or this is a new commit.
-        if (lastUpdate.description != statusRequest.description ||
-            lastUpdate.head != pr.head.sha) {
+        if (lastUpdate.description != statusRequest.description || lastUpdate.head != pr.head.sha) {
           try {
-            log.debug(
-                'Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
-            await gitHubClient.repositories
-                .createStatus(slug, pr.head.sha, statusRequest);
+            log.debug('Pushing status to GitHub: ${statusRequest.state}, ${statusRequest.description}');
+            await gitHubClient.repositories.createStatus(slug, pr.head.sha, statusRequest);
             lastUpdate.status = statusRequest.state;
             lastUpdate.head = pr.head.sha;
             lastUpdate.updates += 1;
             lastUpdate.description = statusRequest.description;
             statusUpdates.add(lastUpdate);
           } catch (error) {
-            log.error(
-                'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+            log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
         }
       }
@@ -202,27 +178,23 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
     await Future<void>.delayed(const Duration(seconds: 10));
-    final Uri requestForTryjobStatus = Uri.parse(
-        'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
+    final Uri requestForTryjobStatus =
+        Uri.parse('http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
     String rawResponse;
     try {
-      final HttpClientRequest request =
-          await goldClient.getUrl(requestForTryjobStatus);
+      final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);
       final HttpClientResponse response = await request.close();
 
       rawResponse = await utf8.decodeStream(response);
-      final Map<String, dynamic> decodedResponse =
-          json.decode(rawResponse) as Map<String, dynamic>;
+      final Map<String, dynamic> decodedResponse = json.decode(rawResponse) as Map<String, dynamic>;
 
       if (decodedResponse['digests'] == null) {
-        log.debug(
-            'There are no unexpected image results for #${pr.number} at sha '
+        log.debug('There are no unexpected image results for #${pr.number} at sha '
             '${pr.head.sha}.');
 
         return GithubGoldStatusUpdate.statusCompleted;
       } else {
-        log.debug(
-            'Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
+        log.debug('Tryjob for #${pr.number} at sha ${pr.head.sha} generated new '
             'images.}');
 
         return GithubGoldStatusUpdate.statusRunning;
@@ -232,8 +204,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           'tryjob status for pr #${pr.number} from Flutter Gold.\n'
           'rawResponse: $rawResponse');
     } catch (e) {
-      throw BadRequestException(
-          'Error detected requesting tryjob status for pr '
+      throw BadRequestException('Error detected requesting tryjob status for pr '
           '#${pr.number} from Flutter Gold.\n'
           'error: $e');
     }
@@ -288,11 +259,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     PullRequest pr,
     RepositorySlug slug,
   ) async {
-    final Stream<IssueComment> comments =
-        gitHubClient.issues.listCommentsByIssue(slug, pr.number);
+    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
-      if (comment.body.contains(
-          'Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
+      if (comment.body.contains('Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
         return true;
       }
     }
@@ -304,11 +273,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     PullRequest pr,
     RepositorySlug slug,
   ) async {
-    final Stream<IssueComment> comments =
-        gitHubClient.issues.listCommentsByIssue(slug, pr.number);
+    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
-      if (comment.body.contains(
-          'Golden file changes have been found for this pull request')) {
+      if (comment.body.contains('Golden file changes have been found for this pull request')) {
         return false;
       }
     }

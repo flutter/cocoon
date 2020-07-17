@@ -28,8 +28,7 @@ void main() {
     taskService = MockTaskService();
     reservationService = MockReservationService();
     accessTokenService = MockAccessTokenService();
-    agent =
-        Agent(key: config.db.emptyKey.append(Agent, id: 'aid'), agentId: 'aid');
+    agent = Agent(key: config.db.emptyKey.append(Agent, id: 'aid'), agentId: 'aid');
   });
 
   group('ReservationService', () {
@@ -57,8 +56,7 @@ void main() {
         return Future<FullTask>.value(FullTask(task, commit));
       });
       int reservationAttempt = 0;
-      when(reservationService.secureReservation(task, 'aid'))
-          .thenAnswer((Invocation invocation) {
+      when(reservationService.secureReservation(task, 'aid')).thenAnswer((Invocation invocation) {
         if (reservationAttempt == 0) {
           reservationAttempt += 1;
           throw const ReservationLostException();
@@ -69,8 +67,7 @@ void main() {
       when(accessTokenService.createAccessToken(
         scopes: anyNamed('scopes'),
       )).thenAnswer((Invocation invocation) {
-        return Future<AccessToken>.value(
-            AccessToken('type', 'data', DateTime.utc(2019)));
+        return Future<AccessToken>.value(AccessToken('type', 'data', DateTime.utc(2019)));
       });
       final ReserveTaskResponse response = await tester.post(handler);
       expect(response.task.name, 'foo_test');
@@ -78,8 +75,7 @@ void main() {
       expect(response.accessToken.data, 'data');
       verify(taskService.findNextTask(agent)).called(2);
       verify(reservationService.secureReservation(task, 'aid')).called(2);
-      verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes')))
-          .called(1);
+      verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).called(1);
     });
   });
 }

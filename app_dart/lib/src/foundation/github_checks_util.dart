@@ -15,13 +15,12 @@ class GithubChecksUtil {
     github.GitHub gitHubClient,
     CheckSuiteEvent checkSuiteEvent,
   ) async {
-    final List<github.CheckRun> allCheckRuns =
-        await gitHubClient.checks.checkRuns
-            .listCheckRunsInSuite(
-              checkSuiteEvent.repository.slug(),
-              checkSuiteId: checkSuiteEvent.checkSuite.id,
-            )
-            .toList();
+    final List<github.CheckRun> allCheckRuns = await gitHubClient.checks.checkRuns
+        .listCheckRunsInSuite(
+          checkSuiteEvent.repository.slug(),
+          checkSuiteId: checkSuiteEvent.checkSuite.id,
+        )
+        .toList();
     return Map<String, github.CheckRun>.fromIterable(
       allCheckRuns,
       key: (dynamic check) => check.name as String,

@@ -19,8 +19,7 @@ typedef LabelEvaluator = bool Function(String labelName);
 ///
 /// [name] is the GitHub ":repo" parameter in GitHub APIs. See <https://developer.github.com/v3/repos>
 abstract class RepositoryStatus {
-  RepositoryStatus(
-      {@required this.name, this.labelEvaluation, this.triageLabels});
+  RepositoryStatus({@required this.name, this.labelEvaluation, this.triageLabels});
 
   final String name;
 
@@ -61,15 +60,13 @@ abstract class RepositoryStatus {
   /// - framework: 10
   /// - tool: 10
   /// - bug: 9
-  SplayTreeMap<String, int> pullRequestCountByLabelName =
-      SplayTreeMap<String, int>();
+  SplayTreeMap<String, int> pullRequestCountByLabelName = SplayTreeMap<String, int>();
 
   /// Pull requests titles are sometimes prefixed by topics between square brackets.
   /// Primary sort is count descending, secondary sort is topic ascending alphabetically.
   ///
   /// See [pullRequestCountByLabelName] sorted example.
-  SplayTreeMap<String, int> pullRequestCountByTitleTopic =
-      SplayTreeMap<String, int>();
+  SplayTreeMap<String, int> pullRequestCountByTitleTopic = SplayTreeMap<String, int>();
 
   /// Number of issues labels with [triageLabels].
   Map<String, int> issuesByTriageLabelName = <String, int>{};
@@ -118,10 +115,8 @@ abstract class RepositoryStatus {
         typedOther.stalePullRequestCount == stalePullRequestCount &&
         typedOther.totalAgeOfAllPullRequests == totalAgeOfAllPullRequests &&
         typedOther.pullRequestCountByLabelName == pullRequestCountByLabelName &&
-        typedOther.pullRequestCountByTitleTopic ==
-            pullRequestCountByTitleTopic &&
-        const MapEquality().equals(
-            typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
+        typedOther.pullRequestCountByTitleTopic == pullRequestCountByTitleTopic &&
+        const MapEquality().equals(typedOther.issuesByTriageLabelName, issuesByTriageLabelName);
   }
 
   @override
@@ -164,9 +159,7 @@ class FlutterEngineRepositoryStatus extends RepositoryStatus {
       : super(
             name: 'engine',
             labelEvaluation: (String labelName) =>
-                labelName == 'engine' ||
-                labelName == 'severe: rendering' ||
-                labelName.startsWith('e:'));
+                labelName == 'engine' || labelName == 'severe: rendering' || labelName.startsWith('e:'));
 
   @override
   FlutterEngineRepositoryStatus statusFactory() {
@@ -179,9 +172,7 @@ class FlutterPluginsRepositoryStatus extends RepositoryStatus {
       : super(
             name: 'plugins',
             labelEvaluation: (String labelName) =>
-                labelName == 'plugin' ||
-                labelName == 'package' ||
-                labelName.startsWith('p:'));
+                labelName == 'plugin' || labelName == 'package' || labelName.startsWith('p:'));
 
   @override
   FlutterPluginsRepositoryStatus statusFactory() {
@@ -200,8 +191,7 @@ class RefreshRepository<T extends RepositoryStatus> extends StatefulWidget {
   }
 }
 
-class _RefreshRepositoryState<T extends RepositoryStatus>
-    extends State<RefreshRepository<T>>
+class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshRepository<T>>
     with AutomaticKeepAliveClientMixin<RefreshRepository<T>> {
   Timer _refreshTimer;
   bool _isLoaded = false;
@@ -274,8 +264,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus>
     if (!mounted) {
       return;
     }
-    final int staleIssueCount =
-        await fetchStaleIssueCount(repositoryStatus.name);
+    final int staleIssueCount = await fetchStaleIssueCount(repositoryStatus.name);
     if (staleIssueCount != null) {
       repositoryStatus.staleIssueCount = staleIssueCount;
     }
@@ -285,8 +274,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus>
     if (!mounted) {
       return;
     }
-    final int missingLabelsIssuesCount =
-        await fetchIssuesWithoutLabels(repositoryStatus.name);
+    final int missingLabelsIssuesCount = await fetchIssuesWithoutLabels(repositoryStatus.name);
     if (missingLabelsIssuesCount != null) {
       repositoryStatus.missingLabelsIssuesCount = missingLabelsIssuesCount;
     }
@@ -296,8 +284,8 @@ class _RefreshRepositoryState<T extends RepositoryStatus>
     if (!mounted) {
       return;
     }
-    final Map<String, int> issuesByTriageLabelName = await fetchTriageIssues(
-        repositoryStatus.name, repositoryStatus.triageLabels);
+    final Map<String, int> issuesByTriageLabelName =
+        await fetchTriageIssues(repositoryStatus.name, repositoryStatus.triageLabels);
     if (issuesByTriageLabelName != null) {
       repositoryStatus.issuesByTriageLabelName = issuesByTriageLabelName;
     }
@@ -324,8 +312,6 @@ class _RefreshRepositoryState<T extends RepositoryStatus>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _isLoaded
-        ? widget.child
-        : const Center(child: CircularProgressIndicator());
+    return _isLoaded ? widget.child : const Center(child: CircularProgressIndicator());
   }
 }

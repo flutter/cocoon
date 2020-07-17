@@ -20,30 +20,22 @@ void main() {
               <String, dynamic>{
                 'AgentID': 'linux1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 1))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'linux2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 1))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 11))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 11))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
               },
             ],
             'Statuses': <Map<String, dynamic>>[
@@ -52,10 +44,7 @@ void main() {
                   'Checklist': <String, dynamic>{
                     'Commit': <String, dynamic>{
                       'Sha': '1234567890',
-                      'Author': <String, dynamic>{
-                        'Login': 'smith',
-                        'avatar_url': 'https://www.google.com'
-                      }
+                      'Author': <String, dynamic>{'Login': 'smith', 'avatar_url': 'https://www.google.com'}
                     },
                     'CreateTimestamp': DateTime.now().millisecondsSinceEpoch
                   }
@@ -64,39 +53,19 @@ void main() {
                   <String, dynamic>{
                     'Tasks': <Map<String, dynamic>>[
                       <String, dynamic>{
-                        'Task': <String, dynamic>{
-                          'Flaky': false,
-                          'Status': 'Succeeded',
-                          'Name': 'test1'
-                        }
+                        'Task': <String, dynamic>{'Flaky': false, 'Status': 'Succeeded', 'Name': 'test1'}
                       },
                       <String, dynamic>{
-                        'Task': <String, dynamic>{
-                          'Flaky': false,
-                          'Status': 'Failed',
-                          'Name': 'test2'
-                        }
+                        'Task': <String, dynamic>{'Flaky': false, 'Status': 'Failed', 'Name': 'test2'}
                       },
                       <String, dynamic>{
-                        'Task': <String, dynamic>{
-                          'Flaky': true,
-                          'Status': 'Failed',
-                          'Name': 'test3'
-                        }
+                        'Task': <String, dynamic>{'Flaky': true, 'Status': 'Failed', 'Name': 'test3'}
                       },
                       <String, dynamic>{
-                        'Task': <String, dynamic>{
-                          'Flaky': false,
-                          'Status': 'In Progress',
-                          'Name': 'test4'
-                        }
+                        'Task': <String, dynamic>{'Flaky': false, 'Status': 'In Progress', 'Name': 'test4'}
                       },
                       <String, dynamic>{
-                        'Task': <String, dynamic>{
-                          'Flaky': false,
-                          'Status': 'New',
-                          'Name': 'test5'
-                        }
+                        'Task': <String, dynamic>{'Flaky': false, 'Status': 'New', 'Name': 'test5'}
                       },
                     ]
                   }
@@ -106,9 +75,7 @@ void main() {
           };
           return http.Response(json.encode(mapJson), 200);
         } else {
-          final Map<String, dynamic> mapJson = <String, dynamic>{
-            'AnticipatedBuildStatus': 'Succeeded'
-          };
+          final Map<String, dynamic> mapJson = <String, dynamic>{'AnticipatedBuildStatus': 'Succeeded'};
           return http.Response(json.encode(mapJson), 200);
         }
       });
@@ -132,9 +99,7 @@ void main() {
 
     test('Unexpected fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
-        final Map<String, dynamic> mapJson = <String, dynamic>{
-          'bogus': 'Failure'
-        };
+        final Map<String, dynamic> mapJson = <String, dynamic>{'bogus': 'Failure'};
         return http.Response(json.encode(mapJson), 200);
       });
       final BuildStatus status = await fetchBuildStatus(client: client);
@@ -152,30 +117,22 @@ void main() {
               <String, dynamic>{
                 'AgentID': 'linux1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 1))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'linux2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 1))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 1)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win1',
                 'IsHealthy': true,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 11))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
               },
               <String, dynamic>{
                 'AgentID': 'win2',
                 'IsHealthy': false,
-                'HealthCheckTimestamp': DateTime.now()
-                    .subtract(const Duration(minutes: 11))
-                    .millisecondsSinceEpoch
+                'HealthCheckTimestamp': DateTime.now().subtract(const Duration(minutes: 11)).millisecondsSinceEpoch
               },
             ]
           };
@@ -195,9 +152,7 @@ void main() {
         if (request.url.path == 'api/public/get-status') {
           return http.Response(null, 404);
         } else {
-          final Map<String, dynamic> mapJson = <String, dynamic>{
-            'AnticipatedBuildStatus': 'Succeeded'
-          };
+          final Map<String, dynamic> mapJson = <String, dynamic>{'AnticipatedBuildStatus': 'Succeeded'};
           return http.Response(json.encode(mapJson), 200);
         }
       });

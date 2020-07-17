@@ -24,8 +24,7 @@ class HttpStatusException implements Exception {
 
 /// Exception that will trigger an HTTP 400 bad request.
 class BadRequestException extends HttpStatusException {
-  const BadRequestException([String message = 'Bad request'])
-      : super(HttpStatus.badRequest, message);
+  const BadRequestException([String message = 'Bad request']) : super(HttpStatus.badRequest, message);
 }
 
 /// Exception that will trigger an HTTP 404 not found
@@ -37,8 +36,7 @@ class NotFoundException extends HttpStatusException {
 
 /// Exception that will trigger an HTTP 405 method not allowed.
 class MethodNotAllowed extends HttpStatusException {
-  const MethodNotAllowed(String method)
-      : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
+  const MethodNotAllowed(String method) : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
 }
 
 /// Exception that will trigger an HTTP 500 internal server error.
@@ -49,14 +47,12 @@ class InternalServerError extends HttpStatusException {
 
 /// Exception that will trigger an HTTP 401 not authorized.
 class Unauthorized extends HttpStatusException {
-  const Unauthorized([String message = 'Unauthorized'])
-      : super(HttpStatus.unauthorized, message);
+  const Unauthorized([String message = 'Unauthorized']) : super(HttpStatus.unauthorized, message);
 }
 
 /// Exception that will trigger an HTTP 403 forbidden.
 class Forbidden extends HttpStatusException {
-  const Forbidden([String message = 'Forbidden'])
-      : super(HttpStatus.forbidden, message);
+  const Forbidden([String message = 'Forbidden']) : super(HttpStatus.forbidden, message);
 }
 
 /// Exception thrown when attempting to authenticate a request that cannot be

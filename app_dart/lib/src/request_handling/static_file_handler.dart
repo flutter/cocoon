@@ -19,8 +19,7 @@ import 'exceptions.dart';
 @immutable
 class StaticFileHandler extends RequestHandler<Body> {
   /// Creates a new [StaticFileHandler].
-  const StaticFileHandler(this.filePath,
-      {@required Config config, this.fs = const LocalFileSystem()})
+  const StaticFileHandler(this.filePath, {@required Config config, this.fs = const LocalFileSystem()})
       : super(config: config);
 
   /// The current [FileSystem] to retrieve files from.
@@ -45,8 +44,7 @@ class StaticFileHandler extends RequestHandler<Body> {
     const String basePath = 'build/web';
     final File file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
-      final String mimeType =
-          lookupMimeType(resultPath) ?? mimeTypeMap[path.extension(file.path)];
+      final String mimeType = lookupMimeType(resultPath) ?? mimeTypeMap[path.extension(file.path)];
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {

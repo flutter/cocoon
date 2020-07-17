@@ -17,8 +17,7 @@ const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
-    final bool inMemoryCache =
-        Platform.environment[_kCocoonUseInMemoryCache] == 'true';
+    final bool inMemoryCache = Platform.environment[_kCocoonUseInMemoryCache] == 'true';
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
@@ -26,8 +25,7 @@ Future<void> main() async {
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
-    final ServiceAccountInfo serviceAccountInfo =
-        await config.deviceLabServiceAccount;
+    final ServiceAccountInfo serviceAccountInfo = await config.deviceLabServiceAccount;
 
     /// LUCI service class to communicate with buildBucket service.
     final LuciBuildService luciBuildService = LuciBuildService(
@@ -48,15 +46,12 @@ Future<void> main() async {
       config,
     );
 
-    final Map<String, RequestHandler<dynamic>> handlers =
-        <String, RequestHandler<dynamic>>{
+    final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
-      '/api/check-waiting-pull-requests':
-          CheckForWaitingPullRequests(config, authProvider),
+      '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/create-agent': CreateAgent(config, authProvider),
-      '/api/get-authentication-status':
-          GetAuthenticationStatus(config, authProvider),
+      '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
@@ -72,23 +67,17 @@ Future<void> main() async {
         githubStatusService,
         githubChecksService,
       ),
-      '/api/push-build-status-to-github':
-          PushBuildStatusToGithub(config, authProvider),
-      '/api/push-gold-status-to-github':
-          PushGoldStatusToGithub(config, authProvider),
-      '/api/push-engine-build-status-to-github':
-          PushEngineStatusToGithub(config, authProvider),
-      '/api/refresh-chromebot-status':
-          RefreshChromebotStatus(config, authProvider),
+      '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
+      '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
+      '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),
+      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
-      '/api/update-agent-health-history':
-          UpdateAgentHealthHistory(config, authProvider),
-      '/api/update-benchmark-targets':
-          UpdateBenchmarkTargets(config, authProvider),
+      '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
+      '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, authProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
@@ -131,8 +120,7 @@ Future<void> main() async {
           // The separate HTML files are remnants from when Cocoon was written
           // with an Angular Dart frontend.
           final String flutterRouteName = filePath.replaceFirst('.html', '');
-          return await request.response
-              .redirect(Uri.parse('/#$flutterRouteName'));
+          return await request.response.redirect(Uri.parse('/#$flutterRouteName'));
         }
 
         await StaticFileHandler(filePath, config: config).service(request);

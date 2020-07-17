@@ -36,8 +36,7 @@ void main() {
     setUp(() {
       tabledataResourceApi = FakeTabledataResourceApi();
       db = FakeDatastoreDB();
-      config =
-          FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
       log = FakeLogging();
       handler = UpdateAgentHealthHistory(
         config,
@@ -48,27 +47,12 @@ void main() {
     });
 
     test('inserts agents to bigquery', () async {
-      final Agent linux1 = Agent(
-          agentId: 'linux1',
-          healthCheckTimestamp: 1,
-          isHealthy: true,
-          healthDetails: 'healthy');
-      final Agent mac1 = Agent(
-          agentId: 'mac1',
-          healthCheckTimestamp: 2,
-          isHealthy: true,
-          healthDetails: 'healthy');
-      final Agent linux5 = Agent(
-          agentId: 'linux5',
-          healthCheckTimestamp: 3,
-          isHealthy: false,
-          healthDetails: 'unhealthy');
+      final Agent linux1 = Agent(agentId: 'linux1', healthCheckTimestamp: 1, isHealthy: true, healthDetails: 'healthy');
+      final Agent mac1 = Agent(agentId: 'mac1', healthCheckTimestamp: 2, isHealthy: true, healthDetails: 'healthy');
+      final Agent linux5 =
+          Agent(agentId: 'linux5', healthCheckTimestamp: 3, isHealthy: false, healthDetails: 'unhealthy');
       final Agent windows1 = Agent(
-          agentId: 'windows1',
-          healthCheckTimestamp: 1,
-          isHealthy: true,
-          healthDetails: 'healthy',
-          isHidden: true);
+          agentId: 'windows1', healthCheckTimestamp: 1, isHealthy: true, healthDetails: 'healthy', isHidden: true);
 
       final List<Agent> reportedAgents = <Agent>[
         linux1,
@@ -79,14 +63,10 @@ void main() {
 
       db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
 
-      final Map<String, dynamic> result =
-          await decodeHandlerBody() as Map<String, dynamic>;
-      final TableDataList tableDataList =
-          await tabledataResourceApi.list('test', 'test', 'test');
-      final Map<String, Object> value1 =
-          tableDataList.rows[0].f[0].v as Map<String, Object>;
-      final Map<String, Object> value2 =
-          tableDataList.rows[1].f[0].v as Map<String, Object>;
+      final Map<String, dynamic> result = await decodeHandlerBody() as Map<String, dynamic>;
+      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+      final Map<String, Object> value1 = tableDataList.rows[0].f[0].v as Map<String, Object>;
+      final Map<String, Object> value2 = tableDataList.rows[1].f[0].v as Map<String, Object>;
       final List<dynamic> expectedOrderedAgents = <dynamic>[
         linux1.toJson(),
         linux5.toJson(),
@@ -96,8 +76,7 @@ void main() {
       /// Test `BigQuery` insert.
       expect(tableDataList.totalRows, '3');
       expect(value1['Timestamp'], value2['Timestamp']);
-      expect(log.records[0].message,
-          'Succeeded to insert 3 rows to flutter-dashboard-cocoon-Agent');
+      expect(log.records[0].message, 'Succeeded to insert 3 rows to flutter-dashboard-cocoon-Agent');
 
       expect(result['AgentStatuses'], equals(expectedOrderedAgents));
     });

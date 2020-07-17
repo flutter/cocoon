@@ -23,8 +23,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -37,8 +36,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final String encodedKey = requestData[keyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final Key key = keyHelper.decode(encodedKey);
     final Task task = await datastore.lookupByValue(key);
     if (task == null) {
@@ -46,8 +44,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
     }
 
     if (task.status == Task.statusInProgress) {
-      throw const BadRequestException(
-          'Not allowed to restart task in progress.');
+      throw const BadRequestException('Not allowed to restart task in progress.');
     }
     task
       ..reason = ''

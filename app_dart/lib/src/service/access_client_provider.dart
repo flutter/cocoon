@@ -9,18 +9,14 @@ import '../model/appengine/service_account_info.dart';
 
 class AccessClientProvider {
   /// Creates a new Access Client provider.
-  const AccessClientProvider(this.serviceAccountInfo)
-      : assert(serviceAccountInfo != null);
+  const AccessClientProvider(this.serviceAccountInfo) : assert(serviceAccountInfo != null);
 
   final ServiceAccountInfo serviceAccountInfo;
 
   /// Returns an OAuth 2.0 authenticated access client for the device lab service account.
   Future<Client> createAccessClient({
-    List<String> scopes = const <String>[
-      'https://www.googleapis.com/auth/cloud-platform'
-    ],
+    List<String> scopes = const <String>['https://www.googleapis.com/auth/cloud-platform'],
   }) async {
-    return clientViaServiceAccount(
-        serviceAccountInfo.asServiceAccountCredentials(), scopes);
+    return clientViaServiceAccount(serviceAccountInfo.asServiceAccountCredentials(), scopes);
   }
 }

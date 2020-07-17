@@ -27,8 +27,7 @@ class AgentService {
 
   AgentAuthToken refreshAgentAuthToken() {
     const int length = 16;
-    const String urlSafeChars =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const String urlSafeChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     final Random random = Random();
     final StringBuffer token = StringBuffer();
 
@@ -36,8 +35,7 @@ class AgentService {
       token.write(urlSafeChars[random.nextInt(urlSafeChars.length)]);
     }
 
-    final String hashToken =
-        DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
+    final String hashToken = DBCrypt().hashpw(token.toString(), DBCrypt().gensalt());
 
     return AgentAuthToken(token.toString(), ascii.encode(hashToken));
   }

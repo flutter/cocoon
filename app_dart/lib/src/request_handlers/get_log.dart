@@ -28,8 +28,7 @@ class GetLog extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -40,30 +39,24 @@ class GetLog extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final String encodedOwnerKey = request.uri.queryParameters[ownerKeyParam];
     if (encodedOwnerKey == null) {
-      throw const BadRequestException(
-          'Missing required query parameter: $ownerKeyParam');
+      throw const BadRequestException('Missing required query parameter: $ownerKeyParam');
     }
 
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: context.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: context.applicationContext);
     final Key ownerKey = keyHelper.decode(encodedOwnerKey);
 
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Task task =
-        await datastore.db.lookupValue<Task>(ownerKey, orElse: () => null);
+    final Task task = await datastore.db.lookupValue<Task>(ownerKey, orElse: () => null);
     if (task == null) {
-      throw const BadRequestException(
-          'Invalid owner key. Owner entity does not exist.');
+      throw const BadRequestException('Invalid owner key. Owner entity does not exist.');
     }
 
-    response.headers
-        .set(HttpHeaders.contentTypeHeader, 'text/html; charset=utf-8');
+    response.headers.set(HttpHeaders.contentTypeHeader, 'text/html; charset=utf-8');
 
     return Body.forStream(_getResponse(datastore, task, ownerKey));
   }
 
-  Stream<Uint8List> _getResponse(
-      DatastoreService datastore, Task task, Key ownerKey) async* {
+  Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key ownerKey) async* {
     yield utf8.encode('\n\n------------ TASK ------------\n') as Uint8List;
     yield utf8.encode(task.toString()) as Uint8List;
 
@@ -71,8 +64,6 @@ class GetLog extends ApiRequestHandler<Body> {
     final Query<LogChunk> query = datastore.db.query<LogChunk>()
       ..filter('ownerKey =', ownerKey)
       ..order('createTimestamp');
-    yield* query
-        .run()
-        .map<Uint8List>((LogChunk chunk) => chunk.data as Uint8List);
+    yield* query.run().map<Uint8List>((LogChunk chunk) => chunk.data as Uint8List);
   }
 }
