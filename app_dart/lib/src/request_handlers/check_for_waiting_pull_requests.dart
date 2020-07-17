@@ -40,8 +40,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
-    await _checkPRs('flutter', 'flutter', log, client);
+    await _checkPRs('flutter', 'cocoon', log, client);
     await _checkPRs('flutter', 'engine', log, client);
+    await _checkPRs('flutter', 'flutter', log, client);
 
     return Body.empty;
   }
@@ -108,7 +109,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
       throw const BadRequestException('GraphQL query failed');
     }
-
     return result.data as Map<String, dynamic>;
   }
 
