@@ -210,7 +210,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           (commit['status']['contexts'] as List<dynamic>)
               .cast<Map<String, dynamic>>();
       final List<Map<String, dynamic>> checkRuns =
-          (commit['checkSuites']['nodes'].single['checkRuns'].first['nodes']
+          (commit['checkSuites']['nodes'].single['checkRuns']['nodes']
                   as List<dynamic>)
               .cast<Map<String, dynamic>>();
       final Set<String> failingStatuses = <String>{};

@@ -872,18 +872,15 @@ class PullRequestHelper {
               'checkSuites': <String, dynamic>{
                 'nodes': <dynamic>[
                   <String, dynamic>{
-                    'checkRuns': <dynamic>[
-                      <String, dynamic>{
-                        'nodes':
-                            lastCommitCheckRuns.map((CheckRunHelper status) {
-                          return <String, dynamic>{
-                            'name': status.name,
-                            'status': status.status,
-                            'conclusion': status.conclusion,
-                          };
-                        }).toList(),
-                      }
-                    ]
+                    'checkRuns': <String, dynamic>{
+                      'nodes': lastCommitCheckRuns.map((CheckRunHelper status) {
+                        return <String, dynamic>{
+                          'name': status.name,
+                          'status': status.status,
+                          'conclusion': status.conclusion,
+                        };
+                      }).toList(),
+                    }
                   }
                 ]
               },
@@ -974,3 +971,42 @@ const PullRequestReviewHelper nonMemberChangeRequest = PullRequestReviewHelper(
   memberType: MemberType.OTHER,
   state: ReviewState.CHANGES_REQUESTED,
 );
+
+String json = '''
+{repository:
+     {labels: 
+         {nodes: [
+              {id: MDU6TGFiZWwyMjA3MzIxMTgx, 
+               pullRequests: {
+                   nodes: [
+                      {author: {login: godofredoc}, 
+                       id: MDExOlB1bGxSZXF1ZXN0NDQ5ODUwOTU2, 
+                       number: 846,
+                       mergeable: MERGEABLE,
+                       commits: {
+                          nodes: [
+                            {commit: {
+                              abbreviatedOid: 3ce3eb0,
+                              oid: 3ce3eb04f9858aeb0ac174c45cea9623a5b995af,
+                              committedDate: 2020-07-16T02:27:49Z,
+                              pushedDate: 2020-07-16T02:28:06Z,
+                              status: {
+                                contexts: [
+                                  {context: cla/google, state: SUCCESS}
+                                ]
+                              },
+                              checkSuites: {
+                                nodes: [
+                                  {
+                                    checkRuns: {
+                                      nodes: [
+                                        {name: Cocoon, status: COMPLETED, conclusion: SUCCESS}
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                          ]}, reviews: {nodes: []}}]}}]}}}
+                                        ''';

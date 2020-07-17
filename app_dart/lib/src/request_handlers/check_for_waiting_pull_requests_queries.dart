@@ -29,12 +29,14 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       state
                     }
                   }
-                  checkSuites {
+                  checkSuites(first:1) {
                     nodes {
-                      checkRuns {
-                        name
-                        status
-                        conclusion
+                      checkRuns(first:100) {
+                        nodes {
+                          name
+                          status
+                          conclusion
+                        }
                       }
                     }
                   }
