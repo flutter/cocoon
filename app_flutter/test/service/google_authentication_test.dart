@@ -37,7 +37,7 @@ void main() {
 
     test('sign in silently called', () async {
       verify(mockSignIn.signInSilently()).called(1);
-    });
+    }, skip: 'https://github.com/flutter/flutter/issues/52338');
 
     test('id token will prompt sign in', () async {
       final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()

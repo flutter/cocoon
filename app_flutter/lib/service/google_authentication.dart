@@ -18,7 +18,8 @@ class GoogleSignInService extends ChangeNotifier {
       notifyListeners();
     });
 
-    _googleSignIn.signInSilently();
+    // TODO(chillers): Re-enable when flakiness is fixed. https://github.com/flutter/flutter/issues/52338
+    // _googleSignIn.signInSilently();
   }
 
   /// A list of Google API OAuth Scopes this project needs access to.
