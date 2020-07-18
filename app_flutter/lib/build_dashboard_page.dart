@@ -24,13 +24,13 @@ class BuildDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].
     final Map<bool, Color> colorTable = <bool, Color>{
       null: Colors.grey[850],
-      false: Colors.red,
-      true: Colors.green,
+      false: isDark ? Colors.red[800] : Colors.red,
+      true: isDark ? Colors.green[800] : Colors.green,
     };
 
     /// Message to show on [AppBar] based on [buildState.isTreeBuilding].

@@ -78,11 +78,9 @@ void main() {
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
-    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -96,16 +94,38 @@ void main() {
     expect(find.text('Loading...'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, Colors.grey);
+    expect(appbarWidget.backgroundColor, Colors.grey[850]);
+    expect(tester, meetsGuideline(textContrastGuideline));
+  });
+
+  testWidgets('shows loading when fetch tree status is null, dark mode', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Loading...'), findsOneWidget);
+
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    expect(appbarWidget.backgroundColor, Colors.grey[850]);
+    expect(tester, meetsGuideline(textContrastGuideline));
   });
 
   testWidgets('shows tree closed when fetch tree status is false', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
-    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -119,16 +139,38 @@ void main() {
     expect(find.text('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, lightTheme.errorColor);
+    expect(appbarWidget.backgroundColor, Colors.red);
+    expect(tester, meetsGuideline(textContrastGuideline));
+  });
+
+  testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Tree is Closed'), findsOneWidget);
+
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    expect(appbarWidget.backgroundColor, Colors.red[800]);
+    expect(tester, meetsGuideline(textContrastGuideline));
   });
 
   testWidgets('shows tree open when fetch tree status is true', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
-    final ThemeData lightTheme = ThemeData();
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: lightTheme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
           child: ValueProvider<GoogleSignInService>(
@@ -142,7 +184,31 @@ void main() {
     expect(find.text('Tree is Open'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
-    expect(appbarWidget.backgroundColor, lightTheme.appBarTheme.color);
+    expect(appbarWidget.backgroundColor, Colors.green);
+    expect(tester, meetsGuideline(textContrastGuideline));
+  });
+
+  testWidgets('shows tree open when fetch tree status is true, dark mode', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = true;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Tree is Open'), findsOneWidget);
+
+    final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
+    expect(appbarWidget.backgroundColor, Colors.green[800]);
+    expect(tester, meetsGuideline(textContrastGuideline));
   });
 
   testWidgets('show error snackbar when error occurs', (WidgetTester tester) async {
