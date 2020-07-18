@@ -24,13 +24,13 @@ class BuildDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     /// Color of [AppBar] based on [buildState.isTreeBuilding].
     final Map<bool, Color> colorTable = <bool, Color>{
-      null: Colors.grey,
-      false: theme.errorColor,
-      true: theme.appBarTheme.color,
+      null: Colors.grey[850],
+      false: isDark ? Colors.red[800] : Colors.red,
+      true: isDark ? Colors.green[800] : Colors.green,
     };
 
     /// Message to show on [AppBar] based on [buildState.isTreeBuilding].
@@ -68,12 +68,7 @@ class BuildDashboardPage extends StatelessWidget {
                 (String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        color: theme.brightness == Brightness.light ? Colors.black : Colors.white,
-                      ),
-                    ),
+                    child: Text(value),
                   );
                 },
               ).toList(),

@@ -29,21 +29,6 @@ void main() {
   );
 }
 
-final ThemeData lightTheme = ThemeData.from(
-  colorScheme: const ColorScheme.light(
-    primary: Colors.green,
-    secondary: Colors.blueAccent,
-  ),
-);
-
-final ThemeData darkTheme = ThemeData.from(
-  colorScheme: const ColorScheme.dark(
-    primary: Colors.green,
-    secondary: Colors.blueAccent,
-    background: Color(0xBB000000),
-  ),
-);
-
 class MyApp extends StatelessWidget {
   const MyApp({Key key}) : super(key: key);
 
@@ -51,8 +36,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Dashboard',
-      theme: lightTheme,
-      darkTheme: darkTheme,
+      theme: ThemeData(),
+      darkTheme: ThemeData.dark(),
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
         IndexPage.routeName: (BuildContext context) => const IndexPage(),
