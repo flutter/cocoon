@@ -74,6 +74,31 @@ void main() {
       expect(task.status, Task.statusNew);
     });
 
+    test('do not update task status when commitSha/ref is unknown', () async {
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+
+      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(await LuciBuilder.getBuilders(config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
+              value: (dynamic builder) => <String, List<LuciTask>>{
+                    'def': <LuciTask>[
+                      const LuciTask(
+                          commitSha: 'unknown', ref: 'unknown', status: Task.statusSucceeded, buildNumber: 1)
+                    ],
+                  });
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+          .thenAnswer((Invocation invocation) {
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
+      });
+
+      expect(task.status, Task.statusNew);
+      await tester.get(handler);
+      expect(task.status, Task.statusNew);
+    });
+
     test('do not update task status when branch does not match', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
       final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
