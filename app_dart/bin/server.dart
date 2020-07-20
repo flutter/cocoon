@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -74,7 +75,15 @@ Future<void> main() async {
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/refresh-cirrus-status': RefreshCirrusStatus(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
-      '/api/reset-devicelab-task': ResetDevicelabTask(config, authProvider),
+      '/api/reset-devicelab-task': ResetDevicelabTask(
+        config,
+        authProvider,
+      ),
+      '/api/reset-try-task': ResetTryTask(
+        config,
+        authProvider,
+        luciBuildService,
+      ),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
