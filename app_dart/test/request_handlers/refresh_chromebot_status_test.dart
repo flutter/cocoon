@@ -75,8 +75,14 @@ void main() {
     });
 
     test('do not update task status when commitSha/ref is unknown', () async {
-      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Commit commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'abc'),
+        sha: 'abc',
+      );
+      final Task task = Task(
+        key: commit.key.append(Task, id: 123),
+        status: Task.statusNew,
+      );
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
