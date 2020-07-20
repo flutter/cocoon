@@ -85,8 +85,7 @@ void main() {
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
-                      const LuciTask(
-                          commitSha: 'unknown', ref: 'unknown', status: Task.statusSucceeded, buildNumber: 1)
+                      const LuciTask(commitSha: 'unknown', ref: 'unknown', status: Task.statusSucceeded, buildNumber: 1)
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
