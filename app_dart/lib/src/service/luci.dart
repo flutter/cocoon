@@ -68,7 +68,11 @@ class LuciService {
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
       });
-      final BranchLuciBuilder branchLuciBuilder = BranchLuciBuilder(luciBuilder: builder, branch: ref.split('/')[2]);
+      final String branch = ref == 'unknown' ? 'unknown' : ref.split('/')[2];
+      final BranchLuciBuilder branchLuciBuilder = BranchLuciBuilder(
+        luciBuilder: builder,
+        branch: branch,
+      );
       results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
       results[branchLuciBuilder][commit] ??= <LuciTask>[];
       results[branchLuciBuilder][commit].add(LuciTask(
