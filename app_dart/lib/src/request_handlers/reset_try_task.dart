@@ -1,4 +1,4 @@
-// Copyright 2019 The Flutter Authors. All rights reserved.
+// Copyright 2020 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -15,6 +15,8 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 
+/// Runs all the applicable tasks for a given PR and commit hash. This will be
+/// used to unblock rollers when creating a new commit is not possible.
 @immutable
 class ResetTryTask extends ApiRequestHandler<Body> {
   const ResetTryTask(
@@ -33,7 +35,8 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String commitSha = request.uri.queryParameters['commitSha'] ?? '';
     if (<String>[repo, pr, commitSha]
         .any((String element) => element.isEmpty)) {
-      throw const BadRequestException('Any of repo, pr or commitSha is empty');
+      throw BadRequestException('Any of repo, pr or commitSha is empty: '
+          'repo=$repo, pr=$pr, commitSha=$commitSha');
     }
     final RepositorySlug slug = RepositorySlug(owner, repo);
     await luciBuildService.scheduleBuilds(
