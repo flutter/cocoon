@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:cocoon_service/src/request_handlers/reset_luci_task.dart';
+import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -88,7 +88,7 @@ Future<void> main() async {
         config,
         authProvider,
       ),
-      '/api/reset-try-task': ResetLuciTask(
+      '/api/reset-try-task': ResetTryTask(
         config,
         authProvider,
         luciBuildService,
