@@ -155,13 +155,10 @@ class DatastoreService {
   }
 
   // Queries for recent tasks without considering branches.
-  Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20, int taskLimit = 20}) async* {
+  Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20}) async* {
     assert(commitLimit != null);
-    assert(taskLimit != null);
     await for (Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
-      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-        ..limit(taskLimit)
-        ..order('-createTimestamp');
+      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
   }
