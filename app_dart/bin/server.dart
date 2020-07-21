@@ -136,7 +136,7 @@ Future<void> main() async {
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {
       final String host = address.isLoopback ? 'localhost' : address.host;
-      print('Serving requests at $host:$port');
+      print('Serving requests at http://$host:$port/');
     });
   });
 }
