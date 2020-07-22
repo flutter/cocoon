@@ -128,7 +128,7 @@ class GithubChecksService {
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
           await luciBuildService.getBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
-      output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown);
+      output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown ?? 'No summaryMarkdown');
     }
     await githubChecksUtil.updateCheckRun(
       gitHubClient,
