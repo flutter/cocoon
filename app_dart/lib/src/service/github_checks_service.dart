@@ -48,7 +48,7 @@ class GithubChecksService {
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.
-        await luciBuilderService.scheduleBuilds(
+        await luciBuilderService.scheduleTryBuilds(
           prNumber: pullRequestNumber,
           commitSha: commitSha,
           slug: checkSuiteEvent.repository.slug(),
@@ -66,7 +66,7 @@ class GithubChecksService {
 
         for (Build build in builds) {
           final github.CheckRun checkRun = checkRuns[build.builderId.builder];
-          await luciBuilderService.rescheduleUsingCheckSuiteEvent(
+          await luciBuilderService.rescheduleTryBuildUsingCheckSuiteEvent(
             checkSuiteEvent,
             checkRun,
           );
@@ -127,7 +127,7 @@ class GithubChecksService {
     // If status has completed with failure then provide more details.
     if (status == github.CheckRunStatus.completed && failedStatesSet.contains(conclusion)) {
       final Build build =
-          await luciBuildService.getBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
+          await luciBuildService.getTryBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
       output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown ?? 'Empty summaryMarkdown');
     }
     await githubChecksUtil.updateCheckRun(

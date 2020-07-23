@@ -35,13 +35,13 @@ class ResetLuciTask extends ApiRequestHandler<Body> {
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
 
-  static const String keyParam = 'Key';
+  static const String taskKeyParam = 'Key';
 
   @override
   Future<Body> post() async {
-    checkRequiredParameters(<String>[keyParam]);
+    checkRequiredParameters(<String>[taskKeyParam]);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData[keyParam] as String;
+    final String encodedKey = requestData[taskKeyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final Key key = keyHelper.decode(encodedKey);

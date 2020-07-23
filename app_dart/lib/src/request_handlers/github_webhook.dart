@@ -196,7 +196,7 @@ class GithubWebhook extends RequestHandler<Body> {
       pr.head.sha,
       'Newer commit available',
     );
-    await luciBuildService.scheduleBuilds(
+    await luciBuildService.scheduleTryBuilds(
       slug: pullRequestEvent.repository.slug(),
       prNumber: pr.number,
       commitSha: pr.head.sha,
