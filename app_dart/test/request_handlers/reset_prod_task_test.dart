@@ -4,7 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handlers/reset_luci_task.dart';
+import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -16,9 +16,9 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  group('ResetLuciTask', () {
+  group('ResetProdTask', () {
     FakeClientContext clientContext;
-    ResetLuciTask handler;
+    ResetProdTask handler;
     FakeConfig config;
     MockLuciBuildService mockLuciBuildService;
     FakeAuthenticatedContext authContext;
@@ -33,7 +33,7 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       tester = ApiRequestHandlerTester(context: authContext);
       mockLuciBuildService = MockLuciBuildService();
-      handler = ResetLuciTask(
+      handler = ResetProdTask(
         config,
         FakeAuthenticationProvider(clientContext: clientContext),
         mockLuciBuildService,

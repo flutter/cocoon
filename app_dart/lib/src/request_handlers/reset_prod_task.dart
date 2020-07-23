@@ -23,8 +23,8 @@ import '../service/datastore.dart';
 /// Triggers prod builds based on a task key. This handler is used to trigger
 /// LUCI builds that didn't run or failed.
 @immutable
-class ResetLuciTask extends ApiRequestHandler<Body> {
-  const ResetLuciTask(
+class ResetProdTask extends ApiRequestHandler<Body> {
+  const ResetProdTask(
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
