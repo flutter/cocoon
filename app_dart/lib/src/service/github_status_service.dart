@@ -29,7 +29,8 @@ class GithubStatusService {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
     final List<Map<String, dynamic>> luciTryBuilders = await config.luciTryBuilders;
-    final List<String> builderNames = luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
+    final List<String> builderNames =
+        luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
       // We need to ensure we are adding checks for the builders that will return a

@@ -77,10 +77,10 @@ class Config {
       ttl: configCacheTtl,
     );
 
-    final String content = String.fromCharCodes(cacheValue);
-    final Map<String, dynamic> map = json.decode(content) as Map<String, dynamic>;
-    final List<dynamic> list = map['builders'] as List<dynamic>;
-    return list.map((dynamic e) => e as Map<String, dynamic>).toList();
+    final String builderContent = String.fromCharCodes(cacheValue);
+    final Map<String, dynamic> builderMap = json.decode(builderContent) as Map<String, dynamic>;
+    final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+    return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
   }
 
   Future<String> _getSingleValue(String id) async {

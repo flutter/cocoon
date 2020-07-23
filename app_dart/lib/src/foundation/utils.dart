@@ -25,8 +25,8 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<String> loadContents(
-    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
+Future<String> loadContents(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
   final String path = '/flutter/cocoon/master/app_dart/dev/$filename';
   final Uri url = Uri.https('raw.githubusercontent.com', path);
 
@@ -63,7 +63,7 @@ Future<Uint8List> getBranches(
   String content = await loadContents(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
   content ??= 'master';
   final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
-          branches.removeWhere((String branch) => branch.isEmpty);
+  branches.removeWhere((String branch) => branch.isEmpty);
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
 

@@ -74,7 +74,7 @@ class FakeConfig implements Config {
   String flutterBuildValue;
   String flutterBuildDescriptionValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
-  List<Map<String, dynamic>>luciProdBuildersValue;
+  List<Map<String, dynamic>> luciProdBuildersValue;
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;

@@ -101,8 +101,7 @@ void main() {
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = luciBuilders;
-        final Uint8List builders =
-            await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        final Uint8List builders = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(String.fromCharCodes(builders), 'master');
       });
     });
