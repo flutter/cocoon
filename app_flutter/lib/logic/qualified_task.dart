@@ -98,10 +98,13 @@ class QualifiedTask {
 /// Cirrus logs are located via their [Commit.sha].
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
 String logUrl(Task task, {Commit commit}) {
-  if (task.stageName == StageName.cirrus && commit != null) {
-    return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
+  if (task.stageName == StageName.cirrus) {
+    if (commit != null) {
+      return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
+    } else {
+      return '$_cirrusUrl/master';
+    }
   } else if (QualifiedTask.fromTask(task).isLuci) {
-    // Currently this is just LUCI, but is a catch all if new stages are added.
     return QualifiedTask.fromTask(task).sourceConfigurationUrl;
   }
   return '$_flutterDashboardUrl/api/get-log?ownerKey=${task.key.child.name}';

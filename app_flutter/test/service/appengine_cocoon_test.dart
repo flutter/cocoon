@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' show Client, Request, Response;
@@ -251,27 +252,30 @@ void main() {
 
   group('AppEngine CocoonService rerun task', () {
     AppEngineCocoonService service;
+    Task task;
 
     setUp(() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 200);
       }));
+      task = Task()
+        ..key = RootKey()
+        ..stageName = StageName.devicelab;
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'), true);
+      expect(await service.rerunTask(task, 'fakeAccessToken'), true);
     });
 
     test('should return false if request failed', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 500);
       }));
-
-      expect(await service.rerunTask(Task()..key = RootKey(), 'fakeAccessToken'), false);
+      expect(await service.rerunTask(task, 'fakeAccessToken'), false);
     });
 
     test('should return false if task key is null', () async {
-      expect(service.rerunTask(Task(), null), throwsA(const TypeMatcher<AssertionError>()));
+      expect(service.rerunTask(task, null), throwsA(const TypeMatcher<AssertionError>()));
     });
 
     /// This requires a separate test run on the web platform.
@@ -282,7 +286,7 @@ void main() {
           .thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
-      await service.rerunTask(Task(), '');
+      await service.rerunTask(task, '');
 
       if (kIsWeb) {
         verify(mockClient.post(
