@@ -34,8 +34,8 @@ class FakeConfig implements Config {
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
     this.cqLabelNameValue,
-    this.luciBuildersValue,
     this.luciTryBuildersValue,
+    this.luciProdBuildersValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
@@ -73,8 +73,8 @@ class FakeConfig implements Config {
   String cqLabelNameValue;
   String flutterBuildValue;
   String flutterBuildDescriptionValue;
-  List<Map<String, dynamic>> luciBuildersValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
+  List<Map<String, dynamic>>luciProdBuildersValue;
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
@@ -163,10 +163,10 @@ class FakeConfig implements Config {
   String get flutterBuildDescription => flutterBuildDescriptionValue;
 
   @override
-  List<Map<String, dynamic>> get luciBuilders => luciBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
 
   @override
-  List<Map<String, dynamic>> get luciTryBuilders => luciTryBuildersValue;
+  Future<List<Map<String, dynamic>>> get luciProdBuilders async => luciProdBuildersValue;
 
   @override
   Logging get loggingService => loggingServiceValue;

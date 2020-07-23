@@ -65,7 +65,7 @@ void main() {
       issuesService = MockIssuesService();
       repositoriesService = MockRepositoriesService();
       config = FakeConfig(
-        luciBuildersValue: const <Map<String, String>>[
+        luciProdBuildersValue: const <Map<String, String>>[
           <String, String>{
             'name': 'Builder1',
             'repo': 'flutter',
