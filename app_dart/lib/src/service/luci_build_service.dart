@@ -374,4 +374,39 @@ class LuciBuildService {
     final GetBuildRequest request = GetBuildRequest(id: id, fields: fields);
     return buildBucketClient.getBuild(request);
   }
+
+  /// Reschedules a prod build using [commitSha], [builderName], [branch] and
+  /// [repo]. Default values for [branch] is "master" and default for [repo] is
+  /// "flutter". This method return a boolean with true if the build was
+  /// rescheduled or false if it was not scheduled.
+  Future<bool> rescheduleProdBuild({
+    @required String commitSha,
+    @required String builderName,
+    String branch = 'master',
+    String repo = 'flutter',
+  }) async {
+    await buildBucketClient.scheduleBuild(ScheduleBuildRequest(
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'prod',
+        builder: builderName,
+      ),
+      gitilesCommit: GitilesCommit(
+        project: 'external/github.com/flutter/$repo',
+        host: 'chromium.googlesource.com',
+        ref: 'refs/heads/$branch',
+        hash: commitSha,
+      ),
+      tags: <String, List<String>>{
+        'buildset': <String>[
+          'commit/git/$commitSha',
+        ],
+        'user_agent': const <String>['luci-scheduler'],
+      },
+      properties: <String, String>{
+        'git_ref': commitSha,
+      },
+    ));
+    return true;
+  }
 }

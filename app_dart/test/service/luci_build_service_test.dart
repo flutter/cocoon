@@ -320,4 +320,22 @@ void main() {
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });
+  group('rescheduleProdBuild', () {
+    setUp(() {
+      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      mockBuildBucketClient = MockBuildBucketClient();
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    });
+    test('Reschedule an existing build', () async {
+      final bool rescheduled = await service.rescheduleProdBuild(
+        commitSha: 'abc',
+        builderName: 'mybuild',
+        branch: 'master',
+        repo: 'flutter',
+      );
+      expect(rescheduled, isTrue);
+      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+    });
+  });
 }
