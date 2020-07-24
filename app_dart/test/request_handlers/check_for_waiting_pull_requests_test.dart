@@ -223,7 +223,7 @@ void main() {
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 
-    test('Does not merge PR with failed status and checks', () async {
+    test('Does not merge PR with failed status', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
         lastCommitCheckRuns: const <CheckRunHelper>[
@@ -237,6 +237,36 @@ void main() {
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
+    test('Does not merge PR with failed checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedFailure,
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildSuccess,
+        ],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- The status or check suite Linux has failed. Please fix the issues identified (or deflake) before re-applying this label.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Merge PR with successful status and checks', () async {
