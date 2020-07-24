@@ -3,11 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import 'agent_dashboard_page.dart';
-import 'build_dashboard_page.dart';
-import 'index_page.dart';
+import 'logic/links.dart';
 
 /// Sidebar for navigating the different pages of Cocoon.
 class NavigationDrawer extends StatelessWidget {
@@ -15,6 +12,7 @@ class NavigationDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
     final String currentRoute = ModalRoute.of(context).settings.name;
     return Drawer(
       child: ListView(
@@ -28,46 +26,13 @@ class NavigationDrawer extends StatelessWidget {
               child: Text('Flutter Dashboard'),
             ),
           ),
-          ListTile(
-            title: const Text('Home'),
-            leading: const Icon(Icons.home),
-            onTap: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
-            selected: currentRoute == '/',
-          ),
-          ListTile(
-            title: const Text('Build'),
-            leading: const Icon(Icons.build),
-            onTap: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
-            selected: currentRoute == '/build',
-          ),
-          ListTile(
-            title: const Text('Benchmarks'),
-            leading: const Icon(Icons.show_chart),
-            onTap: () => launch('/benchmarks.html'),
-          ),
-          ListTile(
-            title: const Text('Benchmarks on Skia Perf'),
-            leading: const Icon(Icons.show_chart),
-            onTap: () => launch('https://flutter-perf.skia.org/'),
-          ),
-          ListTile(
-            title: const Text('Repository'),
-            leading: const Icon(Icons.info_outline),
-            onTap: () => launch('/repository.html'),
-          ),
-          const Divider(thickness: 2.0),
-          ListTile(
-            title: const Text('Infra Agents'),
-            leading: const Icon(Icons.android),
-            onTap: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
-            selected: currentRoute == '/agents',
-          ),
-          const Divider(thickness: 2.0),
-          ListTile(
-            title: const Text('Source Code'),
-            leading: const Icon(Icons.code),
-            onTap: () => launch('https://github.com/flutter/cocoon'),
-          ),
+          for (CocoonLink link in cocoonLinks)
+            ListTile(
+              leading: link.icon,
+              title: Text(link.name),
+              onTap: link.action,
+              selected: currentRoute == link.route,
+            ),
           const AboutListTile(
             icon: FlutterLogo(),
           ),

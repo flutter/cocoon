@@ -4,8 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import 'logic/links.dart';
 import 'navigation_drawer.dart';
 import 'state/index.dart';
 import 'widgets/app_bar.dart';
@@ -27,6 +27,7 @@ class IndexPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final IndexState indexState = Provider.of<IndexState>(context);
+    final List<CocoonLink> cocoonLinks = createCocoonLinks(context);
     return AnimatedBuilder(
       animation: indexState,
       builder: (BuildContext context, Widget child) => Scaffold(
@@ -36,47 +37,19 @@ class IndexPage extends StatelessWidget {
         body: ErrorBrookWatcher(
           errors: indexState.errors,
           child: Center(
-            child: IntrinsicWidth(
-              stepWidth: 80.0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  separator,
-                  const HeaderText('Select a dashboard'),
-                  separator,
-                  RaisedButton.icon(
-                    icon: const Icon(Icons.build),
-                    label: const Text('BUILD'),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/build'),
-                  ),
-                  separator,
-                  RaisedButton.icon(
-                    icon: const Icon(Icons.show_chart),
-                    label: const Text('BENCHMARKS'),
-                    onPressed: () => launch('/benchmarks.html'),
-                  ),
-                  separator,
-                  RaisedButton.icon(
-                    icon: const Icon(Icons.show_chart),
-                    label: const Text('BENCHMARKS ON SKIA PERF'),
-                    onPressed: () => launch('https://flutter-perf.skia.org/'),
-                  ),
-                  separator,
-                  RaisedButton.icon(
-                    icon: const Icon(Icons.info_outline),
-                    label: const Text('REPOSITORY'),
-                    onPressed: () => launch('/repository.html'),
-                  ),
-                  separator,
-                  const Divider(thickness: 2.0),
-                  separator,
-                  RaisedButton.icon(
-                    icon: const Icon(Icons.android),
-                    label: const Text('INFRA AGENTS'),
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/agents'),
-                  ),
-                ],
-              ),
+            child: ListView(
+              children: <Widget>[
+                const HeaderText('Select a dashboard'),
+                for (CocoonLink link in cocoonLinks)
+                  Column(children: <Widget>[
+                    IntrinsicWidth(
+                      child: RaisedButton.icon(
+                          icon: link.icon, label: Text(link.name.toUpperCase()), onPressed: link.action),
+                      stepWidth: 80.0,
+                    ),
+                    separator,
+                  ])
+              ],
             ),
           ),
         ),

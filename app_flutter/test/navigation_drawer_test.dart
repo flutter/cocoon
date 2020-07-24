@@ -25,11 +25,12 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Build'), findsOneWidget);
       expect(find.text('Benchmarks'), findsOneWidget);
-      expect(find.text('Benchmarks on Skia Perf'), findsOneWidget);
+      expect(find.text('Framework Benchmarks on Skia Perf'), findsOneWidget);
+      expect(find.text('Engine Benchmarks on Skia Perf'), findsOneWidget);
       expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
-      expect(find.text('About Test'), findsOneWidget);
+      expect(find.text('About Test', skipOffstage: false), findsOneWidget);
     });
 
     testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
@@ -111,7 +112,7 @@ void main() {
       );
     });
 
-    testWidgets('skia perf opens skia perf url', (WidgetTester tester) async {
+    testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
       const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
       urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
@@ -122,7 +123,7 @@ void main() {
         ),
       );
 
-      const String skiaPerfText = 'Benchmarks on Skia Perf';
+      const String skiaPerfText = 'Engine Benchmarks on Skia Perf';
       expect(find.text(skiaPerfText), findsOneWidget);
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();
@@ -131,7 +132,7 @@ void main() {
         log,
         <Matcher>[
           isMethodCall('launch', arguments: <String, Object>{
-            'url': 'https://flutter-perf.skia.org/',
+            'url': 'https://flutter-engine-perf.skia.org/',
             'useSafariVC': true,
             'useWebView': false,
             'enableJavaScript': false,
@@ -185,9 +186,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Source Code'), findsOneWidget);
-      await tester.tap(find.text('Source Code'));
-      await tester.pump();
+      const String githubLinkText = 'Source Code';
+      expect(find.text(githubLinkText), findsOneWidget);
+      await tester.tap(find.text(githubLinkText));
+      await tester.pump(const Duration(seconds: 4));
 
       expect(
         log,
