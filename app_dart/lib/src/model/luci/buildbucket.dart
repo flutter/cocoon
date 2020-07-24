@@ -585,7 +585,7 @@ class GitilesCommit extends JsonBody {
   /// The Gitiles host name, e.g. "chromium.googlesource.com"
   final String host;
 
-  /// The repository name on the host, e.g. "externa/github.com/flutter/flutter".
+  /// The repository name on the host, e.g. "external/github.com/flutter/flutter".
   final String project;
 
   /// The Git hash of the commit.

@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
+import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -78,6 +79,11 @@ Future<void> main() async {
       '/api/reset-devicelab-task': ResetDevicelabTask(
         config,
         authProvider,
+      ),
+      '/api/reset-prod-task': ResetProdTask(
+        config,
+        authProvider,
+        luciBuildService,
       ),
       '/api/reset-try-task': ResetTryTask(
         config,

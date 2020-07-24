@@ -69,7 +69,7 @@ void main() {
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
       await githubChecksService.handleCheckSuite(checkSuiteEvent, mockLuciBuildService);
       expect(
-        verify(mockLuciBuildService.scheduleBuilds(
+        verify(mockLuciBuildService.scheduleTryBuilds(
           commitSha: captureAnyNamed('commitSha'),
           prNumber: captureAnyNamed('prNumber'),
           slug: captureAnyNamed('slug'),
@@ -88,10 +88,12 @@ void main() {
         checkSuiteEvent,
         mockLuciBuildService,
       );
-      expect(verify(mockLuciBuildService.rescheduleUsingCheckSuiteEvent(captureAny, captureAny)).captured, <dynamic>[
-        checkSuiteEvent,
-        checkRun,
-      ]);
+      expect(
+          verify(mockLuciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(captureAny, captureAny)).captured,
+          <dynamic>[
+            checkSuiteEvent,
+            checkRun,
+          ]);
     });
   });
   group('handleCheckRunEvent', () {

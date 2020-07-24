@@ -38,7 +38,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
           'repo=$repo, pr=$pr, commitSha=$commitSha');
     }
     final RepositorySlug slug = RepositorySlug(owner, repo);
-    await luciBuildService.scheduleBuilds(prNumber: int.parse(pr), commitSha: commitSha, slug: slug);
+    await luciBuildService.scheduleTryBuilds(prNumber: int.parse(pr), commitSha: commitSha, slug: slug);
     return Body.empty;
   }
 }

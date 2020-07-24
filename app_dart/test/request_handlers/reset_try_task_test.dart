@@ -68,7 +68,7 @@ void main() {
       });
       await tester.get(handler);
       expect(
-        verify(mockLuciBuildService.scheduleBuilds(
+        verify(mockLuciBuildService.scheduleTryBuilds(
           commitSha: captureAnyNamed('commitSha'),
           prNumber: captureAnyNamed('prNumber'),
           slug: captureAnyNamed('slug'),

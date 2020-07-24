@@ -196,7 +196,7 @@ class GithubWebhook extends RequestHandler<Body> {
       pr.head.sha,
       'Newer commit available',
     );
-    await luciBuildService.scheduleBuilds(
+    await luciBuildService.scheduleTryBuilds(
       slug: pullRequestEvent.repository.slug(),
       prNumber: pr.number,
       commitSha: pr.head.sha,
@@ -283,6 +283,7 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
     final RepositorySlug slug = pr.base.repo.slug();
+    log.info('Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}');
     final Stream<PullRequestFile> files = gitHubClient.pullRequests.listFiles(slug, pr.number);
     final Set<String> labels = <String>{};
     bool hasTests = false;

@@ -26,7 +26,7 @@ class GithubStatusService {
     RepositorySlug slug,
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
-    final Map<String, bb.Build> builds = await luciBuildService.buildsForRepositoryAndPr(slug, prNumber, commitSha);
+    final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
     final List<String> builderNames =
         config.luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     for (bb.Build build in builds.values) {

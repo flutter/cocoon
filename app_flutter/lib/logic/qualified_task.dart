@@ -42,14 +42,14 @@ class QualifiedTask {
   ///
   /// Throws [Exception] if [stage] does not match any of the above sources.
   String get sourceConfigurationUrl {
-    if (isExternal) {
+    if (isLuci || isCirrus) {
       return _externalSourceConfigurationUrl;
     }
     return '$_flutterGithubSourceUrl/dev/devicelab/bin/tasks/$task.dart';
   }
 
   String get _externalSourceConfigurationUrl {
-    assert(isExternal);
+    assert(isLuci || isCirrus);
     switch (stage) {
       case StageName.cirrus:
         return '$_cirrusUrl/master';
@@ -74,13 +74,11 @@ class QualifiedTask {
   /// Whether this task is run in the devicelab or not.
   bool get isDevicelab => stage.contains(StageName.devicelab);
 
-  /// Whether this task is run in luci or not.
-  bool get isLuci => stage == StageName.luci;
+  /// Whether this task was run on Cirrus CI.
+  bool get isCirrus => stage == StageName.cirrus;
 
-  /// Whether the information from this task is available publically.
-  ///
-  /// Only devicelab tasks are not available publically.
-  bool get isExternal => stage == StageName.luci || stage == StageName.cirrus;
+  /// Whether the task was run on the LUCI infrastructre.
+  bool get isLuci => stage == StageName.luci;
 
   @override
   bool operator ==(Object other) {
@@ -100,10 +98,13 @@ class QualifiedTask {
 /// Cirrus logs are located via their [Commit.sha].
 /// Otherwise, we can redirect to the page that is closest to the logs for [Task].
 String logUrl(Task task, {Commit commit}) {
-  if (task.stageName == StageName.cirrus && commit != null) {
-    return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
-  } else if (QualifiedTask.fromTask(task).isExternal) {
-    // Currently this is just LUCI, but is a catch all if new stages are added.
+  if (task.stageName == StageName.cirrus) {
+    if (commit != null) {
+      return '$_cirrusLogUrl/${commit.sha}?branch=${commit.branch}';
+    } else {
+      return '$_cirrusUrl/master';
+    }
+  } else if (QualifiedTask.fromTask(task).isLuci) {
     return QualifiedTask.fromTask(task).sourceConfigurationUrl;
   }
   return '$_flutterDashboardUrl/api/get-log?ownerKey=${task.key.child.name}';

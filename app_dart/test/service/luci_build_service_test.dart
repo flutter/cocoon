@@ -66,7 +66,7 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds = await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
+      final Map<String, Build> builds = await service.tryBuildsForRepositoryAndPr(slug, 1, 'abcd');
       expect(builds.keys, isEmpty);
     });
 
@@ -87,7 +87,7 @@ void main() {
           ],
         );
       });
-      final Map<String, Build> builds = await service.buildsForRepositoryAndPr(slug, 1, 'abcd');
+      final Map<String, Build> builds = await service.tryBuildsForRepositoryAndPr(slug, 1, 'abcd');
       expect(builds, equals(<String, Build>{'Mac': macBuild, 'Linux': linuxBuild}));
     });
   });
@@ -127,7 +127,7 @@ void main() {
           ],
         );
       });
-      final bool result = await service.scheduleBuilds(
+      final bool result = await service.scheduleTryBuilds(
         prNumber: 1,
         commitSha: 'abc',
         slug: slug,
@@ -156,7 +156,7 @@ void main() {
           ],
         );
       });
-      final bool result = await service.scheduleBuilds(
+      final bool result = await service.scheduleTryBuilds(
         prNumber: 1,
         commitSha: 'abc',
         slug: slug,
@@ -178,7 +178,7 @@ void main() {
       });
       config.luciTryBuildersValue =
           (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]') as List<dynamic>).cast<Map<String, dynamic>>();
-      final bool result = await service.scheduleBuilds(
+      final bool result = await service.scheduleTryBuilds(
         prNumber: 1,
         commitSha: 'abc',
         slug: slug,
@@ -188,7 +188,7 @@ void main() {
     test('Try to schedule build on a unsupported repo', () async {
       slug = RepositorySlug('flutter', 'notsupported');
       expect(
-          () async => await service.scheduleBuilds(
+          () async => await service.scheduleTryBuilds(
                 prNumber: 1,
                 commitSha: 'abc',
                 slug: slug,
@@ -317,6 +317,23 @@ void main() {
         buildPushMessage: buildPushMessage,
       );
       expect(rescheduled, isTrue);
+      verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
+    });
+  });
+  group('rescheduleProdBuild', () {
+    setUp(() {
+      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      mockBuildBucketClient = MockBuildBucketClient();
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    });
+    test('Reschedule an existing build', () async {
+      await service.rescheduleProdBuild(
+        commitSha: 'abc',
+        builderName: 'mybuild',
+        branch: 'master',
+        repo: 'flutter',
+      );
       verify(mockBuildBucketClient.scheduleBuild(any)).called(1);
     });
   });
