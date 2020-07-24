@@ -7,50 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0374DE9B24463F930008623E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0374DE9A24463F930008623E /* AppDelegate.swift */; };
-		0374DE9D24463F930008623E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0374DE9C24463F930008623E /* SceneDelegate.swift */; };
-		0374DE9F24463F930008623E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0374DE9E24463F930008623E /* ContentView.swift */; };
-		0374DEA124463F940008623E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0374DEA024463F940008623E /* Assets.xcassets */; };
-		0374DEA424463F940008623E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0374DEA324463F940008623E /* Preview Assets.xcassets */; };
-		0374DEA724463F940008623E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0374DEA524463F940008623E /* LaunchScreen.storyboard */; };
 		0374DEB224463F940008623E /* infra_dialogUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0374DEB124463F940008623E /* infra_dialogUITests.swift */; };
-		0398B7FA24CA4AFD005ED23C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0398B7F924CA4AFD005ED23C /* SwiftUI.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		0374DEAE24463F940008623E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0374DE8F24463F930008623E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0374DE9624463F930008623E;
-			remoteInfo = "infra-dialog";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		0374DE9724463F930008623E /* infra-dialog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "infra-dialog.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0374DE9A24463F930008623E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		0374DE9C24463F930008623E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		0374DE9E24463F930008623E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		0374DEA024463F940008623E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		0374DEA324463F940008623E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		0374DEA624463F940008623E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		0374DEA824463F940008623E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0374DEAD24463F940008623E /* infra-dialogUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "infra-dialogUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0374DEB124463F940008623E /* infra_dialogUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = infra_dialogUITests.swift; sourceTree = "<group>"; };
 		0374DEB324463F940008623E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		0398B7F924CA4AFD005ED23C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		0374DE9424463F930008623E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0398B7FA24CA4AFD005ED23C /* SwiftUI.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0374DEAA24463F940008623E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -64,42 +30,17 @@
 		0374DE8E24463F930008623E = {
 			isa = PBXGroup;
 			children = (
-				0374DE9924463F930008623E /* infra-dialog */,
 				0374DEB024463F940008623E /* infra-dialogUITests */,
 				0374DE9824463F930008623E /* Products */,
-				0398B7F824CA4AFD005ED23C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		0374DE9824463F930008623E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0374DE9724463F930008623E /* infra-dialog.app */,
 				0374DEAD24463F940008623E /* infra-dialogUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		0374DE9924463F930008623E /* infra-dialog */ = {
-			isa = PBXGroup;
-			children = (
-				0374DE9A24463F930008623E /* AppDelegate.swift */,
-				0374DE9C24463F930008623E /* SceneDelegate.swift */,
-				0374DE9E24463F930008623E /* ContentView.swift */,
-				0374DEA024463F940008623E /* Assets.xcassets */,
-				0374DEA524463F940008623E /* LaunchScreen.storyboard */,
-				0374DEA824463F940008623E /* Info.plist */,
-				0374DEA224463F940008623E /* Preview Content */,
-			);
-			path = "infra-dialog";
-			sourceTree = "<group>";
-		};
-		0374DEA224463F940008623E /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				0374DEA324463F940008623E /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		0374DEB024463F940008623E /* infra-dialogUITests */ = {
@@ -111,34 +52,9 @@
 			path = "infra-dialogUITests";
 			sourceTree = "<group>";
 		};
-		0398B7F824CA4AFD005ED23C /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				0398B7F924CA4AFD005ED23C /* SwiftUI.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		0374DE9624463F930008623E /* infra-dialog */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0374DEB624463F940008623E /* Build configuration list for PBXNativeTarget "infra-dialog" */;
-			buildPhases = (
-				0374DE9324463F930008623E /* Sources */,
-				0374DE9424463F930008623E /* Frameworks */,
-				0374DE9524463F930008623E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "infra-dialog";
-			productName = "infra-dialog";
-			productReference = 0374DE9724463F930008623E /* infra-dialog.app */;
-			productType = "com.apple.product-type.application";
-		};
 		0374DEAC24463F940008623E /* infra-dialogUITests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0374DEB924463F940008623E /* Build configuration list for PBXNativeTarget "infra-dialogUITests" */;
@@ -150,7 +66,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				0374DEAF24463F940008623E /* PBXTargetDependency */,
 			);
 			name = "infra-dialogUITests";
 			productName = "infra-dialogUITests";
@@ -165,14 +80,9 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1130;
 				LastUpgradeCheck = 1130;
-				ORGANIZATIONNAME = "Tong Wu";
 				TargetAttributes = {
-					0374DE9624463F930008623E = {
-						CreatedOnToolsVersion = 11.3;
-					};
 					0374DEAC24463F940008623E = {
 						CreatedOnToolsVersion = 11.3;
-						TestTargetID = 0374DE9624463F930008623E;
 					};
 				};
 			};
@@ -189,23 +99,12 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				0374DE9624463F930008623E /* infra-dialog */,
 				0374DEAC24463F940008623E /* infra-dialogUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		0374DE9524463F930008623E /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0374DEA724463F940008623E /* LaunchScreen.storyboard in Resources */,
-				0374DEA424463F940008623E /* Preview Assets.xcassets in Resources */,
-				0374DEA124463F940008623E /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0374DEAB24463F940008623E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -216,16 +115,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		0374DE9324463F930008623E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0374DE9B24463F930008623E /* AppDelegate.swift in Sources */,
-				0374DE9D24463F930008623E /* SceneDelegate.swift in Sources */,
-				0374DE9F24463F930008623E /* ContentView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0374DEA924463F940008623E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -235,25 +124,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		0374DEAF24463F940008623E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 0374DE9624463F930008623E /* infra-dialog */;
-			targetProxy = 0374DEAE24463F940008623E /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		0374DEA524463F940008623E /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				0374DEA624463F940008623E /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		0374DEB424463F940008623E /* Debug */ = {
@@ -370,48 +240,6 @@
 			};
 			name = Release;
 		};
-		0374DEB724463F940008623E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"infra-dialog/Preview Content\"";
-				DEVELOPMENT_TEAM = S8QB4VV633;
-				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "infra-dialog/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.flutter.infra-dialog";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		0374DEB824463F940008623E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"infra-dialog/Preview Content\"";
-				DEVELOPMENT_TEAM = S8QB4VV633;
-				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "infra-dialog/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.flutter.infra-dialog";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		0374DEBA24463F940008623E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -428,7 +256,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "infra-dialog";
 			};
 			name = Debug;
 		};
@@ -448,7 +275,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "infra-dialog";
 			};
 			name = Release;
 		};
@@ -460,15 +286,6 @@
 			buildConfigurations = (
 				0374DEB424463F940008623E /* Debug */,
 				0374DEB524463F940008623E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0374DEB624463F940008623E /* Build configuration list for PBXNativeTarget "infra-dialog" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0374DEB724463F940008623E /* Debug */,
-				0374DEB824463F940008623E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
