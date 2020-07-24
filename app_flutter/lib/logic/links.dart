@@ -10,35 +10,7 @@ import '../agent_dashboard_page.dart';
 import '../build_dashboard_page.dart';
 import '../index_page.dart';
 
-/// Data class for storing links on the Cocoon app.
-///
-/// [name] is the text that will be shown to users for this link, [icon] is an
-/// [Icon] to represent the link, [action] is a function to perform when the
-/// link is clicked. For links to other parts of this Flutter app, [route] can
-/// be passed to highlight in the sidebar what page a user is on.
-class CocoonLink {
-  const CocoonLink({
-    this.name,
-    this.route,
-    this.action,
-    this.icon,
-  });
-
-  /// Text shown to users describing this link.
-  final String name;
-
-  /// If the link is internal to this Flutter app, this can be passed to highlight on the [NavigationDrawer] the page the user is on.
-  final String route;
-
-  /// An [Icon] to represent this link.
-  final Icon icon;
-
-  /// Callback for when the link is activated.
-  ///
-  /// Can be used to redirect to internal or external routes. Will have acess to the [BuildContext].
-  final Function action;
-}
-
+/// List of links that are shown on [IndexPage] and in the [NavigationDrawer].
 List<CocoonLink> createCocoonLinks(BuildContext context) {
   return <CocoonLink>[
     CocoonLink(
@@ -85,4 +57,28 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       action: () => launch('https://github.com/flutter/cocoon'),
     ),
   ];
+}
+
+/// Data class for storing links on the Cocoon app.
+class CocoonLink {
+  const CocoonLink({
+    this.name,
+    this.route,
+    this.action,
+    this.icon,
+  });
+
+  /// Text shown to users describing this link.
+  final String name;
+
+  /// If the link is internal to this Flutter app, this can be passed to highlight on the [NavigationDrawer] the page the user is on.
+  final String route;
+
+  /// An [Icon] to represent this link.
+  final Icon icon;
+
+  /// Callback for when the link is activated.
+  ///
+  /// Can be used to redirect to internal or external routes. Will have acess to the [BuildContext].
+  final Function action;
 }
