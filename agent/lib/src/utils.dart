@@ -521,6 +521,21 @@ Future<Null> getFlutter(String revision) async {
   rm(_installationLock);
 }
 
+/// Checks out the infra-dialog repo and updates it.
+Future<Directory> getInfraDialog() async {
+  var repoPath = path.join(config.flutterDirectory.parent.path, "infra-dialog");
+  Directory repoDir = Directory(repoPath);
+  if (!exists(repoDir)) {
+    await inDirectory(config.flutterDirectory.parent, () async {
+      await exec('git', ['clone', 'https://github.com/digiter/infra-dialog.git']);
+    });
+  }
+  await inDirectory(repoDir, () async {
+    await exec('git', ['pull', 'origin', 'master']);
+  });
+  return repoDir;
+}
+
 void checkNotNull(Object o1,
     [Object o2 = 1,
     Object o3 = 1,
@@ -636,3 +651,14 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
 /// futures are intentionally not awaited. This function may be used to ignore a
 /// particular future. It silences the unawaited_futures lint.
 void unawaited(Future<void> future) {}
+
+Future<Null> unlockKeyChain() async {
+  // Unlocking the keychain is required to:
+  //   * Enable Xcode to access the certificate for code signing.
+  //   * Mitigate "Your session has expired" issue. See flutter/flutter#17860.
+  if (Platform.isMacOS) {
+    await exec(
+        'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
+        canFail: false, silent: true);
+  }
+}
