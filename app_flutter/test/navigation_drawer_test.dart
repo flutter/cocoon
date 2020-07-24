@@ -186,10 +186,9 @@ void main() {
         ),
       );
 
-      const String githubLinkText = 'Source Code';
-      expect(find.text(githubLinkText), findsOneWidget);
-      await tester.tap(find.text(githubLinkText));
-      await tester.pump(const Duration(seconds: 4));
+      expect(find.text('Source Code'), findsOneWidget);
+      await tester.tap(find.text('Source Code'));
+      await tester.pump();
 
       expect(
         log,
