@@ -145,12 +145,16 @@ Future<HealthCheckResult> removeCachedData(
   return HealthCheckResult.success();
 }
 
-/// Closes system dialogs on iOS, e.g. upgrading to a new version of iOS.
+/// Closes system dialogs on iOS, e.g. the one about new system update.
 ///
 /// The dialogs often cause test flakiness and performance regressions.
 @visibleForTesting
-Future<HealthCheckResult> closeIosDialog({ProcessManager pm = const LocalProcessManager()}) async {
-  List<Device> ds = await devices.discoverDevices();
+Future<HealthCheckResult> closeIosDialog(
+    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery}) async {
+  if (discovery == null) {
+    discovery = devices;
+  }
+  List<Device> ds = await discovery.discoverDevices();
   for (Device d in ds) {
     if (!(d is IosDevice)) {
       continue;
