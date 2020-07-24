@@ -171,6 +171,9 @@ void main() {
     });
 
     test('Status updated when not pending or url is different', () async {
+      config.luciTryBuildersValue = <Map<String, dynamic>>[
+        <String, String>{'name': 'Mac', 'repo': 'flutter', 'TaskName': 'mac_bot'}
+      ];
       List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Mac'
@@ -223,6 +226,9 @@ void main() {
     });
 
     test('Status updated to cancelled', () async {
+      config.luciTryBuildersValue = <Map<String, dynamic>>[
+        <String, String>{'name': 'Mac', 'repo': 'flutter', 'TaskName': 'mac_bot'}
+      ];
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Mac'
@@ -238,6 +244,9 @@ void main() {
           jsonDecode('{"state":"failure","target_url":"url","description":"Flutter LUCI Build: Mac","context":"Mac"}'));
     });
     test('Status updated to success', () async {
+      config.luciTryBuildersValue = <Map<String, dynamic>>[
+        <String, String>{'name': 'Mac', 'repo': 'flutter', 'TaskName': 'mac_bot'}
+      ];
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Mac'
