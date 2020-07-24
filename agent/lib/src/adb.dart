@@ -34,9 +34,6 @@ abstract class DeviceDiscovery {
     }
   }
 
-  @visibleForTesting
-  DeviceDiscovery.testing();
-
   /// Lists all available devices' IDs.
   Future<List<Device>> discoverDevices({int retriesDelayMs = 10000});
 
