@@ -348,7 +348,10 @@ Future<int> flutter(String command, {List<String> options: const <String>[], boo
 
 String get dartBin => path.join(config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
 
-Future<int> dart(List<String> args) => exec(dartBin, args);
+Future<int> dart(List<String> args) {
+  args.insert(0, '--disable-dart-dev');
+  return exec(dartBin, args);
+}
 
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
   String previousCwd = cwd;
