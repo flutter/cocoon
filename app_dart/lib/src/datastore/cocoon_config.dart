@@ -321,22 +321,6 @@ class Config {
     return supportedRepos.contains(repositoryName);
   }
 
-  Future<RepositorySlug> repoNameForBuilder(String builderName) async {
-    final List<Map<String, dynamic>> builders = await luciTryBuilders;
-    final Map<String, dynamic> builderConfig = builders.firstWhere(
-      (Map<String, dynamic> builder) => builder['name'] == builderName,
-      orElse: () => <String, String>{'repo': ''},
-    );
-    final String repoName = builderConfig['repo'] as String;
-    // If there is no builder config for the builderName then we
-    // return null. This is to allow the code calling this method
-    // to skip changes that depend on builder configurations.
-    if (repoName.isEmpty) {
-      return null;
-    }
-    return RepositorySlug('flutter', repoName);
-  }
-
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
   }
