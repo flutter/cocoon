@@ -60,7 +60,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       log,
       client,
     );
-    for (_AutoMergeQueryResult queryResult in await _parseQueryData(data, name)) {
+    final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, name);
+    for (_AutoMergeQueryResult queryResult in queryResults) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -244,6 +245,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       'luci-engine', // engine repo
     };
 
+    log.info('Validating name: $name, branch: $branch, status: $statuses');
     for (Map<String, dynamic> status in statuses) {
       final String name = status['context'] as String;
       if (status['state'] != 'SUCCESS') {
@@ -254,6 +256,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
     }
 
+    log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String name = checkRun['name'] as String;
       if (checkRun['status'] != 'COMPLETED') {
