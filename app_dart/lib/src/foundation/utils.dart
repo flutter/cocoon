@@ -82,9 +82,9 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
   return RepositorySlug('flutter', repoName);
 }
 
-Future<Uint8List> getBuilders(
-    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
-  final String filename = bucket == 'try'?'luci_try_builders.json':'luci_prod_builders.json';
+Future<Uint8List> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
+  final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
   String content = await loadContents(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
   content ??= '{"builders":[]}';
   return Uint8List.fromList(content.codeUnits);
