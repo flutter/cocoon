@@ -144,7 +144,7 @@ class AppEngineCocoonService implements CocoonService {
     if (qualifiedTask.isDevicelab) {
       postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
     } else if (qualifiedTask.isLuci) {
-      postResetTaskUrl = apiEndpoint('/api/reset-luci-task');
+      postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
     } else {
       assert(false);
     }
