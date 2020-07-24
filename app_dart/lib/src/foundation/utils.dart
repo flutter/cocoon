@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:github/github.dart';
 
 import '../foundation/typedefs.dart';
 
@@ -64,4 +65,19 @@ Future<Uint8List> getBranches(
   final List<String> branches = await loadBranches(branchHttpClientProvider, log, gitHubBackoffCalculator);
 
   return Uint8List.fromList(branches.join(',').codeUnits);
+}
+
+Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, String builderName) async {
+  final Map<String, dynamic> builderConfig = builders.firstWhere(
+    (Map<String, dynamic> builder) => builder['name'] == builderName,
+    orElse: () => <String, String>{'repo': ''},
+  );
+  final String repoName = builderConfig['repo'] as String;
+  // If there is no builder config for the builderName then we
+  // return null. This is to allow the code calling this method
+  // to skip changes that depend on builder configurations.
+  if (repoName.isEmpty) {
+    return null;
+  }
+  return RepositorySlug('flutter', repoName);
 }

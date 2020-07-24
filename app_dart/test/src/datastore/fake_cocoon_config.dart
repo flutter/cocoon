@@ -189,21 +189,6 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<RepositorySlug> repoNameForBuilder(String builderName) async {
-    String name;
-    switch (builderName) {
-      case 'Linux Host Engine':
-        name = 'engine';
-        break;
-      case 'MacNoExists':
-        return null;
-      default:
-        name = 'flutter';
-    }
-    return RepositorySlug('flutter', name);
-  }
-
-  @override
   Future<String> generateGithubToken(String user, String repository) {
     throw UnimplementedError();
   }

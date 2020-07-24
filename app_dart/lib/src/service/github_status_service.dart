@@ -6,6 +6,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
 import 'luci_build_service.dart';
@@ -51,7 +52,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await config.repoNameForBuilder(builderName) == null) {
+    if (await repoNameForBuilder(config.luciTryBuilders, builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
@@ -92,7 +93,7 @@ class GithubStatusService {
     @required Result result,
     @required RepositorySlug slug,
   }) async {
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
+    final RepositorySlug slug = await repoNameForBuilder(config.luciTryBuilders, builderName);
     // No builderName configuration, nothing to do here.
     if (slug == null) {
       return;

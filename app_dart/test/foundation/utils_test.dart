@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:github/github.dart';
 import 'package:test/test.dart';
-
 import 'package:cocoon_service/src/foundation/utils.dart';
 
 import '../src/request_handling/fake_http.dart';
@@ -84,6 +84,23 @@ void main() {
         expect(twoSecondLinearBackoff(1), const Duration(seconds: 4));
         expect(twoSecondLinearBackoff(2), const Duration(seconds: 6));
         expect(twoSecondLinearBackoff(3), const Duration(seconds: 8));
+      });
+    });
+
+    group('repoNameForBuilder', () {
+      test('Builder config does not exist', () async {
+        final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[];
+        final RepositorySlug result = await repoNameForBuilder(builders, 'DoesNotExist');
+        expect(result, isNull);
+      });
+
+      test('Builder exists', () async {
+        final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[
+          <String, String>{'name': 'Cocoon', 'repo': 'cocoon'}
+        ];
+        final RepositorySlug result = await repoNameForBuilder(builders, 'Cocoon');
+        expect(result, isNotNull);
+        expect(result.fullName, equals('flutter/cocoon'));
       });
     });
   });
