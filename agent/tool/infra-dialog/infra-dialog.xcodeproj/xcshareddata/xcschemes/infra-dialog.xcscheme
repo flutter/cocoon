@@ -34,15 +34,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "0374DE9624463F930008623E"
-            BuildableName = "infra-dialog.app"
-            BlueprintName = "infra-dialog"
-            ReferencedContainer = "container:infra-dialog.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
