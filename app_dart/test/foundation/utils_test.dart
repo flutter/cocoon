@@ -90,7 +90,7 @@ void main() {
     group('repoNameForBuilder', () {
       test('Builder config does not exist', () async {
         final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[];
-        final RepositorySlug result = repoNameForBuilder(builders, 'DoesNotExist');
+        final RepositorySlug result = await repoNameForBuilder(builders, 'DoesNotExist');
         expect(result, isNull);
       });
 
@@ -98,7 +98,7 @@ void main() {
         final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[
           <String, String>{'name': 'Cocoon', 'repo': 'cocoon'}
         ];
-        final RepositorySlug result = repoNameForBuilder(builders, 'Cocoon');
+        final RepositorySlug result = await repoNameForBuilder(builders, 'Cocoon');
         expect(result, isNotNull);
         expect(result.fullName, equals('flutter/cocoon'));
       });

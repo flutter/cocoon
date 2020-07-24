@@ -67,7 +67,7 @@ Future<Uint8List> getBranches(
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
 
-RepositorySlug repoNameForBuilder(List<Map<String, dynamic>> builders, String builderName) {
+Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, String builderName) async {
   final Map<String, dynamic> builderConfig = builders.firstWhere(
     (Map<String, dynamic> builder) => builder['name'] == builderName,
     orElse: () => <String, String>{'repo': ''},
