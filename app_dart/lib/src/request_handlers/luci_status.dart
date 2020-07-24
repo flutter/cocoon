@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
@@ -108,7 +109,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     } else {
       // This message is coming from a repo that doesn't support checks api and
       // we need to create the slug from the builder configuration files.
-      slug = await config.repoNameForBuilder(builderName);
+      slug = repoNameForBuilder(config.luciTryBuilders, builderName);
     }
     switch (buildPushMessage.build.status) {
       case Status.completed:
