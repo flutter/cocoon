@@ -1,23 +1,18 @@
 {
    "builders":[
       {
+         "name":"Cocoon",
+         "repo":"cocoon"
+      },
+      {
          "name":"Linux",
          "repo":"flutter",
          "taskName":"linux_bot"
       },
       {
-         "name":"Mac",
-         "repo":"flutter",
-         "taskName":"mac_bot"
-      },
-      {
          "name":"Windows",
          "repo":"flutter",
          "taskName":"windows_bot"
-      },
-      {
-         "name":"Linux Coverage",
-         "repo":"flutter"
       },
       {
          "name":"Linux Host Engine",
@@ -36,6 +31,10 @@
          "repo":"engine"
       },
       {
+         "name":"Linux Web Engine",
+         "repo":"engine"
+      },
+      {
          "name":"Mac Host Engine",
          "repo":"engine"
       },
@@ -48,15 +47,11 @@
          "repo":"engine"
       },
       {
+         "name":"Mac Host Engine",
+         "repo":"engine"
+      },
+      {
          "name":"Mac iOS Engine",
-         "repo":"engine"
-      },
-      {
-         "name":"Mac iOS Engine Profile",
-         "repo":"engine"
-      },
-      {
-         "name":"Mac iOS Engine Release",
          "repo":"engine"
       },
       {
@@ -66,6 +61,18 @@
       {
          "name":"Windows Android AOT Engine",
          "repo":"engine"
+      },
+      {
+         "name":"Windows Web Engine",
+         "repo":"engine"
+      },
+      {
+         "name":"Mac Web Engine",
+         "repo":"engine"
+      },
+      {
+         "name":"fuchsia_ctl",
+         "repo":"packages"
       }
    ]
 }
