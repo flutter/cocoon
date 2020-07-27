@@ -269,6 +269,21 @@ This pull request is not suitable for automatic merging in its current state.
       ]);
     });
 
+    test('Does not fail with null checks', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[],
+        lastCommitStatuses: const <StatusHelper>[
+          StatusHelper.flutterBuildFailure,
+        ],
+      );
+      prRequested.lastCommitCheckRuns = null;
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+    });
+
     test('Merge PR with successful status and checks', () async {
       branch = 'pull/0';
       final PullRequestHelper prRequested = PullRequestHelper(
@@ -784,7 +799,6 @@ class CheckRunHelper {
   final String conclusion;
 }
 
-@immutable
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
@@ -806,7 +820,7 @@ class PullRequestHelper {
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   final List<StatusHelper> lastCommitStatuses;
-  final List<CheckRunHelper> lastCommitCheckRuns;
+  List<CheckRunHelper> lastCommitCheckRuns;
   final DateTime dateTime;
 
   Map<String, dynamic> toEntry() {
@@ -838,19 +852,21 @@ class PullRequestHelper {
                 }).toList(),
               },
               'checkSuites': <String, dynamic>{
-                'nodes': <dynamic>[
-                  <String, dynamic>{
-                    'checkRuns': <String, dynamic>{
-                      'nodes': lastCommitCheckRuns.map((CheckRunHelper status) {
-                        return <String, dynamic>{
-                          'name': status.name,
-                          'status': status.status,
-                          'conclusion': status.conclusion,
-                        };
-                      }).toList(),
-                    }
-                  }
-                ]
+                'nodes': lastCommitCheckRuns != null
+                    ? <dynamic>[
+                        <String, dynamic>{
+                          'checkRuns': <String, dynamic>{
+                            'nodes': lastCommitCheckRuns.map((CheckRunHelper status) {
+                              return <String, dynamic>{
+                                'name': status.name,
+                                'status': status.status,
+                                'conclusion': status.conclusion,
+                              };
+                            }).toList(),
+                          }
+                        }
+                      ]
+                    : <dynamic>[]
               },
             },
           },

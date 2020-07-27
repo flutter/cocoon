@@ -29,7 +29,7 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       state
                     }
                   }
-                  checkSuites(first:1) {
+                  checkSuites(last:1, filterBy: { appId: 64368 } ) {
                     nodes {
                       checkRuns(first:100) {
                         nodes {
