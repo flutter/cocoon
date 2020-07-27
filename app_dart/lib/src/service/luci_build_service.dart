@@ -148,7 +148,7 @@ class LuciBuildService {
       return false;
     }
 
-    final List<Map<String, dynamic>> builders = config.luciTryBuilders;
+    final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
     final List<String> builderNames = builders
         .where((Map<String, dynamic> builder) => builder['repo'] == slug.name)
         .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
@@ -239,8 +239,9 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
+    final List<Map<String, dynamic>> luciTryBuilders = await config.luciTryBuilders;
     final List<String> builderNames =
-        config.luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
+        luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     // Return only builds that exist in the configuration file.
     return builds.values
         .where((Build build) => failStatusSet.contains(build.status) && builderNames.contains(build.builderId.builder))

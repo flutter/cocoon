@@ -69,6 +69,15 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
+  // Gets supported luci builders based on github http request.
+  Future<List<Map<String, dynamic>>> _getLuciBuilders(String bucket) async {
+    final String builderContent =
+        await getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket);
+    final Map<String, dynamic> builderMap = json.decode(builderContent) as Map<String, dynamic>;
+    final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+    return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
+  }
+
   Future<String> _getSingleValue(String id) async {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
@@ -101,6 +110,10 @@ class Config {
   DatastoreDB get db => _db;
 
   Future<List<String>> get flutterBranches => _getFlutterBranches();
+
+  Future<List<Map<String, dynamic>>> get luciTryBuilders => _getLuciBuilders('try');
+
+  Future<List<Map<String, dynamic>>> get luciProdBuilders => _getLuciBuilders('prod');
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
@@ -217,155 +230,6 @@ class Config {
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
       };
-
-  /// A List of builders for LUCI
-  List<Map<String, dynamic>> get luciBuilders => <Map<String, String>>[
-        <String, String>{
-          'name': 'Linux',
-          'repo': 'flutter',
-          'taskName': 'linux_bot',
-        },
-        <String, String>{
-          'name': 'Mac',
-          'repo': 'flutter',
-          'taskName': 'mac_bot',
-        },
-        <String, String>{
-          'name': 'Windows',
-          'repo': 'flutter',
-          'taskName': 'windows_bot',
-        },
-        <String, String>{
-          'name': 'Linux Coverage',
-          'repo': 'flutter',
-        },
-        <String, String>{
-          'name': 'Linux Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Fuchsia',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Android Debug Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android Debug Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine Profile',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine Release',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Windows Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Windows Android AOT Engine',
-          'repo': 'engine',
-        }
-      ];
-
-  /// A List of try builders for LUCI
-  List<Map<String, dynamic>> get luciTryBuilders => <Map<String, String>>[
-        <String, String>{
-          'name': 'Cocoon',
-          'repo': 'cocoon',
-        },
-        <String, String>{
-          'name': 'Linux',
-          'repo': 'flutter',
-          'taskName': 'linux_bot',
-        },
-        <String, String>{
-          'name': 'Windows',
-          'repo': 'flutter',
-          'taskName': 'windows_bot',
-        },
-        <String, String>{
-          'name': 'Linux Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Fuchsia',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Android Debug Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Linux Web Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Android Debug Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac iOS Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Windows Host Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Windows Android AOT Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Windows Web Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'Mac Web Engine',
-          'repo': 'engine',
-        },
-        <String, String>{
-          'name': 'fuchsia_ctl',
-          'repo': 'packages',
-        },
-      ];
 
   Future<String> generateJsonWebToken() async {
     final String privateKey = await githubPrivateKey;

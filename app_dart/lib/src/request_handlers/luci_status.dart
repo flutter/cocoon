@@ -109,7 +109,7 @@ class LuciStatusHandler extends RequestHandler<Body> {
     } else {
       // This message is coming from a repo that doesn't support checks api and
       // we need to create the slug from the builder configuration files.
-      slug = await repoNameForBuilder(config.luciTryBuilders, builderName);
+      slug = await repoNameForBuilder(await config.luciTryBuilders, builderName);
     }
     switch (buildPushMessage.build.status) {
       case Status.completed:

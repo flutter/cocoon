@@ -17,6 +17,18 @@ const String branchRegExp = '''
       master
       flutter-1.1-candidate.1
       ''';
+const String luciBuilders = '''
+      builders: [
+        {
+          test1:value1,
+          test2:value2,
+        },{
+          test1:value3,
+          test2:value4,
+          test3:value5,
+        }
+      ]
+      ''';
 
 void main() {
   group('Test utils', () {
@@ -31,8 +43,11 @@ void main() {
 
       test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
+        final String branches =
+            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        branchList.removeWhere((String branch) => branch.isEmpty);
+        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
       });
 
       test('retries branches download upon HTTP failure', () async {
@@ -43,9 +58,12 @@ void main() {
         };
 
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        final String branches =
+            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
+        final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
+        branchList.removeWhere((String branch) => branch.isEmpty);
         expect(retry, 2);
-        expect(branches, <String>['master', 'flutter-1.1-candidate.1']);
+        expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
       });
@@ -55,8 +73,9 @@ void main() {
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = branchRegExp;
-        final List<String> branches = await loadBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
-        expect(branches, <String>['master']);
+        final String branches =
+            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
+        expect(branches, null);
         expect(retry, 3);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
@@ -75,6 +94,52 @@ void main() {
         branchHttpClient.request.response.body = branchRegExp;
         final Uint8List branches = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
         expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
+      });
+
+      test('returns master when http request fails', () async {
+        int retry = 0;
+        branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        branchHttpClient.request.response.body = luciBuilders;
+        final Uint8List builders = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        expect(String.fromCharCodes(builders), 'master');
+      });
+    });
+
+    group('GetBuilders', () {
+      FakeHttpClient lucBuilderHttpClient;
+      FakeLogging log;
+
+      setUp(() {
+        lucBuilderHttpClient = FakeHttpClient();
+        log = FakeLogging();
+      });
+      test('returns luci builders', () async {
+        lucBuilderHttpClient.request.response.body = luciBuilders;
+        final String builders =
+            await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
+        expect(builders, '''
+      builders: [
+        {
+          test1:value1,
+          test2:value2,
+        },{
+          test1:value3,
+          test2:value4,
+          test3:value5,
+        }
+      ]
+      ''');
+      });
+
+      test('returns empty list when http request fails', () async {
+        int retry = 0;
+        lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        lucBuilderHttpClient.request.response.body = luciBuilders;
+        final String builders =
+            await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
+        expect(builders, '{"builders":[]}');
       });
     });
 

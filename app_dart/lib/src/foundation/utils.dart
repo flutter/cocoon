@@ -25,9 +25,9 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<List<String>> loadBranches(
-    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  const String path = '/flutter/cocoon/master/app_dart/dev/branches.txt';
+Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
+  final String path = '/flutter/cocoon/master/app_dart/dev/$filename';
   final Uri url = Uri.https('raw.githubusercontent.com', path);
 
   final HttpClient client = branchHttpClientProvider();
@@ -42,14 +42,12 @@ Future<List<String>> loadBranches(
 
         if (status == HttpStatus.ok) {
           final String content = await utf8.decoder.bind(clientResponse).join();
-          final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
-          branches.removeWhere((String branch) => branch.isEmpty);
-          return branches;
+          return content;
         } else {
-          log.warning('Attempt to download branches.txt failed (HTTP $status)');
+          log.warning('Attempt to download $filename failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
-        log.error('Attempt to download branches.txt failed:\n$error\n$stackTrace');
+        log.error('Attempt to download $filename failed:\n$error\n$stackTrace');
       }
       await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }
@@ -57,13 +55,16 @@ Future<List<String>> loadBranches(
     client.close(force: true);
   }
   log.error('GitHub not responding; giving up');
-  return <String>['master'];
+  return null;
 }
 
+/// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
     HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  final List<String> branches = await loadBranches(branchHttpClientProvider, log, gitHubBackoffCalculator);
-
+  String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
+  content ??= 'master';
+  final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
+  branches.removeWhere((String branch) => branch.isEmpty);
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
 
@@ -80,4 +81,12 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
     return null;
   }
   return RepositorySlug('flutter', repoName);
+}
+
+/// Gets supported luci builders based on [bucket] via GitHub http request.
+Future<String> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
+  final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
+  final String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
+  return content ?? '{"builders":[]}';
 }
