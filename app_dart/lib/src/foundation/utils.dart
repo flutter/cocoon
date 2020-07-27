@@ -25,7 +25,7 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<String> loadContents(HttpClientProvider branchHttpClientProvider, Logging log,
+Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
   final String path = '/flutter/cocoon/master/app_dart/dev/$filename';
   final Uri url = Uri.https('raw.githubusercontent.com', path);
@@ -58,9 +58,10 @@ Future<String> loadContents(HttpClientProvider branchHttpClientProvider, Logging
   return null;
 }
 
+/// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
     HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  String content = await loadContents(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
+  String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
   content ??= 'master';
   final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
   branches.removeWhere((String branch) => branch.isEmpty);
@@ -82,10 +83,10 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
   return RepositorySlug('flutter', repoName);
 }
 
-Future<Uint8List> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+/// Gets supported luci builders based on [bucket] via GitHub http request.
+Future<String> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
   final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
-  String content = await loadContents(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
-  content ??= '{"builders":[]}';
-  return Uint8List.fromList(content.codeUnits);
+  final String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
+  return content ?? '{"builders":[]}';
 }

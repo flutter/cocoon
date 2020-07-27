@@ -69,15 +69,10 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
+  // Gets supported luci builders based on github http request.
   Future<List<Map<String, dynamic>>> _getLuciBuilders(String bucket) async {
-    final Uint8List cacheValue = await _cache.getOrCreate(
-      configCacheName,
-      'luci${bucket}Builders',
-      createFn: () => getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket),
-      ttl: configCacheTtl,
-    );
-
-    final String builderContent = String.fromCharCodes(cacheValue);
+    final String builderContent =
+        await getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket);
     final Map<String, dynamic> builderMap = json.decode(builderContent) as Map<String, dynamic>;
     final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
     return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
