@@ -521,21 +521,6 @@ Future<Null> getFlutter(String revision) async {
   rm(_installationLock);
 }
 
-/// Checks out the infra-dialog repo and updates it.
-Future<Directory> getInfraDialog() async {
-  var repoPath = path.join(config.flutterDirectory.parent.path, "infra-dialog");
-  Directory repoDir = Directory(repoPath);
-  if (!exists(repoDir)) {
-    await inDirectory(config.flutterDirectory.parent, () async {
-      await exec('git', ['clone', 'https://github.com/digiter/infra-dialog.git']);
-    });
-  }
-  await inDirectory(repoDir, () async {
-    await exec('git', ['pull', 'origin', 'master']);
-  });
-  return repoDir;
-}
-
 void checkNotNull(Object o1,
     [Object o2 = 1,
     Object o3 = 1,

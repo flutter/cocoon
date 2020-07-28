@@ -150,20 +150,18 @@ Future<HealthCheckResult> removeCachedData(
 /// The dialogs often cause test flakiness and performance regressions.
 @visibleForTesting
 Future<HealthCheckResult> closeIosDialog(
-    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery, Directory dialogDir}) async {
+    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery}) async {
   if (discovery == null) {
     discovery = devices;
   }
-  List<Device> ds = await discovery.discoverDevices();
-  for (Device d in ds) {
+  Directory dialogDir = dir(Directory.current.path, 'tool', 'infra-dialog');
+  if (!await dialogDir.exists()) {
+    fail('Unable to find infra-dialog at $dialogDir');
+  }
+
+  for (Device d in await discovery.discoverDevices()) {
     if (!(d is IosDevice)) {
       continue;
-    }
-    // Checks out the infra-dialog repo.
-    // TODO(wutong): merge infra-dialog with cocoon to get rid of this checkout.
-    // https://github.com/flutter/flutter/issues/54792
-    if (dialogDir == null) {
-      dialogDir = await getInfraDialog();
     }
     await unlockKeyChain();
     // Runs the single XCUITest in infra-dialog.

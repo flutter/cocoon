@@ -102,23 +102,19 @@ void main() {
   });
 
   group('testCloseIosDialog', () {
-    FileSystem fs;
     MockProcessManager pm;
     DeviceDiscovery discovery;
-    Directory dialogDir;
 
     setUp(() async {
-      fs = MemoryFileSystem();
       pm = MockProcessManager();
       discovery = FakeIosDeviceDiscovery();
-      dialogDir = await fs.directory("infra-dialog").create();
     });
 
     test('succeeded', () async {
       Process proc = FakeProcess(0);
       when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
 
-      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery, dialogDir: dialogDir);
+      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery);
 
       expect(res.succeeded, isTrue);
     });
@@ -128,7 +124,7 @@ void main() {
       when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
 
       expect(
-        closeIosDialog(pm: pm, discovery: discovery, dialogDir: dialogDir),
+        closeIosDialog(pm: pm, discovery: discovery),
         throwsA(TypeMatcher<BuildFailedError>()),
       );
     });
