@@ -42,10 +42,12 @@ class CocoonTask {
   CocoonTask({
     @required this.name,
     @required this.revision,
-    @required this.timeoutInMinutes,
+    this.timeoutInMinutes = 0,
     this.key,
     this.cloudAuthToken,
-  });
+  })  : assert(name != null),
+        assert(revision != null),
+        assert(timeoutInMinutes != null);
 
   /// Task name as it appears on dashboards and in logs.
   final String name;
