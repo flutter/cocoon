@@ -22,6 +22,9 @@ const Duration _sleepBetweenBuilds = const Duration(seconds: 10);
 /// Maximum amount of time we're allowing Flutter to install.
 const Duration _kInstallationTimeout = const Duration(minutes: 20);
 
+/// Fallback timeout if a test takes too long and needs to be killed.
+const Duration _kGlobalTestRunnerTimeout = const Duration(hours: 1);
+
 /// Runs the agent in continuous integration mode.
 ///
 /// In this mode the agent runs in an infinite loop, continuously asking for
@@ -187,7 +190,7 @@ class ContinuousIntegrationCommand extends Command {
   }
 
   Future<Null> _runTask(CocoonTask task) async {
-    TaskResult result = await runTask(agent, task);
+    TaskResult result = await runTask(agent, task, fallbackTimeout: _kGlobalTestRunnerTimeout);
     if (result.succeeded) {
       await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
     } else {

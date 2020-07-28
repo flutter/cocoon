@@ -48,7 +48,7 @@ class RunCommand extends Command {
       await killAllRunningProcessesOnWindows('dart');
     }
 
-    CocoonTask task = CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 30);
+    CocoonTask task = CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 0);
     TaskResult result;
     try {
       if (task.revision != null) {
