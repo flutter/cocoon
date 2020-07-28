@@ -168,19 +168,13 @@ Future<HealthCheckResult> closeIosDialog(
     await inDirectory(dialogDir, () async {
       List<String> command =
           'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'.split(' ');
-      // Overwrites code signing config if that exists.
-      Map<String, String> env = <String, String>{};
+      // Overwrites code signing config when that exists.
       if (pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
-        env['CODE_SIGN_STYLE'] = pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'];
+        command.add("CODE_SIGN_STYLE=${pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
+        command.add("DEVELOPMENT_TEAM=${pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
+        command.add("PROVISIONING_PROFILE_SPECIFIER=${pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
       }
-      if (pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM'] != null) {
-        env['DEVELOPMENT_TEAM'] = pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM'];
-      }
-      if (pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER'] != null) {
-        env['PROVISIONING_PROFILE_SPECIFIER'] = pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER'];
-      }
-
-      Process proc = await pm.start(command, workingDirectory: dialogDir.path, environment: env);
+      Process proc = await pm.start(command, workingDirectory: dialogDir.path);
       logger.info('Executing: $command');
       // Discards stdout and stderr as they are too large.
       await proc.stdout.drain<Object>();
