@@ -109,7 +109,8 @@ void main() {
 
     test('succeeded', () async {
       Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'), environment: anyNamed('environment')))
+          .thenAnswer((_) => Future.value(proc));
 
       HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery);
 
@@ -118,7 +119,8 @@ void main() {
 
     test('failed', () async {
       Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'), environment: anyNamed('environment')))
+          .thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm, discovery: discovery),

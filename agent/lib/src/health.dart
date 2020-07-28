@@ -150,7 +150,7 @@ Future<HealthCheckResult> removeCachedData(
 /// The dialogs often cause test flakiness and performance regressions.
 @visibleForTesting
 Future<HealthCheckResult> closeIosDialog(
-    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery}) async {
+    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery, platform.Platform pf = const platform.LocalPlatform()}) async {
   if (discovery == null) {
     discovery = devices;
   }
@@ -166,9 +166,21 @@ Future<HealthCheckResult> closeIosDialog(
     await unlockKeyChain();
     // Runs the single XCUITest in infra-dialog.
     await inDirectory(dialogDir, () async {
-      String command =
-          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test';
-      Process proc = await pm.start(command.split(' '), workingDirectory: dialogDir.path);
+      List<String> command =
+          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'.split(' ');
+      // Overwrites code signing config if that exists.
+      Map<String, String> env = <String, String>{};
+      if (pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
+        env['CODE_SIGN_STYLE'] = pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'];
+      }
+      if (pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM'] != null) {
+        env['DEVELOPMENT_TEAM'] = pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM'];
+      }
+      if (pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER'] != null) {
+        env['PROVISIONING_PROFILE_SPECIFIER'] = pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER'];
+      }
+
+      Process proc = await pm.start(command, workingDirectory: dialogDir.path, environment: env);
       logger.info('Executing: $command');
       // Discards stdout and stderr as they are too large.
       await proc.stdout.drain<Object>();
