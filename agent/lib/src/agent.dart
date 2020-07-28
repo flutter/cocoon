@@ -45,7 +45,7 @@ class CocoonTask {
     this.timeoutInMinutes = 0,
     this.key,
     this.cloudAuthToken,
-  }) :  assert(name != null),
+  })  : assert(name != null),
         assert(revision != null),
         assert(timeoutInMinutes != null);
 
