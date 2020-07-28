@@ -109,18 +109,30 @@ void main() {
 
     test('succeeded', () async {
       Process proc = FakeProcess(0);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
 
       HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery);
 
       expect(res.succeeded, isTrue);
     });
 
+    test('succeeded with code signing overwrite', () async {
+      Process proc = FakeProcess(0);
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+      platform.Platform pl = platform.FakePlatform(environment: <String, String>{
+        'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
+        'FLUTTER_XCODE_DEVELOPMENT_TEAM': 'S8QB4VV633',
+        'FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER': 'a name with space',
+      });
+
+      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery, pl: pl);
+
+      expect(res.succeeded, isTrue);
+    });
+
     test('failed', () async {
       Process proc = FakeProcess(123);
-      when(pm.start(any, workingDirectory: anyNamed('workingDirectory')))
-          .thenAnswer((_) => Future.value(proc));
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
 
       expect(
         closeIosDialog(pm: pm, discovery: discovery),

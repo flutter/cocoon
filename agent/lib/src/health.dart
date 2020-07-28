@@ -150,7 +150,7 @@ Future<HealthCheckResult> removeCachedData(
 /// The dialogs often cause test flakiness and performance regressions.
 @visibleForTesting
 Future<HealthCheckResult> closeIosDialog(
-    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery, platform.Platform pf = const platform.LocalPlatform()}) async {
+    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery, platform.Platform pl = const platform.LocalPlatform()}) async {
   if (discovery == null) {
     discovery = devices;
   }
@@ -169,10 +169,10 @@ Future<HealthCheckResult> closeIosDialog(
       List<String> command =
           'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'.split(' ');
       // Overwrites code signing config when that exists.
-      if (pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
-        command.add("CODE_SIGN_STYLE=${pf.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
-        command.add("DEVELOPMENT_TEAM=${pf.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
-        command.add("PROVISIONING_PROFILE_SPECIFIER=${pf.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
+      if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
+        command.add("CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
+        command.add("DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
+        command.add("PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
       }
       Process proc = await pm.start(command, workingDirectory: dialogDir.path);
       logger.info('Executing: $command');
