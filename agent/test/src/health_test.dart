@@ -6,9 +6,6 @@ import 'dart:io';
 
 import 'package:file/memory.dart';
 import 'package:process/process.dart';
-import 'package:process/record_replay.dart';
-import 'package:file/file.dart';
-import 'package:file/local.dart';
 import 'package:test/test.dart';
 import 'package:platform/platform.dart' as platform;
 import 'package:mockito/mockito.dart';
