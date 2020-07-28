@@ -2,10 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:file/memory.dart';
+import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:platform/platform.dart' as platform;
+import 'package:mockito/mockito.dart';
 
+import 'package:cocoon_agent/src/adb.dart';
 import 'package:cocoon_agent/src/utils.dart';
 import 'package:cocoon_agent/src/health.dart';
 
@@ -92,4 +97,62 @@ void main() {
       expect(result.succeeded, true);
     });
   });
+
+  group('testCloseIosDialog', () {
+    MockProcessManager pm;
+    DeviceDiscovery discovery;
+
+    setUp(() async {
+      pm = MockProcessManager();
+      discovery = FakeIosDeviceDiscovery();
+    });
+
+    test('succeeded', () async {
+      Process proc = FakeProcess(0);
+      when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
+
+      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery);
+
+      expect(res.succeeded, isTrue);
+    });
+
+    test('failed', () async {
+      Process proc = FakeProcess(123);
+      when(pm.start(any, workingDirectory: anyNamed("workingDirectory"))).thenAnswer((_) => Future.value(proc));
+
+      expect(
+        closeIosDialog(pm: pm, discovery: discovery),
+        throwsA(TypeMatcher<BuildFailedError>()),
+      );
+    });
+  });
+}
+
+class FakeIosDeviceDiscovery extends Fake implements DeviceDiscovery {
+  @override
+  Future<List<Device>> discoverDevices({int retriesDelayMs = 10000}) {
+    IosDevice d = IosDevice(deviceId: 'fakeDeviceId');
+    return Future.value(<Device>[d]);
+  }
+}
+
+class MockProcessManager extends Mock implements ProcessManager {}
+
+class FakeProcess extends Fake implements Process {
+  FakeProcess(int exitCode) : _exitCode = exitCode;
+
+  int _exitCode;
+
+  @override
+  Future<int> get exitCode => Future.value(_exitCode);
+
+  @override
+  Stream<List<int>> get stderr => Stream.fromIterable([
+        [1, 2, 3]
+      ]);
+
+  @override
+  Stream<List<int>> get stdout => Stream.fromIterable([
+        [1, 2, 3]
+      ]);
 }

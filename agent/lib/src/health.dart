@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:file/local.dart' as local;
 import 'package:file/file.dart' as file;
 import 'package:platform/platform.dart' as platform;
+import 'package:process/process.dart';
 
 import 'adb.dart';
 import 'agent.dart';
@@ -45,6 +46,7 @@ Future<AgentHealth> performHealthChecks(Agent agent) async {
     });
     results['remove-xcode-derived-data'] = await _captureErrors(removeXcodeDerivedData);
     results['remove-cached-data'] = await _captureErrors(removeCachedData);
+    results['close-ios-dialog'] = await _captureErrors(closeIosDialog);
   });
 
   return results;
@@ -139,6 +141,43 @@ Future<HealthCheckResult> removeCachedData(
   for (String folder in cacheFolders) {
     String folderPath = path.join(home, folder);
     rrm(fs.directory(folderPath));
+  }
+  return HealthCheckResult.success();
+}
+
+/// Closes system dialogs on iOS, e.g. the one about new system update.
+///
+/// The dialogs often cause test flakiness and performance regressions.
+@visibleForTesting
+Future<HealthCheckResult> closeIosDialog(
+    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery}) async {
+  if (discovery == null) {
+    discovery = devices;
+  }
+  Directory dialogDir = dir(Directory.current.path, 'tool', 'infra-dialog');
+  if (!await dialogDir.exists()) {
+    fail('Unable to find infra-dialog at $dialogDir');
+  }
+
+  for (Device d in await discovery.discoverDevices()) {
+    if (!(d is IosDevice)) {
+      continue;
+    }
+    await unlockKeyChain();
+    // Runs the single XCUITest in infra-dialog.
+    await inDirectory(dialogDir, () async {
+      String command =
+          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test';
+      Process proc = await pm.start(command.split(' '), workingDirectory: dialogDir.path);
+      logger.info('Executing: $command');
+      // Discards stdout and stderr as they are too large.
+      await proc.stdout.drain<Object>();
+      await proc.stderr.drain<Object>();
+      int exitCode = await proc.exitCode;
+      if (exitCode != 0) {
+        fail('Command "xcrun xcodebuild -project infra-dialog..." failed with exit code $exitCode.');
+      }
+    });
   }
   return HealthCheckResult.success();
 }

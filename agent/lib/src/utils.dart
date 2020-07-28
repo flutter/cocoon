@@ -636,3 +636,16 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
 /// futures are intentionally not awaited. This function may be used to ignore a
 /// particular future. It silences the unawaited_futures lint.
 void unawaited(Future<void> future) {}
+
+/// Unlocks the login keychain on macOS.
+///
+/// Whic is required to
+///   1. Enable Xcode to access the certificate for code signing.
+///   2. Mitigate "Your session has expired" issue. See flutter/flutter#17860.
+Future<Null> unlockKeyChain() async {
+  if (Platform.isMacOS) {
+    await exec(
+        'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
+        canFail: false, silent: true);
+  }
+}
