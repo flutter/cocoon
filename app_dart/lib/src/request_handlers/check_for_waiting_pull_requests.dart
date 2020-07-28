@@ -203,6 +203,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         checkRuns =
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
+      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
       final Set<String> failingStatuses = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
@@ -257,7 +258,6 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         }
       }
     }
-    checkRuns = checkRuns ?? <Map<String, dynamic>>[];
     log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
     for (Map<String, dynamic> checkRun in checkRuns) {
       final String name = checkRun['name'] as String;
