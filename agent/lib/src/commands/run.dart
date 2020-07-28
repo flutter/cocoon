@@ -48,12 +48,10 @@ class RunCommand extends Command {
       await killAllRunningProcessesOnWindows('dart');
     }
 
-    CocoonTask task = CocoonTask(name: taskName, revision: revision, timeoutInMinutes: 0);
+    CocoonTask task = CocoonTask(name: taskName, revision: revision);
     TaskResult result;
     try {
       if (task.revision != null) {
-        // Sync flutter outside of the task so it does not contribute to
-        // the task timeout.
         await getFlutterAt(task.revision).timeout(const Duration(minutes: 10));
       } else {
         logger.info('NOTE: No --revision specified. Running on current checkout.');
