@@ -150,7 +150,9 @@ Future<HealthCheckResult> removeCachedData(
 /// The dialogs often cause test flakiness and performance regressions.
 @visibleForTesting
 Future<HealthCheckResult> closeIosDialog(
-    {ProcessManager pm = const LocalProcessManager(), DeviceDiscovery discovery, platform.Platform pl = const platform.LocalPlatform()}) async {
+    {ProcessManager pm = const LocalProcessManager(),
+    DeviceDiscovery discovery,
+    platform.Platform pl = const platform.LocalPlatform()}) async {
   if (discovery == null) {
     discovery = devices;
   }
@@ -167,8 +169,11 @@ Future<HealthCheckResult> closeIosDialog(
     // Runs the single XCUITest in infra-dialog.
     await inDirectory(dialogDir, () async {
       List<String> command =
-          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'.split(' ');
-      // Overwrites code signing config when that exists.
+          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'
+              .split(' ');
+      // By default the above command relies on automatic code signing, while on devicelab machines
+      // it should utilize manual code signing as that is more stable. Below overwrites the code
+      // signing config if one exists in the environment.
       if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
         command.add("CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
         command.add("DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
