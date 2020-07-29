@@ -149,7 +149,7 @@ void main() {
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
-              'Message': 'test message 1',
+              'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'master'
