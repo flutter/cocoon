@@ -19,6 +19,7 @@ class Commit extends Model {
     this.sha,
     this.author,
     this.authorAvatarUrl,
+    this.message,
     this.repository,
     this.branch = 'master',
   }) {
@@ -45,6 +46,13 @@ class Commit extends Model {
   @StringProperty(propertyName: 'Commit.Author.AvatarURL', required: true)
   String authorAvatarUrl;
 
+  /// The commit message.
+  ///
+  /// This may be null, since we didn't always load/store this property in
+  /// the datastore, so historical entries won't have this information.
+  @StringProperty(propertyName: 'Commit.Message', required: false)
+  String message;
+
   /// The repository on which the commit was made.
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
@@ -66,6 +74,7 @@ class Commit extends Model {
       ..write(', sha: $sha')
       ..write(', author: $author')
       ..write(', authorAvatarUrl: $authorAvatarUrl')
+      ..write(', message: ${message?.split("\n")?.first}')
       ..write(', repository: $repository')
       ..write(', branch: $branch')
       ..write(')');
@@ -92,6 +101,7 @@ class SerializableCommit {
       'CreateTimestamp': commit.timestamp,
       'Commit': <String, dynamic>{
         'Sha': commit.sha,
+        'Message': commit.message,
         'Author': <String, dynamic>{
           'Login': commit.author,
           'avatar_url': commit.authorAvatarUrl,
