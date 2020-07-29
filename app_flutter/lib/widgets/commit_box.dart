@@ -135,14 +135,17 @@ class CommitOverlayContents extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          AnimatedDefaultTextStyle(
-                            style: theme.textTheme.bodyText2.copyWith(
-                              color: theme.textTheme.caption.color,
+                          if (commit.message != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: AnimatedDefaultTextStyle(
+                                style: theme.textTheme.bodyText2.copyWith(
+                                  color: theme.textTheme.caption.color,
+                                ),
+                                duration: kThemeChangeDuration,
+                                child: SelectableText(commit.message),
+                              ),
                             ),
-                            duration: kThemeChangeDuration,
-                            child: SelectableText('${commit.message} ${commit.message} ${commit.message}'),
-                          ),
-                          const SizedBox(height: 4),
                           SelectableText(commit.author),
                         ],
                       ),
@@ -192,9 +195,9 @@ class _HyperlinkState extends State<Hyperlink> {
         child: Text(
           widget.text,
           style: DefaultTextStyle.of(context).style.copyWith(
-            color: const Color(0xff1377c0),
-            decoration: hover ? TextDecoration.underline : TextDecoration.none,
-          ),
+                color: const Color(0xff1377c0),
+                decoration: hover ? TextDecoration.underline : TextDecoration.none,
+              ),
         ),
       ),
     );
