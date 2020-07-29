@@ -15,5 +15,5 @@ for cocoon. It follows format:
 }
 ```
 This file will be mainly used in [`flutter/cocoon`](https://github.com/flutter/cocoon)
-to update luci task statuses of cocoob pre-submit tests.
+to update luci task statuses of cocoon pre-submit tests.
 
