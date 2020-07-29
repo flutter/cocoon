@@ -94,7 +94,7 @@ Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClie
     builderMap = json.decode(builderContent) as Map<String, dynamic>;
   } on FormatException catch (e) {
     log.error('error: $e');
-    builderMap = <String, dynamic>{'builders':<dynamic>[]};
+    builderMap = <String, dynamic>{'builders': <dynamic>[]};
   }
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
