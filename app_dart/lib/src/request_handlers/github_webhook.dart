@@ -61,6 +61,11 @@ class GithubWebhook extends RequestHandler<Body> {
   @override
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
+
+    // Set service class logger.
+    luciBuildService.setLogger(log);
+    githubChecksService.setLogger(log);
+
     if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
