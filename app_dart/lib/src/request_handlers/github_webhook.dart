@@ -23,7 +23,7 @@ import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
 /// List of repos that require CQ+1 label.
-const Set<String> kNeedsCQLabelList = <String>{'flutter/flutter'};
+const Set<String> kNeedsCQLabelList = <String>{};
 
 /// List of repos that require check for golden triage.
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
