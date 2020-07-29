@@ -113,10 +113,12 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
+          message: 'test message 1',
           branch: 'master');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
+          message: 'test message 2',
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
@@ -147,6 +149,7 @@ void main() {
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
+              'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'master'
@@ -195,6 +198,7 @@ void main() {
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
+              'Message': null,
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'flutter-1.1-candidate.1'

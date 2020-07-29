@@ -21,6 +21,7 @@ class Commit extends $pb.GeneratedMessage {
     ..aOS(5, 'authorAvatarUrl', protoName: 'authorAvatarUrl')
     ..aOS(6, 'repository')
     ..aOS(7, 'branch')
+    ..aOS(8, 'message')
     ..hasRequiredFields = false;
 
   Commit._() : super();
@@ -125,4 +126,16 @@ class Commit extends $pb.GeneratedMessage {
   $core.bool hasBranch() => $_has(6);
   @$pb.TagNumber(7)
   void clearBranch() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get message => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set message($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasMessage() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMessage() => clearField(8);
 }

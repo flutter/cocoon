@@ -75,7 +75,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       }
       log.debug('Found ${newCommits.length} new commits for branch $branch on GitHub');
 
-      //Save [Commit] to BigQuery and create [Task] in Datastore.
+      // Save [Commit] to BigQuery and create [Task] in Datastore.
       await _saveData(newCommits, datastore);
     }
     return Body.empty;
@@ -104,6 +104,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           'CommitSha': commit.sha,
           'CommitAuthorLogin': commit.author,
           'CommitAuthorAvatarURL': commit.authorAvatarUrl,
+          'CommitMessage': commit.message,
           'Branch': commit.branch,
         },
       });
@@ -152,6 +153,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           sha: commit.sha,
           author: commit.author.login,
           authorAvatarUrl: commit.author.avatarUrl,
+          message: commit.commit.message,
           branch: branch,
         ));
       } else {
