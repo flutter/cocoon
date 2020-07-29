@@ -159,6 +159,7 @@ class LuciBuildService {
 
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
+      log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',
         bucket: 'try',
@@ -170,6 +171,8 @@ class LuciBuildService {
         'user_agent': 'flutter-cocoon',
       };
       if (checkSuiteEvent != null || config.isChecksSupportedRepo(slug)) {
+        log.info('Creating check run for PR: $prNumber, Commit: $commitSha, '
+            'Owner: ${slug.owner} and Repo: ${slug.name}');
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
           githubClient,
           slug,
