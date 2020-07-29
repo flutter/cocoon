@@ -21,6 +21,7 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/utilities/mocks.dart';
 
@@ -71,6 +72,8 @@ void main() {
         serviceAccountInfo,
         githubChecksUtil: mockGithubChecksUtil,
       );
+
+      luciBuildService.setLogger(FakeLogging());
 
       githubStatusService = GithubStatusService(
         config,

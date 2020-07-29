@@ -33,6 +33,10 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String repo = request.uri.queryParameters['repo'] ?? '';
     final String pr = request.uri.queryParameters['pr'] ?? '';
     final String commitSha = request.uri.queryParameters['commitSha'] ?? '';
+
+    // Set logger for service classes.
+    luciBuildService.setLogger(log);
+
     if (<String>[repo, pr, commitSha].any((String element) => element.isEmpty)) {
       throw BadRequestException('Any of repo, pr or commitSha is empty: '
           'repo=$repo, pr=$pr, commitSha=$commitSha');
