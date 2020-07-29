@@ -380,6 +380,7 @@ class AppEngineCocoonService implements CocoonService {
       ..sha = commit['Sha']
       ..author = author['Login']
       ..authorAvatarUrl = author['avatar_url']
+      ..message = commit['Message']
       ..repository = checklist['FlutterRepositoryPath']
       ..branch = checklist['Branch'];
   }
