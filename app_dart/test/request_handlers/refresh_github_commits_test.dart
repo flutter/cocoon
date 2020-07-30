@@ -168,7 +168,7 @@ void main() {
       httpClient.request.response.body = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
-      final Commit commit = db.values.values.whereType<Commit>().first;
+      final Commit commit = db.values.values.whereType<Commit>().single;
       expect(commit.repository, 'flutter/flutter');
       expect(commit.branch, 'master');
       expect(commit.sha, '1');
