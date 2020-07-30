@@ -55,7 +55,9 @@ void main() {
           ..avatarUrl = 'http://example.org/avatar.jpg';
         final GitCommitUser committer =
             GitCommitUser('Username', 'Username@abc.com', DateTime.fromMillisecondsSinceEpoch(int.parse(sha)));
-        final GitCommit gitCommit = GitCommit()..committer = committer;
+        final GitCommit gitCommit = GitCommit()
+          ..message = 'commit message'
+          ..committer = committer;
         commits.add(RepositoryCommit()
           ..sha = sha
           ..author = author
@@ -157,6 +159,23 @@ void main() {
       httpClient.request.response.body = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
+    });
+
+    test('inserts all relevant fields of the commit', () async {
+      githubCommits = <String>['1'];
+      config.flutterBranchesValue = <String>['master'];
+      expect(db.values.values.whereType<Commit>().length, 0);
+      httpClient.request.response.body = singleTaskManifestYaml;
+      await tester.get<Body>(handler);
+      expect(db.values.values.whereType<Commit>().length, 1);
+      final Commit commit = db.values.values.whereType<Commit>().single;
+      expect(commit.repository, 'flutter/flutter');
+      expect(commit.branch, 'master');
+      expect(commit.sha, '1');
+      expect(commit.timestamp, 1);
+      expect(commit.author, 'Username');
+      expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
+      expect(commit.message, 'commit message');
     });
 
     test('skips commits for which transaction commit fails', () async {

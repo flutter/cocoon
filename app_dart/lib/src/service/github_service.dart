@@ -55,13 +55,14 @@ class GithubService {
       commits = commits.take(1).toList();
     }
 
-    return commits.map((dynamic commit) {
+    return commits.map<RepositoryCommit>((Map<String, dynamic> commit) {
       return RepositoryCommit()
         ..sha = commit['sha'] as String
         ..author = (User()
           ..login = commit['author']['login'] as String
           ..avatarUrl = commit['author']['avatar_url'] as String)
         ..commit = (GitCommit()
+          ..message = commit['commit']['message'] as String
           ..committer = (GitCommitUser(
               commit['commit']['author']['name'] as String,
               commit['commit']['author']['email'] as String,
