@@ -69,7 +69,7 @@ void main() {
     expect(find.text(shortSha), findsNothing);
   });
 
-  testWidgets('tapping GitHub button in CommitBox redirects to GitHub', (WidgetTester tester) async {
+  testWidgets('tapping sha in CommitBox redirects to GitHub', (WidgetTester tester) async {
     // The url_launcher calls get logged in this channel
     const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
     final List<MethodCall> log = <MethodCall>[];
@@ -84,7 +84,7 @@ void main() {
     await tester.pump();
 
     // Tap the redirect button
-    await tester.tap(find.text('OPEN GITHUB'));
+    await tester.tap(find.byType(Hyperlink));
     await tester.pump();
 
     expect(
