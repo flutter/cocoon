@@ -374,15 +374,18 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, Object> commit = checklist['Commit'];
     final Map<String, Object> author = commit['Author'];
 
-    return Commit()
+    final Commit result = Commit()
       ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key']))
       ..timestamp = Int64() + checklist['CreateTimestamp']
       ..sha = commit['Sha']
       ..author = author['Login']
       ..authorAvatarUrl = author['avatar_url']
-      ..message = commit['Message']
       ..repository = checklist['FlutterRepositoryPath']
       ..branch = checklist['Branch'];
+    if (commit['Message'] != null) {
+      result.message = commit['Message'];
+    }
+    return result;
   }
 
   List<Stage> _stagesFromJson(List<Object> json) {
