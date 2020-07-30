@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cocoon_service/protos.dart' show Commit;
 
 import 'commit_author_avatar.dart';
-import 'progress_button.dart';
 
 // TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,
 // so that all our popups have the same look and feel and we don't duplicate code.
@@ -118,14 +117,14 @@ class CommitOverlayContents extends StatelessWidget {
               minimum: const EdgeInsets.all(16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   CommitAuthorAvatar(commit: commit),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsetsDirectional.only(start: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
+                        children: <Widget>[
                           AnimatedDefaultTextStyle(
                             style: theme.textTheme.subtitle1,
                             duration: kThemeChangeDuration,
@@ -201,6 +200,5 @@ class _HyperlinkState extends State<Hyperlink> {
         ),
       ),
     );
-    return SelectableText(widget.text);
   }
 }
