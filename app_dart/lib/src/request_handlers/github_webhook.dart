@@ -22,9 +22,6 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
-/// List of repos that require CQ+1 label.
-const Set<String> kNeedsCQLabelList = <String>{};
-
 /// List of repos that require check for golden triage.
 const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
 
@@ -134,33 +131,13 @@ class GithubWebhook extends RequestHandler<Body> {
         await _scheduleIfMergeable(pullRequestEvent);
         break;
       case 'labeled':
-        // This should only trigger a LUCI job for flutter/flutter right now,
-        // since it is in the needsCQLabelList.
-        if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          await _scheduleIfMergeable(pullRequestEvent);
-        }
-        break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
         await _scheduleIfMergeable(pullRequestEvent);
         break;
-      case 'unlabeled':
-        // Cancel the jobs if someone removed the label on a repo that needs
-        // them.
-        if (!kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-          break;
-        }
-        if (!await _checkForCqLabel(pr.labels)) {
-          await luciBuildService.cancelBuilds(
-            pullRequestEvent.repository.slug(),
-            pr.number,
-            pr.head.sha,
-            'Tryjobs canceled (label removed)',
-          );
-        }
-        break;
       // Ignore the rest of the events.
+      case 'unlabeled':
       case 'assigned':
       case 'locked':
       case 'review_request_removed':
@@ -182,12 +159,6 @@ class GithubWebhook extends RequestHandler<Body> {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
     final PullRequest pr = pullRequestEvent.pullRequest;
-    // For flutter/flutter tests need to be optimized before enforcing CQ.
-    if (kNeedsCQLabelList.contains(pr.base.repo.fullName.toLowerCase())) {
-      if (!await _checkForCqLabel(pr.labels)) {
-        return;
-      }
-    }
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await luciBuildService.cancelBuilds(
@@ -202,12 +173,6 @@ class GithubWebhook extends RequestHandler<Body> {
       commitSha: pr.head.sha,
     );
     await githubStatusService.setBuildsPendingStatus(pr.number, pr.head.sha, pr.head.repo.slug());
-  }
-
-  /// Checks the issue in the given repository for `config.cqLabelName`.
-  Future<bool> _checkForCqLabel(List<IssueLabel> labels) async {
-    final String cqLabelName = config.cqLabelName;
-    return labels.any((IssueLabel label) => label.name == cqLabelName);
   }
 
   Future<bool> _isIgnoredForGold(String eventAction, PullRequest pr) async {

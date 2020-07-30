@@ -194,8 +194,6 @@ class Config {
   // TODO(keyonghan): update all existing APIs to use this reference, https://github.com/flutter/flutter/issues/48987.
   KeyHelper get keyHelper => KeyHelper(applicationContext: context.applicationContext);
 
-  String get cqLabelName => 'CQ+1';
-
   String get defaultBranch => kDefaultBranchName;
 
   // Default number of commits to return for benchmark dashboard.
