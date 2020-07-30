@@ -125,12 +125,15 @@ class CommitOverlayContents extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          AnimatedDefaultTextStyle(
-                            style: theme.textTheme.subtitle1,
-                            duration: kThemeChangeDuration,
-                            child: Hyperlink(
-                              text: commit.sha.substring(0, 7),
-                              onPressed: _openGithub,
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AnimatedDefaultTextStyle(
+                              style: theme.textTheme.subtitle1,
+                              duration: kThemeChangeDuration,
+                              child: Hyperlink(
+                                text: commit.sha.substring(0, 7),
+                                onPressed: _openGithub,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -185,6 +188,7 @@ class _HyperlinkState extends State<Hyperlink> {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle defaultStyle = DefaultTextStyle.of(context).style;
     return MouseRegion(
       onEnter: (PointerEnterEvent _) => setState(() => hover = true),
       onExit: (PointerExitEvent _) => setState(() => hover = false),
@@ -193,10 +197,10 @@ class _HyperlinkState extends State<Hyperlink> {
         onTap: widget.onPressed,
         child: Text(
           widget.text,
-          style: DefaultTextStyle.of(context).style.copyWith(
-                color: const Color(0xff1377c0),
-                decoration: hover ? TextDecoration.underline : TextDecoration.none,
-              ),
+          style: defaultStyle.copyWith(
+            color: const Color(0xff1377c0),
+            decoration: hover ? TextDecoration.underline : TextDecoration.none,
+          ),
         ),
       ),
     );
