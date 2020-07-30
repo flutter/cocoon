@@ -4,6 +4,20 @@ This folder contains a Dart based backend for Cocoon.
 
 ## Building and running
 
+#### Prerequisites
+
+You'll need to install the Google Cloud Developer Tools Command Line Interface
+(`gcloud`) in order to do several of the tasks below. Visit
+https://cloud.google.com/sdk/docs/quickstarts for instructions on how to install
+these tools for your platform.
+
+Upon downloading and installing the Google Cloud SDK, you should initialize it
+and authenticate yourself by running:
+
+```sh
+gcloud init
+```
+
 ### Running the tests
 
 ```sh
