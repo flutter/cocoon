@@ -131,6 +131,7 @@ class GithubWebhook extends RequestHandler<Body> {
         await _scheduleIfMergeable(pullRequestEvent);
         break;
       case 'labeled':
+        break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
         // and schedule new ones.
