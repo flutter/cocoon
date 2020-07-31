@@ -47,6 +47,7 @@ class Config {
   static const Set<String> checksSupportedRepos = <String>{
     'flutter/cocoon',
     'flutter/engine',
+    'flutter/flutter',
     'flutter/packages',
   };
 
