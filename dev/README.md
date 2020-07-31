@@ -15,5 +15,8 @@ for cocoon. It follows format:
 }
 ```
 This file will be mainly used in [`flutter/cocoon`](https://github.com/flutter/cocoon)
-to update luci task statuses of cocoon pre-submit tests.
+to trigger LUCI presubmit tasks.
+
+If any new changes, please validate json contents by running
+`dart validat_json.dart cocoon_try_builders.json`.
 
