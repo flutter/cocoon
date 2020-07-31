@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
@@ -32,8 +31,7 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(
-      Config config, this.buildBucketClient, this.luciBuildService, this.githubStatusService, this.githubChecksService,
+  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService,
       {HttpClient skiaClient})
       : assert(buildBucketClient != null),
         skiaClient = skiaClient ?? HttpClient(),
@@ -44,10 +42,6 @@ class GithubWebhook extends RequestHandler<Body> {
 
   /// An Http Client for querying the Skia Gold API.
   final HttpClient skiaClient;
-
-  /// Github status service to update the state of the build
-  /// in the Github UI.
-  final GithubStatusService githubStatusService;
 
   /// LUCI service class to communicate with buildBucket service.
   final LuciBuildService luciBuildService;
@@ -155,10 +149,7 @@ class GithubWebhook extends RequestHandler<Body> {
   }
 
   /// This method assumes that jobs should be cancelled if they are already
-  /// runnning. [githubStatusService] is used to update the status of a build
-  /// in the GitHub UI. When the build is triggered the status is set to "pending"
-  /// without a details link. Once the test starts running then the state is set
-  /// to "pending" with a details link pointing to the build in LUCI infrastructure.
+  /// runnning.
   Future<void> _scheduleIfMergeable(
     PullRequestEvent pullRequestEvent,
   ) async {
@@ -178,7 +169,6 @@ class GithubWebhook extends RequestHandler<Body> {
       prNumber: pr.number,
       commitSha: pr.head.sha,
     );
-    await githubStatusService.setBuildsPendingStatus(pr.number, pr.head.sha, pr.head.repo.slug());
   }
 
   Future<bool> _isIgnoredForGold(String eventAction, PullRequest pr) async {

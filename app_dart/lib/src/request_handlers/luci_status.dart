@@ -17,7 +17,6 @@ import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
@@ -81,16 +80,12 @@ class LuciStatusHandler extends RequestHandler<Body> {
         BuildPushMessage.fromJson(json.decode(envelope.message.data) as Map<String, dynamic>);
     final Build build = buildPushMessage.build;
     final String builderName = build.tagsByName('builder').single;
-
-    const String shaPrefix = 'sha/git/';
     log.debug('Available tags: ${build.tags.toString()}');
     // Skip status update if we can not get the sha tag.
     if (build.tagsByName('buildset').isEmpty) {
       log.warning('Buildset tag not included, skipping Status Updates');
       return Body.empty;
     }
-    final String sha =
-        build.tagsByName('buildset').firstWhere((String tag) => tag.startsWith(shaPrefix)).substring(shaPrefix.length);
     log.debug('Setting status: ${buildPushMessage.toJson()} for $builderName');
     final Map<String, dynamic> userData = jsonDecode(buildPushMessage.userData) as Map<String, dynamic>;
     if (userData != null && userData.containsKey('repo_owner') && userData.containsKey('repo_name')) {
@@ -107,55 +102,9 @@ class LuciStatusHandler extends RequestHandler<Body> {
         slug,
       );
     } else {
-      // This message is coming from a repo that doesn't support checks api and
-      // we need to create the slug from the builder configuration files.
-      slug = await repoNameForBuilder(await config.luciTryBuilders, builderName);
-    }
-    switch (buildPushMessage.build.status) {
-      case Status.completed:
-        await _markCompleted(
-          sha: sha,
-          builderName: builderName,
-          build: build,
-          githubStatusService: githubStatusService,
-          slug: slug,
-        );
-        break;
-      case Status.scheduled:
-      case Status.started:
-        final bool success = await githubStatusService.setPendingStatus(
-          ref: sha,
-          builderName: builderName,
-          buildUrl: build.url,
-          slug: slug,
-        );
-        if (!success) {
-          log.warning('Failed to set status for $builderName');
-        }
-        break;
+      log.error('This repo does not support checks API');
     }
     return Body.empty;
-  }
-
-  /// Updates the github status using the push_message [build] sent by LUCI
-  /// as a pub/sub message.
-  Future<void> _markCompleted({
-    @required String sha,
-    @required String builderName,
-    @required Build build,
-    @required GithubStatusService githubStatusService,
-    @required RepositorySlug slug,
-  }) async {
-    assert(sha != null);
-    assert(builderName != null);
-    assert(build != null);
-    await githubStatusService.setCompletedStatus(
-      ref: sha,
-      builderName: builderName,
-      buildUrl: build.url,
-      result: build.result,
-      slug: slug,
-    );
   }
 
   Future<bool> _authenticateRequest(HttpHeaders headers) async {

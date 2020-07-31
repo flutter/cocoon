@@ -59,7 +59,6 @@ Future<void> main() async {
         config,
         buildBucketClient,
         luciBuildService,
-        githubStatusService,
         githubChecksService,
       ),
       '/api/luci-status-handler': LuciStatusHandler(

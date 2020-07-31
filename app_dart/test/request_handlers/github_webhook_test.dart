@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import 'package:crypto/crypto.dart';
@@ -40,7 +39,6 @@ void main() {
     const String serviceAccountEmail = 'test@test';
     LuciBuildService luciBuildService;
     ServiceAccountInfo serviceAccountInfo;
-    GithubStatusService githubStatusService;
     MockGithubChecksService mockGithubChecksService;
     final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
@@ -73,15 +71,9 @@ void main() {
 
       luciBuildService.setLogger(FakeLogging());
 
-      githubStatusService = GithubStatusService(
-        config,
-        luciBuildService,
-      );
-
       mockGithubChecksService = MockGithubChecksService();
 
-      webhook = GithubWebhook(
-          config, mockBuildBucketClient, luciBuildService, githubStatusService, mockGithubChecksService,
+      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService, mockGithubChecksService,
           skiaClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
@@ -1311,56 +1303,8 @@ void main() {
       }
     }
   ]
-},
-{
-  "requests":[
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "createdBy":"test@test",
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"github_link",
-              "value":"https://github.com/flutter/cocoon/pull/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"flutter-cocoon"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"recipe"
-            }
-          ]
-        }
-      }
-    }
-  ]
-}]''';
+}]
+''';
         expect(json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
             expectedJson.replaceAll(RegExp(r'\s|\n'), ''));
       }
@@ -1438,7 +1382,7 @@ void main() {
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
+          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]}]',
         );
       });
     });
