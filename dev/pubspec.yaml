@@ -1,4 +1,4 @@
-name: license_checks
+name: dev_check
 description: Script to check licenses.
 
 environment:
@@ -6,6 +6,8 @@ environment:
   sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
+  cocoon_service:
+    path: ../app_dart
   path: 1.7.0
   platform: 2.2.1
 

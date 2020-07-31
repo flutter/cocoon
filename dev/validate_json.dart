@@ -7,6 +7,8 @@ import 'dart:io';
 import 'dart:io' show File;
 import 'dart:io' as io_internals show exit;
 
+import 'package:cocoon_service/src/service/luci.dart';
+
 final bool hasColor = stdout.supportsAnsiEscapes;
 final String bold = hasColor ? '\x1B[1m' : ''; // used for shard titles
 final String red = hasColor ? '\x1B[31m' : ''; // used for errors
@@ -37,6 +39,8 @@ Future<void> main(List<String> args) async {
       }''');
       exitWithError(messages);
     }
+    List<LuciBuilder> luciBuilders = builders.map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>)).toList();
+    print('${bold}Supported builders:$reset ${luciBuilders.map((e) => e.toJson()).toList()}');
   } on ExitException catch (error) {
     error.apply();
   }
