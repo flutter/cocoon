@@ -84,9 +84,18 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 }
 
 /// Gets supported luci builders based on [bucket] via GitHub http request.
-Future<String> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
   final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
-  final String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
-  return content ?? '{"builders":[]}';
+  String builderContent = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
+  builderContent ??= '{"builders":[]}';
+  Map<String, dynamic> builderMap;
+  try {
+    builderMap = json.decode(builderContent) as Map<String, dynamic>;
+  } on FormatException catch (e) {
+    log.error('error: $e');
+    builderMap = <String, dynamic>{'builders': <dynamic>[]};
+  }
+  final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+  return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
 }

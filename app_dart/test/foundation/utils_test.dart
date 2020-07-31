@@ -18,16 +18,17 @@ const String branchRegExp = '''
       flutter-1.1-candidate.1
       ''';
 const String luciBuilders = '''
-      builders: [
-        {
-          test1:value1,
-          test2:value2,
-        },{
-          test1:value3,
-          test2:value4,
-          test3:value5,
-        }
-      ]
+      {
+        "builders":[
+            {
+              "name":"Cocoon",
+              "repo":"cocoon"
+            }, {
+              "name":"Cocoon2",
+              "repo":"cocoon"
+            }
+        ]
+      }
       ''';
 
 void main() {
@@ -116,20 +117,19 @@ void main() {
       });
       test('returns luci builders', () async {
         lucBuilderHttpClient.request.response.body = luciBuilders;
-        final String builders =
+        final List<Map<String, dynamic>> builders =
             await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
-        expect(builders, '''
-      builders: [
-        {
-          test1:value1,
-          test2:value2,
-        },{
-          test1:value3,
-          test2:value4,
-          test3:value5,
-        }
-      ]
-      ''');
+        expect(builders.length, 2);
+        expect(builders[0]['name'], 'Cocoon');
+        expect(builders[0]['repo'], 'cocoon');
+      });
+
+      test('logs error and returns empty list when json file is invalid', () async {
+        lucBuilderHttpClient.request.response.body = '{"builders":[';
+        final List<Map<String, dynamic>> builders =
+            await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
+        expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
+        expect(builders.length, 0);
       });
 
       test('returns empty list when http request fails', () async {
@@ -137,9 +137,9 @@ void main() {
         lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         lucBuilderHttpClient.request.response.body = luciBuilders;
-        final String builders =
+        final List<Map<String, dynamic>> builders =
             await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
-        expect(builders, '{"builders":[]}');
+        expect(builders.length, 0);
       });
     });
 
