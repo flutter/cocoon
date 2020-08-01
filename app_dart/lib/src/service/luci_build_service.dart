@@ -128,7 +128,6 @@ class LuciBuildService {
     assert(prNumber != null);
     assert(commitSha != null);
     assert(slug != null);
-    final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
     if (!config.githubPresubmitSupportedRepo(slug.name)) {
       throw BadRequestException('Repository ${slug.name} is not supported by this service.');
     }
@@ -158,6 +157,7 @@ class LuciBuildService {
     }
 
     final List<Request> requests = <Request>[];
+    final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
     for (String builder in builderNames) {
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
