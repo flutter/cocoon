@@ -145,7 +145,7 @@ class CommitOverlayContents extends StatelessWidget {
                                   color: theme.textTheme.caption.color,
                                 ),
                                 duration: kThemeChangeDuration,
-                                child: SelectableText(commit.message),
+                                child: SelectableText(commit.message.split('\n').first),
                               ),
                             ),
                           SelectableText(commit.author),
