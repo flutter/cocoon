@@ -30,7 +30,6 @@ class FakeConfig implements Config {
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
-    this.goldenBreakingChangeMessageValue,
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
     this.luciTryBuildersValue,
@@ -66,7 +65,6 @@ class FakeConfig implements Config {
   String wrongBaseBranchPullRequestMessageValue;
   String wrongHeadBranchPullRequestMessageValue;
   String releaseBranchPullRequestMessageValue;
-  String goldenBreakingChangeMessageValue;
   String goldenTriageMessageValue;
   String webhookKeyValue;
   String flutterBuildValue;
@@ -141,9 +139,6 @@ class FakeConfig implements Config {
 
   @override
   String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue;
-
-  @override
-  String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
 
   @override
   String get goldenTriageMessage => goldenTriageMessageValue;

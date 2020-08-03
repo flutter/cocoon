@@ -106,33 +106,51 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
 
-      if (runsGoldenFileTests) {
+      if (runsGoldenFileTests ||
+        // Adding this short-circuit to cut down GitHub API requests. If we are
+        // already failing, or still pending on Cirrus, no need to query for
+        // LUCI status.
+        !(cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
+        cirrusCheckStatuses.any(kCirrusFailedStates.contains))) {
         // Make sure we account for any running Luci builds
-        final List<String> luciIncompleteStates = <String>['failure', 'unreachable', 'pending'];
-        final List<String> luciStatuses = <String>[];
-        final Stream<RepositoryStatus> statusStream = gitHubClient.repositories.listStatuses(slug, pr.head.sha);
-        await for (RepositoryStatus status in statusStream) {
-          if (status.description != null && status.description.contains('LUCI')) {
-            log.debug('Found Luci build status for pull request #${pr.number}, '
-                'commit ${pr.head.sha}: ${status.description} (${status.state})');
-            luciStatuses.add(status.state);
+        final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
+        final List<String> luciIncompleteChecks = <String>[];
+        final Map<String, dynamic> data = await _queryGraphQL(
+          log,
+          gitHubGraphQLClient,
+          pr.number,
+        );
+        final Map<String, dynamic> prData = data['repository']['pullRequest'] as Map<String, dynamic>;
+        final Map<String, dynamic> commit = prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+        List<Map<String, dynamic>> checkRuns;
+        if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
+          checkRuns = (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+        }
+        checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+        log.debug('Found luci checks: $checkRuns');
+        for (Map<String, dynamic> checkRun in checkRuns) {
+          final String name = checkRun['name'] as String;
+          if (checkRun['status'] != 'COMPLETED') {
+            luciIncompleteChecks.add(name);
+          } else if (checkRun['conclusion'] != 'SUCCESS') {
+            luciIncompleteChecks.add(name);
           }
         }
 
         if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
             cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
-            luciStatuses.any(luciIncompleteStates.contains) ||
+            luciIncompleteChecks.isNotEmpty ||
             pr.draft) {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are considered pending
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
           statusRequest =
-              _createStatus(GithubGoldStatusUpdate.statusRunning, 'This check is waiting for the all clear from Gold.');
+              _createStatus(GithubGoldStatusUpdate.statusRunning, 'This check is waiting for other checks to finish.', pr.number);
         } else {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
-          statusRequest = _createStatus(goldStatus, _getStatusDescription(goldStatus));
+          statusRequest = _createStatus(goldStatus, _getStatusDescription(goldStatus), pr.number);
           log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
@@ -164,9 +182,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 
   /// Returns a GitHub Status for the given state and description.
-  CreateStatus _createStatus(String state, String description) {
+  CreateStatus _createStatus(String state, String description, int prNumber) {
     final CreateStatus statusUpdate = CreateStatus(state)
-      ..targetUrl = 'https://flutter-gold.skia.org/changelists'
+      ..targetUrl = 'https://flutter-gold.skia.org/search?issue=$prNumber&new_clstore=true'
       ..context = 'flutter-gold'
       ..description = description;
     return statusUpdate;
@@ -234,9 +252,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     if (await _isFirstComment(gitHubClient, pr, slug)) {
       body = 'Golden file changes have been found for this pull '
               'request. Click [here to view and triage](${_getTriageUrl(pr.number)}) '
-              '(e.g. because this is an intentional change).\n\n' +
-          config.goldenBreakingChangeMessage +
-          '\n\n';
+              '(e.g. because this is an intentional change).\n\n';
     } else {
       body = 'Golden file changes are available for triage from new commit, '
           'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
@@ -246,11 +262,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         'as a draft pull request above. You will still be able to view image results '
         'on the dashboard, and the check will not try to resolve itself until '
         'marked ready for review.\n\n'
+        'For more guidance, visit '
+        '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
+        '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+        'and make sure this patch meets those guidelines before LGTMing.\n\n'
         '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
-      'severe: API break',
     ]);
   }
 
@@ -282,3 +301,64 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     return true;
   }
 }
+
+Future<Map<String, dynamic>> _queryGraphQL(
+  Logging log,
+  GraphQLClient client,
+  int prNumber
+) async {
+  final QueryResult result = await client.query(
+    QueryOptions(
+      document: pullRequestChecksQuery,
+      fetchPolicy: FetchPolicy.noCache,
+      variables: <String, dynamic>{
+        'sPullRequest': prNumber,
+      },
+    ),
+  );
+
+  if (result.hasErrors) {
+    for (GraphQLError error in result.errors) {
+      log.error(error.toString());
+    }
+    throw const BadRequestException('GraphQL query failed');
+  }
+  return result.data as Map<String, dynamic>;
+}
+
+const String pullRequestChecksQuery = r'''
+query ChecksForPullRequest($sPullRequest: int!) {
+  repository(owner: "flutter", name: "flutter") {
+    pullRequest(number: $sPullRequest) {
+      commits(last: 1) {
+        nodes {
+          commit {
+            abbreviatedOid
+            oid
+            committedDate
+            pushedDate
+            status {
+              contexts {
+                context
+                state
+              }
+            }
+            # (appId: 64368) == flutter-dashboard. We only care about
+            # flutter-dashboard checks.
+            checkSuites(last: 1, filterBy: {appId: 64368}) {
+              nodes {
+                checkRuns(first: 100) {
+                  nodes {
+                    name
+                    status
+                    conclusion
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}''';

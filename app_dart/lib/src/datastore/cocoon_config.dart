@@ -158,25 +158,13 @@ class Config {
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
 
-  String get goldenBreakingChangeMessage => 'Changes to golden files are considered breaking changes, so consult '
-      '[Handling Breaking Changes](https://github.com/flutter/flutter/wiki/Tree-hygiene#handling-breaking-changes) '
-      'to proceed. While there are exceptions to this rule, if this patch modifies '
-      'an existing golden file, it is probably not an exception. Only new golden '
-      'file tests, or downstream changes like those from skia updates are '
-      'considered non-breaking.\n\n'
-      'For more guidance, visit '
-      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
-      '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
-      'and make sure this patch meets those guidelines before LGTMing.';
-
   String get goldenTriageMessage => 'Nice merge! 🎉\n'
       'It looks like this PR made changes to golden files. If these changes have '
       'not been triaged as a tryjob, be sure to visit '
       '[Flutter Gold](https://flutter-gold.skia.org/?query=source_type%3Dflutter) '
       'to triage the results when post-submit testing has completed. The status '
       'of these tests can be seen on the '
-      '[Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).\n'
-      'Also, be sure to include this change in the [Changelog](https://github.com/flutter/flutter/wiki/Changelog).\n\n'
+      '[Flutter Dashboard](https://flutter-dashboard.appspot.com/build.html).\n\n'
       'For more information about working with golden files, see the wiki page '
       '[Writing a Golden File Test for package:flutter/flutter](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).';
 

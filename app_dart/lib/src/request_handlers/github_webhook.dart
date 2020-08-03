@@ -277,7 +277,6 @@ class GithubWebhook extends RequestHandler<Body> {
       if (await _isIgnoredForGold(eventAction, pr)) {
         isGoldenChange = true;
         labels.add('will affect goldens');
-        labels.add('severe: API break');
         labels.add('a: tests');
       }
 
@@ -324,13 +323,6 @@ class GithubWebhook extends RequestHandler<Body> {
 
     if (!hasTests && needsTests && !pr.draft) {
       final String body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
-        await gitHubClient.issues.createComment(slug, pr.number, body);
-      }
-    }
-
-    if (isGoldenChange) {
-      final String body = config.goldenBreakingChangeMessage;
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.issues.createComment(slug, pr.number, body);
       }

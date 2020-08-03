@@ -118,7 +118,6 @@ void main() {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
         });
         config.githubClient = github;
-        config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
         clientContext.isDevelopmentEnvironment = false;
       });
 
@@ -176,14 +175,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -225,14 +223,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -262,14 +259,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -310,14 +306,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -370,14 +365,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -413,14 +407,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
       });
@@ -460,14 +453,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -513,14 +505,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -573,14 +564,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           )).called(1);
         });
 
@@ -634,14 +624,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           )).called(1);
         });
 
@@ -694,7 +683,6 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           )).called(1);
 
@@ -754,14 +742,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -799,14 +786,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
 
@@ -844,14 +830,13 @@ void main() {
             pr.number,
             <String>[
               'will affect goldens',
-              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.goldenBreakingChangeMessageValue)),
+            argThat(contains('Changes reported for pull request')),
           ));
         });
       });
@@ -945,14 +930,13 @@ void main() {
           pr.number,
           <String>[
             'will affect goldens',
-            'severe: API break',
           ],
         ));
 
         verifyNever(issuesService.createComment(
           slug,
           pr.number,
-          argThat(contains(config.goldenBreakingChangeMessageValue)),
+          argThat(contains('Changes reported for pull request')),
         ));
       });
     });

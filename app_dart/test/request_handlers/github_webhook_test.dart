@@ -83,7 +83,6 @@ void main() {
       config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
       config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
       config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
-      config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
       config.goldenTriageMessageValue = 'goldenTriageMessage';
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
@@ -735,15 +734,8 @@ void main() {
         issueNumber,
         <String>[
           'will affect goldens',
-          'severe: API break',
           'a: tests',
         ],
-      )).called(1);
-
-      verify(issuesService.createComment(
-        slug,
-        issueNumber,
-        argThat(contains(config.goldenBreakingChangeMessageValue)),
       )).called(1);
     });
 
