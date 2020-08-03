@@ -10,6 +10,7 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
+import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -153,7 +154,9 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           sha: commit.sha,
           author: commit.author.login,
           authorAvatarUrl: commit.author.avatarUrl,
-          message: commit.commit.message,
+          // The field has a size of 1500 we need to ensure the commit message
+          // is at most 1500 chars long.
+          message: truncate(commit.commit.message, 1490, omission: '...'),
           branch: branch,
         ));
       } else {
