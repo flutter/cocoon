@@ -157,8 +157,8 @@ class LuciBuildService {
     }
 
     final List<Request> requests = <Request>[];
-    final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
     for (String builder in builderNames) {
+      final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',

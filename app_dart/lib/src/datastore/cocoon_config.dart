@@ -255,13 +255,8 @@ class Config {
   }
 
   Future<GitHub> createGitHubClient(String owner, String repository) async {
-    final Map<String, dynamic> appInstallations = await githubAppInstallations;
     String githubToken;
-    if (appInstallations.containsKey('$owner/$repository')) {
-      githubToken = await generateGithubToken(owner, repository);
-    } else {
-      githubToken = await githubOAuthToken;
-    }
+    githubToken = await generateGithubToken(owner, repository);
     return GitHub(auth: Authentication.withToken(githubToken));
   }
 
