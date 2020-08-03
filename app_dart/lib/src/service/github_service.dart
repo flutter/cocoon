@@ -11,6 +11,7 @@ class GithubService {
   const GithubService(this.github);
 
   final GitHub github;
+  static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
 
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
@@ -42,6 +43,7 @@ class GithubService {
         'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1).toUtc().toIso8601String(),
       },
       pages: pages,
+      headers: headers,
     )) {
       commits.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
@@ -75,6 +77,8 @@ class GithubService {
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
     final List<Map<String, dynamic>> pullRequests = <Map<String, dynamic>>[];
+
+    headers['Authorization'] = 'Bearer ${github.auth.token}';
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/pulls',
@@ -84,6 +88,7 @@ class GithubService {
         'sort': 'created',
         'state': 'open',
       },
+      headers: headers,
     )) {
       pullRequests.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
