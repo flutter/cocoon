@@ -156,7 +156,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
           authorAvatarUrl: commit.author.avatarUrl,
           // The field has a size of 1500 we need to ensure the commit message
           // is at most 1500 chars long.
-          message: truncate(commit.commit.message, 1499, omission: ''),
+          message: truncate(commit.commit.message, 1490, omission: '...'),
           branch: branch,
         ));
       } else {
