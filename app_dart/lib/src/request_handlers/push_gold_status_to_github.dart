@@ -106,12 +106,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
 
-      if (runsGoldenFileTests ||
-        // Adding this short-circuit to cut down GitHub API requests. If we are
-        // already failing, or still pending on Cirrus, no need to query for
-        // LUCI status.
-        !(cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
-        cirrusCheckStatuses.any(kCirrusFailedStates.contains))) {
+      if (runsGoldenFileTests) {
         // Make sure we account for any running Luci builds
         final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
         final List<String> luciIncompleteChecks = <String>[];
@@ -146,11 +141,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
           statusRequest =
-              _createStatus(GithubGoldStatusUpdate.statusRunning, 'This check is waiting for other checks to finish.', pr.number);
+              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
         } else {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
-          statusRequest = _createStatus(goldStatus, _getStatusDescription(goldStatus), pr.number);
+          statusRequest = _createStatus(goldStatus, goldStatus == GithubGoldStatusUpdate.statusRunning ? config.flutterGoldChanges : config.flutterGoldSuccess, pr.number);
           log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
@@ -184,7 +179,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   /// Returns a GitHub Status for the given state and description.
   CreateStatus _createStatus(String state, String description, int prNumber) {
     final CreateStatus statusUpdate = CreateStatus(state)
-      ..targetUrl = 'https://flutter-gold.skia.org/search?issue=$prNumber&new_clstore=true'
+      ..targetUrl = _getTriageUrl(prNumber)
       ..context = 'flutter-gold'
       ..description = description;
     return statusUpdate;
@@ -228,15 +223,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     }
   }
 
-  String _getStatusDescription(String status) {
-    if (status == GithubGoldStatusUpdate.statusRunning) {
-      return 'Image changes have been found for '
-          'this pull request. Visit https://flutter-gold.skia.org/changelists '
-          'to view and triage (e.g. because this is an intentional change).';
-    }
-    return 'All golden file tests have passed.';
-  }
-
   String _getTriageUrl(int number) {
     return 'https://flutter-gold.skia.org/search?issue=$number&new_clstore=true';
   }
@@ -250,23 +236,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     String body;
     if (await _isFirstComment(gitHubClient, pr, slug)) {
-      body = 'Golden file changes have been found for this pull '
-              'request. Click [here to view and triage](${_getTriageUrl(pr.number)}) '
-              '(e.g. because this is an intentional change).\n\n';
+      body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number));
     } else {
-      body = 'Golden file changes are available for triage from new commit, '
-          'Click [here to view](${_getTriageUrl(pr.number)}).\n\n';
+      body = config.flutterGoldFollowUpAlert(_getTriageUrl(pr.number));
     }
-    body += 'If you are still iterating on this change and are not ready to '
-        'resolve the images on the Flutter Gold dashboard, consider marking this PR '
-        'as a draft pull request above. You will still be able to view image results '
-        'on the dashboard, and the check will not try to resolve itself until '
-        'marked ready for review.\n\n'
-        'For more guidance, visit '
-        '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
-        '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
-        'and make sure this patch meets those guidelines before LGTMing.\n\n'
-        '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
+    body += config.flutterGoldAlertConstant + config.flutterGoldCommentID(pr);
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
@@ -280,7 +254,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
-      if (comment.body.contains('Changes reported for pull request #${pr.number} at sha ${pr.head.sha}')) {
+      if (comment.body.contains(config.flutterGoldCommentID(pr))) {
         return true;
       }
     }
@@ -294,7 +268,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
-      if (comment.body.contains('Golden file changes have been found for this pull request')) {
+      if (comment.body.contains(config.flutterGoldInitialAlert(_getTriageUrl(pr.number)))) {
         return false;
       }
     }

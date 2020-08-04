@@ -21,9 +21,6 @@ import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
 
-/// List of repos that require check for golden triage.
-const Set<String> kNeedsCheckGoldenTriage = <String>{'flutter/flutter'};
-
 /// List of repos that require check for labels and tests.
 const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
 
@@ -31,17 +28,12 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService,
-      {HttpClient skiaClient})
+  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService)
       : assert(buildBucketClient != null),
-        skiaClient = skiaClient ?? HttpClient(),
         super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
-
-  /// An Http Client for querying the Skia Gold API.
-  final HttpClient skiaClient;
 
   /// LUCI service class to communicate with buildBucket service.
   final LuciBuildService luciBuildService;
@@ -102,20 +94,15 @@ class GithubWebhook extends RequestHandler<Body> {
     // which unfortunately is a bit light on explanations.
     switch (eventAction) {
       case 'closed':
-        // On a successful merge, check for gold.
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
-        if (pr.merged) {
-          await _checkForGoldenTriage(pullRequestEvent);
-        } else {
-          await luciBuildService.cancelBuilds(
-            pullRequestEvent.repository.slug(),
-            pr.number,
-            pr.head.sha,
-            'Pull request closed',
-          );
-        }
+        await luciBuildService.cancelBuilds(
+          pullRequestEvent.repository.slug(),
+          pr.number,
+          pr.head.sha,
+          'Pull request closed',
+        );
         break;
       case 'edited':
         // Editing a PR should not trigger new jobs, but may update whether
@@ -171,54 +158,6 @@ class GithubWebhook extends RequestHandler<Body> {
     );
   }
 
-  Future<bool> _isIgnoredForGold(String eventAction, PullRequest pr) async {
-    bool ignored = false;
-    String rawResponse;
-    try {
-      final HttpClientRequest request =
-          await skiaClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores'));
-      final HttpClientResponse response = await request.close();
-      rawResponse = await utf8.decodeStream(response);
-      final List<dynamic> ignores = jsonDecode(rawResponse) as List<dynamic>;
-      for (Map<String, dynamic> ignore in ignores.cast<Map<String, dynamic>>()) {
-        if ((ignore['note'] as String).isNotEmpty && pr.number.toString() == ignore['note'].split('/').last) {
-          ignored = true;
-          break;
-        }
-      }
-    } on IOException catch (e) {
-      log.error('Request to Flutter Gold for ignores failed for PR '
-          '#${pr.number} on action: $eventAction.\n'
-          'error: $e');
-    } on FormatException catch (_) {
-      log.error('Format Exception from Flutter Gold ignore request.\n'
-          'rawResponse: $rawResponse');
-      rethrow;
-    }
-    return ignored;
-  }
-
-  Future<void> _checkForGoldenTriage(PullRequestEvent pullRequestEvent) async {
-    final PullRequest pr = pullRequestEvent.pullRequest;
-    final String eventAction = pullRequestEvent.action;
-    final RepositorySlug slug = pullRequestEvent.repository.slug();
-    if (kNeedsCheckGoldenTriage.contains(pr.base.repo.fullName.toLowerCase()) &&
-        await _isIgnoredForGold(eventAction, pr)) {
-      final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
-      try {
-        await _pingForTriage(gitHubClient, pr);
-      } finally {
-        gitHubClient.dispose();
-      }
-    }
-  }
-
-  Future<void> _pingForTriage(GitHub gitHubClient, PullRequest pr) async {
-    final String body = config.goldenTriageMessage;
-    final RepositorySlug slug = pr.base.repo.slug();
-    await gitHubClient.issues.createComment(slug, pr.number, body);
-  }
-
   Future<void> _checkForLabelsAndTests(PullRequestEvent pullRequestEvent) async {
     final PullRequest pr = pullRequestEvent.pullRequest;
     final String eventAction = pullRequestEvent.action;
@@ -249,7 +188,6 @@ class GithubWebhook extends RequestHandler<Body> {
     final Set<String> labels = <String>{};
     bool hasTests = false;
     bool needsTests = false;
-    bool isGoldenChange = false;
 
     await for (PullRequestFile file in files) {
       if (file.filename.endsWith('pubspec.yaml')) {
@@ -273,11 +211,6 @@ class GithubWebhook extends RequestHandler<Body> {
       }
       if (file.filename == 'bin/internal/engine.version') {
         labels.add('engine');
-      }
-      if (await _isIgnoredForGold(eventAction, pr)) {
-        isGoldenChange = true;
-        labels.add('will affect goldens');
-        labels.add('a: tests');
       }
 
       if (file.filename.startsWith('packages/flutter/') ||
