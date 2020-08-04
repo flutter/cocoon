@@ -119,7 +119,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         final Map<String, dynamic> commit = prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
         List<Map<String, dynamic>> checkRuns;
         if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-          checkRuns = (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
+          checkRuns = (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>)
+              .cast<Map<String, dynamic>>();
         }
         checkRuns = checkRuns ?? <Map<String, dynamic>>[];
         log.debug('Found luci checks: $checkRuns');
@@ -140,12 +141,16 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           // should just be pending. Any draft PRs are considered pending
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
-          statusRequest =
-              _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
+          statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
         } else {
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
-          statusRequest = _createStatus(goldStatus, goldStatus == GithubGoldStatusUpdate.statusRunning ? config.flutterGoldChanges : config.flutterGoldSuccess, pr.number);
+          statusRequest = _createStatus(
+              goldStatus,
+              goldStatus == GithubGoldStatusUpdate.statusRunning
+                  ? config.flutterGoldChanges
+                  : config.flutterGoldSuccess,
+              pr.number);
           log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
           if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug)) {
             log.debug('Notifying for triage.');
@@ -262,11 +267,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   }
 }
 
-Future<Map<String, dynamic>> _queryGraphQL(
-  Logging log,
-  GraphQLClient client,
-  int prNumber
-) async {
+Future<Map<String, dynamic>> _queryGraphQL(Logging log, GraphQLClient client, int prNumber) async {
   final QueryResult result = await client.query(
     QueryOptions(
       document: pullRequestChecksQuery,

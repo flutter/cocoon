@@ -699,7 +699,7 @@ void main() {
             PullRequestFile()..filename = 'some_change.dart',
           ));
 
-     when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[],
         );

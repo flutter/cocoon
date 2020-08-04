@@ -67,14 +67,12 @@ void main() {
         maxAttempts: 2,
       );
 
-      cirrusGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult();
+      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createCirrusQueryResult(cirrusStatuses, branch);
       };
 
-      githubGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult();
+      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createGithubQueryResult(luciStatuses);
       };
@@ -113,11 +111,8 @@ void main() {
 
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
-        db.onCommit =
-            (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) =>
-                throw AssertionError();
-        db.addOnQuery<GithubGoldStatusUpdate>(
-            (Iterable<GithubGoldStatusUpdate> results) {
+        db.onCommit = (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
+        db.addOnQuery<GithubGoldStatusUpdate>((Iterable<GithubGoldStatusUpdate> results) {
           throw AssertionError();
         });
         final Body body = await tester.get<Body>(handler);
@@ -147,8 +142,7 @@ void main() {
         clientContext.isDevelopmentEnvironment = false;
       });
 
-      GithubGoldStatusUpdate newStatusUpdate(
-          PullRequest pr, String statusUpdate, String sha, String description) {
+      GithubGoldStatusUpdate newStatusUpdate(PullRequest pr, String statusUpdate, String sha, String description) {
         return GithubGoldStatusUpdate(
           key: db.emptyKey.append(GithubGoldStatusUpdate),
           status: statusUpdate,
@@ -160,8 +154,7 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha, String baseRef,
-          {bool draft = false}) {
+      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
         return PullRequest()
           ..number = 123
           ..head = (PullRequestHead()..sha = 'abc')
@@ -171,11 +164,8 @@ void main() {
 
       group('does not update GitHub or Datastore', () {
         setUp(() {
-          db.onCommit =
-              (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) =>
-                  throw AssertionError();
-          when(repositoriesService.createStatus(any, any, any))
-              .thenThrow(AssertionError());
+          db.onCommit = (List<gcloud_db.Model> insert, List<gcloud_db.Key> deletes) => throw AssertionError();
+          when(repositoriesService.createStatus(any, any, any)).thenThrow(AssertionError());
         });
 
         test('if there are no PRs', () async {
@@ -234,11 +224,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'in_progress',
-              'conclusion': 'neutral'
-            }
+            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
           branch = 'pull/123';
 
@@ -269,10 +255,11 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr,
-              GithubGoldStatusUpdate.statusCompleted,
-              'abc',
-              config.flutterGoldSuccessValue,);
+            pr,
+            GithubGoldStatusUpdate.statusCompleted,
+            'abc',
+            config.flutterGoldSuccessValue,
+          );
           db.values[status.key] = status;
 
           // Checks complete
@@ -303,9 +290,7 @@ void main() {
           ));
         });
 
-        test(
-            'same commit, cirrus checks complete, luci still running, last status running',
-            () async {
+        test('same commit, cirrus checks complete, luci still running, last status running', () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -323,11 +308,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'in_progress',
-              'conclusion': 'neutral'
-            }
+            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -352,17 +333,17 @@ void main() {
           ));
         });
 
-        test(
-            'same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
+        test('same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
             () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldChangesValue,);
+            pr,
+            GithubGoldStatusUpdate.statusRunning,
+            'abc',
+            config.flutterGoldChangesValue,
+          );
           db.values[status.key] = status;
 
           // Checks complete
@@ -373,20 +354,16 @@ void main() {
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-              IssueComment()
-                ..body = config.flutterGoldCommentID(pr),
+              IssueComment()..body = config.flutterGoldCommentID(pr),
             ),
           );
 
@@ -412,8 +389,7 @@ void main() {
           ));
         });
 
-        test('does nothing for branches not staged to land on master',
-            () async {
+        test('does nothing for branches not staged to land on master', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'release');
           prsFromGitHub = <PullRequest>[pr];
@@ -426,11 +402,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -470,11 +442,7 @@ void main() {
             <String, String>{'status': 'EXECUTING', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'in_progress',
-              'conclusion': 'neutral'
-            }
+            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
           branch = 'pull/123';
 
@@ -514,24 +482,17 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobEmpty()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -556,8 +517,7 @@ void main() {
           ));
         });
 
-        test('new commit, checks complete, change detected, should comment',
-            () async {
+        test('new commit, checks complete, change detected, should comment', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -570,24 +530,17 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
@@ -619,17 +572,13 @@ void main() {
           )).called(1);
         });
 
-        test(
-            'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
+        test('same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
             () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks complete
@@ -638,24 +587,17 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
@@ -686,16 +628,12 @@ void main() {
           )).called(1);
         });
 
-        test('uses shorter comment after first comment to reduce noise',
-            () async {
+        test('uses shorter comment after first comment to reduce noise', () async {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks complete
@@ -704,31 +642,22 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'completed': 'in_progress',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'completed': 'in_progress', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobDigests()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-              IssueComment()
-                ..body =
-                    config.flutterGoldInitialAlertValue,
+              IssueComment()..body = config.flutterGoldInitialAlertValue,
             ),
           );
 
@@ -750,21 +679,16 @@ void main() {
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(
-                config.flutterGoldFollowUpAlertValue)),
+            argThat(contains(config.flutterGoldFollowUpAlertValue)),
           )).called(1);
         });
 
-        test('same commit, checks complete, new status, should not comment',
-            () async {
+        test('same commit, checks complete, new status, should not comment', () async {
           // Same commit: abc
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks completed
@@ -773,24 +697,17 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
           // New status: completed/triaged/no changes
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-          final MockHttpClientResponse mockHttpResponse =
-              MockHttpClientResponse(utf8.encode(tryjobEmpty()));
+          final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
                   'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
-              .thenAnswer(
-                  (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-          when(mockHttpRequest.close()).thenAnswer(
-              (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+              .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+          when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
@@ -821,11 +738,9 @@ void main() {
           ));
         });
 
-        test('delivers pending state for draft PRs, does not query Gold',
-            () async {
+        test('delivers pending state for draft PRs, does not query Gold', () async {
           // New commit, draft PR
-          final PullRequest pr =
-              newPullRequest(123, 'abc', 'master', draft: true);
+          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -836,11 +751,7 @@ void main() {
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -867,8 +778,7 @@ void main() {
           ));
         });
 
-        test('delivers pending state for failing checks, does not query Gold',
-            () async {
+        test('delivers pending state for failing checks, does not query Gold', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -881,11 +791,7 @@ void main() {
             <String, String>{'status': 'ABORTED', 'name': 'framework-2'}
           ];
           luciStatuses = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'failure'
-            }
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'failure'}
           ];
           branch = 'pull/123';
 
@@ -913,22 +819,16 @@ void main() {
         });
       });
 
-      test(
-          'Completed pull request does not skip follow-up prs with early return',
-          () async {
+      test('Completed pull request does not skip follow-up prs with early return', () async {
         final PullRequest completedPR = newPullRequest(123, 'abc', 'master');
         final PullRequest followUpPR = newPullRequest(456, 'def', 'master');
         prsFromGitHub = <PullRequest>[
           completedPR,
           followUpPR,
         ];
-        final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
-            completedPR,
-            GithubGoldStatusUpdate.statusCompleted,
-            'abc',
-            config.flutterGoldSuccessValue);
-        final GithubGoldStatusUpdate followUpStatus =
-            newStatusUpdate(followUpPR, '', '', '');
+        final GithubGoldStatusUpdate completedStatus =
+            newStatusUpdate(completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue);
+        final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
 
@@ -938,31 +838,22 @@ void main() {
           <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
         ];
         luciStatuses = <dynamic>[
-          <String, String>{
-            'name': 'Linux',
-            'status': 'completed',
-            'conclusion': 'success'
-          }
+          <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
         ];
         branch = 'pull/123';
 
         // New status: completed/triaged/no changes
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-        final MockHttpClientResponse mockHttpResponse =
-            MockHttpClientResponse(utf8.encode(tryjobEmpty()));
+        final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
         when(mockHttpClient.getUrl(Uri.parse(
                 'http://flutter-gold.skia.org/json/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
-            .thenAnswer(
-                (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+            .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpClient.getUrl(Uri.parse(
                 'http://flutter-gold.skia.org/json/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
-            .thenAnswer(
-                (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-        when(mockHttpRequest.close()).thenAnswer(
-            (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+            .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+        when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
-        when(issuesService.listCommentsByIssue(slug, completedPR.number))
-            .thenAnswer(
+        when(issuesService.listCommentsByIssue(slug, completedPR.number)).thenAnswer(
           (_) => Stream<IssueComment>.value(
             IssueComment()..body = 'some other comment',
           ),
@@ -978,8 +869,7 @@ void main() {
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
       });
 
-      test('accounts for null status description when parsing for Luci builds',
-          () async {
+      test('accounts for null status description when parsing for Luci builds', () async {
         // Same commit
         final PullRequest pr = newPullRequest(123, 'abc', 'master');
         prsFromGitHub = <PullRequest>[pr];
@@ -1039,16 +929,8 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
           'id': '1',
           'branch': branch,
           'latestGroupTasks': <dynamic>[
-            <String, dynamic>{
-              'id': '1',
-              'name': statuses.first['name'],
-              'status': statuses.first['status']
-            },
-            <String, dynamic>{
-              'id': '2',
-              'name': statuses.last['name'],
-              'status': statuses.last['status']
-            }
+            <String, dynamic>{'id': '1', 'name': statuses.first['name'], 'status': statuses.first['status']},
+            <String, dynamic>{'id': '2', 'name': statuses.last['name'], 'status': statuses.last['status']}
           ],
         }
       ],

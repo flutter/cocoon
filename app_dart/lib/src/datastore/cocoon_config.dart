@@ -163,26 +163,27 @@ class Config {
   String get flutterGoldSuccess => 'All golden file tests have passed.';
 
   String get flutterGoldChanges => 'Image changes have been found for '
-    'this pull request.';
+      'this pull request.';
 
   String flutterGoldInitialAlert(String url) => 'Golden file changes have been found for this pull '
-    'request. Click [here to view and triage]($url) '
-    '(e.g. because this is an intentional change).\n\n'
-    'If you are still iterating on this change and are not ready to '
-    'resolve the images on the Flutter Gold dashboard, consider marking this PR '
-    'as a draft pull request above. You will still be able to view image results '
-    'on the dashboard, commenting will be silenced, and the check will not try to resolve itself until '
-    'marked ready for review.\n\n';
+      'request. Click [here to view and triage]($url) '
+      '(e.g. because this is an intentional change).\n\n'
+      'If you are still iterating on this change and are not ready to '
+      'resolve the images on the Flutter Gold dashboard, consider marking this PR '
+      'as a draft pull request above. You will still be able to view image results '
+      'on the dashboard, commenting will be silenced, and the check will not try to resolve itself until '
+      'marked ready for review.\n\n';
 
   String flutterGoldFollowUpAlert(String url) => 'Golden file changes are available for triage from new commit, '
-    'Click [here to view]($url).\n\n';
+      'Click [here to view]($url).\n\n';
 
   String get flutterGoldAlertConstant => 'For more guidance, visit '
-    '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
-    '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
-    'and make sure this patch meets those guidelines before LGTMing.\n\n';
+      '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
+      '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
+      'and make sure this patch meets those guidelines before LGTMing.\n\n';
 
-  String flutterGoldCommentID(PullRequest pr) => '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
+  String flutterGoldCommentID(PullRequest pr) =>
+      '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
 
   int get maxTaskRetries => 2;
 
