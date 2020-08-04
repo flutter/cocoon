@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -54,6 +55,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
         break;
       }
     }
+    // Insert build status to bigquery.
+    await _insertBigquery(latestStatus);
 
     final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
@@ -98,5 +101,31 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     return GithubBuildStatusUpdate.statusSuccess;
+  }
+
+  Future<void> _insertBigquery(String buildStatus) async {
+    // Define const variables for [BigQuery] operations.
+    const String projectId = 'flutter-dashboard';
+    const String dataset = 'cocoon';
+    const String table = 'EngineBuildStatus';
+
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
+    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+
+    requestRows.add(<String, Object>{
+      'json': <String, Object>{
+        'Timestamp': DateTime.now().millisecondsSinceEpoch,
+        'Status': buildStatus,
+      },
+    });
+
+    // Obtain [rows] to be inserted to [BigQuery].
+    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
+
+    try {
+      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+    } on ApiRequestError {
+      log.warning('Failed to add build status to BigQuery: $ApiRequestError');
+    }
   }
 }
