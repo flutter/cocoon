@@ -276,8 +276,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       if (comment.body.contains(config.flutterGoldInitialAlert(_getTriageUrl(pr.number)))) {
         return false;
       }
-      return true;
     }
+    return true;
   }
 }
 
