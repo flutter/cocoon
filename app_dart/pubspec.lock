@@ -224,7 +224,7 @@ packages:
       name: github
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.2.2"
+    version: "7.0.1"
   glob:
     dependency: transitive
     description:
@@ -631,6 +631,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1+2"
+  truncate:
+    dependency: "direct main"
+    description:
+      name: truncate
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.2"
   typed_data:
     dependency: transitive
     description:
