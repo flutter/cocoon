@@ -39,7 +39,8 @@ Future<void> main(List<String> args) async {
       }''');
       exitWithError(messages);
     }
-    List<LuciBuilder> luciBuilders = builders.map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>)).toList();
+    List<LuciBuilder> luciBuilders =
+        builders.map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>)).toList();
     print('${bold}Supported builders:$reset ${luciBuilders.map((e) => e.toJson()).toList()}');
   } on ExitException catch (error) {
     error.apply();
