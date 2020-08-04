@@ -27,6 +27,8 @@ import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
+  const String kGoldenFileLabel = 'will affect goldens';
+
   group('PushGoldStatusToGithub', () {
     FakeConfig config;
     FakeClientContext clientContext;
@@ -77,6 +79,12 @@ void main() {
         return createGithubQueryResult(luciStatuses);
       };
       config.githubGraphQLClient = githubGraphQLClient;
+      config.flutterGoldPendingValue = 'pending';
+      config.flutterGoldChangesValue = 'changes';
+      config.flutterGoldSuccessValue = 'success';
+      config.flutterGoldAlertConstantValue = 'flutter gold alert';
+      config.flutterGoldInitialAlertValue = 'initial';
+      config.flutterGoldFollowUpAlertValue = 'follow-up';
 
       handler = PushGoldStatusToGithub(
         config,
@@ -197,14 +205,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -216,7 +224,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            'This check is waiting for other checks to finish.',
+            config.flutterGoldPendingValue,
           );
           db.values[status.key] = status;
 
@@ -245,14 +253,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -264,7 +272,7 @@ void main() {
               pr,
               GithubGoldStatusUpdate.statusCompleted,
               'abc',
-              'All golden file tests have passed.');
+              config.flutterGoldSuccessValue,);
           db.values[status.key] = status;
 
           // Checks complete
@@ -284,14 +292,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -305,7 +313,7 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            'This check is waiting for the all clear from Gold.',
+            config.flutterGoldPendingValue,
           );
           db.values[status.key] = status;
 
@@ -333,14 +341,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -354,9 +362,7 @@ void main() {
               pr,
               GithubGoldStatusUpdate.statusRunning,
               'abc',
-              'Image changes have been found for '
-                  'this pull request. Visit https://flutter-gold.skia.org/changelists '
-                  'to view and triage (e.g. because this is an intentional change).');
+              config.flutterGoldChangesValue,);
           db.values[status.key] = status;
 
           // Checks complete
@@ -380,8 +386,7 @@ void main() {
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()
-                ..body = 'Changes reported for pull request '
-                    '#${pr.number} at sha ${pr.head.sha}',
+                ..body = config.flutterGoldCommentID(pr),
             ),
           );
 
@@ -396,14 +401,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -439,14 +444,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
       });
@@ -485,14 +490,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -540,14 +545,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -603,14 +608,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           )).called(1);
         });
 
@@ -624,7 +629,7 @@ void main() {
               pr,
               GithubGoldStatusUpdate.statusRunning,
               'abc',
-              'This check is waiting for all other checks to be completed.');
+              config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks complete
@@ -670,14 +675,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           )).called(1);
         });
 
@@ -690,7 +695,7 @@ void main() {
               pr,
               GithubGoldStatusUpdate.statusRunning,
               'abc',
-              'This check is waiting for all other checks to be completed.');
+              config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks complete
@@ -723,7 +728,7 @@ void main() {
             (_) => Stream<IssueComment>.value(
               IssueComment()
                 ..body =
-                    'Golden file changes have been found for this pull request.',
+                    config.flutterGoldInitialAlertValue,
             ),
           );
 
@@ -738,7 +743,7 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           )).called(1);
 
@@ -746,7 +751,7 @@ void main() {
             slug,
             pr.number,
             argThat(contains(
-                'Golden file changes are available for triage from new commit,')),
+                config.flutterGoldFollowUpAlertValue)),
           )).called(1);
         });
 
@@ -759,7 +764,7 @@ void main() {
               pr,
               GithubGoldStatusUpdate.statusRunning,
               'abc',
-              'This check is waiting for all other checks to be completed.');
+              config.flutterGoldPendingValue);
           db.values[status.key] = status;
 
           // Checks completed
@@ -805,14 +810,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -851,14 +856,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
 
@@ -896,14 +901,14 @@ void main() {
             slug,
             pr.number,
             <String>[
-              'will affect goldens',
+              kGoldenFileLabel,
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains('Changes reported for pull request')),
+            argThat(contains(config.flutterGoldCommentID(pr))),
           ));
         });
       });
@@ -921,7 +926,7 @@ void main() {
             completedPR,
             GithubGoldStatusUpdate.statusCompleted,
             'abc',
-            'All golden file tests have passed');
+            config.flutterGoldSuccessValue);
         final GithubGoldStatusUpdate followUpStatus =
             newStatusUpdate(followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
@@ -982,7 +987,7 @@ void main() {
           pr,
           GithubGoldStatusUpdate.statusRunning,
           'abc',
-          'This check is waiting for the all clear from Gold.',
+          config.flutterGoldPendingValue,
         );
         db.values[status.key] = status;
 
@@ -994,8 +999,8 @@ void main() {
         luciStatuses = <dynamic>[
           <String, String>{
             'name': 'Linux',
-            'status': 'in_progress',
-            'conclusion': 'neutral'
+            'status': null,
+            'conclusion': null,
           }
         ];
 
@@ -1010,14 +1015,14 @@ void main() {
           slug,
           pr.number,
           <String>[
-            'will affect goldens',
+            kGoldenFileLabel,
           ],
         ));
 
         verifyNever(issuesService.createComment(
           slug,
           pr.number,
-          argThat(contains('Changes reported for pull request')),
+          argThat(contains(config.flutterGoldCommentID(pr))),
         ));
       });
     });

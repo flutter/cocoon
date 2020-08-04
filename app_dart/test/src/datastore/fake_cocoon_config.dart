@@ -48,10 +48,9 @@ class FakeConfig implements Config {
     this.flutterGoldPendingValue,
     this.flutterGoldSuccessValue,
     this.flutterGoldChangesValue,
+    this.flutterGoldAlertConstantValue,
     this.flutterGoldInitialAlertValue,
     this.flutterGoldFollowUpAlertValue,
-    this.flutterGoldAlertConstantValue,
-    this.flutterGoldCommentIDValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -87,10 +86,9 @@ class FakeConfig implements Config {
   String flutterGoldPendingValue;
   String flutterGoldSuccessValue;
   String flutterGoldChangesValue;
+  String flutterGoldAlertConstantValue;
   String flutterGoldInitialAlertValue;
   String flutterGoldFollowUpAlertValue;
-  String flutterGoldAlertConstantValue;
-  String flutterGoldCommentIDValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -144,7 +142,7 @@ class FakeConfig implements Config {
   String get flutterGoldAlertConstant => flutterGoldAlertConstantValue;
 
   @override
-  String flutterGoldCommentID(PullRequest pr) => flutterGoldCommentIDValue;
+  String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head.sha}';
 
   @override
   int get commitNumber => commitNumberValue;

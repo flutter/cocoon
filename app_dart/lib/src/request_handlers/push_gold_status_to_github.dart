@@ -235,7 +235,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     RepositorySlug slug,
   ) async {
     String body;
-    if (await _isFirstComment(gitHubClient, pr, slug)) {
+    if (await _alreadyCommented(gitHubClient, pr, slug)) {
       body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number));
     } else {
       body = config.flutterGoldFollowUpAlert(_getTriageUrl(pr.number));
@@ -259,20 +259,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     return false;
-  }
-
-  Future<bool> _isFirstComment(
-    GitHub gitHubClient,
-    PullRequest pr,
-    RepositorySlug slug,
-  ) async {
-    final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
-    await for (IssueComment comment in comments) {
-      if (comment.body.contains(config.flutterGoldInitialAlert(_getTriageUrl(pr.number)))) {
-        return false;
-      }
-    }
-    return true;
   }
 }
 
