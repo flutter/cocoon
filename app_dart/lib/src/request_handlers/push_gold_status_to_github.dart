@@ -91,7 +91,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       final List<dynamic> cirrusChecks =
           cirrusResults.firstWhere((CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.number}').tasks;
       for (dynamic check in cirrusChecks) {
-        final String status = check['status'] as String;
+        final String status = check['status'].toUpperCase() as String;
         final String taskName = check['name'] as String;
 
         log.debug('Found Cirrus build status for pull request #${pr.number}, commit '
@@ -130,9 +130,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         log.debug('Found luci checks: $checkRuns');
         for (Map<String, dynamic> checkRun in checkRuns) {
           final String name = checkRun['name'] as String;
-          if (checkRun['status'] != 'COMPLETED') {
+          if (checkRun['status'] != null && checkRun['status'].toUpperCase() != 'COMPLETED') {
             luciIncompleteChecks.add(name);
-          } else if (checkRun['conclusion'] != 'SUCCESS') {
+          } else if (checkRun['conclusion'] != null && checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
             luciIncompleteChecks.add(name);
           }
         }
@@ -333,16 +333,6 @@ query ChecksForPullRequest($sPullRequest: int!) {
       commits(last: 1) {
         nodes {
           commit {
-            abbreviatedOid
-            oid
-            committedDate
-            pushedDate
-            status {
-              contexts {
-                context
-                state
-              }
-            }
             # (appId: 64368) == flutter-dashboard. We only care about
             # flutter-dashboard checks.
             checkSuites(last: 1, filterBy: {appId: 64368}) {

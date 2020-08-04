@@ -21,6 +21,12 @@ class GithubGoldStatusUpdate extends Model {
     id = key?.id;
   }
 
+  // The flutter-gold status cannot report a `failure` status
+  // due to auto-rollers. This is why we hold a `pending` status
+  // when there are image changes. This provides the opportunity
+  // for images to be triaged, and the auto-roller to proceed.
+  // For more context, see: https://github.com/flutter/flutter/issues/48744
+
   static const String statusCompleted = 'success';
 
   static const String statusRunning = 'pending';
