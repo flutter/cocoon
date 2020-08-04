@@ -97,12 +97,14 @@ class GithubWebhook extends RequestHandler<Body> {
         // If it was closed without merging, cancel any outstanding tryjobs.
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
+      if (!pr.merged) {
         await luciBuildService.cancelBuilds(
           pullRequestEvent.repository.slug(),
           pr.number,
           pr.head.sha,
           'Pull request closed',
         );
+      }
         break;
       case 'edited':
         // Editing a PR should not trigger new jobs, but may update whether
