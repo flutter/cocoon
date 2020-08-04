@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -28,7 +27,7 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService)
+  const GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService)
       : assert(buildBucketClient != null),
         super(config: config);
 
