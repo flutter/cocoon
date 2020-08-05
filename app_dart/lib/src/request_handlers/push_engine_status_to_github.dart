@@ -41,10 +41,10 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    //if (authContext.clientContext.isDevelopmentEnvironment) {
+    if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
-    //  return Body.empty;
-    //}
+      return Body.empty;
+    }
 
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
@@ -65,7 +65,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       'Repo': 'engine'
     };
     await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
-/*
+
     final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
     final GitHub github = await config.createGitHubClient(slug.owner, slug.name);
@@ -95,7 +95,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     await datastore.insert(updates);
-    log.debug('Committed all updates');*/
+    log.debug('Committed all updates');
     return Body.empty;
   }
 
