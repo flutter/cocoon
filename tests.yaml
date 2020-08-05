@@ -27,9 +27,3 @@ tasks:
   - task: licenses_check
     script: test_utilities/bin/licenses.sh
 
-  - task: dev
-    script: test_utilities/bin/dart_test_runner.sh
-
-  - task: dev_check
-    script: test_utilities/bin/dev_test.sh
-
