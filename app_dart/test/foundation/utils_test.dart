@@ -7,9 +7,12 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
+
 import 'package:cocoon_service/src/foundation/utils.dart';
 
+import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 
@@ -166,6 +169,21 @@ void main() {
         final RepositorySlug result = await repoNameForBuilder(builders, 'Cocoon');
         expect(result, isNotNull);
         expect(result.fullName, equals('flutter/cocoon'));
+      });
+    });
+
+    group('bigquery', () {
+      FakeTabledataResourceApi tabledataResourceApi;
+      FakeLogging log;
+
+      setUp(() {
+      tabledataResourceApi = FakeTabledataResourceApi();
+      log = FakeLogging();
+    });
+      test('Insert data to bigquery', () async {
+        await insertBigquery('test', <String, dynamic>{'test':'test'}, tabledataResourceApi, log);
+        final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+        expect(tableDataList.totalRows, '1');
       });
     });
   });

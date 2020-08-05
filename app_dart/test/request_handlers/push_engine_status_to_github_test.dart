@@ -4,7 +4,6 @@
 
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -121,12 +120,8 @@ void main() {
 
       expect(status.status, 'success');
       await tester.get(handler);
-      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
       expect(status.status, 'failure');
       expect(status.updateTimeMillis, isNotNull);
-
-      /// Test for [BigQuery] insert
-      expect(tableDataList.totalRows, '1');
     });
   });
 }

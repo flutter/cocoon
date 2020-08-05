@@ -9,6 +9,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
@@ -40,10 +41,10 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    if (authContext.clientContext.isDevelopmentEnvironment) {
+    //if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
-      return Body.empty;
-    }
+    //  return Body.empty;
+    //}
 
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
@@ -56,8 +57,15 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     // Insert build status to bigquery.
-    await _insertBigquery(latestStatus);
-
+    const String bigqueryTableName = 'BuildStatus';
+    final Map<String, dynamic> bigqueryData = <String, dynamic>{
+      'Timestamp': DateTime.now().millisecondsSinceEpoch,
+      'Status': latestStatus,
+      'Branch': 'master',
+      'Repo': 'engine'
+    };
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
+/*
     final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
     final GitHub github = await config.createGitHubClient(slug.owner, slug.name);
@@ -87,7 +95,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     await datastore.insert(updates);
-    log.debug('Committed all updates');
+    log.debug('Committed all updates');*/
     return Body.empty;
   }
 
@@ -101,31 +109,5 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
     }
     return GithubBuildStatusUpdate.statusSuccess;
-  }
-
-  Future<void> _insertBigquery(String buildStatus) async {
-    // Define const variables for [BigQuery] operations.
-    const String projectId = 'flutter-dashboard';
-    const String dataset = 'cocoon';
-    const String table = 'EngineBuildStatus';
-
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
-
-    requestRows.add(<String, Object>{
-      'json': <String, Object>{
-        'Timestamp': DateTime.now().millisecondsSinceEpoch,
-        'Status': buildStatus,
-      },
-    });
-
-    // Obtain [rows] to be inserted to [BigQuery].
-    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
-
-    try {
-      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } on ApiRequestError {
-      log.warning('Failed to add build status to BigQuery: $ApiRequestError');
-    }
   }
 }
