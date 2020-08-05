@@ -177,11 +177,11 @@ void main() {
       FakeLogging log;
 
       setUp(() {
-      tabledataResourceApi = FakeTabledataResourceApi();
-      log = FakeLogging();
-    });
+        tabledataResourceApi = FakeTabledataResourceApi();
+        log = FakeLogging();
+      });
       test('Insert data to bigquery', () async {
-        await insertBigquery('test', <String, dynamic>{'test':'test'}, tabledataResourceApi, log);
+        await insertBigquery('test', <String, dynamic>{'test': 'test'}, tabledataResourceApi, log);
         final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
         expect(tableDataList.totalRows, '1');
       });
