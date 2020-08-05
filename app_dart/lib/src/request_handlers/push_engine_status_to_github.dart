@@ -8,6 +8,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
@@ -54,6 +55,15 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
         break;
       }
     }
+    // Insert build status to bigquery.
+    const String bigqueryTableName = 'BuildStatus';
+    final Map<String, dynamic> bigqueryData = <String, dynamic>{
+      'Timestamp': DateTime.now().millisecondsSinceEpoch,
+      'Status': latestStatus,
+      'Branch': 'master',
+      'Repo': 'engine'
+    };
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
 
     final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);

@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 
+import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -27,6 +28,7 @@ void main() {
     ApiRequestHandlerTester tester;
     FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
+    FakeTabledataResourceApi tabledataResourceApi;
     MockLuciService mockLuciService;
     PushEngineStatusToGithub handler;
     MockGitHub github;
@@ -59,12 +61,14 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       clientContext.isDevelopmentEnvironment = false;
       githubService = FakeGithubService();
+      tabledataResourceApi = FakeTabledataResourceApi();
       db = FakeDatastoreDB();
       github = MockGitHub();
       pullRequestsService = MockPullRequestsService();
       issuesService = MockIssuesService();
       repositoriesService = MockRepositoriesService();
       config = FakeConfig(
+        tabledataResourceApi: tabledataResourceApi,
         luciProdBuildersValue: const <Map<String, String>>[
           <String, String>{
             'name': 'Builder1',

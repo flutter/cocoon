@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 
 import '../foundation/typedefs.dart';
 
@@ -98,4 +99,26 @@ Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClie
   }
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
+}
+
+Future<void> insertBigquery(
+    String tableName, Map<String, dynamic> data, TabledataResourceApi tabledataResourceApi, Logging log) async {
+  // Define const variables for [BigQuery] operations.
+  const String projectId = 'flutter-dashboard';
+  const String dataset = 'cocoon';
+  final String table = tableName;
+  final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
+
+  requestRows.add(<String, Object>{
+    'json': data,
+  });
+
+  // Obtain [rows] to be inserted to [BigQuery].
+  final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
+
+  try {
+    await tabledataResourceApi.insertAll(request, projectId, dataset, table);
+  } on ApiRequestError {
+    log.warning('Failed to add build status to BigQuery: $ApiRequestError');
+  }
 }
