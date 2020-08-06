@@ -77,6 +77,19 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
+      if (pr.draft) {
+        log.debug('This pull request is a draft.');
+        // We don't want to query Gold while a PR is in a draft state, and we
+        // don't want to needlessly hold a pending state either.
+        // If a PR has been marked `draft` after the fact, and there has not
+        // been a new commit, we cannot rescind a previously posted status, so
+        // if it is pending, we should make the contributor aware of that fact.
+        if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning && lastUpdate.head == pr.head.sha && !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
+          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldDraftChange);
+        }
+        continue;
+      }
+
       log.debug('Querying Cirrus for pull request #${pr.number}...');
       cirrusCheckStatuses.clear();
       bool runsGoldenFileTests = false;
@@ -135,14 +148,15 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
         if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
             cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
-            luciIncompleteChecks.isNotEmpty ||
-            pr.draft) {
+            luciIncompleteChecks.isNotEmpty) {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are considered pending
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
         } else {
+          // We do not want to query Gold on a draft PR.
+          assert(!pr.draft);
           // Get Gold status.
           final String goldStatus = await _getGoldStatus(pr, log);
           statusRequest = _createStatus(
@@ -152,7 +166,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                   : config.flutterGoldSuccess,
               pr.number);
           log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug)) {
+          if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
             log.debug('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
@@ -241,11 +255,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     String body;
     if (await _isFirstComment(gitHubClient, pr, slug)) {
-      body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number));
+      body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number)) + config.flutterGoldAlertConstant;
     } else {
       body = config.flutterGoldFollowUpAlert(_getTriageUrl(pr.number));
     }
-    body += config.flutterGoldAlertConstant + config.flutterGoldCommentID(pr);
+    body += config.flutterGoldCommentID(pr);
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',
@@ -256,10 +270,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     GitHub gitHubClient,
     PullRequest pr,
     RepositorySlug slug,
+    String message,
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
     await for (IssueComment comment in comments) {
-      if (comment.body.contains(config.flutterGoldCommentID(pr))) {
+      if (comment.body.contains(message)) {
         return true;
       }
     }
