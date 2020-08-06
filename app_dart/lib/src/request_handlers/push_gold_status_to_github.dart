@@ -302,7 +302,7 @@ Future<Map<String, dynamic>> _queryGraphQL(Logging log, GraphQLClient client, in
 }
 
 const String pullRequestChecksQuery = r'''
-query ChecksForPullRequest($sPullRequest: int!) {
+query ChecksForPullRequest($sPullRequest: Int!) {
   repository(owner: "flutter", name: "flutter") {
     pullRequest(number: $sPullRequest) {
       commits(last: 1) {
