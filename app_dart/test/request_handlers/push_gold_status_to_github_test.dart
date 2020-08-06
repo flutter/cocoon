@@ -27,8 +27,6 @@ import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  const String kGoldenFileLabel = 'will affect goldens';
-
   group('PushGoldStatusToGithub', () {
     FakeConfig config;
     FakeClientContext clientContext;
@@ -39,9 +37,7 @@ void main() {
     ApiRequestHandlerTester tester;
     PushGoldStatusToGithub handler;
     FakeGraphQLClient cirrusGraphQLClient;
-    FakeGraphQLClient githubGraphQLClient;
-    List<dynamic> cirrusStatuses = <dynamic>[];
-    List<dynamic> luciStatuses = <dynamic>[];
+    List<dynamic> statuses = <dynamic>[];
     String branch;
     MockHttpClient mockHttpClient;
     RepositorySlug slug;
@@ -52,12 +48,8 @@ void main() {
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       cirrusGraphQLClient = FakeGraphQLClient();
-      githubGraphQLClient = FakeGraphQLClient();
       db = FakeDatastoreDB();
-      config = FakeConfig(
-        cirrusGraphQLClient: cirrusGraphQLClient,
-        dbValue: db,
-      );
+      config = FakeConfig(cirrusGraphQLClient: cirrusGraphQLClient, dbValue: db);
       log = FakeLogging();
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockHttpClient();
@@ -66,24 +58,6 @@ void main() {
         maxDelay: Duration(milliseconds: 2),
         maxAttempts: 2,
       );
-
-      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
-      cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createCirrusQueryResult(cirrusStatuses, branch);
-      };
-
-      githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
-      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createGithubQueryResult(luciStatuses);
-      };
-      config.githubGraphQLClient = githubGraphQLClient;
-      config.flutterGoldPendingValue = 'pending';
-      config.flutterGoldChangesValue = 'changes';
-      config.flutterGoldSuccessValue = 'success';
-      config.flutterGoldAlertConstantValue = 'flutter gold alert';
-      config.flutterGoldInitialAlertValue = 'initial';
-      config.flutterGoldFollowUpAlertValue = 'follow-up';
-
       handler = PushGoldStatusToGithub(
         config,
         auth,
@@ -98,9 +72,14 @@ void main() {
         goldClient: mockHttpClient,
       );
 
+      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
+
+      cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
+        return createCirrusQueryResult(statuses, branch);
+      };
+
       slug = RepositorySlug('flutter', 'flutter');
-      cirrusStatuses.clear();
-      luciStatuses.clear();
+      statuses.clear();
       branch = 'test';
     });
 
@@ -139,6 +118,7 @@ void main() {
           return Stream<PullRequest>.fromIterable(prsFromGitHub);
         });
         config.githubClient = github;
+        config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
         clientContext.isDevelopmentEnvironment = false;
       });
 
@@ -177,7 +157,7 @@ void main() {
         });
 
         test('if there are no framework tests for this PR', () async {
-          cirrusStatuses = <dynamic>[
+          statuses = <dynamic>[
             <String, String>{'status': 'EXECUTING', 'name': 'tool-test-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'tool-test-2'}
           ];
@@ -195,14 +175,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -214,17 +195,21 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            config.flutterGoldPendingValue,
+            'This check is waiting for the all clear from Gold.',
           );
           db.values[status.key] = status;
 
           // Checks still running
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
           branch = 'pull/123';
 
@@ -239,14 +224,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -254,16 +240,12 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
-            pr,
-            GithubGoldStatusUpdate.statusCompleted,
-            'abc',
-            config.flutterGoldSuccessValue,
-          );
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusCompleted, 'abc', 'All golden file tests have passed.');
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
@@ -279,14 +261,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -298,17 +281,21 @@ void main() {
             pr,
             GithubGoldStatusUpdate.statusRunning,
             'abc',
-            config.flutterGoldPendingValue,
+            'This check is waiting for the all clear from Gold.',
           );
           db.values[status.key] = status;
 
           // Luci running, Cirrus checks complete
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -322,14 +309,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -339,15 +327,16 @@ void main() {
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(
-            pr,
-            GithubGoldStatusUpdate.statusRunning,
-            'abc',
-            config.flutterGoldChangesValue,
-          );
+              pr,
+              GithubGoldStatusUpdate.statusRunning,
+              'abc',
+              'Image changes have been found for '
+                  'this pull request. Visit https://flutter-gold.skia.org/changelists '
+                  'to view and triage (e.g. because this is an intentional change).');
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
           ];
@@ -363,7 +352,9 @@ void main() {
           // Already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.flutterGoldCommentID(pr),
+              IssueComment()
+                ..body = 'Changes reported for pull request '
+                    '#${pr.number} at sha ${pr.head.sha}',
             ),
           );
 
@@ -378,14 +369,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -397,12 +389,16 @@ void main() {
           db.values[status.key] = status;
 
           // All checks completed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -416,14 +412,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
       });
@@ -437,12 +434,16 @@ void main() {
           db.values[status.key] = status;
 
           // Checks running
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'pending'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
             <String, String>{'status': 'EXECUTING', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
           branch = 'pull/123';
 
@@ -458,14 +459,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -477,12 +479,16 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -506,14 +512,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -525,12 +532,16 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -561,14 +572,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(1);
         });
 
@@ -577,17 +589,21 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc',
+              'This check is waiting for all other checks to be completed.');
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -617,14 +633,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           )).called(1);
         });
 
@@ -632,17 +649,21 @@ void main() {
           // Same commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc',
+              'This check is waiting for all other checks to be completed.');
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'completed': 'in_progress', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -657,7 +678,7 @@ void main() {
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.flutterGoldInitialAlertValue,
+              IssueComment()..body = 'Golden file changes have been found for this pull request.',
             ),
           );
 
@@ -672,14 +693,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           )).called(1);
 
           verify(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldFollowUpAlertValue)),
+            argThat(contains('Golden file changes are available for triage from new commit,')),
           )).called(1);
         });
 
@@ -687,17 +709,21 @@ void main() {
           // Same commit: abc
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc',
+              'This check is waiting for all other checks to be completed.');
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -727,14 +753,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -746,12 +773,16 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'success'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
             <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
           branch = 'pull/123';
 
@@ -767,14 +798,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
 
@@ -786,12 +818,16 @@ void main() {
           db.values[status.key] = status;
 
           // Checks failed
-          cirrusStatuses = <dynamic>[
+          when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+            (_) => Stream<RepositoryStatus>.value(
+              RepositoryStatus()
+                ..state = 'failed'
+                ..description = 'Flutter LUCI Build: Linux',
+            ),
+          );
+          statuses = <dynamic>[
             <String, String>{'status': 'FAILED', 'name': 'framework-1'},
             <String, String>{'status': 'ABORTED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'failure'}
           ];
           branch = 'pull/123';
 
@@ -807,14 +843,15 @@ void main() {
             slug,
             pr.number,
             <String>[
-              kGoldenFileLabel,
+              'will affect goldens',
+              'severe: API break',
             ],
           ));
 
           verifyNever(issuesService.createComment(
             slug,
             pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
+            argThat(contains(config.goldenBreakingChangeMessageValue)),
           ));
         });
       });
@@ -826,19 +863,23 @@ void main() {
           completedPR,
           followUpPR,
         ];
-        final GithubGoldStatusUpdate completedStatus =
-            newStatusUpdate(completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', config.flutterGoldSuccessValue);
+        final GithubGoldStatusUpdate completedStatus = newStatusUpdate(
+            completedPR, GithubGoldStatusUpdate.statusCompleted, 'abc', 'All golden file tests have passed');
         final GithubGoldStatusUpdate followUpStatus = newStatusUpdate(followUpPR, '', '', '');
         db.values[completedStatus.key] = completedStatus;
         db.values[followUpStatus.key] = followUpStatus;
 
         // Checks completed
-        cirrusStatuses = <dynamic>[
+        when(repositoriesService.listStatuses(slug, any)).thenAnswer(
+          (_) => Stream<RepositoryStatus>.value(
+            RepositoryStatus()
+              ..state = 'success'
+              ..description = 'Flutter LUCI Build: Linux',
+          ),
+        );
+        statuses = <dynamic>[
           <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
           <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-        ];
-        luciStatuses = <dynamic>[
-          <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
         ];
         branch = 'pull/123';
 
@@ -877,21 +918,19 @@ void main() {
           pr,
           GithubGoldStatusUpdate.statusRunning,
           'abc',
-          config.flutterGoldPendingValue,
+          'This check is waiting for the all clear from Gold.',
         );
         db.values[status.key] = status;
 
         // Luci running, Cirrus checks complete
-        cirrusStatuses = <dynamic>[
+        when(repositoriesService.listStatuses(slug, pr.head.sha)).thenAnswer(
+          (_) => Stream<RepositoryStatus>.value(
+            RepositoryStatus()..state = 'pending',
+          ),
+        );
+        statuses = <dynamic>[
           <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
           <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-        ];
-        luciStatuses = <dynamic>[
-          <String, String>{
-            'name': 'Linux',
-            'status': null,
-            'conclusion': null,
-          }
         ];
 
         final Body body = await tester.get<Body>(handler);
@@ -905,14 +944,15 @@ void main() {
           slug,
           pr.number,
           <String>[
-            kGoldenFileLabel,
+            'will affect goldens',
+            'severe: API break',
           ],
         ));
 
         verifyNever(issuesService.createComment(
           slug,
           pr.number,
-          argThat(contains(config.flutterGoldCommentID(pr))),
+          argThat(contains(config.goldenBreakingChangeMessageValue)),
         ));
       });
     });
@@ -934,33 +974,6 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
           ],
         }
       ],
-    },
-  );
-}
-
-QueryResult createGithubQueryResult(List<dynamic> statuses) {
-  assert(statuses != null);
-  return QueryResult(
-    data: <String, dynamic>{
-      'repository': <String, dynamic>{
-        'pullRequest': <String, dynamic>{
-          'commits': <String, dynamic>{
-            'nodes': <dynamic>[
-              <String, dynamic>{
-                'commit': <String, dynamic>{
-                  'checkSuites': <String, dynamic>{
-                    'nodes': <dynamic>[
-                      <String, dynamic>{
-                        'checkRuns': <String, dynamic>{'nodes': statuses}
-                      }
-                    ]
-                  }
-                }
-              }
-            ],
-          },
-        },
-      },
     },
   );
 }
