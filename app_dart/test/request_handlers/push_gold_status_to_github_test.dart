@@ -788,6 +788,96 @@ void main() {
           ));
         });
 
+        test('will inform contributor of unresolved check for ATF draft status', () async {
+          // New commit, draft PR
+          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+          db.values[status.key] = status;
+
+          // Checks completed
+          cirrusStatuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          luciStatuses = <dynamic>[
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+          ];
+          branch = 'pull/123';
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.flutterGoldDraftChangeValue)),
+          )).called(1);
+        });
+
+        test('will only inform contributor of unresolved check for ATF draft status once', () async {
+          // New commit, draft PR
+          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status =
+              newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
+          db.values[status.key] = status;
+
+          // Checks completed
+          cirrusStatuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          luciStatuses = <dynamic>[
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+          ];
+          branch = 'pull/123';
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldDraftChangeValue,
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.flutterGoldDraftChangeValue)),
+          ));
+        });
+
         test('delivers pending state for failing checks, does not query Gold', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
@@ -825,96 +915,6 @@ void main() {
             slug,
             pr.number,
             argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
-        });
-
-        test('will inform contributor of unresolved check for ATF draft status', () async {
-          // New commit, draft PR
-          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-            newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
-          db.values[status.key] = status;
-
-          // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-              IssueComment()..body = 'some other comment',
-            ),
-          );
-
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-
-          // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-
-          verify(issuesService.createComment(
-            slug,
-            pr.number,
-            argThat(contains(config.flutterGoldDraftChangeValue)),
-          )).called(1);
-        });
-
-        test('will only inform contributor of unresolved check for ATF draft status once', () async {
-          // New commit, draft PR
-          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status =
-          newStatusUpdate(pr, GithubGoldStatusUpdate.statusRunning, 'abc', config.flutterGoldPendingValue);
-          db.values[status.key] = status;
-
-          // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
-          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.flutterGoldDraftChangeValue,
-            ),
-          );
-
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-
-          // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number,
-            argThat(contains(config.flutterGoldDraftChangeValue)),
           ));
         });
       });

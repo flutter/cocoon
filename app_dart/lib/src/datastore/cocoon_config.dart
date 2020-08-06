@@ -166,9 +166,9 @@ class Config {
       'this pull request.';
 
   String get flutterGoldDraftChange => 'This pull request has been changed to a'
-    'draft status. The currently pending flutter-gold status will not be able '
-    'to resolve until a new commit is pushed or the change is marked ready for'
-    'review again.';
+      'draft status. The currently pending flutter-gold status will not be able '
+      'to resolve until a new commit is pushed or the change is marked ready for'
+      'review again.';
 
   String flutterGoldInitialAlert(String url) => 'Golden file changes have been found for this pull '
       'request. Click [here to view and triage]($url) '

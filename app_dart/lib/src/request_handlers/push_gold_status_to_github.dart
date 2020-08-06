@@ -84,7 +84,9 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // If a PR has been marked `draft` after the fact, and there has not
         // been a new commit, we cannot rescind a previously posted status, so
         // if it is pending, we should make the contributor aware of that fact.
-        if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning && lastUpdate.head == pr.head.sha && !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
+        if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
+            lastUpdate.head == pr.head.sha &&
+            !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
           await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldDraftChange);
         }
         continue;
@@ -166,7 +168,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
                   : config.flutterGoldSuccess,
               pr.number);
           log.debug('New status for potential update: ${statusRequest.state}, ${statusRequest.description}');
-          if (goldStatus == GithubGoldStatusUpdate.statusRunning && !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
+          if (goldStatus == GithubGoldStatusUpdate.statusRunning &&
+              !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldCommentID(pr))) {
             log.debug('Notifying for triage.');
             await _commentAndApplyGoldLabels(gitHubClient, pr, slug);
           }
