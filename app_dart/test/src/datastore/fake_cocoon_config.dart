@@ -35,6 +35,14 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.luciTryBuildersValue,
     this.luciProdBuildersValue,
+    this.flutterLuciTryBuildersValue,
+    this.flutterLuciProdBuildersValue,
+    this.engineLuciTryBuildersValue,
+    this.engineLuciProdBuildersValue,
+    this.cocoonLuciTryBuildersValue,
+    this.cocoonLuciProdBuildersValue,
+    this.packagesLuciTryBuildersValue,
+    this.packagesLuciProdBuildersValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
@@ -73,6 +81,14 @@ class FakeConfig implements Config {
   String flutterBuildDescriptionValue;
   List<Map<String, dynamic>> luciTryBuildersValue;
   List<Map<String, dynamic>> luciProdBuildersValue;
+  List<Map<String, dynamic>> flutterLuciTryBuildersValue;
+  List<Map<String, dynamic>> flutterLuciProdBuildersValue;
+  List<Map<String, dynamic>> engineLuciTryBuildersValue;
+  List<Map<String, dynamic>> engineLuciProdBuildersValue;
+  List<Map<String, dynamic>> cocoonLuciTryBuildersValue;
+  List<Map<String, dynamic>> cocoonLuciProdBuildersValue;
+  List<Map<String, dynamic>> packagesLuciTryBuildersValue;
+  List<Map<String, dynamic>> packagesLuciProdBuildersValue;
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
@@ -162,6 +178,30 @@ class FakeConfig implements Config {
 
   @override
   Future<List<Map<String, dynamic>>> get luciProdBuilders async => luciProdBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get flutterLuciTryBuilders async => flutterLuciTryBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get engineLuciTryBuilders async => engineLuciTryBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get cocoonLuciTryBuilders async => cocoonLuciTryBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get packagesLuciTryBuilders async => packagesLuciProdBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get flutterLuciProdBuilders async => flutterLuciProdBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get engineLuciProdBuilders async => engineLuciProdBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get cocoonLuciProdBuilders async => cocoonLuciProdBuildersValue;
+
+  @override
+  Future<List<Map<String, dynamic>>> get packagesLuciProdBuilders async => packagesLuciProdBuildersValue;
 
   @override
   Logging get loggingService => loggingServiceValue;

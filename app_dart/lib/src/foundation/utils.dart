@@ -11,6 +11,7 @@ import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
+import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -27,9 +28,8 @@ Duration twoSecondLinearBackoff(int attempt) {
 }
 
 Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
-  final String path = '/flutter/cocoon/master/app_dart/dev/$filename';
-  final Uri url = Uri.https('raw.githubusercontent.com', path);
+    GitHubBackoffCalculator gitHubBackoffCalculator, String filePath) async {
+  final Uri url = Uri.https('raw.githubusercontent.com', filePath);
 
   final HttpClient client = branchHttpClientProvider();
   try {
@@ -45,10 +45,10 @@ Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Lo
           final String content = await utf8.decoder.bind(clientResponse).join();
           return content;
         } else {
-          log.warning('Attempt to download $filename failed (HTTP $status)');
+          log.warning('Attempt to download $filePath failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
-        log.error('Attempt to download $filename failed:\n$error\n$stackTrace');
+        log.error('Attempt to download $filePath failed:\n$error\n$stackTrace');
       }
       await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }
@@ -62,7 +62,8 @@ Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Lo
 /// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
     HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
+  String content = await remoteFileContent(
+      branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/cocoon/master/app_dart/dev/branches.txt');
   content ??= 'master';
   final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
   branches.removeWhere((String branch) => branch.isEmpty);
@@ -84,11 +85,31 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
   return RepositorySlug('flutter', repoName);
 }
 
-/// Gets supported luci builders based on [bucket] via GitHub http request.
 Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
   final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
-  String builderContent = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
+  String builderContent = await remoteFileContent(
+      branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/cocoon/master/app_dart/dev/$filename');
+  builderContent ??= '{"builders":[]}';
+  Map<String, dynamic> builderMap;
+  try {
+    builderMap = json.decode(builderContent) as Map<String, dynamic>;
+  } on FormatException catch (e) {
+    log.error('error: $e');
+    builderMap = <String, dynamic>{'builders': <dynamic>[]};
+  }
+  final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+  return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
+}
+
+/// Gets supported luci builders based on [bucket] via GitHub http request.
+Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
+  String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
+  final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
+  filePath = '$filePath$fileName';
+  String builderContent =
+      await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath');
   builderContent ??= '{"builders":[]}';
   Map<String, dynamic> builderMap;
   try {
@@ -121,4 +142,42 @@ Future<void> insertBigquery(
   } on ApiRequestError {
     log.warning('Failed to add build status to BigQuery: $ApiRequestError');
   }
+}
+
+Future<List<Map<String, dynamic>>> getLuciTryBuilders(String repo, Config config) async {
+  List<Map<String, dynamic>> luciTryBuilders;
+  switch (repo) {
+    case 'flutter':
+      luciTryBuilders = await config.flutterLuciTryBuilders;
+      break;
+    case 'engine':
+      luciTryBuilders = await config.engineLuciTryBuilders;
+      break;
+    case 'cocoon':
+      luciTryBuilders = await config.cocoonLuciTryBuilders;
+      break;
+    case 'packages':
+      luciTryBuilders = await config.packagesLuciTryBuilders;
+      break;
+  }
+  return luciTryBuilders;
+}
+
+Future<List<Map<String, dynamic>>> getLuciProdBuilders(String repo, Config config) async {
+  List<Map<String, dynamic>> luciProdBuilders;
+  switch (repo) {
+    case 'flutter':
+      luciProdBuilders = await config.flutterLuciProdBuilders;
+      break;
+    case 'engine':
+      luciProdBuilders = await config.engineLuciProdBuilders;
+      break;
+    case 'cocoon':
+      luciProdBuilders = await config.cocoonLuciProdBuilders;
+      break;
+    case 'packages':
+      luciProdBuilders = await config.packagesLuciProdBuilders;
+      break;
+  }
+  return luciProdBuilders;
 }
