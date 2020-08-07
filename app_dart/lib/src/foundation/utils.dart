@@ -85,6 +85,7 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
   return RepositorySlug('flutter', repoName);
 }
 
+/// Gets supported luci builders based on [bucket] via GitHub http request.
 Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
   final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
@@ -102,7 +103,7 @@ Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClie
   return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
 }
 
-/// Gets supported luci builders based on [bucket] via GitHub http request.
+/// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
   String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
@@ -144,6 +145,7 @@ Future<void> insertBigquery(
   }
 }
 
+/// Returns luci try builders for difference repo by calling corresponding config getters.
 Future<List<Map<String, dynamic>>> getLuciTryBuilders(String repo, Config config) async {
   List<Map<String, dynamic>> luciTryBuilders;
   switch (repo) {
@@ -163,6 +165,7 @@ Future<List<Map<String, dynamic>>> getLuciTryBuilders(String repo, Config config
   return luciTryBuilders;
 }
 
+/// Returns luci prod builders for difference repo by calling corresponding config getters.
 Future<List<Map<String, dynamic>>> getLuciProdBuilders(String repo, Config config) async {
   List<Map<String, dynamic>> luciProdBuilders;
   switch (repo) {
