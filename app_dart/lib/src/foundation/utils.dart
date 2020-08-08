@@ -85,6 +85,8 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 }
 
 /// Gets supported luci builders based on [bucket] via GitHub http request.
+///
+// TODO(keyonghan): to be removed when APIs are updated to call getRepoBuilders, https://github.com/flutter/flutter/issues/62429
 Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
   final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
