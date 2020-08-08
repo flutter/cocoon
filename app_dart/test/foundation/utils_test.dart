@@ -127,14 +127,6 @@ void main() {
         expect(builders[0]['repo'], 'cocoon');
       });
 
-      test('logs error and returns empty list when json file is invalid', () async {
-        lucBuilderHttpClient.request.response.body = '{"builders":[';
-        final List<Map<String, dynamic>> builders =
-            await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
-        expect(builders.length, 0);
-      });
-
       test('returns empty list when http request fails', () async {
         int retry = 0;
         lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
@@ -161,14 +153,6 @@ void main() {
         expect(builders.length, 2);
         expect(builders[0]['name'], 'Cocoon');
         expect(builders[0]['repo'], 'cocoon');
-      });
-
-      test('logs error and returns empty list when json file is invalid', () async {
-        lucBuilderHttpClient.request.response.body = '{"builders":[';
-        final List<Map<String, dynamic>> builders =
-            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
-        expect(builders.length, 0);
       });
 
       test('returns empty list when http request fails', () async {

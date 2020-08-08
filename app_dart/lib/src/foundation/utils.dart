@@ -94,12 +94,7 @@ Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClie
       branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/cocoon/master/app_dart/dev/$filename');
   builderContent ??= '{"builders":[]}';
   Map<String, dynamic> builderMap;
-  try {
-    builderMap = json.decode(builderContent) as Map<String, dynamic>;
-  } on FormatException catch (e) {
-    log.error('error: $e');
-    builderMap = <String, dynamic>{'builders': <dynamic>[]};
-  }
+  builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
 }
@@ -107,19 +102,13 @@ Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClie
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
-  String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
+  final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
-  filePath = '$filePath$fileName';
   String builderContent =
-      await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath');
+      await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
   builderContent ??= '{"builders":[]}';
   Map<String, dynamic> builderMap;
-  try {
-    builderMap = json.decode(builderContent) as Map<String, dynamic>;
-  } on FormatException catch (e) {
-    log.error('error: $e');
-    builderMap = <String, dynamic>{'builders': <dynamic>[]};
-  }
+  builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
 }
