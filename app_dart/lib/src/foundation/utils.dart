@@ -11,7 +11,6 @@ import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
-import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -143,44 +142,4 @@ Future<void> insertBigquery(
   } on ApiRequestError {
     log.warning('Failed to add build status to BigQuery: $ApiRequestError');
   }
-}
-
-/// Returns luci try builders for difference repo by calling corresponding config getters.
-Future<List<Map<String, dynamic>>> getLuciTryBuilders(String repo, Config config) async {
-  List<Map<String, dynamic>> luciTryBuilders;
-  switch (repo) {
-    case 'flutter':
-      luciTryBuilders = await config.flutterLuciTryBuilders;
-      break;
-    case 'engine':
-      luciTryBuilders = await config.engineLuciTryBuilders;
-      break;
-    case 'cocoon':
-      luciTryBuilders = await config.cocoonLuciTryBuilders;
-      break;
-    case 'packages':
-      luciTryBuilders = await config.packagesLuciTryBuilders;
-      break;
-  }
-  return luciTryBuilders;
-}
-
-/// Returns luci prod builders for difference repo by calling corresponding config getters.
-Future<List<Map<String, dynamic>>> getLuciProdBuilders(String repo, Config config) async {
-  List<Map<String, dynamic>> luciProdBuilders;
-  switch (repo) {
-    case 'flutter':
-      luciProdBuilders = await config.flutterLuciProdBuilders;
-      break;
-    case 'engine':
-      luciProdBuilders = await config.engineLuciProdBuilders;
-      break;
-    case 'cocoon':
-      luciProdBuilders = await config.cocoonLuciProdBuilders;
-      break;
-    case 'packages':
-      luciProdBuilders = await config.packagesLuciProdBuilders;
-      break;
-  }
-  return luciProdBuilders;
 }

@@ -75,7 +75,7 @@ class Config {
     return await getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket);
   }
 
-  Future<List<Map<String, dynamic>>> _getRepoLuciBuilders(String bucket, String repo) async {
+  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
     return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
   }
 
@@ -115,15 +115,6 @@ class Config {
   Future<List<Map<String, dynamic>>> get luciTryBuilders => _getLuciBuilders('try');
 
   Future<List<Map<String, dynamic>>> get luciProdBuilders => _getLuciBuilders('prod');
-
-  Future<List<Map<String, dynamic>>> get flutterLuciTryBuilders => _getRepoLuciBuilders('try', 'flutter');
-  Future<List<Map<String, dynamic>>> get engineLuciTryBuilders => _getRepoLuciBuilders('try', 'engine');
-  Future<List<Map<String, dynamic>>> get cocoonLuciTryBuilders => _getRepoLuciBuilders('try', 'cocoon');
-  Future<List<Map<String, dynamic>>> get packagesLuciTryBuilders => _getRepoLuciBuilders('try', 'pacakges');
-  Future<List<Map<String, dynamic>>> get flutterLuciProdBuilders => _getRepoLuciBuilders('prod', 'flutter');
-  Future<List<Map<String, dynamic>>> get engineLuciProdBuilders => _getRepoLuciBuilders('prod', 'engine');
-  Future<List<Map<String, dynamic>>> get cocoonLuciProdBuilders => _getRepoLuciBuilders('prod', 'cocoon');
-  Future<List<Map<String, dynamic>>> get packagesLuciProdBuilders => _getRepoLuciBuilders('prod', 'packages');
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
