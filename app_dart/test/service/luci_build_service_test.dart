@@ -176,6 +176,8 @@ void main() {
           responses: <Response>[],
         );
       });
+      config.luciTryBuildersValue =
+          (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]') as List<dynamic>).cast<Map<String, dynamic>>();
       final bool result = await service.scheduleTryBuilds(
         prNumber: 1,
         commitSha: 'abc',
@@ -262,6 +264,7 @@ void main() {
           responses: <Response>[],
         );
       });
+      config.luciTryBuildersValue = <Map<String, dynamic>>[];
       final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
       expect(result, isEmpty);
     });
@@ -284,6 +287,9 @@ void main() {
           ],
         );
       });
+      config.luciTryBuildersValue =
+          (json.decode('[{"name": "Linux", "repo": "flutter", "taskName": "linux_bot"}]') as List<dynamic>)
+              .cast<Map<String, dynamic>>();
       final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
       expect(result, hasLength(1));
     });

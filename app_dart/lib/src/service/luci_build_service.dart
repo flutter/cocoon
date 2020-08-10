@@ -18,7 +18,7 @@ import '../model/luci/push_message.dart' as push_message;
 import 'buildbucket.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
-/// and cancel builds for github repos. It uses [config.getRepoLuciBuilders] to
+/// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
   LuciBuildService(this.config, this.buildBucketClient, this.serviceAccount, {GithubChecksUtil githubChecksUtil})
@@ -147,7 +147,7 @@ class LuciBuildService {
       return false;
     }
 
-    final List<Map<String, dynamic>> builders = await config.getRepoLuciBuilders('try', slug.name);
+    final List<Map<String, dynamic>> builders = await config.luciTryBuilders;
     final List<String> builderNames = builders
         .where((Map<String, dynamic> builder) => builder['repo'] == slug.name)
         .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
@@ -242,7 +242,7 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<Map<String, dynamic>> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
+    final List<Map<String, dynamic>> luciTryBuilders = await config.luciTryBuilders;
     final List<String> builderNames =
         luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     // Return only builds that exist in the configuration file.
