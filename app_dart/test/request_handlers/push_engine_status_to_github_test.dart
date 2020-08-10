@@ -69,13 +69,6 @@ void main() {
       repositoriesService = MockRepositoriesService();
       config = FakeConfig(
         tabledataResourceApi: tabledataResourceApi,
-        luciProdBuildersValue: const <Map<String, String>>[
-          <String, String>{
-            'name': 'Builder1',
-            'repo': 'flutter',
-            'taskName': 'foo',
-          },
-        ],
         githubService: githubService,
         dbValue: db,
         githubClient: github,
@@ -108,7 +101,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getBuilders(config),
+        await LuciBuilder.getBuilders('engine', config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)

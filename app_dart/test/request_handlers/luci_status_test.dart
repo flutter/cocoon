@@ -96,22 +96,6 @@ void main() {
       }),
     );
 
-    config.luciTryBuildersValue = (json.decode('''[
-      {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
-      {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
-      {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
-      {"name": "Linux Coverage", "repo": "flutter"},
-      {"name": "Linux Host Engine", "repo": "engine"},
-      {"name": "Linux Android AOT Engine", "repo": "engine"},
-      {"name": "Linux Android Debug Engine", "repo": "engine"},
-      {"name": "Mac Host Engine", "repo": "engine"},
-      {"name": "Mac Android AOT Engine", "repo": "engine"},
-      {"name": "Mac Android Debug Engine", "repo": "engine"},
-      {"name": "Mac iOS Engine", "repo": "engine"},
-      {"name": "Windows Host Engine", "repo": "engine"},
-      {"name": "Windows Android AOT Engine", "repo": "engine"}
-    ]''') as List<dynamic>).cast<Map<String, dynamic>>();
-
     mockGitHubClient = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
     when(mockGitHubClient.repositories).thenReturn(mockRepositoriesService);
