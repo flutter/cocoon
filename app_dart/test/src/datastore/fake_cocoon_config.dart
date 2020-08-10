@@ -181,7 +181,7 @@ class FakeConfig implements Config {
 
   @override
   bool githubPresubmitSupportedRepo(String repositoryName) {
-    return <String>['flutter', 'engine', 'cocoon'].contains(repositoryName);
+    return <String>['flutter', 'engine', 'cocoon', 'packages'].contains(repositoryName);
   }
 
   @override
@@ -213,6 +213,18 @@ class FakeConfig implements Config {
 
   @override
   Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
-    return (json.decode('[{"name": "Linux", "repo": "$repo"}]') as List<dynamic>).cast<Map<String, dynamic>>();
+    if (repo == 'flutter') {
+      return (json.decode('''[
+                  {"name": "Linux", "repo": "flutter"}, 
+                  {"name": "Mac", "repo": "flutter"}, 
+                  {"name": "Windows", "repo": "flutter"}, 
+                  {"name": "Linux Coverage", "repo": "flutter"}
+                  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
+    } else if (repo == 'cocoon') {
+      return (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]') as List<dynamic>).cast<Map<String, dynamic>>();
+    } else if (repo == 'engine') {
+      return (json.decode('[{"name": "Linux", "repo": "$repo"}]') as List<dynamic>).cast<Map<String, dynamic>>();
+    }
+    return (json.decode('[]') as List<dynamic>).cast<Map<String, dynamic>>();
   }
 }
