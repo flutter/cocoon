@@ -103,10 +103,6 @@ void main() {
       final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
-      //config.flutterLuciProdBuildersValue = <Map<String, dynamic>>[
-      //  <String, String>{'name': 'test', 'repo': 'flutter', 'TaskName': 'test'}
-      //];
-
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
               await LuciBuilder.getProdBuilders('flutter', config),
