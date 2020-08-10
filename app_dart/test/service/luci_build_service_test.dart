@@ -254,7 +254,7 @@ void main() {
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-      slug = RepositorySlug('flutter', 'cocoon');
+      slug = RepositorySlug('flutter', 'flutter');
     });
     test('Failed builds from an empty list', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
