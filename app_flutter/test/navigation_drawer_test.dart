@@ -30,7 +30,9 @@ void main() {
       expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
-      expect(find.text('About Test', skipOffstage: false), findsOneWidget);
+      await tester.drag(find.text('Source Code'), const Offset(0.0, -100));
+      await tester.pump();
+      expect(find.text('About Test'), findsOneWidget);
     });
 
     testWidgets('build navigates to build Flutter route', (WidgetTester tester) async {
