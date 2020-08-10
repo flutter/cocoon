@@ -28,7 +28,7 @@ class GithubStatusService {
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<Map<String, dynamic>> luciTryBuilders = await config.luciTryBuilders;
+    final List<Map<String, dynamic>> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
     final List<String> builderNames =
         luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     for (bb.Build build in builds.values) {
@@ -53,7 +53,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.luciTryBuilders, builderName) == null) {
+    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
@@ -94,10 +94,9 @@ class GithubStatusService {
     @required Result result,
     @required RepositorySlug slug,
   }) async {
-    final RepositorySlug slug = await repoNameForBuilder(await config.luciTryBuilders, builderName);
     // No builderName configuration, nothing to do here.
-    if (slug == null) {
-      return;
+    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+      return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final CreateStatus status = statusForResult(result)
