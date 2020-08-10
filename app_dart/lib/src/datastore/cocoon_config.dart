@@ -75,6 +75,10 @@ class Config {
     return await getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket);
   }
 
+  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
+  }
+
   Future<String> _getSingleValue(String id) async {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,

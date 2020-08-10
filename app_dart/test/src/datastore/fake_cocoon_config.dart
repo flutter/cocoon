@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
@@ -208,5 +209,10 @@ class FakeConfig implements Config {
   @override
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return '${slug.owner}/${slug.name}' == 'flutter/cocoon';
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+    return (json.decode('[{"name": "Linux", "repo": "$repo"}]') as List<dynamic>).cast<Map<String, dynamic>>();
   }
 }

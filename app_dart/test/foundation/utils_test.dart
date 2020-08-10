@@ -127,12 +127,32 @@ void main() {
         expect(builders[0]['repo'], 'cocoon');
       });
 
-      test('logs error and returns empty list when json file is invalid', () async {
-        lucBuilderHttpClient.request.response.body = '{"builders":[';
+      test('returns empty list when http request fails', () async {
+        int retry = 0;
+        lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        lucBuilderHttpClient.request.response.body = luciBuilders;
         final List<Map<String, dynamic>> builders =
             await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
         expect(builders.length, 0);
+      });
+    });
+
+    group('GetRepoBuilders', () {
+      FakeHttpClient lucBuilderHttpClient;
+      FakeLogging log;
+
+      setUp(() {
+        lucBuilderHttpClient = FakeHttpClient();
+        log = FakeLogging();
+      });
+      test('returns luci builders', () async {
+        lucBuilderHttpClient.request.response.body = luciBuilders;
+        final List<Map<String, dynamic>> builders =
+            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
+        expect(builders.length, 2);
+        expect(builders[0]['name'], 'Cocoon');
+        expect(builders[0]['repo'], 'cocoon');
       });
 
       test('returns empty list when http request fails', () async {
@@ -141,7 +161,7 @@ void main() {
         lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         lucBuilderHttpClient.request.response.body = luciBuilders;
         final List<Map<String, dynamic>> builders =
-            await getBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try');
+            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
         expect(builders.length, 0);
       });
     });
