@@ -101,7 +101,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getBuilders('engine', config),
+        await LuciBuilder.getProdBuilders('engine', config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)

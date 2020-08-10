@@ -49,7 +49,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
@@ -81,7 +81,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
@@ -109,7 +109,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
@@ -135,7 +135,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
@@ -163,7 +163,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
@@ -189,7 +189,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
@@ -218,7 +218,7 @@ void main() {
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
@@ -228,7 +228,7 @@ void main() {
                   });
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders('flutter', config),
+              await LuciBuilder.getProdBuilders('flutter', config),
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'test'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[

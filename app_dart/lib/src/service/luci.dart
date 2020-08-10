@@ -57,7 +57,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(repo, config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
     final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
@@ -94,7 +94,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(repo, config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
     final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
@@ -194,7 +194,7 @@ class LuciBuilder {
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getBuilders(String repo, Config config) async {
+  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
     final List<dynamic> builders = await config.getRepoLuciBuilders('prod', repo);
     return builders.map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json as Map<String, dynamic>)).toList();
   }
