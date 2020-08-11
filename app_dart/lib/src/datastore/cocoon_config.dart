@@ -70,11 +70,6 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  // Gets supported luci builders based on github http request.
-  Future<List<Map<String, dynamic>>> _getLuciBuilders(String bucket) async {
-    return await getBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket);
-  }
-
   Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
     return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
   }
@@ -111,10 +106,6 @@ class Config {
   DatastoreDB get db => _db;
 
   Future<List<String>> get flutterBranches => _getFlutterBranches();
-
-  Future<List<Map<String, dynamic>>> get luciTryBuilders => _getLuciBuilders('try');
-
-  Future<List<Map<String, dynamic>>> get luciProdBuilders => _getLuciBuilders('prod');
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
 
