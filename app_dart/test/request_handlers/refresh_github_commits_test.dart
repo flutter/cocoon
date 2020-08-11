@@ -145,7 +145,7 @@ void main() {
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 6);
-      expect(db.values.values.whereType<Task>().length, 10);
+      expect(db.values.values.whereType<Task>().length, 12);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
@@ -195,7 +195,7 @@ void main() {
       httpClient.request.response.body = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 3);
-      expect(db.values.values.whereType<Task>().length, 10);
+      expect(db.values.values.whereType<Task>().length, 12);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '2', '4']);
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
@@ -216,7 +216,7 @@ void main() {
       final Body body = await tester.get<Body>(handler);
       expect(retry, 2);
       expect(db.values.values.whereType<Commit>().length, 1);
-      expect(db.values.values.whereType<Task>().length, 5);
+      expect(db.values.values.whereType<Task>().length, 6);
       expect(await body.serialize().toList(), isEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
       expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
