@@ -205,15 +205,19 @@ class FakeConfig implements Config {
   Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
     if (repo == 'flutter') {
       return (json.decode('''[
-                  {"name": "Linux", "repo": "flutter"}, 
-                  {"name": "Mac", "repo": "flutter"}, 
-                  {"name": "Windows", "repo": "flutter"}, 
-                  {"name": "Linux Coverage", "repo": "flutter"}
+                  {"name": "Linux", "repo": "flutter" , "task_name": "linux_bot", "flaky": false},
+                  {"name": "Mac", "repo": "flutter", "task_name": "mac_bot", "flaky": false},
+                  {"name": "Windows", "repo": "flutter", "task_name": "windows_bot", "flaky": false},
+                  {"name": "Linux Coverage", "repo": "flutter", "task_name": "coverage_bot", "flaky": true}
                   ]''') as List<dynamic>).cast<Map<String, dynamic>>();
     } else if (repo == 'cocoon') {
-      return (json.decode('[{"name": "Cocoon", "repo": "cocoon"}]') as List<dynamic>).cast<Map<String, dynamic>>();
+      return (json.decode('[{"name": "Cocoon", "repo": "cocoon", "task_name": "cocoon_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
     } else if (repo == 'engine') {
-      return (json.decode('[{"name": "Linux", "repo": "$repo"}]') as List<dynamic>).cast<Map<String, dynamic>>();
+      return (json.decode('[{"name": "Linux", "repo": "$repo", "task_name": "coverage_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
     }
     return (json.decode('[]') as List<dynamic>).cast<Map<String, dynamic>>();
   }

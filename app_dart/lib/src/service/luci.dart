@@ -187,7 +187,7 @@ class LuciBuilder {
   @JsonKey(required: true, disallowNullValue: true)
   final String repo;
 
-  /// The name of the repository for which this builder runs.
+  /// Flag the result of this builder as blocker or not.
   @JsonKey(required: true, disallowNullValue: true)
   final bool flaky;
 
