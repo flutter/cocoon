@@ -172,6 +172,7 @@ class LuciBuilder {
   const LuciBuilder({
     @required this.name,
     @required this.repo,
+    @required this.flaky,
     this.taskName,
   }) : assert(name != null);
 
@@ -185,6 +186,10 @@ class LuciBuilder {
   /// The name of the repository for which this builder runs.
   @JsonKey(required: true, disallowNullValue: true)
   final String repo;
+
+  /// Flag the result of this builder as blocker or not.
+  @JsonKey(required: true, disallowNullValue: true)
+  final bool flaky;
 
   /// The name of the devicelab task associated with this builder.
   @JsonKey()

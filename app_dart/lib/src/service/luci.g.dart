@@ -9,10 +9,11 @@ part of 'luci.dart';
 // **************************************************************************
 
 LuciBuilder _$LuciBuilderFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['name', 'repo'], disallowNullValues: const ['name', 'repo']);
+  $checkKeys(json, requiredKeys: const ['name', 'repo', 'flaky'], disallowNullValues: const ['name', 'repo', 'flaky']);
   return LuciBuilder(
     name: json['name'] as String,
     repo: json['repo'] as String,
+    flaky: json['flaky'] as bool,
     taskName: json['taskName'] as String,
   );
 }
@@ -28,6 +29,7 @@ Map<String, dynamic> _$LuciBuilderToJson(LuciBuilder instance) {
 
   writeNotNull('name', instance.name);
   writeNotNull('repo', instance.repo);
+  writeNotNull('flaky', instance.flaky);
   val['taskName'] = instance.taskName;
   return val;
 }
