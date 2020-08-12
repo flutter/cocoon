@@ -43,28 +43,23 @@ class PushBenchmarkToCenter extends RequestHandler<Body> {
     final Map<String, TimeSeries> timeSeriesMap = await readTimeSeriesMap();
 
     final DateTime now = DateTime.now().toUtc();
-    final DateTime twoDaysAgo = now.subtract(const Duration(days: 2));
+    final DateTime begin = now.subtract(const Duration(days: 1));
+    final DateTime end = now;
+    print('begin: $begin');
 
-    DateTime begin = DateTime.utc(twoDaysAgo.year, twoDaysAgo.month, twoDaysAgo.day);
-    for (int i = 0; i < 1; i++) {
-      print('begin: $begin');
-      final DateTime end = begin.add(const Duration(days: 1));
-      final List<TimeSeriesValue> timeSeriesValues = await readTimeSeriesValue(
-          begin.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
-      print('begin ${begin.millisecondsSinceEpoch} end ${end.millisecondsSinceEpoch}');
-      print('timeSeriesValues len ${timeSeriesValues.length}');
-      begin = end;
+    final List<TimeSeriesValue> timeSeriesValues = await readTimeSeriesValue(
+        begin.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
+    print('timeSeriesValues len ${timeSeriesValues.length}');
 
-      if (timeSeriesValues.isNotEmpty) {
-        final List<BenchmarkMetricPoint> points =
-          await transform(timeSeriesMap, timeSeriesValues);
-        logger.debug('Transformed ${points.length} metric points.');
-        logger.debug('The first one is ${points.first}');
+    if (timeSeriesValues.isNotEmpty) {
+      final List<BenchmarkMetricPoint> points =
+        await transform(timeSeriesMap, timeSeriesValues);
+      logger.debug('Transformed ${points.length} metric points.');
+      logger.debug('The first one is ${points.first}');
 
-        final mc.FlutterDestination destination =
-            await flutterDestinationProvider(config);
-        await destination.update(points);
-      }
+      final mc.FlutterDestination destination =
+          await flutterDestinationProvider(config);
+      await destination.update(points);
     }
 
     return Body.empty;

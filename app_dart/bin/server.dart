@@ -126,7 +126,7 @@ Future<void> main() async {
       PushBenchmarkToCenter p = PushBenchmarkToCenter(config);
       await p.get();
       print('waiting...');
-      await Future<void>.delayed(const Duration(days: 1));
+      await Future<void>.delayed(const Duration(hours: 12));
     }
   });
 }
