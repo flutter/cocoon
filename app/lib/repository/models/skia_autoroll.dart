@@ -34,18 +34,12 @@ class SkiaAutoRoll {
 
 class RefreshEngineFrameworkRoll extends RefreshAutoRoll {
   const RefreshEngineFrameworkRoll({@required Widget child})
-      : super(
-            child: child,
-            url:
-                'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll/json/status');
+      : super(child: child, url: 'https://autoroll.skia.org/r/flutter-engine-flutter-autoroll/json/status');
 }
 
 class RefreshSkiaFlutterRoll extends RefreshAutoRoll {
   const RefreshSkiaFlutterRoll({@required Widget child})
-      : super(
-            child: child,
-            url:
-                'https://autoroll.skia.org/r/skia-flutter-autoroll/json/status');
+      : super(child: child, url: 'https://autoroll.skia.org/r/skia-flutter-autoroll/json/status');
 }
 
 class RefreshAutoRoll extends StatefulWidget {
@@ -60,8 +54,7 @@ class RefreshAutoRoll extends StatefulWidget {
   }
 }
 
-class _RefreshAutoRollState extends State<RefreshAutoRoll>
-    with AutomaticKeepAliveClientMixin<RefreshAutoRoll> {
+class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAliveClientMixin<RefreshAutoRoll> {
   _RefreshAutoRollState();
 
   Timer _refreshTimer;

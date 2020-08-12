@@ -13,48 +13,42 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'key.pb.dart' as $0;
 
 class Task extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Task', createEmptyInstance: create)
-        ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
-        ..aOM<$0.RootKey>(2, 'commitKey', subBuilder: $0.RootKey.create)
-        ..aInt64(3, 'createTimestamp')
-        ..aInt64(4, 'startTimestamp')
-        ..aInt64(5, 'endTimestamp')
-        ..aOS(6, 'name')
-        ..a<$core.int>(7, 'attempts', $pb.PbFieldType.O3)
-        ..aOB(8, 'isFlaky')
-        ..a<$core.int>(9, 'timeoutInMinutes', $pb.PbFieldType.O3)
-        ..aOS(10, 'reason')
-        ..pPS(11, 'requiredCapabilities')
-        ..aOS(12, 'reservedForAgentId', protoName: 'reserved_for_agentId')
-        ..aOS(13, 'stageName')
-        ..aOS(14, 'status')
-        ..a<$core.int>(15, 'buildNumber', $pb.PbFieldType.O3,
-            protoName: 'buildNumber')
-        ..aOS(16, 'buildNumberList', protoName: 'buildNumberList')
-        ..aOS(17, 'builderName', protoName: 'builderName')
-        ..aOS(18, 'luciBucket', protoName: 'luciBucket')
-        ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Task', createEmptyInstance: create)
+    ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
+    ..aOM<$0.RootKey>(2, 'commitKey', subBuilder: $0.RootKey.create)
+    ..aInt64(3, 'createTimestamp')
+    ..aInt64(4, 'startTimestamp')
+    ..aInt64(5, 'endTimestamp')
+    ..aOS(6, 'name')
+    ..a<$core.int>(7, 'attempts', $pb.PbFieldType.O3)
+    ..aOB(8, 'isFlaky')
+    ..a<$core.int>(9, 'timeoutInMinutes', $pb.PbFieldType.O3)
+    ..aOS(10, 'reason')
+    ..pPS(11, 'requiredCapabilities')
+    ..aOS(12, 'reservedForAgentId', protoName: 'reserved_for_agentId')
+    ..aOS(13, 'stageName')
+    ..aOS(14, 'status')
+    ..a<$core.int>(15, 'buildNumber', $pb.PbFieldType.O3, protoName: 'buildNumber')
+    ..aOS(16, 'buildNumberList', protoName: 'buildNumberList')
+    ..aOS(17, 'builderName', protoName: 'builderName')
+    ..aOS(18, 'luciBucket', protoName: 'luciBucket')
+    ..hasRequiredFields = false;
 
   Task._() : super();
   factory Task() => create();
-  factory Task.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Task.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Task clone() => Task()..mergeFromMessage(this);
-  Task copyWith(void Function(Task) updates) =>
-      super.copyWith((message) => updates(message as Task));
+  Task copyWith(void Function(Task) updates) => super.copyWith((message) => updates(message as Task));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Task create() => Task._();
   Task createEmptyInstance() => create();
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')
-  static Task getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
+  static Task getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Task>(create);
   static Task _defaultInstance;
 
   @$pb.TagNumber(1)

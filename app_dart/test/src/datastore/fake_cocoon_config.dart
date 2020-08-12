@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
@@ -33,9 +34,6 @@ class FakeConfig implements Config {
     this.goldenBreakingChangeMessageValue,
     this.goldenTriageMessageValue,
     this.webhookKeyValue,
-    this.cqLabelNameValue,
-    this.luciBuildersValue,
-    this.luciTryBuildersValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
@@ -72,11 +70,8 @@ class FakeConfig implements Config {
   String goldenBreakingChangeMessageValue;
   String goldenTriageMessageValue;
   String webhookKeyValue;
-  String cqLabelNameValue;
   String flutterBuildValue;
   String flutterBuildDescriptionValue;
-  List<Map<String, dynamic>> luciBuildersValue;
-  List<Map<String, dynamic>> luciTryBuildersValue;
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
@@ -92,25 +87,19 @@ class FakeConfig implements Config {
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
 
   @override
-  Future<GitHub> createGitHubClient(String owner, String repository) async =>
-      githubClient;
+  Future<GitHub> createGitHubClient(String owner, String repository) async => githubClient;
 
   @override
-  Future<GraphQLClient> createGitHubGraphQLClient() async =>
-      githubGraphQLClient;
+  Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
 
   @override
-  Future<GraphQLClient> createCirrusGraphQLClient() async =>
-      cirrusGraphQLClient;
+  Future<GraphQLClient> createCirrusGraphQLClient() async => cirrusGraphQLClient;
 
   @override
-  Future<TabledataResourceApi> createTabledataResourceApi() async =>
-      tabledataResourceApi;
+  Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
-  Future<GithubService> createGithubService(
-          String owner, String repository) async =>
-      githubService;
+  Future<GithubService> createGithubService(String owner, String repository) async => githubService;
 
   @override
   FakeDatastoreDB get db => dbValue;
@@ -119,8 +108,7 @@ class FakeConfig implements Config {
   String get defaultBranch => kDefaultBranchName;
 
   @override
-  Future<ServiceAccountInfo> get deviceLabServiceAccount async =>
-      deviceLabServiceAccountValue;
+  Future<ServiceAccountInfo> get deviceLabServiceAccount async => deviceLabServiceAccountValue;
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue;
@@ -144,20 +132,16 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
 
   @override
-  String get missingTestsPullRequestMessage =>
-      missingTestsPullRequestMessageValue;
+  String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
 
   @override
-  String get wrongBaseBranchPullRequestMessage =>
-      wrongBaseBranchPullRequestMessageValue;
+  String get wrongBaseBranchPullRequestMessage => wrongBaseBranchPullRequestMessageValue;
 
   @override
-  String wrongHeadBranchPullRequestMessage(String branch) =>
-      wrongHeadBranchPullRequestMessageValue;
+  String wrongHeadBranchPullRequestMessage(String branch) => wrongHeadBranchPullRequestMessageValue;
 
   @override
-  String get releaseBranchPullRequestMessage =>
-      releaseBranchPullRequestMessageValue;
+  String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue;
 
   @override
   String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
@@ -169,55 +153,29 @@ class FakeConfig implements Config {
   Future<String> get webhookKey async => webhookKeyValue;
 
   @override
-  String get cqLabelName => cqLabelNameValue;
-
-  @override
   String get flutterBuild => flutterBuildValue;
 
   @override
   String get flutterBuildDescription => flutterBuildDescriptionValue;
 
   @override
-  List<Map<String, dynamic>> get luciBuilders => luciBuildersValue;
-
-  @override
-  List<Map<String, dynamic>> get luciTryBuilders => luciTryBuildersValue;
-
-  @override
   Logging get loggingService => loggingServiceValue;
 
   @override
-  String get waitingForTreeToGoGreenLabelName =>
-      waitingForTreeToGoGreenLabelNameValue;
+  String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue;
 
   @override
   RepositorySlug get flutterSlug => flutterSlugValue;
 
   @override
-  Future<ServiceAccountCredentials> get taskLogServiceAccount async =>
-      taskLogServiceAccountValue;
+  Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue;
 
   @override
   bool githubPresubmitSupportedRepo(String repositoryName) {
-    return <String>['flutter', 'engine', 'cocoon'].contains(repositoryName);
-  }
-
-  @override
-  Future<RepositorySlug> repoNameForBuilder(String builderName) async {
-    String name;
-    switch (builderName) {
-      case 'Linux Host Engine':
-        name = 'engine';
-        break;
-      case 'MacNoExists':
-        return null;
-      default:
-        name = 'flutter';
-    }
-    return RepositorySlug('flutter', name);
+    return <String>['flutter', 'engine', 'cocoon', 'packages'].contains(repositoryName);
   }
 
   @override
@@ -234,8 +192,7 @@ class FakeConfig implements Config {
   Future<String> get githubAppId => throw UnimplementedError();
 
   @override
-  Future<Map<String, dynamic>> get githubAppInstallations =>
-      throw UnimplementedError();
+  Future<Map<String, dynamic>> get githubAppInstallations => throw UnimplementedError();
 
   @override
   Future<String> get githubPrivateKey => throw UnimplementedError();
@@ -251,4 +208,24 @@ class FakeConfig implements Config {
   @override
   Future<Map<String, dynamic>> get metricsCenterServiceAccountJson async =>
       metricsCenterServiceAccountValue;
+
+  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+    if (repo == 'flutter') {
+      return (json.decode('''[
+                  {"name": "Linux", "repo": "flutter" , "task_name": "linux_bot", "flaky": false},
+                  {"name": "Mac", "repo": "flutter", "task_name": "mac_bot", "flaky": false},
+                  {"name": "Windows", "repo": "flutter", "task_name": "windows_bot", "flaky": false},
+                  {"name": "Linux Coverage", "repo": "flutter", "task_name": "coverage_bot", "flaky": true}
+                  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
+    } else if (repo == 'cocoon') {
+      return (json.decode('[{"name": "Cocoon", "repo": "cocoon", "task_name": "cocoon_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+    } else if (repo == 'engine') {
+      return (json.decode('[{"name": "Linux", "repo": "$repo", "task_name": "coverage_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+    }
+    return (json.decode('[]') as List<dynamic>).cast<Map<String, dynamic>>();
+  }
 }

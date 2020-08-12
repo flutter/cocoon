@@ -89,8 +89,8 @@ class Agent extends Model {
   ///
   /// This is true iff every one of [task]s required capabilities exists in
   /// this agent's list of [capabilities].
-  bool isCapableOfPerformingTask(Task task) => task.requiredCapabilities
-      .every((String capability) => capabilities.contains(capability));
+  bool isCapableOfPerformingTask(Task task) =>
+      task.requiredCapabilities.every((String capability) => capabilities.contains(capability));
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$AgentToJson(this);

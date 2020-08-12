@@ -5,31 +5,11 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_datastore.dart';
 
 void main() {
-  group('repoNameForBuilder', () {
-    FakeDatastoreDB datastore;
-    Config config;
-    setUp(() {
-      datastore = FakeDatastoreDB();
-      config = Config(datastore, CacheService(inMemory: true));
-    });
-    test('Builder config does not exist', () async {
-      final RepositorySlug result =
-          await config.repoNameForBuilder('DoesNotExist');
-      expect(result, isNull);
-    });
-
-    test('Builder exists', () async {
-      final RepositorySlug result = await config.repoNameForBuilder('Cocoon');
-      expect(result, isNotNull);
-      expect(result.fullName, equals('flutter/cocoon'));
-    });
-  });
   group('githubAppInstallations', () {
     FakeDatastoreDB datastore;
     CacheService cacheService;
@@ -40,8 +20,7 @@ void main() {
       config = Config(datastore, cacheService);
     });
     test('Builder config does not exist', () async {
-      const String configValue =
-          '{"godofredoc/cocoon":{"installation_id":"123"}}';
+      const String configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
       final Uint8List cachedValue = Uint8List.fromList(configValue.codeUnits);
 
       await cacheService.set(
@@ -49,10 +28,8 @@ void main() {
         'githubapp_installations',
         cachedValue,
       );
-      final Map<String, dynamic> installation =
-          await config.githubAppInstallations;
-      expect(
-          installation['godofredoc/cocoon']['installation_id'], equals('123'));
+      final Map<String, dynamic> installation = await config.githubAppInstallations;
+      expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
     });
   });
 }

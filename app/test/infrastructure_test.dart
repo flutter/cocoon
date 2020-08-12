@@ -15,8 +15,7 @@ void main() {
     testWidgets('Operational', (WidgetTester tester) async {
       const String statusText =
           'Status provided by StatusPage'; // Status text is provided by StatusPage, so there's no logic needed in the dashboard to handle different variants.
-      const StatusPageStatus status =
-          StatusPageStatus(status: statusText, indicator: 'none');
+      const StatusPageStatus status = StatusPageStatus(status: statusText, indicator: 'none');
       await _pumpStatusPageWidget(tester, status);
 
       final Finder statusFinder = find.text(statusText);
@@ -27,40 +26,35 @@ void main() {
     });
 
     testWidgets('Minor', (WidgetTester tester) async {
-      const StatusPageStatus statusPageStatus =
-          StatusPageStatus(status: 'Failure', indicator: 'minor');
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'minor');
       await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.warning);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Major', (WidgetTester tester) async {
-      const StatusPageStatus statusPageStatus =
-          StatusPageStatus(status: 'Failure', indicator: 'major');
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'major');
       await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Critical', (WidgetTester tester) async {
-      const StatusPageStatus statusPageStatus =
-          StatusPageStatus(status: 'Failure', indicator: 'critical');
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'critical');
       await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Maintenence', (WidgetTester tester) async {
-      const StatusPageStatus statusPageStatus =
-          StatusPageStatus(status: 'Failure', indicator: 'maintenance');
+      const StatusPageStatus statusPageStatus = StatusPageStatus(status: 'Failure', indicator: 'maintenance');
       await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.error);
       expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      const StatusPageStatus statusPageStatus =
-          StatusPageStatus(indicator: 'bogus unknown indicator');
+      const StatusPageStatus statusPageStatus = StatusPageStatus(indicator: 'bogus unknown indicator');
       await _pumpStatusPageWidget(tester, statusPageStatus);
       final Finder iconFinder = find.byIcon(Icons.help_outline);
       expect(iconFinder, findsOneWidget);
@@ -80,8 +74,7 @@ void main() {
 
   group('Build status widget', () {
     testWidgets('Succeeded', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(anticipatedBuildStatus: 'Succeeded');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Succeeded');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
       final Finder iconFinder = find.byIcon(Icons.check);
@@ -89,8 +82,7 @@ void main() {
     });
 
     testWidgets('Will fail', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(anticipatedBuildStatus: 'Build Will Fail');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Build Will Fail');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
       final Finder iconFinder = find.byIcon(Icons.error);
@@ -98,8 +90,7 @@ void main() {
     });
 
     testWidgets('failed', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(anticipatedBuildStatus: 'Failed');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Failed');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
       final Finder iconFinder = find.byIcon(Icons.error);
@@ -107,8 +98,7 @@ void main() {
     });
 
     testWidgets('Bogus', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(anticipatedBuildStatus: 'Bogus unknown status');
+      const BuildStatus buildStatus = BuildStatus(anticipatedBuildStatus: 'Bogus unknown status');
       await _pumpBuildStatusWidget(tester, buildStatus);
 
       final Finder iconFinder = find.byIcon(Icons.help_outline);
@@ -134,8 +124,7 @@ void main() {
     });
 
     testWidgets('One', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(failingAgents: <String>['mac1']);
+      const BuildStatus buildStatus = BuildStatus(failingAgents: <String>['mac1']);
       await _pumpFailingAgentsWidget(tester, buildStatus);
 
       final Finder titleFinder = find.text('Failing Agents');
@@ -149,8 +138,7 @@ void main() {
     });
 
     testWidgets('Two', (WidgetTester tester) async {
-      const BuildStatus buildStatus =
-          BuildStatus(failingAgents: <String>['mac1', 'windows1']);
+      const BuildStatus buildStatus = BuildStatus(failingAgents: <String>['mac1', 'windows1']);
       await _pumpFailingAgentsWidget(tester, buildStatus);
 
       final Finder titleFinder = find.text('Failing Agents');
@@ -177,8 +165,7 @@ void main() {
     });
 
     testWidgets('Commit results', (WidgetTester tester) async {
-      BuildStatus buildStatus =
-          BuildStatus(commitTestResults: <CommitTestResult>[
+      BuildStatus buildStatus = BuildStatus(commitTestResults: <CommitTestResult>[
         CommitTestResult(
             sha: '123456789',
             avatarImageURL: 'https://www.google.com',
@@ -208,8 +195,7 @@ void main() {
 
       await _pumpCommitResultsWidget(tester, buildStatus);
 
-      final Finder listTileFinder =
-          find.byWidgetPredicate((Widget widget) => widget is ListTile);
+      final Finder listTileFinder = find.byWidgetPredicate((Widget widget) => widget is ListTile);
       expect(listTileFinder, findsNWidgets(3));
 
       ListTile firstResult = tester.widget<ListTile>(listTileFinder.first);
@@ -225,8 +211,7 @@ void main() {
       expect(firstNetworkImage.url, 'https://www.google.com');
 
       // Second commit
-      final ListTile secondResult =
-          tester.widget<ListTile>(listTileFinder.at(1));
+      final ListTile secondResult = tester.widget<ListTile>(listTileFinder.at(1));
       expect((secondResult.title as Text).data, '[5678] 5:20 AM');
 
       final CircleAvatar secondTrailing = secondResult.trailing;
@@ -235,8 +220,7 @@ void main() {
       expect(secondNetworkImage.url, 'https://about.google');
 
       // Third commit
-      final ListTile thirdResult =
-          tester.widget<ListTile>(listTileFinder.at(2));
+      final ListTile thirdResult = tester.widget<ListTile>(listTileFinder.at(2));
       expect((thirdResult.title as Text).data, '[987654] 11:59 AM');
 
       final CircleAvatar thirdLeading = thirdResult.leading;
@@ -250,8 +234,7 @@ void main() {
   });
 }
 
-Future<void> _pumpStatusPageWidget(
-    WidgetTester tester, StatusPageStatus status) async {
+Future<void> _pumpStatusPageWidget(WidgetTester tester, StatusPageStatus status) async {
   await tester.pumpWidget(MaterialApp(
       home: Scaffold(
           body: ModelBinding<StatusPageStatus>(
@@ -263,26 +246,17 @@ Future<void> _pumpStatusPageWidget(
               )))));
 }
 
-Future<void> _pumpBuildStatusWidget(
-    WidgetTester tester, BuildStatus status) async {
+Future<void> _pumpBuildStatusWidget(WidgetTester tester, BuildStatus status) async {
   await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-          body: ModelBinding<BuildStatus>(
-              initialModel: status, child: const BuildStatusWidget()))));
+      home: Scaffold(body: ModelBinding<BuildStatus>(initialModel: status, child: const BuildStatusWidget()))));
 }
 
-Future<void> _pumpFailingAgentsWidget(
-    WidgetTester tester, BuildStatus status) async {
+Future<void> _pumpFailingAgentsWidget(WidgetTester tester, BuildStatus status) async {
   await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-          body: ModelBinding<BuildStatus>(
-              initialModel: status, child: const FailingAgentWidget()))));
+      home: Scaffold(body: ModelBinding<BuildStatus>(initialModel: status, child: const FailingAgentWidget()))));
 }
 
-Future<void> _pumpCommitResultsWidget(
-    WidgetTester tester, BuildStatus status) async {
+Future<void> _pumpCommitResultsWidget(WidgetTester tester, BuildStatus status) async {
   await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-          body: ModelBinding<BuildStatus>(
-              initialModel: status, child: const CommitResultsWidget()))));
+      home: Scaffold(body: ModelBinding<BuildStatus>(initialModel: status, child: const CommitResultsWidget()))));
 }

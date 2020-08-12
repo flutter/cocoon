@@ -21,9 +21,7 @@ void main() {
         };
         return http.Response(json.encode(mapJson), 200);
       });
-      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus(
-          'https://www.google.com',
-          client: client);
+      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus('https://www.google.com', client: client);
 
       expect(roll.mode, 'running');
       expect(roll.lastRollResult, 'suceeded');
@@ -31,14 +29,10 @@ void main() {
 
     test('Unexpected fetch', () async {
       final MockClient client = MockClient((http.Request request) async {
-        final Map<String, dynamic> mapJson = <String, dynamic>{
-          'bogus': 'Failure'
-        };
+        final Map<String, dynamic> mapJson = <String, dynamic>{'bogus': 'Failure'};
         return http.Response(json.encode(mapJson), 200);
       });
-      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus(
-          'https://www.google.com',
-          client: client);
+      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus('https://www.google.com', client: client);
 
       expect(roll, isNull);
     });
@@ -47,9 +41,7 @@ void main() {
       final MockClient client = MockClient((http.Request request) async {
         return http.Response(null, 404);
       });
-      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus(
-          'https://www.google.com',
-          client: client);
+      final SkiaAutoRoll roll = await fetchSkiaAutoRollModeStatus('https://www.google.com', client: client);
 
       expect(roll, isNull);
     });

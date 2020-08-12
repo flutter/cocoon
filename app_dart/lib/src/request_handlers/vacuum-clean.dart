@@ -29,8 +29,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -44,8 +43,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
         .map<Task>((FullTask fullTask) => fullTask.task)
         .where(shouldBeVacuumCleaned)
         .toList();
-    log.debug(
-        'Found ${tasks.length} in progress tasks that have been stranded');
+    log.debug('Found ${tasks.length} in progress tasks that have been stranded');
     for (Task task in tasks) {
       if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;

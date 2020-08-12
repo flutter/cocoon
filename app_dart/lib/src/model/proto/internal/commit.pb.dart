@@ -13,36 +13,32 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'key.pb.dart' as $0;
 
 class Commit extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i =
-      $pb.BuilderInfo('Commit', createEmptyInstance: create)
-        ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
-        ..aInt64(2, 'timestamp')
-        ..aOS(3, 'sha')
-        ..aOS(4, 'author')
-        ..aOS(5, 'authorAvatarUrl', protoName: 'authorAvatarUrl')
-        ..aOS(6, 'repository')
-        ..aOS(7, 'branch')
-        ..hasRequiredFields = false;
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Commit', createEmptyInstance: create)
+    ..aOM<$0.RootKey>(1, 'key', subBuilder: $0.RootKey.create)
+    ..aInt64(2, 'timestamp')
+    ..aOS(3, 'sha')
+    ..aOS(4, 'author')
+    ..aOS(5, 'authorAvatarUrl', protoName: 'authorAvatarUrl')
+    ..aOS(6, 'repository')
+    ..aOS(7, 'branch')
+    ..aOS(8, 'message')
+    ..hasRequiredFields = false;
 
   Commit._() : super();
   factory Commit() => create();
-  factory Commit.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Commit.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory Commit.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory Commit.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   Commit clone() => Commit()..mergeFromMessage(this);
-  Commit copyWith(void Function(Commit) updates) =>
-      super.copyWith((message) => updates(message as Commit));
+  Commit copyWith(void Function(Commit) updates) => super.copyWith((message) => updates(message as Commit));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Commit create() => Commit._();
   Commit createEmptyInstance() => create();
   static $pb.PbList<Commit> createRepeated() => $pb.PbList<Commit>();
   @$core.pragma('dart2js:noInline')
-  static Commit getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Commit>(create);
+  static Commit getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Commit>(create);
   static Commit _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -130,4 +126,16 @@ class Commit extends $pb.GeneratedMessage {
   $core.bool hasBranch() => $_has(6);
   @$pb.TagNumber(7)
   void clearBranch() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get message => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set message($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasMessage() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMessage() => clearField(8);
 }

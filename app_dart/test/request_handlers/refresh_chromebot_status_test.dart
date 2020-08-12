@@ -28,15 +28,7 @@ void main() {
 
     setUp(() {
       branchHttpClient = FakeHttpClient();
-      config = FakeConfig(
-        luciBuildersValue: const <Map<String, String>>[
-          <String, String>{
-            'name': 'Builder1',
-            'repo': 'flutter',
-            'taskName': 'foo',
-          },
-        ],
-      );
+      config = FakeConfig();
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
       handler = RefreshChromebotStatus(
@@ -50,33 +42,55 @@ void main() {
     });
 
     test('do not update task status when SHA does not match', () async {
-      final Commit commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task =
-          Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1)
+                          commitSha: 'def', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
                     ],
                   });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
+      });
+
+      expect(task.status, Task.statusNew);
+      await tester.get(handler);
+      expect(task.status, Task.statusNew);
+    });
+
+    test('do not update task status when commitSha/ref is unknown', () async {
+      final Commit commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'abc'),
+        sha: 'abc',
+      );
+      final Task task = Task(
+        key: commit.key.append(Task, id: 123),
+        status: Task.statusNew,
+      );
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+
+      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
+              value: (dynamic builder) => <String, List<LuciTask>>{
+                    'def': <LuciTask>[
+                      const LuciTask(commitSha: 'unknown', ref: 'unknown', status: Task.statusSucceeded, buildNumber: 1)
+                    ],
+                  });
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+          .thenAnswer((Invocation invocation) {
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);
@@ -85,35 +99,23 @@ void main() {
     });
 
     test('do not update task status when branch does not match', () async {
-      final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'abc'),
-          sha: 'abc',
-          branch: 'test');
-      final Task task =
-          Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
-
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1)
+                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
                     ],
                   });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);
@@ -121,36 +123,25 @@ void main() {
       expect(task.status, Task.statusNew);
     });
 
-    test(
-        'update task status and buildNumber when buildNumberList does not match',
-        () async {
-      final Commit commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task =
-          Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+    test('update task status and buildNumber when buildNumberList does not match', () async {
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1)
+                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
                     ],
                   });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);
@@ -160,37 +151,25 @@ void main() {
       expect(task.buildNumberList, '1');
     });
 
-    test('update task status and buildNumber when status does not match',
-        () async {
-      final Commit commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 123),
-          status: Task.statusNew,
-          buildNumberList: '1');
+    test('update task status and buildNumber when status does not match', () async {
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1)
+                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
                     ],
                   });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);
@@ -198,42 +177,27 @@ void main() {
       expect(task.status, Task.statusSucceeded);
     });
 
-    test('update task status with latest status when multilple reruns exist',
-        () async {
-      final Commit commit =
-          Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 123),
-          status: Task.statusNew,
-          buildNumberList: '1');
+    test('update task status with latest status when multilple reruns exist', () async {
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 2),
+                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 2),
                       const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusFailed,
-                          buildNumber: 1)
+                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)
                     ],
                   });
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);
@@ -243,50 +207,35 @@ void main() {
     });
 
     test('update task status for non master branch', () async {
-      final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'def'),
-          sha: 'def',
-          branch: 'test');
-      final Task task =
-          Task(key: commit.key.append(Task, id: 456), status: Task.statusNew);
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
+      final Task task = Task(key: commit.key.append(Task, id: 456), status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'master'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def',
-                          ref: 'refs/heads/master',
-                          status: Task.statusFailed,
-                          buildNumber: 1),
+                          commitSha: 'def', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1),
                     ],
                   });
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
           Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getBuilders(config),
-              key: (dynamic builder) => BranchLuciBuilder(
-                  luciBuilder: builder as LuciBuilder, branch: 'test'),
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'test'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def',
-                          ref: 'refs/heads/test',
-                          status: Task.statusSucceeded,
-                          buildNumber: 2)
+                          commitSha: 'def', ref: 'refs/heads/test', status: Task.statusSucceeded, buildNumber: 2)
                     ],
                   });
       luciTasks.addAll(testLuciTasks);
-      when(mockLuciService.getBranchRecentTasks(
-              repo: 'flutter', requireTaskName: true))
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
           .thenAnswer((Invocation invocation) {
-        return Future<
-                Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(
-            luciTasks);
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
       });
 
       expect(task.status, Task.statusNew);

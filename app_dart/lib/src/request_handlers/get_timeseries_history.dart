@@ -22,13 +22,11 @@ import '../request_handling/no_auth_request_handler.dart';
 import '../service/datastore.dart';
 
 @immutable
-class GetTimeSeriesHistory
-    extends NoAuthRequestHandler<GetTimeSeriesHistoryResponse> {
+class GetTimeSeriesHistory extends NoAuthRequestHandler<GetTimeSeriesHistoryResponse> {
   const GetTimeSeriesHistory(
     Config config, {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         super(config: config);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -41,29 +39,22 @@ class GetTimeSeriesHistory
     // This number inherites from earlier GO backend. Up to change if necessary.
     const int maxRecords = 6000;
     final DatastoreService datastore = datastoreProvider(config.db);
-    final KeyHelper keyHelper = KeyHelper(
-        applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
-    final Set<Commit> commits =
-        await datastore.queryRecentCommits(limit: maxRecords).toSet();
+    final KeyHelper keyHelper = KeyHelper(applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
+    final Set<Commit> commits = await datastore.queryRecentCommits(limit: maxRecords).toSet();
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey =
-          keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } on FormatException {
-      throw BadRequestException(
-          'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
+      throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
-    final TimeSeries timeSeries =
-        await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
+    final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(timeSeriesKey, orElse: () {
       throw BadRequestException('No such timeseries: ${timeSeriesKey.id}');
     });
 
-    List<TimeSeriesValue> timeSeriesValues = await datastore
-        .queryRecentTimeSeriesValues(timeSeries,
-            startFrom: startFromParam, limit: maxRecords)
-        .toList();
+    List<TimeSeriesValue> timeSeriesValues =
+        await datastore.queryRecentTimeSeriesValues(timeSeries, startFrom: startFromParam, limit: maxRecords).toList();
     timeSeriesValues = insertMissingTimeseriesValues(timeSeriesValues, commits);
 
     return GetTimeSeriesHistoryResponse(timeSeries, timeSeriesValues);
@@ -72,8 +63,7 @@ class GetTimeSeriesHistory
 
 @immutable
 class GetTimeSeriesHistoryResponse extends JsonBody {
-  const GetTimeSeriesHistoryResponse(this.timeSeries, this.timeSeriesValues)
-      : assert(timeSeries != null);
+  const GetTimeSeriesHistoryResponse(this.timeSeries, this.timeSeriesValues) : assert(timeSeries != null);
 
   final TimeSeries timeSeries;
   final List<TimeSeriesValue> timeSeriesValues;
@@ -82,9 +72,7 @@ class GetTimeSeriesHistoryResponse extends JsonBody {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'BenchmarkData': BenchmarkData(
-          timeSeriesEntity: TimeseriesEntity(
-              timeSeries: timeSeries,
-              key: const KeyConverter().toJson(timeSeries.key)),
+          timeSeriesEntity: TimeseriesEntity(timeSeries: timeSeries, key: const KeyConverter().toJson(timeSeries.key)),
           values: timeSeriesValues),
       // TODO(keyonghan): implemement last position
       // https://github.com/flutter/flutter/issues/42362
@@ -93,11 +81,9 @@ class GetTimeSeriesHistoryResponse extends JsonBody {
   }
 }
 
-List<TimeSeriesValue> insertMissingTimeseriesValues(
-    List<TimeSeriesValue> timeSerialsValues, Set<Commit> commits) {
+List<TimeSeriesValue> insertMissingTimeseriesValues(List<TimeSeriesValue> timeSerialsValues, Set<Commit> commits) {
   final List<TimeSeriesValue> values = <TimeSeriesValue>[];
-  final Map<String, TimeSeriesValue> valuesByCommit =
-      <String, TimeSeriesValue>{};
+  final Map<String, TimeSeriesValue> valuesByCommit = <String, TimeSeriesValue>{};
   for (TimeSeriesValue value in timeSerialsValues) {
     valuesByCommit[value.revision] = value;
   }

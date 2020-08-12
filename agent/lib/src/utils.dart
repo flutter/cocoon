@@ -67,8 +67,7 @@ class PrintLogger implements Logger {
   void error(Object message) => _log(LogLevel.error, message);
 
   void _log(LogLevel level, Object message) {
-    if (level._level >= this.level._level)
-      out.writeln(toLogString('$message', level: level));
+    if (level._level >= this.level._level) out.writeln(toLogString('$message', level: level));
   }
 }
 
@@ -154,41 +153,24 @@ List<FileSystemEntity> ls(Directory directory) => directory.listSync();
 /// Creates a directory from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
 Directory dir(String thePath,
-    [String part2,
-    String part3,
-    String part4,
-    String part5,
-    String part6,
-    String part7,
-    String part8]) {
-  return Directory(
-      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+    [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
+  return Directory(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
 /// Creates a file from the given path, or multiple path parts by joining
 /// them using OS-specific file path separator.
 File file(String thePath,
-    [String part2,
-    String part3,
-    String part4,
-    String part5,
-    String part6,
-    String part7,
-    String part8]) {
-  return File(
-      path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
+    [String part2, String part3, String part4, String part5, String part6, String part7, String part8]) {
+  return File(path.join(thePath, part2, part3, part4, part5, part6, part7, part8));
 }
 
 void copy(File sourceFile, Directory targetDirectory, {String name}) {
-  File target = file(
-      path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
+  File target = file(path.join(targetDirectory.path, name ?? path.basename(sourceFile.path)));
   target.writeAsBytesSync(sourceFile.readAsBytesSync());
 }
 
-FileSystemEntity move(FileSystemEntity whatToMove,
-    {Directory to, String name}) {
-  return whatToMove
-      .renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
+FileSystemEntity move(FileSystemEntity whatToMove, {Directory to, String name}) {
+  return whatToMove.renameSync(path.join(to.path, name ?? path.basename(whatToMove.path)));
 }
 
 /// Equivalent of `mkdir directory`.
@@ -210,18 +192,15 @@ void section(String title) {
 
 Future<String> getDartVersion() async {
   // The Dart VM returns the version text to stderr.
-  ProcessResult result =
-      _processManager.runSync(<String>[dartBin, '--version']);
+  ProcessResult result = _processManager.runSync(<String>[dartBin, '--version']);
   String version = result.stderr.trim() as String;
 
   // Convert:
   //   Dart VM version: 1.17.0-dev.2.0 (Tue May  3 12:14:52 2016) on "macos_x64"
   // to:
   //   1.17.0-dev.2.0
-  if (version.indexOf('(') != -1)
-    version = version.substring(0, version.indexOf('(')).trim();
-  if (version.indexOf(':') != -1)
-    version = version.substring(version.indexOf(':') + 1).trim();
+  if (version.indexOf('(') != -1) version = version.substring(0, version.indexOf('(')).trim();
+  if (version.indexOf(':') != -1) version = version.substring(version.indexOf(':') + 1).trim();
 
   return version.replaceAll('"', "'");
 }
@@ -240,8 +219,7 @@ Future<String> getCurrentFlutterRepoCommit() async {
 Future<DateTime> getFlutterRepoCommitTimestamp(String commit) async {
   // git show -s --format=%at 4b546df7f0b3858aaaa56c4079e5be1ba91fbb65
   final DateTime result = await inDirectory(config.flutterDirectory, () async {
-    String unixTimestamp =
-        await eval('git', ['show', '-s', '--format=%at', commit]);
+    String unixTimestamp = await eval('git', ['show', '-s', '--format=%at', commit]);
     int secondsSinceEpoch = int.parse(unixTimestamp);
     return DateTime.fromMillisecondsSinceEpoch(secondsSinceEpoch * 1000);
   }) as DateTime;
@@ -250,8 +228,7 @@ Future<DateTime> getFlutterRepoCommitTimestamp(String commit) async {
 
 /// When exists, this file indicates an installation is in progress or failed
 /// to complete.
-File get _installationLock =>
-    file(config.flutterDirectory.parent.path, '.installation-lock');
+File get _installationLock => file(config.flutterDirectory.parent.path, '.installation-lock');
 
 /// Flutter repository revision that's currently installed.
 ///
@@ -282,10 +259,8 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
-  Process proc = await _processManager.start(
-      <String>[executable]..addAll(arguments),
-      environment: env,
-      workingDirectory: cwd);
+  Process proc =
+      await _processManager.start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: cwd);
   ProcessInfo procInfo = ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 
@@ -322,17 +297,12 @@ Future<Null> forceQuitRunningProcesses() async {
 /// Executes a command and returns its exit code.
 Future<int> exec(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc =
-      await startProcess(executable, arguments, env: env, silent: silent);
+  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
 
-  final StreamSubscription<String> stdoutSubscription = proc.stdout
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen(logger.info);
-  final StreamSubscription<String> stderrSubscription = proc.stderr
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen(logger.warning);
+  final StreamSubscription<String> stdoutSubscription =
+      proc.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(logger.info);
+  final StreamSubscription<String> stderrSubscription =
+      proc.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen(logger.warning);
 
   // Wait for stdout and stderr to be fully processed because proc.exitCode
   // may complete first.
@@ -359,31 +329,29 @@ Future<int> exec(String executable, List<String> arguments,
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc =
-      await startProcess(executable, arguments, env: env, silent: silent);
+  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
   String output = await utf8.decodeStream(proc.stdout);
   int exitCode = await proc.exitCode;
 
-  if (exitCode != 0 && !canFail)
-    fail('Executable $executable failed with exit code $exitCode.');
+  if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
 
   return output.trimRight();
 }
 
-Future<int> flutter(String command,
-    {List<String> options: const <String>[], bool canFail: false}) {
+Future<int> flutter(String command, {List<String> options: const <String>[], bool canFail: false}) {
   List<String> args = [command]..addAll(options);
-  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args,
-      canFail: canFail);
+  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail);
 }
 
-String get dartBin => path.join(
-    config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
+String get dartBin => path.join(config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
 
-Future<int> dart(List<String> args) => exec(dartBin, args);
+Future<int> dart(List<String> args) {
+  args.insert(0, '--disable-dart-dev');
+  return exec(dartBin, args);
+}
 
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
   String previousCwd = cwd;
@@ -407,8 +375,7 @@ void cd(dynamic directory) {
     throw 'Unsupported type ${directory.runtimeType} of $directory';
   }
 
-  if (!d.existsSync())
-    throw 'Cannot cd into directory that does not exist: $directory';
+  if (!d.existsSync()) throw 'Cannot cd into directory that does not exist: $directory';
 }
 
 class Config {
@@ -428,14 +395,11 @@ class Config {
       throw ('Agent config file not found: ${agentConfigFile.path}.');
     }
 
-    YamlMap agentConfig =
-        loadYaml(agentConfigFile.readAsStringSync()) as YamlMap;
-    String baseCocoonUrl = agentConfig['base_cocoon_url'] as String ??
-        'https://flutter-dashboard.appspot.com';
+    YamlMap agentConfig = loadYaml(agentConfigFile.readAsStringSync()) as YamlMap;
+    String baseCocoonUrl = agentConfig['base_cocoon_url'] as String ?? 'https://flutter-dashboard.appspot.com';
     String agentId = requireConfigProperty<String>(agentConfig, 'agent_id');
     String authToken = requireConfigProperty<String>(agentConfig, 'auth_token');
-    String home =
-        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null) throw "Unable to find \$HOME or \$USERPROFILE.";
 
     Directory flutterDirectory = dir(home, '.cocoon', 'flutter');
@@ -453,8 +417,7 @@ class Config {
         deviceOperatingSystem = DeviceOperatingSystem.none;
         break;
       default:
-        throw BuildFailedError(
-            'Unrecognized device_os value: ${agentConfig['device_os']}');
+        throw BuildFailedError('Unrecognized device_os value: ${agentConfig['device_os']}');
     }
 
     HostType hostType;
@@ -521,8 +484,7 @@ String requireEnvVar(String name) {
 }
 
 T requireConfigProperty<T>(YamlMap map, String propertyName) {
-  if (!map.containsKey(propertyName))
-    fail('Configuration property not found: $propertyName');
+  if (!map.containsKey(propertyName)) fail('Configuration property not found: $propertyName');
 
   return map[propertyName] as T;
 }
@@ -595,8 +557,7 @@ void checkNotNull(Object o1,
 /// If the file contains information about how long the benchmark took to run
 /// (a `time` field), then return that info.
 // TODO(yjbanov): move this data to __metadata__
-num addBuildInfo(File jsonFile,
-    {num expected, String sdk, String commit, DateTime timestamp}) {
+num addBuildInfo(File jsonFile, {num expected, String sdk, String commit, DateTime timestamp}) {
   Map<String, dynamic> jsonData;
 
   if (jsonFile.existsSync()) {
@@ -608,8 +569,7 @@ num addBuildInfo(File jsonFile,
   if (expected != null) jsonData['expected'] = expected;
   if (sdk != null) jsonData['sdk'] = sdk;
   if (commit != null) jsonData['commit'] = commit;
-  if (timestamp != null)
-    jsonData['timestamp'] = timestamp.millisecondsSinceEpoch;
+  if (timestamp != null) jsonData['timestamp'] = timestamp.millisecondsSinceEpoch;
 
   jsonFile.writeAsStringSync(jsonEncode(jsonData));
 
@@ -629,8 +589,7 @@ bool canRun(String path) => _processManager.canRun(path);
 final RegExp _whitespace = RegExp(r'\s+');
 
 List<String> runningProcessesOnWindows(String processName) {
-  final ProcessResult result = _processManager
-      .runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
+  final ProcessResult result = _processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {
     final String stdoutResult = result.stdout as String;
@@ -677,3 +636,16 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
 /// futures are intentionally not awaited. This function may be used to ignore a
 /// particular future. It silences the unawaited_futures lint.
 void unawaited(Future<void> future) {}
+
+/// Unlocks the login keychain on macOS.
+///
+/// Whic is required to
+///   1. Enable Xcode to access the certificate for code signing.
+///   2. Mitigate "Your session has expired" issue. See flutter/flutter#17860.
+Future<Null> unlockKeyChain() async {
+  if (Platform.isMacOS) {
+    await exec(
+        'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
+        canFail: false, silent: true);
+  }
+}

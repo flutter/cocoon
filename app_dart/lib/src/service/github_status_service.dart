@@ -6,6 +6,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/utils.dart';
 import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
 import 'luci_build_service.dart';
@@ -25,13 +26,11 @@ class GithubStatusService {
     String commitSha,
     RepositorySlug slug,
   ) async {
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
-    final Map<String, bb.Build> builds = await luciBuildService
-        .buildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<String> builderNames = config.luciTryBuilders
-        .map((Map<String, dynamic> entry) => entry['name'] as String)
-        .toList();
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
+    final List<Map<String, dynamic>> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
+    final List<String> builderNames =
+        luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
       // We need to ensure we are adding checks for the builders that will return a
@@ -54,22 +53,19 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await config.repoNameForBuilder(builderName) == null) {
+    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
     // We have to check for both because sometimes one or the other might come
     // in.
     // However, we should keep going if the _most recent_ status is not pending.
-    await for (RepositoryStatus status
-        in gitHubClient.repositories.listStatuses(slug, ref)) {
+    await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
-        if (status.state == PENDING_STATE &&
-            status.targetUrl.startsWith(buildUrl)) {
+        if (status.state == PENDING_STATE && status.targetUrl.startsWith(buildUrl)) {
           return false;
         }
         break;
@@ -81,8 +77,7 @@ class GithubStatusService {
       // If buildUrl is not empty then append a query parameter to refresh the page
       // content every 30 seconds. A resulting updatedBuild url will look like:
       // https://ci.chromium.org/p/flutter/builders/try/Linux%20Web%20Engine/5275?reload=30
-      updatedBuildUrl =
-          '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
+      updatedBuildUrl = '$buildUrl${buildUrl.contains('?') ? '&' : '?'}reload=30';
     }
     final CreateStatus status = CreateStatus(PENDING_STATE)
       ..context = builderName
@@ -99,13 +94,11 @@ class GithubStatusService {
     @required Result result,
     @required RepositorySlug slug,
   }) async {
-    final RepositorySlug slug = await config.repoNameForBuilder(builderName);
     // No builderName configuration, nothing to do here.
-    if (slug == null) {
-      return;
+    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+      return false;
     }
-    final GitHub gitHubClient =
-        await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final CreateStatus status = statusForResult(result)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'

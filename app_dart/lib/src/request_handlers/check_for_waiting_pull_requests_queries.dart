@@ -29,6 +29,19 @@ query LabeledPullRequcodeestsWithReviews($sOwner: String!, $sName: String!, $sLa
                       state
                     }
                   }
+                  # (appId: 64368) == flutter-dashbord. We only care about
+                  # flutter-dashboard checks.
+                  checkSuites(last:1, filterBy: { appId: 64368 } ) {
+                    nodes {
+                      checkRuns(first:100) {
+                        nodes {
+                          name
+                          status
+                          conclusion
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }

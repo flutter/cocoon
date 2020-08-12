@@ -6,8 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart'
-    as push_message;
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 
 import 'package:github/github.dart' as github;
@@ -57,9 +56,7 @@ void main() {
               '{"name": "Linux", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}')
           as Map<String, dynamic>,
     );
-    final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{
-      'Linux': checkRun
-    };
+    final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Linux': checkRun};
     when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
       return checkRuns;
     });
@@ -68,12 +65,11 @@ void main() {
   group('handleCheckSuiteEvent', () {
     test('requested triggers all builds', () async {
       final RepositorySlug slug = RepositorySlug('abc', 'cocoon');
-      final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
-          jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      await githubChecksService.handleCheckSuite(
-          checkSuiteEvent, mockLuciBuildService);
+      final CheckSuiteEvent checkSuiteEvent =
+          CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
+      await githubChecksService.handleCheckSuite(checkSuiteEvent, mockLuciBuildService);
       expect(
-        verify(mockLuciBuildService.scheduleBuilds(
+        verify(mockLuciBuildService.scheduleTryBuilds(
           commitSha: captureAnyNamed('commitSha'),
           prNumber: captureAnyNamed('prNumber'),
           slug: captureAnyNamed('slug'),
@@ -83,21 +79,17 @@ void main() {
       );
     });
     test('re-requested triggers failed builds only', () async {
-      when(mockLuciBuildService.failedBuilds(any, any, any))
-          .thenAnswer((_) async {
+      when(mockLuciBuildService.failedBuilds(any, any, any)).thenAnswer((_) async {
         return <Build>[linuxBuild];
       });
-      final CheckSuiteEvent checkSuiteEvent = CheckSuiteEvent.fromJson(
-          jsonDecode(checkSuiteTemplate('rerequested'))
-              as Map<String, dynamic>);
+      final CheckSuiteEvent checkSuiteEvent =
+          CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
       await githubChecksService.handleCheckSuite(
         checkSuiteEvent,
         mockLuciBuildService,
       );
       expect(
-          verify(mockLuciBuildService.rescheduleUsingCheckSuiteEvent(
-                  captureAny, captureAny))
-              .captured,
+          verify(mockLuciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(captureAny, captureAny)).captured,
           <dynamic>[
             checkSuiteEvent,
             checkRun,
@@ -123,32 +115,23 @@ void main() {
   group('updateCheckStatus', () {
     test('Userdata is empty', () async {
       final push_message.BuildPushMessage buildMessage =
-          push_message.BuildPushMessage.fromJson(
-              jsonDecode(buildPushMessageJsonTemplate(''))
-                  as Map<String, dynamic>);
-      final bool success = await githubChecksService.updateCheckStatus(
-          buildMessage, mockLuciBuildService, slug);
+          push_message.BuildPushMessage.fromJson(jsonDecode(buildPushMessageJsonTemplate('')) as Map<String, dynamic>);
+      final bool success = await githubChecksService.updateCheckStatus(buildMessage, mockLuciBuildService, slug);
       expect(success, isFalse);
     });
     test('Userdata does not contain check_run_id', () async {
-      final push_message.BuildPushMessage buildMessage =
-          push_message.BuildPushMessage.fromJson(
-              jsonDecode(buildPushMessageJsonTemplate('{\\"retries\\": 1}'))
-                  as Map<String, dynamic>);
-      final bool success = await githubChecksService.updateCheckStatus(
-          buildMessage, mockLuciBuildService, slug);
+      final push_message.BuildPushMessage buildMessage = push_message.BuildPushMessage.fromJson(
+          jsonDecode(buildPushMessageJsonTemplate('{\\"retries\\": 1}')) as Map<String, dynamic>);
+      final bool success = await githubChecksService.updateCheckStatus(buildMessage, mockLuciBuildService, slug);
       expect(success, isFalse);
     });
     test('Userdata contain check_run_id', () async {
-      when(mockGithubChecksUtil.getCheckRun(any, any, any))
-          .thenAnswer((_) async => checkRun);
+      when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer((_) async => checkRun);
       final push_message.BuildPushMessage buildPushMessage =
-          push_message.BuildPushMessage.fromJson(
-              jsonDecode(buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
-                  '\\"repo_owner\\": \\"flutter\\",'
-                  '\\"repo_name\\": \\"cocoon\\"}')) as Map<String, dynamic>);
-      await githubChecksService.updateCheckStatus(
-          buildPushMessage, mockLuciBuildService, slug);
+          push_message.BuildPushMessage.fromJson(jsonDecode(buildPushMessageJsonTemplate('{\\"check_run_id\\": 1,'
+              '\\"repo_owner\\": \\"flutter\\",'
+              '\\"repo_name\\": \\"cocoon\\"}')) as Map<String, dynamic>);
+      await githubChecksService.updateCheckStatus(buildPushMessage, mockLuciBuildService, slug);
       expect(
           verify(mockGithubChecksUtil.updateCheckRun(
             any,

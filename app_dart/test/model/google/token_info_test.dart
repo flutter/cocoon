@@ -44,8 +44,7 @@ void main() {
       expect(token.familyName, 'Flutter');
       expect(token.locale, 'en');
       expect(token.issued, DateTime.fromMillisecondsSinceEpoch(12345 * 1000));
-      expect(
-          token.expiration, DateTime.fromMillisecondsSinceEpoch(67890 * 1000));
+      expect(token.expiration, DateTime.fromMillisecondsSinceEpoch(67890 * 1000));
       expect(token.jwtId, 'jwtId');
       expect(token.algorithm, 'RSA');
       expect(token.keyId, 'keyId');

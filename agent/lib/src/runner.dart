@@ -14,11 +14,6 @@ import 'package:vm_service_client/vm_service_client.dart';
 import 'agent.dart';
 import 'utils.dart';
 
-/// The default task timeout, if a custom value is not provided.
-///
-/// This should be the same as `_kDefaultTaskTimeout` defined in https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/framework.dart
-const Duration _kDefaultTaskTimeout = const Duration(minutes: 15);
-
 /// Extra amount of time we give the devicelab task to finish or timeout on its
 /// own before forcefully quitting it.
 const Duration _kGracePeriod = const Duration(minutes: 1);
@@ -87,12 +82,18 @@ class TaskResult {
 ///
 /// [taskName] is the name of the task. The corresponding task executable is
 /// expected to be found under `bin/tasks`.
-Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
+///
+/// `fallbackTimeout` specifies the timeout to use if the task does not
+/// specify a timeout. It defaults to having no timeout in such a case.
+Future<TaskResult> runTask(
+  Agent agent,
+  CocoonTask task, {
+  Duration fallbackTimeout,
+}) async {
   String devicelabPath = '${config.flutterDirectory.path}/dev/devicelab';
   String taskExecutable = 'bin/tasks/${task.name}.dart';
 
-  if (!file('$devicelabPath/$taskExecutable').existsSync())
-    throw 'Executable Dart file not found: $taskExecutable';
+  if (!file('$devicelabPath/$taskExecutable').existsSync()) throw 'Executable Dart file not found: $taskExecutable';
 
   int vmServicePort = await _findAvailablePort();
   Process runner;
@@ -100,6 +101,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     runner = await startProcess(
         dartBin,
         <String>[
+          '--disable-dart-dev',
           '--enable-vm-service=$vmServicePort',
           '--no-pause-isolates-on-exit',
           '--disable-service-auth-codes',
@@ -131,12 +133,10 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
 
   await sendLog('Agent ID: ${agent.agentId}', flush: true);
 
-  var stdoutSub =
-      runner.stdout.transform(utf8.decoder).listen((String message) async {
+  var stdoutSub = runner.stdout.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
-  var stderrSub =
-      runner.stderr.transform(utf8.decoder).listen((String message) async {
+  var stderrSub = runner.stderr.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
   });
 
@@ -145,14 +145,18 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     VMIsolateRef isolate = await _connectToRunnerIsolate(vmServicePort);
     waitingFor = 'task completion';
 
-    Duration taskTimeout = task.timeoutInMinutes != 0
-        ? Duration(minutes: task.timeoutInMinutes)
-        : _kDefaultTaskTimeout;
+    Map<String, String> arguments = <String, String>{};
+    Duration taskTimeout = fallbackTimeout;
+    if (task.timeoutInMinutes != 0) {
+      taskTimeout = Duration(minutes: task.timeoutInMinutes);
+      arguments['timeoutInMinutes'] = '${taskTimeout.inMinutes}';
+    }
 
-    Map<String, dynamic> taskResult = await isolate.invokeExtension(
-        'ext.cocoonRunTask', <String, String>{
-      'timeoutInMinutes': '${taskTimeout.inMinutes}'
-    }).timeout(taskTimeout + _kGracePeriod) as Map<String, dynamic>;
+    Future<dynamic> invocation = isolate.invokeExtension('ext.cocoonRunTask', arguments);
+    if (taskTimeout != null) {
+      invocation = invocation.timeout(taskTimeout + _kGracePeriod);
+    }
+    Map<String, dynamic> taskResult = await invocation as Map<String, dynamic>;
 
     waitingFor = 'task process to exit';
     final Future<dynamic> whenProcessExits = Future.wait<void>([
@@ -164,8 +168,7 @@ Future<TaskResult> runTask(Agent agent, CocoonTask task) async {
     return TaskResult.parse(taskResult);
   } on TimeoutException catch (timeout) {
     runner.kill(ProcessSignal.sigint);
-    return TaskResult.failure(
-        'Timeout waiting for $waitingFor: ${timeout.message}');
+    return TaskResult.failure('Timeout waiting for $waitingFor: ${timeout.message}');
   } finally {
     await stdoutSub.cancel();
     await stderrSub.cancel();
@@ -197,8 +200,7 @@ Future<VMIsolateRef> _connectToRunnerIsolate(int vmServicePort) async {
       VMServiceClient client = VMServiceClient.connect(url);
       VM vm = await client.getVM();
       VMIsolateRef isolate = vm.isolates.single;
-      String response =
-          await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
+      String response = await isolate.invokeExtension('ext.cocoonRunnerReady') as String;
       if (response != 'ready') throw 'not ready yet';
       return isolate;
     } catch (error) {
@@ -221,8 +223,7 @@ Future<int> _findAvailablePort() async {
   int port = 20000;
   while (true) {
     try {
-      ServerSocket socket =
-          await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
+      ServerSocket socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, port);
       await socket.close();
       return port;
     } catch (_) {

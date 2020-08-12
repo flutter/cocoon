@@ -20,8 +20,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
   const UpdateAgentHealth(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -32,8 +31,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
 
   @override
   Future<UpdateAgentHealthResponse> post() async {
-    checkRequiredParameters(
-        <String>[agentIdParam, isHealthyParam, healthDetailsParam]);
+    checkRequiredParameters(<String>[agentIdParam, isHealthyParam, healthDetailsParam]);
 
     final String agentId = requestData[agentIdParam] as String;
     final bool isHealthy = requestData[isHealthyParam] as bool;

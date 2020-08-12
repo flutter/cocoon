@@ -13,8 +13,7 @@ import 'commit.pb.dart' as $0;
 import 'stage.pb.dart' as $1;
 
 class CommitStatus extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('CommitStatus',
-      createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('CommitStatus', createEmptyInstance: create)
     ..aOM<$0.Commit>(1, 'commit', subBuilder: $0.Commit.create)
     ..pc<$1.Stage>(2, 'stages', $pb.PbFieldType.PM, subBuilder: $1.Stage.create)
     ..aOS(3, 'branch')
@@ -22,11 +21,9 @@ class CommitStatus extends $pb.GeneratedMessage {
 
   CommitStatus._() : super();
   factory CommitStatus() => create();
-  factory CommitStatus.fromBuffer($core.List<$core.int> i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitStatus.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
-  factory CommitStatus.fromJson($core.String i,
-          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CommitStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
   CommitStatus clone() => CommitStatus()..mergeFromMessage(this);
   CommitStatus copyWith(void Function(CommitStatus) updates) =>
@@ -35,11 +32,9 @@ class CommitStatus extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static CommitStatus create() => CommitStatus._();
   CommitStatus createEmptyInstance() => create();
-  static $pb.PbList<CommitStatus> createRepeated() =>
-      $pb.PbList<CommitStatus>();
+  static $pb.PbList<CommitStatus> createRepeated() => $pb.PbList<CommitStatus>();
   @$core.pragma('dart2js:noInline')
-  static CommitStatus getDefault() => _defaultInstance ??=
-      $pb.GeneratedMessage.$_defaultFor<CommitStatus>(create);
+  static CommitStatus getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CommitStatus>(create);
   static CommitStatus _defaultInstance;
 
   @$pb.TagNumber(1)

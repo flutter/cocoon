@@ -11,14 +11,14 @@ class GithubService {
   const GithubService(this.github);
 
   final GitHub github;
+  static final Map<String, String> headers = <String, String>{'Accept': 'application/vnd.github.groot-preview+json'};
 
   /// Lists commits of the provided repository [slug] and [branch]. When
   /// [lastCommitTimestampMills] equals 0, it means a new release branch is
   /// found and only the branched commit will be returned for now, though the
   /// rare case that multiple commits exist. For other cases, it returns all
   /// newer commits since [lastCommitTimestampMills].
-  Future<List<RepositoryCommit>> listCommits(
-      RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
+  Future<List<RepositoryCommit>> listCommits(RepositorySlug slug, String branch, int lastCommitTimestampMills) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
@@ -40,15 +40,12 @@ class GithubService {
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
         'sha': branch,
-        'since':
-            DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1)
-                .toUtc()
-                .toIso8601String(),
+        'since': DateTime.fromMillisecondsSinceEpoch(lastCommitTimestampMills + 1).toUtc().toIso8601String(),
       },
       pages: pages,
+      headers: headers,
     )) {
-      commits.addAll((json.decode(response.body) as List<dynamic>)
-          .cast<Map<String, dynamic>>());
+      commits.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
     /// When a release branch is first detected only the most recent commit would be needed.
@@ -60,13 +57,14 @@ class GithubService {
       commits = commits.take(1).toList();
     }
 
-    return commits.map((dynamic commit) {
+    return commits.map<RepositoryCommit>((Map<String, dynamic> commit) {
       return RepositoryCommit()
         ..sha = commit['sha'] as String
         ..author = (User()
           ..login = commit['author']['login'] as String
           ..avatarUrl = commit['author']['avatar_url'] as String)
         ..commit = (GitCommit()
+          ..message = commit['commit']['message'] as String
           ..committer = (GitCommitUser(
               commit['commit']['author']['name'] as String,
               commit['commit']['author']['email'] as String,
@@ -74,12 +72,13 @@ class GithubService {
     }).toList();
   }
 
-  Future<List<PullRequest>> listPullRequests(
-      RepositorySlug slug, String branch) async {
+  Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
     ArgumentError.checkNotNull(slug);
     final PaginationHelper paginationHelper = PaginationHelper(github);
 
     final List<Map<String, dynamic>> pullRequests = <Map<String, dynamic>>[];
+
+    headers['Authorization'] = 'Bearer ${github.auth.token}';
     await for (Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/pulls',
@@ -89,9 +88,9 @@ class GithubService {
         'sort': 'created',
         'state': 'open',
       },
+      headers: headers,
     )) {
-      pullRequests.addAll((json.decode(response.body) as List<dynamic>)
-          .cast<Map<String, dynamic>>());
+      pullRequests.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
     }
 
     return pullRequests.map((dynamic commit) {

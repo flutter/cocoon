@@ -26,16 +26,11 @@ void main() {
     });
 
     test('returns branches matching regExps', () async {
-      config.flutterBranchesValue = <String>[
-        'flutter-1.1-candidate.1',
-        'master'
-      ];
+      config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       final Body body = await tester.get(handler);
-      final Map<String, dynamic> result = await utf8.decoder
-          .bind(body.serialize())
-          .transform(json.decoder)
-          .single as Map<String, dynamic>;
+      final Map<String, dynamic> result =
+          await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as Map<String, dynamic>;
 
       expect(result['Branches'], <String>['flutter-1.1-candidate.1', 'master']);
     });

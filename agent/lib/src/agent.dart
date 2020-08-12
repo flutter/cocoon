@@ -42,10 +42,12 @@ class CocoonTask {
   CocoonTask({
     @required this.name,
     @required this.revision,
-    @required this.timeoutInMinutes,
+    this.timeoutInMinutes = 0,
     this.key,
     this.cloudAuthToken,
-  });
+  })  : assert(name != null),
+        assert(revision != null),
+        assert(timeoutInMinutes != null);
 
   /// Task name as it appears on dashboards and in logs.
   final String name;
@@ -66,10 +68,7 @@ class CocoonTask {
 
 /// Client to the Coocon backend.
 class Agent {
-  Agent(
-      {@required this.baseCocoonUrl,
-      @required this.agentId,
-      @required this.authToken})
+  Agent({@required this.baseCocoonUrl, @required this.agentId, @required this.authToken})
       : httpClient = new AuthenticatedClient(agentId, authToken);
 
   final String baseCocoonUrl;
@@ -103,18 +102,14 @@ class Agent {
   ///
   /// If not tasks are available returns `null`.
   Future<CocoonTask> reserveTask() async {
-    Map<String, dynamic> reservation =
-        await _cocoon('reserve-task', {'AgentID': agentId})
-            as Map<String, dynamic>;
+    Map<String, dynamic> reservation = await _cocoon('reserve-task', {'AgentID': agentId}) as Map<String, dynamic>;
 
     if (reservation['TaskEntity'] != null) {
       return new CocoonTask(
         name: reservation['TaskEntity']['Task']['Name'] as String,
         key: reservation['TaskEntity']['Key'] as String,
-        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha']
-            as String,
-        timeoutInMinutes:
-            reservation['TaskEntity']['Task']['TimeoutInMinutes'] as int,
+        revision: reservation['ChecklistEntity']['Checklist']['Commit']['Sha'] as String,
+        timeoutInMinutes: reservation['TaskEntity']['Task']['TimeoutInMinutes'] as int,
         cloudAuthToken: reservation['CloudAuthToken'] as String,
       );
     }
@@ -122,8 +117,7 @@ class Agent {
     return null;
   }
 
-  Future<void> reportSuccess(String taskKey, Map<String, dynamic> resultData,
-      dynamic benchmarkScoreKeys) async {
+  Future<void> reportSuccess(String taskKey, Map<String, dynamic> resultData, dynamic benchmarkScoreKeys) async {
     var status = <String, dynamic>{
       'TaskKey': taskKey,
       'NewStatus': 'Succeeded',
@@ -131,9 +125,7 @@ class Agent {
 
     // Make a copy of resultData because we may alter it during score key
     // validation below.
-    resultData = resultData != null
-        ? new Map<String, dynamic>.from(resultData)
-        : <String, dynamic>{};
+    resultData = resultData != null ? new Map<String, dynamic>.from(resultData) : <String, dynamic>{};
     status['ResultData'] = resultData;
 
     var validScoreKeys = <String>[];
@@ -148,8 +140,7 @@ class Agent {
           resultData[scoreKey] = score.toDouble();
           validScoreKeys.add(scoreKey);
         } else {
-          logger.warning(
-              'non-numeric score value $score submitted for $scoreKey');
+          logger.warning('non-numeric score value $score submitted for $scoreKey');
         }
       }
     }
@@ -159,8 +150,7 @@ class Agent {
   }
 
   Future<void> reportFailure(String taskKey, String reason) async {
-    await uploadLogChunk(
-        taskKey, '\n\nTask failed with the following reason:\n$reason\n');
+    await uploadLogChunk(taskKey, '\n\nTask failed with the following reason:\n$reason\n');
     await _cocoon('update-task-status', {
       'TaskKey': taskKey,
       'NewStatus': 'Failed',
@@ -212,9 +202,7 @@ class AgentHealth {
   final Map<String, HealthCheckResult> checks = <String, HealthCheckResult>{};
 
   /// Whether all [checks] succeeded.
-  bool get ok =>
-      checks.isNotEmpty &&
-      checks.values.every((HealthCheckResult r) => r.succeeded);
+  bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
 
   /// Sets a health check [result] for a given [parameter].
   void operator []=(String parameter, HealthCheckResult result) {

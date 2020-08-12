@@ -32,8 +32,7 @@ class BuildStatus {
     final BuildStatus otherStatus = other;
     return otherStatus.anticipatedBuildStatus == anticipatedBuildStatus &&
         const ListEquality().equals(otherStatus.failingAgents, failingAgents) &&
-        const DeepCollectionEquality()
-            .equals(otherStatus.commitTestResults, commitTestResults);
+        const DeepCollectionEquality().equals(otherStatus.commitTestResults, commitTestResults);
   }
 
   @override
@@ -82,16 +81,8 @@ class CommitTestResult {
   }
 
   @override
-  int get hashCode => hashValues(
-      sha,
-      authorName,
-      avatarImageURL,
-      createDateTime,
-      inProgressTestCount,
-      succeededTestCount,
-      failedFlakyTestCount,
-      failedTestCount,
-      failingTests);
+  int get hashCode => hashValues(sha, authorName, avatarImageURL, createDateTime, inProgressTestCount,
+      succeededTestCount, failedFlakyTestCount, failedTestCount, failingTests);
 }
 
 class RefreshBuildStatus extends StatefulWidget {

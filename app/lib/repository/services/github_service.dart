@@ -12,12 +12,10 @@ import 'package:intl/intl.dart';
 import '../models/github_authentication.dart' as github;
 import '../models/repository_status.dart';
 
-Map<Uri, String> _eTagByURL =
-    <Uri, String>{}; // GitHub change token (eTag) by URL.
+Map<Uri, String> _eTagByURL = <Uri, String>{}; // GitHub change token (eTag) by URL.
 
 Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
-  final Map<String, dynamic> fetchedDetails =
-      await _getBody('repos/flutter/${repositoryStatus.name}');
+  final Map<String, dynamic> fetchedDetails = await _getBody('repos/flutter/${repositoryStatus.name}');
   if (fetchedDetails != null) {
     repositoryStatus
       ..watchersCount = fetchedDetails['watchers']
@@ -28,31 +26,19 @@ Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
 
 Future<int> fetchToDoCount(String repositoryName) async {
   final Map<String, dynamic> body = await _getBody('search/code',
-      queryParameters: <String, String>{
-        'q': 'repo:flutter/${repositoryName} TODO',
-        'per_page': '1',
-        'page': '0'
-      });
+      queryParameters: <String, String>{'q': 'repo:flutter/${repositoryName} TODO', 'per_page': '1', 'page': '0'});
   return (body == null) ? null : body['total_count'];
 }
 
-Future<DateTime> fetchBranchLastCommitDate(
-    String repositoryName, String branchName) async {
-  final Map<String, dynamic> body =
-      await _getBody('repos/flutter/$repositoryName/branches/$branchName');
-  return (body == null)
-      ? null
-      : DateTime.tryParse(body['commit']['commit']['committer']['date']);
+Future<DateTime> fetchBranchLastCommitDate(String repositoryName, String branchName) async {
+  final Map<String, dynamic> body = await _getBody('repos/flutter/$repositoryName/branches/$branchName');
+  return (body == null) ? null : DateTime.tryParse(body['commit']['commit']['committer']['date']);
 }
 
-Future<DateTime> lastCommitFromAuthor(
-    String repositoryName, String author) async {
-  final List<dynamic> body = await _getBody(
-      'repos/flutter/$repositoryName/commits',
+Future<DateTime> lastCommitFromAuthor(String repositoryName, String author) async {
+  final List<dynamic> body = await _getBody('repos/flutter/$repositoryName/commits',
       queryParameters: <String, String>{'author': author, 'per_page': '1'});
-  return (body == null)
-      ? null
-      : DateTime.tryParse(body[0]['commit']['committer']['date']);
+  return (body == null) ? null : DateTime.tryParse(body[0]['commit']['committer']['date']);
 }
 
 Future<int> fetchIssueCount(String repositoryName) async {
@@ -60,21 +46,17 @@ Future<int> fetchIssueCount(String repositoryName) async {
 }
 
 Future<int> fetchStaleIssueCount(String repositoryName) async {
-  final DateTime staleDate = DateTime.now().subtract(
-      const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
+  final DateTime staleDate = DateTime.now().subtract(const Duration(days: RepositoryStatus.staleIssueThresholdInDays));
   final String stateDateQuery = DateFormat('yyyy-MM-dd').format(staleDate);
-  return _searchIssuesTotalCount(repositoryName,
-      additionalQuery: 'updated:<=$stateDateQuery');
+  return _searchIssuesTotalCount(repositoryName, additionalQuery: 'updated:<=$stateDateQuery');
 }
 
 Future<int> fetchIssuesWithoutLabels(String repositoryName) async {
   return _searchIssuesTotalCount(repositoryName, additionalQuery: 'no:label');
 }
 
-Future<int> _searchIssuesTotalCount(String repositoryName,
-    {String additionalQuery = ''}) async {
-  final Map<String, dynamic> body =
-      await _getBody('search/issues', queryParameters: <String, String>{
+Future<int> _searchIssuesTotalCount(String repositoryName, {String additionalQuery = ''}) async {
+  final Map<String, dynamic> body = await _getBody('search/issues', queryParameters: <String, String>{
     'q': 'repo:flutter/${repositoryName} is:open is:issue $additionalQuery',
     'page': '0',
     'per_page': '1'
@@ -82,14 +64,12 @@ Future<int> _searchIssuesTotalCount(String repositoryName,
   return (body == null) ? null : body['total_count'];
 }
 
-Future<Map<String, int>> fetchTriageIssues(
-    String repositoryName, List<String> triageLabels) async {
+Future<Map<String, int>> fetchTriageIssues(String repositoryName, List<String> triageLabels) async {
   final Map<String, int> issueCountByLabelAggregator = {};
 
   for (String triageLabel in triageLabels) {
     // There is no way to OR labels, fetch each one individually.
-    int count = await _searchIssuesTotalCount(repositoryName,
-        additionalQuery: 'label:"$triageLabel"');
+    int count = await _searchIssuesTotalCount(repositoryName, additionalQuery: 'label:"$triageLabel"');
     if (count > 0) {
       issueCountByLabelAggregator[triageLabel] = count;
     }
@@ -109,26 +89,18 @@ Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
   repositoryStatus.totalAgeOfAllPullRequests = 0;
 
   // Use spaces instead of pluses in GitHub query parameters. Dart encodes spaces as +, but + is encoded as %2B which GitHub cannot parse and will think is malformed.
-  final Uri pullRequestUrl = Uri.https(
-      'api.github.com', 'search/issues', <String, String>{
-    'q': 'repo:flutter/${repositoryStatus.name} is:open is:pr',
-    'per_page': '100'
-  });
-  await _fetchRepositoryPullRequestsByPage(pullRequestUrl, repositoryStatus,
-      pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
+  final Uri pullRequestUrl = Uri.https('api.github.com', 'search/issues',
+      <String, String>{'q': 'repo:flutter/${repositoryStatus.name} is:open is:pr', 'per_page': '100'});
+  await _fetchRepositoryPullRequestsByPage(
+      pullRequestUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
 
   // SplayTreeMap doesn't allow sorting by value (count) on insert. Sort at the end once all search page fetches are complete.
-  repositoryStatus.pullRequestCountByLabelName =
-      _sortTopics(pullRequestCountByLabelAggregator);
-  repositoryStatus.pullRequestCountByTitleTopic =
-      _sortTopics(pullRequestCountByTopicAggregator);
+  repositoryStatus.pullRequestCountByLabelName = _sortTopics(pullRequestCountByLabelAggregator);
+  repositoryStatus.pullRequestCountByTitleTopic = _sortTopics(pullRequestCountByTopicAggregator);
 }
 
-Future<void> _fetchRepositoryPullRequestsByPage(
-    Uri url,
-    RepositoryStatus repositoryStatus,
-    Map<String, int> pullRequestCountByLabelAggregator,
-    Map<String, int> pullRequestCountByTopicAggregator) async {
+Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus repositoryStatus,
+    Map<String, int> pullRequestCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
   final HttpRequest response = await _getResponse(url);
   if (response == null) {
     return;
@@ -141,16 +113,14 @@ Future<void> _fetchRepositoryPullRequestsByPage(
   final List<dynamic> issues = fetchedDetails['items'];
 
   for (Map<String, dynamic> issue in issues) {
-    _processPullRequest(
-        issue, repositoryStatus, pullRequestCountByTopicAggregator);
+    _processPullRequest(issue, repositoryStatus, pullRequestCountByTopicAggregator);
     _processLabels(issue, pullRequestCountByLabelAggregator);
   }
 
-  final Uri nextPageUrl =
-      _nextSearchPageURLFromHeaders(response.responseHeaders);
+  final Uri nextPageUrl = _nextSearchPageURLFromHeaders(response.responseHeaders);
   if (nextPageUrl != null) {
-    await _fetchRepositoryPullRequestsByPage(nextPageUrl, repositoryStatus,
-        pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
+    await _fetchRepositoryPullRequestsByPage(
+        nextPageUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
   }
 }
 
@@ -176,8 +146,7 @@ Uri _nextSearchPageURLFromHeaders(Map<String, String> responseHeaders) {
     return null;
   }
   final List<String> links = linkHeader.split(',');
-  final int index =
-      links.indexWhere((String link) => link.contains('rel="next"'));
+  final int index = links.indexWhere((String link) => link.contains('rel="next"'));
   if (index == -1) {
     return null;
   }
@@ -188,21 +157,17 @@ Uri _nextSearchPageURLFromHeaders(Map<String, String> responseHeaders) {
   return Uri.parse(nextPageUrlString);
 }
 
-void _processPullRequest(
-    Map<String, dynamic> pullRequest,
-    RepositoryStatus repositoryStatus,
+void _processPullRequest(Map<String, dynamic> pullRequest, RepositoryStatus repositoryStatus,
     Map<String, int> pullRequestCountByTopicAggregator) {
   repositoryStatus.pullRequestCount += 1;
   final DateTime createdAt = DateTime.tryParse(pullRequest['created_at']);
   if (createdAt != null) {
-    repositoryStatus.totalAgeOfAllPullRequests +=
-        DateTime.now().difference(createdAt).inDays;
+    repositoryStatus.totalAgeOfAllPullRequests += DateTime.now().difference(createdAt).inDays;
   }
 
   final DateTime updatedAt = DateTime.tryParse(pullRequest['updated_at']);
   if (updatedAt != null &&
-      DateTime.now().difference(updatedAt).inDays >=
-          RepositoryStatus.stalePullRequestThresholdInDays) {
+      DateTime.now().difference(updatedAt).inDays >= RepositoryStatus.stalePullRequestThresholdInDays) {
     repositoryStatus.stalePullRequestCount += 1;
   }
   final String title = pullRequest['title'];
@@ -218,10 +183,8 @@ void _processPullRequest(
   }
 }
 
-void _processLabels(
-    Map<String, dynamic> issue, Map<String, int> issueCountByLabelAggregator) {
-  final List<dynamic> labelNames =
-      issue['labels'].map((dynamic issue) => issue['name']).toList();
+void _processLabels(Map<String, dynamic> issue, Map<String, int> issueCountByLabelAggregator) {
+  final List<dynamic> labelNames = issue['labels'].map((dynamic issue) => issue['name']).toList();
 
   for (String labelName in labelNames) {
     issueCountByLabelAggregator.putIfAbsent(labelName, () => 0);
@@ -242,14 +205,12 @@ Future<HttpRequest> _getResponse(Uri url) async {
   }
 
   final HttpRequest response =
-      await HttpRequest.request(url.toString(), requestHeaders: headers)
-          .catchError((Error error) {
+      await HttpRequest.request(url.toString(), requestHeaders: headers).catchError((Error error) {
     print('Error fetching"$url": $error');
   });
 
   if (response?.status == HttpStatus.notModified) {
-    debugPrint(
-        'GitHub reports query results have not been updated since last check of "$url", skipping.');
+    debugPrint('GitHub reports query results have not been updated since last check of "$url", skipping.');
   }
 
   final String responseETag = response?.responseHeaders['etag'];
@@ -259,8 +220,7 @@ Future<HttpRequest> _getResponse(Uri url) async {
   return response;
 }
 
-Future<dynamic> _getBody(String path,
-    {Map<String, String> queryParameters}) async {
+Future<dynamic> _getBody(String path, {Map<String, String> queryParameters}) async {
   final Uri url = Uri.https('api.github.com', path, queryParameters);
   final HttpRequest response = await _getResponse(url);
   final String body = response?.response;

@@ -28,8 +28,7 @@ const Map<Status, String> _luciStatusToTaskStatus = <Status, String>{
   Status.infraFailure: Task.statusFailed,
 };
 
-typedef LuciServiceProvider = LuciService Function(
-    ApiRequestHandler<dynamic> handler);
+typedef LuciServiceProvider = LuciService Function(ApiRequestHandler<dynamic> handler);
 
 /// Service class for interacting with LUCI.
 @immutable
@@ -53,15 +52,13 @@ class LuciService {
   ///  that owns them.
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
-  Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>
-      getBranchRecentTasks({
+  Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>> getBranchRecentTasks({
     String repo,
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
-    final Iterable<Build> builds =
-        await getBuilds(repo, requireTaskName, builders);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
+    final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
         <BranchLuciBuilder, Map<String, List<LuciTask>>>{};
@@ -71,8 +68,11 @@ class LuciService {
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
         return builder.name == build.builderId.builder;
       });
-      final BranchLuciBuilder branchLuciBuilder =
-          BranchLuciBuilder(luciBuilder: builder, branch: ref.split('/')[2]);
+      final String branch = ref == 'unknown' ? 'unknown' : ref.split('/')[2];
+      final BranchLuciBuilder branchLuciBuilder = BranchLuciBuilder(
+        luciBuilder: builder,
+        branch: branch,
+      );
       results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
       results[branchLuciBuilder][commit] ??= <LuciTask>[];
       results[branchLuciBuilder][commit].add(LuciTask(
@@ -94,12 +94,10 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
-    final Iterable<Build> builds =
-        await getBuilds(repo, requireTaskName, builders);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
+    final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
-    final Map<LuciBuilder, List<LuciTask>> results =
-        <LuciBuilder, List<LuciTask>>{};
+    final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
@@ -121,8 +119,7 @@ class LuciService {
   /// predefined in cocoon config.
   ///
   /// Latest builds of each builder will be returned from new to old.
-  Future<Iterable<Build>> getBuilds(
-      String repo, bool requireTaskName, List<LuciBuilder> builders) async {
+  Future<Iterable<Build>> getBuilds(String repo, bool requireTaskName, List<LuciBuilder> builders) async {
     final BuildBucketClient buildBucketClient = BuildBucketClient();
 
     bool includeBuilder(LuciBuilder builder) {
@@ -135,8 +132,7 @@ class LuciService {
       return true;
     }
 
-    final List<Request> searchRequests =
-        builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
+    final List<Request> searchRequests = builders.where(includeBuilder).map<Request>((LuciBuilder builder) {
       return Request(
         searchBuilds: SearchBuildsRequest(
           pageSize: _maxResults,
@@ -151,8 +147,7 @@ class LuciService {
       );
     }).toList();
     final BatchRequest batchRequest = BatchRequest(requests: searchRequests);
-    final BatchResponse batchResponse =
-        await buildBucketClient.batch(batchRequest);
+    final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
     final Iterable<Build> builds = batchResponse.responses
         .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
         .expand<Build>((SearchBuildsResponse response) => response.builds);
@@ -177,12 +172,12 @@ class LuciBuilder {
   const LuciBuilder({
     @required this.name,
     @required this.repo,
+    @required this.flaky,
     this.taskName,
   }) : assert(name != null);
 
   /// Create a new [LuciBuilder] object from its JSON representation.
-  factory LuciBuilder.fromJson(Map<String, dynamic> json) =>
-      _$LuciBuilderFromJson(json);
+  factory LuciBuilder.fromJson(Map<String, dynamic> json) => _$LuciBuilderFromJson(json);
 
   /// The name of this builder.
   @JsonKey(required: true, disallowNullValue: true)
@@ -192,20 +187,21 @@ class LuciBuilder {
   @JsonKey(required: true, disallowNullValue: true)
   final String repo;
 
-  /// The name of the devicelab task associated with this builder.
+  /// Flag the result of this builder as blocker or not.
   @JsonKey()
+  final bool flaky;
+
+  /// The name of the devicelab task associated with this builder.
+  @JsonKey(name: 'task_name')
   final String taskName;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getBuilders(Config config) async {
-    final List<dynamic> builders = config.luciBuilders;
-    return builders
-        .map<LuciBuilder>((dynamic json) =>
-            LuciBuilder.fromJson(json as Map<String, dynamic>))
-        .toList();
+  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
+    final List<dynamic> builders = await config.getRepoLuciBuilders('prod', repo);
+    return builders.map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json as Map<String, dynamic>)).toList();
   }
 }
 

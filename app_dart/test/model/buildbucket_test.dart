@@ -40,8 +40,7 @@ void main() {
     expect(buildJson['id'], id.toString());
     expect(buildJson['id'].runtimeType, String);
 
-    final Build deserializedBuild = Build.fromJson(
-        json.decode(json.encode(buildJson)) as Map<String, dynamic>);
+    final Build deserializedBuild = Build.fromJson(json.decode(json.encode(buildJson)) as Map<String, dynamic>);
     expect(deserializedBuild.id, id);
 
     const GetBuildRequest request = GetBuildRequest(id: id);
@@ -49,8 +48,7 @@ void main() {
     expect(requestBuildJson['id'], id.toString());
     expect(requestBuildJson['id'].runtimeType, String);
 
-    final GetBuildRequest deserializedRequest =
-        GetBuildRequest.fromJson(requestBuildJson);
+    final GetBuildRequest deserializedRequest = GetBuildRequest.fromJson(requestBuildJson);
     expect(deserializedRequest.id, id);
   });
 
@@ -58,8 +56,7 @@ void main() {
     GetBuildRequest request = const GetBuildRequest(id: 9083774268329986752);
     Map<String, dynamic> requestBuildJson = request.toJson();
     expect(requestBuildJson['id'], 9083774268329986752.toString());
-    request = const GetBuildRequest(
-        id: 9083774268329986752, fields: 'summaryMarkDown');
+    request = const GetBuildRequest(id: 9083774268329986752, fields: 'summaryMarkDown');
     requestBuildJson = request.toJson();
     expect(requestBuildJson['id'], 9083774268329986752.toString());
     expect(requestBuildJson['fields'], 'summaryMarkDown');

@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import 'package:crypto/crypto.dart';
@@ -21,6 +20,7 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/utilities/mocks.dart';
 
@@ -39,13 +39,10 @@ void main() {
     const String serviceAccountEmail = 'test@test';
     LuciBuildService luciBuildService;
     ServiceAccountInfo serviceAccountInfo;
-    GithubStatusService githubStatusService;
     MockGithubChecksService mockGithubChecksService;
     final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
     const String keyString = 'not_a_real_key';
-
-    const String cqLabelName = 'CQ+1';
 
     String getHmac(Uint8List list, Uint8List key) {
       final Hmac hmac = Hmac(sha1, key);
@@ -72,53 +69,26 @@ void main() {
         githubChecksUtil: mockGithubChecksUtil,
       );
 
-      githubStatusService = GithubStatusService(
-        config,
-        luciBuildService,
-      );
+      luciBuildService.setLogger(FakeLogging());
 
       mockGithubChecksService = MockGithubChecksService();
 
-      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService,
-          githubStatusService, mockGithubChecksService,
+      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService, mockGithubChecksService,
           skiaClient: mockHttpClient);
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
 
-      config.wrongHeadBranchPullRequestMessageValue =
-          'wrongHeadBranchPullRequestMessage';
-      config.wrongBaseBranchPullRequestMessageValue =
-          'wrongBaseBranchPullRequestMessage';
-      config.releaseBranchPullRequestMessageValue =
-          'releaseBranchPullRequestMessage';
-      config.missingTestsPullRequestMessageValue =
-          'missingTestPullRequestMessage';
+      config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
+      config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
+      config.releaseBranchPullRequestMessageValue = 'releaseBranchPullRequestMessage';
+      config.missingTestsPullRequestMessageValue = 'missingTestPullRequestMessage';
       config.goldenBreakingChangeMessageValue = 'goldenBreakingChangeMessage';
       config.goldenTriageMessageValue = 'goldenTriageMessage';
       config.githubOAuthTokenValue = 'githubOAuthKey';
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
-      config.deviceLabServiceAccountValue =
-          const ServiceAccountInfo(email: serviceAccountEmail);
-
-      config.luciTryBuildersValue = (json.decode('''[
-    {"name": "Cocoon", "repo": "cocoon"},
-    {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
-    {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
-    {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
-    {"name": "Linux Coverage", "repo": "flutter"},
-    {"name": "Linux Host Engine", "repo": "engine"},
-    {"name": "Linux Android AOT Engine", "repo": "engine"},
-    {"name": "Linux Android Debug Engine", "repo": "engine"},
-    {"name": "Mac Host Engine", "repo": "engine"},
-    {"name": "Mac Android AOT Engine", "repo": "engine"},
-    {"name": "Mac Android Debug Engine", "repo": "engine"},
-    {"name": "Mac iOS Engine", "repo": "engine"},
-    {"name": "Windows Host Engine", "repo": "engine"},
-    {"name": "Windows Android AOT Engine", "repo": "engine"}
-  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
-      config.cqLabelNameValue = cqLabelName;
+      config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
     });
 
     test('Rejects non-POST methods with methodNotAllowed', () async {
@@ -184,14 +154,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -232,14 +204,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -285,14 +259,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -332,14 +308,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -373,14 +351,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -415,24 +395,23 @@ void main() {
           PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
           PullRequestFile()..filename = 'dev/blah.dart',
           PullRequestFile()..filename = 'bin/internal/engine.version',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter/lib/src/material/blah.dart',
-          PullRequestFile()
-            ..filename = 'packages/flutter_localizations/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
+          PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
         ]),
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -479,8 +458,7 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.value(
-          PullRequestFile()
-            ..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
+          PullRequestFile()..filename = 'shell/platform/darwin/ios/framework/Source/boost.mm',
         ),
       );
 
@@ -497,10 +475,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -546,10 +523,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -584,10 +560,8 @@ void main() {
 
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          PullRequestFile()
-            ..filename = 'shell/platform/android/io/flutter/Blah.java',
-          PullRequestFile()
-            ..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
+          PullRequestFile()..filename = 'shell/platform/android/io/flutter/Blah.java',
+          PullRequestFile()..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
         ]),
       );
 
@@ -598,10 +572,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -650,10 +623,9 @@ void main() {
       });
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -686,6 +658,11 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
         ]),
       );
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -702,8 +679,7 @@ void main() {
       ));
     });
 
-    test('Labels Golden changes based on Skia Gold ignore, comments to notify',
-        () async {
+    test('Labels Golden changes based on Skia Gold ignore, comments to notify', () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
@@ -713,10 +689,9 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
         (_) => Stream<IssueComment>.value(
@@ -726,15 +701,15 @@ void main() {
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -770,22 +745,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       await tester.post(webhook);
 
@@ -796,8 +765,7 @@ void main() {
       )).called(1);
     });
 
-    test('No golden triage comment when closed && !merged from labels',
-        () async {
+    test('No golden triage comment when closed && !merged from labels', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -834,8 +802,7 @@ void main() {
       ));
     });
 
-    test('No golden triage comment when closed && !merged from ignores',
-        () async {
+    test('No golden triage comment when closed && !merged from ignores', () async {
       const int issueNumber = 1234;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -845,22 +812,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -883,8 +844,7 @@ void main() {
       ));
     });
 
-    test('Cancels builds when pull request is closed without merging',
-        () async {
+    test('Cancels builds when pull request is closed without merging', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
@@ -894,22 +854,16 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
       final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(
-                  skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString()))
-              as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+          utf8.encode(skiaIgnoreTemplate(pullRequestNumber: issueNumber.toString())) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
@@ -942,8 +896,7 @@ void main() {
       );
     });
 
-    test('Labels draft issues as work in progress, does not test pest.',
-        () async {
+    test('Labels draft issues as work in progress, does not test pest.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
@@ -958,20 +911,21 @@ void main() {
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
       final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
 
-      when(pullRequestsService.listFiles(slug, issueNumber))
-          .thenAnswer((_) => Stream<PullRequestFile>.value(
-                PullRequestFile()..filename = 'some_change.dart',
-              ));
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'some_change.dart',
+          ));
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -1011,14 +965,16 @@ void main() {
       );
 
       final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
-      final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(
-          utf8.encode(skiaIgnoreTemplate()) as Uint8List);
-      when(mockHttpClient
-              .getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
-          .thenAnswer(
-              (_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
-      when(mockHttpRequest.close()).thenAnswer(
-          (_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      final MockHttpClientResponse mockHttpResponse =
+          MockHttpClientResponse(utf8.encode(skiaIgnoreTemplate()) as Uint8List);
+      when(mockHttpClient.getUrl(Uri.parse('https://flutter-gold.skia.org/json/ignores')))
+          .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
+      when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -1048,6 +1004,11 @@ void main() {
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
 
       await tester.post(webhook);
 
@@ -1074,7 +1035,6 @@ void main() {
       });
 
       test('Exception is raised when no builders available', () async {
-        config.luciTryBuildersValue = <Map<String, dynamic>>[];
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -1093,9 +1053,8 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate(
-            'synchronize', issueNumber, kDefaultBranchName,
-            repoFullName: 'flutter/cocoon', repoName: 'cocoon');
+        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName,
+            repoFullName: 'flutter/packages', repoName: 'packages');
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -1104,29 +1063,8 @@ void main() {
         expect(tester.post(webhook), throwsA(isA<InternalServerError>()));
       });
 
-      test('Optional repo - Not schedule build when labeled without CQ',
-          () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'Random Label',
-          ]);
-        });
-
-        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName);
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        await tester.post(webhook);
-        verifyNever(mockBuildBucketClient.searchBuilds(any));
-        verifyNever(mockBuildBucketClient.scheduleBuild(any));
-        verifyNever(mockBuildBucketClient.batch(any));
-      });
-
       Future<void> _testActions(String action, {bool never = false}) async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any))
-            .thenAnswer((_) async {
+        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
             'id': 1,
             'started_at': '2020-05-10T02:49:31Z',
@@ -1200,11 +1138,6 @@ void main() {
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        config.luciTryBuildersValue = (json.decode(
-                    '[{"name": "Cocoon", "repo": "cocoon"},{"name": "Linux", "repo": "flutter"}, {"name": "Mac", "repo": "flutter"}]')
-                as List<dynamic>)
-            .cast<Map<String, dynamic>>();
 
         await tester.post(webhook);
 
@@ -1347,59 +1280,9 @@ void main() {
       }
     }
   ]
-},
-{
-  "requests":[
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "createdBy":"test@test",
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"github_link",
-              "value":"https://github.com/flutter/cocoon/pull/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"flutter-cocoon"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"recipe"
-            }
-          ]
-        }
-      }
-    }
-  ]
-}]''';
-        expect(
-            json.encode(
-                verify(mockBuildBucketClient.batch(captureAny)).captured),
+}]
+''';
+        expect(json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
             expectedJson.replaceAll(RegExp(r'\s|\n'), ''));
       }
 
@@ -1427,150 +1310,7 @@ void main() {
         await _testActions('synchronize');
       });
 
-      test('Schedules builds when labeled', () async {
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
-              ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[],
-                ),
-              ),
-            ],
-          );
-        });
-        request.body = jsonTemplate('labeled', issueNumber, kDefaultBranchName,
-            includeCqLabel: true);
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        await tester.post(webhook);
-        expect(
-          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
-        );
-      });
-
-      test('Cancels builds when unlabeled', () async {
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    Build(
-                      id: 999,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux',
-                      ),
-                      status: Status.started,
-                    )
-                  ],
-                ),
-              ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    Build(
-                      id: 998,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux Host',
-                      ),
-                      status: Status.started,
-                    )
-                  ],
-                ),
-              ),
-            ],
-          );
-        });
-
-        request.body =
-            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        await tester.post(webhook);
-        expect(
-          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-          '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Tryjobs canceled (label removed)"}},{"cancelBuild":{"id":"998","summaryMarkdown":"Tryjobs canceled (label removed)"}}]}]',
-        );
-      });
-
-      test('Skips cancel build when unlabeled and build is ended', () async {
-        when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
-          return Stream<IssueLabel>.fromIterable(<IssueLabel>[
-            IssueLabel()..name = 'Random Label',
-          ]);
-        });
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
-            responses: <Response>[
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    Build(
-                      id: 999,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux',
-                      ),
-                      status: Status.success,
-                    )
-                  ],
-                ),
-              ),
-              Response(
-                searchBuilds: SearchBuildsResponse(
-                  builds: <Build>[
-                    Build(
-                      id: 998,
-                      builderId: BuilderId(
-                        project: 'flutter',
-                        bucket: 'prod',
-                        builder: 'Linux',
-                      ),
-                      status: Status.success,
-                    )
-                  ],
-                ),
-              ),
-            ],
-          );
-        });
-
-        request.body =
-            jsonTemplate('unlabeled', issueNumber, kDefaultBranchName);
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        await tester.post(webhook);
-        expect(
-          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-          '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
-        );
-      });
-
-      test('When synchronized, cancels existing builds and schedules new ones',
-          () async {
+      test('When synchronized, cancels existing builds and schedules new ones', () async {
         when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
           return const BatchResponse(
             responses: <Response>[
@@ -1608,21 +1348,18 @@ void main() {
           );
         });
 
-        request.body = jsonTemplate(
-            'synchronize', issueNumber, kDefaultBranchName,
-            includeCqLabel: true);
+        request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-        final MockRepositoriesService mockRepositoriesService =
-            MockRepositoriesService();
+        final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
         when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
 
         await tester.post(webhook);
         expect(
           json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]}]',
+          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]}]',
         );
       });
     });
@@ -1755,7 +1492,6 @@ String jsonTemplate(String action, int number, String baseRef,
         "id": 283480100,
         "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
         "url": "https://api.github.com/repos/$repoFullName/labels/tool",
-        "name": "CQ+1",
         "color": "5319e7",
         "default": false
       },''' : ''}

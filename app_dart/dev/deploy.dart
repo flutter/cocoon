@@ -66,16 +66,13 @@ Future<bool> _checkDependencies() async {
   }
 
   stdout.writeln('Checking Flutter version via flutter --version');
-  final ProcessResult result =
-      await Process.run('flutter', <String>['--version']);
+  final ProcessResult result = await Process.run('flutter', <String>['--version']);
   final String flutterVersionOutput = result.stdout as String;
 
   // This makes an assumption that only the framework will have its version
   // printed out with the date in YYYY-MM-DD format.
-  final RegExp dateRegExp =
-      RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
-  final String flutterVersionDateRaw =
-      dateRegExp.allMatches(flutterVersionOutput).first.group(0);
+  final RegExp dateRegExp = RegExp(r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))');
+  final String flutterVersionDateRaw = dateRegExp.allMatches(flutterVersionOutput).first.group(0);
 
   final DateTime flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
   final DateTime now = DateTime.now();
@@ -93,8 +90,7 @@ Future<bool> _buildAngularDartApp() async {
     workingDirectory: angularDartProjectDirectory,
   );
 
-  final Process pubProcess = await Process.start('pub', <String>['get'],
-      workingDirectory: angularDartProjectDirectory);
+  final Process pubProcess = await Process.start('pub', <String>['get'], workingDirectory: angularDartProjectDirectory);
   await stdout.addStream(pubProcess.stdout);
   await stderr.addStream(pubProcess.stderr);
   if (await pubProcess.exitCode != 0) {
@@ -103,15 +99,7 @@ Future<bool> _buildAngularDartApp() async {
 
   final Process buildProcess = await Process.start(
     'pub',
-    <String>[
-      'run',
-      'build_runner',
-      'build',
-      '--release',
-      '--output',
-      'build',
-      '--delete-conflicting-outputs'
-    ],
+    <String>['run', 'build_runner', 'build', '--release', '--output', 'build', '--delete-conflicting-outputs'],
     workingDirectory: angularDartProjectDirectory,
   );
   await stdout.addStream(buildProcess.stdout);
@@ -120,8 +108,7 @@ Future<bool> _buildAngularDartApp() async {
   // The Angular Dart build dashboard page has been replaced with a Flutter
   // version. There are some administrative features missing in the Flutter
   // version so we still offer the old build dashboard.
-  await Process.run(
-      'mv', <String>['build/web/build.html', 'build/web/old_build.html'],
+  await Process.run('mv', <String>['build/web/build.html', 'build/web/old_build.html'],
       workingDirectory: angularDartProjectDirectory);
 
   return await buildProcess.exitCode == 0;
@@ -130,8 +117,7 @@ Future<bool> _buildAngularDartApp() async {
 /// Build app_flutter for web.
 Future<bool> _buildFlutterWebApp() async {
   /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run('rm', <String>['-rf', 'build/'],
-      workingDirectory: flutterProjectDirectory);
+  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: flutterProjectDirectory);
 
   final Process process = await Process.start(
       'flutter',
@@ -152,8 +138,8 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
-  final ProcessResult result = await Process.run('cp',
-      <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
+  final ProcessResult result =
+      await Process.run('cp', <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
 
   // On MacOS, this will return exit code 1 since this copy does
   // have files that "fail" to overwrite due to `app_flutter`.
@@ -162,8 +148,7 @@ Future<bool> _copyAngularDartProject() async {
 
 /// Copy the built project from app_flutter to this app_dart project.
 Future<bool> _copyFlutterApp() async {
-  final ProcessResult result = await Process.run(
-      'cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
+  final ProcessResult result = await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
 
   return result.exitCode == 0;
 }
@@ -217,8 +202,7 @@ Future<void> main(List<String> arguments) async {
   }
 
   if (!await _checkDependencies()) {
-    stderr.writeln(
-        'Update Flutter to a version on master from the past 3 weeks to deploy Cocoon');
+    stderr.writeln('Update Flutter to a version on master from the past 3 weeks to deploy Cocoon');
     exit(1);
   }
 

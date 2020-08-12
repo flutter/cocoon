@@ -30,10 +30,7 @@ void main() {
     FakeGraphQLClient cirrusGraphQLClient;
     List<dynamic> statuses = <dynamic>[];
     String cirrusBranch;
-    const List<String> githubBranches = <String>[
-      'master',
-      'flutter-0.0-candidate.0'
-    ];
+    const List<String> githubBranches = <String>['master', 'flutter-0.0-candidate.0'];
 
     setUp(() {
       final FakeGithubService githubService = FakeGithubService();
@@ -56,8 +53,7 @@ void main() {
       statuses.clear();
       cirrusBranch = null;
 
-      cirrusGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => QueryResult();
+      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
 
       cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
         return createQueryResult(statuses, cirrusBranch);
@@ -71,13 +67,10 @@ void main() {
         <String, String>{'status': 'COMPLETED', 'name': 'test2'}
       ];
       final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/$cirrusBranch/7d03371610c07953a5def50d500045941de516b8'),
+          key: config.db.emptyKey
+              .append(Commit, id: 'flutter/flutter/$cirrusBranch/7d03371610c07953a5def50d500045941de516b8'),
           branch: 'master');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          status: 'New');
+      final Task task = Task(key: commit.key.append(Task, id: 4590522719010816), commitKey: commit.key, status: 'New');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -95,13 +88,10 @@ void main() {
       ];
 
       final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/$cirrusBranch/7d03371610c07953a5def50d500045941de516b8'),
+          key: config.db.emptyKey
+              .append(Commit, id: 'flutter/flutter/$cirrusBranch/7d03371610c07953a5def50d500045941de516b8'),
           branch: 'master');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          status: 'New');
+      final Task task = Task(key: commit.key.append(Task, id: 4590522719010816), commitKey: commit.key, status: 'New');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -119,12 +109,8 @@ void main() {
       ];
 
       final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
-      final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          status: 'New');
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
+      final Task task = Task(key: commit.key.append(Task, id: 4590522719010816), commitKey: commit.key, status: 'New');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -142,13 +128,9 @@ void main() {
       ];
 
       final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'),
           branch: 'flutter-0.0-candidate.0');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          status: 'New');
+      final Task task = Task(key: commit.key.append(Task, id: 4590522719010816), commitKey: commit.key, status: 'New');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -158,22 +140,16 @@ void main() {
       expect(task.status, 'In Progress');
     });
 
-    test('skip updating cirrus status when there is no matching branch',
-        () async {
+    test('skip updating cirrus status when there is no matching branch', () async {
       cirrusBranch = 'flutter-0.0-candidate.0';
       statuses = <dynamic>[
         <String, String>{'status': 'EXECUTING', 'name': 'test1'},
         <String, String>{'status': 'COMPLETED', 'name': 'test2'}
       ];
 
-      final Commit commit = Commit(
-          key:
-              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/1'),
-          branch: 'master');
-      final Task task = Task(
-          key: commit.key.append(Task, id: 1),
-          commitKey: commit.key,
-          status: 'New');
+      final Commit commit =
+          Commit(key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/1'), branch: 'master');
+      final Task task = Task(key: commit.key.append(Task, id: 1), commitKey: commit.key, status: 'New');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -195,16 +171,8 @@ QueryResult createQueryResult(List<dynamic> statuses, String branch) {
           'id': '1',
           'branch': branch,
           'latestGroupTasks': <dynamic>[
-            <String, dynamic>{
-              'id': '1',
-              'name': statuses.first['name'],
-              'status': statuses.first['status']
-            },
-            <String, dynamic>{
-              'id': '2',
-              'name': statuses.last['name'],
-              'status': statuses.last['status']
-            }
+            <String, dynamic>{'id': '1', 'name': statuses.first['name'], 'status': statuses.first['status']},
+            <String, dynamic>{'id': '2', 'name': statuses.last['name'], 'status': statuses.last['status']}
           ],
         },
       ],

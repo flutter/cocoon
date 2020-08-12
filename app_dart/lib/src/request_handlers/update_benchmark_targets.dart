@@ -18,13 +18,11 @@ import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
 @immutable
-class UpdateBenchmarkTargets
-    extends ApiRequestHandler<UpdateBenchmarkTargetsResponse> {
+class UpdateBenchmarkTargets extends ApiRequestHandler<UpdateBenchmarkTargetsResponse> {
   const UpdateBenchmarkTargets(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
@@ -35,23 +33,19 @@ class UpdateBenchmarkTargets
 
   @override
   Future<UpdateBenchmarkTargetsResponse> post() async {
-    checkRequiredParameters(
-        <String>[timeSeriesKeyParam, goalParam, baselineParam]);
+    checkRequiredParameters(<String>[timeSeriesKeyParam, goalParam, baselineParam]);
 
     final ClientContext clientContext = authContext.clientContext;
     final DatastoreService datastore = datastoreProvider(config.db);
-    final KeyHelper keyHelper =
-        KeyHelper(applicationContext: clientContext.applicationContext);
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     double goal = requestData[goalParam] as double;
     double baseline = requestData[baselineParam] as double;
 
     Key timeSeriesKey;
     try {
-      timeSeriesKey =
-          keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
     } catch (error) {
-      throw BadRequestException(
-          'Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
+      throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
 
     final TimeSeries timeSeries = await config.db.lookupValue<TimeSeries>(
@@ -79,8 +73,7 @@ class UpdateBenchmarkTargets
 
 @immutable
 class UpdateBenchmarkTargetsResponse extends JsonBody {
-  const UpdateBenchmarkTargetsResponse(this.timeSeries)
-      : assert(timeSeries != null);
+  const UpdateBenchmarkTargetsResponse(this.timeSeries) : assert(timeSeries != null);
 
   final TimeSeries timeSeries;
 

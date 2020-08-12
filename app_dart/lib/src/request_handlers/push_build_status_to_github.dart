@@ -29,14 +29,11 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting LoggingProvider loggingProvider,
     @visibleForTesting BuildStatusServiceProvider buildStatusServiceProvider,
-    @visibleForTesting
-        this.branchHttpClientProvider = Providers.freshHttpClient,
+    @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
     @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-  })  : datastoreProvider =
-            datastoreProvider ?? DatastoreService.defaultProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
         loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
-        buildStatusServiceProvider =
-            buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
+        buildStatusServiceProvider = buildStatusServiceProvider ?? BuildStatusService.defaultProvider,
         assert(branchHttpClientProvider != null),
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
@@ -51,11 +48,9 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider(config.db);
-    final BuildStatusService buildStatusService =
-        buildStatusServiceProvider(datastore);
+    final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GithubService githubService =
-        await config.createGithubService(slug.owner, slug.name);
+    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
@@ -64,21 +59,17 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
 
     // TODO(keyonghan): improve branch fetching logic, like using cache, https://github.com/flutter/flutter/issues/53108
     for (String branch in await config.flutterBranches) {
-      final BuildStatus buildStatus =
-          await buildStatusService.calculateCumulativeStatus(branch: branch);
+      final BuildStatus buildStatus = await buildStatusService.calculateCumulativeStatus(branch: branch);
       final GitHub github = githubService.github;
       final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
       log.debug('Computed build result of $buildStatus');
       // Insert build status to bigquery.
       await _insertBigquery(buildStatus, branch);
-      final List<PullRequest> pullRequests =
-          await githubService.listPullRequests(slug, branch);
+      final List<PullRequest> pullRequests = await githubService.listPullRequests(slug, branch);
       for (PullRequest pr in pullRequests) {
-        final GithubBuildStatusUpdate update =
-            await datastore.queryLastStatusUpdate(slug, pr);
+        final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
         if (update.status != buildStatus.githubStatus) {
-          log.debug(
-              'Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
+          log.debug('Updating status of ${slug.fullName}#${pr.number} from ${update.status}');
           final CreateStatus request = CreateStatus(buildStatus.githubStatus);
           request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build';
           request.context = config.flutterBuild;
@@ -93,8 +84,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
             update.updateTimeMillis = DateTime.now().millisecondsSinceEpoch;
             updates.add(update);
           } catch (error) {
-            log.error(
-                'Failed to post status update to ${slug.fullName}#${pr.number}: $error');
+            log.error('Failed to post status update to ${slug.fullName}#${pr.number}: $error');
           }
         }
       }
@@ -114,8 +104,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     const String dataset = 'cocoon';
     const String table = 'BuildStatus';
 
-    final TabledataResourceApi tabledataResourceApi =
-        await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
 
     requestRows.add(<String, Object>{
@@ -127,9 +116,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     });
 
     // Obtain [rows] to be inserted to [BigQuery].
-    final TableDataInsertAllRequest request =
-        TableDataInsertAllRequest.fromJson(
-            <String, Object>{'rows': requestRows});
+    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
 
     try {
       await tabledataResourceApi.insertAll(request, projectId, dataset, table);

@@ -48,8 +48,7 @@ void main() {
       setUp(() {
         agent = Agent(
           key: config.db.emptyKey.append(Agent, id: 'aid'),
-          authToken: ascii.encode(
-              r'$2a$10$4UicEmMSoqzUtWTQAR1s/.qUrmh7oQTyz1MI.f7qt6.jJ6kPipdKq'),
+          authToken: ascii.encode(r'$2a$10$4UicEmMSoqzUtWTQAR1s/.qUrmh7oQTyz1MI.f7qt6.jJ6kPipdKq'),
         );
         request.headers.set('Agent-ID', agent.key.id);
       });
@@ -76,21 +75,18 @@ void main() {
           clientContext.isDevelopmentEnvironment = false;
         });
 
-        test('fails if agent lookup succeeds but auth token is not provided',
-            () async {
+        test('fails if agent lookup succeeds but auth token is not provided', () async {
           config.db.values[agent.key] = agent;
           expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
         });
 
-        test('fails if agent lookup succeeds but auth token is invalid',
-            () async {
+        test('fails if agent lookup succeeds but auth token is invalid', () async {
           config.db.values[agent.key] = agent;
           request.headers.set('Agent-Auth-Token', 'invalid_token');
           expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
         });
 
-        test('succeeds if agent lookup succeeds and valid auth token provided',
-            () async {
+        test('succeeds if agent lookup succeeds and valid auth token provided', () async {
           config.db.values[agent.key] = agent;
           request.headers.set('Agent-Auth-Token', 'password');
           final AuthenticatedContext result = await auth.authenticate(request);
@@ -122,10 +118,8 @@ void main() {
         );
       });
 
-      test('auth succeeds with authenticated cookie but unauthenticated header',
-          () async {
-        httpClient =
-            FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+      test('auth succeeds with authenticated cookie but unauthenticated header', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
           if (request.uri.queryParameters['id_token'] == 'bad-header') {
             return verifyTokenResponse
               ..statusCode = HttpStatus.unauthorized
@@ -144,8 +138,7 @@ void main() {
         );
         config.oauthClientIdValue = 'client-id';
 
-        request.cookies
-            .add(FakeCookie(name: 'X-Flutter-IdToken', value: 'authenticated'));
+        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'authenticated'));
         request.headers.add('X-Flutter-IdToken', 'bad-header');
 
         final AuthenticatedContext result = await auth.authenticate(request);
@@ -156,10 +149,8 @@ void main() {
         expect(log.records, hasLength(0));
       });
 
-      test('auth succeeds with authenticated header but unauthenticated cookie',
-          () async {
-        httpClient =
-            FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+      test('auth succeeds with authenticated header but unauthenticated cookie', () async {
+        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
           if (request.uri.queryParameters['id_token'] == 'bad-cookie') {
             return verifyTokenResponse
               ..statusCode = HttpStatus.unauthorized
@@ -178,8 +169,7 @@ void main() {
         );
         config.oauthClientIdValue = 'client-id';
 
-        request.cookies
-            .add(FakeCookie(name: 'X-Flutter-IdToken', value: 'bad-cookie'));
+        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'bad-cookie'));
         request.headers.add('X-Flutter-IdToken', 'authenticated');
 
         final AuthenticatedContext result = await auth.authenticate(request);
@@ -188,18 +178,13 @@ void main() {
 
         // check log for debug statement and warning
         expect(log.records, hasLength(2));
-        expect(
-            log.records.first.message,
-            contains(
-                'Token verification failed: 401; Invalid token: bad-cookie'));
+        expect(log.records.first.message, contains('Token verification failed: 401; Invalid token: bad-cookie'));
       });
 
       test('fails if token verification fails', () async {
         verifyTokenResponse.statusCode = HttpStatus.badRequest;
         verifyTokenResponse.body = 'Invalid token: abc123';
-        await expectLater(
-            auth.authenticateIdToken('abc123',
-                clientContext: clientContext, log: log),
+        await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
             throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
@@ -209,9 +194,7 @@ void main() {
 
       test('fails if token verification returns invalid JSON', () async {
         verifyTokenResponse.body = 'Not JSON';
-        await expectLater(
-            auth.authenticateIdToken('abc123',
-                clientContext: clientContext, log: log),
+        await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
             throwsA(isA<InternalServerError>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, isEmpty);
@@ -220,9 +203,7 @@ void main() {
       test('fails if token verification yields forged token', () async {
         verifyTokenResponse.body = '{"aud": "forgery"}';
         config.oauthClientIdValue = 'expected-client-id';
-        await expectLater(
-            auth.authenticateIdToken('abc123',
-                clientContext: clientContext, log: log),
+        await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
             throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
@@ -234,10 +215,8 @@ void main() {
       test('succeeds for google.com auth user', () async {
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "google.com"}';
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateIdToken(
-            'abc123',
-            clientContext: clientContext,
-            log: log);
+        final AuthenticatedContext result =
+            await auth.authenticateIdToken('abc123', clientContext: clientContext, log: log);
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
       });
@@ -245,9 +224,7 @@ void main() {
       test('fails for non-allowed non-Google auth users', () async {
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "gmail.com"}';
         config.oauthClientIdValue = 'client-id';
-        await expectLater(
-            auth.authenticateIdToken('abc123',
-                clientContext: clientContext, log: log),
+        await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
             throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
       });
@@ -258,13 +235,10 @@ void main() {
           email: 'test@gmail.com',
         );
         config.db.values[account.key] = account;
-        verifyTokenResponse.body =
-            '{"aud": "client-id", "email": "test@gmail.com"}';
+        verifyTokenResponse.body = '{"aud": "client-id", "email": "test@gmail.com"}';
         config.oauthClientIdValue = 'client-id';
-        final AuthenticatedContext result = await auth.authenticateIdToken(
-            'abc123',
-            clientContext: clientContext,
-            log: log);
+        final AuthenticatedContext result =
+            await auth.authenticateIdToken('abc123', clientContext: clientContext, log: log);
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
       });

@@ -10,13 +10,10 @@ import '../models/build_status.dart';
 
 Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
   client ??= http.Client();
-  final Map<String, dynamic> fetchedStatus =
-      await _getStatusBody(client, 'api/public/build-status');
-  final String anticipatedBuildStatus =
-      fetchedStatus != null ? fetchedStatus['AnticipatedBuildStatus'] : null;
+  final Map<String, dynamic> fetchedStatus = await _getStatusBody(client, 'api/public/build-status');
+  final String anticipatedBuildStatus = fetchedStatus != null ? fetchedStatus['AnticipatedBuildStatus'] : null;
 
-  final Map<String, dynamic> fetchBuildStatus =
-      await _getStatusBody(client, 'api/public/get-status');
+  final Map<String, dynamic> fetchBuildStatus = await _getStatusBody(client, 'api/public/get-status');
   final List<String> failingAgents = <String>[];
   final List<CommitTestResult> commitTestResults = <CommitTestResult>[];
   if (fetchBuildStatus != null) {
@@ -29,10 +26,8 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
         }
         final bool isHealthy = agentStatus['IsHealthy'];
         final int healthCheckTimeStamp = agentStatus['HealthCheckTimestamp'];
-        final int minutesSinceHealthCheck = DateTime.now()
-            .difference(
-                DateTime.fromMillisecondsSinceEpoch(healthCheckTimeStamp))
-            .inMinutes;
+        final int minutesSinceHealthCheck =
+            DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(healthCheckTimeStamp)).inMinutes;
         if (!isHealthy || minutesSinceHealthCheck > 10) {
           failingAgents.add(agentID);
         }
@@ -41,8 +36,7 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
       final List<dynamic> statuses = fetchBuildStatus['Statuses'];
       if (statuses != null) {
         for (Map<String, dynamic> status in statuses) {
-          final Map<String, dynamic> checklist =
-              status['Checklist']['Checklist'];
+          final Map<String, dynamic> checklist = status['Checklist']['Checklist'];
           final Map<String, dynamic> commitInfo = checklist['Commit'];
           final Map<String, dynamic> authorInfo = commitInfo['Author'];
 
@@ -69,9 +63,7 @@ Future<BuildStatus> fetchBuildStatus({http.Client client}) async {
               }
             }
           }
-          final DateTime createDateTime =
-              DateTime.fromMillisecondsSinceEpoch(checklist['CreateTimestamp'])
-                  .toLocal();
+          final DateTime createDateTime = DateTime.fromMillisecondsSinceEpoch(checklist['CreateTimestamp']).toLocal();
           commitTestResults.add(CommitTestResult(
             sha: commitInfo['Sha'],
             authorName: authorInfo['Login'],

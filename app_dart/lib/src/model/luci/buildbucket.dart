@@ -29,8 +29,7 @@ class BatchRequest extends JsonBody {
   });
 
   /// Creates a [BatchRequest] from JSON.
-  static BatchRequest fromJson(Map<String, dynamic> json) =>
-      _$BatchRequestFromJson(json);
+  static BatchRequest fromJson(Map<String, dynamic> json) => _$BatchRequestFromJson(json);
 
   /// The batch of [Request]s to make.
   final List<Request> requests;
@@ -52,22 +51,10 @@ class Request extends JsonBody {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
-  }) : assert((getBuild != null &&
-                searchBuilds == null &&
-                scheduleBuild == null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds != null &&
-                scheduleBuild == null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds == null &&
-                scheduleBuild != null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds == null &&
-                scheduleBuild == null &&
-                cancelBuild != null));
+  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
 
   /// Creates a [Request] object from JSON.
   static Request fromJson(Map<String, dynamic> json) => _$RequestFromJson(json);
@@ -99,8 +86,7 @@ class BatchResponse extends JsonBody {
   });
 
   /// Creates a [BatchResponse] from JSON.
-  static BatchResponse fromJson(Map<String, dynamic> json) =>
-      _$BatchResponseFromJson(json);
+  static BatchResponse fromJson(Map<String, dynamic> json) => _$BatchResponseFromJson(json);
 
   /// The collected responses from the Batch request.
   final List<Response> responses;
@@ -120,26 +106,13 @@ class Response extends JsonBody {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
-  }) : assert((getBuild != null &&
-                searchBuilds == null &&
-                scheduleBuild == null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds != null &&
-                scheduleBuild == null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds == null &&
-                scheduleBuild != null &&
-                cancelBuild == null) ||
-            (getBuild == null &&
-                searchBuilds == null &&
-                scheduleBuild == null &&
-                cancelBuild != null));
+  }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
+            (getBuild == null && searchBuilds == null && scheduleBuild == null && cancelBuild != null));
 
   /// Creates a [Response] from JSON.
-  static Response fromJson(Map<String, dynamic> json) =>
-      _$ResponseFromJson(json);
+  static Response fromJson(Map<String, dynamic> json) => _$ResponseFromJson(json);
 
   /// The [Build] response corresponding to a getBuild request.
   final Build getBuild;
@@ -170,8 +143,7 @@ class GetBuildRequest extends JsonBody {
             (id != null && builderId == null && buildNumber == null));
 
   /// Creates a [GetBuildRequest] from JSON.
-  static GetBuildRequest fromJson(Map<String, dynamic> json) =>
-      _$GetBuildRequestFromJson(json);
+  static GetBuildRequest fromJson(Map<String, dynamic> json) => _$GetBuildRequestFromJson(json);
 
   /// The BuildBucket build ID.
   ///
@@ -213,8 +185,7 @@ class CancelBuildRequest extends JsonBody {
         assert(summaryMarkdown != null);
 
   /// Creates a [CancelBuildRequest] from JSON.
-  static CancelBuildRequest fromJson(Map<String, dynamic> json) =>
-      _$CancelBuildRequestFromJson(json);
+  static CancelBuildRequest fromJson(Map<String, dynamic> json) => _$CancelBuildRequestFromJson(json);
 
   /// The BuildBucket ID for the build to cancel.
   @JsonKey(nullable: false, required: true)
@@ -248,8 +219,7 @@ class SearchBuildsRequest extends JsonBody {
   }) : assert(predicate != null);
 
   /// Creates a [SearchBuildsReqeuest] object from JSON.
-  static SearchBuildsRequest fromJson(Map<String, dynamic> json) =>
-      _$SearchBuildsRequestFromJson(json);
+  static SearchBuildsRequest fromJson(Map<String, dynamic> json) => _$SearchBuildsRequestFromJson(json);
 
   /// The predicate for searching.
   final BuildPredicate predicate;
@@ -292,8 +262,7 @@ class BuildPredicate extends JsonBody {
   });
 
   /// Creates a [BuildPredicate] from JSON.
-  static BuildPredicate fromJson(Map<String, dynamic> json) =>
-      _$BuildPredicateFromJson(json);
+  static BuildPredicate fromJson(Map<String, dynamic> json) => _$BuildPredicateFromJson(json);
 
   /// The [BuilderId] to search for.
   @JsonKey(name: 'builder')
@@ -332,8 +301,7 @@ class SearchBuildsResponse extends JsonBody {
   });
 
   /// Creates a [SearchBuildsResponse] from JSON.
-  static SearchBuildsResponse fromJson(Map<String, dynamic> json) =>
-      _$SearchBuildsResponseFromJson(json);
+  static SearchBuildsResponse fromJson(Map<String, dynamic> json) => _$SearchBuildsResponseFromJson(json);
 
   /// The [Build]s returned by the search.
   final List<Build> builds;
@@ -369,8 +337,7 @@ class ScheduleBuildRequest extends JsonBody {
   }) : assert(builderId != null);
 
   /// Creates a [ScheduleBuildRequest] from JSON.
-  static ScheduleBuildRequest fromJson(Map<String, dynamic> json) =>
-      _$ScheduleBuildRequestFromJson(json);
+  static ScheduleBuildRequest fromJson(Map<String, dynamic> json) => _$ScheduleBuildRequestFromJson(json);
 
   /// A unique identifier per request that is used by the backend to deduplicate
   /// requests.
@@ -534,8 +501,7 @@ class BuilderId extends JsonBody {
   });
 
   /// Creates a [BuilderId] object from JSON.
-  static BuilderId fromJson(Map<String, dynamic> json) =>
-      _$BuilderIdFromJson(json);
+  static BuilderId fromJson(Map<String, dynamic> json) => _$BuilderIdFromJson(json);
 
   /// The project, e.g. "flutter", for the builder.
   final String project;
@@ -559,8 +525,7 @@ class BuilderId extends JsonBody {
 class NotificationConfig extends JsonBody {
   const NotificationConfig({this.pubsubTopic, this.userData});
 
-  static NotificationConfig fromJson(Map<String, dynamic> json) =>
-      _$NotificationConfigFromJson(json);
+  static NotificationConfig fromJson(Map<String, dynamic> json) => _$NotificationConfigFromJson(json);
 
   /// The Cloud PubSub topic to use, e.g.
   /// `projects/flutter-dashboard/topics/luci-builds`.
@@ -615,13 +580,12 @@ class GitilesCommit extends JsonBody {
   });
 
   /// Creates a [GitilesCommit] object from JSON.
-  static GitilesCommit fromJson(Map<String, dynamic> json) =>
-      _$GitilesCommitFromJson(json);
+  static GitilesCommit fromJson(Map<String, dynamic> json) => _$GitilesCommitFromJson(json);
 
   /// The Gitiles host name, e.g. "chromium.googlesource.com"
   final String host;
 
-  /// The repository name on the host, e.g. "externa/github.com/flutter/flutter".
+  /// The repository name on the host, e.g. "external/github.com/flutter/flutter".
   final String project;
 
   /// The Git hash of the commit.

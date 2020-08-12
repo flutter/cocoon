@@ -13,10 +13,7 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
   List<TableDataInsertAllRequestRows> rows;
   @override
   Future<TableDataInsertAllResponse> insertAll(
-      TableDataInsertAllRequest request,
-      String projectId,
-      String datasetId,
-      String tableId,
+      TableDataInsertAllRequest request, String projectId, String datasetId, String tableId,
       {String $fields}) async {
     rows = request.rows;
     return TableDataInsertAllResponse.fromJson(<String, String>{});
@@ -24,11 +21,7 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
 
   @override
   Future<TableDataList> list(String projectId, String datasetId, String tableId,
-      {int maxResults,
-      String selectedFields,
-      String startIndex,
-      String pageToken,
-      String $fields}) async {
+      {int maxResults, String selectedFields, String startIndex, String pageToken, String $fields}) async {
     final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
     for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows) {
       final Map<String, Object> value = tableDataInsertAllRequestRows.json;
@@ -37,9 +30,6 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
       tableRowList.add(<String, Object>{'f': tableCellList});
     }
 
-    return TableDataList.fromJson(<String, Object>{
-      'totalRows': rows.length.toString(),
-      'rows': tableRowList
-    });
+    return TableDataList.fromJson(<String, Object>{'totalRows': rows.length.toString(), 'rows': tableRowList});
   }
 }

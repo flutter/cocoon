@@ -6,8 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/model/luci/push_message.dart'
-    as push_message;
+import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
@@ -51,8 +50,7 @@ void main() {
     serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
     config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
     mockBuildBucketClient = MockBuildBucketClient();
-    service =
-        LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+    service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     githubStatusService = GithubStatusService(config, service);
     mockGitHub = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
@@ -60,7 +58,6 @@ void main() {
       return mockRepositoriesService;
     });
     config.githubClient = mockGitHub;
-    config.luciTryBuildersValue = <Map<String, dynamic>>[];
     slug = RepositorySlug('flutter', 'flutter');
   });
   group('setBuildsPendingStatus', () {
@@ -92,23 +89,17 @@ void main() {
           ],
         );
       });
-      config.luciTryBuildersValue =
-          (json.decode('[{"name": "Linux"}]') as List<dynamic>)
-              .cast<Map<String, dynamic>>();
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
       await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
               '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
-    test('Only builds in luciTryBuilders create statuses', () async {
+    test('Only builds in getRepoLuciBuilders create statuses', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
@@ -120,19 +111,13 @@ void main() {
           ],
         );
       });
-      config.luciTryBuildersValue =
-          (json.decode('[{"name": "Linux"}]') as List<dynamic>)
-              .cast<Map<String, dynamic>>();
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
       await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
               '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
@@ -185,7 +170,7 @@ void main() {
     test('Status updated when not pending or url is different', () async {
       List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
-          ..context = 'Mac'
+          ..context = 'Linux'
           ..state = 'failed'
           ..targetUrl = 'url'
       ];
@@ -194,37 +179,31 @@ void main() {
       });
       final bool success = await githubStatusService.setPendingStatus(
         ref: '123hash',
-        builderName: 'Mac',
+        builderName: 'Linux',
         buildUrl: 'url',
         slug: slug,
       );
       expect(success, isTrue);
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
-              '{"state":"pending","target_url":"url?reload=30","description":"Flutter LUCI Build: Mac","context":"Mac"}'));
+              '{"state":"pending","target_url":"url?reload=30","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
       repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
-          ..context = 'Mac'
+          ..context = 'Linux'
           ..state = 'pending'
           ..targetUrl = 'url'
       ];
       await githubStatusService.setPendingStatus(
         ref: '123hash',
-        builderName: 'Mac',
+        builderName: 'Linux',
         buildUrl: 'different_url',
         slug: slug,
       );
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
-              '{"state":"pending","target_url":"different_url?reload=30","description":"Flutter LUCI Build: Mac","context":"Mac"}'));
+              '{"state":"pending","target_url":"different_url?reload=30","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
   });
 
@@ -243,7 +222,7 @@ void main() {
     test('Status updated to cancelled', () async {
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
-          ..context = 'Mac'
+          ..context = 'Linux'
           ..state = 'pending'
           ..targetUrl = 'url'
       ];
@@ -251,23 +230,16 @@ void main() {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
       await githubStatusService.setCompletedStatus(
-          ref: '123hash',
-          builderName: 'Mac',
-          buildUrl: 'url',
-          slug: slug,
-          result: push_message.Result.canceled);
+          ref: '123hash', builderName: 'Linux', buildUrl: 'url', slug: slug, result: push_message.Result.canceled);
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
-              '{"state":"failure","target_url":"url","description":"Flutter LUCI Build: Mac","context":"Mac"}'));
+              '{"state":"failure","target_url":"url","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
     test('Status updated to success', () async {
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
-          ..context = 'Mac'
+          ..context = 'Linux'
           ..state = 'pending'
           ..targetUrl = 'url'
       ];
@@ -275,18 +247,11 @@ void main() {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
       });
       await githubStatusService.setCompletedStatus(
-          ref: '123hash',
-          builderName: 'Mac',
-          buildUrl: 'url',
-          slug: slug,
-          result: push_message.Result.success);
+          ref: '123hash', builderName: 'Linux', buildUrl: 'url', slug: slug, result: push_message.Result.success);
       expect(
-          verify(mockRepositoriesService.createStatus(any, any, captureAny))
-              .captured
-              .first
-              .toJson(),
+          verify(mockRepositoriesService.createStatus(any, any, captureAny)).captured.first.toJson(),
           jsonDecode(
-              '{"state":"success","target_url":"url","description":"Flutter LUCI Build: Mac","context":"Mac"}'));
+              '{"state":"success","target_url":"url","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
   });
 }

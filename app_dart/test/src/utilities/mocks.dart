@@ -59,8 +59,7 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
     bool cancelOnError,
   }) {
     return Stream<List<int>>.fromFuture(Future<List<int>>.value(response))
-        .listen(onData,
-            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        .listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
 

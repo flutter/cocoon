@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
 import 'commit_author_avatar.dart';
-import 'progress_button.dart';
 
 // TODO(ianh): Factor out the logic in task_overlay.dart and use it here as well,
 // so that all our popups have the same look and feel and we don't duplicate code.
@@ -91,6 +92,7 @@ class CommitOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     final RenderBox renderBox = parentContext.findRenderObject() as RenderBox;
     final Offset offsetLeft = renderBox.localToGlobal(Offset.zero);
     return Stack(
@@ -111,26 +113,48 @@ class CommitOverlayContents extends StatelessWidget {
           top: offsetLeft.dy + (renderBox.size.height / 2),
           left: offsetLeft.dx + (renderBox.size.width / 2),
           child: Card(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                ListTile(
-                  leading: CommitAuthorAvatar(commit: commit),
-                  // TODO(chillers): Show commit message here instead: https://github.com/flutter/cocoon/issues/435
-                  // Shorten the SHA as we only need first 7 digits to be able
-                  // to lookup the commit.
-                  title: SelectableText(commit.sha.substring(0, 7)),
-                  subtitle: SelectableText(commit.author),
-                ),
-                ButtonBar(
-                  children: <Widget>[
-                    ProgressButton(
-                      child: const Text('OPEN GITHUB'),
-                      onPressed: _openGithub,
+            child: SafeArea(
+              minimum: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  CommitAuthorAvatar(commit: commit),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AnimatedDefaultTextStyle(
+                              style: theme.textTheme.subtitle1,
+                              duration: kThemeChangeDuration,
+                              child: Hyperlink(
+                                text: commit.sha.substring(0, 7),
+                                onPressed: _openGithub,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (commit.message != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: AnimatedDefaultTextStyle(
+                                style: theme.textTheme.bodyText2.copyWith(
+                                  color: theme.textTheme.caption.color,
+                                ),
+                                duration: kThemeChangeDuration,
+                                child: SelectableText(commit.message.split('\n').first),
+                              ),
+                            ),
+                          SelectableText(commit.author),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -141,5 +165,44 @@ class CommitOverlayContents extends StatelessWidget {
   Future<void> _openGithub() async {
     final String githubUrl = 'https://github.com/${commit.repository}/commit/${commit.sha}';
     await launch(githubUrl);
+  }
+}
+
+class Hyperlink extends StatefulWidget {
+  const Hyperlink({
+    Key key,
+    @required this.text,
+    this.onPressed,
+  })  : assert(text != null),
+        super(key: key);
+
+  final String text;
+  final VoidCallback onPressed;
+
+  @override
+  _HyperlinkState createState() => _HyperlinkState();
+}
+
+class _HyperlinkState extends State<Hyperlink> {
+  bool hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle defaultStyle = DefaultTextStyle.of(context).style;
+    return MouseRegion(
+      onEnter: (PointerEnterEvent _) => setState(() => hover = true),
+      onExit: (PointerExitEvent _) => setState(() => hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: Text(
+          widget.text,
+          style: defaultStyle.copyWith(
+            color: const Color(0xff1377c0),
+            decoration: hover ? TextDecoration.underline : TextDecoration.none,
+          ),
+        ),
+      ),
+    );
   }
 }

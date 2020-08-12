@@ -34,13 +34,8 @@ void main() {
       StringBuffer sb = new StringBuffer();
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
-      deviceDiscovery.outputs = <dynamic>[
-        new TimeoutException('a'),
-        new TimeoutException('b'),
-        sb.toString()
-      ];
-      List<Device> devices =
-          await deviceDiscovery.discoverDevices(retriesDelayMs: 1);
+      deviceDiscovery.outputs = <dynamic>[new TimeoutException('a'), new TimeoutException('b'), sb.toString()];
+      List<Device> devices = await deviceDiscovery.discoverDevices(retriesDelayMs: 1);
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('ZY223JQNMR'));
     });
@@ -51,8 +46,7 @@ void main() {
         new TimeoutException('b'),
         new TimeoutException('c')
       ];
-      expect(() => deviceDiscovery.discoverDevices(retriesDelayMs: 1),
-          throwsA(TypeMatcher<TimeoutException>()));
+      expect(() => deviceDiscovery.discoverDevices(retriesDelayMs: 1), throwsA(TypeMatcher<TimeoutException>()));
     });
   });
 
@@ -141,56 +135,49 @@ void main() {
 
     group('battery health', () {
       test('battery health unknown', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_UNKNOWN);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_UNKNOWN);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isTrue);
         expect(batteryHealth.details, contains('unknown'));
       });
 
       test('battery health good', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_GOOD);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_GOOD);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isTrue);
         expect(batteryHealth.details, isNull);
       });
 
       test('battery overheated', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_OVERHEAT);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_OVERHEAT);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isFalse);
         expect(batteryHealth.details, contains('overheat'));
       });
 
       test('battery dead', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_DEAD);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_DEAD);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isFalse);
         expect(batteryHealth.details, contains('dead'));
       });
 
       test('battery over voltage', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_OVER_VOLTAGE);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_OVER_VOLTAGE);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isFalse);
         expect(batteryHealth.details, contains('over voltage'));
       });
 
       test('battery health unspecified failure', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_UNSPECIFIED_FAILURE);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_UNSPECIFIED_FAILURE);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isFalse);
         expect(batteryHealth.details, contains('Unspecified'));
       });
 
       test('battery cold', () async {
-        FakeDevice.pretendBatteryHealth(
-            AndroidBatteryHealth.BATTERY_HEALTH_COLD);
+        FakeDevice.pretendBatteryHealth(AndroidBatteryHealth.BATTERY_HEALTH_COLD);
         final HealthCheckResult batteryHealth = await device.batteryHealth();
         expect(batteryHealth.succeeded, isFalse);
         expect(batteryHealth.details, contains('cold'));
@@ -210,8 +197,7 @@ void expectLog(List<CommandArgs> log) {
   expect(FakeDevice.commandLog, log);
 }
 
-CommandArgs cmd(
-        {String command, List<String> arguments, Map<String, String> env}) =>
+CommandArgs cmd({String command, List<String> arguments, Map<String, String> env}) =>
     CommandArgs(command: command, arguments: arguments, env: env);
 
 typedef dynamic ExitErrorFactory();
@@ -224,15 +210,13 @@ class CommandArgs {
   final Map<String, String> env;
 
   @override
-  String toString() =>
-      'CommandArgs(command: $command, arguments: $arguments, env: $env)';
+  String toString() => 'CommandArgs(command: $command, arguments: $arguments, env: $env)';
 
   @override
   bool operator ==(Object other) {
     if (other is CommandArgs) {
       return other.command == this.command &&
-          const ListEquality<String>()
-              .equals(other.arguments, this.arguments) &&
+          const ListEquality<String>().equals(other.arguments, this.arguments) &&
           const MapEquality<String, String>().equals(other.env, this.env);
     }
     return false;
@@ -241,13 +225,9 @@ class CommandArgs {
   @override
   int get hashCode => 17 * (17 * command.hashCode + _hashArguments) + _hashEnv;
 
-  int get _hashArguments => arguments != null
-      ? const ListEquality<String>().hash(arguments)
-      : null.hashCode;
+  int get _hashArguments => arguments != null ? const ListEquality<String>().hash(arguments) : null.hashCode;
 
-  int get _hashEnv => env != null
-      ? const MapEquality<String, String>().hash(env)
-      : null.hashCode;
+  int get _hashEnv => env != null ? const MapEquality<String, String>().hash(env) : null.hashCode;
 }
 
 class FakeDevice extends AndroidDevice {
@@ -281,18 +261,14 @@ class FakeDevice extends AndroidDevice {
   }
 
   @override
-  Future<String> shellEval(String command, List<String> arguments,
-      {Map<String, String> env}) async {
-    commandLog
-        .add(CommandArgs(command: command, arguments: arguments, env: env));
+  Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) async {
+    commandLog.add(CommandArgs(command: command, arguments: arguments, env: env));
     return output;
   }
 
   @override
-  Future<Null> shellExec(String command, List<String> arguments,
-      {Map<String, String> env}) async {
-    commandLog
-        .add(CommandArgs(command: command, arguments: arguments, env: env));
+  Future<Null> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
+    commandLog.add(CommandArgs(command: command, arguments: arguments, env: env));
     dynamic exitError = exitErrorFactory();
     if (exitError != null) throw exitError;
   }

@@ -38,8 +38,7 @@ typedef RetryHandler = Function();
 ///
 /// It uses quadratic backoff starting with 200ms and 3 max attempts.
 /// for context please read https://github.com/flutter/flutter/issues/54615.
-Future<void> runTransactionWithRetries(RetryHandler retryHandler,
-    {RetryOptions retryOptions}) {
+Future<void> runTransactionWithRetries(RetryHandler retryHandler, {RetryOptions retryOptions}) {
   final RetryOptions r = retryOptions ??
       const RetryOptions(
         maxDelay: Duration(seconds: 10),
@@ -47,8 +46,7 @@ Future<void> runTransactionWithRetries(RetryHandler retryHandler,
       );
   return r.retry(
     retryHandler,
-    retryIf: (Exception e) =>
-        e is gcloud_datastore.TransactionAbortedError || e is GrpcError,
+    retryIf: (Exception e) => e is gcloud_datastore.TransactionAbortedError || e is GrpcError,
   );
 }
 
@@ -61,8 +59,7 @@ class DatastoreService {
   /// Creates a new [DatastoreService].
   ///
   /// The [db] argument must not be null.
-  const DatastoreService(this.db, this.maxEntityGroups,
-      {RetryOptions retryOptions})
+  const DatastoreService(this.db, this.maxEntityGroups, {RetryOptions retryOptions})
       : assert(db != null, maxEntityGroups != null),
         retryOptions = retryOptions ??
             const RetryOptions(
@@ -89,8 +86,7 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits(
-      {int limit = 100, int timestamp, String branch}) {
+  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp, String branch}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= 'master';
     final Query<Commit> query = db.query<Commit>()
@@ -117,17 +113,13 @@ class DatastoreService {
   /// If startFrom is nil, starts from the latest available record.
   /// [startFrom] to be implemented...
   Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries,
-      {int limit = defaultTimeSeriesValuesNumber,
-      String startFrom,
-      String branch = 'master',
-      int timestamp}) {
+      {int limit = defaultTimeSeriesValuesNumber, String startFrom, String branch = 'master', int timestamp}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    final Query<TimeSeriesValue> query =
-        db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
-          ..filter('branch =', branch)
-          ..filter('createTimestamp <', timestamp)
-          ..limit(limit)
-          ..order('-createTimestamp');
+    final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
+      ..filter('branch =', branch)
+      ..filter('createTimestamp <', timestamp)
+      ..limit(limit)
+      ..order('-createTimestamp');
     return query.run();
   }
 
@@ -148,14 +140,10 @@ class DatastoreService {
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
   Stream<FullTask> queryRecentTasks(
-      {String taskName,
-      int commitLimit = 20,
-      int taskLimit = 20,
-      String branch = 'master'}) async* {
+      {String taskName, int commitLimit = 20, int taskLimit = 20, String branch = 'master'}) async* {
     assert(commitLimit != null);
     assert(taskLimit != null);
-    await for (Commit commit
-        in queryRecentCommits(limit: commitLimit, branch: branch)) {
+    await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
         ..limit(taskLimit)
         ..order('-createTimestamp');
@@ -167,15 +155,10 @@ class DatastoreService {
   }
 
   // Queries for recent tasks without considering branches.
-  Stream<FullTask> queryRecentTasksNoBranch(
-      {int commitLimit = 20, int taskLimit = 20}) async* {
+  Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20}) async* {
     assert(commitLimit != null);
-    assert(taskLimit != null);
-    await for (Commit commit
-        in queryRecentCommitsNoBranch(limit: commitLimit)) {
-      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-        ..limit(taskLimit)
-        ..order('-createTimestamp');
+    await for (Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
+      final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
   }
@@ -186,8 +169,7 @@ class DatastoreService {
   /// The returned list of stages will be ordered by the natural ordering of
   /// [Stage].
   Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
-    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
-      ..order('-stageName');
+    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-stageName');
     final Map<String, StageBuilder> stages = <String, StageBuilder>{};
     await for (Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
@@ -197,9 +179,7 @@ class DatastoreService {
       }
       stages[task.stageName].tasks.add(task);
     }
-    final List<Stage> result = stages.values
-        .map<Stage>((StageBuilder stage) => stage.build())
-        .toList();
+    final List<Stage> result = stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
     return result..sort();
   }
 
@@ -207,13 +187,11 @@ class DatastoreService {
     RepositorySlug slug,
     PullRequest pr,
   ) async {
-    final Query<GithubBuildStatusUpdate> query = db
-        .query<GithubBuildStatusUpdate>()
-          ..filter('repository =', slug.fullName)
-          ..filter('pr =', pr.number)
-          ..filter('head =', pr.head.sha);
-    final List<GithubBuildStatusUpdate> previousStatusUpdates =
-        await query.run().toList();
+    final Query<GithubBuildStatusUpdate> query = db.query<GithubBuildStatusUpdate>()
+      ..filter('repository =', slug.fullName)
+      ..filter('pr =', pr.number)
+      ..filter('head =', pr.head.sha);
+    final List<GithubBuildStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubBuildStatusUpdate(
@@ -229,8 +207,7 @@ class DatastoreService {
       /// occurs in app engine. When multiple records exist, the latest one
       /// is returned.
       if (previousStatusUpdates.length > 1) {
-        return previousStatusUpdates.reduce((GithubBuildStatusUpdate current,
-                GithubBuildStatusUpdate next) =>
+        return previousStatusUpdates.reduce((GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
             current.updateTimeMillis < next.updateTimeMillis ? next : current);
       }
       return previousStatusUpdates.single;
@@ -241,12 +218,10 @@ class DatastoreService {
     RepositorySlug slug,
     PullRequest pr,
   ) async {
-    final Query<GithubGoldStatusUpdate> query = db
-        .query<GithubGoldStatusUpdate>()
-          ..filter('repository =', slug.fullName)
-          ..filter('pr =', pr.number);
-    final List<GithubGoldStatusUpdate> previousStatusUpdates =
-        await query.run().toList();
+    final Query<GithubGoldStatusUpdate> query = db.query<GithubGoldStatusUpdate>()
+      ..filter('repository =', slug.fullName)
+      ..filter('pr =', pr.number);
+    final List<GithubGoldStatusUpdate> previousStatusUpdates = await query.run().toList();
 
     if (previousStatusUpdates.isEmpty) {
       return GithubGoldStatusUpdate(
@@ -259,8 +234,7 @@ class DatastoreService {
       );
     } else {
       if (previousStatusUpdates.length > 1) {
-        throw StateError(
-            'GithubGoldStatusUpdate should have no more than one entry on '
+        throw StateError('GithubGoldStatusUpdate should have no more than one entry on '
             'repository ${slug.fullName}, pr ${pr.number}.');
       }
       return previousStatusUpdates.single;
@@ -271,8 +245,7 @@ class DatastoreService {
   Future<List<List<Model>>> shard(List<Model> rows) async {
     final List<List<Model>> shards = <List<Model>>[];
     for (int i = 0; i < rows.length; i += maxEntityGroups) {
-      shards
-          .add(rows.sublist(i, i + min<int>(rows.length - i, maxEntityGroups)));
+      shards.add(rows.sublist(i, i + min<int>(rows.length - i, maxEntityGroups)));
     }
     return shards;
   }
@@ -302,8 +275,7 @@ class DatastoreService {
   }
 
   /// Looks up registers by value using a single [key].
-  Future<T> lookupByValue<T extends Model>(Key key,
-      {T Function() orElse}) async {
+  Future<T> lookupByValue<T extends Model>(Key key, {T Function() orElse}) async {
     T result;
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {

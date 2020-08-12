@@ -72,8 +72,7 @@ class _SettingsFormState extends State<SettingsForm> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextFormField(
               enabled: !github.isSignedIn,
-              decoration: const InputDecoration(
-                  hasFloatingPlaceholder: true, labelText: 'Access token'),
+              decoration: const InputDecoration(hasFloatingPlaceholder: true, labelText: 'Access token'),
               autocorrect: false,
               obscureText: true,
               controller: _githubToken,
@@ -82,9 +81,7 @@ class _SettingsFormState extends State<SettingsForm> {
           ),
           Center(
             child: RaisedButton(
-              child: github.isSignedIn
-                  ? const Text('Clear')
-                  : const Text('Update'),
+              child: github.isSignedIn ? const Text('Clear') : const Text('Update'),
               onPressed: github.isSignedIn ? _handleSignOut : _handleSignIn,
             ),
           ),

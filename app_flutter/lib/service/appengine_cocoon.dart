@@ -5,7 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
@@ -136,7 +138,16 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
-    final String postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
+
+    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+    String postResetTaskUrl;
+    if (qualifiedTask.isDevicelab) {
+      postResetTaskUrl = apiEndpoint('/api/reset-devicelab-task');
+    } else if (qualifiedTask.isLuci) {
+      postResetTaskUrl = apiEndpoint('/api/reset-prod-task');
+    } else {
+      assert(false);
+    }
 
     /// This endpoint only returns a status code.
     final http.Response response = await _client.post(postResetTaskUrl,
@@ -363,7 +374,7 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, Object> commit = checklist['Commit'];
     final Map<String, Object> author = commit['Author'];
 
-    return Commit()
+    final Commit result = Commit()
       ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key']))
       ..timestamp = Int64() + checklist['CreateTimestamp']
       ..sha = commit['Sha']
@@ -371,6 +382,10 @@ class AppEngineCocoonService implements CocoonService {
       ..authorAvatarUrl = author['avatar_url']
       ..repository = checklist['FlutterRepositoryPath']
       ..branch = checklist['Branch'];
+    if (commit['Message'] != null) {
+      result.message = commit['Message'];
+    }
+    return result;
   }
 
   List<Stage> _stagesFromJson(List<Object> json) {

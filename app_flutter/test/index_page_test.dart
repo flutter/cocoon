@@ -41,17 +41,8 @@ void main() {
 
     final List<Element> listTiles = find.byType(ListTile).evaluate().toList();
 
-    expect(raisedButtons, hasLength(6));
-    expect(listTiles.length, greaterThanOrEqualTo(raisedButtons.length + 1));
-
     expect(getDescendant<Text>(of: raisedButtons.last).data, 'SIGN IN');
     expect(getDescendant<Text>(of: listTiles.first).data, 'Home');
-
-    for (int index = 0; index < raisedButtons.length - 1; index += 1) {
-      expect(getDescendant<Icon>(of: raisedButtons[index]).icon, getDescendant<Icon>(of: listTiles[index + 1]).icon);
-      expect(getDescendant<Text>(of: raisedButtons[index]).data,
-          getDescendant<Text>(of: listTiles[index + 1]).data.toUpperCase());
-    }
   });
 
   testWidgets('shows navigation buttons for dashboards', (WidgetTester tester) async {
@@ -59,7 +50,8 @@ void main() {
 
     expect(find.text('BUILD'), findsOneWidget);
     expect(find.text('BENCHMARKS'), findsOneWidget);
-    expect(find.text('BENCHMARKS ON SKIA PERF'), findsOneWidget);
+    expect(find.text('FRAMEWORK BENCHMARKS ON SKIA PERF'), findsOneWidget);
+    expect(find.text('ENGINE BENCHMARKS ON SKIA PERF'), findsOneWidget);
     expect(find.text('REPOSITORY'), findsOneWidget);
     expect(find.text('INFRA AGENTS'), findsOneWidget);
   });

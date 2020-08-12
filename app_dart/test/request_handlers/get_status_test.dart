@@ -31,20 +31,15 @@ void main() {
 
     Future<T> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
-      return await utf8.decoder
-          .bind(body.serialize())
-          .transform(json.decoder)
-          .single as T;
+      return await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as T;
     }
 
     setUp(() {
       clientContext = FakeClientContext();
-      keyHelper =
-          FakeKeyHelper(applicationContext: clientContext.applicationContext);
+      keyHelper = FakeKeyHelper(applicationContext: clientContext.applicationContext);
       tester = RequestHandlerTester();
       config = FakeConfig(keyHelperValue: keyHelper);
-      buildStatusService =
-          FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -90,22 +85,19 @@ void main() {
 
     test('reports statuses without input commit key', () async {
       final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
           branch: 'master');
       final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(commit1, const <Stage>[]),
-            CommitStatus(commit2, const <Stage>[])
-          ]);
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commit1, const <Stage>[]),
+        CommitStatus(commit2, const <Stage>[])
+      ]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -119,22 +111,21 @@ void main() {
 
     test('reports statuses with input commit key', () async {
       final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
+          message: 'test message 1',
           branch: 'master');
       final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
+          message: 'test message 2',
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(commit1, const <Stage>[]),
-            CommitStatus(commit2, const <Stage>[])
-          ]);
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commit1, const <Stage>[]),
+        CommitStatus(commit2, const <Stage>[])
+      ]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -158,6 +149,7 @@ void main() {
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
+              'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'master'
@@ -169,22 +161,19 @@ void main() {
 
     test('reports statuses with input branch', () async {
       final Commit commit1 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
           branch: 'master');
       final Commit commit2 = Commit(
-          key: config.db.emptyKey.append(Commit,
-              id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
+          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
           branch: 'flutter-1.1-candidate.1');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(
-          commitStatuses: <CommitStatus>[
-            CommitStatus(commit1, const <Stage>[]),
-            CommitStatus(commit2, const <Stage>[])
-          ]);
+      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
+        CommitStatus(commit1, const <Stage>[]),
+        CommitStatus(commit2, const <Stage>[])
+      ]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -209,6 +198,7 @@ void main() {
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
+              'Message': null,
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
             'Branch': 'flutter-1.1-candidate.1'
