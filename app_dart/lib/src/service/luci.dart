@@ -188,11 +188,11 @@ class LuciBuilder {
   final String repo;
 
   /// Flag the result of this builder as blocker or not.
-  @JsonKey(required: true, disallowNullValue: true)
+  @JsonKey()
   final bool flaky;
 
   /// The name of the devicelab task associated with this builder.
-  @JsonKey()
+  @JsonKey(name: 'task_name')
   final String taskName;
 
   /// Serializes this object to a JSON primitive.
