@@ -164,6 +164,17 @@ class BranchLuciBuilder {
 
   final String branch;
   final LuciBuilder luciBuilder;
+
+  @override
+  int get hashCode => '${luciBuilder.toString()},$branch'.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is BranchLuciBuilder &&
+      other.luciBuilder.name == luciBuilder.name &&
+      other.luciBuilder.taskName == luciBuilder.taskName &&
+      other.luciBuilder.repo == luciBuilder.repo &&
+      other.luciBuilder.flaky == luciBuilder.flaky;
 }
 
 @immutable
