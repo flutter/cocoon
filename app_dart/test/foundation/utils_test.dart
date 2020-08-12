@@ -25,10 +25,12 @@ const String luciBuilders = '''
         "builders":[
             {
               "name":"Cocoon",
-              "repo":"cocoon"
+              "repo":"cocoon",
+              "enabled":true
             }, {
               "name":"Cocoon2",
-              "repo":"cocoon"
+              "repo":"cocoon",
+              "enabled":false
             }
         ]
       }
@@ -118,11 +120,11 @@ void main() {
         lucBuilderHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
-      test('returns luci builders', () async {
+      test('returns enabled luci builders', () async {
         lucBuilderHttpClient.request.response.body = luciBuilders;
         final List<Map<String, dynamic>> builders =
             await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
-        expect(builders.length, 2);
+        expect(builders.length, 1);
         expect(builders[0]['name'], 'Cocoon');
         expect(builders[0]['repo'], 'cocoon');
       });
