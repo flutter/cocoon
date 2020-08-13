@@ -98,8 +98,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             '${pr.head.sha}: $taskName ($status)');
 
         cirrusCheckStatuses.add(status);
-        if (taskName.contains('framework')) {
-          // Any pull request that runs a framework shard runs golden file
+        if (taskName.contains('framework') || taskName.contains('web')) {
+          // Any pull request that runs a framework or web shard on Cirrus runs golden file
           // tests. Once identified, all checks will be awaited to check Gold
           // status.
           runsGoldenFileTests = true;
@@ -123,7 +123,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
               .cast<Map<String, dynamic>>();
         }
         checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-        log.debug('Found luci checks: $checkRuns');
+        log.debug('Found flutter-dashboard checks: $checkRuns');
         for (Map<String, dynamic> checkRun in checkRuns) {
           final String name = checkRun['name'] as String;
           if (checkRun['status'] != null && checkRun['status'].toUpperCase() != 'COMPLETED') {

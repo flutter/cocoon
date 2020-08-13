@@ -469,6 +469,46 @@ void main() {
           ));
         });
 
+        test('new commit, checks running - web tests', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks running
+          cirrusStatuses = <dynamic>[
+            <String, String>{'status': 'EXECUTING', 'name': 'web_1'},
+            <String, String>{'status': 'EXECUTING', 'name': 'web_2'}
+          ];
+          luciStatuses = <dynamic>[
+            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
+          ];
+          branch = 'pull/123';
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ));
+        });
+
         test('new commit, checks complete, no changes detected', () async {
           // New commit
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
