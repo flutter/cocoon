@@ -85,7 +85,7 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 }
 
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
-/// 
+///
 /// Only `enabled` luci builders will be returned.
 Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
