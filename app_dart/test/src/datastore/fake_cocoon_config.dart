@@ -31,8 +31,6 @@ class FakeConfig implements Config {
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
-    this.goldenBreakingChangeMessageValue,
-    this.goldenTriageMessageValue,
     this.webhookKeyValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
@@ -46,6 +44,12 @@ class FakeConfig implements Config {
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
     this.maxRecordsValue,
+    this.flutterGoldPendingValue,
+    this.flutterGoldSuccessValue,
+    this.flutterGoldChangesValue,
+    this.flutterGoldAlertConstantValue,
+    this.flutterGoldInitialAlertValue,
+    this.flutterGoldFollowUpAlertValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -65,8 +69,6 @@ class FakeConfig implements Config {
   String wrongBaseBranchPullRequestMessageValue;
   String wrongHeadBranchPullRequestMessageValue;
   String releaseBranchPullRequestMessageValue;
-  String goldenBreakingChangeMessageValue;
-  String goldenTriageMessageValue;
   String webhookKeyValue;
   String flutterBuildValue;
   String flutterBuildDescriptionValue;
@@ -78,6 +80,12 @@ class FakeConfig implements Config {
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
   int maxRecordsValue;
+  String flutterGoldPendingValue;
+  String flutterGoldSuccessValue;
+  String flutterGoldChangesValue;
+  String flutterGoldAlertConstantValue;
+  String flutterGoldInitialAlertValue;
+  String flutterGoldFollowUpAlertValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -113,6 +121,27 @@ class FakeConfig implements Config {
   int get maxRecords => maxRecordsValue;
 
   @override
+  String get flutterGoldPending => flutterGoldPendingValue;
+
+  @override
+  String get flutterGoldSuccess => flutterGoldSuccessValue;
+
+  @override
+  String get flutterGoldChanges => flutterGoldChangesValue;
+
+  @override
+  String flutterGoldInitialAlert(String url) => flutterGoldInitialAlertValue;
+
+  @override
+  String flutterGoldFollowUpAlert(String url) => flutterGoldFollowUpAlertValue;
+
+  @override
+  String get flutterGoldAlertConstant => flutterGoldAlertConstantValue;
+
+  @override
+  String flutterGoldCommentID(PullRequest pr) => 'PR ${pr.number}, at ${pr.head.sha}';
+
+  @override
   int get commitNumber => commitNumberValue;
 
   @override
@@ -138,12 +167,6 @@ class FakeConfig implements Config {
 
   @override
   String get releaseBranchPullRequestMessage => releaseBranchPullRequestMessageValue;
-
-  @override
-  String get goldenBreakingChangeMessage => goldenBreakingChangeMessageValue;
-
-  @override
-  String get goldenTriageMessage => goldenTriageMessageValue;
 
   @override
   Future<String> get webhookKey async => webhookKeyValue;
