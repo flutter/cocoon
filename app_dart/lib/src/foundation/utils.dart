@@ -85,6 +85,8 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 }
 
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
+///
+/// Only `enabled` luci builders will be returned.
 Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
   final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
@@ -95,7 +97,10 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
   Map<String, dynamic> builderMap;
   builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
-  return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
+  return builderList
+      .map((dynamic builder) => builder as Map<String, dynamic>)
+      .where((Map<String, dynamic> element) => (element['enabled'] as bool) ?? true)
+      .toList();
 }
 
 Future<void> insertBigquery(
