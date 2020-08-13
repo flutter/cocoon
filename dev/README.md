@@ -8,7 +8,7 @@ for cocoon. It follows format:
 {
     "builders":[
         {
-            "name":"xxx",
+            "name":"yyy",
             "repo":"cocoon",
             "enabled":true
         }
