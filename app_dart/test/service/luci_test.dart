@@ -10,13 +10,15 @@ void main() {
   BranchLuciBuilder branchLuciBuilder1;
   BranchLuciBuilder branchLuciBuilder2;
 
-  test('listCommits decodes all relevant fields of each commit', () async {
-    branchLuciBuilder1 = const BranchLuciBuilder(luciBuilder: LuciBuilder(name: 'abc', repo: 'def', flaky: false, taskName: 'ghi'), branch: 'jkl');
-    branchLuciBuilder2 = const BranchLuciBuilder(luciBuilder: LuciBuilder(name: 'abc', repo: 'def', flaky: false, taskName: 'ghi'), branch: 'jkl');
+  test('validates effectiveness of class BranchLuciBuilder as a map key', () async {
+    branchLuciBuilder1 = const BranchLuciBuilder(
+        luciBuilder: LuciBuilder(name: 'abc', repo: 'def', flaky: false, taskName: 'ghi'), branch: 'jkl');
+    branchLuciBuilder2 = const BranchLuciBuilder(
+        luciBuilder: LuciBuilder(name: 'abc', repo: 'def', flaky: false, taskName: 'ghi'), branch: 'jkl');
     final Map<BranchLuciBuilder, String> map = <BranchLuciBuilder, String>{};
     map[branchLuciBuilder1] = 'test1';
     map[branchLuciBuilder2] = 'test2';
-    
+
     expect(map[branchLuciBuilder1], 'test2');
   });
 }
