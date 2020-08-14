@@ -25,7 +25,7 @@ class CommitAuthorAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(commit.author.isNotEmpty);
     final String authorName = commit.author;
-    final String authorInitial = commit.author.substring(0, 1).toUpperCase();
+    final String authorInitial = authorName.substring(0, 1).toUpperCase();
     final int authorHash = authorName.hashCode;
     final ThemeData theme = Theme.of(context);
 
