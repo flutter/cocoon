@@ -24,7 +24,8 @@ class CommitAuthorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     assert(commit.author.isNotEmpty);
-    final String authorName = commit.author.substring(0, 1).toUpperCase();
+    final String authorName = commit.author;
+    final String authorInitial = commit.author.substring(0, 1).toUpperCase();
     final int authorHash = authorName.hashCode;
     final ThemeData theme = Theme.of(context);
 
@@ -38,7 +39,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     final Widget avatar = CircleAvatar(
       backgroundColor: authorColor,
       child: Text(
-        authorName,
+        authorInitial,
         style: TextStyle(color: authorColor.computeLuminance() > 0.25 ? Colors.black : Colors.white),
       ),
     );
