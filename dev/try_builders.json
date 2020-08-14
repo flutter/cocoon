@@ -2,7 +2,8 @@
    "builders":[
       {
          "name":"Cocoon",
-         "repo":"cocoon"
+         "repo":"cocoon",
+         "enabled":true
       }
    ]
 }

@@ -13,7 +13,8 @@ LuciBuilder _$LuciBuilderFromJson(Map<String, dynamic> json) {
   return LuciBuilder(
     name: json['name'] as String,
     repo: json['repo'] as String,
-    taskName: json['taskName'] as String,
+    flaky: json['flaky'] as bool,
+    taskName: json['task_name'] as String,
   );
 }
 
@@ -28,6 +29,7 @@ Map<String, dynamic> _$LuciBuilderToJson(LuciBuilder instance) {
 
   writeNotNull('name', instance.name);
   writeNotNull('repo', instance.repo);
-  val['taskName'] = instance.taskName;
+  val['flaky'] = instance.flaky;
+  val['task_name'] = instance.taskName;
   return val;
 }

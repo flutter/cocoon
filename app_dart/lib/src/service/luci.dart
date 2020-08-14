@@ -57,7 +57,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
     final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
@@ -94,7 +94,7 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getBuilders(config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
     final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
@@ -172,6 +172,7 @@ class LuciBuilder {
   const LuciBuilder({
     @required this.name,
     @required this.repo,
+    @required this.flaky,
     this.taskName,
   }) : assert(name != null);
 
@@ -186,16 +187,20 @@ class LuciBuilder {
   @JsonKey(required: true, disallowNullValue: true)
   final String repo;
 
-  /// The name of the devicelab task associated with this builder.
+  /// Flag the result of this builder as blocker or not.
   @JsonKey()
+  final bool flaky;
+
+  /// The name of the devicelab task associated with this builder.
+  @JsonKey(name: 'task_name')
   final String taskName;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getBuilders(Config config) async {
-    final List<dynamic> builders = await config.luciProdBuilders;
+  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
+    final List<dynamic> builders = await config.getRepoLuciBuilders('prod', repo);
     return builders.map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json as Map<String, dynamic>)).toList();
   }
 }

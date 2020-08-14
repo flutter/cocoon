@@ -27,9 +27,8 @@ Duration twoSecondLinearBackoff(int attempt) {
 }
 
 Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String filename) async {
-  final String path = '/flutter/cocoon/master/app_dart/dev/$filename';
-  final Uri url = Uri.https('raw.githubusercontent.com', path);
+    GitHubBackoffCalculator gitHubBackoffCalculator, String filePath) async {
+  final Uri url = Uri.https('raw.githubusercontent.com', filePath);
 
   final HttpClient client = branchHttpClientProvider();
   try {
@@ -45,10 +44,10 @@ Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Lo
           final String content = await utf8.decoder.bind(clientResponse).join();
           return content;
         } else {
-          log.warning('Attempt to download $filename failed (HTTP $status)');
+          log.warning('Attempt to download $filePath failed (HTTP $status)');
         }
       } catch (error, stackTrace) {
-        log.error('Attempt to download $filename failed:\n$error\n$stackTrace');
+        log.error('Attempt to download $filePath failed:\n$error\n$stackTrace');
       }
       await Future<void>.delayed(gitHubBackoffCalculator(attempt));
     }
@@ -62,7 +61,8 @@ Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Lo
 /// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
     HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  String content = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, 'branches.txt');
+  String content = await remoteFileContent(
+      branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/cocoon/master/app_dart/dev/branches.txt');
   content ??= 'master';
   final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
   branches.removeWhere((String branch) => branch.isEmpty);
@@ -84,21 +84,23 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
   return RepositorySlug('flutter', repoName);
 }
 
-/// Gets supported luci builders based on [bucket] via GitHub http request.
-Future<List<Map<String, dynamic>>> getBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket) async {
-  final String filename = bucket == 'try' ? 'luci_try_builders.json' : 'luci_prod_builders.json';
-  String builderContent = await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, filename);
+/// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
+///
+/// Only `enabled` luci builders will be returned.
+Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
+  final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
+  final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
+  String builderContent =
+      await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
   builderContent ??= '{"builders":[]}';
   Map<String, dynamic> builderMap;
-  try {
-    builderMap = json.decode(builderContent) as Map<String, dynamic>;
-  } on FormatException catch (e) {
-    log.error('error: $e');
-    builderMap = <String, dynamic>{'builders': <dynamic>[]};
-  }
+  builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
-  return builderList.map((dynamic builder) => builder as Map<String, dynamic>).toList();
+  return builderList
+      .map((dynamic builder) => builder as Map<String, dynamic>)
+      .where((Map<String, dynamic> element) => (element['enabled'] as bool) ?? true)
+      .toList();
 }
 
 Future<void> insertBigquery(

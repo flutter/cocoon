@@ -84,23 +84,6 @@ void main() {
       config.webhookKeyValue = keyString;
       config.githubClient = gitHubClient;
       config.deviceLabServiceAccountValue = const ServiceAccountInfo(email: serviceAccountEmail);
-
-      config.luciTryBuildersValue = (json.decode('''[
-    {"name": "Cocoon", "repo": "cocoon"},
-    {"name": "Linux", "repo": "flutter", "taskName": "linux_bot"},
-    {"name": "Mac", "repo": "flutter", "taskName": "mac_bot"},
-    {"name": "Windows", "repo": "flutter", "taskName": "windows_bot"},
-    {"name": "Linux Coverage", "repo": "flutter"},
-    {"name": "Linux Host Engine", "repo": "engine"},
-    {"name": "Linux Android AOT Engine", "repo": "engine"},
-    {"name": "Linux Android Debug Engine", "repo": "engine"},
-    {"name": "Mac Host Engine", "repo": "engine"},
-    {"name": "Mac Android AOT Engine", "repo": "engine"},
-    {"name": "Mac Android Debug Engine", "repo": "engine"},
-    {"name": "Mac iOS Engine", "repo": "engine"},
-    {"name": "Windows Host Engine", "repo": "engine"},
-    {"name": "Windows Android AOT Engine", "repo": "engine"}
-  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
     });
 
     test('Rejects non-POST methods with methodNotAllowed', () async {
@@ -807,7 +790,6 @@ void main() {
       });
 
       test('Exception is raised when no builders available', () async {
-        config.luciTryBuildersValue = <Map<String, dynamic>>[];
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -827,7 +809,7 @@ void main() {
         });
 
         request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName,
-            repoFullName: 'flutter/cocoon', repoName: 'cocoon');
+            repoFullName: 'flutter/packages', repoName: 'packages');
         final Uint8List body = utf8.encode(request.body) as Uint8List;
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
@@ -911,11 +893,6 @@ void main() {
         final Uint8List key = utf8.encode(keyString) as Uint8List;
         final String hmac = getHmac(body, key);
         request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-
-        config.luciTryBuildersValue = (json.decode(
-                    '[{"name": "Cocoon", "repo": "cocoon"},{"name": "Linux", "repo": "flutter"}, {"name": "Mac", "repo": "flutter"}]')
-                as List<dynamic>)
-            .cast<Map<String, dynamic>>();
 
         await tester.post(webhook);
 

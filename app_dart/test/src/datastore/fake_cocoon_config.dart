@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
@@ -31,8 +32,6 @@ class FakeConfig implements Config {
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
     this.webhookKeyValue,
-    this.luciTryBuildersValue,
-    this.luciProdBuildersValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
@@ -74,8 +73,6 @@ class FakeConfig implements Config {
   String webhookKeyValue;
   String flutterBuildValue;
   String flutterBuildDescriptionValue;
-  List<Map<String, dynamic>> luciTryBuildersValue;
-  List<Map<String, dynamic>> luciProdBuildersValue;
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
@@ -186,12 +183,6 @@ class FakeConfig implements Config {
   String get flutterBuildDescription => flutterBuildDescriptionValue;
 
   @override
-  Future<List<Map<String, dynamic>>> get luciTryBuilders async => luciTryBuildersValue;
-
-  @override
-  Future<List<Map<String, dynamic>>> get luciProdBuilders async => luciProdBuildersValue;
-
-  @override
   Logging get loggingService => loggingServiceValue;
 
   @override
@@ -208,7 +199,7 @@ class FakeConfig implements Config {
 
   @override
   bool githubPresubmitSupportedRepo(String repositoryName) {
-    return <String>['flutter', 'engine', 'cocoon'].contains(repositoryName);
+    return <String>['flutter', 'engine', 'cocoon', 'packages'].contains(repositoryName);
   }
 
   @override
@@ -236,5 +227,26 @@ class FakeConfig implements Config {
   @override
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return '${slug.owner}/${slug.name}' == 'flutter/cocoon';
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+    if (repo == 'flutter') {
+      return (json.decode('''[
+                  {"name": "Linux", "repo": "flutter" , "task_name": "linux_bot", "flaky": false},
+                  {"name": "Mac", "repo": "flutter", "task_name": "mac_bot", "flaky": false},
+                  {"name": "Windows", "repo": "flutter", "task_name": "windows_bot", "flaky": false},
+                  {"name": "Linux Coverage", "repo": "flutter", "task_name": "coverage_bot", "flaky": true}
+                  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
+    } else if (repo == 'cocoon') {
+      return (json.decode('[{"name": "Cocoon", "repo": "cocoon", "task_name": "cocoon_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+    } else if (repo == 'engine') {
+      return (json.decode('[{"name": "Linux", "repo": "$repo", "task_name": "coverage_bot", "flaky": true}]')
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+    }
+    return (json.decode('[]') as List<dynamic>).cast<Map<String, dynamic>>();
   }
 }
