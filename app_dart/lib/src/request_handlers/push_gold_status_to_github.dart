@@ -83,7 +83,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // don't want to needlessly hold a pending state either.
         // If a PR has been marked `draft` after the fact, and there has not
         // been a new commit, we cannot rescind a previously posted status, so
-        // if it is pending, we should make the contributor aware of that fact.
+        // if it is already pending, we should make the contributor aware of that fact.
         if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
             lastUpdate.head == pr.head.sha &&
             !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
