@@ -20,7 +20,6 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
-import 'refresh_cirrus_status.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
@@ -51,9 +50,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
-    final GraphQLClient cirrusClient = await config.createCirrusGraphQLClient();
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
-    final List<String> cirrusCheckStatuses = <String>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Get last known Gold status from datastore.
@@ -83,7 +80,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         // don't want to needlessly hold a pending state either.
         // If a PR has been marked `draft` after the fact, and there has not
         // been a new commit, we cannot rescind a previously posted status, so
-        // if it is already pending, we should make the contributor aware of that fact.
+        // if it is already pending, we should make the contributor aware of
+        // that fact.
         if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
             lastUpdate.head == pr.head.sha &&
             !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
@@ -92,68 +90,38 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         continue;
       }
 
-      log.debug('Querying Cirrus for pull request #${pr.number}...');
-      cirrusCheckStatuses.clear();
+      log.debug('Querying builds for pull request #${pr.number}...');
+      final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
+      final List<String> incompleteChecks = <String>[];
       bool runsGoldenFileTests = false;
-
-      // Query current Cirrus checks for this pr.
-      final List<CirrusResult> cirrusResults = await queryCirrusGraphQL(pr.head.sha, cirrusClient, log, 'flutter');
-
-      if (!cirrusResults.any((CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.number}')) {
-        log.debug('Skip pull request #${pr.number}, commit ${pr.head.sha} since no valid CirrusResult was found');
-        continue;
+      final Map<String, dynamic> data = await _queryGraphQL(
+        log,
+        gitHubGraphQLClient,
+        pr.number,
+      );
+      final Map<String, dynamic> prData = data['repository']['pullRequest'] as Map<String, dynamic>;
+      final Map<String, dynamic> commit = prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
+      List<Map<String, dynamic>> checkRuns;
+      if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
+        checkRuns = (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>)
+          .cast<Map<String, dynamic>>();
       }
-      final List<dynamic> cirrusChecks =
-          cirrusResults.firstWhere((CirrusResult cirrusResult) => cirrusResult.branch == 'pull/${pr.number}').tasks;
-      for (dynamic check in cirrusChecks) {
-        final String status = check['status'].toUpperCase() as String;
-        final String taskName = check['name'] as String;
-
-        log.debug('Found Cirrus build status for pull request #${pr.number}, commit '
-            '${pr.head.sha}: $taskName ($status)');
-
-        cirrusCheckStatuses.add(status);
-        if (taskName.contains('framework')) {
-          // Any pull request that runs a framework shard runs golden file
-          // tests. Once identified, all checks will be awaited to check Gold
-          // status.
+      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      for (Map<String, dynamic> checkRun in checkRuns) {
+        log.debug('Found check run: $checkRun');
+        final String name = checkRun['name'].toLowerCase() as String;
+        if (name.contains('framework') || name.contains('web')) {
           runsGoldenFileTests = true;
+        }
+        if (checkRun['conclusion'] == null || checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
+          incompleteChecks.add(name);
         }
       }
 
       if (runsGoldenFileTests) {
-        // Make sure we account for any running Luci builds
-        final GraphQLClient gitHubGraphQLClient = await config.createGitHubGraphQLClient();
-        final List<String> luciIncompleteChecks = <String>[];
-        final Map<String, dynamic> data = await _queryGraphQL(
-          log,
-          gitHubGraphQLClient,
-          pr.number,
-        );
-        final Map<String, dynamic> prData = data['repository']['pullRequest'] as Map<String, dynamic>;
-        final Map<String, dynamic> commit = prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
-        List<Map<String, dynamic>> checkRuns;
-        if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-          checkRuns = (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>)
-              .cast<Map<String, dynamic>>();
-        }
-        checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-        log.debug('Found luci checks: $checkRuns');
-        for (Map<String, dynamic> checkRun in checkRuns) {
-          final String name = checkRun['name'] as String;
-          if (checkRun['status'] != null && checkRun['status'].toUpperCase() != 'COMPLETED') {
-            luciIncompleteChecks.add(name);
-          } else if (checkRun['conclusion'] != null && checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
-            luciIncompleteChecks.add(name);
-          }
-        }
-
-        if (cirrusCheckStatuses.any(kCirrusInProgressStates.contains) ||
-            cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
-            luciIncompleteChecks.isNotEmpty) {
+        if (incompleteChecks.isNotEmpty) {
           // If checks on an open PR are running or failing, the gold status
-          // should just be pending. Any draft PRs are considered pending
-          // until marked ready for review.
+          // should just be pending.
           log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
         } else {

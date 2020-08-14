@@ -38,11 +38,8 @@ void main() {
     FakeLogging log;
     ApiRequestHandlerTester tester;
     PushGoldStatusToGithub handler;
-    FakeGraphQLClient cirrusGraphQLClient;
     FakeGraphQLClient githubGraphQLClient;
-    List<dynamic> cirrusStatuses = <dynamic>[];
-    List<dynamic> luciStatuses = <dynamic>[];
-    String branch;
+    List<dynamic> checkRuns = <dynamic>[];
     MockHttpClient mockHttpClient;
     RepositorySlug slug;
     RetryOptions retryOptions;
@@ -51,11 +48,9 @@ void main() {
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
-      cirrusGraphQLClient = FakeGraphQLClient();
       githubGraphQLClient = FakeGraphQLClient();
       db = FakeDatastoreDB();
       config = FakeConfig(
-        cirrusGraphQLClient: cirrusGraphQLClient,
         dbValue: db,
       );
       log = FakeLogging();
@@ -67,14 +62,9 @@ void main() {
         maxAttempts: 2,
       );
 
-      cirrusGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
-      cirrusGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createCirrusQueryResult(cirrusStatuses, branch);
-      };
-
       githubGraphQLClient.mutateResultForOptions = (MutationOptions options) => QueryResult();
       githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        return createGithubQueryResult(luciStatuses);
+        return createGithubQueryResult(checkRuns);
       };
       config.githubGraphQLClient = githubGraphQLClient;
       config.flutterGoldPendingValue = 'pending';
@@ -100,9 +90,7 @@ void main() {
       );
 
       slug = RepositorySlug('flutter', 'flutter');
-      cirrusStatuses.clear();
-      luciStatuses.clear();
-      branch = 'test';
+      checkRuns.clear();
     });
 
     group('in development environment', () {
@@ -178,9 +166,8 @@ void main() {
         });
 
         test('if there are no framework tests for this PR', () async {
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'EXECUTING', 'name': 'tool-test-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'tool-test-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'tool-test1', 'status': 'completed', 'conclusion': 'success'}
           ];
           final PullRequest pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
@@ -220,14 +207,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks still running
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
-          ];
-          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -264,52 +246,8 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-
-          final Body body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(status.updates, 0);
-          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-
-          // Should not apply labels or make comments
-          verifyNever(issuesService.addLabelsToIssue(
-            slug,
-            pr.number,
-            <String>[
-              kGoldenFileLabel,
-            ],
-          ));
-
-          verifyNever(issuesService.createComment(
-            slug,
-            pr.number,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ));
-        });
-
-        test('same commit, cirrus checks complete, luci still running, last status running', () async {
-          // Same commit
-          final PullRequest pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          final GithubGoldStatusUpdate status = newStatusUpdate(
-            pr,
-            GithubGoldStatusUpdate.statusRunning,
-            'abc',
-            config.flutterGoldPendingValue,
-          );
-          db.values[status.key] = status;
-
-          // Luci running, Cirrus checks complete
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -348,9 +286,8 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           // Gold status is running
@@ -398,12 +335,8 @@ void main() {
           db.values[status.key] = status;
 
           // All checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           final Body body = await tester.get<Body>(handler);
@@ -436,14 +369,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -477,14 +405,44 @@ void main() {
           db.values[status.key] = status;
 
           // Checks running
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'EXECUTING', 'name': 'framework-1'},
-            <String, String>{'status': 'EXECUTING', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'in_progress', 'conclusion': 'neutral'}
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 1);
+          expect(status.status, GithubGoldStatusUpdate.statusRunning);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ));
+        });
+
+        test('web tests also indicate golden file tests', () async {
+          // New commit
+          final PullRequest pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks running
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'web', 'status': 'in_progress', 'conclusion': 'neutral'}
           ];
-          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -517,14 +475,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -565,14 +518,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           // Change detected by Gold
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -622,14 +570,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -677,14 +620,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks complete
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'completed': 'in_progress', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'completed': 'in_progress', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           // Gold status is running
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -742,14 +680,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
 
           // New status: completed/triaged/no changes
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -797,14 +730,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
@@ -842,14 +770,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-          ];
-          branch = 'pull/123';
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldDraftChangeValue,
@@ -886,14 +809,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks failed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'FAILED', 'name': 'framework-1'},
-            <String, String>{'status': 'ABORTED', 'name': 'framework-2'}
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'failure'}
           ];
-          luciStatuses = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'failure'}
-          ];
-          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -933,14 +851,9 @@ void main() {
         db.values[followUpStatus.key] = followUpStatus;
 
         // Checks completed
-        cirrusStatuses = <dynamic>[
-          <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-          <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+        checkRuns = <dynamic>[
+          <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
         ];
-        luciStatuses = <dynamic>[
-          <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
-        ];
-        branch = 'pull/123';
 
         // New status: completed/triaged/no changes
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
@@ -981,14 +894,10 @@ void main() {
         );
         db.values[status.key] = status;
 
-        // Luci running, Cirrus checks complete
-        cirrusStatuses = <dynamic>[
-          <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-          <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-        ];
-        luciStatuses = <dynamic>[
+        // null status for luci build
+        checkRuns = <dynamic>[
           <String, String>{
-            'name': 'Linux',
+            'name': 'framework',
             'status': null,
             'conclusion': null,
           }
@@ -1017,25 +926,6 @@ void main() {
       });
     });
   });
-}
-
-QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
-  assert(statuses != null);
-
-  return QueryResult(
-    data: <String, dynamic>{
-      'searchBuilds': <dynamic>[
-        <String, dynamic>{
-          'id': '1',
-          'branch': branch,
-          'latestGroupTasks': <dynamic>[
-            <String, dynamic>{'id': '1', 'name': statuses.first['name'], 'status': statuses.first['status']},
-            <String, dynamic>{'id': '2', 'name': statuses.last['name'], 'status': statuses.last['status']}
-          ],
-        }
-      ],
-    },
-  );
 }
 
 QueryResult createGithubQueryResult(List<dynamic> statuses) {
