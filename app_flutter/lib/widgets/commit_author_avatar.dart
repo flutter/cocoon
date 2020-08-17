@@ -41,6 +41,7 @@ class CommitAuthorAvatar extends StatelessWidget {
       child: Text(
         authorInitial,
         style: TextStyle(color: authorColor.computeLuminance() > 0.25 ? Colors.black : Colors.white),
+        semanticsLabel: authorName,
       ),
     );
 
