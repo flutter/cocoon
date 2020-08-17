@@ -50,6 +50,7 @@ class FakeConfig implements Config {
     this.flutterGoldAlertConstantValue,
     this.flutterGoldInitialAlertValue,
     this.flutterGoldFollowUpAlertValue,
+    this.flutterGoldDraftChangeValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -86,6 +87,7 @@ class FakeConfig implements Config {
   String flutterGoldAlertConstantValue;
   String flutterGoldInitialAlertValue;
   String flutterGoldFollowUpAlertValue;
+  String flutterGoldDraftChangeValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -128,6 +130,9 @@ class FakeConfig implements Config {
 
   @override
   String get flutterGoldChanges => flutterGoldChangesValue;
+
+  @override
+  String get flutterGoldDraftChange => flutterGoldDraftChangeValue;
 
   @override
   String flutterGoldInitialAlert(String url) => flutterGoldInitialAlertValue;
