@@ -12,7 +12,6 @@ void main() {
   group('Author avatars meet guidelines for theme brightness', () {
     List<String> generateInitials() {
       final List<String> names = <String>[];
-      final List<CommitAuthorAvatar> avatars = <CommitAuthorAvatar>[];
 
       for (int i = 65; i <= 90; i++) {
         names.add(String.fromCharCode(i));
