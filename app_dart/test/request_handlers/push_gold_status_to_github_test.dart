@@ -403,14 +403,9 @@ void main() {
           db.values[status.key] = status;
 
           // Checks completed
-          cirrusStatuses = <dynamic>[
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
-            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
-          ];
-          luciStatuses = <dynamic>[
+          checkRuns = <dynamic>[
             <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
           ];
-          branch = 'pull/123';
 
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
