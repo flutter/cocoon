@@ -152,7 +152,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             cirrusCheckStatuses.any(kCirrusFailedStates.contains) ||
             luciIncompleteChecks.isNotEmpty) {
           // If checks on an open PR are running or failing, the gold status
-          // should just be pending. Any draft PRs are considered pending
+          // should just be pending. Any draft PRs are skipped
           // until marked ready for review.
           log.debug('Waiting for checks to be completed.');
           statusRequest = _createStatus(GithubGoldStatusUpdate.statusRunning, config.flutterGoldPending, pr.number);
