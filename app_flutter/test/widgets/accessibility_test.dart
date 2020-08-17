@@ -22,12 +22,7 @@ void main() {
       return names;
     }
 
-    const List<String> longNames = <String>[
-      'Michael',
-      'Thomas',
-      'Peter',
-      'Volkert'
-    ];
+    const List<String> longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
 
     Widget buildAuthors({@required List<String> names, ThemeData theme}) {
       final List<Widget> avatars = names

@@ -10,8 +10,7 @@ import 'package:mockito/mockito.dart';
 import 'package:cocoon_service/protos.dart' show Commit;
 
 void main() {
-  testWidgets('Authors with same initial have differently coloured avatars',
-      (WidgetTester tester) async {
+  testWidgets('Authors with same initial have differently coloured avatars', (WidgetTester tester) async {
     final MockCommit commit1 = MockCommit();
     when(commit1.author).thenReturn('Mike');
     final MockCommit commit2 = MockCommit();
@@ -33,8 +32,7 @@ void main() {
     );
 
     expect(find.text('M'), findsNWidgets(2));
-    final List<CircleAvatar> avatars =
-        tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
+    final List<CircleAvatar> avatars = tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
     expect(avatars, hasLength(2));
     expect(avatars.first.backgroundColor, isNot(avatars.last.backgroundColor));
   });
