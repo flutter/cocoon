@@ -394,6 +394,45 @@ void main() {
             any,
           ));
         });
+
+        test('does not post for draft PRs, does not query Gold', () async {
+          // New commit, draft PR
+          final PullRequest pr = newPullRequest(123, 'abc', 'master', draft: true);
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          cirrusStatuses = <dynamic>[
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-1'},
+            <String, String>{'status': 'COMPLETED', 'name': 'framework-2'}
+          ];
+          luciStatuses = <dynamic>[
+            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+          ];
+          branch = 'pull/123';
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            any,
+          ));
+        });
       });
 
       group('updates GitHub and/or Datastore', () {

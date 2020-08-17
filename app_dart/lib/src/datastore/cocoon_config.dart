@@ -160,9 +160,9 @@ class Config {
   String get flutterGoldChanges => 'Image changes have been found for '
       'this pull request.';
 
-  String get flutterGoldDraftChange => 'This pull request has been changed to a'
-      'draft status. The currently pending flutter-gold status will not be able '
-      'to resolve until a new commit is pushed or the change is marked ready for'
+  String get flutterGoldDraftChange => 'This pull request has been changed to a '
+      'draft. The currently pending flutter-gold status will not be able '
+      'to resolve until a new commit is pushed or the change is marked ready for '
       'review again.';
 
   String flutterGoldInitialAlert(String url) => 'Golden file changes have been found for this pull '
