@@ -53,7 +53,7 @@ class AgentHealthDetails {
             hasSshConnectivity;
 
   @visibleForTesting
-  static const int minutesUntilAgentIsUnresponsive = 10;
+  static const int minutesUntilAgentIsUnresponsive = 30;
 
   static const String _hasSshConnectivity = 'ssh-connectivity: succeeded';
   static const String _hasHealthyDevices = 'has-healthy-devices: succeeded';
