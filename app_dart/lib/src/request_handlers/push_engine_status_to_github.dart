@@ -100,11 +100,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
   String _getLatestStatus(List<LuciTask> tasks) {
     for (LuciTask task in tasks) {
-      switch (task.status) {
-        case Task.statusFailed:
-          return GithubBuildStatusUpdate.statusFailure;
-        case Task.statusSucceeded:
-          return GithubBuildStatusUpdate.statusSuccess;
+      if (task.status == Task.statusFailed) {
+        return GithubBuildStatusUpdate.statusFailure;
       }
     }
     return GithubBuildStatusUpdate.statusSuccess;
