@@ -52,8 +52,10 @@ class AgentHealthDetails {
             canPerformHealthCheck &&
             hasSshConnectivity;
 
+  // Please also change [maxHealthCheckAge] in
+  // app_dart/lib/src/request_handlers/update_agent_health_history.dart to match this value.
   @visibleForTesting
-  static const int minutesUntilAgentIsUnresponsive = 10;
+  static const int minutesUntilAgentIsUnresponsive = 30;
 
   static const String _hasSshConnectivity = 'ssh-connectivity: succeeded';
   static const String _hasHealthyDevices = 'has-healthy-devices: succeeded';
