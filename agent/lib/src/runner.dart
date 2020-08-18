@@ -33,20 +33,26 @@ class TaskResult {
   TaskResult.parse(Map<String, dynamic> json)
       : succeeded = json['success'] as bool,
         data = json['data'] as Map<String, dynamic>,
+        detailFilenames = json['detailFiles'],
         benchmarkScoreKeys = json['benchmarkScoreKeys'] ?? const <String>[],
         reason = json['reason'] as String;
 
   /// Constructs an unsuccessful result.
   TaskResult.failure(this.reason)
-      : this.succeeded = false,
-        this.data = const <String, dynamic>{},
-        this.benchmarkScoreKeys = const <String>[];
+      : succeeded = false,
+        data = const <String, dynamic>{},
+        detailFilenames = null,
+        benchmarkScoreKeys = const <String>[];
 
   /// Whether the task succeeded.
   final bool succeeded;
 
   /// Task-specific JSON data.
   final Map<String, dynamic> data;
+
+  /// Names of files with Task-specific detail information (e.g. timeline trace).
+  /// The files will be copied to an archival GCS bucket for later reference.
+  final dynamic detailFilenames;
 
   /// Keys in [data] that store scores that will be submitted to Golem.
   ///
@@ -165,6 +171,11 @@ Future<TaskResult> runTask(
       stderrSub.asFuture(),
     ]);
     await whenProcessExits.timeout(const Duration(seconds: 1));
+    // TODO(flar): for testing purposes only, remove before push
+//    for (dynamic filename in taskResult['detailFiles']) {
+//      await sendLog('Uploading $filename to testing bucket', flush: true);
+//      await cpFileToGcs(filename as String, 'gs://flutter-dashboard-task-detail/testing/');
+//    }
     return TaskResult.parse(taskResult);
   } on TimeoutException catch (timeout) {
     runner.kill(ProcessSignal.sigint);

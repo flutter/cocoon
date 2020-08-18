@@ -35,7 +35,7 @@ class RunCommand extends Command {
         .where((String line) => line.isNotEmpty)
         .forEach(logger.info);
 
-    if (!health.ok) {
+    if (!health.okLocalTesting) {
       logger.error('Some pre-flight checks failed. Quitting.');
       exit(1);
     }

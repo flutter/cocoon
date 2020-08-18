@@ -193,6 +193,9 @@ class ContinuousIntegrationCommand extends Command {
     TaskResult result = await runTask(agent, task, fallbackTimeout: _kGlobalTestRunnerTimeout);
     if (result.succeeded) {
       await agent.reportSuccess(task.key, result.data, result.benchmarkScoreKeys);
+      for (dynamic filename in result.detailFilenames ?? const <dynamic>[])
+        if (filename is String)
+          await agent.saveDetailFile(task.key, filename);
     } else {
       await agent.reportFailure(task.key, result.reason);
     }
