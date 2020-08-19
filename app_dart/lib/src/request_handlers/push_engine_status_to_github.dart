@@ -100,10 +100,21 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
 
   String _getLatestStatus(List<LuciTask> tasks) {
     for (LuciTask task in tasks) {
-      if (task.status == Task.statusFailed) {
-        return GithubBuildStatusUpdate.statusFailure;
+      if (task.ref != 'refs/heads/master') {
+        log.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+        continue;
+      }
+      switch (task.status) {
+        case Task.statusFailed:
+          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          return GithubBuildStatusUpdate.statusFailure;
+        case Task.statusSucceeded:
+          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          return GithubBuildStatusUpdate.statusSuccess;
       }
     }
-    return GithubBuildStatusUpdate.statusSuccess;
+    // No state means we don't have a state for the last 40 commits which should
+    // close the tree.
+    return GithubBuildStatusUpdate.statusFailure;
   }
 }

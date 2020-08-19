@@ -104,7 +104,8 @@ void main() {
         await LuciBuilder.getProdBuilders('engine', config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
-          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)
+          const LuciTask(
+              commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1, builderName: 'abc')
         ],
       );
       when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
@@ -128,7 +129,12 @@ void main() {
         await LuciBuilder.getProdBuilders('engine', config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
-          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc')
         ],
       );
       when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
@@ -145,6 +151,48 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+
+      config.db.values[status.key] = status;
+
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        await LuciBuilder.getProdBuilders('engine', config),
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc'),
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusFailed,
+              buildNumber: 2,
+              builderName: 'abc'),
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusSucceeded,
+              buildNumber: 3,
+              builderName: 'efg'),
+        ],
+      );
+      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
+      });
+
+      expect(status.status, 'failure');
+      await tester.get(handler);
+      // Last build is successful.
+      expect(status.status, 'success');
+      expect(status.updateTimeMillis, isNotNull);
+    });
+    test('non master tasks are ignored', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
 
       config.db.values[status.key] = status;
@@ -153,9 +201,12 @@ void main() {
         await LuciBuilder.getProdBuilders('engine', config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
-          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1),
-          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 2),
-          const LuciTask(commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 3),
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/dev',
+              status: Task.statusSucceeded,
+              buildNumber: 1,
+              builderName: 'abc'),
         ],
       );
       when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
@@ -164,6 +215,7 @@ void main() {
 
       expect(status.status, 'success');
       await tester.get(handler);
+      // Because the task was ignored and we didn't have an update report a failure status.
       expect(status.status, 'failure');
       expect(status.updateTimeMillis, isNotNull);
     });
