@@ -1,3 +1,5 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart'
     as _i1;
 
@@ -150,6 +152,11 @@ class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes
           ? null
           : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status(
               (data['status'] as Map<String, dynamic>));
+  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites
+      get checkSuites => data['checkSuites'] == null
+          ? null
+          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites(
+              (data['checkSuites'] as Map<String, dynamic>));
 }
 
 class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status {
@@ -176,6 +183,64 @@ class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes
 
   String get context => (data['context'] as String);
   _i1.StatusState get state => _i1.StatusState((data['state'] as String));
+}
+
+class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites {
+  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites(
+      this.data);
+
+  final Map<String, dynamic> data;
+
+  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes>
+      get nodes => data['nodes'] == null
+          ? null
+          : (data['nodes'] as List)
+              .map((dynamic e) =>
+                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes(
+                      (e as Map<String, dynamic>)))
+              .toList();
+}
+
+class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes {
+  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes(
+      this.data);
+
+  final Map<String, dynamic> data;
+
+  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns
+      get checkRuns => data['checkRuns'] == null
+          ? null
+          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns(
+              (data['checkRuns'] as Map<String, dynamic>));
+}
+
+class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns {
+  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns(
+      this.data);
+
+  final Map<String, dynamic> data;
+
+  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>
+      get nodes => data['nodes'] == null
+          ? null
+          : (data['nodes'] as List)
+              .map((dynamic e) =>
+                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes(
+                      (e as Map<String, dynamic>)))
+              .toList();
+}
+
+class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes {
+  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes(
+      this.data);
+
+  final Map<String, dynamic> data;
+
+  String get name => (data['name'] as String);
+  _i1.CheckStatusState get status =>
+      _i1.CheckStatusState((data['status'] as String));
+  _i1.CheckConclusionState get conclusion =>
+      _i1.CheckConclusionState((data['conclusion'] as String));
 }
 
 class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews {

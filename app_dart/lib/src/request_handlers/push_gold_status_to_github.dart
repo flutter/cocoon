@@ -285,7 +285,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 Future<Map<String, dynamic>> _queryGraphQL(Logging log, GraphQLClient client, int prNumber) async {
   final QueryResult result = await client.query(
     QueryOptions(
-      document: pullRequestChecksQuery,
+      documentNode: gql(pullRequestChecksQuery),
       fetchPolicy: FetchPolicy.noCache,
       variables: <String, dynamic>{
         'sPullRequest': prNumber,
@@ -293,10 +293,8 @@ Future<Map<String, dynamic>> _queryGraphQL(Logging log, GraphQLClient client, in
     ),
   );
 
-  if (result.hasErrors) {
-    for (GraphQLError error in result.errors) {
-      log.error(error.toString());
-    }
+  if (result.hasException) {
+    log.error(result.exception.toString());
     throw const BadRequestException('GraphQL query failed');
   }
   return result.data as Map<String, dynamic>;

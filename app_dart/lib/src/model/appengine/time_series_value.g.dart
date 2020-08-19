@@ -18,7 +18,8 @@ TimeSeriesValue _$TimeSeriesValueFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TimeSeriesValueToJson(TimeSeriesValue instance) => <String, dynamic>{
+Map<String, dynamic> _$TimeSeriesValueToJson(TimeSeriesValue instance) =>
+    <String, dynamic>{
       'DataMissing': instance.dataMissing,
       'Value': instance.value,
       'CreateTimestamp': instance.createTimestamp,

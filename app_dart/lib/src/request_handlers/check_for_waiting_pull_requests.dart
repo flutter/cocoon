@@ -207,13 +207,9 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final List<
               $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
           statuses = commit.status.contexts;
-      final checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes; // ?????
-      // List<Map<String, dynamic>> checkRuns;
-      // if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-      //   checkRuns =
-      //       (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
-      // }
-      // checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      final List<
+              $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>
+          checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes;
       final Set<String> failingStatuses = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
@@ -246,7 +242,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Set<String> failures,
     List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
         statuses,
-    List<dynamic> checkRuns,  /// ?????
+    List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>
+        checkRuns,
     String name,
     String branch,
   ) async {
@@ -272,11 +269,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
     }
     log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
-    for (Map<String, dynamic> checkRun in checkRuns) {
-      final String name = checkRun['name'] as String;
-      if (checkRun['status'] != 'COMPLETED') {
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes checkRun in checkRuns) {
+      final String name = checkRun.name;
+      if (checkRun.status.value != 'COMPLETED') {
         allSuccess = false;
-      } else if (checkRun['conclusion'] != 'SUCCESS') {
+      } else if (checkRun.conclusion.value != 'SUCCESS') {
         allSuccess = false;
         failures.add(name);
       }

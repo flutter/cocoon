@@ -111,7 +111,7 @@ void main() {
             },
           ),
           QueryOptions(
-            document: labeledPullRequestsWithReviewsQuery,
+            documentNode: LabeledPullRequestsWithReviews.document,
             fetchPolicy: FetchPolicy.noCache,
             variables: <String, dynamic>{
               'sOwner': 'flutter',
@@ -128,7 +128,10 @@ void main() {
       final List<GraphQLError> errors = <GraphQLError>[
         GraphQLError(raw: <String, String>{}, message: 'message'),
       ];
-      githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(errors: errors);
+      final OperationException exception =
+          OperationException(graphqlErrors: errors);
+      githubGraphQLClient.mutateResultForOptions =
+          (_) => QueryResult(exception: exception);
 
       await tester.get(handler);
       expect(log.records.length, 1);
@@ -254,7 +257,7 @@ void main() {
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
-          document: removeLabelMutation,
+          documentNode: gql(removeLabelMutation),
           variables: <String, dynamic>{
             'id': flutterRepoPRs.first.id,
             'labelId': base64LabelId,
@@ -298,7 +301,7 @@ This pull request is not suitable for automatic merging in its current state.
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[
         MutationOptions(
-          document: mergePullRequestMutation,
+          documentNode: gql(mergePullRequestMutation),
           variables: <String, dynamic>{
             'id': flutterRepoPRs.first.id,
             'oid': oid,
@@ -323,7 +326,7 @@ This pull request is not suitable for automatic merging in its current state.
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
           MutationOptions(
-            document: mergePullRequestMutation,
+            documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'oid': oid,

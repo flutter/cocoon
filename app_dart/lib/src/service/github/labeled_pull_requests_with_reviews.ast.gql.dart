@@ -1,3 +1,5 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 import 'package:gql/ast.dart' as _i1;
 
 const LabeledPullRequestsWithReviews = _i1.OperationDefinitionNode(
@@ -221,6 +223,54 @@ const LabeledPullRequestsWithReviews = _i1.OperationDefinitionNode(
                                                                                 selectionSet: _i1.SelectionSetNode(selections: [
                                                                                   _i1.FieldNode(name: _i1.NameNode(value: 'context'), alias: null, arguments: [], directives: [], selectionSet: null),
                                                                                   _i1.FieldNode(name: _i1.NameNode(value: 'state'), alias: null, arguments: [], directives: [], selectionSet: null)
+                                                                                ]))
+                                                                          ])),
+                                                                  _i1.FieldNode(
+                                                                      name: _i1.NameNode(
+                                                                          value:
+                                                                              'checkSuites'),
+                                                                      alias:
+                                                                          null,
+                                                                      arguments: [
+                                                                        _i1.ArgumentNode(
+                                                                            name:
+                                                                                _i1.NameNode(value: 'last'),
+                                                                            value: _i1.IntValueNode(value: '1')),
+                                                                        _i1.ArgumentNode(
+                                                                            name: _i1.NameNode(value: 'filterBy'),
+                                                                            value: _i1.ObjectValueNode(fields: [
+                                                                              _i1.ObjectFieldNode(name: _i1.NameNode(value: 'appId'), value: _i1.IntValueNode(value: '64368'))
+                                                                            ]))
+                                                                      ],
+                                                                      directives: [],
+                                                                      selectionSet:
+                                                                          _i1.SelectionSetNode(
+                                                                              selections: [
+                                                                            _i1.FieldNode(
+                                                                                name: _i1.NameNode(value: 'nodes'),
+                                                                                alias: null,
+                                                                                arguments: [],
+                                                                                directives: [],
+                                                                                selectionSet: _i1.SelectionSetNode(selections: [
+                                                                                  _i1.FieldNode(
+                                                                                      name: _i1.NameNode(value: 'checkRuns'),
+                                                                                      alias: null,
+                                                                                      arguments: [
+                                                                                        _i1.ArgumentNode(name: _i1.NameNode(value: 'first'), value: _i1.IntValueNode(value: '100'))
+                                                                                      ],
+                                                                                      directives: [],
+                                                                                      selectionSet: _i1.SelectionSetNode(selections: [
+                                                                                        _i1.FieldNode(
+                                                                                            name: _i1.NameNode(value: 'nodes'),
+                                                                                            alias: null,
+                                                                                            arguments: [],
+                                                                                            directives: [],
+                                                                                            selectionSet: _i1.SelectionSetNode(selections: [
+                                                                                              _i1.FieldNode(name: _i1.NameNode(value: 'name'), alias: null, arguments: [], directives: [], selectionSet: null),
+                                                                                              _i1.FieldNode(name: _i1.NameNode(value: 'status'), alias: null, arguments: [], directives: [], selectionSet: null),
+                                                                                              _i1.FieldNode(name: _i1.NameNode(value: 'conclusion'), alias: null, arguments: [], directives: [], selectionSet: null)
+                                                                                            ]))
+                                                                                      ]))
                                                                                 ]))
                                                                           ]))
                                                                 ]))

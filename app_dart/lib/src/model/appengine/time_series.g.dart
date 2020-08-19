@@ -20,7 +20,8 @@ TimeSeries _$TimeSeriesFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$TimeSeriesToJson(TimeSeries instance) => <String, dynamic>{
+Map<String, dynamic> _$TimeSeriesToJson(TimeSeries instance) =>
+    <String, dynamic>{
       'Archived': instance.archived,
       'Baseline': instance.baseline,
       'Goal': instance.goal,
