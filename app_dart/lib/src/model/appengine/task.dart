@@ -4,7 +4,6 @@
 
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import 'commit.dart';
 import 'key_converter.dart';
@@ -52,14 +51,13 @@ class Task extends Model {
     this.createTimestamp,
     this.name,
     this.isFlaky,
-  )   : assert(commitKey != null),
-        assert(createTimestamp != null),
+  )   : assert(createTimestamp != null),
         assert(name != null),
         assert(isFlaky != null),
         timeoutInMinutes = 0,
         requiredCapabilities = <String>['can-update-github'],
         stageName = 'chromebot' {
-    final Key key = commitKey.append(Task);
+    final Key key = commitKey?.append(Task);
     parentKey = key?.parent;
     id = key?.id;
     status = Task.statusNew;

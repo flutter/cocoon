@@ -17,5 +17,9 @@ void main() {
       expect(() => Task(status: 'unknown'), throwsArgumentError);
       expect(() => Task()..status = 'unknown', throwsArgumentError);
     });
+
+    test('disallows flaky be null', () {
+      expect(() => Task.chromebot(null, 123, 'taskName', null), throwsA(isA<AssertionError>()));
+    });
   });
 }
