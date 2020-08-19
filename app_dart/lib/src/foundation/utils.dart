@@ -103,6 +103,22 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
       .toList();
 }
 
+/// Returns [builder] when any file falls in any pre-set dir.
+Future<List<Map<String, dynamic>>> getFilteredBuilders(List<Map<String, dynamic>> builders, List<String> files) async {
+  final List<Map<String, dynamic>> filteredBuilders = <Map<String, dynamic>>[];
+  for (Map<String, dynamic> builder in builders) {
+    final List<String> dirs = List<String>.from((builder['run_if'] as List<dynamic>) ?? <String>['']);
+    for (String dir in dirs) {
+      // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
+      if (files.any((String file) => file.startsWith(dir))) {
+        filteredBuilders.add(builder);
+        break;
+      }
+    }
+  }
+  return filteredBuilders;
+}
+
 Future<void> insertBigquery(
     String tableName, Map<String, dynamic> data, TabledataResourceApi tabledataResourceApi, Logging log) async {
   // Define const variables for [BigQuery] operations.

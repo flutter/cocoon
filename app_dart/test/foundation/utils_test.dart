@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -178,6 +179,37 @@ void main() {
         await insertBigquery('test', <String, dynamic>{'test': 'test'}, tabledataResourceApi, log);
         final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
         expect(tableDataList.totalRows, '1');
+      });
+    });
+
+    group('getFilteredBuilders', () {
+      List<String> files;
+      List<Map<String, dynamic>> builders;
+
+      test('does not return builders when run_if does not match any file', () async {
+        files = <String>['a/b', 'c/d'];
+        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["d/"]}]')
+                as List<dynamic>)
+            .cast<Map<String, dynamic>>();
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result.length, 0);
+      });
+
+      test('returns builders when run_if is null', () async {
+        files = <String>['a/b', 'c/d'];
+        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true}]') as List<dynamic>)
+            .cast<Map<String, dynamic>>();
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result, builders);
+      });
+
+      test('returns builders when run_if matches files', () async {
+        files = <String>['a/b', 'c/d'];
+        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/"]}]')
+                as List<dynamic>)
+            .cast<Map<String, dynamic>>();
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result, builders);
       });
     });
   });

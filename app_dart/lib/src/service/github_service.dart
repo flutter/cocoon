@@ -99,4 +99,25 @@ class GithubService {
         ..head = (PullRequestHead()..sha = commit['head']['sha'] as String);
     }).toList();
   }
+
+  // Returns changed files of [slug] and [prNumber].
+  // https://developer.github.com/v3/pulls/#list-pull-requests-files
+  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+    ArgumentError.checkNotNull(slug);
+    final PaginationHelper paginationHelper = PaginationHelper(github);
+    final List<Map<String, dynamic>> files = <Map<String, dynamic>>[];
+
+    headers['Authorization'] = 'Bearer ${github.auth.token}';
+    await for (Response response in paginationHelper.fetchStreamed(
+      'GET',
+      '/repos/${slug.fullName}/pulls/$prNumber/files',
+      headers: headers,
+    )) {
+      files.addAll((json.decode(response.body) as List<dynamic>).cast<Map<String, dynamic>>());
+    }
+
+    return files.map((dynamic file) {
+      return file['filename'] as String;
+    }).toList();
+  }
 }

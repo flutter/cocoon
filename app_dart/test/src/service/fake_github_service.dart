@@ -23,6 +23,11 @@ class FakeGithubService implements GithubService {
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
     return listPullRequestsBranch(branch);
   }
+
+  @override
+  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+    return <String>['abc/def'];
+  }
 }
 
 class MockGitHub extends Mock implements GitHub {}
