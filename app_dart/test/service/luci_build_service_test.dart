@@ -16,12 +16,14 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
 void main() {
   ServiceAccountInfo serviceAccountInfo;
   FakeConfig config;
+  FakeGithubService githubService;
   MockBuildBucketClient mockBuildBucketClient;
   LuciBuildService service;
   RepositorySlug slug;
@@ -49,7 +51,8 @@ void main() {
 
     setUp(() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      githubService = FakeGithubService();
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       slug = RepositorySlug('flutter', 'cocoon');
@@ -94,7 +97,8 @@ void main() {
   group('scheduleBuilds', () {
     setUp(() {
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      githubService = FakeGithubService();
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(
         config,
@@ -250,8 +254,9 @@ void main() {
 
   group('failedBuilds', () {
     setUp(() {
+      githubService = FakeGithubService();
       serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
       slug = RepositorySlug('flutter', 'flutter');

@@ -103,14 +103,31 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
       .toList();
 }
 
-/// Returns [builder] when any file falls in any pre-set dir.
+/// Returns a LUCI [builder] list that covers changed [files].
+///
+/// [builders]: enabled luci builders.
+/// [files]: changed files in corresponding PRs.
+///
+/// [builder] is with format:
+/// {
+///   "name":"yyy",
+///   "repo":"flutter",
+///   "taskName":"zzz",
+///   "enabled":true,
+///   "run_if":["a/b/", "c/d/**"]
+/// }
+///
+/// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Map<String, dynamic>>> getFilteredBuilders(List<Map<String, dynamic>> builders, List<String> files) async {
   final List<Map<String, dynamic>> filteredBuilders = <Map<String, dynamic>>[];
   for (Map<String, dynamic> builder in builders) {
     final List<String> dirs = List<String>.from((builder['run_if'] as List<dynamic>) ?? <String>['']);
     for (String dir in dirs) {
+      dir = dir.replaceAll('**', '[a-zA-Z_\/]?');
+      dir = dir.replaceAll('*', '[a-zA-Z_\/]*');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-      if (files.any((String file) => file.startsWith(dir))) {
+      final RegExp regExp = RegExp('^$dir');
+      if (dir.isEmpty || files.any((String file) => regExp.hasMatch(file))) {
         filteredBuilders.add(builder);
         break;
       }

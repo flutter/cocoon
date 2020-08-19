@@ -14,6 +14,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
+import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -25,6 +26,7 @@ void main() {
   MockGitHub mockGitHub;
   MockRepositoriesService mockRepositoriesService;
   RepositorySlug slug;
+  FakeGithubService githubService;
 
   const Build macBuild = Build(
     id: 999,
@@ -54,10 +56,12 @@ void main() {
     githubStatusService = GithubStatusService(config, service);
     mockGitHub = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
+    githubService = FakeGithubService();
     when(mockGitHub.repositories).thenAnswer((_) {
       return mockRepositoriesService;
     });
     config.githubClient = mockGitHub;
+    config.githubService = githubService;
     slug = RepositorySlug('flutter', 'flutter');
   });
   group('setBuildsPendingStatus', () {

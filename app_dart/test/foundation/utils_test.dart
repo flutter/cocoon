@@ -187,10 +187,10 @@ void main() {
       List<Map<String, dynamic>> builders;
 
       test('does not return builders when run_if does not match any file', () async {
-        files = <String>['a/b', 'c/d'];
         builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["d/"]}]')
                 as List<dynamic>)
             .cast<Map<String, dynamic>>();
+        files = <String>['a/b', 'c/d'];
         final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
         expect(result.length, 0);
       });
@@ -208,6 +208,26 @@ void main() {
         builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/"]}]')
                 as List<dynamic>)
             .cast<Map<String, dynamic>>();
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result, builders);
+      });
+
+      test('returns builders when run_if matches files with **', () async {
+        builders =
+            (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/**"]}]')
+                    as List<dynamic>)
+                .cast<Map<String, dynamic>>();
+        files = <String>['a/b', 'c/d'];
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result, builders);
+      });
+
+      test('returns builders when run_if matches files with both * and **', () async {
+        builders =
+            (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/b*c/**"]}]')
+                    as List<dynamic>)
+                .cast<Map<String, dynamic>>();
+        files = <String>['a/baddsc/defg', 'c/d'];
         final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });

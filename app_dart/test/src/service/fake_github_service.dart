@@ -4,7 +4,8 @@
 
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
+
+import '../utilities/mocks.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
@@ -29,5 +30,3 @@ class FakeGithubService implements GithubService {
     return <String>['abc/def'];
   }
 }
-
-class MockGitHub extends Mock implements GitHub {}
