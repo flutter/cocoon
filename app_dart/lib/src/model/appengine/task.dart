@@ -45,6 +45,24 @@ class Task extends Model {
     id = key?.id;
   }
 
+  // Represents a LUCI build.
+  Task.chromebot(
+    this.commitKey,
+    this.createTimestamp,
+    this.name,
+    this.isFlaky,
+  )   : assert(createTimestamp != null),
+        assert(name != null),
+        assert(isFlaky != null),
+        timeoutInMinutes = 0,
+        requiredCapabilities = <String>['can-update-github'],
+        stageName = 'chromebot' {
+    final Key key = commitKey?.append(Task);
+    parentKey = key?.parent;
+    id = key?.id;
+    status = Task.statusNew;
+  }
+
   /// The task is yet to be run.
   static const String statusNew = 'New';
 
