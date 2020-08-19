@@ -203,7 +203,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders('flutter', config);
     for (LuciBuilder builder in prodBuilders) {
-      tasks.add(Task.chromebot(commitKey, createTimestamp, builder.taskName, builder.flaky));
+      tasks.add(Task.chromebot(commitKey, createTimestamp, builder.taskName, builder.flaky ?? false));
     }
 
     final YamlMap yaml = await _loadDevicelabManifest(sha);
