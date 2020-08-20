@@ -76,11 +76,11 @@ class LuciService {
       results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
       results[branchLuciBuilder][commit] ??= <LuciTask>[];
       results[branchLuciBuilder][commit].add(LuciTask(
-        commitSha: commit,
-        ref: ref,
-        status: _luciStatusToTaskStatus[build.status],
-        buildNumber: build.number,
-      ));
+          commitSha: commit,
+          ref: ref,
+          status: _luciStatusToTaskStatus[build.status],
+          buildNumber: build.number,
+          builderName: build.builderId.builder));
     }
     return results;
   }
@@ -110,6 +110,7 @@ class LuciService {
         ref: ref,
         status: _luciStatusToTaskStatus[build.status],
         buildNumber: build.number,
+        builderName: build.builderId.builder,
       ));
     }
     return results;
@@ -218,15 +219,17 @@ class LuciBuilder {
 
 @immutable
 class LuciTask {
-  const LuciTask({
-    @required this.commitSha,
-    @required this.ref,
-    @required this.status,
-    @required this.buildNumber,
-  })  : assert(commitSha != null),
+  const LuciTask(
+      {@required this.commitSha,
+      @required this.ref,
+      @required this.status,
+      @required this.buildNumber,
+      @required this.builderName})
+      : assert(commitSha != null),
         assert(ref != null),
         assert(status != null),
-        assert(buildNumber != null);
+        assert(buildNumber != null),
+        assert(builderName != null);
 
   /// The GitHub commit at which this task is being run.
   final String commitSha;
@@ -239,4 +242,7 @@ class LuciTask {
 
   /// The build number of this task.
   final int buildNumber;
+
+  /// The builder name of this task.
+  final String builderName;
 }

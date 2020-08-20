@@ -54,7 +54,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
+                          commitSha: 'def',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -85,7 +89,12 @@ void main() {
               key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
-                      const LuciTask(commitSha: 'unknown', ref: 'unknown', status: Task.statusSucceeded, buildNumber: 1)
+                      const LuciTask(
+                          commitSha: 'unknown',
+                          ref: 'unknown',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -110,7 +119,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -136,7 +149,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -164,7 +181,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 1)
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -190,9 +211,17 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'abc': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusSucceeded, buildNumber: 2),
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 2,
+                          builderName: 'abc'),
                       const LuciTask(
-                          commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1)
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusFailed,
+                          buildNumber: 1,
+                          builderName: 'abc')
                     ],
                   });
       when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
@@ -219,7 +248,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1),
+                          commitSha: 'def',
+                          ref: 'refs/heads/master',
+                          status: Task.statusFailed,
+                          buildNumber: 1,
+                          builderName: 'abc'),
                     ],
                   });
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
@@ -229,7 +262,11 @@ void main() {
               value: (dynamic builder) => <String, List<LuciTask>>{
                     'def': <LuciTask>[
                       const LuciTask(
-                          commitSha: 'def', ref: 'refs/heads/test', status: Task.statusSucceeded, buildNumber: 2)
+                          commitSha: 'def',
+                          ref: 'refs/heads/test',
+                          status: Task.statusSucceeded,
+                          buildNumber: 2,
+                          builderName: 'abc')
                     ],
                   });
       luciTasks.addAll(testLuciTasks);
