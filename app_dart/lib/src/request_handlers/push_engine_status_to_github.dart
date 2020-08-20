@@ -98,6 +98,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     return Body.empty;
   }
 
+  /// This function gets called with the last 40 builds fo a given builder ordered
+  /// by creation time starting with the last one first.
   String _getLatestStatus(List<LuciTask> tasks) {
     for (LuciTask task in tasks) {
       if (task.ref != 'refs/heads/master') {
