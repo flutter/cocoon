@@ -46,21 +46,23 @@ class Task extends Model {
   }
 
   // Represents a LUCI build.
-  Task.chromebot(
-    this.commitKey,
-    this.createTimestamp,
-    this.name,
-    this.isFlaky,
-  )   : assert(createTimestamp != null),
-        assert(name != null),
-        assert(isFlaky != null),
-        timeoutInMinutes = 0,
-        requiredCapabilities = <String>['can-update-github'],
-        stageName = 'chromebot' {
-    final Key key = commitKey?.append(Task);
-    parentKey = key?.parent;
-    id = key?.id;
-    status = Task.statusNew;
+  factory Task.chromebot(Key commitKey, int createTimestamp, String name, bool isFlaky) {
+    assert(commitKey != null);
+    assert(createTimestamp != null);
+    assert(name != null);
+    assert(isFlaky != null);
+
+    return Task(
+      key: commitKey.append(Task),
+      commitKey: commitKey,
+      createTimestamp: createTimestamp,
+      name: name,
+      isFlaky: isFlaky,
+      timeoutInMinutes: 0,
+      requiredCapabilities: <String>['can-update-github'],
+      stageName: 'chromebot',
+      status: Task.statusNew,
+    );
   }
 
   /// The task is yet to be run.
