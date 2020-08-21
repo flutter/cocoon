@@ -88,7 +88,6 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 ///
 /// Only `enabled` luci builders will be returned.
-// TODO(keyonghan): update non-type-safe Map<String, dynamic> to @JsonSeriablizable annotated class. https://github.com/flutter/flutter/issues/64286
 Future<List<LuciBuilder>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
   final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
