@@ -14,6 +14,8 @@ LuciBuilder _$LuciBuilderFromJson(Map<String, dynamic> json) {
     name: json['name'] as String,
     repo: json['repo'] as String,
     flaky: json['flaky'] as bool,
+    enabled: json['enabled'] as bool,
+    runIf: (json['run_if'] as List)?.map((e) => e as String)?.toList(),
     taskName: json['task_name'] as String,
   );
 }
@@ -30,6 +32,8 @@ Map<String, dynamic> _$LuciBuilderToJson(LuciBuilder instance) {
   writeNotNull('name', instance.name);
   writeNotNull('repo', instance.repo);
   val['flaky'] = instance.flaky;
+  val['enabled'] = instance.enabled;
+  val['run_if'] = instance.runIf;
   val['task_name'] = instance.taskName;
   return val;
 }

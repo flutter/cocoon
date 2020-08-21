@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -12,6 +11,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/request_handling/fake_http.dart';
@@ -123,11 +123,11 @@ void main() {
       });
       test('returns enabled luci builders', () async {
         lucBuilderHttpClient.request.response.body = luciBuilders;
-        final List<Map<String, dynamic>> builders =
+        final List<LuciBuilder> builders =
             await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
         expect(builders.length, 1);
-        expect(builders[0]['name'], 'Cocoon');
-        expect(builders[0]['repo'], 'cocoon');
+        expect(builders[0].name, 'Cocoon');
+        expect(builders[0].repo, 'cocoon');
       });
 
       test('returns empty list when http request fails', () async {
@@ -135,7 +135,7 @@ void main() {
         lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         lucBuilderHttpClient.request.response.body = luciBuilders;
-        final List<Map<String, dynamic>> builders =
+        final List<LuciBuilder> builders =
             await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
         expect(builders.length, 0);
       });
@@ -152,14 +152,14 @@ void main() {
 
     group('repoNameForBuilder', () {
       test('Builder config does not exist', () async {
-        final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[];
+        final List<LuciBuilder> builders = <LuciBuilder>[];
         final RepositorySlug result = await repoNameForBuilder(builders, 'DoesNotExist');
         expect(result, isNull);
       });
 
       test('Builder exists', () async {
-        final List<Map<String, dynamic>> builders = <Map<String, dynamic>>[
-          <String, String>{'name': 'Cocoon', 'repo': 'cocoon'}
+        final List<LuciBuilder> builders = <LuciBuilder>[
+          const LuciBuilder(name: 'Cocoon', repo: 'cocoon', flaky: false)
         ];
         final RepositorySlug result = await repoNameForBuilder(builders, 'Cocoon');
         expect(result, isNotNull);
@@ -184,62 +184,58 @@ void main() {
 
     group('getFilteredBuilders', () {
       List<String> files;
-      List<Map<String, dynamic>> builders;
+      List<LuciBuilder> builders;
 
       test('does not return builders when run_if does not match any file', () async {
-        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["d/"]}]')
-                as List<dynamic>)
-            .cast<Map<String, dynamic>>();
+        builders = <LuciBuilder>[
+          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['d/'])
+        ];
         files = <String>['a/b', 'c/d'];
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result.length, 0);
       });
 
       test('returns builders when run_if is null', () async {
         files = <String>['a/b', 'c/d'];
-        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true}]') as List<dynamic>)
-            .cast<Map<String, dynamic>>();
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        builders = <LuciBuilder>[const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true)];
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });
 
       test('returns builders when run_if matches files', () async {
         files = <String>['a/b', 'c/d'];
-        builders = (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/"]}]')
-                as List<dynamic>)
-            .cast<Map<String, dynamic>>();
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        builders = <LuciBuilder>[
+          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/'])
+        ];
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });
 
       test('returns builders when run_if matches files with **', () async {
-        builders =
-            (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/**"]}]')
-                    as List<dynamic>)
-                .cast<Map<String, dynamic>>();
+        builders = <LuciBuilder>[
+          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/**'])
+        ];
         files = <String>['a/b', 'c/d'];
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });
 
       test('returns builders when run_if matches files with both * and **', () async {
-        builders =
-            (json.decode('[{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/b*c/**"]}]')
-                    as List<dynamic>)
-                .cast<Map<String, dynamic>>();
+        builders = <LuciBuilder>[
+          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/b*c/**'])
+        ];
         files = <String>['a/baddsc/defg', 'c/d'];
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });
 
       test('returns correct builders when file and folder share the same name', () async {
-        builders = (json.decode('''
-                    [{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/b/"]},
-                     {"name": "jkl", "repo": "mno", "task_name": "pqr", "flaky": true, "run_if": ["a"]}]''')
-                as List<dynamic>)
-            .cast<Map<String, dynamic>>();
+        builders = <LuciBuilder>[
+          const LuciBuilder(name: 'abc', repo: 'def', taskName: 'ghi', flaky: true, runIf: <String>['a/b/']),
+          const LuciBuilder(name: 'jkl', repo: 'mno', taskName: 'pqr', flaky: true, runIf: <String>['a'])
+        ];
         files = <String>['a'];
-        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        final List<LuciBuilder> result = await getFilteredBuilders(builders, files);
         expect(result.length, 1);
         expect(result[0], builders[1]);
       });
