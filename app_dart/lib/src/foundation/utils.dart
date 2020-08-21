@@ -12,6 +12,7 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
 import '../foundation/typedefs.dart';
+import '../service/luci.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
 /// between requests when GitHub responds with an error.
@@ -69,12 +70,12 @@ Future<Uint8List> getBranches(
   return Uint8List.fromList(branches.join(',').codeUnits);
 }
 
-Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, String builderName) async {
-  final Map<String, dynamic> builderConfig = builders.firstWhere(
-    (Map<String, dynamic> builder) => builder['name'] == builderName,
-    orElse: () => <String, String>{'repo': ''},
+Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String builderName) async {
+  final LuciBuilder builderConfig = builders.firstWhere(
+    (LuciBuilder builder) => builder.name == builderName,
+    orElse: () => const LuciBuilder(repo: '', name: '', flaky: false),
   );
-  final String repoName = builderConfig['repo'] as String;
+  final String repoName = builderConfig.repo;
   // If there is no builder config for the builderName then we
   // return null. This is to allow the code calling this method
   // to skip changes that depend on builder configurations.
@@ -88,7 +89,7 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 ///
 /// Only `enabled` luci builders will be returned.
 // TODO(keyonghan): update non-type-safe Map<String, dynamic> to @JsonSeriablizable annotated class. https://github.com/flutter/flutter/issues/64286
-Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+Future<List<LuciBuilder>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
   final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
@@ -99,8 +100,8 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
   builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   return builderList
-      .map((dynamic builder) => builder as Map<String, dynamic>)
-      .where((Map<String, dynamic> element) => (element['enabled'] as bool) ?? true)
+      .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
+      .where((LuciBuilder element) => element.enabled ?? true)
       .toList();
 }
 
@@ -119,10 +120,10 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
 /// }
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
-Future<List<Map<String, dynamic>>> getFilteredBuilders(List<Map<String, dynamic>> builders, List<String> files) async {
-  final List<Map<String, dynamic>> filteredBuilders = <Map<String, dynamic>>[];
-  for (Map<String, dynamic> builder in builders) {
-    final List<String> globs = List<String>.from((builder['run_if'] as List<dynamic>) ?? <String>['']);
+Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<String> files) async {
+  final List<LuciBuilder> filteredBuilders = <LuciBuilder>[];
+  for (LuciBuilder builder in builders) {
+    final List<String> globs = builder.runIf ?? <String>[''];
     for (String glob in globs) {
       glob = glob.replaceAll('**', '[a-zA-Z_\/]?');
       glob = glob.replaceAll('*', '[a-zA-Z_\/]*');

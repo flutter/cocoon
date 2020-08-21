@@ -17,6 +17,7 @@ import '../foundation/utils.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import '../service/luci.dart';
 import 'buildbucket.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
@@ -149,13 +150,13 @@ class LuciBuildService {
       return false;
     }
 
-    final List<Map<String, dynamic>> builders = await config.getRepoLuciBuilders('try', slug.name);
+    final List<LuciBuilder> builders = await config.getRepoLuciBuilders('try', slug.name);
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final List<String> files = await githubService.listFiles(slug, prNumber);
-    final List<Map<String, dynamic>> filteredBuilders = await getFilteredBuilders(builders, files);
+    final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(builders, files);
     final List<String> builderNames = filteredBuilders
-        .where((Map<String, dynamic> builder) => builder['repo'] == slug.name)
-        .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
+        .where((LuciBuilder builder) => builder.repo == slug.name)
+        .map<String>((LuciBuilder builder) => builder.name)
         .toList();
     if (builderNames.isEmpty) {
       throw InternalServerError('${slug.name} does not have any builders');
@@ -247,12 +248,11 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<Map<String, dynamic>> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
+    final List<LuciBuilder> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final List<String> files = await githubService.listFiles(slug, prNumber);
-    final List<Map<String, dynamic>> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
-    final List<String> builderNames =
-        filteredBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
+    final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
+    final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
     return builds.values
         .where((Build build) => failStatusSet.contains(build.status) && builderNames.contains(build.builderId.builder))

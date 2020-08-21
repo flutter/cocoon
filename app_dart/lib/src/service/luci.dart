@@ -185,6 +185,8 @@ class LuciBuilder {
     @required this.name,
     @required this.repo,
     @required this.flaky,
+    this.enabled,
+    this.runIf,
     this.taskName,
   }) : assert(name != null);
 
@@ -203,6 +205,14 @@ class LuciBuilder {
   @JsonKey()
   final bool flaky;
 
+  /// Flag if this builder is enabled or not.
+  @JsonKey(name: 'enabled')
+  final bool enabled;
+
+  /// Globs to filter changed files to trigger builders.
+  @JsonKey(name: 'run_if')
+  final List<String> runIf;
+
   /// The name of the devicelab task associated with this builder.
   @JsonKey(name: 'task_name')
   final String taskName;
@@ -212,8 +222,7 @@ class LuciBuilder {
 
   /// Loads and returns the list of known builders from the Cocoon [config].
   static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
-    final List<dynamic> builders = await config.getRepoLuciBuilders('prod', repo);
-    return builders.map<LuciBuilder>((dynamic json) => LuciBuilder.fromJson(json as Map<String, dynamic>)).toList();
+    return await config.getRepoLuciBuilders('prod', repo);
   }
 }
 

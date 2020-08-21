@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -70,7 +71,7 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
     return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
   }
 

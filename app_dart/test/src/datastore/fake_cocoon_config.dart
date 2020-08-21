@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
@@ -14,6 +13,9 @@ import 'package:github/github.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
+
+import 'package:cocoon_service/src/service/luci.dart';
+
 import '../request_handling/fake_authentication.dart';
 import 'fake_datastore.dart';
 
@@ -230,23 +232,19 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getRepoLuciBuilders(String bucket, String repo) async {
+  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
     if (repo == 'flutter') {
-      return (json.decode('''[
-                  {"name": "Linux", "repo": "flutter" , "task_name": "linux_bot", "flaky": false},
-                  {"name": "Mac", "repo": "flutter", "task_name": "mac_bot", "flaky": false},
-                  {"name": "Windows", "repo": "flutter", "task_name": "windows_bot", "flaky": false},
-                  {"name": "Linux Coverage", "repo": "flutter", "task_name": "coverage_bot", "flaky": true}
-                  ]''') as List<dynamic>).cast<Map<String, dynamic>>();
+      return <LuciBuilder>[
+        const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
+        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
+        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
+        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
+      ];
     } else if (repo == 'cocoon') {
-      return (json.decode('[{"name": "Cocoon", "repo": "cocoon", "task_name": "cocoon_bot", "flaky": true}]')
-              as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      return <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)];
     } else if (repo == 'engine') {
-      return (json.decode('[{"name": "Linux", "repo": "$repo", "task_name": "coverage_bot", "flaky": true}]')
-              as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+      return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
-    return (json.decode('[]') as List<dynamic>).cast<Map<String, dynamic>>();
+    return <LuciBuilder>[];
   }
 }
