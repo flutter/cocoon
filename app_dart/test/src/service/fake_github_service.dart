@@ -4,7 +4,8 @@
 
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
+
+import '../utilities/mocks.dart';
 
 /// A fake GithubService implementation.
 class FakeGithubService implements GithubService {
@@ -23,6 +24,9 @@ class FakeGithubService implements GithubService {
   Future<List<PullRequest>> listPullRequests(RepositorySlug slug, String branch) async {
     return listPullRequestsBranch(branch);
   }
-}
 
-class MockGitHub extends Mock implements GitHub {}
+  @override
+  Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
+    return <String>['abc/def'];
+  }
+}

@@ -22,12 +22,13 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   group('githubWebhookPullRequest', () {
     GithubWebhook webhook;
-
+    FakeGithubService githubService;
     FakeHttpRequest request;
     FakeConfig config;
     MockGitHub gitHubClient;
@@ -49,9 +50,10 @@ void main() {
     }
 
     setUp(() async {
+      githubService = FakeGithubService();
       serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
       request = FakeHttpRequest();
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
       gitHubClient = MockGitHub();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();

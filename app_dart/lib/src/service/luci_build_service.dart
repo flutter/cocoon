@@ -8,10 +8,12 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../foundation/utils.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
@@ -148,7 +150,10 @@ class LuciBuildService {
     }
 
     final List<Map<String, dynamic>> builders = await config.getRepoLuciBuilders('try', slug.name);
-    final List<String> builderNames = builders
+    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
+    final List<String> files = await githubService.listFiles(slug, prNumber);
+    final List<Map<String, dynamic>> filteredBuilders = await getFilteredBuilders(builders, files);
+    final List<String> builderNames = filteredBuilders
         .where((Map<String, dynamic> builder) => builder['repo'] == slug.name)
         .map<String>((Map<String, dynamic> builder) => builder['name'] as String)
         .toList();
@@ -243,8 +248,11 @@ class LuciBuildService {
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
     final List<Map<String, dynamic>> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
+    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
+    final List<String> files = await githubService.listFiles(slug, prNumber);
+    final List<Map<String, dynamic>> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
     final List<String> builderNames =
-        luciTryBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
+        filteredBuilders.map((Map<String, dynamic> entry) => entry['name'] as String).toList();
     // Return only builds that exist in the configuration file.
     return builds.values
         .where((Build build) => failStatusSet.contains(build.status) && builderNames.contains(build.builderId.builder))
