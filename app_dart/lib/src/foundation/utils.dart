@@ -87,6 +87,7 @@ Future<RepositorySlug> repoNameForBuilder(List<Map<String, dynamic>> builders, S
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 ///
 /// Only `enabled` luci builders will be returned.
+// TODO(keyonghan): update non-type-safe Map<String, dynamic> to @JsonSeriablizable annotated class. https://github.com/flutter/flutter/issues/64286
 Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
   final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
@@ -114,20 +115,20 @@ Future<List<Map<String, dynamic>>> getRepoBuilders(HttpClientProvider branchHttp
 ///   "repo":"flutter",
 ///   "taskName":"zzz",
 ///   "enabled":true,
-///   "run_if":["a/b/", "c/d/**"]
+///   "run_if":["a/b/", "c/d_e/**", "f", "g*h/"]
 /// }
 ///
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<Map<String, dynamic>>> getFilteredBuilders(List<Map<String, dynamic>> builders, List<String> files) async {
   final List<Map<String, dynamic>> filteredBuilders = <Map<String, dynamic>>[];
   for (Map<String, dynamic> builder in builders) {
-    final List<String> dirs = List<String>.from((builder['run_if'] as List<dynamic>) ?? <String>['']);
-    for (String dir in dirs) {
-      dir = dir.replaceAll('**', '[a-zA-Z_\/]?');
-      dir = dir.replaceAll('*', '[a-zA-Z_\/]*');
+    final List<String> globs = List<String>.from((builder['run_if'] as List<dynamic>) ?? <String>['']);
+    for (String glob in globs) {
+      glob = glob.replaceAll('**', '[a-zA-Z_\/]?');
+      glob = glob.replaceAll('*', '[a-zA-Z_\/]*');
       // If a file is found within a pre-set dir, the builder needs to run. No need to check further.
-      final RegExp regExp = RegExp('^$dir');
-      if (dir.isEmpty || files.any((String file) => regExp.hasMatch(file))) {
+      final RegExp regExp = RegExp('^$glob');
+      if (glob.isEmpty || files.any((String file) => regExp.hasMatch(file))) {
         filteredBuilders.add(builder);
         break;
       }

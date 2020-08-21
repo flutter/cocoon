@@ -231,6 +231,18 @@ void main() {
         final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
         expect(result, builders);
       });
+
+      test('returns correct builders when file and folder share the same name', () async {
+        builders = (json.decode('''
+                    [{"name": "abc", "repo": "def", "task_name": "ghi", "flaky": true, "run_if": ["a/b/"]},
+                     {"name": "jkl", "repo": "mno", "task_name": "pqr", "flaky": true, "run_if": ["a"]}]''')
+                as List<dynamic>)
+            .cast<Map<String, dynamic>>();
+        files = <String>['a'];
+        final List<Map<String, dynamic>> result = await getFilteredBuilders(builders, files);
+        expect(result.length, 1);
+        expect(result[0], builders[1]);
+      });
     });
   });
 }
