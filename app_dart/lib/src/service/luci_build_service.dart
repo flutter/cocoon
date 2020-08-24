@@ -21,7 +21,7 @@ import '../service/luci.dart';
 import 'buildbucket.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
-/// and cancel builds for github repos. It uses [config.getRepoLuciBuilders] to
+/// and cancel builds for github repos. It uses [config.getLuciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
   LuciBuildService(this.config, this.buildBucketClient, this.serviceAccount, {GithubChecksUtil githubChecksUtil})
@@ -150,9 +150,9 @@ class LuciBuildService {
       return false;
     }
 
-    final List<LuciBuilder> builders = await config.getRepoLuciBuilders('try', slug.name);
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final List<String> files = await githubService.listFiles(slug, prNumber);
+    final List<LuciBuilder> builders = await config.getLuciTryBuilders(files, slug.name, commitSha);
     final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(builders, files);
     final List<String> builderNames = filteredBuilders
         .where((LuciBuilder builder) => builder.repo == slug.name)
@@ -248,9 +248,9 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final List<String> files = await githubService.listFiles(slug, prNumber);
+    final List<LuciBuilder> luciTryBuilders = await config.getLuciTryBuilders(files, slug.name, commitSha);
     final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
     final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.

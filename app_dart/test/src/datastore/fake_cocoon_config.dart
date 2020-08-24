@@ -232,7 +232,10 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
+  Future<List<LuciBuilder>> getLuciBuilders(String bucket, String repo, {String commitSha}) async {
+    if (commitSha != null) {
+      return <LuciBuilder>[const LuciBuilder(name: 'test', repo: 'cocoon', flaky: false)];
+    }
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
@@ -246,5 +249,14 @@ class FakeConfig implements Config {
       return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
     return <LuciBuilder>[];
+  }
+
+  @override
+  Future<List<LuciBuilder>> getLuciTryBuilders(List<String> files, String repo, String commitSha) async {
+    if (files.any((String file) => file.endsWith('try_builders.json'))) {
+      return await getLuciBuilders('try', repo, commitSha: commitSha);
+    } else {
+      return await getLuciBuilders('try', repo);
+    }
   }
 }

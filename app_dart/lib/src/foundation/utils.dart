@@ -89,8 +89,9 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 ///
 /// Only `enabled` luci builders will be returned.
 Future<List<LuciBuilder>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo) async {
-  final String filePath = repo == 'engine' ? '$repo/master/ci/dev/' : '$repo/master/dev/';
+    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo,
+    {String commitSha = 'master'}) async {
+  final String filePath = repo == 'engine' ? '$repo/$commitSha/ci/dev/' : '$repo/$commitSha/dev/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
   String builderContent =
       await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');

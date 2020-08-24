@@ -71,8 +71,18 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
-    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
+  Future<List<LuciBuilder>> getLuciBuilders(String bucket, String repo, {String commitSha}) async {
+    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo,
+        commitSha: commitSha);
+  }
+
+  // Trigger builds via updated try builder config file in commit rather than TOT if any changes.
+  Future<List<LuciBuilder>> getLuciTryBuilders(List<String> files, String repo, String commitSha) async {
+    if (files.any((String file) => file.endsWith('try_builders.json'))) {
+      return await getLuciBuilders('try', repo, commitSha: commitSha);
+    } else {
+      return await getLuciBuilders('try', repo);
+    }
   }
 
   Future<String> _getSingleValue(String id) async {

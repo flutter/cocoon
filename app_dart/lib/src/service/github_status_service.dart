@@ -30,9 +30,9 @@ class GithubStatusService {
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final List<String> files = await githubService.listFiles(slug, prNumber);
+    final List<LuciBuilder> luciTryBuilders = await config.getLuciTryBuilders(files, slug.name, commitSha);
     final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
     final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     for (bb.Build build in builds.values) {

@@ -4,9 +4,12 @@
 
 import 'dart:typed_data';
 
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:test/test.dart';
 
+import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/luci.dart';
+
+import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 
 void main() {
@@ -30,6 +33,27 @@ void main() {
       );
       final Map<String, dynamic> installation = await config.githubAppInstallations;
       expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
+    });
+  });
+
+  group('luciTryBuilders', () {
+    FakeConfig config;
+    setUp(() {
+      config = FakeConfig();
+    });
+    test('returns updated builders when there is a config file change in commit', () async {
+      final List<String> files = <String>['dev/try_builders.json'];
+      final List<LuciBuilder> luciBuilders = await config.getLuciTryBuilders(files, 'cocoon', 'test');
+
+      expect(luciBuilders, <LuciBuilder>[const LuciBuilder(name: 'test', repo: 'cocoon', flaky: false)]);
+    });
+
+    test('returns TOT builders when there is no config file change in commit', () async {
+      final List<String> files = <String>['a/b/c.d'];
+      final List<LuciBuilder> luciBuilders = await config.getLuciTryBuilders(files, 'cocoon', 'test');
+
+      expect(luciBuilders,
+          <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)]);
     });
   });
 }
