@@ -198,66 +198,6 @@ void main() {
       expect(task.status, Task.statusSucceeded);
     });
 
-    test('do not update task attempts when task is not finished, even though status changes', () async {
-      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
-      config.db.values[commit.key] = commit;
-      config.db.values[task.key] = task;
-
-      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getProdBuilders('flutter', config),
-              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
-              value: (dynamic builder) => <String, List<LuciTask>>{
-                    'abc': <LuciTask>[
-                      const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusInProgress,
-                          buildNumber: 1,
-                          builderName: 'abc')
-                    ],
-                  });
-      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
-          .thenAnswer((Invocation invocation) {
-        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
-      });
-
-      expect(task.attempts, 0);
-      await tester.get(handler);
-      expect(task.attempts, 0);
-    });
-
-    test('update task attempts when task finishes with a different status', () async {
-      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
-      config.db.values[commit.key] = commit;
-      config.db.values[task.key] = task;
-
-      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-              await LuciBuilder.getProdBuilders('flutter', config),
-              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
-              value: (dynamic builder) => <String, List<LuciTask>>{
-                    'abc': <LuciTask>[
-                      const LuciTask(
-                          commitSha: 'abc',
-                          ref: 'refs/heads/master',
-                          status: Task.statusSucceeded,
-                          buildNumber: 1,
-                          builderName: 'abc')
-                    ],
-                  });
-      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
-          .thenAnswer((Invocation invocation) {
-        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
-      });
-
-      expect(task.attempts, 0);
-      await tester.get(handler);
-      expect(task.attempts, 1);
-    });
-
     test('update task status with latest status when multilple reruns exist', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');

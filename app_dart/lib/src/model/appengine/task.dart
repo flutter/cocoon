@@ -62,6 +62,7 @@ class Task extends Model {
       requiredCapabilities: <String>['can-update-github'],
       stageName: 'chromebot',
       status: Task.statusNew,
+      attempts: 1,
     );
   }
 

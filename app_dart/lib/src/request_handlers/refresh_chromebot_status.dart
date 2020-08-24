@@ -89,9 +89,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           update.buildNumberList = buildNumberList;
           update.builderName = builder.name;
           update.luciBucket = 'luci.flutter.prod';
-          if (luciTasks.last.status == Task.statusFailed || luciTasks.last.status == Task.statusSucceeded) {
-            update.attempts += 1;
-          }
           await datastore.insert(<Task>[update]);
         }
       }
