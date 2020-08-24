@@ -148,7 +148,9 @@ class GithubChecksService {
   github.CheckRunConclusion conclusionForResult(push_message.Result result) {
     switch (result) {
       case push_message.Result.canceled:
-        return github.CheckRunConclusion.cancelled;
+        // Set conclusion cancelled as a failure to ensure developers can retry
+        // tasks when builds timeout.
+        return github.CheckRunConclusion.failure;
       case push_message.Result.failure:
         return github.CheckRunConclusion.failure;
       case push_message.Result.success:
