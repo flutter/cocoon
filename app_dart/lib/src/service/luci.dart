@@ -222,7 +222,7 @@ class LuciBuilder {
 
   /// Loads and returns the list of known builders from the Cocoon [config].
   static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
-    return await config.getRepoLuciBuilders('prod', repo);
+    return await config.getLuciBuilders('prod', repo);
   }
 }
 

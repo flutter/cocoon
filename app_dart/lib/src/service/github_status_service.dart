@@ -57,7 +57,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.getLuciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
@@ -99,7 +99,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.getLuciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
