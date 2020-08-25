@@ -90,8 +90,31 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
           update.builderName = builder.name;
           update.luciBucket = 'luci.flutter.prod';
           await datastore.insert(<Task>[update]);
+          // Save luci task record to BigQuery only when task finishes.
+          if (update.status == Task.statusFailed || update.status == Task.statusSucceeded) {
+            await _insertBigquery(update);
+          }
         }
       }
     }
+  }
+
+  Future<void> _insertBigquery(Task task) async {
+    const String bigqueryTableName = 'Task';
+    final Map<String, dynamic> bigqueryData = <String, dynamic>{
+      'ID': task.commitKey.id,
+      'CreateTimestamp': task.createTimestamp,
+      'StartTimestamp': task.startTimestamp,
+      'EndTimestamp': task.endTimestamp,
+      'Name': task.name,
+      'Attempts': task.attempts,
+      'IsFlaky': task.isFlaky,
+      'TimeoutInMinutes': task.timeoutInMinutes,
+      'RequiredCapabilities': task.requiredCapabilities,
+      'ReservedForAgentID': task.reservedForAgentId,
+      'StageName': task.stageName,
+      'Status': task.status,
+    };
+    await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
   }
 }

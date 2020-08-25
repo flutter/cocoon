@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -12,6 +13,7 @@ import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dar
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 
+import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
@@ -25,12 +27,14 @@ void main() {
     MockLuciService mockLuciService;
     RefreshChromebotStatus handler;
     FakeHttpClient branchHttpClient;
+    FakeTabledataResourceApi tabledataResourceApi;
 
     setUp(() {
       branchHttpClient = FakeHttpClient();
       config = FakeConfig();
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
+      tabledataResourceApi = FakeTabledataResourceApi();
       handler = RefreshChromebotStatus(
         config,
         FakeAuthenticationProvider(),
@@ -43,7 +47,7 @@ void main() {
 
     test('do not update task status when SHA does not match', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -78,6 +82,7 @@ void main() {
       );
       final Task task = Task(
         key: commit.key.append(Task, id: 123),
+        commitKey: commit.key,
         status: Task.statusNew,
       );
       config.db.values[commit.key] = commit;
@@ -109,7 +114,7 @@ void main() {
 
     test('do not update task status when branch does not match', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
       final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
@@ -137,8 +142,9 @@ void main() {
     });
 
     test('update task status and buildNumber when buildNumberList does not match', () async {
+      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew);
+      final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -168,9 +174,42 @@ void main() {
       expect(task.buildNumberList, '1');
     });
 
-    test('update task status and buildNumber when status does not match', () async {
+    test('save data to BigQuery when task finishes', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
+      final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+      config.tabledataResourceApi = tabledataResourceApi;
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+
+      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
+              await LuciBuilder.getProdBuilders('flutter', config),
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
+              value: (dynamic builder) => <String, List<LuciTask>>{
+                    'abc': <LuciTask>[
+                      const LuciTask(
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 1,
+                          builderName: 'abc')
+                    ],
+                  });
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+          .thenAnswer((Invocation invocation) {
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
+      });
+
+      await tester.get(handler);
+      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
+      expect(tableDataList.totalRows, '1');
+    });
+
+    test('update task status and buildNumber when status does not match', () async {
+      config.tabledataResourceApi = tabledataResourceApi;
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(
+          key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -199,8 +238,10 @@ void main() {
     });
 
     test('update task status with latest status when multilple reruns exist', () async {
+      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-      final Task task = Task(key: commit.key.append(Task, id: 123), status: Task.statusNew, buildNumberList: '1');
+      final Task task = Task(
+          key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -236,8 +277,9 @@ void main() {
     });
 
     test('update task status for non master branch', () async {
+      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
-      final Task task = Task(key: commit.key.append(Task, id: 456), status: Task.statusNew);
+      final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
