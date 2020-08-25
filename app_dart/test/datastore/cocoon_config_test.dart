@@ -47,9 +47,8 @@ void main() {
       final List<String> files = <String>['dev/try_builders.json'];
       final List<LuciBuilder> luciBuilders = await config.getLuciTryBuilders(files, 'cocoon', 'test');
 
-      expect(luciBuilders, <LuciBuilder>[
-        const LuciBuilder(name: 'Cocoon_test', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)
-      ]);
+      expect(luciBuilders,
+          <LuciBuilder>[const LuciBuilder(name: 'Cocoon_test', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)]);
     });
 
     test('returns TOT builders when there is no config file change in commit', () async {
