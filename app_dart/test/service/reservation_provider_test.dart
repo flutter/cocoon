@@ -52,7 +52,7 @@ void main() {
     test('retries until reservation can be secured', () async {
       final Task task = Task(name: 'foo_test');
       final Commit commit = Commit(sha: 'abc');
-      when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
+      when(taskService.findNextTask(agent, config)).thenAnswer((Invocation invocation) {
         return Future<FullTask>.value(FullTask(task, commit));
       });
       int reservationAttempt = 0;
@@ -73,7 +73,7 @@ void main() {
       expect(response.task.name, 'foo_test');
       expect(response.commit.sha, 'abc');
       expect(response.accessToken.data, 'data');
-      verify(taskService.findNextTask(agent)).called(2);
+      verify(taskService.findNextTask(agent, config)).called(2);
       verify(reservationService.secureReservation(task, 'aid')).called(2);
       verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).called(1);
     });
