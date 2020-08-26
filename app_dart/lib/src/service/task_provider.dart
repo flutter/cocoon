@@ -30,8 +30,7 @@ class TaskService {
     FullTask fullTask;
     // Reserve release branch tasks first, and only need to scan tasks from the latest commit.
     final List<String> branches = await config.flutterBranches;
-    branches.remove('master');
-    for (String branch in branches) {
+    for (String branch in branches.where((String branch) => branch != 'master')) {
       await for (Commit commit in datastore.queryRecentCommits(branch: branch, limit: 1)) {
         fullTask = await _findNextTask(commit, agent);
         if (fullTask != null) {
