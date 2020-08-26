@@ -236,6 +236,9 @@ class FakeConfig implements Config {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
+        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
+        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
+        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
       ];
     } else if (repo == 'engine') {
       return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
