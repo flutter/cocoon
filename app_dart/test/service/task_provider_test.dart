@@ -134,7 +134,8 @@ void main() {
         setTaskResults(<Task>[
           newTask(),
         ]);
-        final Commit releaseCommit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'flutter-0.0-candidate.0');
+        final Commit releaseCommit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'flutter-0.0-candidate.0');
         config.db.values[releaseCommit.key] = releaseCommit;
         final FullTask result = await taskService.findNextTask(agent, config);
         expect(result.commit.branch, 'flutter-0.0-candidate.0');
