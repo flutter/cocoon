@@ -20,7 +20,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stageName, taskName, 'abc'),
+            qualifiedTask: QualifiedTask(stage: stageName, task: taskName),
           ),
         ),
       ),
@@ -42,7 +42,7 @@ void main() {
     final List<MethodCall> log = <MethodCall>[];
     urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
 
-    const QualifiedTask devicelabTask = QualifiedTask('devicelab', 'test', null);
+    const QualifiedTask devicelabTask = QualifiedTask(stage: 'devicelab', task: 'test');
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -79,7 +79,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask('stage not to be named', 'macbeth', null),
+            qualifiedTask: QualifiedTask(stage: 'stage not to be named', task: 'macbeth'),
           ),
         ),
       ),
@@ -93,7 +93,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask('cirrus', 'task', null),
+            qualifiedTask: QualifiedTask(stage: 'cirrus', task: 'task'),
           ),
         ),
       ),
@@ -108,7 +108,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask('devicelab', 'task', null),
+            qualifiedTask: QualifiedTask(stage: 'devicelab', task: 'task'),
           ),
         ),
       ),
@@ -123,7 +123,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask('devicelab_win', 'task', null),
+            qualifiedTask: QualifiedTask(stage: 'devicelab_win', task: 'task'),
           ),
         ),
       ),

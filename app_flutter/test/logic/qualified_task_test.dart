@@ -63,8 +63,8 @@ void main() {
   });
 
   test('QualifiedTask.isDevicelab', () {
-    expect(const QualifiedTask('devicelab', 'abc', null).isDevicelab, true);
-    expect(const QualifiedTask('devicelab_win', 'abc', null).isDevicelab, true);
-    expect(const QualifiedTask('cirrus', 'abc', null).isDevicelab, false);
+    expect(const QualifiedTask(stage: 'devicelab', task: 'abc').isDevicelab, true);
+    expect(const QualifiedTask(stage: 'devicelab_win', task: 'abc').isDevicelab, true);
+    expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isDevicelab, false);
   });
 }

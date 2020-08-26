@@ -25,7 +25,7 @@ const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask(this.stage, this.task, this.builder);
+  const QualifiedTask({this.stage, this.task, this.builder});
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
