@@ -210,9 +210,11 @@ class AgentHealth {
   bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
 
   /// Whether all [checks] needed for a local run (not CI) succeeded.
-  bool get okLocalTesting => checks.isNotEmpty && checks.entries.every((MapEntry<String,HealthCheckResult> element) {
-    return (element.key == 'cocoon-authentication' || element.value.succeeded);
-  });
+  bool get okLocalTesting =>
+      checks.isNotEmpty &&
+      checks.entries.every((MapEntry<String, HealthCheckResult> element) {
+        return (element.key == 'cocoon-authentication' || element.value.succeeded);
+      });
 
   /// Sets a health check [result] for a given [parameter].
   void operator []=(String parameter, HealthCheckResult result) {
