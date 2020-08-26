@@ -25,14 +25,16 @@ const String _luciUrl = 'https://ci.chromium.org/p/flutter';
 
 @immutable
 class QualifiedTask {
-  const QualifiedTask(this.stage, this.task);
+  const QualifiedTask(this.stage, this.task, this.builder);
 
   QualifiedTask.fromTask(Task task)
       : stage = task.stageName,
-        task = task.name;
+        task = task.name,
+        builder = task.builderName;
 
   final String stage;
   final String task;
+  final String builder;
 
   /// Get the URL for the configuration of this task.
   ///
@@ -54,21 +56,9 @@ class QualifiedTask {
       case StageName.cirrus:
         return '$_cirrusUrl/master';
       case StageName.luci:
-        return _luciSourceConfigurationUrl;
+        return '$_luciUrl/builders/luci.flutter.prod/$builder';
     }
     throw Exception('Failed to get source configuration url for $stage.');
-  }
-
-  String get _luciSourceConfigurationUrl {
-    switch (task) {
-      case 'mac_bot':
-        return '$_luciUrl/builders/luci.flutter.prod/Mac';
-      case 'linux_bot':
-        return '$_luciUrl/builders/luci.flutter.prod/Linux';
-      case 'windows_bot':
-        return '$_luciUrl/builders/luci.flutter.prod/Windows';
-    }
-    return _luciUrl;
   }
 
   /// Whether this task is run in the devicelab or not.
