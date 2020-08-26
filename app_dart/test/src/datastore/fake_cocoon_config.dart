@@ -53,10 +53,6 @@ class FakeConfig implements Config {
     this.flutterGoldInitialAlertValue,
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
-    this.cocoonTryBuilderValueTot =
-        const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true),
-    this.cocoonTryBuilderValueCommit =
-        const LuciBuilder(name: 'Cocoon_test', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true),
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -94,9 +90,6 @@ class FakeConfig implements Config {
   String flutterGoldInitialAlertValue;
   String flutterGoldFollowUpAlertValue;
   String flutterGoldDraftChangeValue;
-  LuciBuilder cocoonTryBuilderValueTot =
-      const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true);
-  LuciBuilder cocoonTryBuilderValueCommit;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -239,19 +232,11 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> getLuciBuilders(String bucket, String repo, {String commitSha}) async {
-    if (commitSha != null) {
-      return <LuciBuilder>[cocoonTryBuilderValueCommit];
-    }
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
-        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
-        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
-        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
       ];
-    } else if (repo == 'cocoon') {
-      return <LuciBuilder>[cocoonTryBuilderValueTot];
     } else if (repo == 'engine') {
       return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
@@ -259,11 +244,19 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> getLuciTryBuilders(List<String> files, String repo, String commitSha) async {
-    if (files.any((String file) => file.endsWith('try_builders.json'))) {
-      return await getLuciBuilders('try', repo, commitSha: commitSha);
-    } else {
-      return await getLuciBuilders('try', repo);
+  Future<List<LuciBuilder>> luciTryBuilders(String commitSha, RepositorySlug slug, int prNumber) async {
+    if (slug.name == 'flutter') {
+      return <LuciBuilder>[
+        const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
+        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
+        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
+        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
+      ];
+    } else if (slug.name == 'cocoon') {
+      return <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)];
+    } else if (slug.name == 'engine') {
+      return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
+    return <LuciBuilder>[];
   }
 }

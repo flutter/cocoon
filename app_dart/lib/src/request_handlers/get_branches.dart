@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/src/service/luci.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -20,8 +22,9 @@ class GetBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final List<String> branches = await config.flutterBranches;
+    //final List<String> branches = await config.flutterBranches;
+    final List<LuciBuilder> branches = await config.luciTryBuilders('14da93959b5c8063ae01b0e51a3847aec75d986a', RepositorySlug('flutter', 'flutter'), 64609);
 
-    return Body.forJson(<String, List<String>>{'Branches': branches});
+    return Body.forJson(<String, List<LuciBuilder>>{'Branches': branches});
   }
 }

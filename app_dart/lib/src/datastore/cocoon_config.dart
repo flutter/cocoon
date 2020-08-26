@@ -71,18 +71,17 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  Future<List<LuciBuilder>> getLuciBuilders(String bucket, String repo, {String commitSha}) async {
-    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo,
-        commitSha: commitSha);
+  /// Returns `try` or `prod` LUCI builders from TOT for [repo].
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo) async {
+    return await getLuciBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
   }
 
-  // Trigger builds via updated try builder config file in commit rather than TOT if any changes.
-  Future<List<LuciBuilder>> getLuciTryBuilders(List<String> files, String repo, String commitSha) async {
-    if (files.any((String file) => file.endsWith('try_builders.json'))) {
-      return await getLuciBuilders('try', repo, commitSha: commitSha);
-    } else {
-      return await getLuciBuilders('try', repo);
-    }
+  /// Returns LUCI try builders based on try_builders.json config file in the corresponding [commitSha], and
+  /// also based on filtering changed files in [prNumber] via property [run_if] in each config.
+  Future<List<LuciBuilder>> luciTryBuilders(String commitSha, RepositorySlug slug, int prNumber) async {
+    final GithubService githubService = await createGithubService(slug.owner, slug.name);
+    return await getLuciTryBuilders(
+        githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService, slug, prNumber, commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

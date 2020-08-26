@@ -12,6 +12,7 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
 import '../foundation/typedefs.dart';
+import '../service/github_service.dart';
 import '../service/luci.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -88,13 +89,13 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 ///
 /// Only `enabled` luci builders will be returned.
-Future<List<LuciBuilder>> getRepoBuilders(HttpClientProvider branchHttpClientProvider, Logging log,
+Future<List<LuciBuilder>> getLuciBuilders(HttpClientProvider luciHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo,
     {String commitSha = 'master'}) async {
   final String filePath = repo == 'engine' ? '$repo/$commitSha/ci/dev/' : '$repo/$commitSha/dev/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
   String builderContent =
-      await remoteFileContent(branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
+      await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
   builderContent ??= '{"builders":[]}';
   Map<String, dynamic> builderMap;
   builderMap = json.decode(builderContent) as Map<String, dynamic>;
@@ -103,6 +104,24 @@ Future<List<LuciBuilder>> getRepoBuilders(HttpClientProvider branchHttpClientPro
       .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
       .where((LuciBuilder element) => element.enabled ?? true)
       .toList();
+}
+
+/// First gets luci try builders from any commit.
+///
+/// Returns luci try builders by filtering `run_if` property over changed files.
+Future<List<LuciBuilder>> getLuciTryBuilders(
+    GithubService githubService,
+    HttpClientProvider luciHttpClientProvider,
+    GitHubBackoffCalculator gitHubBackoffCalculator,
+    Logging log,
+    RepositorySlug slug,
+    int prNumber,
+    String commitSha) async {
+  final List<String> files = await githubService.listFiles(slug, prNumber);
+  final List<LuciBuilder> builders = await getLuciBuilders(
+      luciHttpClientProvider, log, twoSecondLinearBackoff, 'try', slug.name,
+      commitSha: commitSha);
+  return await getFilteredBuilders(builders, files);
 }
 
 /// Returns a LUCI [builder] list that covers changed [files].

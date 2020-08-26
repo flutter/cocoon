@@ -113,18 +113,18 @@ void main() {
       });
     });
 
-    group('GetRepoBuilders', () {
-      FakeHttpClient lucBuilderHttpClient;
+    group('GetLuciBuilders', () {
+      FakeHttpClient luciBuilderHttpClient;
       FakeLogging log;
 
       setUp(() {
-        lucBuilderHttpClient = FakeHttpClient();
+        luciBuilderHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
       test('returns enabled luci builders', () async {
-        lucBuilderHttpClient.request.response.body = luciBuilders;
+        luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders =
-            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
+            await getLuciBuilders(() => luciBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
         expect(builders.length, 1);
         expect(builders[0].name, 'Cocoon');
         expect(builders[0].repo, 'cocoon');
@@ -132,11 +132,11 @@ void main() {
 
       test('returns empty list when http request fails', () async {
         int retry = 0;
-        lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-        lucBuilderHttpClient.request.response.body = luciBuilders;
+        luciBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        luciBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders =
-            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
+            await getLuciBuilders(() => luciBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
         expect(builders.length, 0);
       });
     });
