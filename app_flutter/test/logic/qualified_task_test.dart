@@ -12,9 +12,10 @@ void main() {
   test('logUrl() for external tasks redirects to source configuration', () {
     final Task luciTask = Task()
       ..stageName = 'chromebot'
-      ..name = 'mac_bot';
+      ..name = 'abc'
+      ..builderName = 'def';
 
-    expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+    expect(logUrl(luciTask), 'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def');
     final Task cirrusTask = Task()..stageName = 'cirrus';
 
     expect(
@@ -47,10 +48,11 @@ void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
     final Task luciTask = Task()
       ..stageName = 'chromebot'
-      ..name = 'mac_bot';
+      ..name = 'abc'
+      ..builderName = 'def';
 
     expect(QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
-        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/Mac');
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def');
   });
 
   test('QualifiedTask.sourceConfigurationUrl for cirrus', () {
@@ -61,8 +63,8 @@ void main() {
   });
 
   test('QualifiedTask.isDevicelab', () {
-    expect(const QualifiedTask('devicelab', 'abc').isDevicelab, true);
-    expect(const QualifiedTask('devicelab_win', 'abc').isDevicelab, true);
-    expect(const QualifiedTask('cirrus', 'abc').isDevicelab, false);
+    expect(const QualifiedTask(stage: 'devicelab', task: 'abc').isDevicelab, true);
+    expect(const QualifiedTask(stage: 'devicelab_win', task: 'abc').isDevicelab, true);
+    expect(const QualifiedTask(stage: 'cirrus', task: 'abc').isDevicelab, false);
   });
 }
