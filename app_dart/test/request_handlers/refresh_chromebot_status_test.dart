@@ -31,10 +31,10 @@ void main() {
 
     setUp(() {
       branchHttpClient = FakeHttpClient();
-      config = FakeConfig();
+      tabledataResourceApi = FakeTabledataResourceApi();
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
-      tabledataResourceApi = FakeTabledataResourceApi();
       handler = RefreshChromebotStatus(
         config,
         FakeAuthenticationProvider(),
@@ -142,7 +142,6 @@ void main() {
     });
 
     test('update task status and buildNumber when buildNumberList does not match', () async {
-      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
@@ -177,7 +176,6 @@ void main() {
     test('save data to BigQuery when task finishes', () async {
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
-      config.tabledataResourceApi = tabledataResourceApi;
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -206,7 +204,6 @@ void main() {
     });
 
     test('update task status and buildNumber when status does not match', () async {
-      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(
           key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
@@ -238,7 +235,6 @@ void main() {
     });
 
     test('update task status with latest status when multilple reruns exist', () async {
-      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
       final Task task = Task(
           key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
@@ -277,7 +273,6 @@ void main() {
     });
 
     test('update task status for non master branch', () async {
-      config.tabledataResourceApi = tabledataResourceApi;
       final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
       final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
       config.db.values[commit.key] = commit;
