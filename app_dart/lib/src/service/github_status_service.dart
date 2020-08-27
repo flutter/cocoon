@@ -29,7 +29,8 @@ class GithubStatusService {
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> builders = await config.luciTryBuilders(commitSha, slug, prNumber);
+    final List<LuciBuilder> builders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.

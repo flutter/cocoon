@@ -232,7 +232,7 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo) async {
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
@@ -240,24 +240,9 @@ class FakeConfig implements Config {
         const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
         const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
       ];
-    } else if (repo == 'engine') {
-      return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
-    }
-    return <LuciBuilder>[];
-  }
-
-  @override
-  Future<List<LuciBuilder>> luciTryBuilders(String commitSha, RepositorySlug slug, int prNumber) async {
-    if (slug.name == 'flutter') {
-      return <LuciBuilder>[
-        const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
-        const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
-        const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
-        const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
-      ];
-    } else if (slug.name == 'cocoon') {
+    } else if (repo == 'cocoon') {
       return <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)];
-    } else if (slug.name == 'engine') {
+    } else if (repo == 'engine') {
       return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
     return <LuciBuilder>[];

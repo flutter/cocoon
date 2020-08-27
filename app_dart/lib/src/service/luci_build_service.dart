@@ -148,7 +148,8 @@ class LuciBuildService {
       return false;
     }
 
-    final List<LuciBuilder> builders = await config.luciTryBuilders(commitSha, slug, prNumber);
+    final List<LuciBuilder> builders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders
         .where((LuciBuilder builder) => builder.repo == slug.name)
         .map<String>((LuciBuilder builder) => builder.name)
@@ -243,7 +244,8 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> filteredBuilders = await config.luciTryBuilders(commitSha, slug, prNumber);
+    final List<LuciBuilder> filteredBuilders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
     return builds.values

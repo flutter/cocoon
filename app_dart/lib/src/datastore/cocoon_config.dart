@@ -71,17 +71,12 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  /// Returns `try` or `prod` LUCI builders from TOT for [repo].
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo) async {
-    return await getLuciBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
-  }
-
-  /// Returns LUCI try builders based on try_builders.json config file in the corresponding [commitSha], and
-  /// also based on filtering changed files in [prNumber] via property [run_if] in each config.
-  Future<List<LuciBuilder>> luciTryBuilders(String commitSha, RepositorySlug slug, int prNumber) async {
-    final GithubService githubService = await createGithubService(slug.owner, slug.name);
-    return await getLuciTryBuilders(
-        githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService, slug, prNumber, commitSha);
+  // Returns LUCI builders based on [bucket].
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
+    final GithubService githubService = await createGithubService('flutter', repo);
+    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
+        RepositorySlug('flutter', repo), bucket,
+        prNumber: prNumber, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

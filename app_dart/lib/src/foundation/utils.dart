@@ -89,7 +89,7 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 /// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
 ///
 /// Only `enabled` luci builders will be returned.
-Future<List<LuciBuilder>> getLuciBuilders(HttpClientProvider luciHttpClientProvider, Logging log,
+Future<List<LuciBuilder>> getLuciBucketBuilders(HttpClientProvider luciHttpClientProvider, Logging log,
     GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo,
     {String commitSha = 'master'}) async {
   final String filePath = repo == 'engine' ? '$repo/$commitSha/ci/dev/' : '$repo/$commitSha/dev/';
@@ -106,21 +106,24 @@ Future<List<LuciBuilder>> getLuciBuilders(HttpClientProvider luciHttpClientProvi
       .toList();
 }
 
-/// First gets luci try builders from any commit.
+/// Returns LUCI builders based on [bucket].
 ///
-/// Returns luci try builders by filtering `run_if` property over changed files.
-Future<List<LuciBuilder>> getLuciTryBuilders(
-    GithubService githubService,
-    HttpClientProvider luciHttpClientProvider,
-    GitHubBackoffCalculator gitHubBackoffCalculator,
-    Logging log,
-    RepositorySlug slug,
-    int prNumber,
-    String commitSha) async {
-  final List<String> files = await githubService.listFiles(slug, prNumber);
-  final List<LuciBuilder> builders = await getLuciBuilders(
-      luciHttpClientProvider, log, twoSecondLinearBackoff, 'try', slug.name,
+/// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
+/// the corresponding [commitSha], and also based on filtering changed files in [prNumber] via property
+/// [run_if] in each config.
+///
+/// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
+Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
+    GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
+    {int prNumber, String commitSha}) async {
+  if (bucket == 'prod' || commitSha == null) {
+    return await getLuciBucketBuilders(luciHttpClientProvider, log, twoSecondLinearBackoff, bucket, slug.name);
+  }
+
+  final List<LuciBuilder> builders = await getLuciBucketBuilders(
+      luciHttpClientProvider, log, twoSecondLinearBackoff, bucket, slug.name,
       commitSha: commitSha);
+  final List<String> files = await githubService.listFiles(slug, prNumber);
   return await getFilteredBuilders(builders, files);
 }
 
