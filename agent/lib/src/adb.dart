@@ -295,6 +295,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<Device>> discoverDevices({int retriesDelayMs = 10000}) async {
+    // Warm up device list. This is to ensure slow devices are discovered.
+    // https://github.com/flutter/flutter/issues/64753
+    await eval('xcrun', ['xcdevice', 'list', '--timeout', '10']);
     List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', ['-l'])).toList();
     if (iosDeviceIds.isEmpty) throw 'No connected iOS devices found.';
     return iosDeviceIds.map((String id) => IosDevice(deviceId: id)).toList();
