@@ -105,7 +105,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       'ID': task.commitKey.id,
       'CreateTimestamp': task.createTimestamp,
       'StartTimestamp': task.startTimestamp,
-      'EndTimestamp': task.endTimestamp,
+      'EndTimestamp': DateTime.now().millisecondsSinceEpoch,
       'Name': task.name,
       'Attempts': task.attempts,
       'IsFlaky': task.isFlaky,
