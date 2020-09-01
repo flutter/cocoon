@@ -73,20 +73,20 @@ void main() {
       });
 
       test('returns empty response if no task available', () async {
-        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent, config)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(null);
         });
         final ReserveTaskResponse response = await tester.post(handler);
         expect(response.task, isNull);
         expect(response.commit, isNull);
         expect(response.accessToken, isNull);
-        verify(taskService.findNextTask(agent)).called(1);
+        verify(taskService.findNextTask(agent, config)).called(1);
       });
 
       test('returns full response if task is available', () async {
         final Task task = Task(name: 'foo_test');
         final Commit commit = Commit(sha: 'abc');
-        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent, config)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(FullTask(task, commit));
         });
         when(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).thenAnswer((Invocation invocation) {
@@ -96,7 +96,7 @@ void main() {
         expect(response.task.name, 'foo_test');
         expect(response.commit.sha, 'abc');
         expect(response.accessToken.data, 'data');
-        verify(taskService.findNextTask(agent)).called(1);
+        verify(taskService.findNextTask(agent, config)).called(1);
         verify(reservationService.secureReservation(task, 'aid')).called(1);
         verify(accessTokenService.createAccessToken(scopes: anyNamed('scopes'))).called(1);
       });
@@ -104,14 +104,14 @@ void main() {
       test('Looks up agent if not provided in the context', () async {
         tester.context = FakeAuthenticatedContext();
         config.db.values[agent.key] = agent;
-        when(taskService.findNextTask(agent)).thenAnswer((Invocation invocation) {
+        when(taskService.findNextTask(agent, config)).thenAnswer((Invocation invocation) {
           return Future<FullTask>.value(null);
         });
         final ReserveTaskResponse response = await tester.post(handler);
         expect(response.task, isNull);
         expect(response.commit, isNull);
         expect(response.accessToken, isNull);
-        verify(taskService.findNextTask(agent)).called(1);
+        verify(taskService.findNextTask(agent, config)).called(1);
       });
     });
   });

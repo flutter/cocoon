@@ -69,7 +69,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
 
     const int maxAttempts = 3;
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
-      final FullTask task = await taskService.findNextTask(agent);
+      final FullTask task = await taskService.findNextTask(agent, config);
 
       if (task == null) {
         return const ReserveTaskResponse.empty();

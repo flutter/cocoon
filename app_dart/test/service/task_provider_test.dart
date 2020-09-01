@@ -46,7 +46,8 @@ void main() {
     });
 
     test('if no commits in query returns null', () async {
-      expect(await taskService.findNextTask(agent), isNull);
+      config.flutterBranchesValue = <String>['master'];
+      expect(await taskService.findNextTask(agent, config), isNull);
     });
 
     group('if commits in query', () {
@@ -58,20 +59,21 @@ void main() {
 
       setUp(() {
         config.db.values[commit.key] = commit;
+        config.flutterBranchesValue = <String>['master'];
       });
 
       test('throws if task has no required capabilities', () async {
         setTaskResults(<Task>[
           newTask()..requiredCapabilities.clear(),
         ]);
-        expect(taskService.findNextTask(agent), throwsA(isA<InvalidTaskException>()));
+        expect(taskService.findNextTask(agent, config), throwsA(isA<InvalidTaskException>()));
       });
 
       test('returns available task', () async {
         setTaskResults(<Task>[
           newTask()..name = 'a',
         ]);
-        final FullTask result = await taskService.findNextTask(agent);
+        final FullTask result = await taskService.findNextTask(agent, config);
         expect(result.task.name, 'a');
         expect(result.commit, commit);
       });
@@ -80,14 +82,14 @@ void main() {
         setTaskResults(<Task>[
           newTask()..requiredCapabilities[0] = 'mac/ios',
         ]);
-        expect(await taskService.findNextTask(agent), isNull);
+        expect(await taskService.findNextTask(agent, config), isNull);
       });
 
       test('skips tasks that are not managed by devicelab', () async {
         setTaskResults(<Task>[
           newTask()..stageName = 'cirrus',
         ]);
-        expect(await taskService.findNextTask(agent), isNull);
+        expect(await taskService.findNextTask(agent, config), isNull);
       });
 
       test('only considers tasks with status "new"', () async {
@@ -96,7 +98,7 @@ void main() {
           newTask()..status = Task.statusSucceeded,
           newTask()..status = Task.statusFailed,
         ]);
-        expect(await taskService.findNextTask(agent), isNull);
+        expect(await taskService.findNextTask(agent, config), isNull);
       });
 
       test('picks the task with fewest attempts first', () async {
@@ -111,8 +113,32 @@ void main() {
             ..name = 'b'
             ..attempts = 2,
         ]);
-        final FullTask result = await taskService.findNextTask(agent);
+        final FullTask result = await taskService.findNextTask(agent, config);
         expect(result.task.name, 'a');
+      });
+    });
+
+    group('if release branch exists', () {
+      void setTaskResults(List<Task> tasks) {
+        for (Task task in tasks) {
+          config.db.values[task.key] = task;
+        }
+      }
+
+      setUp(() {
+        config.db.values[commit.key] = commit;
+        config.flutterBranchesValue = <String>['master', 'flutter-0.0-candidate.0'];
+      });
+
+      test('return release branch task first when exist', () async {
+        setTaskResults(<Task>[
+          newTask(),
+        ]);
+        final Commit releaseCommit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'flutter-0.0-candidate.0');
+        config.db.values[releaseCommit.key] = releaseCommit;
+        final FullTask result = await taskService.findNextTask(agent, config);
+        expect(result.commit.branch, 'flutter-0.0-candidate.0');
       });
     });
   });
