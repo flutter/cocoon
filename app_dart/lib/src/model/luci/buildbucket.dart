@@ -398,8 +398,6 @@ class ScheduleBuildRequest extends JsonBody {
   ///
   /// A set of entries with the same key defines a new or replaces an existing
   /// dimension with the same key.
-  ///
-  /// A dimension expiration must be a multiple of 1min.
   final List<RequestedDimension> dimensions;
 
   // If not zero, overrides swarming task priority.
@@ -679,8 +677,9 @@ class RequestedDimension extends JsonBody {
   final String key;
   final String value;
 
-  /// If set, ignore this dimension after this duration.
-  final Duration expiration;
+  /// If set, ignore this dimension after this duration. Must be a multiple of 1 minute. The format is '<seconds>s',
+  /// e.g. '120s' represents 120 seconds.
+  final String expiration;
 
   @override
   Map<String, dynamic> toJson() => _$RequestedDimensionToJson(this);

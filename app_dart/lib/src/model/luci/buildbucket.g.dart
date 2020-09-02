@@ -457,7 +457,7 @@ RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) {
   return RequestedDimension(
     key: json['key'] as String,
     value: json['value'] as String,
-    expiration: json['expiration'] == null ? null : Duration(microseconds: json['expiration'] as int),
+    expiration: json['expiration'] as String,
   );
 }
 
@@ -472,6 +472,6 @@ Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
 
   writeNotNull('key', instance.key);
   writeNotNull('value', instance.value);
-  writeNotNull('expiration', instance.expiration?.inMicroseconds);
+  writeNotNull('expiration', instance.expiration);
   return val;
 }
