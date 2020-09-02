@@ -73,7 +73,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           mergeCount++;
         }
       } else if (queryResult.shouldRemoveLabel) {
-        log.debug('Removing label: ${queryResult.labelId} for commit: ${queryResult.sha}');
+        log.info('Removing label: ${queryResult.labelId} for commit: ${queryResult.sha}');
         await _removeLabel(
           queryResult.graphQLId,
           queryResult.removalMessage,
