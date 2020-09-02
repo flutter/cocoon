@@ -398,10 +398,6 @@ class ScheduleBuildRequest extends JsonBody {
   ///
   /// A set of entries with the same key defines a new or replaces an existing
   /// dimension with the same key.
-  /// If the config does not allow overriding/adding the dimension, the request
-  /// will fail with InvalidArgument error code.
-  ///
-  /// After merging, dimensions with empty value will be excluded.
   ///
   /// A dimension expiration must be a multiple of 1min.
   final List<RequestedDimension> dimensions;
