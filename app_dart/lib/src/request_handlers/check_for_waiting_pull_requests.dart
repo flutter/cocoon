@@ -73,6 +73,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           mergeCount++;
         }
       } else if (queryResult.shouldRemoveLabel) {
+        log.info('Removing label: ${queryResult.labelId} for commit: ${queryResult.sha}');
         await _removeLabel(
           queryResult.graphQLId,
           queryResult.removalMessage,
@@ -172,6 +173,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String labelId = label['id'] as String;
+    log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
