@@ -332,6 +332,8 @@ class ScheduleBuildRequest extends JsonBody {
     this.experimental,
     this.gitilesCommit,
     this.properties,
+    this.dimensions,
+    this.priority,
     this.tags,
     this.notify,
   }) : assert(builderId != null);
@@ -391,6 +393,22 @@ class ScheduleBuildRequest extends JsonBody {
   /// server.
   @TagsConverter()
   final Map<String, List<String>> tags;
+
+  /// Overrides default dimensions defined by builder config or template build.
+  ///
+  /// A set of entries with the same key defines a new or replaces an existing
+  /// dimension with the same key.
+  /// If the config does not allow overriding/adding the dimension, the request
+  /// will fail with InvalidArgument error code.
+  ///
+  /// After merging, dimensions with empty value will be excluded.
+  ///
+  /// A dimension expiration must be a multiple of 1min.
+  final List<RequestedDimension> dimensions;
+
+  // If not zero, overrides swarming task priority.
+  // See also Build.infra.swarming.priority.
+  final int priority;
 
   /// The topic and user data to send build status updates to.
   final NotificationConfig notify;
@@ -649,4 +667,25 @@ enum Trinary {
   /// setting the JSON field to null.
   @JsonValue('UNSET')
   unset,
+}
+
+/// A requested dimension. Looks like StringPair, but also has an expiration.
+@JsonSerializable(includeIfNull: false)
+class RequestedDimension extends JsonBody {
+  const RequestedDimension({
+    @required this.key,
+    this.value,
+    this.expiration,
+  }) : assert(key != null);
+
+  static RequestedDimension fromJson(Map<String, dynamic> json) => _$RequestedDimensionFromJson(json);
+
+  final String key;
+  final String value;
+
+  /// If set, ignore this dimension after this duration.
+  final Duration expiration;
+
+  @override
+  Map<String, dynamic> toJson() => _$RequestedDimensionToJson(this);
 }

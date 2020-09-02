@@ -280,6 +280,10 @@ ScheduleBuildRequest _$ScheduleBuildRequestFromJson(Map<String, dynamic> json) {
     properties: (json['properties'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
+    dimensions: (json['dimensions'] as List)
+        ?.map((e) => e == null ? null : RequestedDimension.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+    priority: json['priority'] as int,
     tags: const TagsConverter().fromJson(json['tags'] as List),
     notify: json['notify'] == null ? null : NotificationConfig.fromJson(json['notify'] as Map<String, dynamic>),
   );
@@ -301,6 +305,8 @@ Map<String, dynamic> _$ScheduleBuildRequestToJson(ScheduleBuildRequest instance)
   writeNotNull('properties', instance.properties);
   writeNotNull('gitilesCommit', instance.gitilesCommit);
   writeNotNull('tags', const TagsConverter().toJson(instance.tags));
+  writeNotNull('dimensions', instance.dimensions);
+  writeNotNull('priority', instance.priority);
   writeNotNull('notify', instance.notify);
   return val;
 }
@@ -444,5 +450,28 @@ Map<String, dynamic> _$GitilesCommitToJson(GitilesCommit instance) {
   writeNotNull('project', instance.project);
   writeNotNull('id', instance.hash);
   writeNotNull('ref', instance.ref);
+  return val;
+}
+
+RequestedDimension _$RequestedDimensionFromJson(Map<String, dynamic> json) {
+  return RequestedDimension(
+    key: json['key'] as String,
+    value: json['value'] as String,
+    expiration: json['expiration'] == null ? null : Duration(microseconds: json['expiration'] as int),
+  );
+}
+
+Map<String, dynamic> _$RequestedDimensionToJson(RequestedDimension instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('key', instance.key);
+  writeNotNull('value', instance.value);
+  writeNotNull('expiration', instance.expiration?.inMicroseconds);
   return val;
 }
