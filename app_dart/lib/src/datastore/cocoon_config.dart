@@ -71,8 +71,13 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
-    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
+  // Returns LUCI builders.
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
+    final GithubService githubService = await createGithubService('flutter', repo);
+    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
+        RepositorySlug('flutter', repo), bucket,
+        prNumber: prNumber, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

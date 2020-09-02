@@ -16,6 +16,7 @@ import 'package:cocoon_service/src/service/luci.dart';
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 
 const String branchRegExp = '''
       master
@@ -113,30 +114,34 @@ void main() {
       });
     });
 
-    group('GetRepoBuilders', () {
-      FakeHttpClient lucBuilderHttpClient;
+    group('GetLuciBuilders', () {
+      FakeGithubService githubService;
+      FakeHttpClient luciBuilderHttpClient;
       FakeLogging log;
 
       setUp(() {
-        lucBuilderHttpClient = FakeHttpClient();
+        githubService = FakeGithubService();
+        luciBuilderHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
       test('returns enabled luci builders', () async {
-        lucBuilderHttpClient.request.response.body = luciBuilders;
-        final List<LuciBuilder> builders =
-            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'cocoon');
+        final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
+        luciBuilderHttpClient.request.response.body = luciBuilders;
+        final List<LuciBuilder> builders = await getLuciBuilders(
+            githubService, () => luciBuilderHttpClient, (int attempt) => Duration.zero, log, slug, 'try');
         expect(builders.length, 1);
         expect(builders[0].name, 'Cocoon');
         expect(builders[0].repo, 'cocoon');
       });
 
       test('returns empty list when http request fails', () async {
+        final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
         int retry = 0;
-        lucBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        lucBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-        lucBuilderHttpClient.request.response.body = luciBuilders;
-        final List<LuciBuilder> builders =
-            await getRepoBuilders(() => lucBuilderHttpClient, log, (int attempt) => Duration.zero, 'try', 'test');
+        luciBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
+        luciBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        luciBuilderHttpClient.request.response.body = luciBuilders;
+        final List<LuciBuilder> builders = await getLuciBuilders(
+            githubService, () => luciBuilderHttpClient, (int attempt) => Duration.zero, log, slug, 'try');
         expect(builders.length, 0);
       });
     });

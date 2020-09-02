@@ -9,7 +9,6 @@ import '../datastore/cocoon_config.dart';
 import '../foundation/utils.dart';
 import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
-import '../service/github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
 
@@ -30,11 +29,9 @@ class GithubStatusService {
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
-    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
-    final List<String> files = await githubService.listFiles(slug, prNumber);
-    final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
-    final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
+    final List<LuciBuilder> builders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
+    final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
       // We need to ensure we are adding checks for the builders that will return a
@@ -57,7 +54,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.luciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
@@ -99,7 +96,7 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.getRepoLuciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.luciBuilders('try', slug.name), builderName) == null) {
       return false;
     }
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
