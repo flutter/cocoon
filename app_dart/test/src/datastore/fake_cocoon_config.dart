@@ -232,7 +232,8 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
