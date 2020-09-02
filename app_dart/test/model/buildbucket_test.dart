@@ -61,4 +61,25 @@ void main() {
     expect(requestBuildJson['id'], 9083774268329986752.toString());
     expect(requestBuildJson['fields'], 'summaryMarkDown');
   });
+
+  test('Creates a ScheduleBuildRequest', () {
+    const ScheduleBuildRequest req = ScheduleBuildRequest(
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'try',
+        builder: 'fake_builder',
+      ),
+      properties: <String, String>{
+        'git_url': 'https://github.com/flutter/flutter',
+        'git_ref': 'refs/pull/63834/head',
+      },
+      dimensions: <RequestedDimension>[RequestedDimension(key: 'a', value: 'b', expiration: '120s')],
+      priority: 100,
+    );
+    expect(
+        json.encode(req.toJson()),
+        '{"builder":{"project":"flutter","bucket":"try","builder":"fake_builder"},'
+        '"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/63834/head"},'
+        '"dimensions":[{"key":"a","value":"b","expiration":"120s"}],"priority":100}');
+  });
 }
