@@ -71,8 +71,9 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  // Returns LUCI builders based on [bucket].
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
+  // Returns LUCI builders.
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
     final GithubService githubService = await createGithubService('flutter', repo);
     return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
         RepositorySlug('flutter', repo), bucket,

@@ -86,27 +86,7 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
   return RepositorySlug('flutter', repoName);
 }
 
-/// Gets supported luci builders based on [bucket] and [repo] via GitHub http request.
-///
-/// Only `enabled` luci builders will be returned.
-Future<List<LuciBuilder>> getLuciBucketBuilders(HttpClientProvider luciHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String bucket, String repo,
-    {String commitSha = 'master'}) async {
-  final String filePath = repo == 'engine' ? '$repo/$commitSha/ci/dev/' : '$repo/$commitSha/dev/';
-  final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
-  String builderContent =
-      await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
-  builderContent ??= '{"builders":[]}';
-  Map<String, dynamic> builderMap;
-  builderMap = json.decode(builderContent) as Map<String, dynamic>;
-  final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
-  return builderList
-      .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
-      .where((LuciBuilder element) => element.enabled ?? true)
-      .toList();
-}
-
-/// Returns LUCI builders based on [bucket].
+/// Returns LUCI builders based on [bucket] and [repo].
 ///
 /// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
 /// the corresponding [commitSha], and also based on filtering changed files in [prNumber] via property
@@ -115,14 +95,24 @@ Future<List<LuciBuilder>> getLuciBucketBuilders(HttpClientProvider luciHttpClien
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
     GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
-    {int prNumber, String commitSha}) async {
-  if (bucket == 'prod' || commitSha == null) {
-    return await getLuciBucketBuilders(luciHttpClientProvider, log, twoSecondLinearBackoff, bucket, slug.name);
+    {int prNumber, String commitSha = 'master'}) async {
+  final String filePath = slug.name == 'engine' ? '${slug.name}/$commitSha/ci/dev/' : '${slug.name}/$commitSha/dev/';
+  final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
+  String builderContent =
+      await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
+  builderContent ??= '{"builders":[]}';
+  Map<String, dynamic> builderMap;
+  builderMap = json.decode(builderContent) as Map<String, dynamic>;
+  final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
+  final List<LuciBuilder> builders = builderList
+      .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
+      .where((LuciBuilder element) => element.enabled ?? true)
+      .toList();
+
+  if (bucket == 'prod' || commitSha == 'master') {
+    return builders;
   }
 
-  final List<LuciBuilder> builders = await getLuciBucketBuilders(
-      luciHttpClientProvider, log, twoSecondLinearBackoff, bucket, slug.name,
-      commitSha: commitSha);
   final List<String> files = await githubService.listFiles(slug, prNumber);
   return await getFilteredBuilders(builders, files);
 }
