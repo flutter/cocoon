@@ -14,7 +14,6 @@ import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/commit_box.dart';
 import 'package:app_flutter/widgets/lattice.dart';
-import 'package:app_flutter/widgets/pulse.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_box.dart';
@@ -283,7 +282,7 @@ void main() {
     await expectGoldenMatches(find.byType(TaskGrid), 'task_grid_test.withL.png');
   });
 
-  testWidgets('TaskGrid shows loading indicator for In Progress task', (WidgetTester tester) async {
+  testWidgets('TaskGrid shows icon for rerun tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -298,7 +297,11 @@ void main() {
                 ..stages.add(
                   Stage()
                     ..tasks.addAll(
-                      <Task>[Task()..status = 'In Progress'],
+                      <Task>[
+                        Task()
+                          ..status = 'Succeeded'
+                          ..attempts = 2
+                      ],
                     ),
                 ),
             ],
@@ -306,7 +309,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(Pulse), findsOneWidget);
+    expect(find.byIcon(Icons.sync_outlined), findsOneWidget);
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -321,7 +324,11 @@ void main() {
                 ..stages.add(
                   Stage()
                     ..tasks.addAll(
-                      <Task>[Task()..status = 'Succeeded'],
+                      <Task>[
+                        Task()
+                          ..status = 'Succeeded'
+                          ..attempts = 1
+                      ],
                     ),
                 ),
             ],
@@ -329,7 +336,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(Pulse), findsNothing);
+    expect(find.byIcon(Icons.sync_outlined), findsNothing);
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {

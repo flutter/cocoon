@@ -217,14 +217,10 @@ class TaskOverlayContents extends StatelessWidget {
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
     TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
     TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
-    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
-    TaskBox.statusUnderperformed: Icon(Icons.new_releases, color: Colors.orange, size: 32),
-    TaskBox.statusUnderperformedInProgress: Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
   @override
   Widget build(BuildContext context) {
-    final String taskStatus = TaskBox.effectiveTaskStatus(task);
     final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
 
     final DateTime now = Now.of(context);
@@ -274,10 +270,10 @@ class TaskOverlayContents extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Tooltip(
-                      message: taskStatus,
+                      message: task.status,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
-                        child: statusIcon[taskStatus],
+                        child: statusIcon[task.status],
                       ),
                     ),
                     Expanded(
