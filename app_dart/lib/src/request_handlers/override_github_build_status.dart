@@ -44,7 +44,8 @@ class OverrideGitHubBuildStatus extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
-    final List<GithubTreeStatusOverride> overrides = await datastore.db.query<GithubTreeStatusOverride>().run().toList();
+    final List<GithubTreeStatusOverride> overrides =
+        await datastore.db.query<GithubTreeStatusOverride>().run().toList();
 
     return Body.forJson(overrides);
   }
@@ -66,8 +67,8 @@ class OverrideGitHubBuildStatus extends ApiRequestHandler<Body> {
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final Query<GithubTreeStatusOverride> query = datastore.db.query<GithubTreeStatusOverride>()
-        ..filter('repository =', repository)
-        ..limit(1);
+      ..filter('repository =', repository)
+      ..limit(1);
     final GithubTreeStatusOverride currentOverride = await query.run().single;
 
     if (force || currentOverride.closed != closed) {
@@ -86,10 +87,11 @@ class OverrideGitHubBuildStatus extends ApiRequestHandler<Body> {
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     for (PullRequest pr in await githubService.listPullRequests(slug, 'master')) {
       log.debug('Updating tree status of ${slug.fullName}#${pr.number} (closed = $closed)');
-      final CreateStatus request = CreateStatus(closed ? GithubBuildStatusUpdate.statusFailure : GithubBuildStatusUpdate.statusSuccess)
-        ..targetUrl = 'https://flutter-dashboard.appspot.com/api/override-github-build-status'
-        ..context = 'tree-status'
-        ..description = reason;
+      final CreateStatus request =
+          CreateStatus(closed ? GithubBuildStatusUpdate.statusFailure : GithubBuildStatusUpdate.statusSuccess)
+            ..targetUrl = 'https://flutter-dashboard.appspot.com/api/override-github-build-status'
+            ..context = 'tree-status'
+            ..description = reason;
 
       try {
         await githubService.github.repositories.createStatus(slug, pr.head.sha, request);

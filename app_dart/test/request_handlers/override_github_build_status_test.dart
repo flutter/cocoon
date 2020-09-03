@@ -77,7 +77,6 @@ void main() {
       when(githubService.github.repositories).thenReturn(repositoriesService);
     });
 
-
     Future<T> decodeHandlerBody<T>() async {
       final Body body = await tester.get(handler);
       return await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as T;

@@ -861,9 +861,7 @@ class FakeHttpClientRequest extends FakeOutbound implements HttpClientRequest {
 
   // @override
   // ignore: annotate_overrides
-  void abort([Object error, StackTrace stackTrace]) {
-
-  }
+  void abort([Object error, StackTrace stackTrace]) {}
 }
 
 class FakeHttpClientResponse extends FakeInbound implements HttpClientResponse {
