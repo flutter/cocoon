@@ -51,6 +51,7 @@ class Config {
     'flutter/engine',
     'flutter/flutter',
     'flutter/packages',
+    'flutter/plugins',
   };
 
   @visibleForTesting
