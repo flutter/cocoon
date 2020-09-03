@@ -21,10 +21,8 @@ class GetBranches extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    //final List<String> branches = await config.flutterBranches;
-    final List<LuciBuilder> branches = await config.luciBuilders('prod', 'flutter');
+    final List<String> branches = await config.flutterBranches;
 
-    //return Body.forJson(<String, List<String>>{'Branches': branches});
-    return Body.forJson(<String, List<LuciBuilder>>{'Branches': branches});
+    return Body.forJson(<String, List<String>>{'Branches': branches});
   }
 }
