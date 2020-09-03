@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
