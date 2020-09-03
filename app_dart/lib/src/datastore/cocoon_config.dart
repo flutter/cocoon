@@ -42,6 +42,7 @@ class Config {
     'flutter',
     'cocoon',
     'packages',
+    'plugins',
   };
 
   /// List of Github presubmit supported repos.
@@ -50,6 +51,7 @@ class Config {
     'flutter/engine',
     'flutter/flutter',
     'flutter/packages',
+    'flutter/plugins',
   };
 
   @visibleForTesting

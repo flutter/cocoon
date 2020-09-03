@@ -96,7 +96,14 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
     GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
     {int prNumber, String commitSha = 'master'}) async {
-  final String filePath = slug.name == 'engine' ? '${slug.name}/$commitSha/ci/dev/' : '${slug.name}/$commitSha/dev/';
+  const Map<String, String> repoFilePathPrefix = <String, String>{
+    'flutter': 'dev',
+    'engine': 'ci/dev',
+    'cocoon': 'dev',
+    'plugins': '.ci/dev',
+    'packages': 'dev'
+  };
+  final String filePath = '${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
   String builderContent =
       await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
