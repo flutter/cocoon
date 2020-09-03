@@ -221,6 +221,16 @@ void main() {
         expect(result.clientContext, same(clientContext));
       });
 
+      test('sets the email on success', () async {
+        verifyTokenResponse.body = '{"aud": "client-id", "hd": "google.com", "email": "no-reply@google.com"}';
+        config.oauthClientIdValue = 'client-id';
+        final AuthenticatedContext result =
+            await auth.authenticateIdToken('abc123', clientContext: clientContext, log: log);
+        expect(result.agent, isNull);
+        expect(result.clientContext, same(clientContext));
+        expect(result.email, 'no-reply@google.com');
+      });
+
       test('fails for non-allowed non-Google auth users', () async {
         verifyTokenResponse.body = '{"aud": "client-id", "hd": "gmail.com"}';
         config.oauthClientIdValue = 'client-id';

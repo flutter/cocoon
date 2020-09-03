@@ -48,11 +48,15 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 class FakeAuthenticatedContext implements AuthenticatedContext {
   FakeAuthenticatedContext({
     this.agent,
+    this.email,
     FakeClientContext clientContext,
   }) : clientContext = clientContext ?? FakeClientContext();
 
   @override
   Agent agent;
+
+  @override
+  String email;
 
   @override
   FakeClientContext clientContext;

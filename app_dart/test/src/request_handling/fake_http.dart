@@ -858,6 +858,12 @@ class FakeHttpClientRequest extends FakeOutbound implements HttpClientRequest {
 
   @override
   Future<HttpClientResponse> get done => _doneCompleter.future;
+
+  // @override
+  // ignore: annotate_overrides
+  void abort([Object error, StackTrace stackTrace]) {
+
+  }
 }
 
 class FakeHttpClientResponse extends FakeInbound implements HttpClientResponse {

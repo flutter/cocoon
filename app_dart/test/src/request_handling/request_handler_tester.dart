@@ -43,6 +43,13 @@ class RequestHandlerTester {
     });
   }
 
+  /// Executes [RequestHandler.put] on the specified [handler].
+  Future<T> put<T extends Body>(RequestHandler<T> handler) {
+    return run<T>(() {
+      return handler.put(); // ignore: invalid_use_of_protected_member
+    });
+  }
+
   @protected
   Future<T> run<T extends Body>(Future<T> callback()) {
     return runZoned<Future<T>>(() {

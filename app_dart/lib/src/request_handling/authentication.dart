@@ -206,7 +206,7 @@ class AuthenticationProvider {
         }
       }
 
-      return AuthenticatedContext._(clientContext: clientContext);
+      return AuthenticatedContext._(clientContext: clientContext, email: token.email);
     } finally {
       client.close();
     }
@@ -246,6 +246,7 @@ class AuthenticatedContext {
   /// Creates a new [AuthenticatedContext].
   const AuthenticatedContext._({
     this.agent,
+    this.email,
     @required this.clientContext,
   }) : assert(clientContext != null);
 
@@ -255,6 +256,12 @@ class AuthenticatedContext {
   /// this property is null, the request has been authenticated (by virtue of
   /// the request context having been created).
   final Agent agent;
+
+  /// The email address of the authenticated requestor.
+  ///
+  /// This will be null if the request is not being made by a logged in Google
+  /// account, such as if it is made by an agent or a cron job.
+  final String email;
 
   /// The App Engine [ClientContext] of the current request.
   ///

@@ -16,6 +16,7 @@ import 'agent.dart';
 import 'allowed_account.dart';
 import 'commit.dart';
 import 'github_build_status_update.dart';
+import 'github_tree_status_override.dart';
 import 'key_helper.pb.dart';
 import 'log_chunk.dart';
 import 'task.dart';
@@ -26,6 +27,7 @@ const Set<Type> _defaultTypes = <Type>{
   Agent,
   Commit,
   GithubBuildStatusUpdate,
+  GithubTreeStatusOverride,
   LogChunk,
   Task,
   TimeSeries,

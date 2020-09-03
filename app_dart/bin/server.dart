@@ -68,6 +68,7 @@ Future<void> main() async {
         githubStatusService,
         githubChecksService,
       ),
+      '/api/override-github-build-status': OverrideGitHubBuildStatus(config, authProvider),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),

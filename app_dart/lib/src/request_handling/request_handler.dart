@@ -48,6 +48,9 @@ abstract class RequestHandler<T extends Body> {
             case 'POST':
               body = await post();
               break;
+            case 'PUT':
+              body = await put();
+              break;
             default:
               throw MethodNotAllowed(request.method);
           }
@@ -134,18 +137,21 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> get() async {
-    throw const MethodNotAllowed('GET');
-  }
+  Future<T> get() async => throw const MethodNotAllowed('GET');
 
   /// Services an HTTP POST.
   ///
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> post() async {
-    throw const MethodNotAllowed('POST');
-  }
+  Future<T> post() async => throw const MethodNotAllowed('POST');
+
+  /// Services an HTTP PUT.
+  ///
+  /// Subclasses should override this method if they support PUT requests.
+  /// The default implementation will respond with HTTP 405 method not allowed.
+  @protected
+  Future<T> put() async => throw const MethodNotAllowed('PUT');
 
   /// The package:http Client to use for googleapis requests.
   @protected
