@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/request_handlers/refresh_github_commits.dart'
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/file_service.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -40,7 +41,7 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeHttpClient httpClient;
-    FakeHttpClient branchHttpClient;
+    FileService fileService;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
@@ -90,15 +91,14 @@ void main() {
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
       httpClient = FakeHttpClient();
-      branchHttpClient = FakeHttpClient();
+      fileService =
+          FileService(httpClientProvider: () => httpClient, gitHubBackoffCalculator: (int attempt) => Duration.zero);
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        httpClientProvider: () => httpClient,
-        branchHttpClientProvider: () => branchHttpClient,
-        gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        fileService: fileService,
       );
 
       githubService.listCommitsBranch = (String branch, int hours) {

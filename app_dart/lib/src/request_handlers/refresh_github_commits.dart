@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/src/service/luci.dart';
@@ -12,20 +11,16 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
-import 'package:yaml/yaml.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
+import '../service/file_service.dart';
 import '../service/github_service.dart';
 
 /// Queries GitHub for the list of recent commits according to different branches,
@@ -38,19 +33,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider, {
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
+    @visibleForTesting this.fileService = const FileService(),
   })  : assert(datastoreProvider != null),
-        assert(httpClientProvider != null),
-        assert(branchHttpClientProvider != null),
-        assert(gitHubBackoffCalculator != null),
+        assert(fileService != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-  final HttpClientProvider httpClientProvider;
-  final HttpClientProvider branchHttpClientProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
+  final FileService fileService;
 
   @override
   Future<Body> get() async {
@@ -206,8 +195,14 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       tasks.add(Task.chromebot(commitKey, createTimestamp, builder.taskName, builder.flaky ?? false));
     }
 
-    final YamlMap yaml = await _loadDevicelabManifest(sha);
-    final Manifest manifest = Manifest.fromJson(yaml);
+    Manifest manifest;
+    try {
+      manifest = await fileService.loadDevicelabManifest(sha, log);
+    } catch (error) {
+      response.headers.set(HttpHeaders.retryAfterHeader, '120');
+      rethrow;
+    }
+
     manifest.tasks.forEach((String taskName, ManifestTask info) {
       tasks.add(newTask(
         taskName,
@@ -219,39 +214,5 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     });
 
     return tasks;
-  }
-
-  Future<YamlMap> _loadDevicelabManifest(String sha) async {
-    final String path = '/flutter/flutter/$sha/dev/devicelab/manifest.yaml';
-    final Uri url = Uri.https('raw.githubusercontent.com', path);
-
-    final HttpClient client = httpClientProvider();
-    try {
-      for (int attempt = 0; attempt < 3; attempt++) {
-        final HttpClientRequest clientRequest = await client.getUrl(url);
-
-        try {
-          final HttpClientResponse clientResponse = await clientRequest.close();
-          final int status = clientResponse.statusCode;
-
-          if (status == HttpStatus.ok) {
-            final String content = await utf8.decoder.bind(clientResponse).join();
-            return loadYaml(content) as YamlMap;
-          } else {
-            log.warning('Attempt to download manifest.yaml failed (HTTP $status)');
-          }
-        } catch (error, stackTrace) {
-          log.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
-        }
-
-        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
-      }
-    } finally {
-      client.close(force: true);
-    }
-
-    log.error('GitHub not responding; giving up');
-    response.headers.set(HttpHeaders.retryAfterHeader, '120');
-    throw const HttpStatusException(HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }
