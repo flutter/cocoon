@@ -37,12 +37,12 @@ tasks:
 
 void main() {
   group('RefreshGithubCommits', () {
+    ApiRequestHandlerTester tester;
     FakeConfig config;
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeHttpClient httpClient;
     FileService fileService;
-    ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
     List<String> githubCommits;
@@ -88,12 +88,15 @@ void main() {
 
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
+      tester = ApiRequestHandlerTester();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
       httpClient = FakeHttpClient();
-      fileService =
-          FileService(httpClientProvider: () => httpClient, gitHubBackoffCalculator: (int attempt) => Duration.zero);
-      tester = ApiRequestHandlerTester();
+      fileService = FileService(
+        httpClientProvider: () => httpClient,
+        gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        loggingProvider: () => tester.log,
+      );
       handler = RefreshGithubCommits(
         config,
         auth,

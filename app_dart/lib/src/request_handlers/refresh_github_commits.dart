@@ -197,7 +197,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
     Manifest manifest;
     try {
-      manifest = await fileService.loadDevicelabManifest(sha, log);
+      manifest = await fileService.loadDevicelabManifest(sha);
     } catch (error) {
       response.headers.set(HttpHeaders.retryAfterHeader, '120');
       rethrow;

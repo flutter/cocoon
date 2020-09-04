@@ -16,17 +16,24 @@ import '../request_handling/exceptions.dart';
 
 /// FileService loads and parses the content of a file to useful data structures, typically from a remote location.
 class FileService {
-  const FileService(
-      {this.httpClientProvider = Providers.freshHttpClient, this.gitHubBackoffCalculator = twoSecondLinearBackoff});
+  const FileService({
+    HttpClientProvider httpClientProvider,
+    GitHubBackoffCalculator gitHubBackoffCalculator,
+    LoggingProvider loggingProvider,
+  })  : httpClientProvider = httpClientProvider ?? Providers.freshHttpClient,
+        gitHubBackoffCalculator = gitHubBackoffCalculator ?? twoSecondLinearBackoff,
+        loggingProvider = loggingProvider ?? Providers.serviceScopeLogger;
 
   final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
+  final LoggingProvider loggingProvider;
 
   /// Loads the devicelab manifest from the flutter/flutter repository at [sha] revision.
   /// Throws an HttpStatusException when GitHub doesn't respond.
-  Future<Manifest> loadDevicelabManifest(String sha, Logging logger) async {
+  Future<Manifest> loadDevicelabManifest(String sha) async {
     final String path = '/flutter/flutter/$sha/dev/devicelab/manifest.yaml';
     final Uri url = Uri.https('raw.githubusercontent.com', path);
+    final Logging log = loggingProvider();
 
     final HttpClient client = httpClientProvider();
     try {
@@ -41,10 +48,10 @@ class FileService {
             final String content = await utf8.decoder.bind(clientResponse).join();
             return Manifest.fromJson(loadYaml(content) as YamlMap);
           } else {
-            logger.warning('Attempt to download manifest.yaml failed (HTTP $status)');
+            log.warning('Attempt to download manifest.yaml failed (HTTP $status)');
           }
         } catch (error, stackTrace) {
-          logger.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
+          log.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
         }
 
         await Future<void>.delayed(gitHubBackoffCalculator(attempt));
@@ -53,7 +60,7 @@ class FileService {
       client.close(force: true);
     }
 
-    logger.error('GitHub not responding; giving up');
+    log.error('GitHub not responding; giving up');
     throw const HttpStatusException(HttpStatus.serviceUnavailable, 'GitHub not responding');
   }
 }

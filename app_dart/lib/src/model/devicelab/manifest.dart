@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../appengine/agent.dart';
@@ -37,7 +38,7 @@ class Manifest {
 /// An individual task (test suite or benchmark) that runs in the Flutter
 /// devicelab.
 @JsonSerializable(anyMap: true)
-class ManifestTask {
+class ManifestTask extends Equatable {
   /// Creates a new [ManifestTask] object.
   const ManifestTask({
     this.description,
@@ -93,4 +94,20 @@ class ManifestTask {
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$ManifestTaskToJson(this);
+
+  @override
+  String toString() {
+    final StringBuffer buf = StringBuffer()
+      ..write('$runtimeType(')
+      ..write('description: $description')
+      ..write(', stage: $stage')
+      ..write(', requiredAgentCapabilities: $requiredAgentCapabilities')
+      ..write(', isFlaky: $isFlaky')
+      ..write(', timeoutInMinutes: $timeoutInMinutes')
+      ..write(')');
+    return buf.toString();
+  }
+
+  @override
+  List<Object> get props => <Object>[description, stage, requiredAgentCapabilities, isFlaky, timeoutInMinutes];
 }
