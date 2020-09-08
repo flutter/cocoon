@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,6 +16,66 @@ import 'luci_task_attempt_summary.dart';
 import 'progress_button.dart';
 import 'task_attempt_summary.dart';
 import 'task_box.dart';
+
+class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
+  TaskOverlayEntryPositionDelegate(this.target);
+
+  /// The offset of the target the tooltip is positioned near in the global
+  /// coordinate system.
+  final Offset target;
+
+  static Offset positionDependentBox({
+    @required Size size,
+    @required Size childSize,
+    @required Offset target,
+  }) {
+    assert(size != null);
+    assert(childSize != null);
+    assert(target != null);
+    const double margin = 10.0;
+    const double verticalOffset = TaskBox.cellSize * .9;
+
+    // VERTICAL DIRECTION
+    final bool fitsBelow = target.dy + verticalOffset + childSize.height <= size.height - margin;
+    double y;
+    if (fitsBelow) {
+      y = math.min(target.dy + verticalOffset, size.height - margin);
+    } else {
+      y = math.max(target.dy - childSize.height, margin);
+    }
+    // HORIZONTAL DIRECTION
+    double x;
+    // The whole size isn't big enough, just center it.
+    if (size.width - margin * 2.0 < childSize.width) {
+      x = (size.width - childSize.width) / 2.0;
+    } else {
+      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin) as double;
+      final double edge = normalizedTargetX + childSize.width;
+      // Position the box as close to the left edge of the full size
+      // without going over the margin.
+      if (edge > size.width) {
+        x = size.width - margin - childSize.width;
+      } else {
+        x = normalizedTargetX;
+      }
+    }
+    return Offset(x, y);
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    return positionDependentBox(
+      size: size,
+      childSize: childSize,
+      target: target,
+    );
+  }
+
+  @override
+  bool shouldRelayout(TaskOverlayEntryPositionDelegate oldDelegate) {
+    return oldDelegate.target != target;
+  }
+}
 
 /// Displays the information from [Task] and allows interacting with a [Task].
 ///
@@ -84,16 +146,15 @@ class TaskOverlayEntry extends StatelessWidget {
         ),
         Positioned(
           // Move this overlay to be where the parent is
-          // TODO(ianh): This will go past the edge of the page if it's near the right margin;
-          // we should do something like positionDependentBox.
-          top: position.dy + TaskBox.cellSize / 2.0,
-          left: position.dx + TaskBox.cellSize / 2.0,
-          child: TaskOverlayContents(
-            showSnackBarCallback: showSnackBarCallback,
-            buildState: buildState,
-            task: task,
-            commit: commit,
-            closeCallback: closeCallback,
+          child: CustomSingleChildLayout(
+            delegate: TaskOverlayEntryPositionDelegate(position),
+            child: TaskOverlayContents(
+              showSnackBarCallback: showSnackBarCallback,
+              buildState: buildState,
+              task: task,
+              commit: commit,
+              closeCallback: closeCallback,
+            ),
           ),
         ),
       ],
@@ -178,6 +239,7 @@ class TaskOverlayContents extends StatelessWidget {
         child: IntrinsicWidth(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),

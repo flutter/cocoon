@@ -539,4 +539,56 @@ void main() {
 
     expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
   });
+
+  test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {
+    const Size normalSize = Size(800, 600);
+    const Size childSize = Size(300, 180);
+
+    // Window is too small, center.
+    expect(
+      TaskOverlayEntryPositionDelegate.positionDependentBox(
+        size: const Size(250, 150),
+        childSize: childSize,
+        target: const Offset(50.0, 50.0),
+      ),
+      const Offset(-25.0, 10.0),
+    );
+
+    // Normal positioning, below and to right.
+    expect(
+      TaskOverlayEntryPositionDelegate.positionDependentBox(
+        size: normalSize,
+        childSize: childSize,
+        target: const Offset(50.0, 50.0),
+      ),
+      const Offset(50.0, 82.4),
+    );
+    // Doesn't fit in right, below and to left.
+    expect(
+      TaskOverlayEntryPositionDelegate.positionDependentBox(
+        size: normalSize,
+        childSize: childSize,
+        target: const Offset(590.0, 50.0),
+      ),
+      const Offset(490.0, 82.4),
+    );
+    // Doesn't fit below, above and to right.
+    expect(
+      TaskOverlayEntryPositionDelegate.positionDependentBox(
+        size: normalSize,
+        childSize: childSize,
+        target: const Offset(50.0, 500.0),
+      ),
+      const Offset(50.0, 320.0),
+    );
+    // Above and to left.
+    expect(
+      TaskOverlayEntryPositionDelegate.positionDependentBox(
+        size: normalSize,
+        childSize: childSize,
+        target: const Offset(590.0, 500.0),
+      ),
+      const Offset(490.0, 320.0),
+    );
+  });
 }
