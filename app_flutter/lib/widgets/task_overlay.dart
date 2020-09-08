@@ -37,8 +37,6 @@ class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
 
     // VERTICAL DIRECTION
     final bool fitsBelow = target.dy + verticalOffset + childSize.height <= size.height - margin;
-    // final bool fitsAbove = target.dy - verticalOffset - childSize.height >= margin;
-    // final bool tooltipBelow = fitsBelow || !fitsAbove;
     double y;
     if (fitsBelow) {
       y = math.min(target.dy + verticalOffset, size.height - margin);
