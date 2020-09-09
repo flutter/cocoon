@@ -112,7 +112,4 @@ class FakeGoogleSignInAuthentication implements GoogleSignInAuthentication {
 
   @override
   String get idToken => 'id123';
-
-  @override
-  String get serverAuthCode => throw UnimplementedError();
 }
