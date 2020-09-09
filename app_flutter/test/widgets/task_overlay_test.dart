@@ -13,6 +13,7 @@ import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Ta
 import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
+import 'package:app_flutter/widgets/now.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
@@ -53,6 +54,13 @@ class TestGrid extends StatelessWidget {
 }
 
 void main() {
+  final DateTime nowTime = DateTime.utc(2020, 9, 1, 12, 30);
+  final DateTime createTime = nowTime.subtract(const Duration(minutes: 52));
+  final DateTime startTime = nowTime.subtract(const Duration(minutes: 50));
+  final DateTime finishTime = nowTime.subtract(const Duration(minutes: 10));
+
+  Int64 _int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
+
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
 
@@ -61,20 +69,24 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false // As opposed to the next test.
-      ..status = 'Failed';
+      ..status = TaskBox.statusFailed
+      ..createTimestamp = _int64FromDateTime(createTime)
+      ..startTimestamp = _int64FromDateTime(startTime)
+      ..endTimestamp = _int64FromDateTime(finishTime);
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
-        'Run time: 0 minutes\n'
-        'Queue time: 0 seconds\n'
-        'Flaky: ${expectedTask.isFlaky}';
+        'Run time: 40 minutes\n'
+        'Queue time: 120 seconds';
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: expectedTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: expectedTask,
+            ),
           ),
         ),
       ),
@@ -114,20 +126,25 @@ void main() {
       ..attempts = 3
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
-      ..reason = 'Because I said so'
       ..isFlaky = true // This is the point of this test.
-      ..status = 'Failed';
+      ..status = TaskBox.statusFailed
+      ..createTimestamp = _int64FromDateTime(createTime)
+      ..startTimestamp = _int64FromDateTime(startTime)
+      ..endTimestamp = _int64FromDateTime(finishTime);
 
     final String flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
-        'Run time: 0 minutes\n'
-        'Queue time: 0 seconds\n'
+        'Run time: 40 minutes\n'
+        'Queue time: 120 seconds\n'
         'Flaky: true';
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: flakyTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: flakyTask,
+            ),
           ),
         ),
       ),
@@ -150,27 +167,110 @@ void main() {
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
   });
 
-  testWidgets('TaskOverlay computes durations correctly', (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for completed task', (WidgetTester tester) async {
+    /// Create a queue time of 10 seconds, run time of 8 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
+    final DateTime finishTime = nowTime.subtract(const Duration(minutes: 1));
+
     final Task timeTask = Task()
       ..attempts = 1
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
-      ..reason = 'Because I said so'
-      ..isFlaky = true
-      ..createTimestamp = Int64.parseInt('0') // created at 0ms
-      ..startTimestamp = Int64.parseInt('10000') // started after 10 seconds
-      ..endTimestamp = Int64.parseInt('490000'); // ended after 8 minutes
+      ..isFlaky = false
+      ..createTimestamp = _int64FromDateTime(createTime)
+      ..startTimestamp = _int64FromDateTime(startTime)
+      ..endTimestamp = _int64FromDateTime(finishTime);
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
-        'Queue time: 10 seconds\n'
-        'Flaky: true';
+        'Queue time: 10 seconds';
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: timeTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: timeTask,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(timeTaskInfoString), findsNothing);
+
+    // open the overlay to show the task summary
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.text(timeTaskInfoString), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay computes durations correctly for running task', (WidgetTester tester) async {
+    /// Create a queue time of 10 seconds, running time of 9 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
+
+    final Task timeTask = Task()
+      ..attempts = 1
+      ..stageName = 'devicelab'
+      ..name = 'Tasky McTaskFace'
+      ..status = TaskBox.statusInProgress
+      ..isFlaky = false
+      ..createTimestamp = _int64FromDateTime(createTime)
+      ..startTimestamp = _int64FromDateTime(startTime);
+
+    final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+        'Running for 9 minutes\n'
+        'Queue time: 10 seconds';
+
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: timeTask,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(timeTaskInfoString), findsNothing);
+
+    // open the overlay to show the task summary
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.text(timeTaskInfoString), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay computes durations correctly for queueing task', (WidgetTester tester) async {
+    /// Create a queue time of 10 seconds, running time of 9 minutes
+    final DateTime createTime = nowTime.subtract(const Duration(seconds: 10));
+
+    final Task timeTask = Task()
+      ..attempts = 1
+      ..stageName = 'devicelab'
+      ..name = 'Tasky McTaskFace'
+      ..status = TaskBox.statusNew
+      ..isFlaky = false
+      ..createTimestamp = _int64FromDateTime(createTime);
+
+    final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
+        'Queueing for 10 seconds';
+
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: timeTask,
+            ),
           ),
         ),
       ),
@@ -191,21 +291,23 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false
-      ..status = 'Succeeded';
+      ..status = TaskBox.statusSucceeded;
 
     await tester.pumpWidget(
       FakeInserter(
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              task: expectedTask,
+        child: Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                task: expectedTask,
+              ),
             ),
+            routes: <String, WidgetBuilder>{
+              AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
+            },
           ),
-          routes: <String, WidgetBuilder>{
-            AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
-          },
         ),
       ),
     );
@@ -240,12 +342,15 @@ void main() {
     await precacheTaskIcons(tester);
     const String expectedTaskInfoString = 'Task was run outside of devicelab';
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: Task()
-              ..stageName = 'cirrus'
-              ..status = 'Succeeded',
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: Task()
+                ..stageName = 'cirrus'
+                ..status = TaskBox.statusSucceeded,
+            ),
           ),
         ),
       ),
@@ -264,13 +369,16 @@ void main() {
 
   testWidgets('TaskOverlay shows TaskAttemptSummary for devicelab tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: Task()
-              ..stageName = 'devicelab'
-              ..status = 'Succeeded'
-              ..attempts = 1,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: Task()
+                ..stageName = 'devicelab'
+                ..status = TaskBox.statusSucceeded
+                ..attempts = 1,
+            ),
           ),
         ),
       ),
@@ -286,13 +394,16 @@ void main() {
 
   testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: Task()
-              ..stageName = 'chromebot'
-              ..status = 'Succeeded'
-              ..buildNumberList = '123',
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: Task()
+                ..stageName = 'chromebot'
+                ..status = TaskBox.statusSucceeded
+                ..buildNumberList = '123',
+            ),
           ),
         ),
       ),
@@ -309,13 +420,16 @@ void main() {
   testWidgets('TaskOverlay does not show TaskAttemptSummary for tasks outside of devicelab',
       (WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: Task()
-              ..stageName = 'cirrus'
-              ..status = 'Succeeded'
-              ..attempts = 1,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: Task()
+                ..stageName = 'cirrus'
+                ..status = TaskBox.statusSucceeded
+                ..attempts = 1,
+            ),
           ),
         ),
       ),
@@ -335,15 +449,17 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            buildState: FakeBuildState(rerunTaskResult: true),
-            task: expectedTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: FakeBuildState(rerunTaskResult: true),
+              task: expectedTask,
+            ),
           ),
         ),
       ),
@@ -378,16 +494,18 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false
-      ..status = 'New';
+      ..status = TaskBox.statusNew;
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            buildState: FakeBuildState(rerunTaskResult: false),
-            task: expectedTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: FakeBuildState(rerunTaskResult: false),
+              task: expectedTask,
+            ),
           ),
         ),
       ),
@@ -424,10 +542,13 @@ void main() {
     });
     final Task publicTask = Task()..stageName = 'cirrus';
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            task: publicTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              task: publicTask,
+            ),
           ),
         ),
       ),
@@ -463,20 +584,22 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false
-      ..status = 'New';
+      ..status = TaskBox.statusNew;
 
     final MockBuildState buildState = MockBuildState();
     when(buildState.moreStatusesExist).thenReturn(true);
     when(buildState.downloadLog(any, any)).thenAnswer((_) async => true);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            buildState: buildState,
-            task: expectedTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: buildState,
+              task: expectedTask,
+            ),
           ),
         ),
       ),
@@ -501,7 +624,6 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..reservedForAgentId = 'Agenty McAgentFace'
-      ..reason = 'Because I said so'
       ..isFlaky = false;
 
     final MockBuildState buildState = MockBuildState();
@@ -509,11 +631,14 @@ void main() {
     when(buildState.downloadLog(any, any)).thenAnswer((_) async => false);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: TestGrid(
-            buildState: buildState,
-            task: expectedTask,
+      Now.fixed(
+        dateTime: nowTime,
+        child: MaterialApp(
+          home: Scaffold(
+            body: TestGrid(
+              buildState: buildState,
+              task: expectedTask,
+            ),
           ),
         ),
       ),
