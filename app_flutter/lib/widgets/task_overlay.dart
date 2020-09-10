@@ -13,6 +13,7 @@ import '../agent_dashboard_page.dart';
 import '../logic/qualified_task.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
+import 'now.dart';
 import 'progress_button.dart';
 import 'task_attempt_summary.dart';
 import 'task_box.dart';
@@ -223,15 +224,39 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String taskStatus = TaskBox.effectiveTaskStatus(task);
+    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+
+    final DateTime now = Now.of(context);
     final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
     final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
     final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
-    final Duration queueDuration = startTime.difference(createTime);
-    final Duration runDuration = endTime.difference(startTime);
+    final Duration queueDuration =
+        task.startTimestamp == 0 ? now.difference(createTime) : startTime.difference(createTime);
+    final Duration runDuration = task.endTimestamp == 0 ? now.difference(startTime) : endTime.difference(startTime);
 
-    final String taskStatus = TaskBox.effectiveTaskStatus(task);
-    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+    /// There are 2 possible states for queue time:
+    ///   1. Task is waiting to be scheduled (in queue)
+    ///   2. Task has been scheduled (out of queue)
+    final String queueText = (task.status != TaskBox.statusNew)
+        ? 'Queue time: ${queueDuration.inSeconds} seconds'
+        : 'Queueing for ${queueDuration.inSeconds} seconds';
+
+    /// There are 3 possible states for the runtime:
+    ///   1. Task has not run yet (new)
+    ///   2. Task is running (in progress)
+    ///   3. Task ran (other status)
+    final String runText = (task.status == TaskBox.statusInProgress)
+        ? 'Running for ${runDuration.inMinutes} minutes'
+        : (task.status != TaskBox.statusNew) ? 'Run time: ${runDuration.inMinutes} minutes' : '';
+
+    final String summaryText = <String>[
+      'Attempts: ${task.attempts}',
+      if (runText.isNotEmpty) runText,
+      queueText,
+      if (task.isFlaky) 'Flaky: ${task.isFlaky}',
+    ].join('\n');
 
     return Card(
       child: Padding(
@@ -262,10 +287,7 @@ class TaskOverlayContents extends StatelessWidget {
                           ),
                           if (qualifiedTask.isDevicelab)
                             Text(
-                              'Attempts: ${task.attempts}\n'
-                              'Run time: ${runDuration.inMinutes} minutes\n'
-                              'Queue time: ${queueDuration.inSeconds} seconds\n'
-                              'Flaky: ${task.isFlaky}',
+                              summaryText,
                               style: Theme.of(context).textTheme.bodyText2,
                             )
                           else
