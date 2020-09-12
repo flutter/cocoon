@@ -20,7 +20,7 @@ class RunCommand extends Command {
   static ArgParser argParser = ArgParser()
     ..addOption('task', abbr: 't')
     ..addOption('revision', abbr: 'r')
-    ..addOption('upload', abbr: 'u');
+    ..addFlag('upload', abbr: 'u');
 
   @override
   Future<Null> run(ArgResults args) async {
