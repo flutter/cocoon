@@ -95,6 +95,7 @@ Future<TaskResult> runTask(
   Agent agent,
   CocoonTask task, {
   Duration fallbackTimeout,
+  bool uploadDetails = true,
 }) async {
   String devicelabPath = '${config.flutterDirectory.path}/dev/devicelab';
   String taskExecutable = 'bin/tasks/${task.name}.dart';
@@ -171,13 +172,12 @@ Future<TaskResult> runTask(
       stderrSub.asFuture(),
     ]);
     await whenProcessExits.timeout(const Duration(seconds: 1));
-    // TODO(flar): for testing purposes only, remove before push
     TaskResult result = TaskResult.parse(taskResult);
-    for (dynamic filename in result.detailFilenames ?? const <dynamic>[]) {
-      if (filename is String) {
-        await sendLog('Uploading $filename to testing bucket', flush: true);
-        await cpFileToGcs(filename as String, 'gs://flutter-dashboard-task-detail/testing/');
-        await sendLog('Done uploading $filename to testing bucket', flush: true);
+    if (uploadDetails && result.succeeded) {
+      for (dynamic filename in result.detailFilenames ?? const <dynamic>[]) {
+        if (filename is String) {
+          await agent.saveDetailFile(task.key, filename);
+        }
       }
     }
     return result;

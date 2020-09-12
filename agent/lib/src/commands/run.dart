@@ -17,7 +17,10 @@ import '../utils.dart';
 class RunCommand extends Command {
   RunCommand(Agent agent) : super('run', agent);
 
-  static ArgParser argParser = ArgParser()..addOption('task', abbr: 't')..addOption('revision', abbr: 'r');
+  static ArgParser argParser = ArgParser()
+    ..addOption('task', abbr: 't')
+    ..addOption('revision', abbr: 'r')
+    ..addOption('upload', abbr: 'u');
 
   @override
   Future<Null> run(ArgResults args) async {
@@ -56,7 +59,7 @@ class RunCommand extends Command {
       } else {
         logger.info('NOTE: No --revision specified. Running on current checkout.');
       }
-      result = await runTask(agent, task);
+      result = await runTask(agent, task, uploadDetails: args['upload'] as bool);
     } catch (error, stackTrace) {
       logger.error('ERROR: $error\n$stackTrace');
     } finally {

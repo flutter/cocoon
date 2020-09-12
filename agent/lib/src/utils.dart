@@ -653,15 +653,5 @@ Future<Null> unlockKeyChain() async {
 Future<Null> cpFileToGcs(String file, String gsBucket) async {
   if (Platform.isLinux || Platform.isMacOS) {
     await eval('gsutil.py', ['cp', file, gsBucket], canFail: true);
-  } else {
-    await eval(
-        'python',
-        [
-          '/Users/flutter/gsutil/gsutil.py',
-          'cp',
-          file,
-          gsBucket,
-        ],
-        canFail: true);
   }
 }
