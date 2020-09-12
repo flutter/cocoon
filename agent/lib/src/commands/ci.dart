@@ -184,7 +184,7 @@ class ContinuousIntegrationCommand extends Command {
     } catch (error, stack) {
       await agent.uploadLogChunk(
         task.key,
-        'Failed to delete build/ directories: $error\n\n$stack',
+        'Failed to delete build/ directories: $error\n\n$stack\n',
       );
     }
   }

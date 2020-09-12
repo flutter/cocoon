@@ -138,7 +138,7 @@ Future<TaskResult> runTask(
     }
   }
 
-  await sendLog('Agent ID: ${agent.agentId}', flush: true);
+  await sendLog('Agent ID: ${agent.agentId}\n', flush: true);
 
   var stdoutSub = runner.stdout.transform(utf8.decoder).listen((String message) async {
     await sendLog(message);
@@ -187,7 +187,7 @@ Future<TaskResult> runTask(
   } finally {
     await stdoutSub.cancel();
     await stderrSub.cancel();
-    await sendLog('Task execution finished', flush: true);
+    await sendLog('Task execution finished\n', flush: true);
     // Force-quit the task runner process.
     if (!runnerFinished) runner.kill(ProcessSignal.sigkill);
     // Force-quit dangling local processes (such as adb commands).

@@ -158,7 +158,7 @@ class Agent {
   }
 
   Future<void> saveDetailFile(String taskKey, String detailFilename) async {
-    await uploadLogChunk(taskKey, '\n\nUploading task details from $detailFilename');
+    await uploadLogChunk(taskKey, '\n\nUploading task details from $detailFilename\n');
     final String dirName = taskKey ?? 'testing';
     await cpFileToGcs(detailFilename, 'gs://flutter-dashboard-task-detail/$dirName/');
   }
