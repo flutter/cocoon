@@ -172,11 +172,14 @@ Future<TaskResult> runTask(
     ]);
     await whenProcessExits.timeout(const Duration(seconds: 1));
     // TODO(flar): for testing purposes only, remove before push
-//    for (dynamic filename in taskResult['detailFiles']) {
-//      await sendLog('Uploading $filename to testing bucket', flush: true);
-//      await cpFileToGcs(filename as String, 'gs://flutter-dashboard-task-detail/testing/');
-//    }
-    return TaskResult.parse(taskResult);
+    TaskResult result = TaskResult.parse(taskResult);
+    for (dynamic filename in result.detailFilenames ?? const <dynamic>[]) {
+      if (filename is String) {
+        await sendLog('Uploading $filename to testing bucket', flush: true);
+        await cpFileToGcs(filename as String, 'gs://flutter-dashboard-task-detail/testing/');
+      }
+    }
+    return result;
   } on TimeoutException catch (timeout) {
     runner.kill(ProcessSignal.sigint);
     return TaskResult.failure('Timeout waiting for $waitingFor: ${timeout.message}');
