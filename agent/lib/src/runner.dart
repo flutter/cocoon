@@ -177,6 +177,7 @@ Future<TaskResult> runTask(
       if (filename is String) {
         await sendLog('Uploading $filename to testing bucket', flush: true);
         await cpFileToGcs(filename as String, 'gs://flutter-dashboard-task-detail/testing/');
+        await sendLog('Done uploading $filename to testing bucket', flush: true);
       }
     }
     return result;
