@@ -9,6 +9,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
@@ -45,7 +46,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final Key key = keyHelper.decode(encodedKey);
-    log.info('Rescheduling task with Key: $key');
+    log.info('Rescheduling task with Key: ${key.id}');
     final Task task = (await datastore.lookupByKey<Task>(<Key>[key])).single;
     if (task == null) {
       throw BadRequestException('No such task: $key');
@@ -57,14 +58,17 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
       throw BadRequestException('No such commit: ${task.commitKey}');
     });
-    const Map<String, String> builderMap = <String, String>{
-      'linux_bot': 'Linux',
-      'mac_bot': 'Mac',
-      'windows_bot': 'Windows',
-    };
+    String builder = task.builderName;
+    if (builder == null) {
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', 'flutter');
+      builder = builders
+          .where((LuciBuilder builder) => builder.taskName == task.name)
+          .map((LuciBuilder builder) => builder.name)
+          .single;
+    }
     await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
-      builderName: task.builderName ?? builderMap[task.name],
+      builderName: builder,
     );
     task
       ..status = Task.statusNew
