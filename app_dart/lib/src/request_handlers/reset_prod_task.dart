@@ -60,11 +60,11 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     });
     String builder = task.builderName;
     if (builder == null) {
-        final List<LuciBuilder> builders = await config.luciBuilders('prod', 'flutter');
-        builder = builders
-            .where((LuciBuilder builder) => builder.taskName == task.name)
-            .map((LuciBuilder builder) => builder.name)
-            .single;
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', 'flutter');
+      builder = builders
+          .where((LuciBuilder builder) => builder.taskName == task.name)
+          .map((LuciBuilder builder) => builder.name)
+          .single;
     }
     await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
