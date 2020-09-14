@@ -29,8 +29,9 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
-    @visibleForTesting this.datastoreProvider =  DatastoreService.defaultProvider,
-  })  : super(config: config, authenticationProvider: authenticationProvider);
+    @visibleForTesting DatastoreServiceProvider datastoreProvider,
+  })  : datastoreProvider = datastoreProvider ?? DatastoreService.defaultProvider,
+        super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
   final LuciBuildService luciBuildService;
