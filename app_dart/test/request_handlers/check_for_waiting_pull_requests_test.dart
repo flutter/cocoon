@@ -128,10 +128,8 @@ void main() {
       final List<GraphQLError> errors = <GraphQLError>[
         GraphQLError(raw: <String, String>{}, message: 'message'),
       ];
-      final OperationException exception =
-          OperationException(graphqlErrors: errors);
-      githubGraphQLClient.mutateResultForOptions =
-          (_) => QueryResult(exception: exception);
+      final OperationException exception = OperationException(graphqlErrors: errors);
+      githubGraphQLClient.mutateResultForOptions = (_) => QueryResult(exception: exception);
 
       await tester.get(handler);
       expect(log.records.length, 1);
@@ -592,12 +590,10 @@ This pull request is not suitable for automatic merging in its current state.
 
       githubGraphQLClient.verifyMutations(
         <MutationOptions>[
-          MutationOptions(
-              documentNode: gql(mergePullRequestMutation),
-              variables: <String, dynamic>{
-                'id': prChangedReview.id,
-                'oid': oid,
-              }),
+          MutationOptions(documentNode: gql(mergePullRequestMutation), variables: <String, dynamic>{
+            'id': prChangedReview.id,
+            'oid': oid,
+          }),
         ],
       );
     });
@@ -655,12 +651,10 @@ This pull request is not suitable for automatic merging in its current state.
               'labelId': base64LabelId,
             },
           ),
-          MutationOptions(
-              documentNode: gql(mergePullRequestMutation),
-              variables: <String, dynamic>{
-                'id': prNonMemberChangeRequestWithMemberApprove.id,
-                'oid': oid,
-              }),
+          MutationOptions(documentNode: gql(mergePullRequestMutation), variables: <String, dynamic>{
+            'id': prNonMemberChangeRequestWithMemberApprove.id,
+            'oid': oid,
+          }),
         ],
       );
     });

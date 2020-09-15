@@ -162,34 +162,26 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   /// Parses a GraphQL query to a list of [_AutoMergeQueryResult]s.
   ///
   /// This method will not return null, but may return an empty list.
-  Future<List<_AutoMergeQueryResult>> _parseQueryData(
-      final $LabeledPullRequestsWithReviews data, String name) async {
+  Future<List<_AutoMergeQueryResult>> _parseQueryData(final $LabeledPullRequestsWithReviews data, String name) async {
     if (data.repository == null) {
       throw StateError('Query did not return a repository.');
     }
 
     if (data.repository.labels.nodes == null || data.repository.labels.nodes.isEmpty) {
-      throw StateError(
-          'Query did not find information about the waitingForTreeToGoGreen label.');
+      throw StateError('Query did not find information about the waitingForTreeToGoGreen label.');
     }
     final String labelId = data.repository.labels.nodes[0].id;
     log.info('LabelId of returned PRs: $labelId');
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
-    final List<
-            $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes>
-        pullRequests = data.repository.labels.nodes[0].pullRequests.nodes;
-    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest
-        in pullRequests) {
-      final $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit
-          commit = pullRequest.commits.nodes[0].commit;
+    final List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes> pullRequests =
+        data.repository.labels.nodes[0].pullRequests.nodes;
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes pullRequest in pullRequests) {
+      final $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit commit =
+          pullRequest.commits.nodes[0].commit;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
-      final DateTime utcDate =
-          DateTime.parse((commit.pushedDate ?? commit.committedDate).value)
-              .toUtc();
-      if (utcDate
-          .add(const Duration(hours: 1))
-          .isAfter(DateTime.now().toUtc())) {
+      final DateTime utcDate = DateTime.parse((commit.pushedDate ?? commit.committedDate).value).toUtc();
+      if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
         continue;
       }
       final String author = pullRequest.author.login;
@@ -262,14 +254,14 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       final String name = status.context;
       if (status.state != StatusState.SUCCESS) {
         allSuccess = false;
-        if (status.state == StatusState.FAILURE &&
-            !notInAuthorsControl.contains(name)) {
+        if (status.state == StatusState.FAILURE && !notInAuthorsControl.contains(name)) {
           failures.add(name);
         }
       }
     }
     log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
-    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes checkRun in checkRuns) {
+    for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes checkRun
+        in checkRuns) {
       final String name = checkRun.name;
       if (checkRun.status.value != 'COMPLETED') {
         allSuccess = false;
@@ -325,14 +317,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 /// Returns true if at least one approved review and no outstanding change
 /// request reviews.
 bool _checkApproval(
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes>
-      reviewNodes,
+  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> reviewNodes,
   Set<String> changeRequestAuthors,
 ) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
-  for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review
-      in reviewNodes) {
+  for ($LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes review in reviewNodes) {
     // Ignore reviews from non-members/owners.
     if (review.authorAssociation != CommentAuthorAssociation.MEMBER &&
         review.authorAssociation != CommentAuthorAssociation.OWNER) {
