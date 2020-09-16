@@ -235,8 +235,8 @@ class _TaskGridState extends State<TaskGrid> {
 
   WidgetBuilder _builderFor(Task task) {
     if (task.attempts > 1) {
-      return (BuildContext context) => Padding(
-            padding: const EdgeInsets.all(4.0),
+      return (BuildContext context) => const Padding(
+            padding: EdgeInsets.all(4.0),
             child: Icon(Icons.priority_high),
           );
     }
