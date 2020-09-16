@@ -336,7 +336,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byIcon(Icons.sync_outlined), findsNothing);
+    expect(find.byIcon(Icons.priority_high), findsNothing);
   });
 
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
