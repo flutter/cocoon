@@ -309,7 +309,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byIcon(Icons.sync_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.priority_high), findsOneWidget);
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
