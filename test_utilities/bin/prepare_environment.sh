@@ -6,7 +6,8 @@
 # List of commands to be run once per PR before running dart and flutter
 # tests.
 
-set -e
+set -ex
+
 pub global activate tuneup
 flutter channel beta
 flutter upgrade
