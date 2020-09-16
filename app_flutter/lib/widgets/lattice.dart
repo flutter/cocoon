@@ -278,12 +278,12 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
 
   @override
   void insertRenderObjectChild(RenderObject child, _Coordinate slot) {
-    renderObject.placeChild(slot, child);
+    renderObject.placeChild(null, slot, null, child);
   }
 
   @override
   void moveRenderObjectChild(RenderObject child, _Coordinate oldSlot, _Coordinate newSlot) {
-    renderObject.placeChild(newSlot, child);
+    renderObject.placeChild(oldSlot, newSlot, child, child);
   }
 
   @override
@@ -520,23 +520,18 @@ class _RenderLatticeBody extends RenderBox {
   }
 
   final Map<_Coordinate, RenderBox> _childrenByCoordinate = <_Coordinate, RenderBox>{};
-  final Map<RenderBox, _Coordinate> _childrenByRenderBox = <RenderBox, _Coordinate>{};
 
-  void placeChild(_Coordinate newCoordinate, RenderBox newChild) {
-    final RenderBox oldChild = _childrenByCoordinate[newCoordinate];
+  void placeChild(_Coordinate oldCoordinate, _Coordinate newCoordinate, RenderBox oldChild, RenderBox newChild) {
     if (oldChild == newChild) {
       return;
     }
     if (oldChild != null) {
-      _childrenByRenderBox[oldChild] = null; // null indicates it exists but is not in the grid
       final _LatticeParentData oldChildParentData = oldChild.parentData;
       oldChildParentData.coordinate = null;
     }
-    final _Coordinate oldCoordinate = _childrenByRenderBox[newChild];
     if (oldCoordinate != null) {
       _childrenByCoordinate.remove(oldCoordinate);
     }
-    _childrenByRenderBox[newChild] = newCoordinate;
     _childrenByCoordinate[newCoordinate] = newChild;
     if (newChild.parent != this) {
       adoptChild(newChild);
@@ -546,7 +541,6 @@ class _RenderLatticeBody extends RenderBox {
   }
 
   void removeChild(_Coordinate coordinate, RenderBox child) {
-    _childrenByRenderBox.remove(child);
     if (coordinate != null) {
       _childrenByCoordinate.remove(coordinate);
     }
@@ -594,31 +588,6 @@ class _RenderLatticeBody extends RenderBox {
   @override
   void visitChildren(RenderObjectVisitor visitor) {
     _childrenByCoordinate.values.forEach(visitor);
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    final List<RenderBox> children = _childrenByRenderBox.keys.toList()..sort(_compareChildren);
-    return children.map((RenderBox child) {
-      final _LatticeParentData childParentData = child.parentData as _LatticeParentData;
-      return child.toDiagnosticsNode(
-          name: childParentData.coordinate != null ? '${childParentData.coordinate}' : '(lost)');
-    }).toList();
-  }
-
-  int _compareChildren(RenderBox a, RenderBox b) {
-    final _LatticeParentData aParentData = a.parentData as _LatticeParentData;
-    final _LatticeParentData bParentData = b.parentData as _LatticeParentData;
-    if (aParentData.coordinate == bParentData.coordinate) {
-      return 0;
-    }
-    if (aParentData.coordinate == null) {
-      return 1;
-    }
-    if (bParentData.coordinate == null) {
-      return -1;
-    }
-    return aParentData.coordinate.compareTo(bParentData.coordinate);
   }
 
   @override
