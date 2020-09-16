@@ -277,18 +277,18 @@ class _LatticeBodyElement extends RenderObjectElement implements _LatticeDelegat
   }
 
   @override
-  void insertChildRenderObject(RenderObject child, _Coordinate slot) {
+  void insertRenderObjectChild(RenderObject child, _Coordinate slot) {
     renderObject.placeChild(slot, child);
   }
 
   @override
-  void moveChildRenderObject(RenderObject child, _Coordinate slot) {
-    renderObject.placeChild(slot, child);
+  void moveRenderObjectChild(RenderObject child, _Coordinate oldSlot, _Coordinate newSlot) {
+    renderObject.placeChild(newSlot, child);
   }
 
   @override
-  void removeChildRenderObject(RenderObject child) {
-    renderObject.removeChild(child);
+  void removeRenderObjectChild(RenderObject child, _Coordinate slot) {
+    renderObject.removeChild(slot, child);
   }
 
   @override
@@ -545,8 +545,7 @@ class _RenderLatticeBody extends RenderBox {
     newChildParentData.coordinate = newCoordinate;
   }
 
-  void removeChild(RenderBox child) {
-    final _Coordinate coordinate = _childrenByRenderBox[child];
+  void removeChild(_Coordinate coordinate, RenderBox child) {
     _childrenByRenderBox.remove(child);
     if (coordinate != null) {
       _childrenByCoordinate.remove(coordinate);
