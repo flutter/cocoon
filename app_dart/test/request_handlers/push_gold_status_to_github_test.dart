@@ -433,7 +433,8 @@ void main() {
 
         test('does not post for stale PRs, does not query Gold, stale comment', () async {
           // New commit, draft PR
-          final PullRequest pr = newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -445,7 +446,7 @@ void main() {
 
           // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
           );
@@ -474,7 +475,8 @@ void main() {
 
         test('will only comment once on stale PRs', () async {
           // New commit, draft PR
-          final PullRequest pr = newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -486,7 +488,7 @@ void main() {
 
           // Already commented to update.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldStalePRValue,
             ),
           );
