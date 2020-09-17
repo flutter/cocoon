@@ -128,7 +128,7 @@ Future<void> main() async {
         await handler.service(request);
       } else {
         /// Requests with query parameters and anchors need to be trimmed to get the file path.
-        /// TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
+        // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
         final int queryIndex = request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
         final int anchorIndex =
             request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
