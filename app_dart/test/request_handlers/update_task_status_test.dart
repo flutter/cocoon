@@ -26,7 +26,11 @@ void main() {
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
-      config = FakeConfig(dbValue: datastoreDB, tabledataResourceApi: tabledataResourceApi, maxTaskRetriesValue: 2,);
+      config = FakeConfig(
+        dbValue: datastoreDB,
+        tabledataResourceApi: tabledataResourceApi,
+        maxTaskRetriesValue: 2,
+      );
       tester = ApiRequestHandlerTester();
       tester.requestData = <String, dynamic>{
         'TaskKey':
@@ -74,11 +78,11 @@ void main() {
       final Commit commit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          attempts: 1,
-          commitKey: commit.key,
-          isFlaky: false,
-          requiredCapabilities: <String>['ios'],
+        key: commit.key.append(Task, id: 4590522719010816),
+        attempts: 1,
+        commitKey: commit.key,
+        isFlaky: false,
+        requiredCapabilities: <String>['ios'],
       );
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
@@ -97,11 +101,11 @@ void main() {
       final Commit commit = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          attempts: 1,
-          commitKey: commit.key,
-          isFlaky: true,
-          requiredCapabilities: <String>['ios'],
+        key: commit.key.append(Task, id: 4590522719010816),
+        attempts: 1,
+        commitKey: commit.key,
+        isFlaky: true,
+        requiredCapabilities: <String>['ios'],
       );
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
