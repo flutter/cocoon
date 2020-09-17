@@ -24,7 +24,7 @@ class GoogleSignInService extends ChangeNotifier {
 
     try {
       _googleSignIn.signInSilently();
-    } on PlatformException catch(error) {
+    } on PlatformException catch (error) {
       debugPrint(error.message);
     }
   }
@@ -45,12 +45,12 @@ class GoogleSignInService extends ChangeNotifier {
   final GoogleSignIn _googleSignIn;
 
   /// Whether or not the application has been signed in to.
-  /// 
+  ///
   /// If the plugin fails, default to unauthenticated.
   Future<bool> get isAuthenticated {
     try {
-       return _googleSignIn.isSignedIn();
-    } on PlatformException catch(error) {
+      return _googleSignIn.isSignedIn();
+    } on PlatformException catch (error) {
       debugPrint(error.message);
     }
     return Future<bool>.value(false);
@@ -81,7 +81,7 @@ class GoogleSignInService extends ChangeNotifier {
     try {
       user = await _googleSignIn.signIn();
       notifyListeners();
-    } on PlatformException catch(error) {
+    } on PlatformException catch (error) {
       debugPrint(error.message);
     }
   }
@@ -90,7 +90,7 @@ class GoogleSignInService extends ChangeNotifier {
     try {
       user = await _googleSignIn.signOut();
       notifyListeners();
-    } on PlatformException catch(error) {
+    } on PlatformException catch (error) {
       debugPrint(error.message);
     }
   }
