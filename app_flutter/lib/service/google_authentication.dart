@@ -25,6 +25,7 @@ class GoogleSignInService extends ChangeNotifier {
     try {
       _googleSignIn.signInSilently();
     } on PlatformException catch (error) {
+      debugPrint('GoogleSignIn error code: ' + error.code);
       debugPrint(error.message);
     }
   }
@@ -51,6 +52,7 @@ class GoogleSignInService extends ChangeNotifier {
     try {
       return _googleSignIn.isSignedIn();
     } on PlatformException catch (error) {
+      debugPrint('GoogleSignIn error code: ' + error.code);
       debugPrint(error.message);
     }
     return Future<bool>.value(false);
@@ -82,6 +84,7 @@ class GoogleSignInService extends ChangeNotifier {
       user = await _googleSignIn.signIn();
       notifyListeners();
     } on PlatformException catch (error) {
+      debugPrint('GoogleSignIn error code: ' + error.code);
       debugPrint(error.message);
     }
   }
@@ -91,6 +94,7 @@ class GoogleSignInService extends ChangeNotifier {
       user = await _googleSignIn.signOut();
       notifyListeners();
     } on PlatformException catch (error) {
+      debugPrint('GoogleSignIn error code: ' + error.code);
       debugPrint(error.message);
     }
   }
