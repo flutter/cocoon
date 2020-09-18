@@ -1,4 +1,4 @@
-flutter-1.17-candidate.3
 flutter-1.20-candidate.7
 flutter-1.21-candidate.9
+flutter-1.22-candidate.12
 master
