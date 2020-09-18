@@ -30,7 +30,7 @@ class CommitAuthorAvatar extends StatelessWidget {
   /// Width passed to [Image].
   final double width;
 
-  /// Height passed to [Image]/
+  /// Height passed to [Image].
   final double height;
 
   /// Client to make network requests to.
