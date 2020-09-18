@@ -53,6 +53,20 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
+      // Check when this PR was last updated. Gold does not keep results after
+      // >20 days. If a PR has gone stale, we should draw attention to it to be
+      // updated or closed.
+      final DateTime updatedAt = pr.updatedAt.toUtc();
+      final DateTime twentyDaysAgo = DateTime.now().toUtc().subtract(const Duration(days: 20));
+      if (updatedAt.isBefore(twentyDaysAgo)) {
+        log.debug('Stale PR, no gold status to report.');
+        if (!await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldStalePR)) {
+          log.debug('Notifying for stale PR.');
+          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldStalePR);
+        }
+        continue;
+      }
+
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
@@ -183,7 +197,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     // has not finished ingesting the results.
     await Future<void>.delayed(const Duration(seconds: 10));
     final Uri requestForTryjobStatus =
-        Uri.parse('http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
+        Uri.parse('http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged');
     String rawResponse;
     try {
       final HttpClientRequest request = await goldClient.getUrl(requestForTryjobStatus);

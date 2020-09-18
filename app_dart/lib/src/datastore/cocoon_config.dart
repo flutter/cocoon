@@ -168,6 +168,10 @@ class Config {
   String get flutterGoldChanges => 'Image changes have been found for '
       'this pull request.';
 
+  String get flutterGoldStalePR => 'This pull request has not been updated in a '
+      'while. Please update this pull request to receive results from Gold, or '
+      'close it.';
+
   String get flutterGoldDraftChange => 'This pull request has been changed to a '
       'draft. The currently pending flutter-gold status will not be able '
       'to resolve until a new commit is pushed or the change is marked ready for '
