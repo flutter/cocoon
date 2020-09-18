@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:cocoon_service/protos.dart' show Commit;
-
-import 'web_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.
 ///
@@ -14,12 +16,30 @@ import 'web_image.dart';
 /// with the author's first name and a color arbitrarily but deterministically generated
 /// from the avatar's name.
 class CommitAuthorAvatar extends StatelessWidget {
-  const CommitAuthorAvatar({
+  CommitAuthorAvatar({
     Key key,
     this.commit,
-  }) : super(key: key);
+    this.width = 50,
+    this.height = 50,
+    http.Client client,
+  })  : httpClient = client ?? http.Client(),
+        super(key: key);
 
   final Commit commit;
+
+  /// Width passed to [Image].
+  final double width;
+
+  /// Height passed to [Image]/
+  final double height;
+
+  /// Client to make network requests to.
+  final http.Client httpClient;
+
+  Future<Uint8List> _getAvatarBytes() async {
+    final http.Response response = await httpClient.get(commit.authorAvatarUrl);
+    return response.bodyBytes;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +56,8 @@ class CommitAuthorAvatar extends StatelessWidget {
       authorColor = HSLColor.fromColor(authorColor).withLightness(.65).toColor();
     }
 
+    /// Fallback widget that shows the initial of the commit author. In cases
+    /// where GitHub is down or slow internet this will be seen.
     final Widget avatar = CircleAvatar(
       backgroundColor: authorColor,
       child: Text(
@@ -44,13 +66,23 @@ class CommitAuthorAvatar extends StatelessWidget {
       ),
     );
 
-    return WebImage(
-      imageUrl: commit.authorAvatarUrl,
-      imageBuilder: (BuildContext context, ImageProvider provider) => CircleAvatar(
-        backgroundImage: provider,
-      ),
-      placeholder: (BuildContext context, String url) => avatar,
-      errorWidget: (BuildContext context, String url, Object error) => avatar,
+    /// GitHub endpoint may throw an exception instead, which will have less bytes
+    /// than required to construct an image from. A quick hack to ensure enough data
+    /// exists for [Image.memory] can decode an image.
+    const int minimumImageBytes = 10;
+
+    return FutureBuilder<Uint8List>(
+      future: _getAvatarBytes(),
+      builder: (BuildContext context, AsyncSnapshot<Uint8List> snapshot) {
+        if (snapshot.hasData && snapshot.data.length > minimumImageBytes) {
+          return Image.memory(
+            snapshot.data,
+            width: width,
+            height: height,
+          );
+        }
+        return avatar;
+      },
     );
   }
 }
