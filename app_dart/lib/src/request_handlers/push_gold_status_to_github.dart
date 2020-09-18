@@ -56,8 +56,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       // Check when this PR was last updated. Gold does not keep results after
       // >20 days. If a PR has gone stale, we should draw attention to it to be
       // updated or closed.
-      final DateTime updatedAt = pr.updatedAt;
-      final DateTime twentyDaysAgo = DateTime.now().subtract(const Duration(days: 20));
+      final DateTime updatedAt = pr.updatedAt.toUtc();
+      final DateTime twentyDaysAgo = DateTime.now().toUtc().subtract(const Duration(days: 20));
       if (updatedAt.isBefore(twentyDaysAgo)) {
         log.debug('Stale PR, no gold status to report.');
         if (!await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldStalePR)) {
