@@ -31,7 +31,7 @@ dependencies:
   cached_network_image: ^2.0.0
   cocoon_service:
     path: ../app_dart
-  google_sign_in: ^4.1.0
+  google_sign_in: ^4.5.3
   provider: ^4.0.0
   url_launcher: ^5.4.1
 
