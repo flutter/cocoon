@@ -46,7 +46,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     );
 
     return WebImage(
-      imageUrl: commit.authorAvatarUrl, 
+      imageUrl: commit.authorAvatarUrl,
       placeholder: avatar,
     );
   }
