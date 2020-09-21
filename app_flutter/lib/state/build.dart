@@ -66,7 +66,7 @@ class BuildState extends ChangeNotifier {
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
-  final Duration refreshRate = const Duration(seconds: 10);
+  final Duration refreshRate = const Duration(seconds: 30);
 
   /// Timer that calls [_fetchStatusUpdates] on a set interval.
   @visibleForTesting
