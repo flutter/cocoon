@@ -1,7 +1,10 @@
 #!/bin/bash
-set -e
+# Copyright 2020 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 # This script provisions a salt minion on a Flutter test bed, it supports Linux and macOS.
+set -e
 
 MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 
