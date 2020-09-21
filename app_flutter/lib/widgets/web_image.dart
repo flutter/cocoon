@@ -4,26 +4,19 @@
 
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-/// Helper widget for easily switching between the normal widget and
-/// CanvasKit specific widgets. Since CanvasKit is under active development,
-/// the Flutter framework is not fully supported yet.
+/// Helper widget for switching between a network image and a placeholder.
 ///
-/// This also bypasses CachedNetworkImageProvider when testing is enabled,
-/// because that widget relies on plugins and plugins aren't available in tests.
-// Remove the skia part of this workaround when the following issues have been removed:
-// TODO(chillers): Show a Network Image. https://github.com/flutter/flutter/issues/45955
+/// This bypasses network image provider when testing to not surface the
+/// HTTP errors in tests by default.
 class WebImage extends StatelessWidget {
   const WebImage({
     Key key,
     bool enabled,
     this.imageUrl,
-    this.imageBuilder,
     this.placeholder,
-    this.errorWidget,
   })  : _enabled = enabled,
         super(key: key);
 
@@ -43,28 +36,20 @@ class WebImage extends StatelessWidget {
     if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
       return false;
     }
-    // Unlike FLUTTER_TEST, the FLUTTER_WEB_USE_SKIA key is set during compilation.
-    if (const bool.fromEnvironment('FLUTTER_WEB_USE_SKIA', defaultValue: false)) {
-      return false;
-    }
     return true;
   }
 
+  /// The url to fetch the image from.
   final String imageUrl;
-  final ImageWidgetBuilder imageBuilder;
-  final PlaceholderWidgetBuilder placeholder;
-  final LoadingErrorWidgetBuilder errorWidget;
+
+  /// Widget to fall back to if environment does not support network images.
+  final Widget placeholder;
 
   @override
   Widget build(BuildContext context) {
     if (enabled) {
-      return CachedNetworkImage(
-        imageUrl: imageUrl,
-        imageBuilder: imageBuilder,
-        placeholder: placeholder,
-        errorWidget: errorWidget,
-      );
+      return Image.network(imageUrl);
     }
-    return placeholder(context, imageUrl);
+    return placeholder;
   }
 }
