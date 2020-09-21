@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:typed_data';
-
+import 'package:app_flutter/widgets/web_image.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
@@ -16,30 +13,12 @@ import 'package:cocoon_service/protos.dart' show Commit;
 /// with the author's first name and a color arbitrarily but deterministically generated
 /// from the avatar's name.
 class CommitAuthorAvatar extends StatelessWidget {
-  CommitAuthorAvatar({
+  const CommitAuthorAvatar({
     Key key,
     this.commit,
-    this.width = 50,
-    this.height = 50,
-    http.Client client,
-  })  : httpClient = client ?? http.Client(),
-        super(key: key);
+  }) : super(key: key);
 
   final Commit commit;
-
-  /// Width passed to [Image].
-  final double width;
-
-  /// Height passed to [Image].
-  final double height;
-
-  /// Client to make network requests to.
-  final http.Client httpClient;
-
-  Future<Uint8List> _getAvatarBytes() async {
-    final http.Response response = await httpClient.get(commit.authorAvatarUrl);
-    return response.bodyBytes;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,23 +45,9 @@ class CommitAuthorAvatar extends StatelessWidget {
       ),
     );
 
-    /// GitHub endpoint may throw an exception instead, which will have less bytes
-    /// than required to construct an image from. A quick hack to ensure enough data
-    /// exists for [Image.memory] can decode an image.
-    const int minimumImageBytes = 10;
-
-    return FutureBuilder<Uint8List>(
-      future: _getAvatarBytes(),
-      builder: (BuildContext context, AsyncSnapshot<Uint8List> snapshot) {
-        if (snapshot.hasData && snapshot.data.length > minimumImageBytes) {
-          return Image.memory(
-            snapshot.data,
-            width: width,
-            height: height,
-          );
-        }
-        return avatar;
-      },
+    return WebImage(
+      imageUrl: commit.authorAvatarUrl,
+      placeholder: avatar,
     );
   }
 }
