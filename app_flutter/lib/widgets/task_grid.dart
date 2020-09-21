@@ -20,7 +20,9 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key key}) : super(key: key);
+  const TaskGridContainer({Key key, this.filterNotifier}) : super(key: key);
+
+  final ValueNotifier<TaskGridFilter> filterNotifier;
 
   @visibleForTesting
   static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
@@ -47,8 +49,363 @@ class TaskGridContainer extends StatelessWidget {
         return TaskGrid(
           buildState: buildState,
           commitStatuses: commitStatuses,
+          filterNotifier: filterNotifier,
         );
       },
+    );
+  }
+}
+
+@immutable
+class TaskGridFilter {
+  TaskGridFilter({
+    RegExp taskFilter,
+    RegExp authorFilter,
+    RegExp messageFilter,
+    this.showAndroid,
+    this.showIos,
+    this.showWindows,
+    this.showCirrus,
+    this.showLuci,
+  }) :
+        taskFilter = _checkRegExp(taskFilter),
+        authorFilter = _checkRegExp(authorFilter),
+        messageFilter = _checkRegExp(messageFilter);
+
+  factory TaskGridFilter.fromMap(Map<String,String> valueMap) {
+    if (valueMap == null) {
+      return defaultFilter;
+    }
+    return defaultFilter.copyWith(
+      taskFilter:    _regExpFromString(valueMap['taskFilter']),
+      authorFilter:  _regExpFromString(valueMap['authorFilter']),
+      messageFilter: _regExpFromString(valueMap['messageFilter']),
+      showAndroid:   _boolFromString(valueMap['showAndroid']),
+      showIos:       _boolFromString(valueMap['showIos']),
+      showWindows:   _boolFromString(valueMap['showWindows']),
+      showCirrus:    _boolFromString(valueMap['showCirrus']),
+      showLuci:      _boolFromString(valueMap['showLuci']),
+    );
+  }
+
+  static final TaskGridFilter defaultFilter = TaskGridFilter(
+    taskFilter: null,
+    authorFilter: null,
+    messageFilter: null,
+    showAndroid: true,
+    showIos: true,
+    showWindows: true,
+    showCirrus: true,
+    showLuci: true,
+  );
+
+  static RegExp _regExpFromString(String filterString) {
+    if (filterString == null || filterString == '') {
+      return null;
+    }
+    return RegExp(filterString);
+  }
+
+  static RegExp _checkRegExp(RegExp filter) {
+    if (filter == null || filter.pattern == '') {
+      return null;
+    }
+    return filter;
+  }
+
+  static bool _boolFromString(String value) {
+    if (value == 'true' || value == 't') {
+      return true;
+    }
+    if (value == 'false' || value == 'f') {
+      return false;
+    }
+    return null;
+  }
+
+  TaskGridFilter copyWith({
+    RegExp taskFilter,
+    RegExp authorFilter,
+    RegExp messageFilter,
+    bool showAndroid,
+    bool showIos,
+    bool showWindows,
+    bool showCirrus,
+    bool showLuci,
+  }) => TaskGridFilter(
+    taskFilter:    taskFilter    ?? this.taskFilter,
+    authorFilter:  authorFilter  ?? this.authorFilter,
+    messageFilter: messageFilter ?? this.messageFilter,
+    showAndroid:   showAndroid   ?? this.showAndroid,
+    showIos:       showIos       ?? this.showIos,
+    showWindows:   showWindows   ?? this.showWindows,
+    showCirrus:    showCirrus    ?? this.showCirrus,
+    showLuci:      showLuci      ?? this.showLuci,
+  );
+
+  final RegExp taskFilter;
+  final RegExp authorFilter;
+  final RegExp messageFilter;
+  final bool showAndroid;
+  final bool showIos;
+  final bool showWindows;
+  final bool showCirrus;
+  final bool showLuci;
+
+  bool matchesCommit(CommitStatus commitStatus) {
+    if (authorFilter != null && !authorFilter.hasMatch(commitStatus.commit.author)) {
+      return false;
+    }
+    if (messageFilter != null && !messageFilter.hasMatch(commitStatus.commit.message)) {
+      return false;
+    }
+    return true;
+  }
+
+  bool matchesTask(QualifiedTask qualifiedTask) {
+    if (taskFilter != null && !taskFilter.hasMatch(qualifiedTask.task)) {
+      return false;
+    }
+    bool stageFlag;
+    switch (qualifiedTask.stage) {
+      case StageName.devicelab:
+        stageFlag = showAndroid;
+        break;
+      case StageName.devicelabIOs:
+        stageFlag = showIos;
+        break;
+      case StageName.devicelabWin:
+        stageFlag = showWindows;
+        break;
+      case StageName.cirrus:
+        stageFlag = showCirrus;
+        break;
+      case StageName.luci:
+        stageFlag = showLuci;
+        break;
+      default:
+        return false;
+    }
+    return stageFlag;
+  }
+
+  Map<String,String> toMap() => <String,String>{
+    if (taskFilter != defaultFilter.taskFilter)
+      'taskFilter': taskFilter.pattern,
+    if (authorFilter != defaultFilter.authorFilter)
+      'authorFilter': authorFilter.pattern,
+    if (messageFilter != defaultFilter.messageFilter)
+      'messageFilter': messageFilter.pattern,
+    if (showAndroid != defaultFilter.showAndroid)
+      'showAndroid': showAndroid.toString(),
+    if (showIos != defaultFilter.showIos)
+      'showIos': showIos.toString(),
+    if (showWindows != defaultFilter.showWindows)
+      'showWindows': showWindows.toString(),
+    if (showCirrus != defaultFilter.showCirrus)
+      'showCirrus': showCirrus.toString(),
+    if (showLuci != defaultFilter.showLuci)
+      'showLuci': showLuci.toString(),
+  };
+
+  String _stringFor(String label, Object value) => value == null ? '' : '$label: $value,';
+
+  @override
+  String toString() {
+    return 'TaskGridFilter('
+        '${_stringFor('taskFilter',    taskFilter?.pattern)}'
+        '${_stringFor('authorFilter',  authorFilter?.pattern)}'
+        '${_stringFor('messageFilter', messageFilter?.pattern)}'
+        '${_stringFor('showAndroid',   showAndroid)}'
+        '${_stringFor('showIos',       showIos)}'
+        '${_stringFor('showWindows',   showWindows)}'
+        '${_stringFor('showCirrus',    showCirrus)}'
+        '${_stringFor('showLuci',      showLuci)}'
+        ')';
+  }
+
+  @override
+  int get hashCode {
+    return hashValues(
+      taskFilter,
+      authorFilter,
+      messageFilter,
+      showAndroid,
+      showIos,
+      showWindows,
+      showCirrus,
+      showLuci,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is TaskGridFilter &&
+        taskFilter == other.taskFilter &&
+        authorFilter == other.authorFilter &&
+        messageFilter == other.messageFilter &&
+        showAndroid == other.showAndroid &&
+        showIos == other.showIos &&
+        showWindows == other.showWindows &&
+        showCirrus == other.showCirrus &&
+        showLuci == other.showLuci
+    ;
+  }
+}
+
+class TaskGridFilterWidget extends StatefulWidget {
+  const TaskGridFilterWidget(this.filterNotifier, this.onClose);
+
+  final ValueNotifier<TaskGridFilter> filterNotifier;
+  final Function() onClose;
+
+  @override
+  State createState() => TaskGridFilterState();
+}
+
+class TaskGridFilterState extends State<TaskGridFilterWidget> {
+  @override
+  void initState() {
+    super.initState();
+    widget.filterNotifier.addListener(_update);
+    taskController = TextEditingController(text: filter.taskFilter?.pattern ?? '');
+    authorController = TextEditingController(text: filter.authorFilter?.pattern ?? '');
+    messageController = TextEditingController(text: filter.messageFilter?.pattern ?? '');
+  }
+
+  void _update() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.filterNotifier.removeListener(_update);
+    super.dispose();
+  }
+
+  static TextStyle labelStyle = const TextStyle(
+    color: Colors.black,
+    fontSize: 16.0,
+    fontWeight: FontWeight.normal,
+    fontStyle: FontStyle.normal,
+    decoration: TextDecoration.none,
+  );
+
+  TaskGridFilter get filter => widget.filterNotifier.value;
+  TextEditingController taskController;
+  TextEditingController authorController;
+  TextEditingController messageController;
+
+  void _setFilter(TaskGridFilter newFilter) {
+    widget.filterNotifier.value = newFilter;
+  }
+
+  void _newTaskFilter(RegExp newRegExp) {
+    _setFilter(filter.copyWith(taskFilter: newRegExp));
+  }
+
+  void _newAuthorFilter(RegExp newRegExp) {
+    _setFilter(filter.copyWith(authorFilter: newRegExp));
+  }
+
+  void _newMessageFilter(RegExp newRegExp) {
+    _setFilter(filter.copyWith(messageFilter: newRegExp));
+  }
+
+  void _newShowAndroid(bool newValue) {
+    _setFilter(filter.copyWith(showAndroid: newValue));
+  }
+
+  void _newShowIos(bool newValue) {
+    _setFilter(filter.copyWith(showIos: newValue));
+  }
+
+  void _newShowWindows(bool newValue) {
+    _setFilter(filter.copyWith(showWindows: newValue));
+  }
+
+  void _newShowCirrus(bool newValue) {
+    _setFilter(filter.copyWith(showCirrus: newValue));
+  }
+
+  void _newShowLuci(bool newValue) {
+    _setFilter(filter.copyWith(showLuci: newValue));
+  }
+
+  Widget _pad(Widget child, Alignment alignment) {
+    return Container(
+      padding: const EdgeInsets.all(5.0),
+      child: child,
+      alignment: alignment,
+    );
+  }
+
+  TableRow _makeRow(String label, Widget editable) {
+    return TableRow(
+      children: <Widget>[
+        _pad(Text(label, style: labelStyle), Alignment.centerRight),
+        _pad(editable, Alignment.centerLeft),
+      ],
+    );
+  }
+
+  TableRow _makeTextFilterRow(String label, TextEditingController controller, void onChanged(RegExp newValue)) {
+    return _makeRow(label,
+      TextField(
+        controller: controller,
+        decoration: const InputDecoration(
+          hintText: '(regular expression)',
+        ),
+        onChanged: (String newValue) => onChanged(RegExp(newValue)),
+      ),
+    );
+  }
+
+  Widget _makeCheckbox(String label, bool currentValue, void onChanged(bool newValue)) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(label, style: labelStyle),
+        Checkbox(value: currentValue, onChanged: onChanged),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Positioned(
+          child: FlatButton(
+            child: const Icon(Icons.close),
+            onPressed: widget.onClose,
+          ),
+        ),
+        Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: const <int, TableColumnWidth>{
+            0: IntrinsicColumnWidth(),
+            1: FixedColumnWidth(300.0),
+          },
+          children: <TableRow>[
+            _makeTextFilterRow('Task matches:', taskController, _newTaskFilter),
+            _makeTextFilterRow('Author matches:', authorController, _newAuthorFilter),
+            _makeTextFilterRow('Commit message matches:', messageController, _newMessageFilter),
+            _makeRow('Show Platforms', Wrap(
+              children: <Widget>[
+                _makeCheckbox('Android', filter.showAndroid, _newShowAndroid),
+                _makeCheckbox('Ios', filter.showIos, _newShowIos),
+                _makeCheckbox('Win', filter.showWindows, _newShowWindows),
+                _makeCheckbox('Cirrus', filter.showCirrus, _newShowCirrus),
+                _makeCheckbox('Luci', filter.showLuci, _newShowLuci),
+              ],
+            )),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -64,6 +421,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     @required this.buildState,
     @required this.commitStatuses,
+    this.filterNotifier,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -71,6 +429,8 @@ class TaskGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
+
+  final ValueNotifier<TaskGridFilter> filterNotifier;
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
@@ -81,6 +441,23 @@ class _TaskGridState extends State<TaskGrid> {
   // lattice matrix each time the task grid has to update, regardless of whether
   // we've received new data or not.
 
+  TaskGridFilter filter;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.filterNotifier == null) {
+      filter = TaskGridFilter.defaultFilter;
+    } else {
+      filter = widget.filterNotifier.value ?? TaskGridFilter.defaultFilter;
+      widget.filterNotifier.addListener(() {
+        setState(() {
+          filter = widget.filterNotifier.value ?? TaskGridFilter.defaultFilter;
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LatticeScrollView(
@@ -90,7 +467,7 @@ class _TaskGridState extends State<TaskGrid> {
       // we load.
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget.commitStatuses),
+      cells: _processCommitStatuses(widget.commitStatuses, filter),
       cellSize: const Size.square(TaskBox.cellSize),
     );
   }
@@ -137,17 +514,24 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses) {
+  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
+    filter ??= TaskGridFilter.defaultFilter;
     // 1: PREPARE ROWS
-    final List<_Row> rows = commitStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<CommitStatus> filteredStatuses = commitStatuses
+        .where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
+    final List<_Row> rows = filteredStatuses
+        .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
-    for (final CommitStatus status in commitStatuses) {
+    for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+          if (!filter.matchesTask(qualifiedTask)) {
+            continue;
+          }
           if (commitCount <= 25) {
             double score = 0.0;
             if (task.attempts > 1) {

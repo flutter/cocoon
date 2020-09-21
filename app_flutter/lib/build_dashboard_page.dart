@@ -15,12 +15,61 @@ import 'widgets/task_grid.dart';
 ///
 /// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [TaskGrid].
-class BuildDashboardPage extends StatelessWidget {
+class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
     Key key,
+    this.queryParameters,
   }) : super(key: key);
 
   static const String routeName = '/build';
+
+  final Map<String, String> queryParameters;
+
+  @override
+  State createState() => BuildDashboardPageState();
+}
+
+class BuildDashboardPageState extends State<BuildDashboardPage> {
+  ValueNotifier<TaskGridFilter> _filterNotifier;
+  OverlayEntry _filterDialog;
+
+  @override
+  void initState() {
+    super.initState();
+    _filterNotifier = ValueNotifier<TaskGridFilter>(TaskGridFilter.fromMap(widget.queryParameters));
+  }
+
+  @override
+  void dispose() {
+    _filterDialog?.remove();
+    super.dispose();
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    if (_filterDialog != null) {
+      return;
+    }
+    _filterDialog = OverlayEntry(
+      builder: (BuildContext context) {
+        return Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(0xc0),
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: TaskGridFilterWidget(_filterNotifier, () {
+                _filterDialog.remove();
+                _filterDialog = null;
+              }),
+            ),
+          ),
+        );
+      },
+    );
+    Overlay.of(context).insert(_filterDialog);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +97,10 @@ class BuildDashboardPage extends StatelessWidget {
           title: statusTable[_buildState.isTreeBuilding],
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
+            FlatButton(
+              child: const Icon(Icons.sort),
+              onPressed: () => _showFilterDialog(context),
+            ),
             DropdownButton<String>(
               value: _buildState.currentBranch,
               icon: const Icon(
@@ -77,8 +130,8 @@ class BuildDashboardPage extends StatelessWidget {
         ),
         body: ErrorBrookWatcher(
           errors: _buildState.errors,
-          child: const SizedBox.expand(
-            child: TaskGridContainer(),
+          child: SizedBox.expand(
+            child: TaskGridContainer(filterNotifier: _filterNotifier),
           ),
         ),
         drawer: const NavigationDrawer(),

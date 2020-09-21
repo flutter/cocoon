@@ -121,7 +121,7 @@ class DevelopmentCocoonService implements CocoonService {
       ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = 'Fake commit message'
+      ..message = 'Fake commit message ${random.nextInt(1000)}'
       ..repository = 'flutter/cocoon'
       ..sha = commitTimestamp.hashCode.toRadixString(16).padLeft(32, '0')
       ..timestamp = Int64(commitTimestamp)
