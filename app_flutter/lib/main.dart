@@ -49,8 +49,7 @@ class MyApp extends StatelessWidget {
         if (uriData.path == BuildDashboardPage.routeName) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext context) =>
-                BuildDashboardPage(queryParameters: uriData.queryParameters),
+            builder: (BuildContext context) => BuildDashboardPage(queryParameters: uriData.queryParameters),
           );
         }
         return null;

@@ -67,24 +67,23 @@ class TaskGridFilter {
     this.showWindows,
     this.showCirrus,
     this.showLuci,
-  }) :
-        taskFilter = _checkRegExp(taskFilter),
+  })  : taskFilter = _checkRegExp(taskFilter),
         authorFilter = _checkRegExp(authorFilter),
         messageFilter = _checkRegExp(messageFilter);
 
-  factory TaskGridFilter.fromMap(Map<String,String> valueMap) {
+  factory TaskGridFilter.fromMap(Map<String, String> valueMap) {
     if (valueMap == null) {
       return defaultFilter;
     }
     return defaultFilter.copyWith(
-      taskFilter:    _regExpFromString(valueMap['taskFilter']),
-      authorFilter:  _regExpFromString(valueMap['authorFilter']),
+      taskFilter: _regExpFromString(valueMap['taskFilter']),
+      authorFilter: _regExpFromString(valueMap['authorFilter']),
       messageFilter: _regExpFromString(valueMap['messageFilter']),
-      showAndroid:   _boolFromString(valueMap['showAndroid']),
-      showIos:       _boolFromString(valueMap['showIos']),
-      showWindows:   _boolFromString(valueMap['showWindows']),
-      showCirrus:    _boolFromString(valueMap['showCirrus']),
-      showLuci:      _boolFromString(valueMap['showLuci']),
+      showAndroid: _boolFromString(valueMap['showAndroid']),
+      showIos: _boolFromString(valueMap['showIos']),
+      showWindows: _boolFromString(valueMap['showWindows']),
+      showCirrus: _boolFromString(valueMap['showCirrus']),
+      showLuci: _boolFromString(valueMap['showLuci']),
     );
   }
 
@@ -132,16 +131,17 @@ class TaskGridFilter {
     bool showWindows,
     bool showCirrus,
     bool showLuci,
-  }) => TaskGridFilter(
-    taskFilter:    taskFilter    ?? this.taskFilter,
-    authorFilter:  authorFilter  ?? this.authorFilter,
-    messageFilter: messageFilter ?? this.messageFilter,
-    showAndroid:   showAndroid   ?? this.showAndroid,
-    showIos:       showIos       ?? this.showIos,
-    showWindows:   showWindows   ?? this.showWindows,
-    showCirrus:    showCirrus    ?? this.showCirrus,
-    showLuci:      showLuci      ?? this.showLuci,
-  );
+  }) =>
+      TaskGridFilter(
+        taskFilter: taskFilter ?? this.taskFilter,
+        authorFilter: authorFilter ?? this.authorFilter,
+        messageFilter: messageFilter ?? this.messageFilter,
+        showAndroid: showAndroid ?? this.showAndroid,
+        showIos: showIos ?? this.showIos,
+        showWindows: showWindows ?? this.showWindows,
+        showCirrus: showCirrus ?? this.showCirrus,
+        showLuci: showLuci ?? this.showLuci,
+      );
 
   final RegExp taskFilter;
   final RegExp authorFilter;
@@ -189,38 +189,30 @@ class TaskGridFilter {
     return stageFlag;
   }
 
-  Map<String,String> toMap() => <String,String>{
-    if (taskFilter != defaultFilter.taskFilter)
-      'taskFilter': taskFilter.pattern,
-    if (authorFilter != defaultFilter.authorFilter)
-      'authorFilter': authorFilter.pattern,
-    if (messageFilter != defaultFilter.messageFilter)
-      'messageFilter': messageFilter.pattern,
-    if (showAndroid != defaultFilter.showAndroid)
-      'showAndroid': showAndroid.toString(),
-    if (showIos != defaultFilter.showIos)
-      'showIos': showIos.toString(),
-    if (showWindows != defaultFilter.showWindows)
-      'showWindows': showWindows.toString(),
-    if (showCirrus != defaultFilter.showCirrus)
-      'showCirrus': showCirrus.toString(),
-    if (showLuci != defaultFilter.showLuci)
-      'showLuci': showLuci.toString(),
-  };
+  Map<String, String> toMap() => <String, String>{
+        if (taskFilter != defaultFilter.taskFilter) 'taskFilter': taskFilter.pattern,
+        if (authorFilter != defaultFilter.authorFilter) 'authorFilter': authorFilter.pattern,
+        if (messageFilter != defaultFilter.messageFilter) 'messageFilter': messageFilter.pattern,
+        if (showAndroid != defaultFilter.showAndroid) 'showAndroid': showAndroid.toString(),
+        if (showIos != defaultFilter.showIos) 'showIos': showIos.toString(),
+        if (showWindows != defaultFilter.showWindows) 'showWindows': showWindows.toString(),
+        if (showCirrus != defaultFilter.showCirrus) 'showCirrus': showCirrus.toString(),
+        if (showLuci != defaultFilter.showLuci) 'showLuci': showLuci.toString(),
+      };
 
   String _stringFor(String label, Object value) => value == null ? '' : '$label: $value,';
 
   @override
   String toString() {
     return 'TaskGridFilter('
-        '${_stringFor('taskFilter',    taskFilter?.pattern)}'
-        '${_stringFor('authorFilter',  authorFilter?.pattern)}'
+        '${_stringFor('taskFilter', taskFilter?.pattern)}'
+        '${_stringFor('authorFilter', authorFilter?.pattern)}'
         '${_stringFor('messageFilter', messageFilter?.pattern)}'
-        '${_stringFor('showAndroid',   showAndroid)}'
-        '${_stringFor('showIos',       showIos)}'
-        '${_stringFor('showWindows',   showWindows)}'
-        '${_stringFor('showCirrus',    showCirrus)}'
-        '${_stringFor('showLuci',      showLuci)}'
+        '${_stringFor('showAndroid', showAndroid)}'
+        '${_stringFor('showIos', showIos)}'
+        '${_stringFor('showWindows', showWindows)}'
+        '${_stringFor('showCirrus', showCirrus)}'
+        '${_stringFor('showLuci', showLuci)}'
         ')';
   }
 
@@ -251,8 +243,7 @@ class TaskGridFilter {
         showIos == other.showIos &&
         showWindows == other.showWindows &&
         showCirrus == other.showCirrus &&
-        showLuci == other.showLuci
-    ;
+        showLuci == other.showLuci;
   }
 }
 
@@ -353,7 +344,8 @@ class TaskGridFilterState extends State<TaskGridFilterWidget> {
   }
 
   TableRow _makeTextFilterRow(String label, TextEditingController controller, void onChanged(RegExp newValue)) {
-    return _makeRow(label,
+    return _makeRow(
+      label,
       TextField(
         controller: controller,
         decoration: const InputDecoration(
@@ -394,15 +386,18 @@ class TaskGridFilterState extends State<TaskGridFilterWidget> {
             _makeTextFilterRow('Task matches:', taskController, _newTaskFilter),
             _makeTextFilterRow('Author matches:', authorController, _newAuthorFilter),
             _makeTextFilterRow('Commit message matches:', messageController, _newMessageFilter),
-            _makeRow('Show Platforms', Wrap(
-              children: <Widget>[
-                _makeCheckbox('Android', filter.showAndroid, _newShowAndroid),
-                _makeCheckbox('Ios', filter.showIos, _newShowIos),
-                _makeCheckbox('Win', filter.showWindows, _newShowWindows),
-                _makeCheckbox('Cirrus', filter.showCirrus, _newShowCirrus),
-                _makeCheckbox('Luci', filter.showLuci, _newShowLuci),
-              ],
-            )),
+            _makeRow(
+              'Show Platforms',
+              Wrap(
+                children: <Widget>[
+                  _makeCheckbox('Android', filter.showAndroid, _newShowAndroid),
+                  _makeCheckbox('Ios', filter.showIos, _newShowIos),
+                  _makeCheckbox('Win', filter.showWindows, _newShowWindows),
+                  _makeCheckbox('Cirrus', filter.showCirrus, _newShowCirrus),
+                  _makeCheckbox('Luci', filter.showLuci, _newShowLuci),
+                ],
+              ),
+            ),
           ],
         ),
       ],
@@ -517,10 +512,10 @@ class _TaskGridState extends State<TaskGrid> {
   List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
     filter ??= TaskGridFilter.defaultFilter;
     // 1: PREPARE ROWS
-    final List<CommitStatus> filteredStatuses = commitStatuses
-        .where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
-    final List<_Row> rows = filteredStatuses
-        .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<CommitStatus> filteredStatuses =
+        commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
+    final List<_Row> rows =
+        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
