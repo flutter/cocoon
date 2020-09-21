@@ -17,6 +17,8 @@ class WebImage extends StatelessWidget {
     bool enabled,
     this.imageUrl,
     this.placeholder,
+    this.width = 50,
+    this.height = 50,
   })  : _enabled = enabled,
         super(key: key);
 
@@ -45,10 +47,20 @@ class WebImage extends StatelessWidget {
   /// Widget to fall back to if environment does not support network images.
   final Widget placeholder;
 
+  /// Height of the image.
+  final double width;
+
+  /// Width of the image.
+  final double height;
+
   @override
   Widget build(BuildContext context) {
     if (enabled) {
-      return Image.network(imageUrl);
+      return Image.network(
+        imageUrl,
+        width: width,
+        height: height,
+      );
     }
     return placeholder;
   }
