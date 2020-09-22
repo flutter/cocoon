@@ -20,7 +20,7 @@ steps:
     entrypoint: '/bin/bash'
     args: ['cloud_build/deploy.sh', '$PROJECT_ID', '$SHORT_SHA', '$_GAE_PROMOTE']
 
-timeout: 1200s
+timeout: 1800s
 
 images: ['gcr.io/$PROJECT_ID/flutter']
 tags: ['cloud-builders-community']
