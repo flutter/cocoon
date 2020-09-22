@@ -54,7 +54,6 @@ class Config {
     'flutter/plugins',
   };
 
-  @visibleForTesting
   static const String configCacheName = 'config';
 
   @visibleForTesting
