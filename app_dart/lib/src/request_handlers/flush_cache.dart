@@ -18,11 +18,11 @@ import '../service/cache_service.dart';
 class FlushCache extends ApiRequestHandler<Body> {
   const FlushCache(
     Config config,
-    AuthenticationProvider authenticationProvider, { @required this.cache,
+    AuthenticationProvider authenticationProvider, {
+    @required this.cache,
   }) : super(config: config, authenticationProvider: authenticationProvider);
 
   final CacheService cache;
-
 
   static const String cacheKeyParam = 'key';
 

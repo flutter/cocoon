@@ -54,6 +54,11 @@ Future<void> main() async {
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/create-agent': CreateAgent(config, authProvider),
+      '/api/flush-cache': FlushCache(
+        config,
+        authProvider,
+        cache: cache,
+      ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
