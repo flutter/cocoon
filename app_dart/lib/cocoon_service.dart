@@ -7,6 +7,7 @@ export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/authorize_agent.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
 export 'src/request_handlers/create_agent.dart';
+export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_authentication_status.dart';
 export 'src/request_handlers/get_benchmarks.dart';
 export 'src/request_handlers/get_branches.dart';

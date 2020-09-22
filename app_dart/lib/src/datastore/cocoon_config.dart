@@ -54,7 +54,7 @@ class Config {
     'flutter/plugins',
   };
 
-  @visibleForTesting
+  /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
   @visibleForTesting
