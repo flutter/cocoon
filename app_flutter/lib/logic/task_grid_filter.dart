@@ -19,6 +19,7 @@ class TaskGridFilter extends FilterPropertySource {
     RegExp taskFilter,
     RegExp authorFilter,
     RegExp messageFilter,
+    RegExp hashFilter,
     this.showAndroid,
     this.showIos,
     this.showWindows,
@@ -26,7 +27,8 @@ class TaskGridFilter extends FilterPropertySource {
     this.showLuci,
   })  : taskFilter = _checkRegExp(taskFilter),
         authorFilter = _checkRegExp(authorFilter),
-        messageFilter = _checkRegExp(messageFilter);
+        messageFilter = _checkRegExp(messageFilter),
+        hashFilter = _checkRegExp(hashFilter);
 
   factory TaskGridFilter.fromMap(Map<String, String> valueMap) => defaultFilter.copyWithMap(valueMap);
 
@@ -35,6 +37,7 @@ class TaskGridFilter extends FilterPropertySource {
     taskFilter: null,
     authorFilter: null,
     messageFilter: null,
+    hashFilter: null,
     showAndroid: true,
     showIos: true,
     showWindows: true,
@@ -73,6 +76,7 @@ class TaskGridFilter extends FilterPropertySource {
     RegExp taskFilter,
     RegExp authorFilter,
     RegExp messageFilter,
+    RegExp hashFilter,
     bool showAndroid,
     bool showIos,
     bool showWindows,
@@ -83,6 +87,7 @@ class TaskGridFilter extends FilterPropertySource {
         taskFilter: taskFilter ?? this.taskFilter,
         authorFilter: authorFilter ?? this.authorFilter,
         messageFilter: messageFilter ?? this.messageFilter,
+        hashFilter: hashFilter ?? this.hashFilter,
         showAndroid: showAndroid ?? this.showAndroid,
         showIos: showIos ?? this.showIos,
         showWindows: showWindows ?? this.showWindows,
@@ -103,6 +108,7 @@ class TaskGridFilter extends FilterPropertySource {
       taskFilter: _regExpFromString(valueMap[taskFilterKey]),
       authorFilter: _regExpFromString(valueMap[authorFilterKey]),
       messageFilter: _regExpFromString(valueMap[messageFilterKey]),
+      hashFilter: _regExpFromString(valueMap[hashFilterKey]),
       showAndroid: _boolFromString(valueMap[showAndroidKey]),
       showIos: _boolFromString(valueMap[showIosKey]),
       showWindows: _boolFromString(valueMap[showWindowsKey]),
@@ -119,6 +125,9 @@ class TaskGridFilter extends FilterPropertySource {
 
   /// The name of the key used to initialize or modify the [messageFilter] property.
   static const String messageFilterKey = 'messageFilter';
+
+  /// The name of the key used to initialize or modify the [hashFilter] property.
+  static const String hashFilterKey = 'hashFilter';
 
   /// The name of the key used to initialize or modify the [showAndroid] property.
   static const String showAndroidKey = 'showAndroid';
@@ -146,6 +155,10 @@ class TaskGridFilter extends FilterPropertySource {
   /// The [messageFilter] property is a regular expression that must match the commit message
   /// of the task's commit. This property will filter out rows on the build dashboard.
   final RegExp messageFilter;
+
+  /// The [hashFilter] property is a regular expression that must match the hash of the
+  /// task's commit. This property will filter out rows on the build dashboard.
+  final RegExp hashFilter;
 
   /// The [showAndroid] property is a boolean that indicates whether to display tasks produced
   /// by an Android stage in the devicelab.
@@ -179,6 +192,9 @@ class TaskGridFilter extends FilterPropertySource {
       return false;
     }
     if (messageFilter != null && !messageFilter.hasMatch(commitStatus.commit.message)) {
+      return false;
+    }
+    if (hashFilter != null && !hashFilter.hasMatch(commitStatus.commit.sha)) {
       return false;
     }
     return true;
@@ -220,6 +236,7 @@ class TaskGridFilter extends FilterPropertySource {
         if (taskFilter != defaultFilter.taskFilter) taskFilterKey: taskFilter.pattern,
         if (authorFilter != defaultFilter.authorFilter) authorFilterKey: authorFilter.pattern,
         if (messageFilter != defaultFilter.messageFilter) messageFilterKey: messageFilter.pattern,
+        if (hashFilter != defaultFilter.hashFilter) hashFilterKey: hashFilter.pattern,
         if (showAndroid != defaultFilter.showAndroid) showAndroidKey: showAndroid.toString(),
         if (showIos != defaultFilter.showIos) showIosKey: showIos.toString(),
         if (showWindows != defaultFilter.showWindows) showWindowsKey: showWindows.toString(),
@@ -238,6 +255,8 @@ class TaskGridFilter extends FilterPropertySource {
         return authorFilter?.pattern;
       case messageFilterKey:
         return messageFilter?.pattern;
+      case hashFilterKey:
+        return hashFilter?.pattern;
       case showAndroidKey:
         return showAndroid.toString();
       case showIosKey:
@@ -260,6 +279,7 @@ class TaskGridFilter extends FilterPropertySource {
       case taskFilterKey:
       case authorFilterKey:
       case messageFilterKey:
+      case hashFilterKey:
         throw 'attempting to get a bool value for a regular expression property';
       case showAndroidKey:
         return showAndroid;
@@ -279,7 +299,8 @@ class TaskGridFilter extends FilterPropertySource {
     RegExpFilterProperty(fieldName: taskFilterKey, label: 'Task Name'),
     RegExpFilterProperty(fieldName: authorFilterKey, label: 'Commit Author'),
     RegExpFilterProperty(fieldName: messageFilterKey, label: 'Commit Message'),
-    FilterPropertyGroup(
+    RegExpFilterProperty(fieldName: hashFilterKey, label: 'Commit Hash'),
+    BoolFilterPropertyGroup(
       label: 'Stages',
       members: <BoolFilterProperty>[
         BoolFilterProperty(fieldName: showAndroidKey, label: 'Android'),
@@ -304,6 +325,7 @@ class TaskGridFilter extends FilterPropertySource {
         '${_stringFor(taskFilterKey, taskFilter?.pattern)}'
         '${_stringFor(authorFilterKey, authorFilter?.pattern)}'
         '${_stringFor(messageFilterKey, messageFilter?.pattern)}'
+        '${_stringFor(hashFilterKey, hashFilter?.pattern)}'
         '${_stringFor(showAndroidKey, showAndroid)}'
         '${_stringFor(showIosKey, showIos)}'
         '${_stringFor(showWindowsKey, showWindows)}'
@@ -318,6 +340,7 @@ class TaskGridFilter extends FilterPropertySource {
       taskFilter,
       authorFilter,
       messageFilter,
+      hashFilter,
       showAndroid,
       showIos,
       showWindows,
@@ -335,6 +358,7 @@ class TaskGridFilter extends FilterPropertySource {
         taskFilter == other.taskFilter &&
         authorFilter == other.authorFilter &&
         messageFilter == other.messageFilter &&
+        hashFilter == other.hashFilter &&
         showAndroid == other.showAndroid &&
         showIos == other.showIos &&
         showWindows == other.showWindows &&

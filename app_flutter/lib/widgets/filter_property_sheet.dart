@@ -44,14 +44,8 @@ abstract class FilterProperty {
   bool get needsController => false;
 }
 
-/// The abstract base class of all properties directly associated with an actual field
-/// in the filter object (as opposed to a group of such properties).
-abstract class SingleFilterProperty extends FilterProperty {
-  const SingleFilterProperty({String fieldName, String label}) : super(fieldName: fieldName, label: label);
-}
-
 /// A class used to represent a Regular Expression property in the filter object.
-class RegExpFilterProperty extends SingleFilterProperty {
+class RegExpFilterProperty extends FilterProperty {
   const RegExpFilterProperty({String fieldName, String label}) : super(fieldName: fieldName, label: label);
 
   @override
@@ -59,14 +53,14 @@ class RegExpFilterProperty extends SingleFilterProperty {
 }
 
 /// A class used to represent a boolean property in the filter object.
-class BoolFilterProperty extends SingleFilterProperty {
+class BoolFilterProperty extends FilterProperty {
   const BoolFilterProperty({String fieldName, String label}) : super(fieldName: fieldName, label: label);
 }
 
-/// A class used to enclose a group of other [SingleFilterProperty] properties.
-/// Currently only [BoolFilterProperty] objects are supported in a group.
-class FilterPropertyGroup extends FilterProperty {
-  const FilterPropertyGroup({String label, this.members}) : super(label: label);
+/// A class used to enclose a group of other [BoolFilterProperty] properties to be
+/// presented in a more compact format in the property sheet.
+class BoolFilterPropertyGroup extends FilterProperty {
+  const BoolFilterPropertyGroup({String label, this.members}) : super(label: label);
 
   final List<BoolFilterProperty> members;
 }
@@ -128,9 +122,8 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
   }
 
   void _initController(FilterProperty property) {
-    if (property is FilterPropertyGroup) {
-      property.members.forEach(_initController);
-    } else if (property.needsController) {
+    // BoolFilterProperty group has no members that need a controller so we do not need to recurse.
+    if (property.needsController) {
       TextEditingController controller = _controllers[property.fieldName];
       final String value = _filter.getString(property.fieldName) ?? '';
       if (controller == null) {
@@ -194,7 +187,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     );
   }
 
-  Widget _makeLoneCheckbox(SingleFilterProperty property) {
+  Widget _makeLoneCheckbox(BoolFilterProperty property) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -214,7 +207,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     if (property is BoolFilterProperty) {
       return _makeBoolRow(property);
     }
-    if (property is FilterPropertyGroup) {
+    if (property is BoolFilterPropertyGroup) {
       return _makeRow(
         property.label,
         Wrap(
