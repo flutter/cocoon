@@ -150,14 +150,14 @@ void main() {
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.first.id,
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
+              'id': flutterRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -443,6 +443,13 @@ This pull request is not suitable for automatic merging in its current state.
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
+              'id': engineRepoPRs.first.id,
+              'oid': oid,
+            },
+          ),
+          MutationOptions(
+            documentNode: gql(mergePullRequestMutation),
+            variables: <String, dynamic>{
               'id': flutterRepoPRs[0].id,
               'oid': oid,
             },
@@ -451,13 +458,6 @@ This pull request is not suitable for automatic merging in its current state.
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
               'id': flutterRepoPRs[1].id,
-              'oid': oid,
-            },
-          ),
-          MutationOptions(
-            documentNode: gql(mergePullRequestMutation),
-            variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -481,7 +481,7 @@ This pull request is not suitable for automatic merging in its current state.
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': flutterRepoPRs[0].id,
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
@@ -528,14 +528,14 @@ This pull request is not suitable for automatic merging in its current state.
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': flutterRepoPRs.last.id,
+              'id': engineRepoPRs.first.id,
               'oid': oid,
             },
           ),
           MutationOptions(
             documentNode: gql(mergePullRequestMutation),
             variables: <String, dynamic>{
-              'id': engineRepoPRs.first.id,
+              'id': flutterRepoPRs.last.id,
               'oid': oid,
             },
           ),

@@ -200,8 +200,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
               $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
           statuses = commit.status.contexts;
       final List<
+              $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes>
+          checkSuitesNodes = commit.checkSuites.nodes;
+      final List<
               $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>
-          checkRuns = commit.checkSuites.nodes[0].checkRuns.nodes;
+          checkRuns = checkSuitesNodes.isEmpty
+              ? <$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>[]
+              : checkSuitesNodes[0].checkRuns.nodes;
       final Set<String> failingStatuses = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
