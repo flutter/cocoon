@@ -5,10 +5,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'logic/task_grid_filter.dart';
 import 'navigation_drawer.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
+import 'widgets/filter_property_sheet.dart';
 import 'widgets/task_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
@@ -31,7 +33,7 @@ class BuildDashboardPage extends StatefulWidget {
 
 class BuildDashboardPageState extends State<BuildDashboardPage> {
   ValueNotifier<TaskGridFilter> _filterNotifier;
-  OverlayEntry _filterDialog;
+  Widget _settingsDialog;
 
   @override
   void initState() {
@@ -39,36 +41,76 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     _filterNotifier = ValueNotifier<TaskGridFilter>(TaskGridFilter.fromMap(widget.queryParameters));
   }
 
-  @override
-  void dispose() {
-    _filterDialog?.remove();
-    super.dispose();
+  void _removeSettingsOverlay() {
+    setState(() {
+      _settingsDialog = null;
+    });
   }
 
-  void _showFilterDialog(BuildContext context) {
-    if (_filterDialog != null) {
-      return;
-    }
-    _filterDialog = OverlayEntry(
-      builder: (BuildContext context) {
-        return Center(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(0xc0),
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: TaskGridFilterWidget(_filterNotifier, () {
-                _filterDialog.remove();
-                _filterDialog = null;
-              }),
+  void _showSettingsDialog(BuildContext context, BuildState _buildState) {
+    setState(() {
+      _settingsDialog = Center(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(0xc0),
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                DropdownButton<String>(
+                  value: _buildState.currentBranch,
+                  icon: const Icon(
+                    Icons.arrow_downward,
+                    color: Colors.black,
+                  ),
+                  iconSize: 24,
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.black),
+                  underline: Container(
+                    height: 2,
+                    color: Colors.black,
+                  ),
+                  onChanged: (String branch) {
+                    _buildState.updateCurrentBranch(branch);
+                  },
+                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                FilterPropertySheet(_filterNotifier),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    ValueListenableBuilder<TaskGridFilter>(
+                      valueListenable: _filterNotifier,
+                      builder: (BuildContext context, TaskGridFilter value, Widget child) {
+                        return FlatButton(
+                          child: const Text('Reset'),
+                          onPressed: value == TaskGridFilter.defaultFilter
+                              ? null
+                              : () => _filterNotifier.value = TaskGridFilter.defaultFilter,
+                        );
+                      },
+                    ),
+                    FlatButton(
+                      child: const Text('Close'),
+                      onPressed: _removeSettingsOverlay,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        );
-      },
-    );
-    Overlay.of(context).insert(_filterDialog);
+        ),
+      );
+    });
   }
 
   @override
@@ -98,40 +140,20 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             FlatButton(
-              child: const Icon(Icons.sort),
-              onPressed: () => _showFilterDialog(context),
-            ),
-            DropdownButton<String>(
-              value: _buildState.currentBranch,
-              icon: const Icon(
-                Icons.arrow_downward,
-                color: Colors.white,
-              ),
-              iconSize: 24,
-              elevation: 16,
-              style: const TextStyle(color: Colors.white),
-              underline: Container(
-                height: 2,
-                color: Colors.white,
-              ),
-              onChanged: (String branch) {
-                _buildState.updateCurrentBranch(branch);
-              },
-              items: _buildState.branches.map<DropdownMenuItem<String>>(
-                (String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                },
-              ).toList(),
+              child: const Icon(Icons.settings),
+              onPressed: _settingsDialog == null ? () => _showSettingsDialog(context, _buildState) : null,
             ),
           ],
         ),
         body: ErrorBrookWatcher(
           errors: _buildState.errors,
-          child: SizedBox.expand(
-            child: TaskGridContainer(filterNotifier: _filterNotifier),
+          child: Stack(
+            children: <Widget>[
+              SizedBox.expand(
+                child: TaskGridContainer(filterNotifier: _filterNotifier),
+              ),
+              if (_settingsDialog != null) _settingsDialog,
+            ],
           ),
         ),
         drawer: const NavigationDrawer(),
