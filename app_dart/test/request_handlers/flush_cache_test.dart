@@ -2,18 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cocoon_service/src/datastore/cocoon_config.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:cocoon_service/src/datastore/cocoon_config.dart';
 import 'package:cocoon_service/src/request_handlers/flush_cache.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
