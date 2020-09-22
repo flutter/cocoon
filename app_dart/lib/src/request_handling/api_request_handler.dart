@@ -50,6 +50,16 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     }
   }
 
+  /// Throws a [BadRequestException] if any of [requiredQueryParameters] are missing from [requestData].
+  @protected
+  void checkRequiredQueryParameters(List<String> requiredQueryParameters) {
+    final Iterable<String> missingParams = requiredQueryParameters
+      ..removeWhere(request.uri.queryParameters.containsKey);
+    if (missingParams.isNotEmpty) {
+      throw BadRequestException('Missing required parameter: ${missingParams.join(', ')}');
+    }
+  }
+
   /// The authentication context associated with the HTTP request.
   ///
   /// This is guaranteed to be non-null. If the request was unauthenticated,

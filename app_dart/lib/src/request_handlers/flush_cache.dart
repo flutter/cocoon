@@ -27,14 +27,15 @@ class FlushCache extends ApiRequestHandler<Body> {
 
   final CacheService cache;
 
+  /// Name of the query parameter passed to the endpoint.
+  ///
+  /// The value is expected to be an existing value from [CocoonConfig].
   static const String cacheKeyParam = 'key';
 
   @override
   Future<Body> get() async {
+    checkRequiredQueryParameters(<String>[cacheKeyParam]);
     final String cacheKey = request.uri.queryParameters[cacheKeyParam];
-    if (cacheKey == null) {
-      throw const BadRequestException('Missing required query parameter: $cacheKeyParam');
-    }
 
     // To validate cache flushes, validate that the key exists.
     await cache.getOrCreate(
