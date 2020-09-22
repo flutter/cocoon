@@ -13,7 +13,10 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/cache_service.dart';
 
-/// Trigger a cache flush on a config key.
+/// Trigger a cache flush on a config key and return empty response if successful.
+///
+/// If [cacheKeyParam] is not passed, throws [BadRequestException].
+/// If the cache does not have the given key, throws [NotFoundException].
 @immutable
 class FlushCache extends ApiRequestHandler<Body> {
   const FlushCache(
@@ -32,6 +35,13 @@ class FlushCache extends ApiRequestHandler<Body> {
     if (cacheKey == null) {
       throw const BadRequestException('Missing required query parameter: $cacheKeyParam');
     }
+
+    // To validate cache flushes, validate that the key exists.
+    await cache.getOrCreate(
+      Config.configCacheName,
+      cacheKey,
+      createFn: () => throw NotFoundException('Failed to find cache key: $cacheKey'),
+    );
 
     await cache.purge(Config.configCacheName, cacheKey);
 
