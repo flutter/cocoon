@@ -256,7 +256,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
       TextField(
         controller: property.controller,
         decoration: const InputDecoration(
-          hintText: '(regular expression)',
+          hintText: '(JavaScript regular expression)',
         ),
         onChanged: (String value) => property.value = value,
       ),
