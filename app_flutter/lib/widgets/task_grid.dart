@@ -94,12 +94,17 @@ class _TaskGridState extends State<TaskGrid> {
     );
   }
 
+  /// Weights for a task status.
+  ///
+  /// Weights should be in the range [0, 0.7] as the max weight for a task should be 1.0. Otherwise too much emphasis
+  /// is placed on the first N rows, where N is the largest integer weight. Up to 0.7 adds flexibility to the algorithm
+  /// to add signal beyond the task status (such as attempts and flakiness).
   static const Map<String, double> _statusScores = <String, double>{
-    TaskBox.statusFailed: 5.0,
-    TaskBox.statusInProgress: 1.0,
-    TaskBox.statusNew: 1.0,
+    TaskBox.statusFailed: 0.7,
+    TaskBox.statusInProgress: 0.1,
+    TaskBox.statusNew: 0.1,
     TaskBox.statusSkipped: 0.0,
-    TaskBox.statusSucceeded: 0.0,
+    TaskBox.statusSucceeded: 0.01,
   };
 
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
@@ -146,17 +151,23 @@ class _TaskGridState extends State<TaskGrid> {
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
-          if (commitCount <= 25) {
+          if (commitCount <= 10) {
             double score = 0.0;
+            // Reruns take up extra infra capacity and should be prioritized.
             if (task.attempts > 1) {
-              score += 1.0;
+              score += 0.3;
             }
+            // Get base weight for this task.
             if (_statusScores.containsKey(task.status)) {
               score += _statusScores[task.status];
             }
+            // Flaky tasks should be shown after failures and reruns as they take up infra capacity, but are not
+            // being used as a signal for the tree status.
             if (task.isFlaky) {
-              score /= 2.0;
+              score /= 10.0;
+              score += 0.2;
             }
+            // Make the score relative to how long ago it was run.
             score /= commitCount;
             scores.update(
               qualifiedTask,
