@@ -11,7 +11,6 @@ import '../logic/qualified_task.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
 import 'lattice.dart';
-import 'pulse.dart';
 import 'task_box.dart';
 import 'task_icon.dart';
 import 'task_overlay.dart';
@@ -97,7 +96,6 @@ class _TaskGridState extends State<TaskGrid> {
 
   static const Map<String, double> _statusScores = <String, double>{
     TaskBox.statusFailed: 5.0,
-    TaskBox.statusUnderperformed: 4.5,
     TaskBox.statusInProgress: 1.0,
     TaskBox.statusNew: 1.0,
     TaskBox.statusSkipped: 0.0,
@@ -216,12 +214,10 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  static final Paint white = Paint()..color = Colors.white;
-
   Painter _painterFor(Task task) {
-    final String status = TaskBox.effectiveTaskStatus(task);
+    final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
     final Paint paint = Paint()
-      ..color = TaskBox.statusColor.containsKey(status) ? TaskBox.statusColor[status] : Colors.black;
+      ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status] : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -231,17 +227,17 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.status == TaskBox.statusInProgress) {
-        canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, white);
+      if (task.attempts > 1) {
+        canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
       }
     };
   }
 
   WidgetBuilder _builderFor(Task task) {
-    if (task.status == TaskBox.statusInProgress) {
-      return (BuildContext context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Pulse(color: Colors.blue.shade900),
+    if (task.attempts > 1) {
+      return (BuildContext context) => const Padding(
+            padding: EdgeInsets.all(4.0),
+            child: Icon(Icons.priority_high),
           );
     }
     return null;
