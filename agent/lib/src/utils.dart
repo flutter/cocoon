@@ -510,10 +510,10 @@ Future<Null> getFlutter(String revision) async {
     await exec('git', ['checkout', revision]);
   });
 
-  await flutter('config', options: ['--no-analytics']);
+  await flutter('config', options: ['--no-analytics', '--verbose']);
 
   section('flutter doctor');
-  await flutter('doctor');
+  await flutter('doctor', options: ['--verbose']);
 
   section('flutter update-packages');
   await flutter('update-packages');
