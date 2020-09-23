@@ -21,13 +21,13 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key key, this.filterNotifier}) : super(key: key);
+  const TaskGridContainer({Key key, this.filter}) : super(key: key);
 
   /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
   /// rows and columns of the task grid. This filter may be updated dynamically through
   /// this notifier from elsewhere if the user starts editing the filter parameters in
   /// the settings dialog.
-  final ValueNotifier<TaskGridFilter> filterNotifier;
+  final TaskGridFilter filter;
 
   @visibleForTesting
   static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
@@ -54,7 +54,7 @@ class TaskGridContainer extends StatelessWidget {
         return TaskGrid(
           buildState: buildState,
           commitStatuses: commitStatuses,
-          filterNotifier: filterNotifier,
+          filter: filter,
         );
       },
     );
@@ -72,7 +72,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     @required this.buildState,
     @required this.commitStatuses,
-    this.filterNotifier,
+    @required this.filter,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -81,11 +81,10 @@ class TaskGrid extends StatefulWidget {
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
 
-  /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
-  /// rows and columns of the task grid. This filter may be updated dynamically through
-  /// this notifier from elsewhere if the user starts editing the filter parameters in
-  /// the settings dialog.
-  final ValueNotifier<TaskGridFilter> filterNotifier;
+  /// A [TaskGridFilter] object to control the visibility of various rows and columns of
+  /// the task grid. This filter may be updated dynamically from elsewhere if the user
+  /// starts editing the filter parameters in the settings dialog.
+  final TaskGridFilter filter;
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
@@ -96,21 +95,12 @@ class _TaskGridState extends State<TaskGrid> {
   // lattice matrix each time the task grid has to update, regardless of whether
   // we've received new data or not.
 
-  TaskGridFilter _filter;
-
   @override
   void initState() {
     super.initState();
-    if (widget.filterNotifier == null) {
-      _filter = TaskGridFilter.defaultFilter;
-    } else {
-      _filter = widget.filterNotifier.value ?? TaskGridFilter.defaultFilter;
-      widget.filterNotifier.addListener(() {
-        setState(() {
-          _filter = widget.filterNotifier.value ?? TaskGridFilter.defaultFilter;
-        });
-      });
-    }
+    widget.filter?.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -122,7 +112,7 @@ class _TaskGridState extends State<TaskGrid> {
       // we load.
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget.commitStatuses, _filter),
+      cells: _processCommitStatuses(widget.commitStatuses, widget.filter),
       cellSize: const Size.square(TaskBox.cellSize),
     );
   }
@@ -170,7 +160,7 @@ class _TaskGridState extends State<TaskGrid> {
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
   List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
-    filter ??= TaskGridFilter.defaultFilter;
+    filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
     final List<CommitStatus> filteredStatuses =
         commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();

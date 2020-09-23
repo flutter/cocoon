@@ -54,7 +54,7 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('shows branch dropdown button', (WidgetTester tester) async {
+  testWidgets('shows settings button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
@@ -69,12 +69,31 @@ void main() {
       ),
     );
 
-    final Type dropdownButtonType = DropdownButton<String>(
-      onChanged: (_) {},
-      items: const <DropdownMenuItem<String>>[],
-    ).runtimeType;
-    expect(find.byType(dropdownButtonType), findsOneWidget);
+    expect(find.byIcon(Icons.settings), findsOneWidget);
   });
+
+  // TODO(flar): Need to create similar tests for the settings dialog...
+//  testWidgets('shows branch dropdown button', (WidgetTester tester) async {
+//    final BuildState fakeBuildState = FakeBuildState();
+//
+//    await tester.pumpWidget(
+//      MaterialApp(
+//        home: ValueProvider<BuildState>(
+//          value: fakeBuildState,
+//          child: ValueProvider<GoogleSignInService>(
+//            value: fakeBuildState.authService,
+//            child: const BuildDashboardPage(),
+//          ),
+//        ),
+//      ),
+//    );
+//
+//    final Type dropdownButtonType = DropdownButton<String>(
+//      onChanged: (_) {},
+//      items: const <DropdownMenuItem<String>>[],
+//    ).runtimeType;
+//    expect(find.byType(dropdownButtonType), findsOneWidget);
+//  });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;

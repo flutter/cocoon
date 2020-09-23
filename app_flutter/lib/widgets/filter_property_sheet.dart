@@ -2,66 +2,184 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Bridge between the [FilterPropertySheet] and a filter object that has a number of
-/// properties by which it filters lists. The methods here provide all of the information
-/// that the FilterPropertySheet needs to display the various properties in some sort
-/// of editing dialog and to let the user edit them.
-abstract class FilterPropertySource {
+/// properties by which it filters lists. The [sheetLayout] provides both the properties
+/// to be displayed and edited and also a suggestion for their layout.
+abstract class FilterPropertySource extends Listenable {
   /// The list of properties exposed by the filter for editing.
-  List<FilterProperty> get properties;
-
-  /// Returns a [String] representation for any field according to the [FilterProperty.fieldName]
-  /// in its associated [FilterProperty] object, even those properties that are not inherently
-  /// strings.
-  String getString(String fieldName);
-
-  /// Returns a [bool] representation for any field associated with a [BoolFilterProperty].
-  bool getBool(String fieldName);
-
-  /// Returns a new instance of the filter object with the indicated properties changed
-  /// to new values according to the entries in the map.
-  FilterPropertySource copyWithMap(Map<String, String> valueMap);
+  List<FilterPropertyNode> get sheetLayout;
 }
 
-/// The abstract base class of all properties, establishing that they will all (usually)
-/// have a [fieldName] and a [label].
+/// The base class for all elements in a [FilterPropertySheet]. Most of the nodes will
+/// be value properties, but some may be layout nodes.
 ///
-/// @see [RegExpFilterProperty], [BoolFilterProperty], [FilterPropertyGroup]
-abstract class FilterProperty {
-  const FilterProperty({this.fieldName, this.label});
+/// @see [ValueFilterProperty], [FilterPropertyGroup]
+abstract class FilterPropertyNode {
+  /// The descriptive name of the property or layout group as will be displayed
+  /// in the [FilterPropertySheet].
+  String get label;
+}
 
-  /// The name of the field represented by this property, used to get and modify that
-  /// field.
+/// The abstract base class of all valued properties, useful for both displaying them
+/// in and editing them from a [FilterPropertySheet] and methods to make them useful
+/// as the actual storage for the properties in a filter object. A filter object then
+/// becomes mostly a list of these properties along with methods to combine them into
+/// predicates for filtering data in a dashboard or other list.
+///
+/// @see [RegExpFilterProperty], [BoolFilterProperty]
+abstract class ValueFilterProperty<T> extends ValueListenable<T> with FilterPropertyNode {
+  ValueFilterProperty({this.fieldName, this.label});
+
+  /// The name of the field represented by this property, used to import and export
+  /// the property values via maps.
   final String fieldName;
 
-  /// The descriptive name of the property as will be displayed in the [FilterPropertySheet].
+  @override
   final String label;
 
-  /// An indication as to whether a [TextEditingController] needs to be instantiated
-  /// to facilitate editing this property (only true for string valued fields).
-  bool get needsController => false;
+  /// The value of the property converted to a [String] useful for importing and
+  /// exporting the values via maps and JSON files.
+  String get stringValue;
+  set stringValue(String newValue);
+
+  /// Whether the property is set to its default value.
+  bool get isDefault;
+
+  /// Resets this property to its default value;
+  void reset();
+
+  List<VoidCallback> _listeners;
+
+  @override
+  void addListener(VoidCallback listener) {
+    _listeners ??= <VoidCallback>[];
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    _listeners?.remove(listener);
+  }
+
+  /// Notify all listeners that the value of the property has changed.
+  void notifyListeners() {
+    if (_listeners != null) {
+      for (final VoidCallback listener in _listeners) {
+        listener();
+      }
+    }
+  }
 }
 
 /// A class used to represent a Regular Expression property in the filter object.
-class RegExpFilterProperty extends FilterProperty {
-  const RegExpFilterProperty({String fieldName, String label}) : super(fieldName: fieldName, label: label);
+class RegExpFilterProperty extends ValueFilterProperty<String> {
+  RegExpFilterProperty({String fieldName, String label, String value})
+      : _value = value,
+        super(fieldName: fieldName, label: label);
+
+  String _value;
+  TextEditingController _controller;
+  TextEditingController get controller {
+    if (_controller == null) {
+      _controller = TextEditingController(text: stringValue);
+      _controller.addListener(() {
+        value = _controller.text;
+      });
+    }
+    return _controller;
+  }
 
   @override
-  bool get needsController => true;
+  String get value => _value;
+  set value(String newValue) {
+    if (newValue == '') {
+      newValue = null;
+    }
+    if (_value != newValue) {
+      _value = newValue;
+      _regExp = null;
+      notifyListeners();
+    }
+    newValue ??= '';
+    if (_controller != null && _controller.text != newValue) {
+      _controller.text = newValue;
+      // The listener callback should nop
+    }
+  }
+
+  @override
+  String get stringValue => _value ?? '';
+
+  @override
+  set stringValue(String newValue) => value = newValue;
+
+  @override
+  bool get isDefault => _value == null;
+
+  @override
+  void reset() => value = null;
+
+  /// The value of this property as a [RegExp] object, useful for matching its pattern
+  /// against candidate values in the list being filtered.
+  RegExp _regExp;
+  RegExp get regExp => _regExp ??= _value == null ? null : RegExp(_value);
+  set regExp(RegExp newRegExp) => value = newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
+
+  /// True iff the value, interpreted as a regular expression, matches the candidate [String].
+  bool matches(String candidate) => regExp?.hasMatch(candidate) ?? true;
 }
 
 /// A class used to represent a boolean property in the filter object.
-class BoolFilterProperty extends FilterProperty {
-  const BoolFilterProperty({String fieldName, String label}) : super(fieldName: fieldName, label: label);
+class BoolFilterProperty extends ValueFilterProperty<bool> {
+  BoolFilterProperty({String fieldName, String label, bool value = true})
+      : _value = value,
+        super(fieldName: fieldName, label: label);
+
+  bool _value;
+
+  @override
+  bool get value => _value;
+  set value(bool newValue) {
+    if (_value != newValue) {
+      _value = newValue;
+      notifyListeners();
+    }
+  }
+
+  @override
+  String get stringValue => _value.toString();
+
+  @override
+  set stringValue(String newValue) {
+    if (newValue == null) {
+      value = null;
+    } else if (newValue == 'true' || newValue == 't') {
+      value = true;
+    } else if (newValue == 'false' || newValue == 'f') {
+      value = false;
+    }
+    throw 'Unrecognized bool value: $newValue';
+  }
+
+  @override
+  bool get isDefault => _value == true;
+
+  @override
+  void reset() => value = true;
 }
 
 /// A class used to enclose a group of other [BoolFilterProperty] properties to be
 /// presented in a more compact format in the property sheet.
-class BoolFilterPropertyGroup extends FilterProperty {
-  const BoolFilterPropertyGroup({String label, this.members}) : super(label: label);
+class BoolFilterPropertyGroup extends FilterPropertyNode {
+  BoolFilterPropertyGroup({this.label, this.members});
 
+  @override
+  final String label;
+
+  /// The boolean property members of this group.
   final List<BoolFilterProperty> members;
 }
 
@@ -74,11 +192,11 @@ class BoolFilterPropertyGroup extends FilterProperty {
 /// and notify the creator when it is closed via the callback. Otherwise the creator is
 /// responsible for the lifecycle of this sheet.
 class FilterPropertySheet extends StatefulWidget {
-  const FilterPropertySheet(this.filterNotifier, {this.onClose});
+  const FilterPropertySheet(this.propertySource, {this.onClose});
 
   /// The notifier object used to get the initial value of the filter properties and to
   /// send back new filter objects with modified values as the user edits the fields.
-  final ValueNotifier<FilterPropertySource> filterNotifier;
+  final FilterPropertySource propertySource;
 
   /// The optional callback for when the close field on the sheet is used to close the
   /// sheet. This [Widget] will only implement its own close box if this callback is non-null.
@@ -93,13 +211,12 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
   void initState() {
     super.initState();
 
-    widget.filterNotifier.addListener(_update);
-    _resetControllers();
+    widget.propertySource.addListener(_update);
   }
 
   @override
   void dispose() {
-    widget.filterNotifier.removeListener(_update);
+    widget.propertySource.removeListener(_update);
 
     super.dispose();
   }
@@ -112,39 +229,8 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     decoration: TextDecoration.none,
   );
 
-  FilterPropertySource get _filter => widget.filterNotifier.value;
-  final Map<String, TextEditingController> _controllers = <String, TextEditingController>{};
-
   void _update() {
-    setState(() {
-      _resetControllers();
-    });
-  }
-
-  void _initController(FilterProperty property) {
-    // BoolFilterProperty group has no members that need a controller so we do not need to recurse.
-    if (property.needsController) {
-      TextEditingController controller = _controllers[property.fieldName];
-      final String value = _filter.getString(property.fieldName) ?? '';
-      if (controller == null) {
-        controller = TextEditingController(text: value);
-        _controllers[property.fieldName] = controller;
-      } else if (controller.text != value) {
-        controller.text = value;
-      }
-    }
-  }
-
-  void _resetControllers() {
-    _filter.properties.forEach(_initController);
-  }
-
-  void _newValue(String fieldName, String valueString) {
-    widget.filterNotifier.value = _filter.copyWithMap(<String, String>{fieldName: valueString});
-  }
-
-  void _newBoolValue(String fieldName, bool newValue) {
-    _newValue(fieldName, newValue.toString());
+    setState(() {});
   }
 
   Widget _pad(Widget child, Alignment alignment) {
@@ -164,25 +250,25 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     );
   }
 
-  TableRow _makeTextFilterRow(FilterProperty property) {
+  TableRow _makeTextFilterRow(RegExpFilterProperty property) {
     return _makeRow(
       property.label,
       TextField(
-        controller: _controllers[property.fieldName],
+        controller: property.controller,
         decoration: const InputDecoration(
           hintText: '(regular expression)',
         ),
-        onChanged: (String newValue) => _newValue(property.fieldName, newValue),
+        onChanged: (String value) => property.value = value,
       ),
     );
   }
 
-  TableRow _makeBoolRow(FilterProperty property) {
+  TableRow _makeBoolRow(BoolFilterProperty property) {
     return _makeRow(
       property.label,
       Checkbox(
-        value: _filter.getBool(property.fieldName),
-        onChanged: (bool newValue) => _newBoolValue(property.fieldName, newValue),
+        value: property.value,
+        onChanged: (bool newValue) => property.value = newValue,
       ),
     );
   }
@@ -193,14 +279,14 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
       children: <Widget>[
         Text(property.label, style: _labelStyle),
         Checkbox(
-          value: _filter.getBool(property.fieldName),
-          onChanged: (bool newValue) => _newBoolValue(property.fieldName, newValue),
+          value: property.value,
+          onChanged: (bool newValue) => property.value = newValue,
         ),
       ],
     );
   }
 
-  TableRow _makeTableRow(FilterProperty property) {
+  TableRow _makeTableRow(FilterPropertyNode property) {
     if (property is RegExpFilterProperty) {
       return _makeTextFilterRow(property);
     }
@@ -235,7 +321,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
             0: IntrinsicColumnWidth(),
             1: FixedColumnWidth(300.0),
           },
-          children: _filter.properties.map(_makeTableRow).toList(),
+          children: widget.propertySource.sheetLayout.map(_makeTableRow).toList(),
         ),
       ],
     );

@@ -32,13 +32,13 @@ class BuildDashboardPage extends StatefulWidget {
 }
 
 class BuildDashboardPageState extends State<BuildDashboardPage> {
-  ValueNotifier<TaskGridFilter> _filterNotifier;
+  TaskGridFilter _filter;
   Widget _settingsDialog;
 
   @override
   void initState() {
     super.initState();
-    _filterNotifier = ValueNotifier<TaskGridFilter>(TaskGridFilter.fromMap(widget.queryParameters));
+    _filter = TaskGridFilter.fromMap(widget.queryParameters);
   }
 
   void _removeSettingsOverlay() {
@@ -83,19 +83,17 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     );
                   }).toList(),
                 ),
-                FilterPropertySheet(_filterNotifier),
+                FilterPropertySheet(_filter),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    ValueListenableBuilder<TaskGridFilter>(
-                      valueListenable: _filterNotifier,
-                      builder: (BuildContext context, TaskGridFilter value, Widget child) {
+                    AnimatedBuilder(
+                      animation: _filter,
+                      builder: (BuildContext context, Widget child) {
                         return FlatButton(
                           child: const Text('Reset'),
-                          onPressed: value == TaskGridFilter.defaultFilter
-                              ? null
-                              : () => _filterNotifier.value = TaskGridFilter.defaultFilter,
+                          onPressed: _filter.isDefault ? null : () => _filter.reset(),
                         );
                       },
                     ),
@@ -150,7 +148,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           child: Stack(
             children: <Widget>[
               SizedBox.expand(
-                child: TaskGridContainer(filterNotifier: _filterNotifier),
+                child: TaskGridContainer(filter: _filter),
               ),
               if (_settingsDialog != null) _settingsDialog,
             ],
