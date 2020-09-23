@@ -72,7 +72,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     @required this.buildState,
     @required this.commitStatuses,
-    @required this.filter,
+    this.filter,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
