@@ -151,7 +151,7 @@ class _TaskGridState extends State<TaskGrid> {
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
-          if (commitCount <= 10) {
+          if (commitCount <= 25) {
             double score = 0.0;
             // Reruns take up extra infra capacity and should be prioritized.
             if (task.attempts > 1) {
