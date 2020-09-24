@@ -53,20 +53,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
-      // Check when this PR was last updated. Gold does not keep results after
-      // >20 days. If a PR has gone stale, we should draw attention to it to be
-      // updated or closed.
-      final DateTime updatedAt = pr.updatedAt.toUtc();
-      final DateTime twentyDaysAgo = DateTime.now().toUtc().subtract(const Duration(days: 20));
-      if (updatedAt.isBefore(twentyDaysAgo)) {
-        log.debug('Stale PR, no gold status to report.');
-        if (!await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldStalePR)) {
-          log.debug('Notifying for stale PR.');
-          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldStalePR);
-        }
-        continue;
-      }
-
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
@@ -99,7 +85,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
             lastUpdate.head == pr.head.sha &&
             !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
-          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldDraftChange);
+          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldDraftChange + config.flutterGoldAlertConstant);
         }
         continue;
       }
@@ -133,6 +119,20 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       }
 
       if (runsGoldenFileTests) {
+        // Check when this PR was last updated. Gold does not keep results after
+        // >20 days. If a PR has gone stale, we should draw attention to it to be
+        // updated or closed.
+        final DateTime updatedAt = pr.updatedAt.toUtc();
+        final DateTime twentyDaysAgo = DateTime.now().toUtc().subtract(const Duration(days: 20));
+        if (updatedAt.isBefore(twentyDaysAgo)) {
+          log.debug('Stale PR, no gold status to report.');
+          if (!await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldStalePR)) {
+            log.debug('Notifying for stale PR.');
+            await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldStalePR + config.flutterGoldAlertConstant);
+          }
+          continue;
+        }
+
         if (incompleteChecks.isNotEmpty) {
           // If checks on an open PR are running or failing, the gold status
           // should just be pending. Any draft PRs are skipped
@@ -241,11 +241,11 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   ) async {
     String body;
     if (await _isFirstComment(gitHubClient, pr, slug)) {
-      body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number)) + config.flutterGoldAlertConstant;
+      body = config.flutterGoldInitialAlert(_getTriageUrl(pr.number));
     } else {
       body = config.flutterGoldFollowUpAlert(_getTriageUrl(pr.number));
     }
-    body += config.flutterGoldCommentID(pr);
+    body += config.flutterGoldAlertConstant + config.flutterGoldCommentID(pr);
     await gitHubClient.issues.createComment(slug, pr.number, body);
     await gitHubClient.issues.addLabelsToIssue(slug, pr.number, <String>[
       'will affect goldens',

@@ -441,7 +441,7 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           // Have not already commented for this commit.
@@ -483,13 +483,55 @@ void main() {
 
           // Checks completed
           checkRuns = <dynamic>[
-            <String, String>{'name': 'Linux', 'status': 'completed', 'conclusion': 'success'}
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
           ];
 
           // Already commented to update.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = config.flutterGoldStalePRValue,
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            any,
+          ));
+        });
+
+        test('will not fire off stale warning for non-framework PRs', () async {
+          // New commit, draft PR
+          final PullRequest pr =
+          newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'tool-test-1', 'status': 'completed', 'conclusion': 'success'}
+          ];
+
+          // Already commented to update.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+              (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
             ),
           );
 
