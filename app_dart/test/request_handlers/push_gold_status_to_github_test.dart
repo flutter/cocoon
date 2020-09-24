@@ -518,7 +518,7 @@ void main() {
         test('will not fire off stale warning for non-framework PRs', () async {
           // New commit, draft PR
           final PullRequest pr =
-          newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
           prsFromGitHub = <PullRequest>[pr];
           final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
           db.values[status.key] = status;
@@ -530,7 +530,7 @@ void main() {
 
           // Already commented to update.
           when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
-              (_) => Stream<IssueComment>.value(
+            (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
           );

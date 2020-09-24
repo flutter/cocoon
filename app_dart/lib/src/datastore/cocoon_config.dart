@@ -169,9 +169,9 @@ class Config {
       'this pull request.';
 
   String get flutterGoldStalePR => 'This pull request executed golden file '
-    'tests, but it has not been updated in a while (20 days). Test results from '
-    'Gold expire after so may days, so this pull request will need to be '
-    'updated with a fresh commit in order to refresh results from Gold.';
+      'tests, but it has not been updated in a while (20+ days). Test results from '
+      'Gold expire after as many days, so this pull request will need to be '
+      'updated with a fresh commit in order to get results from Gold.';
 
   String get flutterGoldDraftChange => 'This pull request has been changed to a '
       'draft. The currently pending flutter-gold status will not be able '

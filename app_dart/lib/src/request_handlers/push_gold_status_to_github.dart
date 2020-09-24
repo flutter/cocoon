@@ -85,7 +85,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         if (lastUpdate.status == GithubGoldStatusUpdate.statusRunning &&
             lastUpdate.head == pr.head.sha &&
             !await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldDraftChange)) {
-          await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldDraftChange + config.flutterGoldAlertConstant);
+          await gitHubClient.issues
+              .createComment(slug, pr.number, config.flutterGoldDraftChange + config.flutterGoldAlertConstant);
         }
         continue;
       }
@@ -128,7 +129,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           log.debug('Stale PR, no gold status to report.');
           if (!await _alreadyCommented(gitHubClient, pr, slug, config.flutterGoldStalePR)) {
             log.debug('Notifying for stale PR.');
-            await gitHubClient.issues.createComment(slug, pr.number, config.flutterGoldStalePR + config.flutterGoldAlertConstant);
+            await gitHubClient.issues
+                .createComment(slug, pr.number, config.flutterGoldStalePR + config.flutterGoldAlertConstant);
           }
           continue;
         }
