@@ -57,53 +57,56 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ),
           child: Material(
             color: Colors.transparent,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                DropdownButton<String>(
-                  value: _buildState.currentBranch,
-                  icon: const Icon(
-                    Icons.arrow_downward,
-                    color: Colors.black,
-                  ),
-                  iconSize: 24,
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.black),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.black,
-                  ),
-                  onChanged: (String branch) {
-                    _buildState.updateCurrentBranch(branch);
-                  },
-                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                FilterPropertySheet(_filter),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    AnimatedBuilder(
-                      animation: _filter,
-                      builder: (BuildContext context, Widget child) {
-                        return FlatButton(
-                          child: const Text('Reset'),
-                          onPressed: _filter.isDefault ? null : () => _filter.reset(),
-                        );
-                      },
+            child:
+            FocusTraversalGroup(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  DropdownButton<String>(
+                    value: _buildState.currentBranch,
+                    icon: const Icon(
+                      Icons.arrow_downward,
+                      color: Colors.black,
                     ),
-                    FlatButton(
-                      child: const Text('Close'),
-                      onPressed: _removeSettingsOverlay,
+                    iconSize: 24,
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.black),
+                    underline: Container(
+                      height: 2,
+                      color: Colors.black,
                     ),
-                  ],
-                ),
-              ],
+                    onChanged: (String branch) {
+                      _buildState.updateCurrentBranch(branch);
+                    },
+                    items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  FilterPropertySheet(_filter),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      AnimatedBuilder(
+                        animation: _filter,
+                        builder: (BuildContext context, Widget child) {
+                          return FlatButton(
+                            child: const Text('Reset'),
+                            onPressed: _filter.isDefault ? null : () => _filter.reset(),
+                          );
+                        },
+                      ),
+                      FlatButton(
+                        child: const Text('Close'),
+                        onPressed: _removeSettingsOverlay,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -138,7 +141,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             FlatButton(
-              child: const Icon(Icons.settings),
+              child: Icon(Icons.settings, color: Colors.white.withAlpha(_settingsDialog == null ? 255 : 128)),
               onPressed: _settingsDialog == null ? () => _showSettingsDialog(context, _buildState) : null,
             ),
           ],

@@ -254,6 +254,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
     return _makeRow(
       property.label,
       TextField(
+        autofocus: true,
         controller: property.controller,
         decoration: const InputDecoration(
           hintText: '(JavaScript regular expression)',
