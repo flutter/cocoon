@@ -57,8 +57,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ),
           child: Material(
             color: Colors.transparent,
-            child:
-            FocusTraversalGroup(
+            child: FocusTraversalGroup(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
