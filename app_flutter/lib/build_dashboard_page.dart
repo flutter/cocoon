@@ -139,8 +139,8 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           title: statusTable[_buildState.isTreeBuilding],
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
-            FlatButton(
-              child: Icon(Icons.settings, color: Colors.white.withAlpha(_settingsDialog == null ? 255 : 128)),
+            IconButton(
+              icon: const Icon(Icons.settings),
               onPressed: _settingsDialog == null ? () => _showSettingsDialog(context, _buildState) : null,
             ),
           ],

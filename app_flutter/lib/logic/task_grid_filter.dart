@@ -66,58 +66,56 @@ class TaskGridFilter extends FilterPropertySource {
         ..[_cirrusProperty.fieldName] = _cirrusProperty
         ..[_luciProperty.fieldName] = _luciProperty;
 
-  // TODO(flar): Decide whether or not to expose these fields or do everything through the
-  // methods that manipulate properties as named fields (such as [applyMap].
-//  /// The [taskFilter] property is a regular expression that must match the name of the
-//  /// task in the grid. This property will filter out columns on the build dashboard.
-//  RegExp get taskFilter => _taskProperty.regExp;
-//  set taskFilter(RegExp regExp) => _taskProperty.regExp = regExp;
-//
-//  /// The [authorFilter] property is a regular expression that must match the name of the
-//  /// author of the task's commit. This property will filter out rows on the build dashboard.
-//  RegExp get authorFilter => _authorProperty.regExp;
-//  set authorFilter(RegExp regExp) => _authorProperty.regExp = regExp;
-//
-//  /// The [messageFilter] property is a regular expression that must match the commit message
-//  /// of the task's commit. This property will filter out rows on the build dashboard.
-//  RegExp get messageFilter => _messageProperty.regExp;
-//  set messageFilter(RegExp regExp) => _messageProperty.regExp = regExp;
-//
-//  /// The [hashFilter] property is a regular expression that must match the hash of the
-//  /// task's commit. This property will filter out rows on the build dashboard.
-//  RegExp get hashFilter => _hashProperty.regExp;
-//  set hashFilter(RegExp regExp) => _hashProperty.regExp = regExp;
-//
-//  /// The [showAndroid] property is a boolean that indicates whether to display tasks produced
-//  /// by an Android stage in the devicelab.
-//  /// This property will filter out columns on the build dashboard.
-//  bool get showAndroid => _androidProperty.value;
-//  set showAndroid(bool value) => _androidProperty.value = value;
-//
-//  /// The [showIos] property is a boolean that indicates whether to display tasks produced
-//  /// by an iOS stage in the devicelab.
-//  /// This property will filter out columns on the build dashboard.
-//  bool get showIos => _iosProperty.value;
-//  set showIos(bool value) => _iosProperty.value = value;
-//
-//  /// The [showWindows] property is a boolean that indicates whether to display tasks produced
-//  /// by a Windows stage in the devicelab.
-//  /// This property will filter out columns on the build dashboard.
-//  bool get showWindows => _windowsProperty.value;
-//  set showWindows(bool value) => _windowsProperty.value = value;
-//
-//  /// The [showCirrus] property is a boolean that indicates whether to display tasks produced
-//  /// by the Cirrus stage in the devicelab.
-//  /// This property will filter out columns on the build dashboard.
-//  bool get showCirrus => _cirrusProperty.value;
-//  set showCirrus(bool value) => _cirrusProperty.value = value;
-//
-//  /// The [showLuci] property is a boolean that indicates whether to display tasks produced
-//  /// by a Luci stage in the devicelab.
-//  /// This property will filter out columns on the build dashboard.
-//  bool get showLuci => _luciProperty.value;
-//  set showLuci(bool value) => _luciProperty.value = value;
-//
+  /// The [taskFilter] property is a regular expression that must match the name of the
+  /// task in the grid. This property will filter out columns on the build dashboard.
+  RegExp get taskFilter => _taskProperty.regExp;
+  set taskFilter(RegExp regExp) => _taskProperty.regExp = regExp;
+
+  /// The [authorFilter] property is a regular expression that must match the name of the
+  /// author of the task's commit. This property will filter out rows on the build dashboard.
+  RegExp get authorFilter => _authorProperty.regExp;
+  set authorFilter(RegExp regExp) => _authorProperty.regExp = regExp;
+
+  /// The [messageFilter] property is a regular expression that must match the commit message
+  /// of the task's commit. This property will filter out rows on the build dashboard.
+  RegExp get messageFilter => _messageProperty.regExp;
+  set messageFilter(RegExp regExp) => _messageProperty.regExp = regExp;
+
+  /// The [hashFilter] property is a regular expression that must match the hash of the
+  /// task's commit. This property will filter out rows on the build dashboard.
+  RegExp get hashFilter => _hashProperty.regExp;
+  set hashFilter(RegExp regExp) => _hashProperty.regExp = regExp;
+
+  /// The [showAndroid] property is a boolean that indicates whether to display tasks produced
+  /// by an Android stage in the devicelab.
+  /// This property will filter out columns on the build dashboard.
+  bool get showAndroid => _androidProperty.value;
+  set showAndroid(bool value) => _androidProperty.value = value;
+
+  /// The [showIos] property is a boolean that indicates whether to display tasks produced
+  /// by an iOS stage in the devicelab.
+  /// This property will filter out columns on the build dashboard.
+  bool get showIos => _iosProperty.value;
+  set showIos(bool value) => _iosProperty.value = value;
+
+  /// The [showWindows] property is a boolean that indicates whether to display tasks produced
+  /// by a Windows stage in the devicelab.
+  /// This property will filter out columns on the build dashboard.
+  bool get showWindows => _windowsProperty.value;
+  set showWindows(bool value) => _windowsProperty.value = value;
+
+  /// The [showCirrus] property is a boolean that indicates whether to display tasks produced
+  /// by the Cirrus stage in the devicelab.
+  /// This property will filter out columns on the build dashboard.
+  bool get showCirrus => _cirrusProperty.value;
+  set showCirrus(bool value) => _cirrusProperty.value = value;
+
+  /// The [showLuci] property is a boolean that indicates whether to display tasks produced
+  /// by a Luci stage in the devicelab.
+  /// This property will filter out columns on the build dashboard.
+  bool get showLuci => _luciProperty.value;
+  set showLuci(bool value) => _luciProperty.value = value;
+
   /// Check the values in the [CommitStatus] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
   bool matchesCommit(CommitStatus commitStatus) {
@@ -152,11 +150,11 @@ class TaskGridFilter extends FilterPropertySource {
     return _allProperties[_stageProperties[qualifiedTask.stage]]?.value as bool ?? true;
   }
 
-  /// Convert the filter into a String map that can be used to reconstruct the filter
-  /// using the [fromMap] constructor and/or injecting its data into a JSON or URL query
-  /// parameter list.
-  Map<String, String> toMap() => Map<String, String>.fromEntries(_allProperties.entries
-      .where((MapEntry<String, ValueFilterProperty<dynamic>> element) => !element.value.isDefault)
+  /// Convert the filter into a String map (with or without default values populated) that
+  /// can be used to reconstruct the filter using the [fromMap] constructor and/or inject
+  /// its data into a JSON file or URL query parameter list.
+  Map<String, String> toMap({bool includeDefaults = true}) => Map<String, String>.fromEntries(_allProperties.entries
+      .where((MapEntry<String, ValueFilterProperty<dynamic>> element) => includeDefaults || !element.value.isDefault)
       .map((MapEntry<String, ValueFilterProperty<dynamic>> e) => MapEntry<String, String>(e.key, e.value.stringValue)));
 
   List<FilterPropertyNode> _layout;

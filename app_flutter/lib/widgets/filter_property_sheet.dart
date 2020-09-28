@@ -81,17 +81,6 @@ class RegExpFilterProperty extends ValueFilterProperty<String> {
         super(fieldName: fieldName, label: label);
 
   String _value;
-  TextEditingController _controller;
-  TextEditingController get controller {
-    if (_controller == null) {
-      _controller = TextEditingController(text: stringValue);
-      _controller.addListener(() {
-        value = _controller.text;
-      });
-    }
-    return _controller;
-  }
-
   @override
   String get value => _value;
   set value(String newValue) {
@@ -108,6 +97,17 @@ class RegExpFilterProperty extends ValueFilterProperty<String> {
       _controller.text = newValue;
       // The listener callback should nop
     }
+  }
+
+  TextEditingController _controller;
+  TextEditingController get controller {
+    if (_controller == null) {
+      _controller = TextEditingController(text: stringValue);
+      _controller.addListener(() {
+        value = _controller.text;
+      });
+    }
+    return _controller;
   }
 
   @override
@@ -160,8 +160,9 @@ class BoolFilterProperty extends ValueFilterProperty<bool> {
       value = true;
     } else if (newValue == 'false' || newValue == 'f') {
       value = false;
+    } else {
+      throw 'Unrecognized bool value: $newValue';
     }
-    throw 'Unrecognized bool value: $newValue';
   }
 
   @override
