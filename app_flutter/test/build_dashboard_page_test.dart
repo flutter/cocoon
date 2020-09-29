@@ -167,36 +167,6 @@ void main() {
     expect(tester, meetsGuideline(textContrastGuideline));
   });
 
-  testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
-    await precacheTaskIcons(tester);
-    final BuildState buildState = BuildState(
-      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
-      authService: MockGoogleSignInService(),
-    );
-    void listener1() {}
-    buildState.addListener(listener1);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ValueProvider<BuildState>(
-          value: buildState,
-          child: ValueProvider<GoogleSignInService>(
-            value: buildState.authService,
-            child: const BuildDashboardPage(),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.byIcon(Icons.settings));
-    await tester.pump();
-
-    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.png');
-
-    await tester.pumpWidget(Container());
-    buildState.dispose();
-  });
-
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = false;
 
@@ -304,5 +274,68 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
     expect(find.text(lastError), findsNothing);
+  });
+
+  testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    final BuildState buildState = BuildState(
+      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: buildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.png');
+    expect(tester, meetsGuideline(textContrastGuideline));
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
+  });
+
+  testWidgets('TaskGridContainer with default Settings property sheet, dark mode', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    final BuildState buildState = BuildState(
+      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: buildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.dark.png');
+    expect(tester, meetsGuideline(textContrastGuideline));
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
   });
 }
