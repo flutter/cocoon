@@ -12,6 +12,7 @@ import 'package:cocoon_service/protos.dart';
 
 import 'package:app_flutter/build_dashboard_page.dart';
 import 'package:app_flutter/service/cocoon.dart';
+import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/error_brook_watcher.dart';
@@ -19,8 +20,10 @@ import 'package:app_flutter/widgets/sign_in_button.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
 
 import 'utils/fake_build.dart';
+import 'utils/golden.dart';
 import 'utils/mocks.dart';
 import 'utils/output.dart';
+import 'utils/task_icons.dart';
 
 void main() {
   testWidgets('shows sign in button', (WidgetTester tester) async {
@@ -54,6 +57,24 @@ void main() {
     buildState.dispose();
   });
 
+  testWidgets('shows settings button', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.settings), findsOneWidget);
+  });
+
   testWidgets('shows branch dropdown button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
@@ -68,6 +89,9 @@ void main() {
         ),
       ),
     );
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
 
     final Type dropdownButtonType = DropdownButton<String>(
       onChanged: (_) {},
@@ -141,6 +165,36 @@ void main() {
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red);
     expect(tester, meetsGuideline(textContrastGuideline));
+  });
+
+  testWidgets('TaskGridContainer with default Settings property sheet', (WidgetTester tester) async {
+    await precacheTaskIcons(tester);
+    final BuildState buildState = BuildState(
+      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: buildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    await expectGoldenMatches(find.byType(BuildDashboardPage), 'build_dashboard.defaultPropertySheet.png');
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
   });
 
   testWidgets('shows tree closed when fetch tree status is false, dark mode', (WidgetTester tester) async {

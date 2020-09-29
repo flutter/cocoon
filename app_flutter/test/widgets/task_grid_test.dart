@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
 
+import 'package:app_flutter/logic/task_grid_filter.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/commit_box.dart';
@@ -133,6 +134,59 @@ void main() {
 
     await tester.pumpWidget(Container());
     buildState.dispose();
+  });
+
+  Future<void> testGrid(WidgetTester tester, TaskGridFilter filter, int rows, int cols) async {
+    final BuildState buildState = BuildState(
+      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      authService: MockGoogleSignInService(),
+    );
+    void listener1() {}
+    buildState.addListener(listener1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: ValueProvider<BuildState>(
+          value: buildState,
+          child: Material(
+            child: TaskGridContainer(filter: filter),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(LatticeScrollView), findsOneWidget);
+    final LatticeScrollView lattice = find.byType(LatticeScrollView).evaluate().first.widget;
+
+    expect(lattice.cells.length, rows);
+    for (final List<LatticeCell> row in lattice.cells) {
+      expect(row.length, cols);
+    }
+
+    await tester.pumpWidget(Container());
+    buildState.dispose();
+  }
+
+  testWidgets('Task name filter affects grid', (WidgetTester tester) async {
+    // Default filters
+    await testGrid(tester, null, 27, 111);
+    await testGrid(tester, TaskGridFilter(), 27, 111);
+    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 111);
+
+    // QualifiedTask (column) filters
+    await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 30);
+    await testGrid(tester, TaskGridFilter()..showAndroid = false, 27, 61);
+    await testGrid(tester, TaskGridFilter()..showIos = false, 27, 81);
+    await testGrid(tester, TaskGridFilter()..showWindows = false, 27, 86);
+    await testGrid(tester, TaskGridFilter()..showCirrus = false, 27, 109);
+    await testGrid(tester, TaskGridFilter()..showLuci = false, 27, 108);
+
+    // CommitStatus (row) filters
+    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 111);
+    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 111);
+    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 111);
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {

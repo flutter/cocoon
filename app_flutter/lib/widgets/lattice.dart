@@ -111,7 +111,7 @@ class _RenderFakeViewport extends RenderProxyBox implements RenderAbstractViewpo
   @override
   RevealedOffset getOffsetToReveal(RenderObject target, double alignment, {Rect rect}) {
     // TODO(ianh): Implement this for real (and make these not be "Fake")
-    return RevealedOffset(offset: 0.0, rect: rect);
+    return RevealedOffset(offset: 0.0, rect: rect ?? target.paintBounds);
   }
 }
 

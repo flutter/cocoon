@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 
 import '../logic/qualified_task.dart';
+import '../logic/task_grid_filter.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
 import 'lattice.dart';
@@ -19,7 +20,13 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key key}) : super(key: key);
+  const TaskGridContainer({Key key, this.filter}) : super(key: key);
+
+  /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
+  /// rows and columns of the task grid. This filter may be updated dynamically through
+  /// this notifier from elsewhere if the user starts editing the filter parameters in
+  /// the settings dialog.
+  final TaskGridFilter filter;
 
   @visibleForTesting
   static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
@@ -46,6 +53,7 @@ class TaskGridContainer extends StatelessWidget {
         return TaskGrid(
           buildState: buildState,
           commitStatuses: commitStatuses,
+          filter: filter,
         );
       },
     );
@@ -63,6 +71,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     @required this.buildState,
     @required this.commitStatuses,
+    this.filter,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -70,6 +79,11 @@ class TaskGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
+
+  /// A [TaskGridFilter] object to control the visibility of various rows and columns of
+  /// the task grid. This filter may be updated dynamically from elsewhere if the user
+  /// starts editing the filter parameters in the settings dialog.
+  final TaskGridFilter filter;
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
@@ -81,6 +95,14 @@ class _TaskGridState extends State<TaskGrid> {
   // we've received new data or not.
 
   @override
+  void initState() {
+    super.initState();
+    widget.filter?.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LatticeScrollView(
       // TODO(ianh): Provide some vertical scroll physics that disable
@@ -89,7 +111,7 @@ class _TaskGridState extends State<TaskGrid> {
       // we load.
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget.commitStatuses),
+      cells: _processCommitStatuses(widget.commitStatuses, widget.filter),
       cellSize: const Size.square(TaskBox.cellSize),
     );
   }
@@ -135,17 +157,24 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses) {
+  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
+    filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final List<_Row> rows = commitStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<CommitStatus> filteredStatuses =
+        commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
+    final List<_Row> rows =
+        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
-    for (final CommitStatus status in commitStatuses) {
+    for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+          if (!filter.matchesTask(qualifiedTask)) {
+            continue;
+          }
           if (commitCount <= 25) {
             double score = 0.0;
             if (task.attempts > 1) {
