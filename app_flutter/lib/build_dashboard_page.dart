@@ -41,6 +41,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     _filter = TaskGridFilter.fromMap(widget.queryParameters);
   }
 
+  void _navigateWithSettings(BuildContext context, TaskGridFilter filter) {
+    if (filter.isDefault) {
+      Navigator.pushNamed(context, BuildDashboardPage.routeName);
+    } else {
+      Navigator.pushNamed(context, '${BuildDashboardPage.routeName}?${filter.queryParameters}');
+    }
+  }
+
   void _removeSettingsOverlay() {
     setState(() {
       _settingsDialog = null;
@@ -48,11 +56,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
   }
 
   void _showSettingsDialog(BuildContext context, BuildState _buildState) {
+    TaskGridFilter originalFilter = TaskGridFilter.fromMap(_filter.toMap(includeDefaults: false));
     setState(() {
       _settingsDialog = Center(
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(0xc0),
+            color: Theme.of(context).dialogBackgroundColor.withAlpha(0xe0),
             borderRadius: BorderRadius.circular(20.0),
           ),
           child: Material(
@@ -65,14 +74,11 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     value: _buildState.currentBranch,
                     icon: const Icon(
                       Icons.arrow_downward,
-                      color: Colors.black,
                     ),
                     iconSize: 24,
                     elevation: 16,
-                    style: const TextStyle(color: Colors.black),
                     underline: Container(
                       height: 2,
-                      color: Colors.black,
                     ),
                     onChanged: (String branch) {
                       _buildState.updateCurrentBranch(branch);
@@ -93,14 +99,29 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                         animation: _filter,
                         builder: (BuildContext context, Widget child) {
                           return FlatButton(
-                            child: const Text('Reset'),
+                            child: const Text('Defaults'),
                             onPressed: _filter.isDefault ? null : () => _filter.reset(),
                           );
                         },
                       ),
+                      AnimatedBuilder(
+                        animation: _filter,
+                        builder: (BuildContext context, Widget child) {
+                          return FlatButton(
+                            child: const Text('Apply'),
+                            onPressed: _filter == originalFilter ? null : () => _navigateWithSettings(context, _filter),
+                          );
+                        },
+                      ),
                       FlatButton(
-                        child: const Text('Close'),
-                        onPressed: _removeSettingsOverlay,
+                        child: const Text('Cancel'),
+                        onPressed: () {
+                          if (_filter != originalFilter) {
+                            _filter.reset();
+                            _filter.applyMap(originalFilter.toMap(includeDefaults: false));
+                          }
+                          _removeSettingsOverlay();
+                        },
                       ),
                     ],
                   ),
