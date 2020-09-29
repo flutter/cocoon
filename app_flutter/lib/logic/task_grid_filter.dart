@@ -161,8 +161,10 @@ class TaskGridFilter extends FilterPropertySource {
   /// include only non-default filter values separated by the URL parameter separator (`&`).
   /// The string will not include the leading `?` character used to introduce URL parameters
   /// in case this string must be mixed with other query parameters.
-  String get queryParameters =>
-      toMap(includeDefaults: false).entries.map<String>((e) => '${e.key}=${e.value}').join('&');
+  String get queryParameters => toMap(includeDefaults: false)
+      .entries
+      .map<String>((MapEntry<String, String> e) => '${e.key}=${e.value}')
+      .join('&');
 
   List<FilterPropertyNode> _layout;
 
