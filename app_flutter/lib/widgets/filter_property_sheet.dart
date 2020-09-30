@@ -223,7 +223,6 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
   }
 
   static const TextStyle _labelStyle = TextStyle(
-    color: Colors.black,
     fontSize: 16.0,
     fontWeight: FontWeight.normal,
     fontStyle: FontStyle.normal,

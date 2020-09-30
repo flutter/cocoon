@@ -33,84 +33,101 @@ class BuildDashboardPage extends StatefulWidget {
 
 class BuildDashboardPageState extends State<BuildDashboardPage> {
   TaskGridFilter _filter;
-  Widget _settingsDialog;
+  TaskGridFilter _settingsBasis;
 
   @override
   void initState() {
     super.initState();
     _filter = TaskGridFilter.fromMap(widget.queryParameters);
-  }
-
-  void _removeSettingsOverlay() {
-    setState(() {
-      _settingsDialog = null;
+    _filter.addListener(() {
+      setState(() {});
     });
   }
 
-  void _showSettingsDialog(BuildContext context, BuildState _buildState) {
+  void _navigateWithSettings(BuildContext context, TaskGridFilter filter) {
+    if (filter.isDefault) {
+      Navigator.pushNamed(context, BuildDashboardPage.routeName);
+    } else {
+      Navigator.pushNamed(context, '${BuildDashboardPage.routeName}?${filter.queryParameters}');
+    }
+  }
+
+  void _removeSettingsDialog() {
     setState(() {
-      _settingsDialog = Center(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withAlpha(0xc0),
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: FocusTraversalGroup(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  DropdownButton<String>(
-                    value: _buildState.currentBranch,
-                    icon: const Icon(
-                      Icons.arrow_downward,
-                      color: Colors.black,
-                    ),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: const TextStyle(color: Colors.black),
-                    underline: Container(
-                      height: 2,
-                      color: Colors.black,
-                    ),
-                    onChanged: (String branch) {
-                      _buildState.updateCurrentBranch(branch);
-                    },
-                    items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+      _settingsBasis = null;
+    });
+  }
+
+  void _showSettingsDialog() {
+    setState(() {
+      _settingsBasis = TaskGridFilter.fromMap(_filter.toMap(includeDefaults: false));
+    });
+  }
+
+  Widget _settingsDialog(BuildContext context, BuildState _buildState) {
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).dialogBackgroundColor.withAlpha(0xe0),
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: FocusTraversalGroup(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                DropdownButton<String>(
+                  value: _buildState.currentBranch,
+                  icon: const Icon(
+                    Icons.arrow_downward,
                   ),
-                  FilterPropertySheet(_filter),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      AnimatedBuilder(
-                        animation: _filter,
-                        builder: (BuildContext context, Widget child) {
-                          return FlatButton(
-                            child: const Text('Reset'),
-                            onPressed: _filter.isDefault ? null : () => _filter.reset(),
-                          );
-                        },
-                      ),
-                      FlatButton(
-                        child: const Text('Close'),
-                        onPressed: _removeSettingsOverlay,
-                      ),
-                    ],
+                  iconSize: 24,
+                  elevation: 16,
+                  underline: Container(
+                    height: 2,
                   ),
-                ],
-              ),
+                  onChanged: (String branch) {
+                    _buildState.updateCurrentBranch(branch);
+                  },
+                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                FilterPropertySheet(_filter),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    FlatButton(
+                      child: const Text('Defaults'),
+                      onPressed: _filter.isDefault ? null : () => _filter.reset(),
+                    ),
+                    FlatButton(
+                      child: const Text('Apply'),
+                      onPressed: _filter == _settingsBasis ? null : () => _navigateWithSettings(context, _filter),
+                    ),
+                    FlatButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        if (_filter != _settingsBasis) {
+                          _filter.reset();
+                          _filter.applyMap(_settingsBasis.toMap(includeDefaults: false));
+                        }
+                        _removeSettingsDialog();
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   @override
@@ -141,7 +158,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.settings),
-              onPressed: _settingsDialog == null ? () => _showSettingsDialog(context, _buildState) : null,
+              onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
             ),
           ],
         ),
@@ -152,7 +169,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
               SizedBox.expand(
                 child: TaskGridContainer(filter: _filter),
               ),
-              if (_settingsDialog != null) _settingsDialog,
+              if (_settingsBasis != null) _settingsDialog(context, _buildState),
             ],
           ),
         ),
