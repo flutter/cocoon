@@ -27,6 +27,7 @@ Here's a brief example of how to run these scripts.
 ```
 go test -v ./model/
 go test -v ./graphql/
+mkdir tmp
 go run extract.go
 go run transform.go
 ./load.sh
