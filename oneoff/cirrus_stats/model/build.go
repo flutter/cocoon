@@ -42,9 +42,9 @@ type Build struct {
 	ChangeTimestamp          int64
 	BuildCreatedTimestamp    int64
 	Status                   string
-	Tasks                    []Task `json:"-"`
+	Tasks                    []Task
 	TaskGroupsAmount         int
-	Repository               Repository `json:"-"`
+	Repository               Repository
 	ViewerPermission         string
 }
 
@@ -63,14 +63,18 @@ func (b Build) MarshalJSON() ([]byte, error) {
 	type Alias Build
 	return json.Marshal(&struct {
 		Alias
+		Repository       *struct{}
 		Repository_Owner string
 		Repository_Name  string
+		Tasks            *struct{}
 		TaskCount        int
 		FlakyTaskCount   int
 	}{
 		Alias:            Alias(b),
+		Repository:       nil,
 		Repository_Owner: b.Repository.Owner,
 		Repository_Name:  b.Repository.Name,
+		Tasks:            nil,
 		TaskCount:        len(b.Tasks),
 		FlakyTaskCount:   flakyTaskCount,
 	})

@@ -54,16 +54,16 @@ type Task struct {
 	DurationInSeconds       int
 	TimeoutInSeconds        int
 	Optional                bool
-	Repository              Repository `json:"-"`
+	Repository              Repository
 	AutomaticReRun          bool
 	AutomaticallyReRunnable bool
 	Experimental            bool
 	Stateful                bool
 	UseComputeCredits       bool
 	UsedComputeCredits      bool
-	Transaction             Transaction `json:"-"`
+	Transaction             Transaction
 	TriggerType             string
-	InstanceResources       InstanceResources `json:"-"`
+	InstanceResources       InstanceResources
 	Attempt                 int
 }
 
@@ -83,22 +83,28 @@ func (t Task) MarshalJSON() ([]byte, error) {
 	type Alias Task
 	return json.Marshal(&struct {
 		Alias
+		Repository                       *struct{}
 		Repository_Owner                 string
 		Repository_Name                  string
+		Transaction                      *struct{}
 		Transaction_Timestamp            int64
 		Transaction_MicroCreditsAmount   int64
 		Transaction_CreditsAmount        string
 		Transaction_InitialCreditsAmount string
+		InstanceResources                *struct{}
 		InstanceResources_Cpu            float64
 		InstanceResources_Memory         int64
 	}{
 		Alias:                            Alias(t),
+		Repository:                       nil,
 		Repository_Owner:                 t.Repository.Owner,
 		Repository_Name:                  t.Repository.Name,
+		Transaction:                      nil,
 		Transaction_Timestamp:            t.Transaction.Timestamp,
 		Transaction_MicroCreditsAmount:   t.Transaction.MicroCreditsAmount,
 		Transaction_CreditsAmount:        t.Transaction.CreditsAmount,
 		Transaction_InitialCreditsAmount: t.Transaction.InitialCreditsAmount,
+		InstanceResources:                nil,
 		InstanceResources_Cpu:            t.InstanceResources.Cpu,
 		InstanceResources_Memory:         t.InstanceResources.Memory,
 	})
