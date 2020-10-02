@@ -22,3 +22,7 @@ targets:
         enabled: true
         options:
           schema: cocoon_service|lib/src/service/github/schema.public.graphql
+      gql_build|serializer_builder:
+        enabled: true
+        options:
+          schema: cocoon_service|lib/src/service/github/schema.public.graphql
