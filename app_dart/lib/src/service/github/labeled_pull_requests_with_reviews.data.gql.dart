@@ -1,260 +1,718 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart' as _i1;
+import 'package:built_collection/built_collection.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart'
+    as _i2;
+import 'package:cocoon_service/src/service/github/serializers.gql.dart' as _i1;
 
-class $LabeledPullRequestsWithReviews {
-  const $LabeledPullRequestsWithReviews(this.data);
+part 'labeled_pull_requests_with_reviews.data.gql.g.dart';
 
-  final Map<String, dynamic> data;
+abstract class GLabeledPullRequestsWithReviewsData
+    implements
+        Built<GLabeledPullRequestsWithReviewsData,
+            GLabeledPullRequestsWithReviewsDataBuilder> {
+  GLabeledPullRequestsWithReviewsData._();
 
-  $LabeledPullRequestsWithReviews$repository get repository => data['repository'] == null
-      ? null
-      : $LabeledPullRequestsWithReviews$repository((data['repository'] as Map<String, dynamic>));
+  factory GLabeledPullRequestsWithReviewsData(
+          [Function(GLabeledPullRequestsWithReviewsDataBuilder b) updates]) =
+      _$GLabeledPullRequestsWithReviewsData;
+
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsDataBuilder b) =>
+      b..G__typename = 'Query';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository get repository;
+  static Serializer<GLabeledPullRequestsWithReviewsData> get serializer =>
+      _$gLabeledPullRequestsWithReviewsDataSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers
+      .serializeWith(GLabeledPullRequestsWithReviewsData.serializer, this);
+  static GLabeledPullRequestsWithReviewsData fromJson(
+          Map<String, dynamic> json) =>
+      _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData.serializer, json);
 }
 
-class $LabeledPullRequestsWithReviews$repository {
-  const $LabeledPullRequestsWithReviews$repository(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository
+    implements
+        Built<GLabeledPullRequestsWithReviewsData_repository,
+            GLabeledPullRequestsWithReviewsData_repositoryBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository(
+      [Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder b)
+          updates]) = _$GLabeledPullRequestsWithReviewsData_repository;
 
-  $LabeledPullRequestsWithReviews$repository$labels get labels => data['labels'] == null
-      ? null
-      : $LabeledPullRequestsWithReviews$repository$labels((data['labels'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repositoryBuilder b) =>
+      b..G__typename = 'Repository';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels get labels;
+  static Serializer<GLabeledPullRequestsWithReviewsData_repository>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositorySerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository.serializer, this);
+  static GLabeledPullRequestsWithReviewsData_repository fromJson(
+          Map<String, dynamic> json) =>
+      _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository.serializer, json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels {
-  const $LabeledPullRequestsWithReviews$repository$labels(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels
+    implements
+        Built<GLabeledPullRequestsWithReviewsData_repository_labels,
+            GLabeledPullRequestsWithReviewsData_repository_labelsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels(
+      [Function(GLabeledPullRequestsWithReviewsData_repository_labelsBuilder b)
+          updates]) = _$GLabeledPullRequestsWithReviewsData_repository_labels;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes> get nodes => data['nodes'] == null
-      ? null
-      : (data['nodes'] as List)
-          .map((dynamic e) => $LabeledPullRequestsWithReviews$repository$labels$nodes((e as Map<String, dynamic>)))
-          .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labelsBuilder b) =>
+      b..G__typename = 'LabelConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
+      get nodes;
+  static Serializer<GLabeledPullRequestsWithReviewsData_repository_labels>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels.serializer, this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels fromJson(
+          Map<String, dynamic> json) =>
+      _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels.serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes
+    implements
+        Built<GLabeledPullRequestsWithReviewsData_repository_labels_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes(
+      [Function(
+              GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
+                  b)
+          updates]) = _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes;
 
-  String get id => (data['id'] as String);
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests get pullRequests => data['pullRequests'] == null
-      ? null
-      : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests(
-          (data['pullRequests'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
+              b) =>
+      b..G__typename = 'Label';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get id;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
+      get pullRequests;
+  static Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes.serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes fromJson(
+          Map<String, dynamic> json) =>
+      _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes> get nodes => data['nodes'] == null
-      ? null
-      : (data['nodes'] as List)
-          .map((dynamic e) =>
-              $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes((e as Map<String, dynamic>)))
-          .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
+              b) =>
+      b..G__typename = 'PullRequestConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
+      get nodes;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes;
 
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$author get author => data['author'] == null
-      ? null
-      : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$author(
-          (data['author'] as Map<String, dynamic>));
-  String get id => (data['id'] as String);
-  int get number => (data['number'] as int);
-  _i1.MergeableState get mergeable => _i1.MergeableState((data['mergeable'] as String));
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits get commits =>
-      data['commits'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits(
-              (data['commits'] as Map<String, dynamic>));
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews get reviews =>
-      data['reviews'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews(
-              (data['reviews'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder
+              b) =>
+      b..G__typename = 'PullRequest';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
+      get author;
+  String get id;
+  int get number;
+  _i2.GMergeableState get mergeable;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
+      get commits;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
+      get reviews;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$author {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$author(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author;
 
-  String get login => (data['login'] as String);
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
+              b) =>
+      b..G__typename = 'Actor';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get login;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesAuthorSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes> get nodes =>
-      data['nodes'] == null
-          ? null
-          : (data['nodes'] as List)
-              .map((dynamic e) =>
-                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes(
-                      (e as Map<String, dynamic>)))
-              .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
+              b) =>
+      b..G__typename = 'PullRequestCommitConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
+      get nodes;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes;
 
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit get commit =>
-      data['commit'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit(
-              (data['commit'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder
+              b) =>
+      b..G__typename = 'PullRequestCommit';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
+      get commit;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit;
 
-  String get abbreviatedOid => (data['abbreviatedOid'] as String);
-  _i1.GitObjectID get oid => _i1.GitObjectID((data['oid'] as String));
-  _i1.DateTime get committedDate => _i1.DateTime((data['committedDate'] as String));
-  _i1.DateTime get pushedDate => _i1.DateTime((data['pushedDate'] as String));
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status get status =>
-      data['status'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status(
-              (data['status'] as Map<String, dynamic>));
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites
-      get checkSuites => data['checkSuites'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites(
-              (data['checkSuites'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
+              b) =>
+      b..G__typename = 'Commit';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get abbreviatedOid;
+  _i2.GGitObjectID get oid;
+  _i2.GDateTime get committedDate;
+  @nullable
+  _i2.GDateTime get pushedDate;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
+      get status;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
+      get checkSuites;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts>
-      get contexts => data['contexts'] == null
-          ? null
-          : (data['contexts'] as List)
-              .map((dynamic e) =>
-                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts(
-                      (e as Map<String, dynamic>)))
-              .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder
+              b) =>
+      b..G__typename = 'Status';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts>
+      get contexts;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitStatusSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$status$contexts(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contextsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contextsBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts;
 
-  String get context => (data['context'] as String);
-  _i1.StatusState get state => _i1.StatusState((data['state'] as String));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contextsBuilder
+              b) =>
+      b..G__typename = 'StatusContext';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get context;
+  _i2.GStatusState get state;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitStatusContextsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes>
-      get nodes => data['nodes'] == null
-          ? null
-          : (data['nodes'] as List)
-              .map((dynamic e) =>
-                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes(
-                      (e as Map<String, dynamic>)))
-              .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder
+              b) =>
+      b..G__typename = 'CheckSuiteConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes>
+      get nodes;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitCheckSuitesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes;
 
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns
-      get checkRuns => data['checkRuns'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns(
-              (data['checkRuns'] as Map<String, dynamic>));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodesBuilder
+              b) =>
+      b..G__typename = 'CheckSuite';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
+      get checkRuns;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitCheckSuitesNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRunsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRunsBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes>
-      get nodes => data['nodes'] == null
-          ? null
-          : (data['nodes'] as List)
-              .map((dynamic e) =>
-                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes(
-                      (e as Map<String, dynamic>)))
-              .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRunsBuilder
+              b) =>
+      b..G__typename = 'CheckRunConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes>
+      get nodes;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitCheckSuitesNodesCheckRunsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$commits$nodes$commit$checkSuites$nodes$checkRuns$nodes(
-      this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes;
 
-  String get name => (data['name'] as String);
-  _i1.CheckStatusState get status => _i1.CheckStatusState((data['status'] as String));
-  _i1.CheckConclusionState get conclusion => _i1.CheckConclusionState((data['conclusion'] as String));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodesBuilder
+              b) =>
+      b..G__typename = 'CheckRun';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get name;
+  _i2.GCheckStatusState get status;
+  @nullable
+  _i2.GCheckConclusionState get conclusion;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitCheckSuitesNodesCheckRunsNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews;
 
-  List<$LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes> get nodes =>
-      data['nodes'] == null
-          ? null
-          : (data['nodes'] as List)
-              .map((dynamic e) =>
-                  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes(
-                      (e as Map<String, dynamic>)))
-              .toList();
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
+              b) =>
+      b..G__typename = 'PullRequestReviewConnection';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  BuiltList<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
+      get nodes;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes;
 
-  $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes$author get author =>
-      data['author'] == null
-          ? null
-          : $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes$author(
-              (data['author'] as Map<String, dynamic>));
-  _i1.CommentAuthorAssociation get authorAssociation =>
-      _i1.CommentAuthorAssociation((data['authorAssociation'] as String));
-  _i1.PullRequestReviewState get state => _i1.PullRequestReviewState((data['state'] as String));
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder
+              b) =>
+      b..G__typename = 'PullRequestReview';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  @nullable
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+      get author;
+  _i2.GCommentAuthorAssociation get authorAssociation;
+  _i2.GPullRequestReviewState get state;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsNodesSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
+              .serializer,
+          json);
 }
 
-class $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes$author {
-  const $LabeledPullRequestsWithReviews$repository$labels$nodes$pullRequests$nodes$reviews$nodes$author(this.data);
+abstract class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+    implements
+        Built<
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author,
+            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder> {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author._();
 
-  final Map<String, dynamic> data;
+  factory GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author(
+          [Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
+                      b)
+              updates]) =
+      _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author;
 
-  String get login => (data['login'] as String);
+  static void _initializeBuilder(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
+              b) =>
+      b..G__typename = 'Actor';
+  @BuiltValueField(wireName: '__typename')
+  String get G__typename;
+  String get login;
+  static Serializer<
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author>
+      get serializer =>
+          _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsNodesAuthorSerializer;
+  Map<String, dynamic> toJson() => _i1.serializers.serializeWith(
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+          .serializer,
+      this);
+  static GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+      fromJson(Map<String, dynamic> json) => _i1.serializers.deserializeWith(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+              .serializer,
+          json);
 }
