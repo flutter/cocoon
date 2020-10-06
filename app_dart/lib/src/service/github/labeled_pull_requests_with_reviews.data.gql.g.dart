@@ -8,11 +8,9 @@ part of 'labeled_pull_requests_with_reviews.data.gql.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<GLabeledPullRequestsWithReviewsData>
-    _$gLabeledPullRequestsWithReviewsDataSerializer =
+Serializer<GLabeledPullRequestsWithReviewsData> _$gLabeledPullRequestsWithReviewsDataSerializer =
     new _$GLabeledPullRequestsWithReviewsDataSerializer();
-Serializer<GLabeledPullRequestsWithReviewsData_repository>
-    _$gLabeledPullRequestsWithReviewsDataRepositorySerializer =
+Serializer<GLabeledPullRequestsWithReviewsData_repository> _$gLabeledPullRequestsWithReviewsDataRepositorySerializer =
     new _$GLabeledPullRequestsWithReviewsData_repositorySerializer();
 Serializer<GLabeledPullRequestsWithReviewsData_repository_labels>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsSerializer =
@@ -20,32 +18,25 @@ Serializer<GLabeledPullRequestsWithReviewsData_repository_labels>
 Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodesSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesAuthorSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitStatusSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusSerializer();
 Serializer<
@@ -68,51 +59,41 @@ Serializer<
         GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesCommitsNodesCommitCheckSuitesNodesCheckRunsNodesSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodesSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsNodesSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesSerializer();
-Serializer<
-        GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author>
+Serializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author>
     _$gLabeledPullRequestsWithReviewsDataRepositoryLabelsNodesPullRequestsNodesReviewsNodesAuthorSerializer =
     new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorSerializer();
 
 class _$GLabeledPullRequestsWithReviewsDataSerializer
     implements StructuredSerializer<GLabeledPullRequestsWithReviewsData> {
   @override
-  final Iterable<Type> types = const [
-    GLabeledPullRequestsWithReviewsData,
-    _$GLabeledPullRequestsWithReviewsData
-  ];
+  final Iterable<Type> types = const [GLabeledPullRequestsWithReviewsData, _$GLabeledPullRequestsWithReviewsData];
   @override
   final String wireName = 'GLabeledPullRequestsWithReviewsData';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, GLabeledPullRequestsWithReviewsData object,
+  Iterable<Object> serialize(Serializers serializers, GLabeledPullRequestsWithReviewsData object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.repository != null) {
       result
         ..add('repository')
         ..add(serializers.serialize(object.repository,
-            specifiedType: const FullType(
-                GLabeledPullRequestsWithReviewsData_repository)));
+            specifiedType: const FullType(GLabeledPullRequestsWithReviewsData_repository)));
     }
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  GLabeledPullRequestsWithReviewsData deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new GLabeledPullRequestsWithReviewsDataBuilder();
 
@@ -123,13 +104,11 @@ class _$GLabeledPullRequestsWithReviewsDataSerializer
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'repository':
           result.repository.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      GLabeledPullRequestsWithReviewsData_repository))
+                  specifiedType: const FullType(GLabeledPullRequestsWithReviewsData_repository))
               as GLabeledPullRequestsWithReviewsData_repository);
           break;
       }
@@ -140,8 +119,7 @@ class _$GLabeledPullRequestsWithReviewsDataSerializer
 }
 
 class _$GLabeledPullRequestsWithReviewsData_repositorySerializer
-    implements
-        StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository> {
+    implements StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository,
@@ -151,27 +129,23 @@ class _$GLabeledPullRequestsWithReviewsData_repositorySerializer
   final String wireName = 'GLabeledPullRequestsWithReviewsData_repository';
 
   @override
-  Iterable<Object> serialize(Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository object,
+  Iterable<Object> serialize(Serializers serializers, GLabeledPullRequestsWithReviewsData_repository object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.labels != null) {
       result
         ..add('labels')
         ..add(serializers.serialize(object.labels,
-            specifiedType: const FullType(
-                GLabeledPullRequestsWithReviewsData_repository_labels)));
+            specifiedType: const FullType(GLabeledPullRequestsWithReviewsData_repository_labels)));
     }
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  GLabeledPullRequestsWithReviewsData_repository deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new GLabeledPullRequestsWithReviewsData_repositoryBuilder();
 
@@ -182,13 +156,11 @@ class _$GLabeledPullRequestsWithReviewsData_repositorySerializer
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'labels':
           result.labels.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      GLabeledPullRequestsWithReviewsData_repository_labels))
+                  specifiedType: const FullType(GLabeledPullRequestsWithReviewsData_repository_labels))
               as GLabeledPullRequestsWithReviewsData_repository_labels);
           break;
       }
@@ -199,35 +171,28 @@ class _$GLabeledPullRequestsWithReviewsData_repositorySerializer
 }
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labelsSerializer
-    implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels> {
+    implements StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels,
     _$GLabeledPullRequestsWithReviewsData_repository_labels
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels';
 
   @override
-  Iterable<Object> serialize(Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels object,
+  Iterable<Object> serialize(Serializers serializers, GLabeledPullRequestsWithReviewsData_repository_labels object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
         ..add('nodes')
         ..add(serializers.serialize(object.nodes,
-            specifiedType: const FullType(BuiltList, const [
-              const FullType(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes)
-            ])));
+            specifiedType: const FullType(
+                BuiltList, const [const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes)])));
     }
     return result;
   }
@@ -236,8 +201,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labelsSerializer
   GLabeledPullRequestsWithReviewsData_repository_labels deserialize(
       Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder();
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -246,15 +210,13 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labelsSerializer
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltList, const [
-                const FullType(
-                    GLabeledPullRequestsWithReviewsData_repository_labels_nodes)
-              ])) as BuiltList<Object>);
+                  specifiedType: const FullType(
+                      BuiltList, const [const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes)]))
+              as BuiltList<Object>);
           break;
       }
     }
@@ -264,32 +226,27 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labelsSerializer
 }
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodesSerializer
-    implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes> {
+    implements StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes';
 
   @override
-  Iterable<Object> serialize(Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes object,
+  Iterable<Object> serialize(
+      Serializers serializers, GLabeledPullRequestsWithReviewsData_repository_labels_nodes object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
       'pullRequests',
       serializers.serialize(object.pullRequests,
-          specifiedType: const FullType(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests)),
+          specifiedType: const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests)),
     ];
 
     return result;
@@ -299,8 +256,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodesSerializer
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes deserialize(
       Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder();
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -309,17 +265,15 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodesSerializer
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'pullRequests':
           result.pullRequests.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests))
+                  specifiedType:
+                      const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests))
               as GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests);
           break;
       }
@@ -330,47 +284,39 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodesSerializer
 }
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsSerializer
-    implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests> {
+    implements StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests';
 
   @override
   Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-          object,
+      Serializers serializers, GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
         ..add('nodes')
         ..add(serializers.serialize(object.nodes,
             specifiedType: const FullType(BuiltList, const [
-              const FullType(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)
+              const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)
             ])));
     }
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -379,14 +325,12 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
               specifiedType: const FullType(BuiltList, const [
-                const FullType(
-                    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)
+                const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)
               ])) as BuiltList<Object>);
           break;
       }
@@ -397,46 +341,39 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 }
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesSerializer
-    implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> {
+    implements StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes';
 
   @override
   Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-          object,
+      Serializers serializers, GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
       'number',
       serializers.serialize(object.number, specifiedType: const FullType(int)),
       'mergeable',
-      serializers.serialize(object.mergeable,
-          specifiedType: const FullType(_i2.GMergeableState)),
+      serializers.serialize(object.mergeable, specifiedType: const FullType(_i2.GMergeableState)),
       'commits',
       serializers.serialize(object.commits,
-          specifiedType: const FullType(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits)),
+          specifiedType:
+              const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits)),
     ];
     if (object.author != null) {
       result
         ..add('author')
         ..add(serializers.serialize(object.author,
-            specifiedType: const FullType(
-                GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author)));
+            specifiedType:
+                const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author)));
     }
     if (object.reviews != null) {
       result
@@ -449,11 +386,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -462,8 +398,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'author':
           result.author.replace(serializers.deserialize(value,
@@ -472,17 +407,14 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
               as GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author);
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'number':
-          result.number = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.number = serializers.deserialize(value, specifiedType: const FullType(int)) as int;
           break;
         case 'mergeable':
-          result.mergeable = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GMergeableState))
-              as _i2.GMergeableState;
+          result.mergeable =
+              serializers.deserialize(value, specifiedType: const FullType(_i2.GMergeableState)) as _i2.GMergeableState;
           break;
         case 'commits':
           result.commits.replace(serializers.deserialize(value,
@@ -505,41 +437,34 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorSerializer
     implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author> {
+        StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'login',
-      serializers.serialize(object.login,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.login, specifiedType: const FullType(String)),
     ];
 
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -548,12 +473,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'login':
-          result.login = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.login = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -564,27 +487,22 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsSerializer
     implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits> {
+        StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
@@ -599,11 +517,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -612,8 +529,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
@@ -643,15 +559,12 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'commit',
       serializers.serialize(object.commit,
           specifiedType: const FullType(
@@ -662,9 +575,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result =
         new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder();
 
@@ -675,8 +588,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'commit':
           result.commit.replace(serializers.deserialize(value,
@@ -705,30 +617,23 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'abbreviatedOid',
-      serializers.serialize(object.abbreviatedOid,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.abbreviatedOid, specifiedType: const FullType(String)),
       'oid',
-      serializers.serialize(object.oid,
-          specifiedType: const FullType(_i2.GGitObjectID)),
+      serializers.serialize(object.oid, specifiedType: const FullType(_i2.GGitObjectID)),
       'committedDate',
-      serializers.serialize(object.committedDate,
-          specifiedType: const FullType(_i2.GDateTime)),
+      serializers.serialize(object.committedDate, specifiedType: const FullType(_i2.GDateTime)),
     ];
     if (object.pushedDate != null) {
       result
         ..add('pushedDate')
-        ..add(serializers.serialize(object.pushedDate,
-            specifiedType: const FullType(_i2.GDateTime)));
+        ..add(serializers.serialize(object.pushedDate, specifiedType: const FullType(_i2.GDateTime)));
     }
     if (object.status != null) {
       result
@@ -748,9 +653,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result =
         new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder();
 
@@ -761,25 +666,22 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'abbreviatedOid':
-          result.abbreviatedOid = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.abbreviatedOid = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'oid':
-          result.oid.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GGitObjectID))
-              as _i2.GGitObjectID);
+          result.oid.replace(
+              serializers.deserialize(value, specifiedType: const FullType(_i2.GGitObjectID)) as _i2.GGitObjectID);
           break;
         case 'committedDate':
-          result.committedDate.replace(serializers.deserialize(value,
-              specifiedType: const FullType(_i2.GDateTime)) as _i2.GDateTime);
+          result.committedDate
+              .replace(serializers.deserialize(value, specifiedType: const FullType(_i2.GDateTime)) as _i2.GDateTime);
           break;
         case 'pushedDate':
-          result.pushedDate.replace(serializers.deserialize(value,
-              specifiedType: const FullType(_i2.GDateTime)) as _i2.GDateTime);
+          result.pushedDate
+              .replace(serializers.deserialize(value, specifiedType: const FullType(_i2.GDateTime)) as _i2.GDateTime);
           break;
         case 'status':
           result.status.replace(serializers.deserialize(value,
@@ -814,15 +716,12 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'contexts',
       serializers.serialize(object.contexts,
           specifiedType: const FullType(BuiltList, const [
@@ -848,8 +747,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'contexts':
           result.contexts.replace(serializers.deserialize(value,
@@ -886,14 +784,11 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'context',
-      serializers.serialize(object.context,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.context, specifiedType: const FullType(String)),
       'state',
-      serializers.serialize(object.state,
-          specifiedType: const FullType(_i2.GStatusState)),
+      serializers.serialize(object.state, specifiedType: const FullType(_i2.GStatusState)),
     ];
 
     return result;
@@ -913,17 +808,14 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'context':
-          result.context = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.context = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'state':
-          result.state = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GStatusState))
-              as _i2.GStatusState;
+          result.state =
+              serializers.deserialize(value, specifiedType: const FullType(_i2.GStatusState)) as _i2.GStatusState;
           break;
       }
     }
@@ -953,8 +845,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
@@ -982,8 +873,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
@@ -1020,8 +910,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.checkRuns != null) {
       result
@@ -1047,8 +936,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'checkRuns':
           result.checkRuns.replace(serializers.deserialize(value,
@@ -1084,8 +972,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
@@ -1113,8 +1000,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
@@ -1151,19 +1037,16 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'status',
-      serializers.serialize(object.status,
-          specifiedType: const FullType(_i2.GCheckStatusState)),
+      serializers.serialize(object.status, specifiedType: const FullType(_i2.GCheckStatusState)),
     ];
     if (object.conclusion != null) {
       result
         ..add('conclusion')
-        ..add(serializers.serialize(object.conclusion,
-            specifiedType: const FullType(_i2.GCheckConclusionState)));
+        ..add(serializers.serialize(object.conclusion, specifiedType: const FullType(_i2.GCheckConclusionState)));
     }
     return result;
   }
@@ -1182,21 +1065,17 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.name = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'status':
-          result.status = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GCheckStatusState))
+          result.status = serializers.deserialize(value, specifiedType: const FullType(_i2.GCheckStatusState))
               as _i2.GCheckStatusState;
           break;
         case 'conclusion':
-          result.conclusion = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GCheckConclusionState))
+          result.conclusion = serializers.deserialize(value, specifiedType: const FullType(_i2.GCheckConclusionState))
               as _i2.GCheckConclusionState;
           break;
       }
@@ -1208,27 +1087,22 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsSerializer
     implements
-        StructuredSerializer<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews> {
+        StructuredSerializer<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews> {
   @override
   final Iterable<Type> types = const [
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews,
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
   ];
   @override
-  final String wireName =
-      'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews';
+  final String wireName = 'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
     ];
     if (object.nodes != null) {
       result
@@ -1243,11 +1117,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
-    final result =
-        new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
+    final result = new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -1256,8 +1129,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'nodes':
           result.nodes.replace(serializers.deserialize(value,
@@ -1287,21 +1159,16 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'authorAssociation',
-      serializers.serialize(object.authorAssociation,
-          specifiedType: const FullType(_i2.GCommentAuthorAssociation)),
+      serializers.serialize(object.authorAssociation, specifiedType: const FullType(_i2.GCommentAuthorAssociation)),
       'state',
-      serializers.serialize(object.state,
-          specifiedType: const FullType(_i2.GPullRequestReviewState)),
+      serializers.serialize(object.state, specifiedType: const FullType(_i2.GPullRequestReviewState)),
     ];
     if (object.author != null) {
       result
@@ -1314,9 +1181,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result =
         new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder();
 
@@ -1327,8 +1194,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'author':
           result.author.replace(serializers.deserialize(value,
@@ -1338,12 +1204,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
           break;
         case 'authorAssociation':
           result.authorAssociation = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GCommentAuthorAssociation))
-              as _i2.GCommentAuthorAssociation;
+              specifiedType: const FullType(_i2.GCommentAuthorAssociation)) as _i2.GCommentAuthorAssociation;
           break;
         case 'state':
-          result.state = serializers.deserialize(value,
-                  specifiedType: const FullType(_i2.GPullRequestReviewState))
+          result.state = serializers.deserialize(value, specifiedType: const FullType(_i2.GPullRequestReviewState))
               as _i2.GPullRequestReviewState;
           break;
       }
@@ -1367,27 +1231,23 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers,
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-          object,
+  Iterable<Object> serialize(Serializers serializers,
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       '__typename',
-      serializers.serialize(object.G__typename,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.G__typename, specifiedType: const FullType(String)),
       'login',
-      serializers.serialize(object.login,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.login, specifiedType: const FullType(String)),
     ];
 
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-      deserialize(Serializers serializers, Iterable<Object> serialized,
-          {FullType specifiedType = FullType.unspecified}) {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author deserialize(
+      Serializers serializers, Iterable<Object> serialized,
+      {FullType specifiedType = FullType.unspecified}) {
     final result =
         new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder();
 
@@ -1398,12 +1258,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       final dynamic value = iterator.current;
       switch (key) {
         case '__typename':
-          result.G__typename = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.G__typename = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'login':
-          result.login = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.login = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -1412,30 +1270,23 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 }
 
-class _$GLabeledPullRequestsWithReviewsData
-    extends GLabeledPullRequestsWithReviewsData {
+class _$GLabeledPullRequestsWithReviewsData extends GLabeledPullRequestsWithReviewsData {
   @override
   final String G__typename;
   @override
   final GLabeledPullRequestsWithReviewsData_repository repository;
 
-  factory _$GLabeledPullRequestsWithReviewsData(
-          [void Function(GLabeledPullRequestsWithReviewsDataBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsDataBuilder()..update(updates))
-          .build();
+  factory _$GLabeledPullRequestsWithReviewsData([void Function(GLabeledPullRequestsWithReviewsDataBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsDataBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsData._({this.G__typename, this.repository})
-      : super._() {
+  _$GLabeledPullRequestsWithReviewsData._({this.G__typename, this.repository}) : super._() {
     if (G__typename == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData', 'G__typename');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData', 'G__typename');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData rebuild(
-          void Function(GLabeledPullRequestsWithReviewsDataBuilder) updates) =>
+  GLabeledPullRequestsWithReviewsData rebuild(void Function(GLabeledPullRequestsWithReviewsDataBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -1465,9 +1316,7 @@ class _$GLabeledPullRequestsWithReviewsData
 }
 
 class GLabeledPullRequestsWithReviewsDataBuilder
-    implements
-        Builder<GLabeledPullRequestsWithReviewsData,
-            GLabeledPullRequestsWithReviewsDataBuilder> {
+    implements Builder<GLabeledPullRequestsWithReviewsData, GLabeledPullRequestsWithReviewsDataBuilder> {
   _$GLabeledPullRequestsWithReviewsData _$v;
 
   String _G__typename;
@@ -1476,11 +1325,8 @@ class GLabeledPullRequestsWithReviewsDataBuilder
 
   GLabeledPullRequestsWithReviewsData_repositoryBuilder _repository;
   GLabeledPullRequestsWithReviewsData_repositoryBuilder get repository =>
-      _$this._repository ??=
-          new GLabeledPullRequestsWithReviewsData_repositoryBuilder();
-  set repository(
-          GLabeledPullRequestsWithReviewsData_repositoryBuilder repository) =>
-      _$this._repository = repository;
+      _$this._repository ??= new GLabeledPullRequestsWithReviewsData_repositoryBuilder();
+  set repository(GLabeledPullRequestsWithReviewsData_repositoryBuilder repository) => _$this._repository = repository;
 
   GLabeledPullRequestsWithReviewsDataBuilder() {
     GLabeledPullRequestsWithReviewsData._initializeBuilder(this);
@@ -1504,8 +1350,7 @@ class GLabeledPullRequestsWithReviewsDataBuilder
   }
 
   @override
-  void update(
-      void Function(GLabeledPullRequestsWithReviewsDataBuilder) updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsDataBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -1514,16 +1359,14 @@ class GLabeledPullRequestsWithReviewsDataBuilder
     _$GLabeledPullRequestsWithReviewsData _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData._(
-              G__typename: G__typename, repository: _repository?.build());
+          new _$GLabeledPullRequestsWithReviewsData._(G__typename: G__typename, repository: _repository?.build());
     } catch (_) {
       String _$failedField;
       try {
         _$failedField = 'repository';
         _repository?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'GLabeledPullRequestsWithReviewsData', _$failedField, e.toString());
+        throw new BuiltValueNestedFieldError('GLabeledPullRequestsWithReviewsData', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -1532,39 +1375,30 @@ class GLabeledPullRequestsWithReviewsDataBuilder
   }
 }
 
-class _$GLabeledPullRequestsWithReviewsData_repository
-    extends GLabeledPullRequestsWithReviewsData_repository {
+class _$GLabeledPullRequestsWithReviewsData_repository extends GLabeledPullRequestsWithReviewsData_repository {
   @override
   final String G__typename;
   @override
   final GLabeledPullRequestsWithReviewsData_repository_labels labels;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository(
-          [void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsData_repositoryBuilder()
-            ..update(updates))
-          .build();
+          [void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsData_repositoryBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsData_repository._(
-      {this.G__typename, this.labels})
-      : super._() {
+  _$GLabeledPullRequestsWithReviewsData_repository._({this.G__typename, this.labels}) : super._() {
     if (G__typename == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository', 'G__typename');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData_repository', 'G__typename');
     }
   }
 
   @override
   GLabeledPullRequestsWithReviewsData_repository rebuild(
-          void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder)
-              updates) =>
+          void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repositoryBuilder toBuilder() =>
-      new GLabeledPullRequestsWithReviewsData_repositoryBuilder()
-        ..replace(this);
+      new GLabeledPullRequestsWithReviewsData_repositoryBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -1581,8 +1415,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(
-            'GLabeledPullRequestsWithReviewsData_repository')
+    return (newBuiltValueToStringHelper('GLabeledPullRequestsWithReviewsData_repository')
           ..add('G__typename', G__typename)
           ..add('labels', labels))
         .toString();
@@ -1591,8 +1424,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository
 
 class GLabeledPullRequestsWithReviewsData_repositoryBuilder
     implements
-        Builder<GLabeledPullRequestsWithReviewsData_repository,
-            GLabeledPullRequestsWithReviewsData_repositoryBuilder> {
+        Builder<GLabeledPullRequestsWithReviewsData_repository, GLabeledPullRequestsWithReviewsData_repositoryBuilder> {
   _$GLabeledPullRequestsWithReviewsData_repository _$v;
 
   String _G__typename;
@@ -1601,12 +1433,8 @@ class GLabeledPullRequestsWithReviewsData_repositoryBuilder
 
   GLabeledPullRequestsWithReviewsData_repository_labelsBuilder _labels;
   GLabeledPullRequestsWithReviewsData_repository_labelsBuilder get labels =>
-      _$this._labels ??=
-          new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder();
-  set labels(
-          GLabeledPullRequestsWithReviewsData_repository_labelsBuilder
-              labels) =>
-      _$this._labels = labels;
+      _$this._labels ??= new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder();
+  set labels(GLabeledPullRequestsWithReviewsData_repository_labelsBuilder labels) => _$this._labels = labels;
 
   GLabeledPullRequestsWithReviewsData_repositoryBuilder() {
     GLabeledPullRequestsWithReviewsData_repository._initializeBuilder(this);
@@ -1630,9 +1458,7 @@ class GLabeledPullRequestsWithReviewsData_repositoryBuilder
   }
 
   @override
-  void update(
-      void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder)
-          updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsData_repositoryBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -1641,8 +1467,7 @@ class GLabeledPullRequestsWithReviewsData_repositoryBuilder
     _$GLabeledPullRequestsWithReviewsData_repository _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository._(
-              G__typename: G__typename, labels: _labels?.build());
+          new _$GLabeledPullRequestsWithReviewsData_repository._(G__typename: G__typename, labels: _labels?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -1650,9 +1475,7 @@ class GLabeledPullRequestsWithReviewsData_repositoryBuilder
         _labels?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'GLabeledPullRequestsWithReviewsData_repository',
-            _$failedField,
-            e.toString());
+            'GLabeledPullRequestsWithReviewsData_repository', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -1666,38 +1489,26 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels
   @override
   final String G__typename;
   @override
-  final BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
-      nodes;
+  final BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes> nodes;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labelsBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder()
-            ..update(updates))
-          .build();
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labelsBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsData_repository_labels._(
-      {this.G__typename, this.nodes})
-      : super._() {
+  _$GLabeledPullRequestsWithReviewsData_repository_labels._({this.G__typename, this.nodes}) : super._() {
     if (G__typename == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels',
-          'G__typename');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData_repository_labels', 'G__typename');
     }
   }
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels rebuild(
-          void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labelsBuilder)
-              updates) =>
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labelsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labelsBuilder toBuilder() =>
-      new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder()
-        ..replace(this);
+      new GLabeledPullRequestsWithReviewsData_repository_labelsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -1714,8 +1525,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(
-            'GLabeledPullRequestsWithReviewsData_repository_labels')
+    return (newBuiltValueToStringHelper('GLabeledPullRequestsWithReviewsData_repository_labels')
           ..add('G__typename', G__typename)
           ..add('nodes', nodes))
         .toString();
@@ -1732,20 +1542,13 @@ class GLabeledPullRequestsWithReviewsData_repository_labelsBuilder
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
-  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
-      _nodes;
-  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
-      get nodes => _$this._nodes ??= new ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes>();
-  set nodes(
-          ListBuilder<
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes>
-              nodes) =>
-      _$this._nodes = nodes;
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes> _nodes;
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes> get nodes =>
+      _$this._nodes ??= new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>();
+  set nodes(ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes> nodes) => _$this._nodes = nodes;
 
   GLabeledPullRequestsWithReviewsData_repository_labelsBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels._initializeBuilder(
-        this);
+    GLabeledPullRequestsWithReviewsData_repository_labels._initializeBuilder(this);
   }
 
   GLabeledPullRequestsWithReviewsData_repository_labelsBuilder get _$this {
@@ -1766,10 +1569,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labelsBuilder
   }
 
   @override
-  void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labelsBuilder)
-          updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsData_repository_labelsBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -1787,9 +1587,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labelsBuilder
         _nodes?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'GLabeledPullRequestsWithReviewsData_repository_labels',
-            _$failedField,
-            e.toString());
+            'GLabeledPullRequestsWithReviewsData_repository_labels', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -1805,54 +1603,38 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes
   @override
   final String id;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-      pullRequests;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests pullRequests;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder()
-            ..update(updates))
-          .build();
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes._(
-      {this.G__typename, this.id, this.pullRequests})
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes._({this.G__typename, this.id, this.pullRequests})
       : super._() {
     if (G__typename == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes',
-          'G__typename');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData_repository_labels_nodes', 'G__typename');
     }
     if (id == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes', 'id');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData_repository_labels_nodes', 'id');
     }
     if (pullRequests == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes',
-          'pullRequests');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsData_repository_labels_nodes', 'pullRequests');
     }
   }
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes rebuild(
-          void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder)
-              updates) =>
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes &&
         G__typename == other.G__typename &&
         id == other.id &&
         pullRequests == other.pullRequests;
@@ -1860,14 +1642,12 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes
 
   @override
   int get hashCode {
-    return $jf($jc(
-        $jc($jc(0, G__typename.hashCode), id.hashCode), pullRequests.hashCode));
+    return $jf($jc($jc($jc(0, G__typename.hashCode), id.hashCode), pullRequests.hashCode));
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(
-            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes')
+    return (newBuiltValueToStringHelper('GLabeledPullRequestsWithReviewsData_repository_labels_nodes')
           ..add('G__typename', G__typename)
           ..add('id', id)
           ..add('pullRequests', pullRequests))
@@ -1889,23 +1669,17 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
   String get id => _$this._id;
   set id(String id) => _$this._id = id;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
-      _pullRequests;
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
-      get pullRequests => _$this._pullRequests ??=
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder();
-  set pullRequests(
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
-              pullRequests) =>
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder _pullRequests;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder get pullRequests =>
+      _$this._pullRequests ??= new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder();
+  set pullRequests(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder pullRequests) =>
       _$this._pullRequests = pullRequests;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _id = _$v.id;
@@ -1916,20 +1690,15 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v =
-        other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes;
   }
 
   @override
-  void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder)
-          updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder) updates) {
     if (updates != null) updates(this);
   }
 
@@ -1939,9 +1708,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
     try {
       _$result = _$v ??
           new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes._(
-              G__typename: G__typename,
-              id: id,
-              pullRequests: pullRequests.build());
+              G__typename: G__typename, id: id, pullRequests: pullRequests.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -1949,9 +1716,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodesBuilder
         pullRequests.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes',
-            _$failedField,
-            e.toString());
+            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -1965,46 +1730,33 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final BuiltList<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
-      nodes;
+  final BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> nodes;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder()
-            ..update(updates))
-          .build();
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests._(
-      {this.G__typename, this.nodes})
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests._({this.G__typename, this.nodes})
       : super._() {
     if (G__typename == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests',
-          'G__typename');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests', 'G__typename');
     }
   }
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests rebuild(
-          void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder)
-              updates) =>
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests &&
         G__typename == other.G__typename &&
         nodes == other.nodes;
   }
@@ -2016,8 +1768,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(
-            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests')
+    return (newBuiltValueToStringHelper('GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests')
           ..add('G__typename', G__typename)
           ..add('nodes', nodes))
         .toString();
@@ -2026,36 +1777,26 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
-  ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
-      _nodes;
-  ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
-      get nodes => _$this._nodes ??= new ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>();
-  set nodes(
-          ListBuilder<
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>
-              nodes) =>
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> _nodes;
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> get nodes =>
+      _$this._nodes ??=
+          new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>();
+  set nodes(ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes> nodes) =>
       _$this._nodes = nodes;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _nodes = _$v.nodes?.toBuilder();
@@ -2065,33 +1806,25 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBu
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests;
   }
 
   @override
-  void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder)
-          updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-              ._(G__typename: G__typename, nodes: _nodes?.build());
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests._(
+              G__typename: G__typename, nodes: _nodes?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -2099,9 +1832,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequestsBu
         _nodes?.build();
       } catch (e) {
         throw new BuiltValueNestedFieldError(
-            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests',
-            _$failedField,
-            e.toString());
+            'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests', _$failedField, e.toString());
       }
       rethrow;
     }
@@ -2115,8 +1846,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-      author;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author author;
   @override
   final String id;
   @override
@@ -2124,75 +1854,55 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final _i2.GMergeableState mergeable;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-      commits;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits commits;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-      reviews;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews reviews;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder)
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder)
               updates]) =>
-      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder()
-            ..update(updates))
+      (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder()..update(updates))
           .build();
 
   _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes._(
-      {this.G__typename,
-      this.author,
-      this.id,
-      this.number,
-      this.mergeable,
-      this.commits,
-      this.reviews})
+      {this.G__typename, this.author, this.id, this.number, this.mergeable, this.commits, this.reviews})
       : super._() {
     if (G__typename == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes',
-          'G__typename');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes', 'G__typename');
     }
     if (id == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes',
-          'id');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes', 'id');
     }
     if (number == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes',
-          'number');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes', 'number');
     }
     if (mergeable == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes',
-          'mergeable');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes', 'mergeable');
     }
     if (commits == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes',
-          'commits');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes', 'commits');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes rebuild(
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes &&
         G__typename == other.G__typename &&
         author == other.author &&
         id == other.id &&
@@ -2206,11 +1916,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   int get hashCode {
     return $jf($jc(
         $jc(
-            $jc(
-                $jc(
-                    $jc($jc($jc(0, G__typename.hashCode), author.hashCode),
-                        id.hashCode),
-                    number.hashCode),
+            $jc($jc($jc($jc($jc(0, G__typename.hashCode), author.hashCode), id.hashCode), number.hashCode),
                 mergeable.hashCode),
             commits.hashCode),
         reviews.hashCode));
@@ -2233,24 +1939,19 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
-      _author;
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
-      get author => _$this._author ??=
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder _author;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder get author =>
+      _$this._author ??=
           new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder();
-  set author(
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
-              author) =>
+  set author(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder author) =>
       _$this._author = author;
 
   String _id;
@@ -2265,33 +1966,25 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   _i2.GMergeableState get mergeable => _$this._mergeable;
   set mergeable(_i2.GMergeableState mergeable) => _$this._mergeable = mergeable;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
-      _commits;
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
-      get commits => _$this._commits ??=
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder _commits;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder get commits =>
+      _$this._commits ??=
           new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder();
-  set commits(
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
-              commits) =>
+  set commits(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder commits) =>
       _$this._commits = commits;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
-      _reviews;
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
-      get reviews => _$this._reviews ??=
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder _reviews;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder get reviews =>
+      _$this._reviews ??=
           new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder();
-  set reviews(
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
-              reviews) =>
+  set reviews(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder reviews) =>
       _$this._reviews = reviews;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _author = _$v.author?.toBuilder();
@@ -2306,33 +1999,25 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder)
-          updates) {
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodesBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-                  ._(
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes._(
               G__typename: G__typename,
               author: _author?.build(),
               id: id,
@@ -2371,8 +2056,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   final String login;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
               updates]) =>
       (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder()
             ..update(updates))
@@ -2383,35 +2067,28 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       : super._() {
     if (G__typename == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author',
-          'G__typename');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author', 'G__typename');
     }
     if (login == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author',
-          'login');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author', 'login');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author rebuild(
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author &&
         G__typename == other.G__typename &&
         login == other.login;
   }
@@ -2433,11 +2110,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
@@ -2448,12 +2123,10 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   set login(String login) => _$this._login = login;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _login = _$v.login;
@@ -2463,30 +2136,25 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_authorBuilder)
           updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-      build() {
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author build() {
     final _$result = _$v ??
-        new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-            ._(G__typename: G__typename, login: login);
+        new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author._(
+            G__typename: G__typename, login: login);
     replace(_$result);
     return _$result;
   }
@@ -2497,13 +2165,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final BuiltList<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
-      nodes;
+  final BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes> nodes;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
               updates]) =>
       (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder()
             ..update(updates))
@@ -2514,30 +2179,25 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       : super._() {
     if (G__typename == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits',
-          'G__typename');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits', 'G__typename');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits rebuild(
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder()
+        ..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits &&
         G__typename == other.G__typename &&
         nodes == other.nodes;
   }
@@ -2559,36 +2219,29 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes> _nodes;
   ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
-      _nodes;
-  ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
-      get nodes => _$this._nodes ??= new ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>();
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes> get nodes => _$this
+          ._nodes ??=
+      new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>();
   set nodes(
-          ListBuilder<
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
+          ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>
               nodes) =>
       _$this._nodes = nodes;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _nodes = _$v.nodes?.toBuilder();
@@ -2598,33 +2251,27 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commitsBuilder)
           updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-              ._(G__typename: G__typename, nodes: _nodes?.build());
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits._(
+              G__typename: G__typename, nodes: _nodes?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -2648,8 +2295,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-      commit;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit commit;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes(
           [void Function(
@@ -2669,30 +2315,26 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
     }
     if (commit == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes',
-          'commit');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes', 'commit');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder()
+        ..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes &&
         G__typename == other.G__typename &&
         commit == other.commit;
   }
@@ -2714,18 +2356,15 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
-      _commit;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder _commit;
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
       get commit => _$this._commit ??=
           new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder();
@@ -2735,12 +2374,11 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
       _$this._commit = commit;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes._initializeBuilder(
+        this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _commit = _$v.commit?.toBuilder();
@@ -2750,33 +2388,27 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder)
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodesBuilder)
           updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-              ._(G__typename: G__typename, commit: commit.build());
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes._(
+              G__typename: G__typename, commit: commit.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -2843,8 +2475,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
     }
     if (oid == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit',
-          'oid');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit', 'oid');
     }
     if (committedDate == null) {
       throw new BuiltValueNullFieldError(
@@ -2854,12 +2485,11 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
@@ -2886,11 +2516,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
     return $jf($jc(
         $jc(
             $jc(
-                $jc(
-                    $jc(
-                        $jc($jc(0, G__typename.hashCode),
-                            abbreviatedOid.hashCode),
-                        oid.hashCode),
+                $jc($jc($jc($jc(0, G__typename.hashCode), abbreviatedOid.hashCode), oid.hashCode),
                     committedDate.hashCode),
                 pushedDate.hashCode),
             status.hashCode),
@@ -2914,11 +2540,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commitBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
@@ -2926,25 +2550,19 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
 
   String _abbreviatedOid;
   String get abbreviatedOid => _$this._abbreviatedOid;
-  set abbreviatedOid(String abbreviatedOid) =>
-      _$this._abbreviatedOid = abbreviatedOid;
+  set abbreviatedOid(String abbreviatedOid) => _$this._abbreviatedOid = abbreviatedOid;
 
   _i2.GGitObjectIDBuilder _oid;
-  _i2.GGitObjectIDBuilder get oid =>
-      _$this._oid ??= new _i2.GGitObjectIDBuilder();
+  _i2.GGitObjectIDBuilder get oid => _$this._oid ??= new _i2.GGitObjectIDBuilder();
   set oid(_i2.GGitObjectIDBuilder oid) => _$this._oid = oid;
 
   _i2.GDateTimeBuilder _committedDate;
-  _i2.GDateTimeBuilder get committedDate =>
-      _$this._committedDate ??= new _i2.GDateTimeBuilder();
-  set committedDate(_i2.GDateTimeBuilder committedDate) =>
-      _$this._committedDate = committedDate;
+  _i2.GDateTimeBuilder get committedDate => _$this._committedDate ??= new _i2.GDateTimeBuilder();
+  set committedDate(_i2.GDateTimeBuilder committedDate) => _$this._committedDate = committedDate;
 
   _i2.GDateTimeBuilder _pushedDate;
-  _i2.GDateTimeBuilder get pushedDate =>
-      _$this._pushedDate ??= new _i2.GDateTimeBuilder();
-  set pushedDate(_i2.GDateTimeBuilder pushedDate) =>
-      _$this._pushedDate = pushedDate;
+  _i2.GDateTimeBuilder get pushedDate => _$this._pushedDate ??= new _i2.GDateTimeBuilder();
+  set pushedDate(_i2.GDateTimeBuilder pushedDate) => _$this._pushedDate = pushedDate;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder
       _status;
@@ -2988,13 +2606,12 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
 
   @override
   void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-          other) {
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit;
+    _$v =
+        other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit;
   }
 
   @override
@@ -3006,14 +2623,11 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
-                  ._(
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit._(
               G__typename: G__typename,
               abbreviatedOid: abbreviatedOid,
               oid: oid.build(),
@@ -3080,12 +2694,11 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder
@@ -3122,8 +2735,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
         Builder<
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_statusBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
@@ -3177,8 +2789,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
-      build() {
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status build() {
     _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
         _$result;
     try {
@@ -3266,8 +2877,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
   @override
   int get hashCode {
-    return $jf($jc(
-        $jc($jc(0, G__typename.hashCode), context.hashCode), state.hashCode));
+    return $jf($jc($jc($jc(0, G__typename.hashCode), context.hashCode), state.hashCode));
   }
 
   @override
@@ -3375,12 +2985,11 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder
@@ -3417,8 +3026,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
         Builder<
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuitesBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
@@ -3862,9 +3470,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
   @override
   int get hashCode {
-    return $jf($jc(
-        $jc($jc($jc(0, G__typename.hashCode), name.hashCode), status.hashCode),
-        conclusion.hashCode));
+    return $jf($jc($jc($jc($jc(0, G__typename.hashCode), name.hashCode), status.hashCode), conclusion.hashCode));
   }
 
   @override
@@ -3901,8 +3507,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
 
   _i2.GCheckConclusionState _conclusion;
   _i2.GCheckConclusionState get conclusion => _$this._conclusion;
-  set conclusion(_i2.GCheckConclusionState conclusion) =>
-      _$this._conclusion = conclusion;
+  set conclusion(_i2.GCheckConclusionState conclusion) => _$this._conclusion = conclusion;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodesBuilder() {
     GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
@@ -3945,11 +3550,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
       build() {
     final _$result = _$v ??
         new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
-                ._(
-            G__typename: G__typename,
-            name: name,
-            status: status,
-            conclusion: conclusion);
+            ._(G__typename: G__typename, name: name, status: status, conclusion: conclusion);
     replace(_$result);
     return _$result;
   }
@@ -3960,13 +3561,10 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final BuiltList<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
-      nodes;
+  final BuiltList<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes> nodes;
 
   factory _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews(
-          [void Function(
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
+          [void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
               updates]) =>
       (new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder()
             ..update(updates))
@@ -3977,30 +3575,25 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
       : super._() {
     if (G__typename == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews',
-          'G__typename');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews', 'G__typename');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews rebuild(
+          void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder()
+        ..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews &&
         G__typename == other.G__typename &&
         nodes == other.nodes;
   }
@@ -4022,36 +3615,29 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
+  ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes> _nodes;
   ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
-      _nodes;
-  ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
-      get nodes => _$this._nodes ??= new ListBuilder<
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>();
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes> get nodes => _$this
+          ._nodes ??=
+      new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>();
   set nodes(
-          ListBuilder<
-                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
+          ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>
               nodes) =>
       _$this._nodes = nodes;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews._initializeBuilder(this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _nodes = _$v.nodes?.toBuilder();
@@ -4061,33 +3647,27 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviewsBuilder)
           updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-              ._(G__typename: G__typename, nodes: _nodes?.build());
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews._(
+              G__typename: G__typename, nodes: _nodes?.build());
     } catch (_) {
       String _$failedField;
       try {
@@ -4111,8 +3691,7 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   @override
   final String G__typename;
   @override
-  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-      author;
+  final GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author author;
   @override
   final _i2.GCommentAuthorAssociation authorAssociation;
   @override
@@ -4141,30 +3720,26 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
     }
     if (state == null) {
       throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes',
-          'state');
+          'GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes', 'state');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder
-      toBuilder() =>
-          new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder()
-            ..replace(this);
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder toBuilder() =>
+      new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder()
+        ..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other
-            is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes &&
+    return other is GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes &&
         G__typename == other.G__typename &&
         author == other.author &&
         authorAssociation == other.authorAssociation &&
@@ -4173,10 +3748,8 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
   @override
   int get hashCode {
-    return $jf($jc(
-        $jc($jc($jc(0, G__typename.hashCode), author.hashCode),
-            authorAssociation.hashCode),
-        state.hashCode));
+    return $jf(
+        $jc($jc($jc($jc(0, G__typename.hashCode), author.hashCode), authorAssociation.hashCode), state.hashCode));
   }
 
   @override
@@ -4193,18 +3766,15 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
   set G__typename(String G__typename) => _$this._G__typename = G__typename;
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
-      _author;
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder _author;
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
       get author => _$this._author ??=
           new GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder();
@@ -4214,8 +3784,7 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
       _$this._author = author;
 
   _i2.GCommentAuthorAssociation _authorAssociation;
-  _i2.GCommentAuthorAssociation get authorAssociation =>
-      _$this._authorAssociation;
+  _i2.GCommentAuthorAssociation get authorAssociation => _$this._authorAssociation;
   set authorAssociation(_i2.GCommentAuthorAssociation authorAssociation) =>
       _$this._authorAssociation = authorAssociation;
 
@@ -4224,12 +3793,11 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   set state(_i2.GPullRequestReviewState state) => _$this._state = state;
 
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder() {
-    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-        ._initializeBuilder(this);
+    GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes._initializeBuilder(
+        this);
   }
 
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder
-      get _$this {
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder get _$this {
     if (_$v != null) {
       _G__typename = _$v.G__typename;
       _author = _$v.author?.toBuilder();
@@ -4241,37 +3809,27 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-          other) {
+  void replace(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes;
+    _$v = other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes;
   }
 
   @override
   void update(
-      void Function(
-              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder)
+      void Function(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodesBuilder)
           updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-      build() {
-    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-        _$result;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes build() {
+    _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes _$result;
     try {
       _$result = _$v ??
-          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-                  ._(
-              G__typename: G__typename,
-              author: _author?.build(),
-              authorAssociation: authorAssociation,
-              state: state);
+          new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes._(
+              G__typename: G__typename, author: _author?.build(), authorAssociation: authorAssociation, state: state);
     } catch (_) {
       String _$failedField;
       try {
@@ -4321,12 +3879,11 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
   }
 
   @override
-  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-      rebuild(
-              void Function(
-                      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder)
-                  updates) =>
-          (toBuilder()..update(updates)).build();
+  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author rebuild(
+          void Function(
+                  GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
 
   @override
   GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
@@ -4360,11 +3917,9 @@ class _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
 
 class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder
     implements
-        Builder<
-            GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author,
+        Builder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author,
             GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_authorBuilder> {
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-      _$v;
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author _$v;
 
   String _G__typename;
   String get G__typename => _$this._G__typename;
@@ -4391,13 +3946,12 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
 
   @override
   void replace(
-      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-          other) {
+      GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author other) {
     if (other == null) {
       throw new ArgumentError.notNull('other');
     }
-    _$v = other
-        as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author;
+    _$v =
+        other as _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author;
   }
 
   @override
@@ -4409,11 +3963,10 @@ class GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_n
   }
 
   @override
-  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-      build() {
+  _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author build() {
     final _$result = _$v ??
-        new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
-            ._(G__typename: G__typename, login: login);
+        new _$GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author._(
+            G__typename: G__typename, login: login);
     replace(_$result);
     return _$result;
   }

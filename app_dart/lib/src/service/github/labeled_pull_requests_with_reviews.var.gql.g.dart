@@ -8,42 +8,33 @@ part of 'labeled_pull_requests_with_reviews.var.gql.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<GLabeledPullRequestsWithReviewsVars>
-    _$gLabeledPullRequestsWithReviewsVarsSerializer =
+Serializer<GLabeledPullRequestsWithReviewsVars> _$gLabeledPullRequestsWithReviewsVarsSerializer =
     new _$GLabeledPullRequestsWithReviewsVarsSerializer();
 
 class _$GLabeledPullRequestsWithReviewsVarsSerializer
     implements StructuredSerializer<GLabeledPullRequestsWithReviewsVars> {
   @override
-  final Iterable<Type> types = const [
-    GLabeledPullRequestsWithReviewsVars,
-    _$GLabeledPullRequestsWithReviewsVars
-  ];
+  final Iterable<Type> types = const [GLabeledPullRequestsWithReviewsVars, _$GLabeledPullRequestsWithReviewsVars];
   @override
   final String wireName = 'GLabeledPullRequestsWithReviewsVars';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, GLabeledPullRequestsWithReviewsVars object,
+  Iterable<Object> serialize(Serializers serializers, GLabeledPullRequestsWithReviewsVars object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object>[
       'sOwner',
-      serializers.serialize(object.sOwner,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.sOwner, specifiedType: const FullType(String)),
       'sName',
-      serializers.serialize(object.sName,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.sName, specifiedType: const FullType(String)),
       'sLabelName',
-      serializers.serialize(object.sLabelName,
-          specifiedType: const FullType(String)),
+      serializers.serialize(object.sLabelName, specifiedType: const FullType(String)),
     ];
 
     return result;
   }
 
   @override
-  GLabeledPullRequestsWithReviewsVars deserialize(
-      Serializers serializers, Iterable<Object> serialized,
+  GLabeledPullRequestsWithReviewsVars deserialize(Serializers serializers, Iterable<Object> serialized,
       {FullType specifiedType = FullType.unspecified}) {
     final result = new GLabeledPullRequestsWithReviewsVarsBuilder();
 
@@ -54,16 +45,13 @@ class _$GLabeledPullRequestsWithReviewsVarsSerializer
       final dynamic value = iterator.current;
       switch (key) {
         case 'sOwner':
-          result.sOwner = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.sOwner = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'sName':
-          result.sName = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.sName = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
         case 'sLabelName':
-          result.sLabelName = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.sLabelName = serializers.deserialize(value, specifiedType: const FullType(String)) as String;
           break;
       }
     }
@@ -72,8 +60,7 @@ class _$GLabeledPullRequestsWithReviewsVarsSerializer
   }
 }
 
-class _$GLabeledPullRequestsWithReviewsVars
-    extends GLabeledPullRequestsWithReviewsVars {
+class _$GLabeledPullRequestsWithReviewsVars extends GLabeledPullRequestsWithReviewsVars {
   @override
   final String sOwner;
   @override
@@ -81,32 +68,23 @@ class _$GLabeledPullRequestsWithReviewsVars
   @override
   final String sLabelName;
 
-  factory _$GLabeledPullRequestsWithReviewsVars(
-          [void Function(GLabeledPullRequestsWithReviewsVarsBuilder)
-              updates]) =>
-      (new GLabeledPullRequestsWithReviewsVarsBuilder()..update(updates))
-          .build();
+  factory _$GLabeledPullRequestsWithReviewsVars([void Function(GLabeledPullRequestsWithReviewsVarsBuilder) updates]) =>
+      (new GLabeledPullRequestsWithReviewsVarsBuilder()..update(updates)).build();
 
-  _$GLabeledPullRequestsWithReviewsVars._(
-      {this.sOwner, this.sName, this.sLabelName})
-      : super._() {
+  _$GLabeledPullRequestsWithReviewsVars._({this.sOwner, this.sName, this.sLabelName}) : super._() {
     if (sOwner == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsVars', 'sOwner');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsVars', 'sOwner');
     }
     if (sName == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsVars', 'sName');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsVars', 'sName');
     }
     if (sLabelName == null) {
-      throw new BuiltValueNullFieldError(
-          'GLabeledPullRequestsWithReviewsVars', 'sLabelName');
+      throw new BuiltValueNullFieldError('GLabeledPullRequestsWithReviewsVars', 'sLabelName');
     }
   }
 
   @override
-  GLabeledPullRequestsWithReviewsVars rebuild(
-          void Function(GLabeledPullRequestsWithReviewsVarsBuilder) updates) =>
+  GLabeledPullRequestsWithReviewsVars rebuild(void Function(GLabeledPullRequestsWithReviewsVarsBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
@@ -124,8 +102,7 @@ class _$GLabeledPullRequestsWithReviewsVars
 
   @override
   int get hashCode {
-    return $jf(
-        $jc($jc($jc(0, sOwner.hashCode), sName.hashCode), sLabelName.hashCode));
+    return $jf($jc($jc($jc(0, sOwner.hashCode), sName.hashCode), sLabelName.hashCode));
   }
 
   @override
@@ -139,9 +116,7 @@ class _$GLabeledPullRequestsWithReviewsVars
 }
 
 class GLabeledPullRequestsWithReviewsVarsBuilder
-    implements
-        Builder<GLabeledPullRequestsWithReviewsVars,
-            GLabeledPullRequestsWithReviewsVarsBuilder> {
+    implements Builder<GLabeledPullRequestsWithReviewsVars, GLabeledPullRequestsWithReviewsVarsBuilder> {
   _$GLabeledPullRequestsWithReviewsVars _$v;
 
   String _sOwner;
@@ -177,16 +152,14 @@ class GLabeledPullRequestsWithReviewsVarsBuilder
   }
 
   @override
-  void update(
-      void Function(GLabeledPullRequestsWithReviewsVarsBuilder) updates) {
+  void update(void Function(GLabeledPullRequestsWithReviewsVarsBuilder) updates) {
     if (updates != null) updates(this);
   }
 
   @override
   _$GLabeledPullRequestsWithReviewsVars build() {
-    final _$result = _$v ??
-        new _$GLabeledPullRequestsWithReviewsVars._(
-            sOwner: sOwner, sName: sName, sLabelName: sLabelName);
+    final _$result =
+        _$v ?? new _$GLabeledPullRequestsWithReviewsVars._(sOwner: sOwner, sName: sName, sLabelName: sLabelName);
     replace(_$result);
     return _$result;
   }

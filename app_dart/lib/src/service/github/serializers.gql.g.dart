@@ -139,18 +139,12 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(GLabeledPullRequestsWithReviewsData.serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository.serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository_labels.serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes
-          .serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_author.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes.serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit
           .serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites
@@ -159,19 +153,18 @@ Serializers _$serializers = (new Serializers().toBuilder()
           .serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns
           .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
-          .serializer)
+      ..add(
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes
+              .serializer)
       ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status
           .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews
-          .serializer)
-      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes
-          .serializer)
       ..add(
-          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+          GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts
               .serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes.serializer)
+      ..add(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes_author
+          .serializer)
       ..add(GLabeledPullRequestsWithReviewsVars.serializer)
       ..add(GLanguageOrder.serializer)
       ..add(GLanguageOrderField.serializer)
@@ -199,11 +192,9 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(GOrgRemoveMemberAuditEntryReason.serializer)
       ..add(GOrgRemoveOutsideCollaboratorAuditEntryMembershipType.serializer)
       ..add(GOrgRemoveOutsideCollaboratorAuditEntryReason.serializer)
-      ..add(
-          GOrgUpdateDefaultRepositoryPermissionAuditEntryPermission.serializer)
+      ..add(GOrgUpdateDefaultRepositoryPermissionAuditEntryPermission.serializer)
       ..add(GOrgUpdateMemberAuditEntryPermission.serializer)
-      ..add(GOrgUpdateMemberRepositoryCreationPermissionAuditEntryVisibility
-          .serializer)
+      ..add(GOrgUpdateMemberRepositoryCreationPermissionAuditEntryVisibility.serializer)
       ..add(GOrganizationInvitationRole.serializer)
       ..add(GOrganizationInvitationType.serializer)
       ..add(GOrganizationMemberRole.serializer)
@@ -335,29 +326,21 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(GUpdateCheckSuitePreferencesInput.serializer)
       ..add(GUpdateEnterpriseActionExecutionCapabilitySettingInput.serializer)
       ..add(GUpdateEnterpriseAdministratorRoleInput.serializer)
-      ..add(
-          GUpdateEnterpriseAllowPrivateRepositoryForkingSettingInput.serializer)
+      ..add(GUpdateEnterpriseAllowPrivateRepositoryForkingSettingInput.serializer)
       ..add(GUpdateEnterpriseDefaultRepositoryPermissionSettingInput.serializer)
-      ..add(GUpdateEnterpriseMembersCanChangeRepositoryVisibilitySettingInput
-          .serializer)
-      ..add(
-          GUpdateEnterpriseMembersCanCreateRepositoriesSettingInput.serializer)
+      ..add(GUpdateEnterpriseMembersCanChangeRepositoryVisibilitySettingInput.serializer)
+      ..add(GUpdateEnterpriseMembersCanCreateRepositoriesSettingInput.serializer)
       ..add(GUpdateEnterpriseMembersCanDeleteIssuesSettingInput.serializer)
-      ..add(
-          GUpdateEnterpriseMembersCanDeleteRepositoriesSettingInput.serializer)
-      ..add(
-          GUpdateEnterpriseMembersCanInviteCollaboratorsSettingInput.serializer)
+      ..add(GUpdateEnterpriseMembersCanDeleteRepositoriesSettingInput.serializer)
+      ..add(GUpdateEnterpriseMembersCanInviteCollaboratorsSettingInput.serializer)
       ..add(GUpdateEnterpriseMembersCanMakePurchasesSettingInput.serializer)
-      ..add(GUpdateEnterpriseMembersCanUpdateProtectedBranchesSettingInput
-          .serializer)
-      ..add(GUpdateEnterpriseMembersCanViewDependencyInsightsSettingInput
-          .serializer)
+      ..add(GUpdateEnterpriseMembersCanUpdateProtectedBranchesSettingInput.serializer)
+      ..add(GUpdateEnterpriseMembersCanViewDependencyInsightsSettingInput.serializer)
       ..add(GUpdateEnterpriseOrganizationProjectsSettingInput.serializer)
       ..add(GUpdateEnterpriseProfileInput.serializer)
       ..add(GUpdateEnterpriseRepositoryProjectsSettingInput.serializer)
       ..add(GUpdateEnterpriseTeamDiscussionsSettingInput.serializer)
-      ..add(GUpdateEnterpriseTwoFactorAuthenticationRequiredSettingInput
-          .serializer)
+      ..add(GUpdateEnterpriseTwoFactorAuthenticationRequiredSettingInput.serializer)
       ..add(GUpdateIssueCommentInput.serializer)
       ..add(GUpdateIssueInput.serializer)
       ..add(GUpdateLabelInput.serializer)
@@ -379,65 +362,61 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(GUserStatusOrder.serializer)
       ..add(GUserStatusOrderField.serializer)
       ..add(GX509Certificate.serializer)
-      ..addBuilderFactory(
-          const FullType(
-              BuiltList, const [const FullType(GCheckAnnotationData)]),
+      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GCheckAnnotationData)]),
           () => new ListBuilder<GCheckAnnotationData>())
-      ..addBuilderFactory(
-          const FullType(
-              BuiltList, const [const FullType(GCheckRunOutputImage)]),
+      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GCheckRunOutputImage)]),
           () => new ListBuilder<GCheckRunOutputImage>())
       ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(GCheckRunAction)]),
-          () => new ListBuilder<GCheckRunAction>())
+          const FullType(BuiltList, const [const FullType(GCheckRunAction)]), () => new ListBuilder<GCheckRunAction>())
       ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(GCheckRunAction)]),
-          () => new ListBuilder<GCheckRunAction>())
+          const FullType(BuiltList, const [const FullType(GCheckRunAction)]), () => new ListBuilder<GCheckRunAction>())
+      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GCheckSuiteAutoTriggerPreference)]),
+          () => new ListBuilder<GCheckSuiteAutoTriggerPreference>())
+      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GDraftPullRequestReviewComment)]),
+          () => new ListBuilder<GDraftPullRequestReviewComment>())
+      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GDraftPullRequestReviewThread)]),
+          () => new ListBuilder<GDraftPullRequestReviewThread>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes)]),
+          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>())
       ..addBuilderFactory(
           const FullType(BuiltList,
-              const [const FullType(GCheckSuiteAutoTriggerPreference)]),
-          () => new ListBuilder<GCheckSuiteAutoTriggerPreference>())
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(GDraftPullRequestReviewComment)]),
-          () => new ListBuilder<GDraftPullRequestReviewComment>())
-      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GDraftPullRequestReviewThread)]), () => new ListBuilder<GDraftPullRequestReviewThread>())
-      ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes)]), () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes>())
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [
-            const FullType(
-                GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)
-          ]),
+              const [const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes)]),
           () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
-            const FullType(
-                GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes)
+            const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes)
           ]),
-          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>())
+          () => new ListBuilder<
+              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(
                 GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes)
           ]),
-          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes>())
+          () => new ListBuilder<
+              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(
                 GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes)
           ]),
-          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes>())
+          () => new ListBuilder<
+              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_checkSuites_nodes_checkRuns_nodes>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(
                 GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts)
           ]),
-          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts>())
+          () => new ListBuilder<
+              GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_commits_nodes_commit_status_contexts>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
-            const FullType(
-                GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes)
+            const FullType(GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes)
           ]),
-          () => new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>())
+          () =>
+              new ListBuilder<GLabeledPullRequestsWithReviewsData_repository_labels_nodes_pullRequests_nodes_reviews_nodes>())
       ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GProjectCardImport)]), () => new ListBuilder<GProjectCardImport>())
       ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GProjectColumnImport)]), () => new ListBuilder<GProjectColumnImport>())
       ..addBuilderFactory(const FullType(BuiltList, const [const FullType(GRefUpdate)]), () => new ListBuilder<GRefUpdate>())

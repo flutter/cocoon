@@ -349,8 +349,7 @@ import 'package:cocoon_service/src/service/github/schema.public.schema.gql.dart'
         GUserStatusOrder,
         GUserStatusOrderField,
         GX509Certificate;
-import 'package:gql_code_builder/src/serializers/operation_serializer.dart'
-    show OperationSerializer;
+import 'package:gql_code_builder/src/serializers/operation_serializer.dart' show OperationSerializer;
 
 part 'serializers.gql.g.dart';
 
