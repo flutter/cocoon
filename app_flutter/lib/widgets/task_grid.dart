@@ -94,17 +94,24 @@ class _TaskGridState extends State<TaskGrid> {
     );
   }
 
-  /// Weights for a task status.
+  /// Look up table for task status weights in the grid.
   ///
-  /// Weights should be in the range [0, 0.7] as the max weight for a task should be 1.0. Otherwise too much emphasis
-  /// is placed on the first N rows, where N is the largest integer weight. Up to 0.7 adds flexibility to the algorithm
-  /// to add signal beyond the task status (such as attempts and flakiness).
+  /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
+  /// largest integer weight.
   static const Map<String, double> _statusScores = <String, double>{
-    TaskBox.statusFailed: 0.7,
-    TaskBox.statusInProgress: 0.1,
-    TaskBox.statusNew: 0.1,
-    TaskBox.statusSkipped: 0.0,
-    TaskBox.statusSucceeded: 0.01,
+    'Failed - Rerun': 1.0,
+    'Failed': 0.7,
+    'Failed - Flaky': 0.67,
+    'In Progress - Flaky': 0.64,
+    'New - Flaky': 0.63,
+    'Succeeded - Flaky': 0.61,
+    'New - Rerun': 0.5,
+    'In Progress - Rerun': 0.4,
+    'Unknown': 0.2,
+    'In Progress': 0.1,
+    'New': 0.1,
+    'Succeeded': 0.01,
+    'Skipped': 0.0,
   };
 
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
@@ -152,23 +159,16 @@ class _TaskGridState extends State<TaskGrid> {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
           if (commitCount <= 25) {
-            double score = 0.0;
-            // Reruns take up extra infra capacity and should be prioritized.
-            if (task.attempts > 1) {
-              score += 0.3;
-            }
-            // Get base weight for this task.
-            if (_statusScores.containsKey(task.status)) {
-              score += _statusScores[task.status];
-            }
-            // Flaky tasks should be shown after failures and reruns as they take up infra capacity, but are not
-            // being used as a signal for the tree status.
+            String weightStatus = task.status;
             if (task.isFlaky) {
-              score /= 10.0;
-              score += 0.2;
+              // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
+              weightStatus += ' - Flaky';
+            } else if (task.attempts > 1) {
+              // Reruns take up extra infra capacity and should be prioritized.
+              weightStatus += ' - Rerun';
             }
             // Make the score relative to how long ago it was run.
-            score /= commitCount;
+            final double score = _statusScores.containsKey(weightStatus) ? _statusScores[weightStatus] / commitCount : _statusScores['Unknown'] / commitCount;
             scores.update(
               qualifiedTask,
               (double value) => value += score,
