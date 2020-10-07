@@ -168,7 +168,9 @@ class _TaskGridState extends State<TaskGrid> {
               weightStatus += ' - Rerun';
             }
             // Make the score relative to how long ago it was run.
-            final double score = _statusScores.containsKey(weightStatus) ? _statusScores[weightStatus] / commitCount : _statusScores['Unknown'] / commitCount;
+            final double score = _statusScores.containsKey(weightStatus)
+                ? _statusScores[weightStatus] / commitCount
+                : _statusScores['Unknown'] / commitCount;
             scores.update(
               qualifiedTask,
               (double value) => value += score,
