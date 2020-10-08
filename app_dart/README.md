@@ -133,3 +133,4 @@ $ dart dev/deploy.dart --help
 Add targeted branches in `dev/branches.txt`, based on which cocoon API filters targeted branches and then runs tests on those branches. With tests running against different branches, the frontend then supports listing commits on a specific branch (defaulting to master).
 
 Once the PR has merged, go to https://flutter-dashboard.appspot.com/api/flush-cache?key=flutterBranches to flush the cache and have the latest change take effect. Otherwise, it can take 12 hours for it to propagate. Ensure you are signed into [cocoon dashboard](https://flutter-dashboard.appspot.com) otherwise it will throw a 403.
+
