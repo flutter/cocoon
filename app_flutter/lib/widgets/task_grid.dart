@@ -116,12 +116,24 @@ class _TaskGridState extends State<TaskGrid> {
     );
   }
 
+  /// Look up table for task status weights in the grid.
+  ///
+  /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
+  /// largest integer weight.
   static const Map<String, double> _statusScores = <String, double>{
-    TaskBox.statusFailed: 5.0,
-    TaskBox.statusInProgress: 1.0,
-    TaskBox.statusNew: 1.0,
-    TaskBox.statusSkipped: 0.0,
-    TaskBox.statusSucceeded: 0.0,
+    'Failed - Rerun': 1.0,
+    'Failed': 0.7,
+    'Failed - Flaky': 0.67,
+    'In Progress - Flaky': 0.64,
+    'New - Flaky': 0.63,
+    'Succeeded - Flaky': 0.61,
+    'New - Rerun': 0.5,
+    'In Progress - Rerun': 0.4,
+    'Unknown': 0.2,
+    'In Progress': 0.1,
+    'New': 0.1,
+    'Succeeded': 0.01,
+    'Skipped': 0.0,
   };
 
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
@@ -176,17 +188,18 @@ class _TaskGridState extends State<TaskGrid> {
             continue;
           }
           if (commitCount <= 25) {
-            double score = 0.0;
-            if (task.attempts > 1) {
-              score += 1.0;
-            }
-            if (_statusScores.containsKey(task.status)) {
-              score += _statusScores[task.status];
-            }
+            String weightStatus = task.status;
             if (task.isFlaky) {
-              score /= 2.0;
+              // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
+              weightStatus += ' - Flaky';
+            } else if (task.attempts > 1) {
+              // Reruns take up extra infra capacity and should be prioritized.
+              weightStatus += ' - Rerun';
             }
-            score /= commitCount;
+            // Make the score relative to how long ago it was run.
+            final double score = _statusScores.containsKey(weightStatus)
+                ? _statusScores[weightStatus] / commitCount
+                : _statusScores['Unknown'] / commitCount;
             scores.update(
               qualifiedTask,
               (double value) => value += score,
