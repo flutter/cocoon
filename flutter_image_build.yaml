@@ -1,0 +1,10 @@
+# Builds a new flutter image, which is used to build cocoon dashboard.
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/flutter', '.']
+
+timeout: 1200s
+
+images: ['gcr.io/$PROJECT_ID/flutter']
+tags: ['cloud-builders-community']
