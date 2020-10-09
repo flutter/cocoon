@@ -3,8 +3,6 @@
 # by new commits to `master` branch.
 
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/flutter', '.']
   # Build app_flutter.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
