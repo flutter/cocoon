@@ -31,10 +31,13 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   final DatastoreServiceProvider datastoreProvider;
 
-  static const String taskKeyParam = 'TaskKey';
+  static const String gitBranchParam = 'Branch';
+  static const String gitShaParam = 'CommitSha';
   static const String newStatusParam = 'NewStatus';
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
+  static const String taskKeyParam = 'TaskKey';
+  static const String taskNameParam = 'TaskName';
 
   /// const variables for [BigQuery] operations
   static const String projectId = 'flutter-dashboard';
@@ -43,22 +46,15 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
-    checkRequiredParameters(<String>[taskKeyParam, newStatusParam]);
+    checkRequiredParameters(<String>[newStatusParam]);
 
     final DatastoreService datastore = datastoreProvider(config.db);
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String newStatus = requestData[newStatusParam] as String;
     final Map<String, dynamic> resultData =
         requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
     final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
 
-    Key taskKey;
-    try {
-      taskKey = keyHelper.decode(requestData[taskKeyParam] as String);
-    } catch (error) {
-      throw BadRequestException('Bad task key: ${requestData[taskKeyParam]}');
-    }
+    final Key taskKey = _constructTaskKey();
 
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
@@ -109,6 +105,25 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await datastore.insert(<TimeSeriesValue>[seriesValue]);
     }
     return UpdateTaskStatusResponse(task);
+  }
+
+  Key _constructTaskKey(DatastoreService datastore) {
+    final ClientContext clientContext = authContext.clientContext;
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+
+    if (requestData[taskKeyParam] != null) {
+      try {
+        return keyHelper.decode(requestData[taskKeyParam] as String);
+      } catch (error) {
+        throw BadRequestException('Bad task key: ${requestData[taskKeyParam]}');
+      }
+    } else if (requestData[taskNameParam] != null) {
+      final String id = 'flutter/flutter/${requestData[gitBranchParam]}/${requestData[gitShaParam]}';
+      final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
+      final Key taskKey = commitKey.append(Task);
+    }
+
+    throw const BadRequestException('$taskKeyParam or $taskNameParam param must be given');
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {
