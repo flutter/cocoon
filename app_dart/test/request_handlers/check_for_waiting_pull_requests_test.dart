@@ -122,8 +122,6 @@ void main() {
       );
     }
 
-    // TODO(fujino): Uncomment once https://github.com/flutter/flutter/issues/68632 is resolved
-    /*
     test('Errors can be logged', () async {
       flutterRepoPRs.add(PullRequestHelper());
       final List<GraphQLError> errors = <GraphQLError>[
@@ -136,7 +134,7 @@ void main() {
       for (int i = 0; i < errors.length; i++) {
         expect(log.records[i].message, errors[i].toString());
       }
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Merges unapproved PR from autoroller', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
@@ -165,7 +163,7 @@ void main() {
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with in progress tests', () async {
       statuses = <dynamic>[
@@ -181,7 +179,7 @@ void main() {
       _verifyQueries();
 
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with in progress checks', () async {
       branch = 'pull/0';
@@ -195,7 +193,7 @@ void main() {
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with queued checks', () async {
       branch = 'pull/0';
@@ -209,7 +207,7 @@ void main() {
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with requested checks', () async {
       branch = 'pull/0';
@@ -223,7 +221,7 @@ void main() {
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with failed status', () async {
       branch = 'pull/0';
@@ -239,7 +237,7 @@ void main() {
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with failed checks', () async {
       branch = 'pull/0';
@@ -269,7 +267,7 @@ This pull request is not suitable for automatic merging in its current state.
           },
         ),
       ]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not fail with null checks', () async {
       branch = 'pull/0';
@@ -284,7 +282,7 @@ This pull request is not suitable for automatic merging in its current state.
       await tester.get(handler);
       _verifyQueries();
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Merge PR with successful status and checks', () async {
       branch = 'pull/0';
@@ -308,7 +306,7 @@ This pull request is not suitable for automatic merging in its current state.
           },
         ),
       ]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Ignores cirrus tasks statuses when no matched branch', () async {
       statuses = <dynamic>[
@@ -334,7 +332,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Merge PR with complated tests', () async {
       statuses = <dynamic>[
@@ -360,7 +358,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge PR with failed tests', () async {
       statuses = <dynamic>[
@@ -391,7 +389,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Does not merge unapproved PR from a hacker', () async {
       config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
@@ -428,7 +426,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Merges first 2 PRs in list, all successful', () async {
       flutterRepoPRs.add(PullRequestHelper());
@@ -465,7 +463,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Merges 1st and 3rd PR, 2nd failed', () async {
       flutterRepoPRs.add(PullRequestHelper());
@@ -514,7 +512,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Ignores PRs that are too new', () async {
       flutterRepoPRs.add(PullRequestHelper(dateTime: DateTime.now().add(const Duration(minutes: -50)))); // too new
@@ -543,7 +541,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Unlabels red PRs', () async {
       statuses = <dynamic>[
@@ -575,7 +573,7 @@ This pull request is not suitable for automatic merging in its current state.
           },
         ),
       ]);
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Allows member to change review', () async {
       final PullRequestHelper prChangedReview = PullRequestHelper(
@@ -598,7 +596,7 @@ This pull request is not suitable for automatic merging in its current state.
           }),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Ignores non-member/owner reviews', () async {
       final PullRequestHelper prNonMemberApprove = PullRequestHelper(
@@ -659,7 +657,7 @@ This pull request is not suitable for automatic merging in its current state.
           }),
         ],
       );
-    });
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
 
     test('Remove labels', () async {
       final PullRequestHelper prOneBadReview = PullRequestHelper(
@@ -738,8 +736,7 @@ This pull request is not suitable for automatic merging in its current state.
           ),
         ],
       );
-    });
-    */
+    }, skip: true); // TODO(fujino): https://github.com/flutter/flutter/issues/68632
   });
 }
 
