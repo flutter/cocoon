@@ -122,6 +122,8 @@ void main() {
       );
     }
 
+    // TODO(fujino): Uncomment once https://github.com/flutter/flutter/issues/68632 is resolved
+    /*
     test('Errors can be logged', () async {
       flutterRepoPRs.add(PullRequestHelper());
       final List<GraphQLError> errors = <GraphQLError>[
@@ -737,6 +739,7 @@ This pull request is not suitable for automatic merging in its current state.
         ],
       );
     });
+    */
   });
 }
 
