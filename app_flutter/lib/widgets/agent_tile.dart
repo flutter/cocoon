@@ -51,7 +51,7 @@ class AgentTile extends StatelessWidget {
           foregroundColor: Colors.white,
           child: _getIconFromId(agent.agentId),
         ),
-        title: Text(agent.agentId),
+        title: SelectableText(agent.agentId),
         subtitle: AgentHealthDetailsBar(agentHealthDetails),
         trailing: PopupMenuButton<_AgentTileAction>(
           itemBuilder: (BuildContext context) => <PopupMenuEntry<_AgentTileAction>>[
@@ -112,7 +112,7 @@ class AgentTile extends StatelessWidget {
       context: context,
       builder: (BuildContext context) => SimpleDialog(
         children: <Widget>[
-          Text(rawHealthDetails),
+          SelectableText(rawHealthDetails),
         ],
       ),
     );
