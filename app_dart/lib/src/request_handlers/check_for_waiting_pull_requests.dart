@@ -22,7 +22,8 @@ import 'refresh_cirrus_status.dart';
 /// Maximum number of pull requests to merge on each check.
 /// This should be kept reasonably low to avoid flooding infra when the tree
 /// goes green.
-const int _kMergeCountPerCycle = 2;
+// TODO(fujino): change this back to 2, https://github.com/flutter/flutter/issues/68632
+const int _kMergeCountPerCycle = 0;
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
@@ -53,6 +54,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     Logging log,
     GraphQLClient client,
   ) async {
+    if (_kMergeCountPerCycle == 0) {
+      log.info('_kMergeCountPerCycle is set to 0, skipping PR check.');
+      return;
+    }
     int mergeCount = 0;
     final Map<String, dynamic> data = await _queryGraphQL(
       owner,
