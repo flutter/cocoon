@@ -22,8 +22,7 @@ import 'refresh_cirrus_status.dart';
 /// Maximum number of pull requests to merge on each check.
 /// This should be kept reasonably low to avoid flooding infra when the tree
 /// goes green.
-// TODO(fujino): change this back to 2, https://github.com/flutter/flutter/issues/68632
-const int _kMergeCountPerCycle = 0;
+const int _kMergeCountPerCycle = 2;
 
 @immutable
 class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
