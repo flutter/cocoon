@@ -30,7 +30,7 @@ pub global run tuneup check
 # Only try tests if test folder exist.
 if [ -d 'test' ]; then
   echo "############# tests ###########"
-  pub run test --test-randomize-ordering-seed=random
+  pub run test --test-randomize-ordering-seed=random --reporter expanded
   echo "###############################"
 fi
 
