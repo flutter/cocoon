@@ -67,7 +67,13 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         lastCommitTimestampMills = lastProcessedCommit[0].timestamp;
       }
 
-      final List<RepositoryCommit> commits = await githubService.listCommits(slug, branch, lastCommitTimestampMills);
+      List<RepositoryCommit> commits;
+      try {
+        commits = await githubService.listCommits(slug, branch, lastCommitTimestampMills);
+      } on GitHubError catch (error) {
+        log.error('$error');
+        continue;
+      }
 
       final List<Commit> newCommits = await _getNewCommits(commits, datastore, branch);
 
