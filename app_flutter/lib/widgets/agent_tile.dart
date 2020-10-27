@@ -12,14 +12,13 @@ import 'agent_health_details_bar.dart';
 import 'now.dart';
 
 /// Values to be used in [PopupMenu] to know what action to execute.
-enum _AgentTileAction { details, authorize, reserve }
+enum _AgentTileAction { details, reserve }
 
 /// A card for showing the information from an [Agent].
 ///
 /// Summarizes [Agent.healthDetails] into a row of icons.
 ///
-/// Offers the ability to view the agent raw health details, re-authorize the
-/// agent, and attempt to reserve a task for the agent.
+/// Offers the ability to view the agent raw health details and attempt to reserve a task for the agent.
 class AgentTile extends StatelessWidget {
   const AgentTile({
     Key key,
@@ -30,9 +29,6 @@ class AgentTile extends StatelessWidget {
   final AgentState agentState;
 
   final AgentHealthDetails agentHealthDetails;
-
-  @visibleForTesting
-  static const Duration authorizeAgentSnackbarDuration = Duration(seconds: 5);
 
   @visibleForTesting
   static const Duration reserveTaskSnackbarDuration = Duration(seconds: 5);
@@ -60,10 +56,6 @@ class AgentTile extends StatelessWidget {
               value: _AgentTileAction.details,
             ),
             const PopupMenuItem<_AgentTileAction>(
-              child: Text('Authorize agent'),
-              value: _AgentTileAction.authorize,
-            ),
-            const PopupMenuItem<_AgentTileAction>(
               child: Text('Reserve task'),
               value: _AgentTileAction.reserve,
             ),
@@ -73,9 +65,6 @@ class AgentTile extends StatelessWidget {
             switch (value) {
               case _AgentTileAction.details:
                 _showHealthDetailsDialog(context, agent.healthDetails);
-                break;
-              case _AgentTileAction.authorize:
-                _authorizeAgent(context, agent);
                 break;
               case _AgentTileAction.reserve:
                 _reserveTask(context, agent);
@@ -118,26 +107,6 @@ class AgentTile extends StatelessWidget {
     );
   }
 
-  /// Call [authorizeAgent] to Cocoon for [agent] and show the new access token.
-  ///
-  /// On success, displays a [SnackBar] telling the user the access token can
-  /// be found in their console.
-  ///
-  /// If the request fails, [AgentDashboardPage] will handle the error and show
-  /// a [SnackBar].
-  Future<void> _authorizeAgent(BuildContext context, Agent agent) async {
-    final String token = await agentState.authorizeAgent(agent);
-    if (token != null) {
-      // TODO(chillers): Copy the token to clipboard when web has support. https://github.com/flutter/flutter/issues/46020
-      debugPrint('token: $token');
-
-      Scaffold.of(context).showSnackBar(const SnackBar(
-        content: Text('Check console for token'),
-        duration: authorizeAgentSnackbarDuration,
-      ));
-    }
-  }
-
   /// Call [reserveTask] to Cocoon for [agent] and show the information for
   /// the [Task] that was reserved.
   ///
@@ -151,7 +120,7 @@ class AgentTile extends StatelessWidget {
     await agentState.reserveTask(agent);
     Scaffold.of(context).showSnackBar(const SnackBar(
       content: Text('Check console for reserve task info'),
-      duration: authorizeAgentSnackbarDuration,
+      duration: reserveTaskSnackbarDuration,
     ));
   }
 }

@@ -95,33 +95,6 @@ able-to-perform-health-check: succeeded''';
       expect(find.text(agent.healthDetails), findsOneWidget);
     });
 
-    testWidgets('authorize agent calls api', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        Now.fixed(
-          dateTime: nowTime,
-          child: MaterialApp(
-            home: AgentTile(
-              agentHealthDetails: agentHealthDetails,
-              agentState: mockAgentState,
-            ),
-          ),
-        ),
-      );
-
-      // open the agent tile menu
-      await tester.tap(find.byIcon(Icons.more_vert));
-      await tester.pumpAndSettle();
-
-      verifyNever(mockAgentState.authorizeAgent(any));
-
-      expect(find.text('Authorize agent'), findsOneWidget);
-
-      await tester.tap(find.text('Authorize agent'));
-      await tester.pump();
-
-      verify(mockAgentState.authorizeAgent(any)).called(1);
-    });
-
     testWidgets('reserve task calls api', (WidgetTester tester) async {
       await tester.pumpWidget(
         Now.fixed(

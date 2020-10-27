@@ -41,9 +41,6 @@ class AgentState extends ChangeNotifier {
   @visibleForTesting
   static const String errorMessageCreatingAgent = 'An error occurred creating agent';
 
-  @visibleForTesting
-  static const String errorMessageAuthorizingAgent = 'An error occurred authorizing agent';
-
   /// How often to query the Cocoon backend for the current agent statuses.
   @visibleForTesting
   final Duration refreshRate = const Duration(minutes: 1);
@@ -114,24 +111,6 @@ class AgentState extends ChangeNotifier {
     }
     if (response.error != null) {
       _errors.send('$errorMessageCreatingAgent: ${response.error}');
-    }
-    return response.data;
-  }
-
-  /// Generates a new access token for [agent].
-  ///
-  /// If an error occurs, [errors] will be updated with
-  /// the message [errorMessageAuthorizingAgent].
-  Future<String> authorizeAgent(Agent agent) async {
-    final CocoonResponse<String> response = await cocoonService.authorizeAgent(
-      agent,
-      await authService.idToken,
-    );
-    if (!_active) {
-      return null;
-    }
-    if (response.error != null) {
-      _errors.send('$errorMessageAuthorizingAgent: ${response.error}');
     }
     return response.data;
   }
