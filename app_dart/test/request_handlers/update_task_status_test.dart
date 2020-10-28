@@ -120,5 +120,31 @@ void main() {
       expect(task.status, 'Failed');
       expect(task.attempts, 1);
     });
+
+    test('non-task key requests can update tasks', () async {
+      final Commit commit = Commit(
+          key:
+              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/7d03371610c07953a5def50d500045941de516b8'));
+      final Task task = Task(
+        key: commit.key.append(Task, id: 4590522719010816),
+        name: 'integration_ui_ios',
+        attempts: 1,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+      );
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: 'master',
+        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+      };
+
+      await tester.post(handler);
+
+      expect(task.status, 'Failed');
+      expect(task.attempts, 1);
+    });
   });
 }

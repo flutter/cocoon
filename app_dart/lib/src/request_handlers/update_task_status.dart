@@ -21,6 +21,20 @@ import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/datastore.dart';
 
+/// Endpoint for task runners to update Cocoon with test run information.
+///
+/// This handlers requires (1) task identifier and (2) task status information.
+///
+/// 1. There are two ways to identify tasks:
+///  A. [taskKeyParam] (Legacy Cocoon agents)
+///  B. [gitBranchParam], [gitShaParam], [taskNameParam] (LUCI bots)
+///
+/// 2. Task status information
+///  A. Required: [newStatusParam], either [Task.statusSucceeded] or [Task.statusFailed].
+///  B. Optional: [resultsParam] and [scoreKeysParam] which hold performance benchmark data.
+///
+/// If [newStatusParam] is [Task.statusFailed], and the task attempts is less than the
+/// retry limit, it will mark it as [Task.statusNew] to allow for the task to be retried.
 @immutable
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
@@ -54,15 +68,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         requestData[resultsParam] as Map<String, dynamic> ?? const <String, dynamic>{};
     final List<String> scoreKeys = (requestData[scoreKeysParam] as List<dynamic>)?.cast<String>() ?? const <String>[];
 
-    final Key taskKey = _constructTaskKey();
-
     if (newStatus != Task.statusSucceeded && newStatus != Task.statusFailed) {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
-    final Task task = await datastore.db.lookupValue<Task>(taskKey, orElse: () {
-      throw BadRequestException('No such task: ${taskKey.id}');
-    });
+    final Task task = await _getTask(datastore);
 
     final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
       throw BadRequestException('No such task: ${task.commitKey}');
@@ -107,23 +117,56 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     return UpdateTaskStatusResponse(task);
   }
 
-  Key _constructTaskKey(DatastoreService datastore) {
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-
-    if (requestData[taskKeyParam] != null) {
-      try {
-        return keyHelper.decode(requestData[taskKeyParam] as String);
-      } catch (error) {
-        throw BadRequestException('Bad task key: ${requestData[taskKeyParam]}');
-      }
-    } else if (requestData[taskNameParam] != null) {
-      final String id = 'flutter/flutter/${requestData[gitBranchParam]}/${requestData[gitShaParam]}';
-      final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
-      final Key taskKey = commitKey.append(Task);
+  /// Retrieve [Task] to update from [DatastoreService].
+  Future<Task> _getTask(DatastoreService datastore) async {
+    if (requestData.containsKey(taskKeyParam)) {
+      return _getTaskFromEncodedKey(datastore);
     }
 
-    throw const BadRequestException('$taskKeyParam or $taskNameParam param must be given');
+    return _getTaskFromNamedParams(datastore);
+  }
+
+  /// Retrieve [Task] from [DatastoreService] when given [taskKeyParam].
+  ///
+  /// This is used for Devicelab test runs from Cocoon agents. The Cocoon agent is scheduled tasks
+  /// from the Cocoon backend and is aware of the Datastore task key.
+  ///
+  // TODO(chillers): Remove this when Devicelab is migrated to LUCI. https://github.com/flutter/flutter/projects/151
+  Future<Task> _getTaskFromEncodedKey(DatastoreService datastore) {
+    final ClientContext clientContext = authContext.clientContext;
+    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final Key taskKey = keyHelper.decode(requestData[taskKeyParam] as String);
+    return datastore.db.lookupValue<Task>(taskKey, orElse: () {
+      throw BadRequestException('No such task: ${taskKey.id}');
+    });
+  }
+
+  /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [taskNameParam].
+  ///
+  /// This is used when the DeviceLab test runner is uploading results to Cocoon for runs on LUCI.
+  /// LUCI does not know the [Key] assigned to task when scheduling the build, but Cocoon can
+  /// lookup the task based on these key values.
+  ///
+  /// To lookup the value, we construct the ancestor key, which corresponds to the [Commit].
+  /// Then we query the tasks with that ancestor key and filter for the one that has the corresponding name.
+  Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
+    final Key commitKey = _constructCommitKey(datastore);
+
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)
+      ..filter('name = ', requestData[taskNameParam]);
+    final List<Task> tasks = await query.run().toList();
+    if (tasks.length != 1) {
+      throw const InternalServerError('Multiple tasks found');
+    }
+
+    return tasks.first;
+  }
+
+  /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
+  Key _constructCommitKey(DatastoreService datastore) {
+    final String id = 'flutter/flutter/${requestData[gitBranchParam]}/${requestData[gitShaParam]}';
+    final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
+    return commitKey;
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {
