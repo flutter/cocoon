@@ -60,10 +60,6 @@ class DevelopmentCocoonService implements CocoonService {
       const CocoonResponse<String>.data('abc123');
 
   @override
-  Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken) async =>
-      const CocoonResponse<String>.data('def345');
-
-  @override
   Future<void> reserveTask(Agent agent, String idToken) => null;
 
   static const List<String> _agentKinds = <String>[

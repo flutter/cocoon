@@ -101,19 +101,6 @@ void main() {
       agentState.dispose();
     });
 
-    test('authorize agent calls cocoon service', () async {
-      final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
-      when(mockCocoonService.authorizeAgent(any, any)).thenAnswer(
-        (_) async => const CocoonResponse<String>.data('abc123'),
-      );
-      verifyNever(mockCocoonService.authorizeAgent(any, any));
-
-      await agentState.authorizeAgent(Agent());
-
-      verify(mockCocoonService.authorizeAgent(any, any)).called(1);
-      agentState.dispose();
-    });
-
     test('reserve task calls cocoon service', () async {
       final AgentState agentState = AgentState(cocoonService: mockCocoonService, authService: mockSignInService);
       verifyNever(mockCocoonService.reserveTask(any, any));
