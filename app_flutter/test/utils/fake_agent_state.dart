@@ -45,9 +45,6 @@ class FakeAgentState extends ChangeNotifier implements AgentState {
   ];
 
   @override
-  Future<String> authorizeAgent(Agent agent) async => 'abc123';
-
-  @override
   Future<String> createAgent(String agentId, List<String> capabilities) async => 'def456';
 
   @override
