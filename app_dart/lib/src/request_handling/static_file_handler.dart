@@ -45,7 +45,9 @@ class StaticFileHandler extends RequestHandler<Body> {
     const String basePath = 'build/web';
     final File file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
-      final String mimeType = mimeTypeMap.containsKey(path.extension(file.path)) ? mimeTypeMap[path.extension(file.path)] : lookupMimeType(resultPath);
+      final String mimeType = mimeTypeMap.containsKey(path.extension(file.path))
+          ? mimeTypeMap[path.extension(file.path)]
+          : lookupMimeType(resultPath);
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {
