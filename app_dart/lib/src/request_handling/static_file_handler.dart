@@ -36,6 +36,7 @@ class StaticFileHandler extends RequestHandler<Body> {
     /// The map of mimeTypes not found in [mime] package.
     final Map<String, String> mimeTypeMap = <String, String>{
       '.map': 'application/json',
+      '': 'text/plain',
     };
 
     final String resultPath = filePath == '/' ? '/index.html' : filePath;
@@ -44,7 +45,9 @@ class StaticFileHandler extends RequestHandler<Body> {
     const String basePath = 'build/web';
     final File file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
-      final String mimeType = lookupMimeType(resultPath) ?? mimeTypeMap[path.extension(file.path)];
+      final String mimeType = mimeTypeMap.containsKey(path.extension(file.path))
+          ? mimeTypeMap[path.extension(file.path)]
+          : lookupMimeType(resultPath);
       response.headers.contentType = ContentType.parse(mimeType);
       return Body.forStream(file.openRead().cast<Uint8List>());
     } else {

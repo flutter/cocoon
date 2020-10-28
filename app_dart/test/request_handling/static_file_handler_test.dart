@@ -30,8 +30,8 @@ void main() {
       tester = RequestHandlerTester();
       fs = MemoryFileSystem();
       fs.file('build/web/$indexFileName').createSync(recursive: true);
-      fs.file('build/web/$indexFileName').writeAsString(indexFileContent);
-      fs.file('build/web/$dartMapFileName').writeAsString('[{}]');
+      fs.file('build/web/$indexFileName').writeAsStringSync(indexFileContent);
+      fs.file('build/web/$dartMapFileName').writeAsStringSync('[{}]');
     });
 
     Future<String> _decodeHandlerBody(Body body) {
@@ -60,6 +60,16 @@ void main() {
       expect(body, isNotNull);
       final String response = await _decodeHandlerBody(body);
       expect(response, '[{}]');
+    });
+
+    test('No extension files default to plain text', () async {
+      fs.file('build/web/NOTICE').writeAsStringSync('abc');
+      final StaticFileHandler staticFileHandler = StaticFileHandler('/NOTICE', config: config, fs: fs);
+
+      final Body body = await tester.get(staticFileHandler);
+      expect(body, isNotNull);
+      final String response = await _decodeHandlerBody(body);
+      expect(response, 'abc');
     });
   });
 }
