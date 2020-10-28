@@ -23,7 +23,7 @@ import '../service/datastore.dart';
 
 /// Endpoint for task runners to update Cocoon with test run information.
 ///
-/// This handlers requires (1) task identifier and (2) task status information.
+/// This handler requires (1) task identifier and (2) task status information.
 ///
 /// 1. There are two ways to identify tasks:
 ///  A. [taskKeyParam] (Legacy Cocoon agents)
@@ -61,6 +61,11 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   @override
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[newStatusParam]);
+    if (requestData.containsKey(taskKeyParam)) {
+      checkRequiredParameters(<String>[taskKeyParam]);
+    } else {
+      checkRequiredParameters(<String>[gitBranchParam, gitShaParam, taskNameParam]);
+    }
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final String newStatus = requestData[newStatusParam] as String;
