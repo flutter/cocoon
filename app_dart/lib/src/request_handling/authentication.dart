@@ -22,7 +22,7 @@ import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are three types of authentication this class supports:
+/// There are four types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -52,6 +52,9 @@ import 'exceptions.dart';
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is an [AllowedAccount] in Cocoon's Datastore.
+/// 
+///  4. If the request has the `Service-Account-Token` HTTP header, the token
+///     will be authenticated against LUCI.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -95,6 +98,8 @@ class AuthenticationProvider {
   /// This is guaranteed to be non-null.
   final LoggingProvider _loggingProvider;
 
+  static const String kSwarmingTokenHeader = 'Service-Account-Token';
+
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
   ///
@@ -106,6 +111,7 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
+    final bool isSwarming = request.headers.value(kSwarmingTokenHeader) != '';
     final String idTokenFromCookie = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
@@ -155,8 +161,10 @@ class AuthenticationProvider {
       }
 
       if (idTokenFromHeader != null) {
-        return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
+        return await authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
       }
+    } else if (isSwarming) {
+      return await authenticateIdToken(request.headers.value(kSwarmingTokenHeader), clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('User is not signed in');
