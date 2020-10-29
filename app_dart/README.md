@@ -14,13 +14,12 @@ and authenticate yourself by running:
 gcloud auth login
 gcloud init
 ```
-* Install Flutter
+* [Install Flutter](https://flutter.dev/docs/get-started/install )
 ```sh
 export PATH="$PATH":"path/to/flutter/bin/"
 flutter upgrade
 flutter pub get
 export PATH="$PATH":"path/to/flutter/bin/cache/dart-sdk/bin/"
-flutter config --enable-web
 ```
 
 ### Running the tests
@@ -89,6 +88,15 @@ $ gcloud app deploy cron.yaml
 
 #### Using physical machine
 
+* Setting up the environment
+
+```sh
+export COCOON_USE_IN_MEMORY_CACHE=true
+```
+
+This environment is needed as you don't have access to the remote redis
+instance during local development.
+
 * Starting server
 
 ```sh
@@ -97,16 +105,8 @@ dart bin/server.dart
 ```
 
 If you see Serving requests at 0.0.0.0:8080 the dev server is working.
-You should also set `COCOON_USE_IN_MEMORY_CACHE=true` as you typically
-don't have access to the remote redis instance during local development.
 
 #### Using Docker
-
-* ssh into instance
-
-```sh
-$ docker exec -it <container name> /bin/bash
-```
 
 * Running a local development instance
 
@@ -131,21 +131,26 @@ $ docker container ls|grep local|tr -s ' '|cut -d' ' -f1|xargs docker container 
 $ docker images|grep local|tr -s ' '|cut -d' ' -f3|xargs docker rmi -f
 ```
 
+* ssh into instance
+
+```sh
+$ docker exec -it <container name> /bin/bash
+```
+
 ### Deploying a release to App Engine
 
-#### Auto-deploy
+#### [Auto-deploy](go/cocoon-cloud-build#auto-deploy)
 Cocoon auto deployment has been set up via
-[Google Cloud Build](https://pantheon.corp.google.com/cloud-build/triggers?project=flutter-dashboard)
-daily on Workdays. Please view [details](https://g3doc.corp.google.com/company/teams/flutter/cocoon/cloud_deploy.md?cl=head)
-about cloud deploy setup.
+[Google Cloud Build](https://console.cloud.google.com/cloud-build/triggers?project=flutter-dashboard)
+daily on Workdays.
 
-#### Manual-deploy
+#### [Manual-deploy(go/cocoon-cloud-build#manual-deploy)
 
 * Using the cloud build
 
 This is easy to deploy if you simply want a new version based on
 the latest master commit. Open
-[Cloud Build dahsboard](https://pantheon.corp.google.com/cloud-build/triggers?project=flutter-dashboard)
+[Cloud Build dashboard](https://pantheon.corp.google.com/cloud-build/triggers?project=flutter-dashboard)
 and click run in the push-master trigger ([example](https://screenshot.googleplex.com/4DDy4XdVQxMKqCd))
 
 * Using a cocoon checkout
