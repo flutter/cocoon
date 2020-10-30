@@ -4,18 +4,22 @@ This folder contains a Dart based backend for Cocoon.
 
 ## Building and running
 
-#### Prerequisites
+### Prerequisites
 
-You'll need to install the Google Cloud Developer Tools Command Line Interface
-(`gcloud`) in order to do several of the tasks below. Visit
-https://cloud.google.com/sdk/docs/quickstarts for instructions on how to install
-these tools for your platform.
-
-Upon downloading and installing the Google Cloud SDK, you should initialize it
+* Install the Google Cloud Developer Tools Command Line Interface
+([`gcloud`](https://cloud.google.com/sdk/docs/quickstarts)). Then initialize it
 and authenticate yourself by running:
 
 ```sh
+gcloud auth login
 gcloud init
+```
+* [Install Flutter](https://flutter.dev/docs/get-started/install )
+```sh
+export PATH="$PATH":"path/to/flutter/bin/"
+flutter upgrade
+flutter pub get
+export PATH="$PATH":"path/to/flutter/bin/cache/dart-sdk/bin/"
 ```
 
 ### Running the tests
@@ -80,13 +84,31 @@ To update the cron tasks in the App Engine project, run:
 $ gcloud app deploy cron.yaml
 ```
 
-### ssh into instance
+### Local development
+
+#### Using physical machine
+
+* Setting up the environment
 
 ```sh
-$ docker exec -it <container name> /bin/bash
+export COCOON_USE_IN_MEMORY_CACHE=true
 ```
 
-### Running a local development instance
+This environment is needed as you don't have access to the remote redis
+instance during local development.
+
+* Starting server
+
+```sh
+export COCOON_USE_IN_MEMORY_CACHE=true
+dart bin/server.dart
+```
+
+If you see Serving requests at 0.0.0.0:8080 the dev server is working.
+
+#### Using Docker
+
+* Running a local development instance
 
 Once you've installed Docker and have the `docker` command-line tool in
 your path, then you you can use the following commands to build, run, stop,
@@ -109,8 +131,29 @@ $ docker container ls|grep local|tr -s ' '|cut -d' ' -f1|xargs docker container 
 $ docker images|grep local|tr -s ' '|cut -d' ' -f3|xargs docker rmi -f
 ```
 
+* ssh into instance
+
+```sh
+$ docker exec -it <container name> /bin/bash
+```
+
 ### Deploying a release to App Engine
 
+#### [Auto-deploy](go/cocoon-cloud-build#auto-deploy)
+Cocoon auto deployment has been set up via
+[Google Cloud Build](https://console.cloud.google.com/cloud-build/triggers?project=flutter-dashboard)
+daily on Workdays.
+
+#### [Manual-deploy(go/cocoon-cloud-build#manual-deploy)
+
+* Using the cloud build
+
+This is easy to deploy if you simply want a new version based on
+the latest master commit. Open
+[Cloud Build dashboard](https://pantheon.corp.google.com/cloud-build/triggers?project=flutter-dashboard)
+and click run in the push-master trigger ([example](https://screenshot.googleplex.com/4DDy4XdVQxMKqCd))
+
+* Using a cocoon checkout
 Let `PROJECT_ID` be the Google Cloud Proejct Id and `VERSION` be the version you're deploying to App Engine. Visit
 https://console.cloud.google.com/appengine/versions?project=flutter-dashboard
 for the list of current versions.
