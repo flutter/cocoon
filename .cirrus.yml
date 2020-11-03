@@ -2,3 +2,5 @@ task:
   container:
     # https://cirrus-ci.org/guide/docker-builder-vm/#dockerfile-as-a-ci-environment
     dockerfile: "Dockerfile"
+  # No-op test. We just want to ensure the Dockerfile builds.
+  test_script: true
