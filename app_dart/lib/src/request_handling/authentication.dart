@@ -60,6 +60,7 @@ import 'exceptions.dart';
 /// See also:
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
+// TODO(chillers): Remove (1) when DeviceLab has migrated to LUCI, https://github.com/flutter/flutter/projects/151#card-47536851
 @immutable
 class AuthenticationProvider {
   const AuthenticationProvider(
@@ -127,15 +128,15 @@ class AuthenticationProvider {
         if (agentAuthToken == null) {
           throw const Unauthenticated('Missing required HTTP header: Agent-Auth-Token');
         }
-        if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
+        if (!compareHashAndPassword(agent.authToken, agentAuthToken)) {
           throw Unauthenticated('Invalid agent: $agentId');
         }
       }
 
-      return AuthenticatedContext._(agent: agent, clientContext: clientContext);
+      return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
-      return AuthenticatedContext._(clientContext: clientContext);
+      return AuthenticatedContext(clientContext: clientContext);
     } else if (idTokenFromCookie != null || idTokenFromHeader != null) {
       /// There are two possible sources for an id token:
       ///
@@ -162,7 +163,6 @@ class AuthenticationProvider {
     throw const Unauthenticated('User is not signed in');
   }
 
-  @visibleForTesting
   Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final HttpClient client = _httpClientProvider();
@@ -206,7 +206,7 @@ class AuthenticationProvider {
         }
       }
 
-      return AuthenticatedContext._(clientContext: clientContext);
+      return AuthenticatedContext(clientContext: clientContext);
     } finally {
       client.close();
     }
@@ -223,7 +223,8 @@ class AuthenticationProvider {
   // This method is expensive (run time of ~1,500ms!). If the server starts
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
+  // TODO(chillers): Remove when DeviceLab has migrated to LUCI, https://github.com/flutter/flutter/projects/151#card-47536851
+  bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
     try {
@@ -244,7 +245,7 @@ class AuthenticationProvider {
 @immutable
 class AuthenticatedContext {
   /// Creates a new [AuthenticatedContext].
-  const AuthenticatedContext._({
+  const AuthenticatedContext({
     this.agent,
     @required this.clientContext,
   }) : assert(clientContext != null);

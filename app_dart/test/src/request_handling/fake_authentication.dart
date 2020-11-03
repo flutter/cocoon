@@ -42,6 +42,11 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
       throw const Unauthenticated('Not authenticated');
     }
   }
+
+  @override
+  bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
+    throw UnimplementedError();
+  }
 }
 
 // ignore: must_be_immutable
