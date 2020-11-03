@@ -1,4 +1,4 @@
-# Not used at this time.
-#
-# This empty file prevents Cirrus from auto-detecting the Dockerfile and
-# building it.
+task:
+  container:
+    # https://cirrus-ci.org/guide/docker-builder-vm/#dockerfile-as-a-ci-environment
+    dockerfile: "Dockerfile"
