@@ -25,6 +25,7 @@ Future<void> main() async {
 
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
+    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
@@ -98,7 +99,7 @@ Future<void> main() async {
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
-      '/api/update-task-status': UpdateTaskStatus(config, authProvider),
+      '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/public/build-status': CacheRequestHandler<Body>(

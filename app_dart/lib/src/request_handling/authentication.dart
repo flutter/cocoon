@@ -22,7 +22,7 @@ import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s.
 ///
-/// There are four types of authentication this class supports:
+/// There are three types of authentication this class supports:
 ///
 ///  1. If the request has the `'Agent-ID'` HTTP header set to the ID of the
 ///     Cocoon agent making the request and the `'Agent-Auth-Token'` HTTP
@@ -52,9 +52,6 @@ import 'exceptions.dart';
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is an [AllowedAccount] in Cocoon's Datastore.
-/// 
-///  4. If the request has the `Service-Account-Token` HTTP header, the token
-///     will be authenticated against LUCI.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
@@ -63,6 +60,7 @@ import 'exceptions.dart';
 /// See also:
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
+// TODO(chillers): Remove (1) when DeviceLab has migrated to LUCI, https://github.com/flutter/flutter/projects/151#card-47536851
 @immutable
 class AuthenticationProvider {
   const AuthenticationProvider(
@@ -98,8 +96,6 @@ class AuthenticationProvider {
   /// This is guaranteed to be non-null.
   final LoggingProvider _loggingProvider;
 
-  static const String kSwarmingTokenHeader = 'Service-Account-Token';
-
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
   ///
@@ -111,7 +107,6 @@ class AuthenticationProvider {
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final bool isSwarming = request.headers.value(kSwarmingTokenHeader) != '';
     final String idTokenFromCookie = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
         .map<String>((Cookie cookie) => cookie.value)
@@ -138,10 +133,10 @@ class AuthenticationProvider {
         }
       }
 
-      return AuthenticatedContext._(agent: agent, clientContext: clientContext);
+      return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
-      return AuthenticatedContext._(clientContext: clientContext);
+      return AuthenticatedContext(clientContext: clientContext);
     } else if (idTokenFromCookie != null || idTokenFromHeader != null) {
       /// There are two possible sources for an id token:
       ///
@@ -161,16 +156,13 @@ class AuthenticationProvider {
       }
 
       if (idTokenFromHeader != null) {
-        return await authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
+        return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
       }
-    } else if (isSwarming) {
-      return await authenticateIdToken(request.headers.value(kSwarmingTokenHeader), clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('User is not signed in');
   }
 
-  @visibleForTesting
   Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
     final HttpClient client = _httpClientProvider();
@@ -214,7 +206,7 @@ class AuthenticationProvider {
         }
       }
 
-      return AuthenticatedContext._(clientContext: clientContext);
+      return AuthenticatedContext(clientContext: clientContext);
     } finally {
       client.close();
     }
@@ -252,7 +244,7 @@ class AuthenticationProvider {
 @immutable
 class AuthenticatedContext {
   /// Creates a new [AuthenticatedContext].
-  const AuthenticatedContext._({
+  const AuthenticatedContext({
     this.agent,
     @required this.clientContext,
   }) : assert(clientContext != null);
