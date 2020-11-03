@@ -128,7 +128,7 @@ class AuthenticationProvider {
         if (agentAuthToken == null) {
           throw const Unauthenticated('Missing required HTTP header: Agent-Auth-Token');
         }
-        if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
+        if (!compareHashAndPassword(agent.authToken, agentAuthToken)) {
           throw Unauthenticated('Invalid agent: $agentId');
         }
       }
@@ -223,7 +223,8 @@ class AuthenticationProvider {
   // This method is expensive (run time of ~1,500ms!). If the server starts
   // handling any meaningful API traffic, we should move request processing
   // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
+  // TODO(chillers): Remove when DeviceLab has migrated to LUCI, https://github.com/flutter/flutter/projects/151#card-47536851
+  bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
     final DBCrypt crypt = DBCrypt();
     try {

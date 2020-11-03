@@ -3,12 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -106,7 +104,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
         if (agentAuthToken == null) {
           throw const Unauthenticated('Missing required HTTP header: Agent-Auth-Token');
         }
-        if (!_compareHashAndPassword(agent.authToken, agentAuthToken)) {
+        if (!compareHashAndPassword(agent.authToken, agentAuthToken)) {
           throw Unauthenticated('Invalid agent: $agentId');
         }
       }
@@ -117,19 +115,5 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI or Cocoon agent');
-  }
-
-  // This method is expensive (run time of ~1,500ms!). If the server starts
-  // handling any meaningful API traffic, we should move request processing
-  // to dedicated isolates in a pool.
-  static bool _compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
-    final String serverAuthTokenHashAscii = ascii.decode(serverAuthTokenHash);
-    final DBCrypt crypt = DBCrypt();
-    try {
-      return crypt.checkpw(clientAuthToken, serverAuthTokenHashAscii);
-    } on String catch (error) {
-      // The bcrypt password hash in the cloud datastore is invalid.
-      throw InternalServerError(error);
-    }
   }
 }
