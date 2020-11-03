@@ -205,7 +205,10 @@ class LuciBuildService {
         ),
       );
     }
-    const RetryOptions r = RetryOptions(maxAttempts: 3);
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
+    );
     await r.retry(
       () async {
         await buildBucketClient.batch(BatchRequest(requests: requests));
