@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
@@ -204,7 +205,17 @@ class LuciBuildService {
         ),
       );
     }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
+    );
+    await r.retry(
+      () async {
+        await buildBucketClient.batch(BatchRequest(requests: requests));
+      },
+      retryIf: (Exception e) => e is BuildBucketException,
+    );
+
     return true;
   }
 
