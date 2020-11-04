@@ -118,7 +118,7 @@ class AgentTile extends StatelessWidget {
   /// a [SnackBar].
   Future<void> _reserveTask(BuildContext context, Agent agent) async {
     await agentState.reserveTask(agent);
-    Scaffold.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('Check console for reserve task info'),
       duration: reserveTaskSnackbarDuration,
     ));
