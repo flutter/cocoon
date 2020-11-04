@@ -319,7 +319,7 @@ class _TaskGridState extends State<TaskGrid> {
           position: (this.context.findRenderObject() as RenderBox)
               .localToGlobal(localPosition, ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
-          showSnackBarCallback: Scaffold.of(this.context).showSnackBar,
+          showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
           closeCallback: _closeOverlay,
           buildState: widget.buildState,
           commit: commit,
