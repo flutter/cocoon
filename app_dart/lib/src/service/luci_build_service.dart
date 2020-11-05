@@ -161,7 +161,6 @@ class LuciBuildService {
 
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
-      final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',
@@ -177,7 +176,7 @@ class LuciBuildService {
         log.info('Creating check run for PR: $prNumber, Commit: $commitSha, '
             'Owner: ${slug.owner} and Repo: ${slug.name}');
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-          githubClient,
+          config,
           slug,
           builder,
           commitSha,
@@ -303,12 +302,10 @@ class LuciBuildService {
   Future<bool> rescheduleUsingCheckRunEvent(CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
-
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final String commitSha = checkRunEvent.checkRun.headSha;
     final String builderName = checkRunEvent.checkRun.name;
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRunEvent.checkRun.name,
       commitSha,
@@ -350,9 +347,8 @@ class LuciBuildService {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
     final github.PullRequest pr = checkSuiteEvent.checkSuite.pullRequests[0];
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRun.name,
       pr.head.sha,
