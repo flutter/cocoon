@@ -72,6 +72,8 @@ class GithubChecksUtil {
     );
   }
 
+  /// Sends a request to github checks api to create a new [CheckRun] associated
+  /// with a task [name] and commit [headSha].
   Future<github.CheckRun> createCheckRun(
     Config cocoonConfig,
     github.RepositorySlug slug,
