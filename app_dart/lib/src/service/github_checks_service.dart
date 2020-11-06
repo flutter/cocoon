@@ -132,7 +132,7 @@ class GithubChecksService {
     }
     gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     await githubChecksUtil.updateCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRun,
       status: status,

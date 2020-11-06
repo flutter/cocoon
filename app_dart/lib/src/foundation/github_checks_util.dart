@@ -42,8 +42,10 @@ class GithubChecksUtil {
     );
   }
 
+  /// Sends a request to github checks api to update a [CheckRun] with a given
+  /// [status] and [conclusion].
   Future<void> updateCheckRun(
-    github.GitHub gitHubClient,
+    Config cocoonConfig,
     github.RepositorySlug slug,
     github.CheckRun checkRun, {
     github.CheckRunStatus status,
@@ -51,14 +53,24 @@ class GithubChecksUtil {
     String detailsUrl,
     github.CheckRunOutput output,
   }) async {
-    await gitHubClient.checks.checkRuns.updateCheckRun(
-      slug,
-      checkRun,
-      status: status,
-      conclusion: conclusion,
-      detailsUrl: detailsUrl,
-      output: output,
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
     );
+    return r.retry(() async {
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(
+        slug.owner,
+        slug.name,
+      );
+      await gitHubClient.checks.checkRuns.updateCheckRun(
+        slug,
+        checkRun,
+        status: status,
+        conclusion: conclusion,
+        detailsUrl: detailsUrl,
+        output: output,
+      );
+    }, retryIf: (Exception e) => e is github.GitHubError);
   }
 
   Future<github.CheckRun> getCheckRun(
