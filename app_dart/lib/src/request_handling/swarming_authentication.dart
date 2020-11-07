@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:googleapis/oauth2/v2.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
@@ -111,9 +112,39 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (swarmingToken != null) {
-      return await authenticateIdToken(swarmingToken, clientContext: clientContext, log: log);
+
+      return await _authenticatAccessToken(swarmingToken, clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI or Cocoon agent');
+  }
+
+  /// Authenticate [accessToken] against Google OAuth 2 API.
+  /// 
+  /// Access tokens are the legacy authentication strategy for Google OAuth, where ID tokens
+  /// are the new technique to use. LUCI auth only generates access tokens, and must be
+  /// validated against a different endpoint. We only validate access tokens if they belong
+  /// to a DeviceLab service account.
+  /// 
+  /// If LUCI auth adds id tokens, we can switch to that and remove this.
+  Future<AuthenticatedContext> _authenticatAccessToken(String accessToken, {ClientContext clientContext, Logging log}) async {
+    // Authenticate as a signed-in Google account via OAuth access token.
+    final HttpClient client = _httpClientProvider();
+
+    final Oauth2Api oauth2api = Oauth2Api(client);
+    final Tokeninfo info = await oauth2api.tokeninfo(
+      accessToken: accessToken,
+    );
+
+    if (info.expiresIn == null || info.expiresIn < 1) {
+      throw Unauthenticated('Service account expired');
+    }
+    final ServiceAccountInfo devicelabServiceAccount = await _config.deviceLabServiceAccount;
+
+    if (info.email == devicelabServiceAccount.email) {
+      return AuthenticatedContext(clientContext: clientContext);
+    }
+
+    throw Unauthenticated('Invalid service account');
   }
 }
