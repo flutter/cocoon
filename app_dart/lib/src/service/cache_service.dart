@@ -15,7 +15,7 @@ import 'package:neat_cache/neat_cache.dart';
 /// of entries will be created. Otherwise, it will use the default redis cache.
 class CacheService {
   CacheService({
-    bool inMemory = false,
+    bool inMemory = true,
     int inMemoryMaxNumberEntries = 256,
   }) : _provider =
             inMemory ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries) : Cache.redisCacheProvider(memorystoreUrl);

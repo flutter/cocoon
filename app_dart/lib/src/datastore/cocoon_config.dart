@@ -298,6 +298,11 @@ class Config {
     );
   }
 
+  Future<bigquery.JobsResourceApi> createJobsResourceApi() async {
+    final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
+    return await BigqueryService(accessClientProvider).defaultJobsResource();
+  }
+
   Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
     return await BigqueryService(accessClientProvider).defaultTabledata();

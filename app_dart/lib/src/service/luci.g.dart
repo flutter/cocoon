@@ -9,7 +9,9 @@ part of 'luci.dart';
 // **************************************************************************
 
 LuciBuilder _$LuciBuilderFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['name', 'repo'], disallowNullValues: const ['name', 'repo']);
+  $checkKeys(json,
+      requiredKeys: const ['name', 'repo'],
+      disallowNullValues: const ['name', 'repo']);
   return LuciBuilder(
     name: json['name'] as String,
     repo: json['repo'] as String,

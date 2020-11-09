@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cocoon_service/src/model/appengine/github_tree_status_override.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -208,6 +209,37 @@ class DatastoreService {
       /// is returned.
       if (previousStatusUpdates.length > 1) {
         return previousStatusUpdates.reduce((GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
+            current.updateTimeMillis < next.updateTimeMillis ? next : current);
+      }
+      return previousStatusUpdates.single;
+    }
+  }
+
+  Future<GitHubTreeStatusOverride> queryLastOverrideStatusUpdate(
+    RepositorySlug slug,
+    PullRequest pr,
+  ) async {
+    final Query<GitHubTreeStatusOverride> query = db.query<GitHubTreeStatusOverride>()
+      ..filter('repository =', slug.fullName)
+      ..filter('pr =', pr.number)
+      ..filter('head =', pr.head.sha);
+    final List<GitHubTreeStatusOverride> previousStatusUpdates = await query.run().toList();
+
+    if (previousStatusUpdates.isEmpty) {
+      return GitHubTreeStatusOverride(
+        repository: slug.fullName,
+        pr: pr.number,
+        head: pr.head.sha,
+        closed: false,
+        updates: 0,
+        updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
+      );
+    } else {
+      /// Duplicate cases rarely happen. It happens only when race condition
+      /// occurs in app engine. When multiple records exist, the latest one
+      /// is returned.
+      if (previousStatusUpdates.length > 1) {
+        return previousStatusUpdates.reduce((GitHubTreeStatusOverride current, GitHubTreeStatusOverride next) =>
             current.updateTimeMillis < next.updateTimeMillis ? next : current);
       }
       return previousStatusUpdates.single;

@@ -36,6 +36,7 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.loggingServiceValue,
     this.tabledataResourceApi,
+    this.jobsResourceApi,
     this.githubService,
     this.cirrusGraphQLClient,
     this.taskLogServiceAccountValue,
@@ -60,6 +61,7 @@ class FakeConfig implements Config {
   GraphQLClient githubGraphQLClient;
   GraphQLClient cirrusGraphQLClient;
   TabledataResourceApi tabledataResourceApi;
+  JobsResourceApi jobsResourceApi;
   GithubService githubService;
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
@@ -105,6 +107,9 @@ class FakeConfig implements Config {
 
   @override
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
+
+  @override
+  Future<JobsResourceApi> createJobsResourceApi() async => jobsResourceApi;
 
   @override
   Future<GithubService> createGithubService(String owner, String repository) async => githubService;

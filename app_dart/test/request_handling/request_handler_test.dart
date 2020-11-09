@@ -57,15 +57,11 @@ void main() {
 
     Future<HttpClientResponse> issuePost() => issueRequest('post');
 
-    Future<HttpClientResponse> issuePut() => issueRequest('put');
-
     test('Unimplemented methods yield HTTP method not allowed', () async {
       handler = MethodNotAllowed();
       HttpClientResponse response = await issueGet();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       response = await issuePost();
-      expect(response.statusCode, HttpStatus.methodNotAllowed);
-      response = await issuePut();
       expect(response.statusCode, HttpStatus.methodNotAllowed);
       expect(log.records, isEmpty);
     });

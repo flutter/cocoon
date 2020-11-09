@@ -246,6 +246,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     const Set<String> notInAuthorsControl = <String>{
       'flutter-build', // flutter repo
       'luci-engine', // engine repo
+      'tree-status', // Override by engine sheriff etc.
     };
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');

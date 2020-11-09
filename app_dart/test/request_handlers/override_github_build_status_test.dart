@@ -12,10 +12,10 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
@@ -36,9 +36,10 @@ void main() {
     FakeHttpRequest request;
     ApiRequestHandlerTester tester;
     OverrideGitHubBuildStatus handler;
-    FakeTabledataResourceApi tabledataResourceApi;
+    MockJobsResourceApi jobsResourceApi;
     List<int> githubPullRequests;
     MockRepositoriesService repositoriesService;
+    int timeStamp;
 
     List<PullRequest> pullRequestList(String branch) {
       expect(branch, 'master');
@@ -52,12 +53,18 @@ void main() {
     }
 
     setUp(() {
+      timeStamp = DateTime.now().millisecondsSinceEpoch;
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       final FakeGithubService githubService = FakeGithubService();
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
+      jobsResourceApi = MockJobsResourceApi();
+      config = FakeConfig(
+        jobsResourceApi: jobsResourceApi,
+        githubService: githubService,
+        dbValue: db,
+      );
       log = FakeLogging();
       request = FakeHttpRequest();
       tester = ApiRequestHandlerTester(request: request, context: authContext);
@@ -77,32 +84,47 @@ void main() {
       when(githubService.github.repositories).thenReturn(repositoriesService);
     });
 
-    Future<T> decodeHandlerBody<T>() async {
+    Future<dynamic> decodeHandlerBody() async {
       final Body body = await tester.get(handler);
-      return await utf8.decoder.bind(body.serialize()).transform(json.decoder).single as T;
+      return await utf8.decoder
+        .bind(body.serialize())
+        // .transform(json.decoder)
+        .single;
     }
 
     test('get works', () async {
-      final GithubTreeStatusOverride overrides = GithubTreeStatusOverride(
-        key: db.emptyKey.append(GithubTreeStatusOverride, id: 0),
-        closed: false,
-        reason: 'testing1',
-        repository: 'flutter/flutter',
-        user: 'test@flutter.com',
-      );
-      db.values[overrides.key] = overrides;
-      final List<dynamic> response = await decodeHandlerBody<List<dynamic>>();
-      expect(response.single, overrides.toJson());
+      when(jobsResourceApi.query(any, 'flutter-dashboard')).thenAnswer((_) async {
+        return QueryResponse()..rows = <TableRow>[
+          TableRow()..f = <TableCell>[
+            TableCell()..v = 'flutter/flutter',
+            TableCell()..v = 'test@test.com',
+            TableCell()..v = 'Testing 123',
+            TableCell()..v = 'false',
+            TableCell()..v = timeStamp.toString(),
+          ],
+          TableRow()..f = <TableCell>[
+            TableCell()..v = 'flutter/engine',
+            TableCell()..v = 'test@test.com',
+            TableCell()..v = 'Testing 123',
+            TableCell()..v = 'false',
+            TableCell()..v = timeStamp.toString(),
+          ],
+        ];
+      });
+      // print(await decodeHandlerBody());
+      print(await decodeHandlerBody());
+      // expect(response.single, overrides.toJson());
     });
+//[{"repository":"flutter/flutter","user":"test@test.com","reason":"Testing 123","closed":false,"timestamp":1600114135054},{"repository":"flutter/engine","user":"test@test.com","reason":"Testing 123","closed":false,"timestamp":1600114135054}]
 
-    test('put forbids unauthenticated users', () async {
+    test('post forbids unauthenticated users', () async {
       await expectLater(
-        () async => await tester.put(handler),
+        () async => await tester.post(handler),
         throwsA(isA<Forbidden>()),
       );
     });
 
-    test('put does nothing if the status is not changing', () async {
+    test('post does nothing if the status is not changing', () async {
       authContext.email = 'user@google.com';
       final GithubTreeStatusOverride overrides = GithubTreeStatusOverride(
         key: db.emptyKey.append(GithubTreeStatusOverride, id: 0),
@@ -112,19 +134,19 @@ void main() {
         user: 'user@google.com',
       );
       db.values[overrides.key] = overrides;
-      tester.requestData = <String, dynamic>{
-        OverrideGitHubBuildStatus.closedKeyName: false,
-        OverrideGitHubBuildStatus.repositoryKeyName: 'flutter/flutter',
-        OverrideGitHubBuildStatus.reasonKeyName: 'just a test',
-      };
+      tester.requestData = const OverrideGitHubBuildStatusRequest(
+        repository: 'flutter/flutter',
+        closed: false,
+        reason: 'just a test',
+      ).toJson();
 
-      final Body body = await tester.put(handler);
+      final Body body = await tester.post(handler);
       expect(body, same(Body.empty));
       expect(db.values.values.first, overrides);
       expect(overrides.closed, false);
     });
 
-    test('put updates datastore and github if status changes', () async {
+    test('post updates datastore and github if status changes', () async {
       githubPullRequests = <int>[1, 2, 3];
       authContext.email = 'user@google.com';
       final GithubTreeStatusOverride overrides = GithubTreeStatusOverride(
@@ -135,13 +157,13 @@ void main() {
         user: 'user@google.com',
       );
       db.values[overrides.key] = overrides;
-      tester.requestData = <String, dynamic>{
-        OverrideGitHubBuildStatus.closedKeyName: true,
-        OverrideGitHubBuildStatus.repositoryKeyName: 'flutter/flutter',
-        OverrideGitHubBuildStatus.reasonKeyName: 'just a test',
-      };
+      tester.requestData = const OverrideGitHubBuildStatusRequest(
+        repository: 'flutter/flutter',
+        closed: true,
+        reason: 'just a test',
+      ).toJson();
 
-      final Body body = await tester.put(handler);
+      final Body body = await tester.post(handler);
       expect(body, same(Body.empty));
       expect(db.values.values.first, overrides);
       expect(overrides.closed, true);
@@ -160,43 +182,6 @@ void main() {
       expect(log.records.length, 3);
     });
 
-    test('put updates datastore and github if forced', () async {
-      githubPullRequests = <int>[1, 2, 3];
-      authContext.email = 'user@google.com';
-      final GithubTreeStatusOverride overrides = GithubTreeStatusOverride(
-        key: db.emptyKey.append(GithubTreeStatusOverride, id: 0),
-        closed: false,
-        reason: 'testing1',
-        repository: 'flutter/flutter',
-        user: 'user@google.com',
-      );
-      db.values[overrides.key] = overrides;
-      tester.requestData = <String, dynamic>{
-        OverrideGitHubBuildStatus.closedKeyName: false,
-        OverrideGitHubBuildStatus.repositoryKeyName: 'flutter/flutter',
-        OverrideGitHubBuildStatus.reasonKeyName: 'just a test',
-        OverrideGitHubBuildStatus.forceKeyName: true,
-      };
-
-      final Body body = await tester.put(handler);
-      expect(body, same(Body.empty));
-      expect(db.values.values.first, overrides);
-      expect(overrides.closed, false);
-      expect(overrides.reason, 'just a test');
-
-      final List<dynamic> calls = verify(repositoriesService.createStatus(any, any, captureAny)).captured;
-      expect(calls.length, 3);
-      expect(
-        calls.first.toJson(),
-        jsonDecode(
-          '{"state":"success","target_url":"https://flutter-dashboard.appspot.com/api/override-github-build-status","description":"just a test","context":"tree-status"}',
-        ),
-      );
-      expect(log.records.first.level, LogLevel.DEBUG);
-      expect(log.records.first.message, 'Updating tree status of flutter/flutter#1 (closed = false)');
-      expect(log.records.length, 3);
-    });
-
     test('logs an error when github throws', () async {
       when(repositoriesService.createStatus(any, any, captureAny)).thenThrow('bad news');
 
@@ -210,13 +195,13 @@ void main() {
         user: 'user@google.com',
       );
       db.values[overrides.key] = overrides;
-      tester.requestData = <String, dynamic>{
-        OverrideGitHubBuildStatus.closedKeyName: true,
-        OverrideGitHubBuildStatus.repositoryKeyName: 'flutter/flutter',
-        OverrideGitHubBuildStatus.reasonKeyName: 'just a test',
-      };
+      tester.requestData = const OverrideGitHubBuildStatusRequest(
+        repository: 'flutter/flutter',
+        closed: true,
+        reason: 'just a test',
+      ).toJson();
 
-      final Body body = await tester.put(handler);
+      final Body body = await tester.post(handler);
       expect(body, same(Body.empty));
       expect(db.values.values.first, overrides);
       expect(overrides.closed, true);
@@ -238,3 +223,5 @@ void main() {
     });
   });
 }
+
+class MockJobsResourceApi extends Mock implements JobsResourceApi {}

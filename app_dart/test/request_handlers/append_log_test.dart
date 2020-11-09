@@ -33,7 +33,7 @@ void main() {
 Deleting build/ directories, if any.
 2019-12-05T12:55:27.221776: Observatory listening on http://127.0.0.1:20000/
 2019-12-05T12:55:28.339859: Running task.
-2019-12-05T12:55:28.340711:
+2019-12-05T12:55:28.340711: 
 
 ══════════════════╡ ••• Checking running Dart processes ••• ╞═══════════════════
 
