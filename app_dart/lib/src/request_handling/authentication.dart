@@ -68,7 +68,7 @@ class AuthenticationProvider {
     this.clientContextProvider = Providers.serviceScopeContext,
     this.httpClientProvider = Providers.freshHttpClient,
     this.loggingProvider = Providers.serviceScopeLogger,
-  })  : assert(_config != null),
+  })  : assert(config != null),
         assert(clientContextProvider != null),
         assert(httpClientProvider != null),
         assert(loggingProvider != null);
@@ -109,14 +109,14 @@ class AuthenticationProvider {
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
     final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final ClientContext clientContext = _clientContextProvider();
-    final Logging log = _loggingProvider();
+    final ClientContext clientContext = clientContextProvider();
+    final Logging log = loggingProvider();
 
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final Agent agent = await config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
@@ -162,7 +162,7 @@ class AuthenticationProvider {
 
   Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final HttpClient client = _httpClientProvider();
+    final HttpClient client = httpClientProvider();
     try {
       final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
         'oauth2.googleapis.com',
@@ -189,7 +189,7 @@ class AuthenticationProvider {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
 
-      final String clientId = await _config.oauthClientId;
+      final String clientId = await config.oauthClientId;
       assert(clientId != null);
       if (token.audience != clientId) {
         log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
@@ -210,7 +210,7 @@ class AuthenticationProvider {
   }
 
   Future<bool> _isAllowed(String email) async {
-    final Query<AllowedAccount> query = _config.db.query<AllowedAccount>()
+    final Query<AllowedAccount> query = config.db.query<AllowedAccount>()
       ..filter('email =', email)
       ..limit(20);
 
