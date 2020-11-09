@@ -418,9 +418,6 @@ class LuciBuildService {
       properties: <String, String>{
         'git_ref': commitSha,
       },
-      notify: const NotificationConfig(
-        pubsubTopic: 'projects/flutter-dashboard/topics/luci-builds-prod',
-      ),
     ));
   }
 }
