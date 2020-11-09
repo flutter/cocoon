@@ -64,37 +64,34 @@ import 'exceptions.dart';
 @immutable
 class AuthenticationProvider {
   const AuthenticationProvider(
-    this._config, {
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
+    this.config, {
+    this.clientContextProvider = Providers.serviceScopeContext,
+    this.httpClientProvider = Providers.freshHttpClient,
+    this.loggingProvider = Providers.serviceScopeLogger,
   })  : assert(_config != null),
         assert(clientContextProvider != null),
         assert(httpClientProvider != null),
-        assert(loggingProvider != null),
-        _clientContextProvider = clientContextProvider,
-        _httpClientProvider = httpClientProvider,
-        _loggingProvider = loggingProvider;
+        assert(loggingProvider != null);
 
   /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
+  final Config config;
 
   /// Provides the App Engine client context as part of the
   /// [AuthenticatedContext].
   ///
   /// This is guaranteed to be non-null.
-  final ClientContextProvider _clientContextProvider;
+  final ClientContextProvider clientContextProvider;
 
   /// Provides the HTTP client that will be used (if necessary) to verify OAuth
   /// ID tokens (JWT tokens).
   ///
   /// This is guaranteed to be non-null.
-  final HttpClientProvider _httpClientProvider;
+  final HttpClientProvider httpClientProvider;
 
   /// Provides the logger.
   ///
   /// This is guaranteed to be non-null.
-  final LoggingProvider _loggingProvider;
+  final LoggingProvider loggingProvider;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].

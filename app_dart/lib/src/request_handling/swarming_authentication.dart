@@ -9,11 +9,12 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/oauth2/v2.dart';
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
-import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
+import '../model/appengine/service_account_info.dart';
 
 import 'exceptions.dart';
 
@@ -46,30 +47,16 @@ import 'exceptions.dart';
 @immutable
 class SwarmingAuthenticationProvider extends AuthenticationProvider {
   const SwarmingAuthenticationProvider(
-    this._config, {
-    this.clientContextProvider = Providers.serviceScopeContext,
-    this.loggingProvider = Providers.serviceScopeLogger,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+    Config config, {
+    ClientContextProvider clientContextProvider,
+    LoggingProvider loggingProvider,
+    HttpClientProvider httpClientProvider,
   }) : super(
-          _config,
+          config,
           clientContextProvider: clientContextProvider,
           httpClientProvider: httpClientProvider,
           loggingProvider: loggingProvider,
         );
-
-  /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
-
-  /// Provides the App Engine client context as part of the
-  /// [AuthenticatedContext].
-  ///
-  /// This is guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
-
-  /// Provides the logger.
-  ///
-  /// This is guaranteed to be non-null.
-  final LoggingProvider loggingProvider;
 
   static const String kAgentIdHeader = 'Agent-ID';
 
@@ -95,8 +82,8 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final Agent agent = await config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
@@ -112,7 +99,6 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (swarmingToken != null) {
-
       return await _authenticatAccessToken(swarmingToken, clientContext: clientContext, log: log);
     }
 
@@ -120,16 +106,17 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   }
 
   /// Authenticate [accessToken] against Google OAuth 2 API.
-  /// 
+  ///
   /// Access tokens are the legacy authentication strategy for Google OAuth, where ID tokens
   /// are the new technique to use. LUCI auth only generates access tokens, and must be
   /// validated against a different endpoint. We only validate access tokens if they belong
   /// to a DeviceLab service account.
-  /// 
+  ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
-  Future<AuthenticatedContext> _authenticatAccessToken(String accessToken, {ClientContext clientContext, Logging log}) async {
+  Future<AuthenticatedContext> _authenticatAccessToken(String accessToken,
+      {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth access token.
-    final HttpClient client = _httpClientProvider();
+    final Client client = httpClientProvider() as Client;
 
     final Oauth2Api oauth2api = Oauth2Api(client);
     final Tokeninfo info = await oauth2api.tokeninfo(
@@ -137,14 +124,14 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     );
 
     if (info.expiresIn == null || info.expiresIn < 1) {
-      throw Unauthenticated('Service account expired');
+      throw const Unauthenticated('Service account expired');
     }
-    final ServiceAccountInfo devicelabServiceAccount = await _config.deviceLabServiceAccount;
+    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
 
     if (info.email == devicelabServiceAccount.email) {
       return AuthenticatedContext(clientContext: clientContext);
     }
 
-    throw Unauthenticated('Invalid service account');
+    throw const Unauthenticated('Invalid service account');
   }
 }
