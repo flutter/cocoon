@@ -247,10 +247,6 @@ class GithubWebhook extends RequestHandler<Body> {
       }
     }
 
-    if (pr.draft) {
-      labels.add('work in progress; do not review');
-    }
-
     if (labels.isNotEmpty) {
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number, labels.toList());
     }
