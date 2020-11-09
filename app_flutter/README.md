@@ -1,6 +1,6 @@
-# Build Dashboard v2 Frontend
+# Flutter Dashboard
 
-[Design Doc](https://flutter.dev/go/build-dashboard-v2)
+[User Guide](USER_GUIDE.md)
 
 ## Running for web locally
 

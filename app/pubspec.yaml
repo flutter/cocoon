@@ -3,7 +3,7 @@ version: 0.0.2
 homepage: https://github.com/flutter/cocoon
 
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  sdk: '>=2.8.0-dev.10.0 <3.0.0'
 
 dependencies:
   angular: 5.3.1
@@ -24,7 +24,7 @@ dev_dependencies:
   # Enables the `pub run build_runner` command
   build_runner: ^1.7.0
   # Includes the JavaScript compilers
-  build_web_compilers: 2.7.2
+  build_web_compilers: 2.10.0
   flutter_web_test: any
 
 dependency_overrides:

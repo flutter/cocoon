@@ -54,6 +54,7 @@ class FakeConfig implements Config {
     this.flutterGoldInitialAlertValue,
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
+    this.flutterGoldStalePRValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -92,6 +93,7 @@ class FakeConfig implements Config {
   String flutterGoldInitialAlertValue;
   String flutterGoldFollowUpAlertValue;
   String flutterGoldDraftChangeValue;
+  String flutterGoldStalePRValue;
 
   @override
   int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
@@ -140,6 +142,9 @@ class FakeConfig implements Config {
 
   @override
   String get flutterGoldDraftChange => flutterGoldDraftChangeValue;
+
+  @override
+  String get flutterGoldStalePR => flutterGoldStalePRValue;
 
   @override
   String flutterGoldInitialAlert(String url) => flutterGoldInitialAlertValue;
@@ -237,7 +242,8 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),

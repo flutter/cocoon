@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/widgets/web_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
-
-import 'web_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.
 ///
@@ -36,6 +35,8 @@ class CommitAuthorAvatar extends StatelessWidget {
       authorColor = HSLColor.fromColor(authorColor).withLightness(.65).toColor();
     }
 
+    /// Fallback widget that shows the initial of the commit author. In cases
+    /// where GitHub is down or slow internet this will be seen.
     final Widget avatar = CircleAvatar(
       backgroundColor: authorColor,
       child: Text(
@@ -46,11 +47,7 @@ class CommitAuthorAvatar extends StatelessWidget {
 
     return WebImage(
       imageUrl: commit.authorAvatarUrl,
-      imageBuilder: (BuildContext context, ImageProvider provider) => CircleAvatar(
-        backgroundImage: provider,
-      ),
-      placeholder: (BuildContext context, String url) => avatar,
-      errorWidget: (BuildContext context, String url, Object error) => avatar,
+      placeholder: avatar,
     );
   }
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -11,9 +13,70 @@ import '../agent_dashboard_page.dart';
 import '../logic/qualified_task.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
+import 'now.dart';
 import 'progress_button.dart';
 import 'task_attempt_summary.dart';
 import 'task_box.dart';
+
+class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
+  TaskOverlayEntryPositionDelegate(this.target);
+
+  /// The offset of the target the tooltip is positioned near in the global
+  /// coordinate system.
+  final Offset target;
+
+  static Offset positionDependentBox({
+    @required Size size,
+    @required Size childSize,
+    @required Offset target,
+  }) {
+    assert(size != null);
+    assert(childSize != null);
+    assert(target != null);
+    const double margin = 10.0;
+    const double verticalOffset = TaskBox.cellSize * .9;
+
+    // VERTICAL DIRECTION
+    final bool fitsBelow = target.dy + verticalOffset + childSize.height <= size.height - margin;
+    double y;
+    if (fitsBelow) {
+      y = math.min(target.dy + verticalOffset, size.height - margin);
+    } else {
+      y = math.max(target.dy - childSize.height, margin);
+    }
+    // HORIZONTAL DIRECTION
+    double x;
+    // The whole size isn't big enough, just center it.
+    if (size.width - margin * 2.0 < childSize.width) {
+      x = (size.width - childSize.width) / 2.0;
+    } else {
+      final double normalizedTargetX = (target.dx).clamp(margin, size.width - margin) as double;
+      final double edge = normalizedTargetX + childSize.width;
+      // Position the box as close to the left edge of the full size
+      // without going over the margin.
+      if (edge > size.width) {
+        x = size.width - margin - childSize.width;
+      } else {
+        x = normalizedTargetX;
+      }
+    }
+    return Offset(x, y);
+  }
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    return positionDependentBox(
+      size: size,
+      childSize: childSize,
+      target: target,
+    );
+  }
+
+  @override
+  bool shouldRelayout(TaskOverlayEntryPositionDelegate oldDelegate) {
+    return oldDelegate.target != target;
+  }
+}
 
 /// Displays the information from [Task] and allows interacting with a [Task].
 ///
@@ -84,16 +147,15 @@ class TaskOverlayEntry extends StatelessWidget {
         ),
         Positioned(
           // Move this overlay to be where the parent is
-          // TODO(ianh): This will go past the edge of the page if it's near the right margin;
-          // we should do something like positionDependentBox.
-          top: position.dy + TaskBox.cellSize / 2.0,
-          left: position.dx + TaskBox.cellSize / 2.0,
-          child: TaskOverlayContents(
-            showSnackBarCallback: showSnackBarCallback,
-            buildState: buildState,
-            task: task,
-            commit: commit,
-            closeCallback: closeCallback,
+          child: CustomSingleChildLayout(
+            delegate: TaskOverlayEntryPositionDelegate(position),
+            child: TaskOverlayContents(
+              showSnackBarCallback: showSnackBarCallback,
+              buildState: buildState,
+              task: task,
+              commit: commit,
+              closeCallback: closeCallback,
+            ),
           ),
         ),
       ],
@@ -155,22 +217,44 @@ class TaskOverlayContents extends StatelessWidget {
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
     TaskBox.statusInProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
     TaskBox.statusSucceeded: Icon(Icons.check_circle, color: Colors.green, size: 32),
-    TaskBox.statusSucceededButFlaky: Icon(Icons.check_circle_outline, size: 32),
-    TaskBox.statusUnderperformed: Icon(Icons.new_releases, color: Colors.orange, size: 32),
-    TaskBox.statusUnderperformedInProgress: Icon(Icons.autorenew, color: Colors.orange, size: 32),
   };
 
   @override
   Widget build(BuildContext context) {
+    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+
+    final DateTime now = Now.of(context);
     final DateTime createTime = DateTime.fromMillisecondsSinceEpoch(task.createTimestamp.toInt());
     final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTimestamp.toInt());
     final DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTimestamp.toInt());
 
-    final Duration queueDuration = startTime.difference(createTime);
-    final Duration runDuration = endTime.difference(startTime);
+    final Duration queueDuration =
+        task.startTimestamp == 0 ? now.difference(createTime) : startTime.difference(createTime);
+    final Duration runDuration = task.endTimestamp == 0 ? now.difference(startTime) : endTime.difference(startTime);
 
-    final String taskStatus = TaskBox.effectiveTaskStatus(task);
-    final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+    /// There are 2 possible states for queue time:
+    ///   1. Task is waiting to be scheduled (in queue)
+    ///   2. Task has been scheduled (out of queue)
+    final String queueText = (task.status != TaskBox.statusNew)
+        ? 'Queue time: ${queueDuration.inSeconds} seconds'
+        : 'Queueing for ${queueDuration.inSeconds} seconds';
+
+    /// There are 3 possible states for the runtime:
+    ///   1. Task has not run yet (new)
+    ///   2. Task is running (in progress)
+    ///   3. Task ran (other status)
+    final String runText = (task.status == TaskBox.statusInProgress)
+        ? 'Running for ${runDuration.inMinutes} minutes'
+        : (task.status != TaskBox.statusNew)
+            ? 'Run time: ${runDuration.inMinutes} minutes'
+            : '';
+
+    final String summaryText = <String>[
+      'Attempts: ${task.attempts}',
+      if (runText.isNotEmpty) runText,
+      queueText,
+      if (task.isFlaky) 'Flaky: ${task.isFlaky}',
+    ].join('\n');
 
     return Card(
       child: Padding(
@@ -178,6 +262,7 @@ class TaskOverlayContents extends StatelessWidget {
         child: IntrinsicWidth(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -185,10 +270,10 @@ class TaskOverlayContents extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Tooltip(
-                      message: taskStatus,
+                      message: task.status,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8.0, top: 10.0, right: 12.0),
-                        child: statusIcon[taskStatus],
+                        child: statusIcon[task.status],
                       ),
                     ),
                     Expanded(
@@ -200,10 +285,7 @@ class TaskOverlayContents extends StatelessWidget {
                           ),
                           if (qualifiedTask.isDevicelab)
                             Text(
-                              'Attempts: ${task.attempts}\n'
-                              'Run time: ${runDuration.inMinutes} minutes\n'
-                              'Queue time: ${queueDuration.inSeconds} seconds\n'
-                              'Flaky: ${task.isFlaky}',
+                              summaryText,
                               style: Theme.of(context).textTheme.bodyText2,
                             )
                           else

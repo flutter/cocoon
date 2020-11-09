@@ -37,7 +37,7 @@ void main() {
 
     test('sign in silently called', () async {
       verify(mockSignIn.signInSilently()).called(1);
-    }, skip: 'https://github.com/flutter/flutter/issues/52338');
+    });
 
     test('id token will prompt sign in', () async {
       final GoogleSignInAccount testAccountWithAuthentication = FakeGoogleSignInAccount()
@@ -112,4 +112,7 @@ class FakeGoogleSignInAuthentication implements GoogleSignInAuthentication {
 
   @override
   String get idToken => 'id123';
+
+  @override
+  String get serverAuthCode => 'serverAuth123';
 }

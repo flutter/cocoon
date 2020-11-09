@@ -2,19 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/widgets/commit_author_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
+import 'package:app_flutter/widgets/commit_author_avatar.dart';
+
 void main() {
   testWidgets('Authors with same initial have differently coloured avatars', (WidgetTester tester) async {
-    final MockCommit commit1 = MockCommit();
-    when(commit1.author).thenReturn('Mike');
-    final MockCommit commit2 = MockCommit();
-    when(commit2.author).thenReturn('Michael');
+    final Commit commit1 = Commit()..author = 'Mike';
+    final Commit commit2 = Commit()..author = 'Michael';
 
     await tester.pumpWidget(
       MaterialApp(
@@ -37,5 +35,3 @@ void main() {
     expect(avatars.first.backgroundColor, isNot(avatars.last.backgroundColor));
   });
 }
-
-class MockCommit extends Mock implements Commit {}

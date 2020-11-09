@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
 
     final Config config = Config(dbService, cache);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
+    final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
@@ -53,6 +55,11 @@ Future<void> main() async {
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/create-agent': CreateAgent(config, authProvider),
+      '/api/flush-cache': FlushCache(
+        config,
+        authProvider,
+        cache: cache,
+      ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
@@ -93,7 +100,7 @@ Future<void> main() async {
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
-      '/api/update-task-status': UpdateTaskStatus(config, authProvider),
+      '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/public/build-status': CacheRequestHandler<Body>(
@@ -127,7 +134,15 @@ Future<void> main() async {
       if (handler != null) {
         await handler.service(request);
       } else {
-        final String filePath = request.uri.toFilePath();
+        /// Requests with query parameters and anchors need to be trimmed to get the file path.
+        // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
+        final int queryIndex = request.uri.path.contains('?') ? request.uri.path.indexOf('?') : request.uri.path.length;
+        final int anchorIndex =
+            request.uri.path.contains('#') ? request.uri.path.indexOf('#') : request.uri.path.length;
+
+        /// Trim to the first instance of an anchor or query.
+        final int trimIndex = min(queryIndex, anchorIndex);
+        final String filePath = request.uri.path.substring(0, trimIndex);
 
         const List<String> indexRedirects = <String>['/build.html'];
         if (indexRedirects.contains(filePath)) {

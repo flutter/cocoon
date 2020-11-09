@@ -93,6 +93,27 @@ void main() {
       expect(task.attempts, equals(1));
     });
 
+    test('Re-schedule existing task even though builderName is missing in the task', () async {
+      Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          name: 'windows_bot',
+          status: 'Failed');
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      await tester.post(handler);
+      expect(
+        verify(mockLuciBuildService.rescheduleProdBuild(
+          commitSha: captureAnyNamed('commitSha'),
+          builderName: captureAnyNamed('builderName'),
+        )).captured,
+        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
+      );
+      task = config.db.values[task.key] as Task;
+      expect(task.attempts, equals(1));
+    });
+
     test('Does nothing if task already passed', () async {
       final Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),

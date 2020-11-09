@@ -98,7 +98,7 @@ class GithubChecksService {
     LuciBuildService luciBuildService,
     github.RepositorySlug slug,
   ) async {
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final push_message.Build build = buildPushMessage.build;
     if (buildPushMessage.userData.isEmpty) {
       return false;
@@ -130,8 +130,9 @@ class GithubChecksService {
           await luciBuildService.getTryBuildById(buildPushMessage.build.id, fields: 'id,builder,summaryMarkdown');
       output = github.CheckRunOutput(title: checkRun.name, summary: build.summaryMarkdown ?? 'Empty summaryMarkdown');
     }
+    gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     await githubChecksUtil.updateCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRun,
       status: status,

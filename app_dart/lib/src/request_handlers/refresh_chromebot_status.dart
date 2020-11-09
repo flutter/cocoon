@@ -83,7 +83,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final String buildNumberList =
             luciTasks.reversed.map((LuciTask luciTask) => luciTask.buildNumber.toString()).toList().join(',');
         if (buildNumberList != datastoreTask.task.buildNumberList ||
-            luciTasks.last.status != datastoreTask.task.status) {
+            luciTasks.first.status != datastoreTask.task.status) {
           final Task update = datastoreTask.task;
           update.status = luciTasks.first.status;
           update.buildNumberList = buildNumberList;

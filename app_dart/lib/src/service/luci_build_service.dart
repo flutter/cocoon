@@ -8,12 +8,11 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
@@ -21,7 +20,7 @@ import '../service/luci.dart';
 import 'buildbucket.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
-/// and cancel builds for github repos. It uses [config.getRepoLuciBuilders] to
+/// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
   LuciBuildService(this.config, this.buildBucketClient, this.serviceAccount, {GithubChecksUtil githubChecksUtil})
@@ -150,11 +149,9 @@ class LuciBuildService {
       return false;
     }
 
-    final List<LuciBuilder> builders = await config.getRepoLuciBuilders('try', slug.name);
-    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
-    final List<String> files = await githubService.listFiles(slug, prNumber);
-    final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(builders, files);
-    final List<String> builderNames = filteredBuilders
+    final List<LuciBuilder> builders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
+    final List<String> builderNames = builders
         .where((LuciBuilder builder) => builder.repo == slug.name)
         .map<String>((LuciBuilder builder) => builder.name)
         .toList();
@@ -164,7 +161,6 @@ class LuciBuildService {
 
     final List<Request> requests = <Request>[];
     for (String builder in builderNames) {
-      final github.GitHub githubClient = await config.createGitHubClient(slug.owner, slug.name);
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',
@@ -180,7 +176,7 @@ class LuciBuildService {
         log.info('Creating check run for PR: $prNumber, Commit: $commitSha, '
             'Owner: ${slug.owner} and Repo: ${slug.name}');
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
-          githubClient,
+          config,
           slug,
           builder,
           commitSha,
@@ -208,7 +204,17 @@ class LuciBuildService {
         ),
       );
     }
-    await buildBucketClient.batch(BatchRequest(requests: requests));
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
+    );
+    await r.retry(
+      () async {
+        await buildBucketClient.batch(BatchRequest(requests: requests));
+      },
+      retryIf: (Exception e) => e is BuildBucketException,
+    );
+
     return true;
   }
 
@@ -248,10 +254,8 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> luciTryBuilders = await config.getRepoLuciBuilders('try', slug.name);
-    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
-    final List<String> files = await githubService.listFiles(slug, prNumber);
-    final List<LuciBuilder> filteredBuilders = await getFilteredBuilders(luciTryBuilders, files);
+    final List<LuciBuilder> filteredBuilders =
+        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
     return builds.values
@@ -298,12 +302,10 @@ class LuciBuildService {
   Future<bool> rescheduleUsingCheckRunEvent(CheckRunEvent checkRunEvent) async {
     final github.RepositorySlug slug = checkRunEvent.repository.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
-
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final String commitSha = checkRunEvent.checkRun.headSha;
     final String builderName = checkRunEvent.checkRun.name;
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRunEvent.checkRun.name,
       commitSha,
@@ -345,9 +347,8 @@ class LuciBuildService {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
     final Map<String, dynamic> userData = <String, dynamic>{};
     final github.PullRequest pr = checkSuiteEvent.checkSuite.pullRequests[0];
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final github.CheckRun githubCheckRun = await githubChecksUtil.createCheckRun(
-      gitHubClient,
+      config,
       slug,
       checkRun.name,
       pr.head.sha,

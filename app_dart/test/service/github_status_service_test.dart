@@ -103,7 +103,7 @@ void main() {
           jsonDecode(
               '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
-    test('Only builds in getRepoLuciBuilders create statuses', () async {
+    test('Only builds in luciTryBuilders create statuses', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[

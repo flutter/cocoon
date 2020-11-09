@@ -5,22 +5,130 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'logic/task_grid_filter.dart';
 import 'navigation_drawer.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
+import 'widgets/filter_property_sheet.dart';
 import 'widgets/task_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
 /// The tree's current build status is reflected in [AppBar].
 /// The results from tasks run on individual commits is shown in [TaskGrid].
-class BuildDashboardPage extends StatelessWidget {
+class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({
     Key key,
+    this.queryParameters,
   }) : super(key: key);
 
   static const String routeName = '/build';
+
+  final Map<String, String> queryParameters;
+
+  @override
+  State createState() => BuildDashboardPageState();
+}
+
+class BuildDashboardPageState extends State<BuildDashboardPage> {
+  TaskGridFilter _filter;
+  TaskGridFilter _settingsBasis;
+
+  @override
+  void initState() {
+    super.initState();
+    _filter = TaskGridFilter.fromMap(widget.queryParameters);
+    _filter.addListener(() {
+      setState(() {});
+    });
+  }
+
+  void _navigateWithSettings(BuildContext context, TaskGridFilter filter) {
+    if (filter.isDefault) {
+      Navigator.pushNamed(context, BuildDashboardPage.routeName);
+    } else {
+      Navigator.pushNamed(context, '${BuildDashboardPage.routeName}?${filter.queryParameters}');
+    }
+  }
+
+  void _removeSettingsDialog() {
+    setState(() {
+      _settingsBasis = null;
+    });
+  }
+
+  void _showSettingsDialog() {
+    setState(() {
+      _settingsBasis = TaskGridFilter.fromMap(_filter.toMap(includeDefaults: false));
+    });
+  }
+
+  Widget _settingsDialog(BuildContext context, BuildState _buildState) {
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).dialogBackgroundColor.withAlpha(0xe0),
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: FocusTraversalGroup(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                DropdownButton<String>(
+                  value: _buildState.currentBranch,
+                  icon: const Icon(
+                    Icons.arrow_downward,
+                  ),
+                  iconSize: 24,
+                  elevation: 16,
+                  underline: Container(
+                    height: 2,
+                  ),
+                  onChanged: (String branch) {
+                    _buildState.updateCurrentBranch(branch);
+                  },
+                  items: _buildState.branches.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                FilterPropertySheet(_filter),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    FlatButton(
+                      child: const Text('Defaults'),
+                      onPressed: _filter.isDefault ? null : () => _filter.reset(),
+                    ),
+                    FlatButton(
+                      child: const Text('Apply'),
+                      onPressed: _filter == _settingsBasis ? null : () => _navigateWithSettings(context, _filter),
+                    ),
+                    FlatButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        if (_filter != _settingsBasis) {
+                          _filter.reset();
+                          _filter.applyMap(_settingsBasis.toMap(includeDefaults: false));
+                        }
+                        _removeSettingsDialog();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,37 +156,21 @@ class BuildDashboardPage extends StatelessWidget {
           title: statusTable[_buildState.isTreeBuilding],
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
-            DropdownButton<String>(
-              value: _buildState.currentBranch,
-              icon: const Icon(
-                Icons.arrow_downward,
-                color: Colors.white,
-              ),
-              iconSize: 24,
-              elevation: 16,
-              style: const TextStyle(color: Colors.white),
-              underline: Container(
-                height: 2,
-                color: Colors.white,
-              ),
-              onChanged: (String branch) {
-                _buildState.updateCurrentBranch(branch);
-              },
-              items: _buildState.branches.map<DropdownMenuItem<String>>(
-                (String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                },
-              ).toList(),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
             ),
           ],
         ),
         body: ErrorBrookWatcher(
           errors: _buildState.errors,
-          child: const SizedBox.expand(
-            child: TaskGridContainer(),
+          child: Stack(
+            children: <Widget>[
+              SizedBox.expand(
+                child: TaskGridContainer(filter: _filter),
+              ),
+              if (_settingsBasis != null) _settingsDialog(context, _buildState),
+            ],
           ),
         ),
         drawer: const NavigationDrawer(),

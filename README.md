@@ -22,7 +22,7 @@ will show a dialog for creating an agent.
 > An example of a valid agent would be `agentId`=`bot-with-devices` and
 > `capabilities`=`has-android-phone,has-iphone`.
 
-The dialog returns returns an authentication token, and prints it to
+The dialog returns an authentication token, and prints it to
 the console. This token is not stored, so copy it immediately and add
 it to the agent's configuration file. If the token is lost or
 compromised, authorize the agent to generate a new token.
@@ -55,21 +55,21 @@ Cocoon has several components:
   application. If you have never used that before, you may want to
   [peruse the samples for Dart App
   Engine](https://github.com/dart-lang/appengine_samples). The server
-  is found in `[app_dart](app_dart/)`.
+  is found in [app_dart](app_dart/).
 
 * An agent, a Dart program that runs on test hosts, each of which have
   a test device. Our "devicelab" consists of computers with devices
   that are running agents and talking to the server to get tasks to
-  run (e.g. a benchmark). The agent is found in `[agent](agent/)`.
+  run (e.g. a benchmark). The agent is found in [agent](agent/).
 
 * A Flutter app (generally used as a Web app) for the build and agent
-  dashboards. The dashboard is found in `[app_flutter](app_flutter/)`.
+  dashboards. The dashboard is found in [app_flutter](app_flutter/).
 
 * An [Angular 2 for
   Dart](https://angular.io/docs/dart/latest/quickstart.html) Web app
   for the performance dashboard. We intend to reimplement this in the
   Flutter app eventually. The performance dashboard is found in
-  `[app](app/)`.
+  [app](app/).
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is
 made of multiple _tasks_. Tasks are _performed_ by _agents_. An agent

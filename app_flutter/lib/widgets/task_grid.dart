@@ -8,10 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 
 import '../logic/qualified_task.dart';
+import '../logic/task_grid_filter.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
 import 'lattice.dart';
-import 'pulse.dart';
 import 'task_box.dart';
 import 'task_icon.dart';
 import 'task_overlay.dart';
@@ -20,7 +20,13 @@ import 'task_overlay.dart';
 ///
 /// If there's no data for [TaskGrid], it shows [CircularProgressIndicator].
 class TaskGridContainer extends StatelessWidget {
-  const TaskGridContainer({Key key}) : super(key: key);
+  const TaskGridContainer({Key key, this.filter}) : super(key: key);
+
+  /// A notifier to hold a [TaskGridFilter] object to control the visibility of various
+  /// rows and columns of the task grid. This filter may be updated dynamically through
+  /// this notifier from elsewhere if the user starts editing the filter parameters in
+  /// the settings dialog.
+  final TaskGridFilter filter;
 
   @visibleForTesting
   static const String errorFetchCommitStatus = 'An error occurred fetching commit statuses';
@@ -47,6 +53,7 @@ class TaskGridContainer extends StatelessWidget {
         return TaskGrid(
           buildState: buildState,
           commitStatuses: commitStatuses,
+          filter: filter,
         );
       },
     );
@@ -64,6 +71,7 @@ class TaskGrid extends StatefulWidget {
     // it's asking for trouble because the tests can (and do) describe a mutually inconsistent state.
     @required this.buildState,
     @required this.commitStatuses,
+    this.filter,
   }) : super(key: key);
 
   /// The build status data to display in the grid.
@@ -71,6 +79,11 @@ class TaskGrid extends StatefulWidget {
 
   /// Reference to the build state to perform actions on [TaskMatrix], like rerunning tasks.
   final BuildState buildState;
+
+  /// A [TaskGridFilter] object to control the visibility of various rows and columns of
+  /// the task grid. This filter may be updated dynamically from elsewhere if the user
+  /// starts editing the filter parameters in the settings dialog.
+  final TaskGridFilter filter;
 
   @override
   State<TaskGrid> createState() => _TaskGridState();
@@ -82,6 +95,14 @@ class _TaskGridState extends State<TaskGrid> {
   // we've received new data or not.
 
   @override
+  void initState() {
+    super.initState();
+    widget.filter?.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LatticeScrollView(
       // TODO(ianh): Provide some vertical scroll physics that disable
@@ -90,18 +111,29 @@ class _TaskGridState extends State<TaskGrid> {
       // we load.
       // TODO(ianh): Trigger the loading from the scroll offset,
       // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget.commitStatuses),
+      cells: _processCommitStatuses(widget.commitStatuses, widget.filter),
       cellSize: const Size.square(TaskBox.cellSize),
     );
   }
 
+  /// Look up table for task status weights in the grid.
+  ///
+  /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
+  /// largest integer weight.
   static const Map<String, double> _statusScores = <String, double>{
-    TaskBox.statusFailed: 5.0,
-    TaskBox.statusUnderperformed: 4.5,
-    TaskBox.statusInProgress: 1.0,
-    TaskBox.statusNew: 1.0,
-    TaskBox.statusSkipped: 0.0,
-    TaskBox.statusSucceeded: 0.0,
+    'Failed - Rerun': 1.0,
+    'Failed': 0.7,
+    'Failed - Flaky': 0.67,
+    'In Progress - Flaky': 0.64,
+    'New - Flaky': 0.63,
+    'Succeeded - Flaky': 0.61,
+    'New - Rerun': 0.5,
+    'In Progress - Rerun': 0.4,
+    'Unknown': 0.2,
+    'In Progress': 0.1,
+    'New': 0.1,
+    'Succeeded': 0.01,
+    'Skipped': 0.0,
   };
 
   /// This is the logic for turning the raw data from the [BuildState] object, a list of
@@ -137,29 +169,37 @@ class _TaskGridState extends State<TaskGrid> {
   // TODO(ianh): Find a way to save the majority of the work done each time we build the
   // matrix. If you've scrolled down several thousand rows, you don't want to have to
   // rebuild the entire matrix each time you load another 25 rows.
-  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses) {
+  List<List<LatticeCell>> _processCommitStatuses(List<CommitStatus> commitStatuses, [TaskGridFilter filter]) {
+    filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final List<_Row> rows = commitStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
+    final List<CommitStatus> filteredStatuses =
+        commitStatuses.where((CommitStatus commitStatus) => filter.matchesCommit(commitStatus)).toList();
+    final List<_Row> rows =
+        filteredStatuses.map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit)).toList();
     // 2: WALK ALL TASKS
     final Map<QualifiedTask, double> scores = <QualifiedTask, double>{};
     int commitCount = 0;
-    for (final CommitStatus status in commitStatuses) {
+    for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
       for (final Stage stage in status.stages) {
         for (final Task task in stage.tasks) {
           final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+          if (!filter.matchesTask(qualifiedTask)) {
+            continue;
+          }
           if (commitCount <= 25) {
-            double score = 0.0;
-            if (task.attempts > 1) {
-              score += 1.0;
-            }
-            if (_statusScores.containsKey(task.status)) {
-              score += _statusScores[task.status];
-            }
+            String weightStatus = task.status;
             if (task.isFlaky) {
-              score /= 2.0;
+              // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
+              weightStatus += ' - Flaky';
+            } else if (task.attempts > 1) {
+              // Reruns take up extra infra capacity and should be prioritized.
+              weightStatus += ' - Rerun';
             }
-            score /= commitCount;
+            // Make the score relative to how long ago it was run.
+            final double score = _statusScores.containsKey(weightStatus)
+                ? _statusScores[weightStatus] / commitCount
+                : _statusScores['Unknown'] / commitCount;
             scores.update(
               qualifiedTask,
               (double value) => value += score,
@@ -216,12 +256,10 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  static final Paint white = Paint()..color = Colors.white;
-
   Painter _painterFor(Task task) {
-    final String status = TaskBox.effectiveTaskStatus(task);
+    final Paint backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
     final Paint paint = Paint()
-      ..color = TaskBox.statusColor.containsKey(status) ? TaskBox.statusColor[status] : Colors.black;
+      ..color = TaskBox.statusColor.containsKey(task.status) ? TaskBox.statusColor[task.status] : Colors.black;
     if (task.isFlaky) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -231,17 +269,17 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.status == TaskBox.statusInProgress) {
-        canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, white);
+      if (task.attempts > 1) {
+        canvas.drawCircle(rect.center, (rect.shortestSide / 2.0) - 6.0, backgroundPaint);
       }
     };
   }
 
   WidgetBuilder _builderFor(Task task) {
-    if (task.status == TaskBox.statusInProgress) {
-      return (BuildContext context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Pulse(color: Colors.blue.shade900),
+    if (task.attempts > 1) {
+      return (BuildContext context) => const Padding(
+            padding: EdgeInsets.all(4.0),
+            child: Icon(Icons.priority_high),
           );
     }
     return null;
@@ -281,7 +319,7 @@ class _TaskGridState extends State<TaskGrid> {
           position: (this.context.findRenderObject() as RenderBox)
               .localToGlobal(localPosition, ancestor: Overlay.of(context).context.findRenderObject()),
           task: task,
-          showSnackBarCallback: Scaffold.of(this.context).showSnackBar,
+          showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
           closeCallback: _closeOverlay,
           buildState: widget.buildState,
           commit: commit,

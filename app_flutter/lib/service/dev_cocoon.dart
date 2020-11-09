@@ -60,10 +60,6 @@ class DevelopmentCocoonService implements CocoonService {
       const CocoonResponse<String>.data('abc123');
 
   @override
-  Future<CocoonResponse<String>> authorizeAgent(Agent agent, String idToken) async =>
-      const CocoonResponse<String>.data('def345');
-
-  @override
   Future<void> reserveTask(Agent agent, String idToken) => null;
 
   static const List<String> _agentKinds = <String>[
@@ -114,16 +110,20 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   final List<String> _authors = <String>['alice', 'bob', 'charlie', 'dobb', 'eli', 'fred'];
+  final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
+  final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
 
   Commit _createFakeCommit(int commitTimestamp, math.Random random) {
     final int author = random.nextInt(_authors.length);
+    final int message = commitTimestamp % 37 + author;
+    final int messageInc = _messagePrimes[message % _messagePrimes.length];
     return Commit()
       ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = 'Fake commit message'
+      ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
       ..repository = 'flutter/cocoon'
-      ..sha = commitTimestamp.hashCode.toRadixString(16).padLeft(32, '0')
+      ..sha = commitTimestamp.hashCode.toRadixString(16).padRight(32, '0')
       ..timestamp = Int64(commitTimestamp)
       ..branch = 'master';
   }

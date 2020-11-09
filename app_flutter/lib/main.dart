@@ -44,6 +44,16 @@ class MyApp extends StatelessWidget {
         AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
         BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
       },
+      onGenerateRoute: (RouteSettings settings) {
+        final Uri uriData = Uri.parse(settings.name);
+        if (uriData.path == BuildDashboardPage.routeName) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext context) => BuildDashboardPage(queryParameters: uriData.queryParameters),
+          );
+        }
+        return null;
+      },
     );
   }
 }

@@ -42,6 +42,7 @@ class Config {
     'flutter',
     'cocoon',
     'packages',
+    'plugins',
   };
 
   /// List of Github presubmit supported repos.
@@ -50,9 +51,10 @@ class Config {
     'flutter/engine',
     'flutter/flutter',
     'flutter/packages',
+    'flutter/plugins',
   };
 
-  @visibleForTesting
+  /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 
   @visibleForTesting
@@ -71,8 +73,13 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  Future<List<LuciBuilder>> getRepoLuciBuilders(String bucket, String repo) async {
-    return await getRepoBuilders(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff, bucket, repo);
+  // Returns LUCI builders.
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
+    final GithubService githubService = await createGithubService('flutter', repo);
+    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
+        RepositorySlug('flutter', repo), bucket,
+        prNumber: prNumber, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {
@@ -160,6 +167,11 @@ class Config {
 
   String get flutterGoldChanges => 'Image changes have been found for '
       'this pull request.';
+
+  String get flutterGoldStalePR => 'This pull request executed golden file '
+      'tests, but it has not been updated in a while (20+ days). Test results from '
+      'Gold expire after as many days, so this pull request will need to be '
+      'updated with a fresh commit in order to get results from Gold.';
 
   String get flutterGoldDraftChange => 'This pull request has been changed to a '
       'draft. The currently pending flutter-gold status will not be able '

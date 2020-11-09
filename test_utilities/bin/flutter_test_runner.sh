@@ -16,7 +16,7 @@
 # Runner for flutter tests. It expects a single parameter with the full
 # path to the flutter project where tests will be run.
 
-set -e
+set -ex
 
 echo "Running flutter tests from $1"
 pushd $1 > /dev/null
@@ -24,7 +24,7 @@ pushd $1 > /dev/null
 flutter packages get
 flutter analyze
 dartfmt --line-length=120 --set-exit-if-changed --dry-run lib/ test/
-flutter test --test-randomize-ordering-seed=random
+flutter test --test-randomize-ordering-seed=random --verbose
 
 popd > /dev/null
 

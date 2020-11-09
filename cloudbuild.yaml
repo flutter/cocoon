@@ -3,7 +3,6 @@
 # by new commits to `master` branch.
 
 steps:
-
   # Build app_flutter.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'

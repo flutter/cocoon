@@ -74,6 +74,7 @@ void main() {
       config.flutterGoldInitialAlertValue = 'initial';
       config.flutterGoldFollowUpAlertValue = 'follow-up';
       config.flutterGoldDraftChangeValue = 'draft';
+      config.flutterGoldStalePRValue = 'stale';
 
       handler = PushGoldStatusToGithub(
         config,
@@ -143,12 +144,13 @@ void main() {
         );
       }
 
-      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
+      PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false, DateTime updated}) {
         return PullRequest()
           ..number = 123
           ..head = (PullRequestHead()..sha = 'abc')
           ..base = (PullRequestHead()..ref = baseRef)
-          ..draft = draft;
+          ..draft = draft
+          ..updatedAt = updated ?? DateTime.now();
       }
 
       group('does not update GitHub or Datastore', () {
@@ -294,7 +296,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -428,6 +430,132 @@ void main() {
             any,
           ));
         });
+
+        test('does not post for stale PRs, does not query Gold, stale comment', () async {
+          // New commit, draft PR
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+          ];
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels, should comment to update
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verify(issuesService.createComment(
+            slug,
+            pr.number,
+            argThat(contains(config.flutterGoldStalePRValue)),
+          )).called(1);
+        });
+
+        test('will only comment once on stale PRs', () async {
+          // New commit, draft PR
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'framework', 'status': 'completed', 'conclusion': 'success'}
+          ];
+
+          // Already commented to update.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldStalePRValue,
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            any,
+          ));
+        });
+
+        test('will not fire off stale warning for non-framework PRs', () async {
+          // New commit, draft PR
+          final PullRequest pr =
+              newPullRequest(123, 'abc', 'master', updated: DateTime.now().subtract(const Duration(days: 30)));
+          prsFromGitHub = <PullRequest>[pr];
+          final GithubGoldStatusUpdate status = newStatusUpdate(pr, '', '', '');
+          db.values[status.key] = status;
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{'name': 'tool-test-1', 'status': 'completed', 'conclusion': 'success'}
+          ];
+
+          // Already commented to update.
+          when(issuesService.listCommentsByIssue(slug, pr.number)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final Body body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(status.updates, 0);
+          expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
+          expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
+
+          // Should not apply labels or make comments
+          verifyNever(issuesService.addLabelsToIssue(
+            slug,
+            pr.number,
+            <String>[
+              kGoldenFileLabel,
+            ],
+          ));
+
+          verifyNever(issuesService.createComment(
+            slug,
+            pr.number,
+            any,
+          ));
+        });
       });
 
       group('updates GitHub and/or Datastore', () {
@@ -517,7 +645,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -560,7 +688,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -612,7 +740,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -662,7 +790,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobDigests()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -722,7 +850,7 @@ void main() {
           final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
           final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
           when(mockHttpClient.getUrl(Uri.parse(
-                  'http://flutter-gold.skia.org/json/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
+                  'http://flutter-gold.skia.org/json/v1/changelist/github/${pr.number}/${pr.head.sha}/untriaged')))
               .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
           when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
@@ -893,10 +1021,10 @@ void main() {
         final MockHttpClientRequest mockHttpRequest = MockHttpClientRequest();
         final MockHttpClientResponse mockHttpResponse = MockHttpClientResponse(utf8.encode(tryjobEmpty()));
         when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${completedPR.number}/${completedPR.head.sha}/untriaged')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpClient.getUrl(Uri.parse(
-                'http://flutter-gold.skia.org/json/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
+                'http://flutter-gold.skia.org/json/v1/changelist/github/${followUpPR.number}/${followUpPR.head.sha}/untriaged')))
             .thenAnswer((_) => Future<MockHttpClientRequest>.value(mockHttpRequest));
         when(mockHttpRequest.close()).thenAnswer((_) => Future<MockHttpClientResponse>.value(mockHttpResponse));
 
