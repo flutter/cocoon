@@ -110,7 +110,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   ///
   /// Access tokens are the legacy authentication strategy for Google OAuth, where ID tokens
   /// are the new technique to use. LUCI auth only generates access tokens, and must be
-  /// validated against a different endpoint. We only authenticate access tokens 
+  /// validated against a different endpoint. We only authenticate access tokens
   /// if they belong to a LUCI prod service account.
   ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
