@@ -88,7 +88,7 @@ Future<bool> _checkDependencies() async {
 Future<bool> _buildAngularDartApp() async {
   if (_skipBuild) {
     stdout.writeln('Skipping the build of Angular app');
-    return Future<bool>.value(true);
+    return true;
   }
 
   /// Clean up previous build files to ensure this codebase is deployed.
@@ -126,7 +126,7 @@ Future<bool> _buildAngularDartApp() async {
 Future<bool> _buildFlutterWebApp() async {
   if (_skipBuild) {
     stdout.writeln('Skipping the build of Flutter app');
-    return Future<bool>.value(true);
+    return true;
   }
 
   /// Clean up previous build files to ensure this codebase is deployed.
@@ -153,7 +153,7 @@ Future<bool> _buildFlutterWebApp() async {
 Future<bool> _copyAngularDartProject() async {
   if (_skipBuild) {
     stdout.writeln('Reusing existing app build files in app_dart/build');
-    return Future<bool>.value(true);
+    return true;
   }
   final ProcessResult result =
       await Process.run('cp', <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
@@ -167,7 +167,7 @@ Future<bool> _copyAngularDartProject() async {
 Future<bool> _copyFlutterApp() async {
   if (_skipBuild) {
     stdout.writeln('Reusing existing app_flutter build files in app_dart/build');
-    return Future<bool>.value(true);
+    return true;
   }
   final ProcessResult result = await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
 
