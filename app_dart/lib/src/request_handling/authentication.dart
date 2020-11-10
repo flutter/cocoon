@@ -64,37 +64,34 @@ import 'exceptions.dart';
 @immutable
 class AuthenticationProvider {
   const AuthenticationProvider(
-    this._config, {
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
-  })  : assert(_config != null),
+    this.config, {
+    this.clientContextProvider = Providers.serviceScopeContext,
+    this.httpClientProvider = Providers.freshHttpClient,
+    this.loggingProvider = Providers.serviceScopeLogger,
+  })  : assert(config != null),
         assert(clientContextProvider != null),
         assert(httpClientProvider != null),
-        assert(loggingProvider != null),
-        _clientContextProvider = clientContextProvider,
-        _httpClientProvider = httpClientProvider,
-        _loggingProvider = loggingProvider;
+        assert(loggingProvider != null);
 
   /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
+  final Config config;
 
   /// Provides the App Engine client context as part of the
   /// [AuthenticatedContext].
   ///
   /// This is guaranteed to be non-null.
-  final ClientContextProvider _clientContextProvider;
+  final ClientContextProvider clientContextProvider;
 
   /// Provides the HTTP client that will be used (if necessary) to verify OAuth
   /// ID tokens (JWT tokens).
   ///
   /// This is guaranteed to be non-null.
-  final HttpClientProvider _httpClientProvider;
+  final HttpClientProvider httpClientProvider;
 
   /// Provides the logger.
   ///
   /// This is guaranteed to be non-null.
-  final LoggingProvider _loggingProvider;
+  final LoggingProvider loggingProvider;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -112,14 +109,14 @@ class AuthenticationProvider {
         .map<String>((Cookie cookie) => cookie.value)
         .followedBy(<String>[null]).first;
     final String idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final ClientContext clientContext = _clientContextProvider();
-    final Logging log = _loggingProvider();
+    final ClientContext clientContext = clientContextProvider();
+    final Logging log = loggingProvider();
 
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final Agent agent = await config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
@@ -165,7 +162,7 @@ class AuthenticationProvider {
 
   Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final HttpClient client = _httpClientProvider();
+    final HttpClient client = httpClientProvider();
     try {
       final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
         'oauth2.googleapis.com',
@@ -192,7 +189,7 @@ class AuthenticationProvider {
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
 
-      final String clientId = await _config.oauthClientId;
+      final String clientId = await config.oauthClientId;
       assert(clientId != null);
       if (token.audience != clientId) {
         log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
@@ -213,7 +210,7 @@ class AuthenticationProvider {
   }
 
   Future<bool> _isAllowed(String email) async {
-    final Query<AllowedAccount> query = _config.db.query<AllowedAccount>()
+    final Query<AllowedAccount> query = config.db.query<AllowedAccount>()
       ..filter('email =', email)
       ..limit(20);
 

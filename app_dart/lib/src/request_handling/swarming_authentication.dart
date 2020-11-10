@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
@@ -45,31 +47,18 @@ import 'exceptions.dart';
 @immutable
 class SwarmingAuthenticationProvider extends AuthenticationProvider {
   const SwarmingAuthenticationProvider(
-    this._config, {
-    this.clientContextProvider = Providers.serviceScopeContext,
-    this.loggingProvider = Providers.serviceScopeLogger,
+    Config config, {
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
   }) : super(
-          _config,
+          config,
           clientContextProvider: clientContextProvider,
           httpClientProvider: httpClientProvider,
           loggingProvider: loggingProvider,
         );
 
-  /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
-
-  /// Provides the App Engine client context as part of the
-  /// [AuthenticatedContext].
-  ///
-  /// This is guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
-
-  /// Provides the logger.
-  ///
-  /// This is guaranteed to be non-null.
-  final LoggingProvider loggingProvider;
-
+  /// Name of the header that Cocoon agent requests will put their token.
   static const String kAgentIdHeader = 'Agent-ID';
 
   /// Name of the header that LUCI requests will put their service account token.
@@ -94,8 +83,8 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = _config.db.emptyKey.append(Agent, id: agentId);
-      final Agent agent = await _config.db.lookupValue<Agent>(agentKey, orElse: () {
+      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final Agent agent = await config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });
 
@@ -111,9 +100,57 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (swarmingToken != null) {
-      return await authenticateIdToken(swarmingToken, clientContext: clientContext, log: log);
+      return await authenticateAccessToken(swarmingToken, clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI or Cocoon agent');
+  }
+
+  /// Authenticate [accessToken] against Google OAuth 2 API.
+  ///
+  /// Access tokens are the legacy authentication strategy for Google OAuth, where ID tokens
+  /// are the new technique to use. LUCI auth only generates access tokens, and must be
+  /// validated against a different endpoint. We only authenticate access tokens
+  /// if they belong to a LUCI prod service account.
+  ///
+  /// If LUCI auth adds id tokens, we can switch to that and remove this.
+  Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
+      {ClientContext clientContext, Logging log}) async {
+    // Authenticate as a signed-in Google account via OAuth id token.
+    final HttpClient client = httpClientProvider();
+    try {
+      final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+        'oauth2.googleapis.com',
+        '/tokeninfo',
+        <String, String>{
+          'access_token': accessToken,
+        },
+      ));
+      final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
+
+      if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+        /// Google Auth API returns a message in the response body explaining why
+        /// the request failed. Such as "Invalid Token".
+        final String body = await utf8.decodeStream(verifyTokenResponse);
+        log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        throw const Unauthenticated('Invalid access token');
+      }
+
+      final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
+      TokenInfo token;
+      try {
+        token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+      } on FormatException {
+        throw InternalServerError('Invalid JSON: "$tokenJson"');
+      }
+
+      if (token.email == config.luciProdAccount) {
+        return AuthenticatedContext(clientContext: clientContext);
+      }
+
+      throw Unauthenticated('${token.email} is not allowed');
+    } finally {
+      client.close();
+    }
   }
 }

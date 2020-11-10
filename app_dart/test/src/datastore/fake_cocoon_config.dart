@@ -253,4 +253,7 @@ class FakeConfig implements Config {
     }
     return <LuciBuilder>[];
   }
+
+  @override
+  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 }

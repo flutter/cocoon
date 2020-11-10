@@ -96,7 +96,7 @@ void main() {
       expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
     });
 
-    group('when id token is given', () {
+    group('when access token is given', () {
       FakeHttpClient httpClient;
       FakeHttpClientResponse verifyTokenResponse;
 
@@ -111,7 +111,44 @@ void main() {
         );
       });
 
-      test('auth succeeds with authenticated service account token', () async {});
+      test('auth succeeds with expected service account', () async {
+        httpClient = FakeHttpClient(
+            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
+              ..statusCode = HttpStatus.ok
+              ..body = '{"email": "${config.luciProdAccount}"}');
+
+        verifyTokenResponse = httpClient.request.response;
+        auth = SwarmingAuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
+
+        final AuthenticatedContext result = await auth.authenticate(request);
+        expect(result.clientContext, same(clientContext));
+      });
+
+      test('auth fails with non-luci service account', () async {
+        httpClient = FakeHttpClient(
+            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
+              ..statusCode = HttpStatus.ok
+              ..body = '{"email": "abc@gmail.com"}');
+
+        verifyTokenResponse = httpClient.request.response;
+        auth = SwarmingAuthenticationProvider(
+          config,
+          clientContextProvider: () => clientContext,
+          httpClientProvider: () => httpClient,
+          loggingProvider: () => log,
+        );
+
+        request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
+
+        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+      });
 
       test('auth fails with unauthenticated service account token', () async {
         httpClient = FakeHttpClient(
@@ -125,54 +162,8 @@ void main() {
           httpClientProvider: () => httpClient,
           loggingProvider: () => log,
         );
-        config.oauthClientIdValue = 'client-id';
 
         request.headers.add(SwarmingAuthenticationProvider.kSwarmingTokenHeader, 'unauthenticated token');
-
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
-      });
-
-      test('auth fails with user token in cookie', () async {
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.queryParameters['id_token'] == 'bad-header') {
-            return verifyTokenResponse
-              ..statusCode = HttpStatus.unauthorized
-              ..body = 'Invalid token: bad-header';
-          }
-          return verifyTokenResponse
-            ..statusCode = HttpStatus.ok
-            ..body = '{"aud": "client-id", "hd": "google.com"}';
-        });
-        verifyTokenResponse = httpClient.request.response;
-        auth = SwarmingAuthenticationProvider(
-          config,
-          clientContextProvider: () => clientContext,
-          httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
-        );
-        config.oauthClientIdValue = 'client-id';
-
-        request.cookies.add(FakeCookie(name: 'X-Flutter-IdToken', value: 'authenticated'));
-        request.headers.add('X-Flutter-IdToken', 'bad-header');
-
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
-      });
-
-      test('auth fails with user id token in header', () async {
-        httpClient = FakeHttpClient(
-            onIssueRequest: (FakeHttpClientRequest request) => verifyTokenResponse
-              ..statusCode = HttpStatus.ok
-              ..body = '{"aud": "client-id", "hd": "google.com"}');
-        verifyTokenResponse = httpClient.request.response;
-        auth = SwarmingAuthenticationProvider(
-          config,
-          clientContextProvider: () => clientContext,
-          httpClientProvider: () => httpClient,
-          loggingProvider: () => log,
-        );
-        config.oauthClientIdValue = 'client-id';
-
-        request.headers.add('X-Flutter-IdToken', 'authenticated');
 
         expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
       });
