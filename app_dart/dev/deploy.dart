@@ -19,12 +19,14 @@ const String gcloudProjectVersionAbbrFlag = 'v';
 const String flutterProfileModeFlag = 'profile';
 const String ignoreVersionFlag = 'ignore-version-check';
 const String helpFlag = 'help';
+const String skipBuildFlag = 'skip-build';
 
 String _gcloudProjectId;
 String _gcloudProjectVersion;
 
 bool _flutterProfileMode;
 bool _ignoreVersion;
+bool _skipBuild;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -41,6 +43,7 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
   _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String;
   _flutterProfileMode = args[flutterProfileModeFlag] as bool;
   _ignoreVersion = args[ignoreVersionFlag] as bool;
+  _skipBuild = args[skipBuildFlag] as bool;
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -83,6 +86,11 @@ Future<bool> _checkDependencies() async {
 
 /// Build app Angular Dart project
 Future<bool> _buildAngularDartApp() async {
+  if (_skipBuild) {
+    stdout.writeln('Skipping the build of Angular app');
+    return Future<bool>.value(true);
+  }
+
   /// Clean up previous build files to ensure this codebase is deployed.
   await Process.run(
     'rm',
@@ -116,6 +124,11 @@ Future<bool> _buildAngularDartApp() async {
 
 /// Build app_flutter for web.
 Future<bool> _buildFlutterWebApp() async {
+  if (_skipBuild) {
+    stdout.writeln('Skipping the build of Flutter app');
+    return Future<bool>.value(true);
+  }
+
   /// Clean up previous build files to ensure this codebase is deployed.
   await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: flutterProjectDirectory);
 
@@ -138,6 +151,10 @@ Future<bool> _buildFlutterWebApp() async {
 
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
+  if (_skipBuild) {
+    stdout.writeln('Reusing existing app build files in app_dart/build');
+    return Future<bool>.value(true);
+  }
   final ProcessResult result =
       await Process.run('cp', <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
 
@@ -148,6 +165,10 @@ Future<bool> _copyAngularDartProject() async {
 
 /// Copy the built project from app_flutter to this app_dart project.
 Future<bool> _copyFlutterApp() async {
+  if (_skipBuild) {
+    stdout.writeln('Reusing existing app_flutter build files in app_dart/build');
+    return Future<bool>.value(true);
+  }
   final ProcessResult result = await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
 
   return result.exitCode == 0;
@@ -171,6 +192,7 @@ Future<bool> _deployToAppEngine() async {
       _gcloudProjectVersion,
       '--no-promote',
       '--no-stop-previous-version',
+      '--quiet'
     ],
   );
 
@@ -189,7 +211,8 @@ Future<void> main(List<String> arguments) async {
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
     ..addFlag(flutterProfileModeFlag)
     ..addFlag(ignoreVersionFlag)
-    ..addFlag(helpFlag);
+    ..addFlag(helpFlag)
+    ..addFlag(skipBuildFlag);
 
   if (!_getArgs(argParser, arguments)) {
     stdout.write('Required flags:\n'
@@ -197,7 +220,8 @@ Future<void> main(List<String> arguments) async {
         '--$gcloudProjectVersionFlag version\n\n'
         'Optional flags:\n'
         '--$flutterProfileModeFlag\tBuild app_flutter in profile for debugging\n'
-        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n');
+        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n'
+        '--$skipBuildFlag\tUse existing build directory in app_dart\n');
     exit(1);
   }
 
