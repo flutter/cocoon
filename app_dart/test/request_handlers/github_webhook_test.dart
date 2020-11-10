@@ -665,7 +665,7 @@ void main() {
       );
     });
 
-    test('Labels draft issues as work in progress, does not test pest.', () async {
+    test('Does not test pest draft pull requests.', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
       request.body = jsonTemplate(
@@ -691,12 +691,6 @@ void main() {
       });
 
       await tester.post(webhook);
-
-      verify(issuesService.addLabelsToIssue(
-        slug,
-        issueNumber,
-        <String>['work in progress; do not review'],
-      )).called(1);
 
       verifyNever(issuesService.createComment(
         slug,
