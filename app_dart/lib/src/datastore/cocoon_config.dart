@@ -198,6 +198,9 @@ class Config {
   String flutterGoldCommentID(PullRequest pr) =>
       '_Changes reported for pull request #${pr.number} at sha ${pr.head.sha}_\n\n';
 
+  /// Post submit service account email used by LUCI swarming tasks.
+  String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+
   int get maxTaskRetries => 2;
 
   /// The number of times to retry a LUCI job on infra failures.

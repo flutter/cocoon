@@ -3,18 +3,18 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/oauth2/v2.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
+import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/agent.dart';
-import '../model/appengine/service_account_info.dart';
 
 import 'exceptions.dart';
 
@@ -48,9 +48,9 @@ import 'exceptions.dart';
 class SwarmingAuthenticationProvider extends AuthenticationProvider {
   const SwarmingAuthenticationProvider(
     Config config, {
-    ClientContextProvider clientContextProvider,
-    LoggingProvider loggingProvider,
-    HttpClientProvider httpClientProvider,
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+    LoggingProvider loggingProvider = Providers.serviceScopeLogger,
   }) : super(
           config,
           clientContextProvider: clientContextProvider,
@@ -58,6 +58,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
           loggingProvider: loggingProvider,
         );
 
+  /// Name of the header that Cocoon agent requests will put their token.
   static const String kAgentIdHeader = 'Agent-ID';
 
   /// Name of the header that LUCI requests will put their service account token.
@@ -99,7 +100,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (swarmingToken != null) {
-      return await _authenticatAccessToken(swarmingToken, clientContext: clientContext, log: log);
+      return await authenticateAccessToken(swarmingToken, clientContext: clientContext, log: log);
     }
 
     throw const Unauthenticated('Request rejected due to not from LUCI or Cocoon agent');
@@ -113,25 +114,43 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
   /// to a DeviceLab service account.
   ///
   /// If LUCI auth adds id tokens, we can switch to that and remove this.
-  Future<AuthenticatedContext> _authenticatAccessToken(String accessToken,
+  Future<AuthenticatedContext> authenticateAccessToken(String accessToken,
       {ClientContext clientContext, Logging log}) async {
-    // Authenticate as a signed-in Google account via OAuth access token.
-    final Client client = httpClientProvider() as Client;
+    // Authenticate as a signed-in Google account via OAuth id token.
+    final HttpClient client = httpClientProvider();
+    try {
+      final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
+        'oauth2.googleapis.com',
+        '/tokeninfo',
+        <String, String>{
+          'access_token': accessToken,
+        },
+      ));
+      final HttpClientResponse verifyTokenResponse = await verifyTokenRequest.close();
 
-    final Oauth2Api oauth2api = Oauth2Api(client);
-    final Tokeninfo info = await oauth2api.tokeninfo(
-      accessToken: accessToken,
-    );
+      if (verifyTokenResponse.statusCode != HttpStatus.ok) {
+        /// Google Auth API returns a message in the response body explaining why
+        /// the request failed. Such as "Invalid Token".
+        final String body = await utf8.decodeStream(verifyTokenResponse);
+        log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        throw const Unauthenticated('Invalid access token');
+      }
 
-    if (info.expiresIn == null || info.expiresIn < 1) {
-      throw const Unauthenticated('Service account expired');
+      final String tokenJson = await utf8.decodeStream(verifyTokenResponse);
+      TokenInfo token;
+      try {
+        token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
+      } on FormatException {
+        throw InternalServerError('Invalid JSON: "$tokenJson"');
+      }
+
+      if (token.email == config.luciProdAccount) {
+        return AuthenticatedContext(clientContext: clientContext);
+      }
+
+      throw Unauthenticated('${token.email} is not allowed');
+    } finally {
+      client.close();
     }
-    final ServiceAccountInfo devicelabServiceAccount = await config.deviceLabServiceAccount;
-
-    if (info.email == devicelabServiceAccount.email) {
-      return AuthenticatedContext(clientContext: clientContext);
-    }
-
-    throw const Unauthenticated('Invalid service account');
   }
 }

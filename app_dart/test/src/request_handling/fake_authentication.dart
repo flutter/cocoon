@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:gcloud/db.dart';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
@@ -47,6 +49,18 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   bool compareHashAndPassword(List<int> serverAuthTokenHash, String clientAuthToken) {
     throw UnimplementedError();
   }
+
+  @override
+  ClientContextProvider get clientContextProvider => throw UnimplementedError();
+
+  @override
+  Config get config => throw UnimplementedError();
+
+  @override
+  HttpClientProvider get httpClientProvider => throw UnimplementedError();
+
+  @override
+  LoggingProvider get loggingProvider => throw UnimplementedError();
 }
 
 // ignore: must_be_immutable
