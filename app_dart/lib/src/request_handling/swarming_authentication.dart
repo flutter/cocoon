@@ -100,6 +100,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (swarmingToken != null) {
+      log.debug('Authenticating as swarming task');
       return await authenticateAccessToken(swarmingToken, clientContext: clientContext, log: log);
     }
 
@@ -119,6 +120,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     // Authenticate as a signed-in Google account via OAuth id token.
     final HttpClient client = httpClientProvider();
     try {
+      log.debug('Sending token request to Google OAuth');
       final HttpClientRequest verifyTokenRequest = await client.getUrl(Uri.https(
         'oauth2.googleapis.com',
         '/tokeninfo',
@@ -141,6 +143,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
       try {
         token = TokenInfo.fromJson(json.decode(tokenJson) as Map<String, dynamic>);
       } on FormatException {
+        log.warning('Failed to decode token JSON: $tokenJson');
         throw InternalServerError('Invalid JSON: "$tokenJson"');
       }
 
@@ -148,6 +151,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
         return AuthenticatedContext(clientContext: clientContext);
       }
 
+      log.warning('${token.email} is not allowed');
       throw Unauthenticated('${token.email} is not allowed');
     } finally {
       client.close();
