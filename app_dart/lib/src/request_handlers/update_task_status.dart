@@ -158,7 +158,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final Key commitKey = _constructCommitKey(datastore);
 
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)
-      ..filter('name = ', requestData[taskNameParam]);
+      ..filter('name =', requestData[taskNameParam]);
     final List<Task> tasks = await query.run().toList();
     if (tasks.length != 1) {
       throw const InternalServerError('Multiple tasks found');
