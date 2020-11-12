@@ -45,7 +45,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   final DatastoreServiceProvider datastoreProvider;
 
-  static const String gitBranchParam = 'Branch';
+  static const String gitBranchParam = 'CommitBranch';
   static const String gitShaParam = 'CommitSha';
   static const String newStatusParam = 'NewStatus';
   static const String resultsParam = 'ResultData';
