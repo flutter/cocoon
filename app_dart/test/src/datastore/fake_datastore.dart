@@ -136,6 +136,8 @@ class FakeQuery<T extends Model> implements Query<T> {
 
   @override
   void filter(String filterString, Object comparisonObject) {
+    // In production, Datastore filters cannot have a space at the end.
+    assert(filterString.trim() == filterString);
     filters.add(FakeFilterSpec._(filterString, comparisonObject));
   }
 
