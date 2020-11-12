@@ -202,13 +202,10 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       );
     }
 
-    final List<Task> tasks = <Task>[
-      // These built-in tasks are not listed in the manifest.
-      newTask('cirrus', 'cirrus', <String>['can-update-github'], false, 0),
-    ];
-
+    final List<Task> tasks = <Task>[];
     final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders('flutter', config);
     for (LuciBuilder builder in prodBuilders) {
+      // These built-in tasks are not listed in the manifest.
       tasks.add(Task.chromebot(commitKey, createTimestamp, builder.taskName, builder.flaky ?? false));
     }
 
