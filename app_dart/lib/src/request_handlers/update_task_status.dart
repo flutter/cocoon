@@ -157,14 +157,16 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
     final Key commitKey = _constructCommitKey(datastore);
 
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)
-      ..filter('name =', requestData[taskNameParam]);
+    final String taskName = requestData[taskNameParam];
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)..filter('name =', taskName);
     final List<Task> tasks = await query.run().toList();
-    if (tasks.length != 1) {
-      throw const InternalServerError('Multiple tasks found');
+    if (tasks.length == 1) {
+      return tasks.first;
     }
 
-    return tasks.first;
+    log.warn('Found ${tasks.length} entries for $taskName');
+    throw const InternalServerError('Expected to find 1 task for $taskName,'
+        'but found ${tasks.length}');
   }
 
   /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
