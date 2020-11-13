@@ -35,7 +35,7 @@ dev_dependencies:
   build_runner: ^1.0.0
   json_serializable: ^3.3.0
   mockito: ^4.1.0
-  test: ^1.6.5
+  test: ^1.15.5
 
 builders:
   json_serializable: ^3.3.0
