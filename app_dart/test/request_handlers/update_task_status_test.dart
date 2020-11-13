@@ -198,5 +198,29 @@ void main() {
       expect(cocoonTask.status, Task.statusNew);
       expect(cocoonTask.attempts, 0);
     });
+
+    test('task name request fails when there is only a Cocoon task', () async {
+      final Commit commit = Commit(
+          key:
+              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/7d03371610c07953a5def50d500045941de516b8'));
+      config.db.values[commit.key] = commit;
+      final Task cocoonTask = Task(
+        key: commit.key.append(Task, id: 4590522719010816),
+        name: 'integration_ui_ios',
+        attempts: 0,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+        status: Task.statusNew,
+        stageName: 'devicelab',
+      );
+      config.db.values[cocoonTask.key] = cocoonTask;
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: 'master',
+        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+      };
+      expect(tester.post(handler), throwsA(isA<InternalServerError>()));
+    });
   });
 }
