@@ -6,37 +6,40 @@ environment:
   sdk: '>=2.8.0-dev.10.0 <3.0.0'
 
 dependencies:
-  angular: 5.3.1
-  angular_components: ^0.13.0+1
-  angular_forms: 2.1.0
+  angular: ^6.0.1
+  angular_components: ^1.0.2
+  angular_forms: ^3.0.0
   args:
   js:
   http:
   meta:
   json_annotation:
-  flutter_web: any
-  flutter_web_ui: any
+  # TODO(fujino): migrate to flutter https://github.com/flutter/flutter/issues/70428
+  #flutter_web: any
+  #flutter_web_ui: any
 
 dev_dependencies:
-  test:
+  test: ^1.15.5
   build_test:
   json_serializable:
   # Enables the `pub run build_runner` command
   build_runner: ^1.7.0
   # Includes the JavaScript compilers
-  build_web_compilers: 2.10.0
-  flutter_web_test: any
+  # TODO(fujino): migrate to flutter https://github.com/flutter/flutter/issues/70428
+  #build_web_compilers: 2.10.0
+  #flutter_web_test: any
 
-dependency_overrides:
-  flutter_web:
-    git:
-      url: https://github.com/flutter/flutter_web.git
-      path: packages/flutter_web
-  flutter_web_ui:
-    git:
-      url: https://github.com/flutter/flutter_web.git
-      path: packages/flutter_web_ui
-  flutter_web_test:
-    git:
-      url: https://github.com/flutter/flutter_web.git
-      path: packages/flutter_web_test
+# TODO(fujino): migrate to flutter https://github.com/flutter/flutter/issues/70428
+#dependency_overrides:
+#  flutter_web:
+#    git:
+#      url: https://github.com/flutter/flutter_web.git
+#      path: packages/flutter_web
+#  flutter_web_ui:
+#    git:
+#      url: https://github.com/flutter/flutter_web.git
+#      path: packages/flutter_web_ui
+#  flutter_web_test:
+#    git:
+#      url: https://github.com/flutter/flutter_web.git
+#      path: packages/flutter_web_test
