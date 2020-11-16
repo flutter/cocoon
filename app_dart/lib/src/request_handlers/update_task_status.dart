@@ -157,11 +157,21 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
     final Key commitKey = _constructCommitKey(datastore);
 
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)
-      ..filter('name =', requestData[taskNameParam]);
-    final List<Task> tasks = await query.run().toList();
+    final String taskName = requestData[taskNameParam] as String;
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)..filter('name =', taskName);
+    final List<Task> initialTasks = await query.run().toList();
+    // Expected initialTasks will return one CocoonAgentTask and one LuciTask.
+    // TODO(chillers): After migration to LUCI this can be removed as there will only be one entry, https://github.com/flutter/flutter/projects/151
+    final List<Task> tasks = <Task>[];
+    for (Task task in initialTasks) {
+      if (task.stageName == 'chromebot') {
+        tasks.add(task);
+      }
+    }
+
     if (tasks.length != 1) {
-      throw const InternalServerError('Multiple tasks found');
+      log.error('Found ${tasks.length} entries for $taskName');
+      throw InternalServerError('Expected to find 1 task for $taskName, but found ${tasks.length}');
     }
 
     return tasks.first;
