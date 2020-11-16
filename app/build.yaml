@@ -1,9 +1,6 @@
 targets:
   $default:
     builders:
-      json_serializable:
-        options:
-          generate_to_json_function: false
       build_web_compilers|entrypoint:
         generate_for:
         - web/**.dart
