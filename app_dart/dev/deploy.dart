@@ -9,6 +9,7 @@ import 'package:pedantic/pedantic.dart';
 
 const String angularDartProjectDirectory = '../app';
 const String flutterProjectDirectory = '../app_flutter';
+const String repositoryProjectDirectory = '../repository';
 
 const String gcloudProjectIdFlag = 'project';
 const String gcloudProjectIdAbbrFlag = 'p';
@@ -149,6 +150,34 @@ Future<bool> _buildFlutterWebApp() async {
   return successfulReturn;
 }
 
+// Build repository for web.
+Future<bool> _buildRepositoryWebApp() async {
+  if (_skipBuild) {
+    stdout.writeln('Skipping the build of Repository app');
+    return true;
+  }
+
+  /// Clean up previous build files to ensure this codebase is deployed.
+  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: repositoryProjectDirectory);
+
+  final Process process = await Process.start(
+      'flutter',
+      <String>[
+        'build',
+        'web',
+        '--dart-define',
+        'FLUTTER_WEB_USE_SKIA=true',
+        _flutterProfileMode ? '--profile' : '--release'
+      ],
+      workingDirectory: flutterProjectDirectory);
+  await stdout.addStream(process.stdout);
+
+  final bool successfulReturn = await process.exitCode == 0;
+
+  return successfulReturn;
+}
+
+
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
   if (_skipBuild) {
@@ -170,6 +199,17 @@ Future<bool> _copyFlutterApp() async {
     return true;
   }
   final ProcessResult result = await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
+
+  return result.exitCode == 0;
+}
+
+/// Copy the built project from repository to this app_dart project.
+Future<bool> _copyRepositoryApp() async {
+  if (_skipBuild) {
+    stdout.writeln('Reusing existing repository build files in app_dart/build');
+    return true;
+  }
+  final ProcessResult result = await Process.run('cp', <String>['-r', '$repositoryProjectDirectory/build', 'build/repository']);
 
   return result.exitCode == 0;
 }

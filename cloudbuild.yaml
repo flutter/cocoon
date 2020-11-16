@@ -8,6 +8,11 @@ steps:
     entrypoint: '/bin/bash'
     args: ['cloud_build/app_flutter_build.sh']
 
+    # Build repository.
+  - name: gcr.io/$PROJECT_ID/flutter
+    entrypoint: '/bin/bash'
+    args: ['cloud_build/repository_build.sh']
+
   # Build angular dart app.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
