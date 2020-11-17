@@ -4,8 +4,10 @@
 
 import 'dart:collection' show SplayTreeMap;
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../models/github_authentication.dart' as github;
@@ -13,31 +15,31 @@ import '../models/repository_status.dart';
 
 Map<Uri, String> _eTagByURL = <Uri, String>{}; // GitHub change token (eTag) by URL.
 
+final http.Client _client = http.Client();
+
 Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
   final Map<String, dynamic> fetchedDetails = await _getBody('repos/flutter/${repositoryStatus.name}');
-  if (fetchedDetails != null) {
-    repositoryStatus
-      ..watchersCount = fetchedDetails['watchers']
-      ..subscribersCount = fetchedDetails['subscribers_count']
-      ..issuesEnabled = fetchedDetails['has_issues'];
-  }
+  repositoryStatus
+    ..watchersCount = fetchedDetails['watchers']
+    ..subscribersCount = fetchedDetails['subscribers_count']
+    ..issuesEnabled = fetchedDetails['has_issues'];
 }
 
 Future<int> fetchToDoCount(String repositoryName) async {
   final Map<String, dynamic> body = await _getBody('search/code',
       queryParameters: <String, String>{'q': 'repo:flutter/${repositoryName} TODO', 'per_page': '1', 'page': '0'});
-  return (body == null) ? null : body['total_count'];
+  return body['total_count'];
 }
 
 Future<DateTime> fetchBranchLastCommitDate(String repositoryName, String branchName) async {
   final Map<String, dynamic> body = await _getBody('repos/flutter/$repositoryName/branches/$branchName');
-  return (body == null) ? null : DateTime.tryParse(body['commit']['commit']['committer']['date']);
+  return DateTime.tryParse(body['commit']['commit']['committer']['date']);
 }
 
 Future<DateTime> lastCommitFromAuthor(String repositoryName, String author) async {
   final List<dynamic> body = await _getBody('repos/flutter/$repositoryName/commits',
       queryParameters: <String, String>{'author': author, 'per_page': '1'});
-  return (body == null) ? null : DateTime.tryParse(body[0]['commit']['committer']['date']);
+  return DateTime.tryParse(body[0]['commit']['committer']['date']);
 }
 
 Future<int> fetchIssueCount(String repositoryName) async {
@@ -60,7 +62,7 @@ Future<int> _searchIssuesTotalCount(String repositoryName, {String additionalQue
     'page': '0',
     'per_page': '1'
   });
-  return (body == null) ? null : body['total_count'];
+  return body['total_count'];
 }
 
 Future<Map<String, int>> fetchTriageIssues(String repositoryName, List<String> triageLabels) async {
@@ -100,12 +102,9 @@ Future<void> fetchPullRequests(RepositoryStatus repositoryStatus) async {
 
 Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus repositoryStatus,
     Map<String, int> pullRequestCountByLabelAggregator, Map<String, int> pullRequestCountByTopicAggregator) async {
-  final HttpRequest response = await _getResponse(url);
-  if (response == null) {
-    return;
-  }
-  final String body = response.response;
-  if (body == null || body.isEmpty) {
+  final http.Response response = await _getResponse(url);
+  final String body = response.body;
+  if (body.isEmpty) {
     return;
   }
   final Map<String, dynamic> fetchedDetails = jsonDecode(body);
@@ -116,7 +115,7 @@ Future<void> _fetchRepositoryPullRequestsByPage(Uri url, RepositoryStatus reposi
     _processLabels(issue, pullRequestCountByLabelAggregator);
   }
 
-  final Uri nextPageUrl = _nextSearchPageURLFromHeaders(response.responseHeaders);
+  final Uri nextPageUrl = _nextSearchPageURLFromHeaders(response.headers);
   if (nextPageUrl != null) {
     await _fetchRepositoryPullRequestsByPage(
         nextPageUrl, repositoryStatus, pullRequestCountByLabelAggregator, pullRequestCountByTopicAggregator);
@@ -141,9 +140,6 @@ SplayTreeMap<String, int> _sortTopics(Map<String, int> previousTopics) {
 
 Uri _nextSearchPageURLFromHeaders(Map<String, String> responseHeaders) {
   final String linkHeader = responseHeaders['link'];
-  if (linkHeader == null) {
-    return null;
-  }
   final List<String> links = linkHeader.split(',');
   final int index = links.indexWhere((String link) => link.contains('rel="next"'));
   if (index == -1) {
@@ -191,7 +187,7 @@ void _processLabels(Map<String, dynamic> issue, Map<String, int> issueCountByLab
   }
 }
 
-Future<HttpRequest> _getResponse(Uri url) async {
+Future<http.Response> _getResponse(Uri url) async {
   final Map<String, String> headers = <String, String>{};
 
   if (github.isSignedIn) {
@@ -203,16 +199,16 @@ Future<HttpRequest> _getResponse(Uri url) async {
     headers['If-None-Match'] = requestETag;
   }
 
-  final HttpRequest response =
-      await HttpRequest.request(url.toString(), requestHeaders: headers).catchError((Error error) {
+  final http.Response response =
+      await _client.get(url.toString(), headers: headers).catchError((Error error) {
     print('Error fetching"$url": $error');
   });
 
-  if (response?.status == HttpStatus.notModified) {
+  if (response.statusCode == HttpStatus.notModified) {
     debugPrint('GitHub reports query results have not been updated since last check of "$url", skipping.');
   }
 
-  final String responseETag = response?.responseHeaders['etag'];
+  final String responseETag = response.headers['etag'];
   if (responseETag != null) {
     _eTagByURL[url] = responseETag;
   }
@@ -221,7 +217,7 @@ Future<HttpRequest> _getResponse(Uri url) async {
 
 Future<dynamic> _getBody(String path, {Map<String, String> queryParameters}) async {
   final Uri url = Uri.https('api.github.com', path, queryParameters);
-  final HttpRequest response = await _getResponse(url);
-  final String body = response?.response;
-  return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
+  final http.Response response = await _getResponse(url);
+  final String body = response.body;
+  return jsonDecode(body);
 }
