@@ -2,17 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:html';
+import 'package:localstorage/localstorage.dart';
 
 const String _kTokenStorageKey = 'github-token';
 
-String get token => window.localStorage[_kTokenStorageKey];
-set token(String value) => window.localStorage[_kTokenStorageKey] = value;
+final LocalStorage storage = new LocalStorage('github.json');
+
+String get token => storage.getItem(_kTokenStorageKey);
+set token(String value) => storage.setItem(_kTokenStorageKey, value);
 
 bool get isSignedIn {
-  return window.localStorage.containsKey(_kTokenStorageKey);
+  return storage.getItem(_kTokenStorageKey) != null;
 }
 
 void signOut() {
-  window.localStorage.remove(_kTokenStorageKey);
+  storage.deleteItem(_kTokenStorageKey);
 }
