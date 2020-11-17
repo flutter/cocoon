@@ -8,8 +8,8 @@ import 'package:args/args.dart';
 import 'package:pedantic/pedantic.dart';
 
 const String angularDartProjectDirectory = '../app';
-const String flutterProjectDirectory = '../app_flutter';
-const String repoDashDirectory = '../repo_dash';
+const String cloudbuildDirectory = 'cloud_build';
+const String workspaceDirectory = '../';
 
 const String gcloudProjectIdFlag = 'project';
 const String gcloudProjectIdAbbrFlag = 'p';
@@ -17,17 +17,13 @@ const String gcloudProjectIdAbbrFlag = 'p';
 const String gcloudProjectVersionFlag = 'version';
 const String gcloudProjectVersionAbbrFlag = 'v';
 
-const String flutterProfileModeFlag = 'profile';
 const String ignoreVersionFlag = 'ignore-version-check';
 const String helpFlag = 'help';
-const String skipBuildFlag = 'skip-build';
 
 String _gcloudProjectId;
 String _gcloudProjectVersion;
 
-bool _flutterProfileMode;
 bool _ignoreVersion;
-bool _skipBuild;
 
 /// Check if [gcloudProjectIdFlag] and [gcloudProjectVersionFlag]
 /// were passed as arguments. If they were, also set [_gcloudProjectId]
@@ -42,9 +38,7 @@ bool _getArgs(ArgParser argParser, List<String> arguments) {
 
   _gcloudProjectId = args[gcloudProjectIdFlag] as String;
   _gcloudProjectVersion = args[gcloudProjectVersionFlag] as String;
-  _flutterProfileMode = args[flutterProfileModeFlag] as bool;
   _ignoreVersion = args[ignoreVersionFlag] as bool;
-  _skipBuild = args[skipBuildFlag] as bool;
 
   if (_gcloudProjectId == null) {
     stderr.write('--$gcloudProjectIdFlag must be defined\n');
@@ -85,134 +79,6 @@ Future<bool> _checkDependencies() async {
   return lastUpdateToFlutter.inDays < 21;
 }
 
-/// Build app Angular Dart project
-Future<bool> _buildAngularDartApp() async {
-  if (_skipBuild) {
-    stdout.writeln('Skipping the build of Angular app');
-    return true;
-  }
-
-  /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run(
-    'rm',
-    <String>['-rf', 'build/'],
-    workingDirectory: angularDartProjectDirectory,
-  );
-
-  final Process pubProcess = await Process.start('pub', <String>['get'], workingDirectory: angularDartProjectDirectory);
-  await stdout.addStream(pubProcess.stdout);
-  await stderr.addStream(pubProcess.stderr);
-  if (await pubProcess.exitCode != 0) {
-    return false;
-  }
-
-  final Process buildProcess = await Process.start(
-    'pub',
-    <String>['run', 'build_runner', 'build', '--release', '--output', 'build', '--delete-conflicting-outputs'],
-    workingDirectory: angularDartProjectDirectory,
-  );
-  await stdout.addStream(buildProcess.stdout);
-  await stderr.addStream(buildProcess.stderr);
-
-  // The Angular Dart build dashboard page has been replaced with a Flutter
-  // version. There are some administrative features missing in the Flutter
-  // version so we still offer the old build dashboard.
-  await Process.run('mv', <String>['build/web/build.html', 'build/web/old_build.html'],
-      workingDirectory: angularDartProjectDirectory);
-
-  return await buildProcess.exitCode == 0;
-}
-
-/// Build app_flutter for web.
-Future<bool> _buildFlutterWebApp() async {
-  if (_skipBuild) {
-    stdout.writeln('Skipping the build of Flutter app');
-    return true;
-  }
-
-  /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: flutterProjectDirectory);
-
-  final Process process = await Process.start(
-      'flutter',
-      <String>[
-        'build',
-        'web',
-        '--dart-define',
-        'FLUTTER_WEB_USE_SKIA=true',
-        _flutterProfileMode ? '--profile' : '--release'
-      ],
-      workingDirectory: flutterProjectDirectory);
-  await stdout.addStream(process.stdout);
-
-  final bool successfulReturn = await process.exitCode == 0;
-
-  return successfulReturn;
-}
-
-// Build repo dashboard for web.
-Future<bool> _buildRepoDashboard() async {
-  if (_skipBuild) {
-    stdout.writeln('Skipping the build of repo dashboard');
-    return true;
-  }
-
-  /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: repoDashDirectory);
-
-  final Process process = await Process.start(
-      'flutter',
-      <String>[
-        'build',
-        'web',
-        '--dart-define',
-        'FLUTTER_WEB_USE_SKIA=true',
-        _flutterProfileMode ? '--profile' : '--release'
-      ],
-      workingDirectory: flutterProjectDirectory);
-  await stdout.addStream(process.stdout);
-
-  final bool successfulReturn = await process.exitCode == 0;
-
-  return successfulReturn;
-}
-
-/// Copy the built project from app to this app_dart project.
-Future<bool> _copyAngularDartProject() async {
-  if (_skipBuild) {
-    stdout.writeln('Reusing existing app build files in app_dart/build');
-    return true;
-  }
-  final ProcessResult result =
-      await Process.run('cp', <String>['-rn', '$angularDartProjectDirectory/build/web', 'build/']);
-
-  // On MacOS, this will return exit code 1 since this copy does
-  // have files that "fail" to overwrite due to `app_flutter`.
-  return result.exitCode == 0 || result.exitCode == 1;
-}
-
-/// Copy the built project from app_flutter to this app_dart project.
-Future<bool> _copyFlutterApp() async {
-  if (_skipBuild) {
-    stdout.writeln('Reusing existing app_flutter build files in app_dart/build');
-    return true;
-  }
-  final ProcessResult result = await Process.run('cp', <String>['-r', '$flutterProjectDirectory/build', 'build/']);
-
-  return result.exitCode == 0;
-}
-
-/// Copy the built project from repository to this app_dart project.
-Future<bool> _copyRepoDashboard() async {
-  if (_skipBuild) {
-    stdout.writeln('Reusing existing repo dashboard build files in app_dart/build');
-    return true;
-  }
-  final ProcessResult result = await Process.run('cp', <String>['-r', '$repoDashDirectory/build', 'build/repository']);
-
-  return result.exitCode == 0;
-}
-
 /// Run the Google Cloud CLI tool to deploy to [_gcloudProjectId] under
 /// version [_gcloudProjectVersion].
 Future<bool> _deployToAppEngine() async {
@@ -248,19 +114,15 @@ Future<void> main(List<String> arguments) async {
   final ArgParser argParser = ArgParser()
     ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
     ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
-    ..addFlag(flutterProfileModeFlag)
     ..addFlag(ignoreVersionFlag)
-    ..addFlag(helpFlag)
-    ..addFlag(skipBuildFlag);
+    ..addFlag(helpFlag);
 
   if (!_getArgs(argParser, arguments)) {
     stdout.write('Required flags:\n'
         '--$gcloudProjectIdFlag gcp-id\n'
         '--$gcloudProjectVersionFlag version\n\n'
         'Optional flags:\n'
-        '--$flutterProfileModeFlag\tBuild app_flutter in profile for debugging\n'
-        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n'
-        '--$skipBuildFlag\tUse existing build directory in app_dart\n');
+        '--$ignoreVersionFlag\tForce deploy with current Flutter version\n');
     exit(1);
   }
 
@@ -269,40 +131,23 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  if (!await _buildAngularDartApp()) {
-    stderr.writeln('Failed to build Angular Dart project');
-    exit(1);
-  }
+  await Process.run(
+    'bash',
+    <String>['$cloudbuildDirectory/app_flutter_build.sh'],
+    workingDirectory: workspaceDirectory,
+  );
 
-  if (!await _buildFlutterWebApp()) {
-    stderr.writeln('Failed to build Flutter app');
-    exit(1);
-  }
+  await Process.run(
+    'bash',
+    <String>['$cloudbuildDirectory/repo_dash_build.sh'],
+    workingDirectory: workspaceDirectory,
+  );
 
-  if (!await _buildRepoDashboard()) {
-    stderr.writeln('Failed to build repo dashboard');
-    exit(1);
-  }
-
-  /// Clean up previous build files to ensure the latest files are deployed.
-  if (_skipBuild == false) {
-    await Process.run('rm', <String>['-rf', 'build/']);
-  }
-
-  if (!await _copyFlutterApp()) {
-    stderr.writeln('Failed to copy Flutter app over');
-    exit(1);
-  }
-
-  if (!await _copyAngularDartProject()) {
-    stderr.writeln('Failed to copy Angular Dart project over');
-    exit(1);
-  }
-
-  if (!await _copyRepoDashboard()) {
-    stderr.writeln('Failed to copy repo dashboard over');
-    exit(1);
-  }
+  await Process.run(
+    'bash',
+    <String>['$cloudbuildDirectory/app_build.sh'],
+    workingDirectory: workspaceDirectory,
+  );
 
   if (!await _deployToAppEngine()) {
     stderr.writeln('Failed to deploy to AppEngine');

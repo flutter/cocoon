@@ -144,7 +144,9 @@ Future<void> main() async {
 
         const Map<String, String> redirects = <String, String>{
           '/build.html': '/#/build',
-          '/repository.html': '/repository/',
+          '/repository': '/repository/index.html',
+          '/repository/': '/repository/index.html',
+          '/repository.html': '/repository/index.html',
         };
         if (redirects.containsKey(filePath)) {
           request.response.statusCode = HttpStatus.permanentRedirect;
