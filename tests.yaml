@@ -21,7 +21,7 @@ tasks:
   - task: app_flutter
     script: test_utilities/bin/flutter_test_runner.sh
 
-  - task: repository
+  - task: repo_dashboard
     script: test_utilities/bin/flutter_test_runner.sh
 
   - task: licenses
