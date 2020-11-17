@@ -177,7 +177,6 @@ Future<bool> _buildRepositoryWebApp() async {
   return successfulReturn;
 }
 
-
 /// Copy the built project from app to this app_dart project.
 Future<bool> _copyAngularDartProject() async {
   if (_skipBuild) {
@@ -209,7 +208,8 @@ Future<bool> _copyRepositoryApp() async {
     stdout.writeln('Reusing existing repository build files in app_dart/build');
     return true;
   }
-  final ProcessResult result = await Process.run('cp', <String>['-r', '$repositoryProjectDirectory/build', 'build/repository']);
+  final ProcessResult result =
+      await Process.run('cp', <String>['-r', '$repositoryProjectDirectory/build', 'build/repository']);
 
   return result.exitCode == 0;
 }
