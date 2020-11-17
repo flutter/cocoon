@@ -286,7 +286,7 @@ Future<void> main(List<String> arguments) async {
   }
 
   /// Clean up previous build files to ensure the latest files are deployed.
-  if (!_skipBuild) {
+  if (_skipBuild == false) {
     await Process.run('rm', <String>['-rf', 'build/']);
   }
 
@@ -300,7 +300,7 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  if (!await _copyRepositoryProject()) {
+  if (!await _copyRepositoryApp()) {
     stderr.writeln('Failed to copy Repository dashboard over');
     exit(1);
   }
