@@ -280,6 +280,11 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
+  if (!await _buildRepositoryWebApp()) {
+    stderr.writeln('Failed to build Repository app');
+    exit(1);
+  }
+
   /// Clean up previous build files to ensure the latest files are deployed.
   await Process.run('rm', <String>['-rf', 'build/']);
 
@@ -290,6 +295,11 @@ Future<void> main(List<String> arguments) async {
 
   if (!await _copyAngularDartProject()) {
     stderr.writeln('Failed to copy Angular Dart project over');
+    exit(1);
+  }
+
+  if (!await _copyRepositoryProject()) {
+    stderr.writeln('Failed to copy Repository dashboard over');
     exit(1);
   }
 
