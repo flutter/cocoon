@@ -5,14 +5,13 @@
 
 # Build flutter app to generate flutter repository dashboard.
 
-pushd repo_dash > /dev/null
+pushd repo_dashboard > /dev/null
 set -e
 rm -rf build
-flutter doctor
 flutter pub get
 flutter config --enable-web
 flutter build web --dart-define FLUTTER_WEB_USE_SKIA=true
-rm -rf ../app_dart/build/repository
-cp -r build ../app_dart/build/repository
+rm -rf ../app_dart/build/web/repository
+cp -r build/web/ ../app_dart/build/web/repository
 flutter clean
 popd > /dev/null
