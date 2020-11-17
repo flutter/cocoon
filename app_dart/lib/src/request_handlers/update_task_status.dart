@@ -27,7 +27,7 @@ import '../service/datastore.dart';
 ///
 /// 1. There are two ways to identify tasks:
 ///  A. [taskKeyParam] (Legacy Cocoon agents)
-///  B. [gitBranchParam], [gitShaParam], [taskNameParam] (LUCI bots)
+///  B. [gitBranchParam], [gitShaParam], [builderNameParam] (LUCI bots)
 ///
 /// 2. Task status information
 ///  A. Required: [newStatusParam], either [Task.statusSucceeded] or [Task.statusFailed].
@@ -51,7 +51,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
   static const String taskKeyParam = 'TaskKey';
-  static const String taskNameParam = 'TaskName';
+  static const String builderNameParam = 'BuilderName';
 
   /// const variables for [BigQuery] operations
   static const String projectId = 'flutter-dashboard';
@@ -64,7 +64,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     if (requestData.containsKey(taskKeyParam)) {
       checkRequiredParameters(<String>[taskKeyParam]);
     } else {
-      checkRequiredParameters(<String>[gitBranchParam, gitShaParam, taskNameParam]);
+      checkRequiredParameters(<String>[gitBranchParam, gitShaParam, builderNameParam]);
     }
 
     final DatastoreService datastore = datastoreProvider(config.db);
@@ -146,32 +146,32 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     });
   }
 
-  /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [taskNameParam].
+  /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].
   ///
   /// This is used when the DeviceLab test runner is uploading results to Cocoon for runs on LUCI.
   /// LUCI does not know the [Key] assigned to task when scheduling the build, but Cocoon can
   /// lookup the task based on these key values.
   ///
   /// To lookup the value, we construct the ancestor key, which corresponds to the [Commit].
-  /// Then we query the tasks with that ancestor key and filter for the one that has the corresponding name.
+  /// Then we query the tasks with that ancestor key and search for the one that matches the builder name.
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
     final Key commitKey = _constructCommitKey(datastore);
 
-    final String taskName = requestData[taskNameParam] as String;
-    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey)..filter('name =', taskName);
+    final String builderName = requestData[builderNameParam] as String;
+    final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
     final List<Task> initialTasks = await query.run().toList();
     // Expected initialTasks will return one CocoonAgentTask and one LuciTask.
     // TODO(chillers): After migration to LUCI this can be removed as there will only be one entry, https://github.com/flutter/flutter/projects/151
     final List<Task> tasks = <Task>[];
     for (Task task in initialTasks) {
-      if (task.stageName == 'chromebot') {
+      if (task.builderName == builderName) {
         tasks.add(task);
       }
     }
 
     if (tasks.length != 1) {
-      log.error('Found ${tasks.length} entries for $taskName');
-      throw InternalServerError('Expected to find 1 task for $taskName, but found ${tasks.length}');
+      log.error('Found ${tasks.length} entries for builder $builderName');
+      throw InternalServerError('Expected to find 1 task for $builderName, but found ${tasks.length}');
     }
 
     return tasks.first;

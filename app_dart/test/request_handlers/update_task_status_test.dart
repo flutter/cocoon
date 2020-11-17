@@ -129,10 +129,10 @@ void main() {
       final Task task = Task(
         key: commit.key.append(Task, id: 4590522719010816),
         name: 'integration_ui_ios',
+        builderName: 'linux_integration_ui_ios',
         attempts: 1,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
-        stageName: 'chromebot',
       );
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
@@ -140,7 +140,7 @@ void main() {
         UpdateTaskStatus.gitBranchParam: 'master',
         UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
         UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
 
       await tester.post(handler);
@@ -154,7 +154,7 @@ void main() {
         UpdateTaskStatus.gitBranchParam: 'master',
         UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
         UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
       expect(tester.post(handler), throwsA(isA<InternalServerError>()));
     });
@@ -171,23 +171,22 @@ void main() {
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
         status: Task.statusNew,
-        stageName: 'devicelab',
       );
       config.db.values[cocoonTask.key] = cocoonTask;
       final Task luciTask = Task(
         key: commit.key.append(Task, id: 4590522719010816),
         name: 'integration_ui_ios',
+        builderName: 'linux_integration_ui_ios',
         attempts: 1,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
-        stageName: 'chromebot',
       );
       config.db.values[luciTask.key] = luciTask;
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
         UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
         UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
 
       await tester.post(handler);
@@ -211,14 +210,13 @@ void main() {
         isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
         status: Task.statusNew,
-        stageName: 'devicelab',
       );
       config.db.values[cocoonTask.key] = cocoonTask;
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
         UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
         UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.taskNameParam: 'integration_ui_ios',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
       expect(tester.post(handler), throwsA(isA<InternalServerError>()));
     });
