@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'details/infrastructure.dart';
 import 'details/repository.dart';
@@ -76,15 +76,10 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
   TabController _tabController;
   Timer _changeTabsTimer;
 
-  /// This dashboard is made to be displayed on a TV.
-  /// Refresh this page every day to pick up new versions so no one needs to get on a ladder and pair a keyboard to the TV.
-  Timer _reloadPageTimer;
-
   @override
   void initState() {
     super.initState();
     _changeTabsTimer = Timer.periodic(const Duration(minutes: 1), _changeTabs);
-    _reloadPageTimer = Timer.periodic(const Duration(days: 1), _reloadPage);
     final int tabCount = _dashboardTabs.length;
 
     int pausedTabIndex = tab.pausedTabIndex ?? 0;
@@ -96,7 +91,6 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
   @override
   void dispose() {
     _changeTabsTimer.cancel();
-    _reloadPageTimer.cancel();
     _tabController.dispose();
     super.dispose();
   }
@@ -117,13 +111,9 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
     tab.pausedTabIndex = _tabController.index;
   }
 
-  void _reloadPage(Timer timer) {
-    window.location.reload();
-  }
-
   @override
   Widget build(BuildContext context) {
-    TextStyle currentHeadline = Theme.of(context).textTheme.headline;
+    TextStyle currentHeadline = Theme.of(context).textTheme.headline5;
     TextStyle headline = currentHeadline.copyWith(fontWeight: FontWeight.bold);
     return Scaffold(
       appBar: AppBar(
@@ -150,20 +140,19 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
             },
           ),
         ],
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => window.location.href = '/'),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => launch('/')),
         bottom: TabBar(
             controller: _tabController,
-            labelStyle: Theme.of(context).textTheme.body2.apply(fontSizeFactor: 1.6),
+            labelStyle: Theme.of(context).textTheme.bodyText1.apply(fontSizeFactor: 1.6),
             indicatorWeight: 4.0,
             tabs: <Tab>[for (_RepositoryTabMapper tabMapper in _dashboardTabs) tabMapper.tab]),
       ),
       body: Theme(
         data: ThemeData(
             textTheme: Theme.of(context).textTheme.copyWith(
-                  body1: currentHeadline,
-                  subhead: headline.copyWith(fontWeight: FontWeight.normal),
-                  headline: headline,
+                  bodyText2: currentHeadline,
+                  subtitle1: headline.copyWith(fontWeight: FontWeight.normal),
+                  headline5: headline,
                 ),
             dividerColor: Theme.of(context).accentColor,
             iconTheme: IconTheme.of(context).copyWith(size: 30.0)),

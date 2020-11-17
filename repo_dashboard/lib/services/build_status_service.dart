@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/build_status.dart';
@@ -95,7 +96,7 @@ Future<dynamic> _getStatusBody(http.Client client, String url) async {
     final String body = response?.body;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {
-    print('Error fetching "$url": $error');
+    debugPrint('Error fetching "$url": $error');
     return null;
   }
 }

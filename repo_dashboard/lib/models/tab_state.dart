@@ -2,22 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:html';
 import 'dart:math' as math;
+
+import 'package:localstorage/localstorage.dart';
 
 const String _kPausedTabIndexStorageKey = 'paused-tab-index';
 
+final LocalStorage storage = new LocalStorage('github.json');
+
 int get pausedTabIndex {
-  final String storedValue = window.localStorage[_kPausedTabIndexStorageKey];
+  final String storedValue = storage.getItem(_kPausedTabIndexStorageKey);
   return storedValue == null ? null : math.max<int>(0, int.tryParse(storedValue));
 }
 
 set pausedTabIndex(int taxIndex) {
-  window.localStorage[_kPausedTabIndexStorageKey] = taxIndex.toString();
+  storage.setItem(_kPausedTabIndexStorageKey, taxIndex.toString());
 }
 
 bool get isPaused {
-  return window.localStorage.containsKey(_kPausedTabIndexStorageKey);
+  return storage.getItem(_kPausedTabIndexStorageKey) != null;
 }
 
 void pause(int taxIndex) {
@@ -25,5 +28,5 @@ void pause(int taxIndex) {
 }
 
 void play() {
-  window.localStorage.remove(_kPausedTabIndexStorageKey);
+  storage.deleteItem(_kPausedTabIndexStorageKey);
 }

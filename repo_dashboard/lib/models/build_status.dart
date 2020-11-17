@@ -123,7 +123,7 @@ class _RefreshRefreshBuildStatusState extends State<RefreshBuildStatus>
         ModelBinding.update<BuildStatus>(context, status);
       }
     } catch (error) {
-      print('Error refreshing build status $error');
+      debugPrint('Error refreshing build status $error');
     }
   }
 

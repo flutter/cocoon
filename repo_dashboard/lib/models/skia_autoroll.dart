@@ -82,7 +82,7 @@ class _RefreshAutoRollState extends State<RefreshAutoRoll> with AutomaticKeepAli
         ModelBinding.update<SkiaAutoRoll>(context, roll);
       }
     } catch (error) {
-      print('Error refreshing autoroller status $error');
+      debugPrint('Error refreshing autoroller status $error');
     }
   }
 

@@ -71,7 +71,7 @@ class _RefreshSheriffRotationState extends State<RefreshSheriffRotation>
         ModelBinding.update<RollSheriff>(context, sheriff);
       }
     } catch (error) {
-      print('Error refreshing roll sheriff $error');
+      debugPrint('Error refreshing roll sheriff $error');
     }
   }
 

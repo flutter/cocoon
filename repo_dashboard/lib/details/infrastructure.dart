@@ -170,7 +170,7 @@ class FailingAgentWidget extends StatelessWidget {
     return Column(children: <Widget>[
       ListTile(
         title: Text('Failing Agents',
-            style: Theme.of(context).textTheme.headline.copyWith(
+            style: Theme.of(context).textTheme.headline5.copyWith(
                   color: Theme.of(context).primaryColor,
                 )),
       ),
@@ -254,7 +254,7 @@ class _CommitResultWidget extends StatelessWidget {
               TextSpan(
                   text: 'In progress: ${commitTestResult.inProgressTestCount}',
                   style: const TextStyle(color: Colors.grey)),
-          ], style: Theme.of(context).textTheme.subtitle),
+          ], style: Theme.of(context).textTheme.subtitle2),
         ),
         trailing: CircleAvatar(
           child: Image.network(commitTestResult.avatarImageURL),

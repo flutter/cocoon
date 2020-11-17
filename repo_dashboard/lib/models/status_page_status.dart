@@ -83,7 +83,7 @@ class _RefreshStatusPageStatusState extends State<RefreshStatusPageStatus>
         ModelBinding.update<StatusPageStatus>(context, status);
       }
     } catch (error) {
-      print('Error refreshing StatusPage status $error');
+      debugPrint('Error refreshing StatusPage status $error');
     }
   }
 

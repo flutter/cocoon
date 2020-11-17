@@ -72,7 +72,7 @@ class _SettingsFormState extends State<SettingsForm> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextFormField(
               enabled: !github.isSignedIn,
-              decoration: const InputDecoration(hasFloatingPlaceholder: true, labelText: 'Access token'),
+              decoration: const InputDecoration(labelText: 'Access token'),
               autocorrect: false,
               obscureText: true,
               controller: _githubToken,
@@ -94,7 +94,7 @@ class _SettingsFormState extends State<SettingsForm> {
     if (_githubFormKey.currentState.validate()) {
       setState(() {
         github.token = _githubToken.value.text;
-        Scaffold.of(context).showSnackBar(_signInSnackBar);
+        ScaffoldMessenger.of(context).showSnackBar(_signInSnackBar);
       });
     }
   }
@@ -103,7 +103,7 @@ class _SettingsFormState extends State<SettingsForm> {
     setState(() {
       _githubToken.clear();
       github.signOut();
-      Scaffold.of(context).showSnackBar(_signOutSnackBar);
+      ScaffoldMessenger.of(context).showSnackBar(_signOutSnackBar);
     });
   }
 }

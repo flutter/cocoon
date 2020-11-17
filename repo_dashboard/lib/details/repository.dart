@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:html';
 
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/providers.dart';
 import '../models/repository_status.dart';
@@ -86,7 +86,7 @@ class _MetadataWidget<T extends RepositoryStatus> extends StatelessWidget {
               data: IconTheme.of(context).copyWith(size: 56.0, color: Theme.of(context).primaryColorLight),
               child: icon),
           title: Text(toBeginningOfSentenceCase(repositoryStatus.name)),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}', '_blank')),
+          onTap: () => launch('https://github.com/flutter/${repositoryStatus.name}')),
       _DetailItem(title: 'Watchers', value: numberFormat.format(repositoryStatus.watchersCount)),
       _DetailItem(title: 'Subscribers', value: numberFormat.format(repositoryStatus.subscribersCount)),
       _DetailItem(title: 'TODOs', value: numberFormat.format(repositoryStatus.todoCount)),
@@ -112,23 +112,21 @@ class _IssueWidget<T extends RepositoryStatus> extends StatelessWidget {
       const _DetailTitle(title: 'Issues'),
       InkWell(
           child: _DetailItem(title: 'Open', value: numberFormat.format(issueCount)),
-          onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/issues', '_blank')),
+          onTap: () => launch('https://github.com/flutter/${repositoryStatus.name}/issues')),
       InkWell(
           child: _DetailItem(
               title: 'No Labels',
               value:
                   '${numberFormat.format(repositoryStatus.missingLabelsIssuesCount)} (${percentFormat.format(repositoryStatus.missingLabelsIssuesCount / issueCount)})'),
-          onTap: () => window.open(
-              'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+no%3Alabel',
-              '_blank')),
+          onTap: () =>
+              launch('https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+no%3Alabel')),
       InkWell(
           child: _DetailItem(
               title: 'Unmodified in month',
               value:
                   '${numberFormat.format(repositoryStatus.staleIssueCount)} (${percentFormat.format(repositoryStatus.staleIssueCount / issueCount)})'),
-          onTap: () => window.open(
-              'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$staleDateQuery',
-              '_blank')),
+          onTap: () => launch(
+              'https://github.com/flutter/${repositoryStatus.name}/issues?q=is%3Aissue+is%3Aopen+updated:<=$staleDateQuery')),
     ]);
   }
 }
@@ -156,20 +154,18 @@ class _PullRequestWidget<T extends RepositoryStatus> extends StatelessWidget {
         const _DetailTitle(title: 'Pull Requests'),
         InkWell(
             child: _DetailItem(title: 'Open', value: numberFormat.format(pullRequestCount)),
-            onTap: () => window.open('https://github.com/flutter/${repositoryStatus.name}/pulls', '_blank')),
+            onTap: () => launch('https://github.com/flutter/${repositoryStatus.name}/pulls')),
         InkWell(
             child: _DetailItem(title: 'Average Age', value: age),
-            onTap: () => window.open(
-                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+sort%3Acreated-asc',
-                '_blank')),
+            onTap: () => launch(
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+sort%3Acreated-asc')),
         InkWell(
             child: _DetailItem(
                 title: 'Unmodified in week',
                 value:
                     '${numberFormat.format(repositoryStatus.stalePullRequestCount)} (${percentFormat.format(repositoryStatus.stalePullRequestCount / pullRequestCount)})'),
-            onTap: () => window.open(
-                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$staleDateQuery',
-                '_blank')),
+            onTap: () => launch(
+                'https://github.com/flutter/${repositoryStatus.name}/pulls?q=is%3Apr+is%3Aopen+updated:<=$staleDateQuery')),
       ]),
     );
   }
@@ -199,7 +195,7 @@ class _TopicListWidget extends StatelessWidget {
       if ((labelEvaluation == null || labelEvaluation(labelName)) && labelWidgets.length < 17) {
         labelWidgets.add(InkWell(
             child: _DetailItem(title: labelName, value: numberFormat.format(count)),
-            onTap: () => window.open('$baseUrl"$labelName"', '_blank')));
+            onTap: () => launch('$baseUrl"$labelName"')));
       }
     });
     if (labelWidgets.isNotEmpty) {
@@ -228,7 +224,7 @@ class _DetailTitle extends StatelessWidget {
         child: Padding(
             padding: const EdgeInsets.only(bottom: 10.0),
             child: Text(title,
-                style: Theme.of(context).textTheme.headline.copyWith(
+                style: Theme.of(context).textTheme.headline5.copyWith(
                       color: severe ? Colors.redAccent : Theme.of(context).primaryColor,
                     ))));
   }
@@ -247,8 +243,8 @@ class _DetailItem extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text('$title: ', style: textTheme.subtitle.copyWith(fontSize: textTheme.subhead.fontSize)),
-            Text(value, style: textTheme.subhead),
+            Text('$title: ', style: textTheme.subtitle2.copyWith(fontSize: textTheme.subtitle1.fontSize)),
+            Text(value, style: textTheme.subtitle1),
           ],
         ));
   }

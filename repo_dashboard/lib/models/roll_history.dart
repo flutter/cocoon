@@ -104,7 +104,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastSkiaAutoRoll = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing last Skia auto-roll $error');
+      debugPrint('Error refreshing last Skia auto-roll $error');
     }
   }
 
@@ -118,7 +118,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastEngineRoll = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing last engine auto-roll $error');
+      debugPrint('Error refreshing last engine auto-roll $error');
     }
   }
 
@@ -132,7 +132,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastDevBranchRoll = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing last dev commit date: $error');
+      debugPrint('Error refreshing last dev commit date: $error');
     }
   }
 
@@ -146,7 +146,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastBetaBranchRoll = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing last beta commit date: $error');
+      debugPrint('Error refreshing last beta commit date: $error');
     }
   }
 
@@ -160,7 +160,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastStableBranchRoll = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing last stable commit date: $error');
+      debugPrint('Error refreshing last stable commit date: $error');
     }
   }
 
@@ -175,7 +175,7 @@ class _RefreshRollHistoryState extends State<RefreshRollHistory>
         history.lastFlutterWebCommit = fetchedDate;
       }
     } catch (error) {
-      print('Error refreshing flutter commit date: $error');
+      debugPrint('Error refreshing flutter commit date: $error');
     }
   }
 

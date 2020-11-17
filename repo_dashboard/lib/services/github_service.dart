@@ -27,7 +27,7 @@ Future<void> fetchRepositoryDetails(RepositoryStatus repositoryStatus) async {
 
 Future<int> fetchToDoCount(String repositoryName) async {
   final Map<String, dynamic> body = await _getBody('search/code',
-      queryParameters: <String, String>{'q': 'repo:flutter/${repositoryName} TODO', 'per_page': '1', 'page': '0'});
+      queryParameters: <String, String>{'q': 'repo:flutter/$repositoryName TODO', 'per_page': '1', 'page': '0'});
   return body['total_count'];
 }
 
@@ -58,7 +58,7 @@ Future<int> fetchIssuesWithoutLabels(String repositoryName) async {
 
 Future<int> _searchIssuesTotalCount(String repositoryName, {String additionalQuery = ''}) async {
   final Map<String, dynamic> body = await _getBody('search/issues', queryParameters: <String, String>{
-    'q': 'repo:flutter/${repositoryName} is:open is:issue $additionalQuery',
+    'q': 'repo:flutter/$repositoryName is:open is:issue $additionalQuery',
     'page': '0',
     'per_page': '1'
   });
@@ -200,7 +200,7 @@ Future<http.Response> _getResponse(Uri url) async {
   }
 
   final http.Response response = await _client.get(url.toString(), headers: headers).catchError((Error error) {
-    print('Error fetching"$url": $error');
+    debugPrint('Error fetching"$url": $error');
   });
 
   if (response.statusCode == HttpStatus.notModified) {

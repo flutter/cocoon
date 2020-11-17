@@ -20,7 +20,7 @@ class RollDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final TextStyle headerStyle =
-        theme.textTheme.headline.copyWith(color: Theme.of(context).primaryColor).apply(fontSizeFactor: 1.3);
+        theme.textTheme.headline5.copyWith(color: Theme.of(context).primaryColor).apply(fontSizeFactor: 1.3);
 
     return Theme(
         data: Theme.of(context).copyWith(
@@ -178,6 +178,6 @@ class _DetailItem extends StatelessWidget {
       }
     }
     return Text((valueDate != null) ? '${dateFormat.format(valueDate.toLocal())} ($parenthesis)' : 'Unknown',
-        style: Theme.of(context).textTheme.body1);
+        style: Theme.of(context).textTheme.bodyText2);
   }
 }

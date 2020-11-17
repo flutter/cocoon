@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/status_page_status.dart';
@@ -32,7 +33,7 @@ Future<dynamic> _getStatusBody(String url, http.Client client) async {
     final String body = response?.body;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {
-    print('Error fetching StatusPage status: $error');
+    debugPrint('Error fetching StatusPage status: $error');
     return null;
   }
 }

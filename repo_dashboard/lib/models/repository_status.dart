@@ -235,7 +235,7 @@ class _RefreshRepositoryState<T extends RepositoryStatus> extends State<RefreshR
       }
       await Future.wait(futuresToFetch, eagerError: true);
     } catch (error) {
-      print('Error refreshing repository');
+      debugPrint('Error refreshing repository');
     }
     _isLoaded = true;
     ModelBinding.update<T>(context, repositoryStatus);

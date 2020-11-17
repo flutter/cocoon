@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/roll_sheriff.dart';
@@ -28,7 +29,7 @@ Future<dynamic> _getStatusBody(http.Client client) async {
     final String body = response?.body;
     return (body != null && body.isNotEmpty) ? jsonDecode(body) : null;
   } catch (error) {
-    print('Error fetching roll sheriff: $error');
+    debugPrint('Error fetching roll sheriff: $error');
     return null;
   }
 }
