@@ -11,7 +11,7 @@ steps:
     # Build repository.
   - name: gcr.io/$PROJECT_ID/flutter
     entrypoint: '/bin/bash'
-    args: ['cloud_build/repository_build.sh']
+    args: ['cloud_build/repo_dash_build.sh']
 
   # Build angular dart app.
   - name: gcr.io/$PROJECT_ID/flutter

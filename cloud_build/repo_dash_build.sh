@@ -5,7 +5,7 @@
 
 # Build flutter app to generate flutter repository dashboard.
 
-pushd repository > /dev/null
+pushd repo_dash > /dev/null
 set -e
 rm -rf build
 flutter doctor

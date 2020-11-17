@@ -9,7 +9,7 @@ import 'package:pedantic/pedantic.dart';
 
 const String angularDartProjectDirectory = '../app';
 const String flutterProjectDirectory = '../app_flutter';
-const String repositoryProjectDirectory = '../repository';
+const String repoDashDirectory = '../repo_dash';
 
 const String gcloudProjectIdFlag = 'project';
 const String gcloudProjectIdAbbrFlag = 'p';
@@ -150,15 +150,15 @@ Future<bool> _buildFlutterWebApp() async {
   return successfulReturn;
 }
 
-// Build repository for web.
-Future<bool> _buildRepositoryWebApp() async {
+// Build repo dashboard for web.
+Future<bool> _buildRepoDashboard() async {
   if (_skipBuild) {
-    stdout.writeln('Skipping the build of Repository app');
+    stdout.writeln('Skipping the build of repo dashboard');
     return true;
   }
 
   /// Clean up previous build files to ensure this codebase is deployed.
-  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: repositoryProjectDirectory);
+  await Process.run('rm', <String>['-rf', 'build/'], workingDirectory: repoDashDirectory);
 
   final Process process = await Process.start(
       'flutter',
@@ -203,13 +203,13 @@ Future<bool> _copyFlutterApp() async {
 }
 
 /// Copy the built project from repository to this app_dart project.
-Future<bool> _copyRepositoryApp() async {
+Future<bool> _copyRepoDashboard() async {
   if (_skipBuild) {
-    stdout.writeln('Reusing existing repository build files in app_dart/build');
+    stdout.writeln('Reusing existing repo dashboard build files in app_dart/build');
     return true;
   }
   final ProcessResult result =
-      await Process.run('cp', <String>['-r', '$repositoryProjectDirectory/build', 'build/repository']);
+      await Process.run('cp', <String>['-r', '$repoDashDirectory/build', 'build/repository']);
 
   return result.exitCode == 0;
 }
@@ -280,8 +280,8 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  if (!await _buildRepositoryWebApp()) {
-    stderr.writeln('Failed to build Repository app');
+  if (!await _buildRepoDashboard()) {
+    stderr.writeln('Failed to build repo dashboard');
     exit(1);
   }
 
@@ -300,7 +300,7 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  if (!await _copyRepositoryApp()) {
+  if (!await _copyRepoDashboard()) {
     stderr.writeln('Failed to copy Repository dashboard over');
     exit(1);
   }
