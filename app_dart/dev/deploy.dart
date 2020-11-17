@@ -208,8 +208,7 @@ Future<bool> _copyRepoDashboard() async {
     stdout.writeln('Reusing existing repo dashboard build files in app_dart/build');
     return true;
   }
-  final ProcessResult result =
-      await Process.run('cp', <String>['-r', '$repoDashDirectory/build', 'build/repository']);
+  final ProcessResult result = await Process.run('cp', <String>['-r', '$repoDashDirectory/build', 'build/repository']);
 
   return result.exitCode == 0;
 }

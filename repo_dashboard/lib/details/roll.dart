@@ -44,8 +44,7 @@ class RollDetails extends StatelessWidget {
                       title: const Text('Engine → Framework'),
                       subtitle:
                           _DetailItem(value: (RollHistory history) => history.lastEngineRoll, unit: RollUnits.hour),
-                      onTap: () =>
-                          launch('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll')),
+                      onTap: () => launch('https://autoroll.skia.org/r/flutter-engine-flutter-autoroll')),
                   ListTile(
                       title: const Text('master → dev channel'),
                       subtitle: _DetailItem(value: (RollHistory history) => history.lastDevBranchRoll),
