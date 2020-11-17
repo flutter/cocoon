@@ -286,7 +286,9 @@ Future<void> main(List<String> arguments) async {
   }
 
   /// Clean up previous build files to ensure the latest files are deployed.
-  await Process.run('rm', <String>['-rf', 'build/']);
+  if (!_skipBuild) {
+    await Process.run('rm', <String>['-rf', 'build/']);
+  }
 
   if (!await _copyFlutterApp()) {
     stderr.writeln('Failed to copy Flutter app over');
