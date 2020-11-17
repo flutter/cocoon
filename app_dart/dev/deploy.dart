@@ -301,7 +301,7 @@ Future<void> main(List<String> arguments) async {
   }
 
   if (!await _copyRepoDashboard()) {
-    stderr.writeln('Failed to copy Repository dashboard over');
+    stderr.writeln('Failed to copy repo dashboard over');
     exit(1);
   }
 
