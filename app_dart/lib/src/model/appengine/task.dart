@@ -4,7 +4,9 @@
 
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
+import '../../service/luci.dart';
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -45,24 +47,26 @@ class Task extends Model {
     id = key?.id;
   }
 
-  // Represents a LUCI build.
-  factory Task.chromebot(Key commitKey, int createTimestamp, String name, bool isFlaky) {
-    assert(commitKey != null);
-    assert(createTimestamp != null);
-    assert(name != null);
-    assert(isFlaky != null);
-
+  /// Construct [Task] from a [LuciBuilder].
+  factory Task.chromebot({
+    @required Key commitKey,
+    @required int createTimestamp,
+    @required LuciBuilder builder,
+  }) {
+    assert(builder.flaky != null);
     return Task(
-      key: commitKey.append(Task),
+      attempts: 1,
+      builderName: builder.name,
       commitKey: commitKey,
       createTimestamp: createTimestamp,
-      name: name,
-      isFlaky: isFlaky,
-      timeoutInMinutes: 0,
+      isFlaky: builder.flaky ?? false,
+      key: commitKey.append(Task),
+      // The task name of a builder is what Cocoon uses for the name.
+      name: builder.taskName,
       requiredCapabilities: <String>['can-update-github'],
       stageName: 'chromebot',
       status: Task.statusNew,
-      attempts: 1,
+      timeoutInMinutes: 0,
     );
   }
 
