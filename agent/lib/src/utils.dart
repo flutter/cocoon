@@ -258,7 +258,11 @@ Future<Null> getFlutterAt(String revision) async {
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
   final List<String> logSafeArguments = arguments ?? <String>[];
-  logSafeArguments.removeWhere((String arg) => arg.contains('cloud-auth-token'));
+  const List<String> excludeList = <String>['cloud-auth-token'];
+  // Search through exclude keyword list and remove args that contain the value
+  for (String exclude in excludeList) {
+    logSafeArguments.removeWhere((String arg) => arg.contains(exclude));
+  }
   String command = '$executable ${logSafeArguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
   Process proc =
