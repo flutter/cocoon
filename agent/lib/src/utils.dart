@@ -257,7 +257,9 @@ Future<Null> getFlutterAt(String revision) async {
 
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
-  String command = '$executable ${arguments?.join(" ") ?? ""}';
+  final List<String> logSafeArguments = arguments ?? <String>[];
+  logSafeArguments.removeWhere((String arg) => arg.contains('cloud-auth-token'));
+  String command = '$executable ${logSafeArguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
   Process proc =
       await _processManager.start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: cwd);
