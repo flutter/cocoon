@@ -144,8 +144,7 @@ class ContinuousIntegrationCommand extends Command {
 
         logger.info('Pausing before asking for more tasks.');
         await Future<void>.delayed(_sleepBetweenBuilds);
-      },
-      (dynamic error, StackTrace stackTrace) {
+      }, (dynamic error, StackTrace stackTrace) {
         // Catches errors from dangling futures that cannot be reported to the
         // server.
         stderr.writeln('ERROR: $error\n$stackTrace');
