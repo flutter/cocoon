@@ -56,6 +56,7 @@ class Task extends Model {
     assert(builder.flaky != null);
     return Task(
       attempts: 1,
+      builderName: builder.name,
       commitKey: commitKey,
       createTimestamp: createTimestamp,
       isFlaky: builder.flaky ?? false,

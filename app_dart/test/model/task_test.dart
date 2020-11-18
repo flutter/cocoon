@@ -29,8 +29,14 @@ void main() {
         taskName: 'taskName',
         flaky: false,
       );
-      final Task t = Task.chromebot(commitKey: key, createTimestamp: 123, builder: builder);
-      validateModel(t);
+      final Task task = Task.chromebot(commitKey: key, createTimestamp: 123, builder: builder);
+      validateModel(task);
+      expect(task.name, 'taskName');
+      expect(task.builderName, 'builderAbc');
+      expect(task.createTimestamp, 123);
+      expect(task.isFlaky, false);
+      expect(task.requiredCapabilities, <String>['can-update-github']);
+      expect(task.timeoutInMinutes, 0);
     });
 
     test('disallows flaky be null', () {
