@@ -63,7 +63,7 @@ class ContinuousIntegrationCommand extends Command {
     section('Started continuous integration:');
     _listenToShutdownSignals();
     while (!_exiting) {
-      await runZoned(() async {
+      await runZonedGuarded(() async {
         agent.resetHttpClient();
 
         // This try/catch captures errors that we cannot send to the server,
@@ -144,7 +144,8 @@ class ContinuousIntegrationCommand extends Command {
 
         logger.info('Pausing before asking for more tasks.');
         await Future<void>.delayed(_sleepBetweenBuilds);
-      }, onError: (dynamic error, StackTrace stackTrace) {
+      },
+      (dynamic error, StackTrace stackTrace) {
         // Catches errors from dangling futures that cannot be reported to the
         // server.
         stderr.writeln('ERROR: $error\n$stackTrace');
