@@ -261,7 +261,7 @@ Future<Process> startProcess(String executable, List<String> arguments,
   const List<String> excludeList = <String>['cloud-auth-token'];
   // Search through exclude keyword list and remove args that contain the value
   for (String exclude in excludeList) {
-    logSafeArguments.removeWhere((String arg) => arg.contains(exclude));
+    logSafeArguments.removeWhere((String arg) => arg?.contains(exclude));
   }
   String command = '$executable ${logSafeArguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
