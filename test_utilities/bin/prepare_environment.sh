@@ -9,6 +9,5 @@
 set -ex
 
 pub global activate tuneup
-flutter channel beta
+flutter channel master
 flutter upgrade
-

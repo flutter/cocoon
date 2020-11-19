@@ -12,6 +12,14 @@
 #     script: <relative path to the runner script> 
 
 tasks:
+  # License checks should be first as testing Flutter projects creates artifacts
+  # from plugins that will fail the license checker.
+  - task: licenses
+    script: test_utilities/bin/dart_test_runner.sh
+
+  - task: licenses_check
+    script: test_utilities/bin/licenses.sh
+
   - task: app_dart
     script: test_utilities/bin/dart_test_runner.sh
 
@@ -23,10 +31,3 @@ tasks:
 
   - task: repo_dashboard
     script: test_utilities/bin/flutter_test_runner.sh
-
-  - task: licenses
-    script: test_utilities/bin/dart_test_runner.sh
-
-  - task: licenses_check
-    script: test_utilities/bin/licenses.sh
-

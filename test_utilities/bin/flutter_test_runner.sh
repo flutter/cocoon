@@ -24,7 +24,7 @@ pushd $1 > /dev/null
 flutter packages get
 flutter analyze
 dartfmt --line-length=120 --set-exit-if-changed --dry-run lib/ test/
-flutter test --test-randomize-ordering-seed=random --verbose
+flutter test --test-randomize-ordering-seed=random --reporter expanded
 
 popd > /dev/null
 
