@@ -75,6 +75,35 @@ void main() {
     expect(find.byIcon(Icons.settings), findsOneWidget);
   });
 
+  testWidgets('shows key button & legend', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.vpn_key), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.vpn_key));
+    await tester.pump();
+
+    expect(find.text('Failed'), findsOneWidget);
+    expect(find.text('In Progress'), findsOneWidget);
+    expect(find.text('New'), findsOneWidget);
+    expect(find.text('Succeeded'), findsOneWidget);
+    expect(find.text('Skipped'), findsOneWidget);
+    expect(find.text('Flaky'), findsOneWidget);
+    expect(find.text('Passed on rerun'), findsOneWidget);
+  });
+
   testWidgets('shows branch dropdown button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
