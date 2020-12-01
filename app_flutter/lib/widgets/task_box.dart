@@ -16,6 +16,7 @@ class TaskBox {
   static const String statusNew = 'New';
   static const String statusSkipped = 'Skipped';
   static const String statusSucceeded = 'Succeeded';
+  static const String statusInfraFailure = 'Infra Failure';
   static const String statusInProgress = 'In Progress';
 
   /// A lookup table to define the background color for this TaskBox.
@@ -26,6 +27,7 @@ class TaskBox {
     statusNew: Colors.grey,
     statusSkipped: Colors.transparent,
     statusSucceeded: Colors.green,
+    statusInfraFailure: Colors.purple,
     statusInProgress: Colors.yellow,
   };
 }
