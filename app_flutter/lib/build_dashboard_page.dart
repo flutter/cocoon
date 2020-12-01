@@ -131,15 +131,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
-  PopupMenuItem<String> _getTaskKeyEntry({ @required Widget box, @required String description }) {
+  PopupMenuItem<String> _getTaskKeyEntry({@required Widget box, @required String description}) {
     return PopupMenuItem<String>(
       value: description,
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: <Widget>[
           const SizedBox(width: 10.0),
-          SizedBox.fromSize(
-            size: const Size.square(TaskBox.cellSize), child: box),
+          SizedBox.fromSize(size: const Size.square(TaskBox.cellSize), child: box),
           const SizedBox(width: 10.0),
           Text(description),
         ],
@@ -164,11 +163,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           width: TaskBox.cellSize * 0.8,
           height: TaskBox.cellSize * 0.8,
           decoration: BoxDecoration(
-            border: Border.all(
-              width: 2.0,
-              color: isDark ? Colors.white : Colors.black,
-            )
-          ),
+              border: Border.all(
+            width: 2.0,
+            color: isDark ? Colors.white : Colors.black,
+          )),
         ),
       ),
       description: 'Flaky',
