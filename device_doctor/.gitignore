@@ -3,8 +3,6 @@
 dart-sdk/
 
 # Build outputs
-*.aot
-*.dill
 .dart_tool/
 build/
 .ssh/
@@ -12,3 +10,5 @@ build/
 # Dart
 .packages
 !pubspec.lock
+
+!config.yaml
