@@ -13,10 +13,10 @@ import 'utils.dart';
 /// The root of the API for controlling devices.
 DeviceDiscovery get devices => DeviceDiscovery();
 
-/// Operating system on the devices that this agent is configured to test.
+/// Type of host that is configured to test.
 enum HostType { vm, physical }
 
-/// Operating system on the devices that this agent is configured to test.
+/// Operating system on the devices that this host is configured to test.
 enum DeviceOperatingSystem { android, ios, none }
 
 /// Discovers available devices and chooses one to work with.
@@ -39,9 +39,6 @@ abstract class DeviceDiscovery {
 
   /// Checks the health of the available devices.
   Future<Map<String, HealthCheckResult>> checkDevices();
-
-  /// Prepares the system to run tasks.
-  Future<void> performPreflightTasks();
 
   /// Restarts the device.
   Future<void> restartDevice();
@@ -180,11 +177,6 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       }
     }
     return results;
-  }
-
-  @override
-  Future<void> performPreflightTasks() async {
-    // Checks required for the agent to start.
   }
 
   @override
@@ -330,12 +322,6 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<void> performPreflightTasks() async {
-    // Currently we do not have preflight tasks for iOS.
-    return null;
-  }
-
-  @override
   Future<void> restartDevice() async {
     //await eval('idevicediagnostics', <String>['restart']);
     for (Device device in await discoverDevices()) {
@@ -363,12 +349,6 @@ class NoOpDeviceDiscovery implements DeviceDiscovery {
     Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
     results['no-device'] = HealthCheckResult.success();
     return results;
-  }
-
-  @override
-  Future<void> performPreflightTasks() async {
-    // Currently we do not have preflight tasks for hosts without attached devices.
-    return null;
   }
 
   @override

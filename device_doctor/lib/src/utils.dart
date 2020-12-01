@@ -3,13 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json, utf8, JsonEncoder, LineSplitter;
+import 'dart:convert' show utf8, JsonEncoder, LineSplitter;
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:meta/meta.dart';
-import 'package:process/process.dart';
 import 'package:path/path.dart' as path;
+import 'package:process/process.dart';
 import 'package:yaml/yaml.dart';
 
 import 'adb.dart';
@@ -188,21 +187,6 @@ bool exists(FileSystemEntity entity) => entity.existsSync();
 void section(String title) {
   logger.info('');
   logger.info('••• $title •••');
-}
-
-Future<String> getDartVersion() async {
-  // The Dart VM returns the version text to stderr.
-  ProcessResult result = _processManager.runSync(<String>[dartBin, '--version']);
-  String version = result.stderr.trim() as String;
-
-  // Convert:
-  //   Dart VM version: 1.17.0-dev.2.0 (Tue May  3 12:14:52 2016) on "macos_x64"
-  // to:
-  //   1.17.0-dev.2.0
-  if (version.indexOf('(') != -1) version = version.substring(0, version.indexOf('(')).trim();
-  if (version.indexOf(':') != -1) version = version.substring(version.indexOf(':') + 1).trim();
-
-  return version.replaceAll('"', "'");
 }
 
 Future<Process> startProcess(String executable, List<String> arguments,
@@ -410,37 +394,6 @@ T requireConfigProperty<T>(YamlMap map, String propertyName) {
 
 String jsonEncode(dynamic data) {
   return JsonEncoder.withIndent('  ').convert(data) + '\n';
-}
-
-void checkNotNull(Object o1,
-    [Object o2 = 1,
-    Object o3 = 1,
-    Object o4 = 1,
-    Object o5 = 1,
-    Object o6 = 1,
-    Object o7 = 1,
-    Object o8 = 1,
-    Object o9 = 1,
-    Object o10 = 1]) {
-  if (o1 == null) throw 'o1 is null';
-
-  if (o2 == null) throw 'o2 is null';
-
-  if (o3 == null) throw 'o3 is null';
-
-  if (o4 == null) throw 'o4 is null';
-
-  if (o5 == null) throw 'o5 is null';
-
-  if (o6 == null) throw 'o6 is null';
-
-  if (o7 == null) throw 'o7 is null';
-
-  if (o8 == null) throw 'o8 is null';
-
-  if (o9 == null) throw 'o9 is null';
-
-  if (o10 == null) throw 'o10 is null';
 }
 
 /// Splits [from] into lines and selects those that contain [pattern].

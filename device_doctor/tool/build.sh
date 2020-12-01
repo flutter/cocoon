@@ -34,7 +34,13 @@ else
   tool/dart-sdk/bin/pub.bat get
   tool/dart-sdk/bin/dart2native.bat bin/main.dart -o build/device_doctor.exe
 fi
+
 cp -f LICENSE build/
 cp -f config.yaml build/
+cp device_doctor.sh build/
+if [[ $OS == "Darwin" ]]; then
+  mkdir -p build/tool
+  cp -rf tool/infra-dialog build/tool/
+fi
 
 popd
