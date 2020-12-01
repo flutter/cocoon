@@ -6,7 +6,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'models.g.dart';
 
-
 @JsonSerializable(nullable: true)
 class GetBenchmarksResult {
   const GetBenchmarksResult({this.benchmarks});

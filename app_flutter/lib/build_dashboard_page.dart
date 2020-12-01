@@ -142,82 +142,72 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     final List<PopupMenuEntry<String>> key = <PopupMenuEntry<String>>[];
 
     for (final String status in taskStatuses) {
-      key.add(
-        PopupMenuItem<String>(
-          value: status,
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: <Widget>[
-              const SizedBox(width: 10.0),
-              SizedBox.fromSize(
-                size: const Size.square(TaskBox.cellSize),
-                child: Container(color: TaskBox.statusColor[status])
-              ),
-              const SizedBox(width: 10.0),
-              Text(status),
-            ],
-          ),
-        )
-      );
-      key.add(const PopupMenuDivider());
-    }
-
-    key.add(
-      PopupMenuItem<String>(
-        value: 'flake',
+      key.add(PopupMenuItem<String>(
+        value: status,
         child: Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
             const SizedBox(width: 10.0),
             SizedBox.fromSize(
+                size: const Size.square(TaskBox.cellSize), child: Container(color: TaskBox.statusColor[status])),
+            const SizedBox(width: 10.0),
+            Text(status),
+          ],
+        ),
+      ));
+      key.add(const PopupMenuDivider());
+    }
+
+    key.add(PopupMenuItem<String>(
+      value: 'flake',
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          const SizedBox(width: 10.0),
+          SizedBox.fromSize(
               size: const Size.square(TaskBox.cellSize),
               child: Center(
                 child: Container(
                   width: TaskBox.cellSize * 0.8,
                   height: TaskBox.cellSize * 0.8,
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 2.0,
-                      color: isDark ? Colors.white : Colors.black,
-                    )
-                  ),
+                      border: Border.all(
+                    width: 2.0,
+                    color: isDark ? Colors.white : Colors.black,
+                  )),
                 ),
-              )
-            ),
-            const SizedBox(width: 10.0),
-            const Text('Flaky'),
-          ],
-        ),
-      )
-    );
+              )),
+          const SizedBox(width: 10.0),
+          const Text('Flaky'),
+        ],
+      ),
+    ));
 
     key.add(const PopupMenuDivider());
 
-    key.add(
-      PopupMenuItem<String>(
-        value: 'passed on rerun',
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: <Widget>[
-            const SizedBox(width: 10.0),
-            SizedBox.fromSize(
-              size: const Size.square(TaskBox.cellSize),
-              child: const Center(
-                child: Text(
-                  '!',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                  ),
+    key.add(PopupMenuItem<String>(
+      value: 'passed on rerun',
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          const SizedBox(width: 10.0),
+          SizedBox.fromSize(
+            size: const Size.square(TaskBox.cellSize),
+            child: const Center(
+              child: Text(
+                '!',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(width: 10.0),
-            const Text('Passed on rerun'),
-          ],
-        ),
-      )
-    );
+          ),
+          const SizedBox(width: 10.0),
+          const Text('Passed on rerun'),
+        ],
+      ),
+    ));
 
     key.add(const PopupMenuDivider());
 
