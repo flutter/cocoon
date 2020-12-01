@@ -131,82 +131,62 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
+  PopupMenuItem<String> _getTaskKeyEntry({ @required Widget box, @required String description }) {
+    return PopupMenuItem<String>(
+      value: description,
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          const SizedBox(width: 10.0),
+          SizedBox.fromSize(
+            size: const Size.square(TaskBox.cellSize), child: box),
+          const SizedBox(width: 10.0),
+          Text(description),
+        ],
+      ),
+    );
+  }
+
   List<PopupMenuEntry<String>> _getTaskKey(bool isDark) {
-    const List<String> taskStatuses = <String>[
-      TaskBox.statusFailed,
-      TaskBox.statusNew,
-      TaskBox.statusSkipped,
-      TaskBox.statusSucceeded,
-      TaskBox.statusInProgress,
-    ];
     final List<PopupMenuEntry<String>> key = <PopupMenuEntry<String>>[];
 
-    for (final String status in taskStatuses) {
-      key.add(PopupMenuItem<String>(
-        value: status,
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: <Widget>[
-            const SizedBox(width: 10.0),
-            SizedBox.fromSize(
-                size: const Size.square(TaskBox.cellSize), child: Container(color: TaskBox.statusColor[status])),
-            const SizedBox(width: 10.0),
-            Text(status),
-          ],
-        ),
+    for (final String status in TaskBox.statusColor.keys) {
+      key.add(_getTaskKeyEntry(
+        box: Container(color: TaskBox.statusColor[status]),
+        description: status,
       ));
       key.add(const PopupMenuDivider());
     }
 
-    key.add(PopupMenuItem<String>(
-      value: 'flake',
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: <Widget>[
-          const SizedBox(width: 10.0),
-          SizedBox.fromSize(
-              size: const Size.square(TaskBox.cellSize),
-              child: Center(
-                child: Container(
-                  width: TaskBox.cellSize * 0.8,
-                  height: TaskBox.cellSize * 0.8,
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                    width: 2.0,
-                    color: isDark ? Colors.white : Colors.black,
-                  )),
-                ),
-              )),
-          const SizedBox(width: 10.0),
-          const Text('Flaky'),
-        ],
+    key.add(_getTaskKeyEntry(
+      box: Center(
+        child: Container(
+          width: TaskBox.cellSize * 0.8,
+          height: TaskBox.cellSize * 0.8,
+          decoration: BoxDecoration(
+            border: Border.all(
+              width: 2.0,
+              color: isDark ? Colors.white : Colors.black,
+            )
+          ),
+        ),
       ),
+      description: 'Flaky',
     ));
 
     key.add(const PopupMenuDivider());
 
-    key.add(PopupMenuItem<String>(
-      value: 'passed on rerun',
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: <Widget>[
-          const SizedBox(width: 10.0),
-          SizedBox.fromSize(
-            size: const Size.square(TaskBox.cellSize),
-            child: const Center(
-              child: Text(
-                '!',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+    key.add(_getTaskKeyEntry(
+      box: const Center(
+        child: Text(
+          '!',
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(width: 10.0),
-          const Text('Passed on rerun'),
-        ],
+        ),
       ),
+      description: 'Passed on rerun',
     ));
 
     key.add(const PopupMenuDivider());
@@ -242,7 +222,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           actions: <Widget>[
             PopupMenuButton<String>(
               tooltip: 'Task Status Key',
-              child: const Icon(Icons.vpn_key),
+              child: const Icon(Icons.info_outline),
               itemBuilder: (BuildContext context) => _getTaskKey(isDark),
             ),
             IconButton(

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:app_flutter/widgets/task_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -90,16 +91,14 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.vpn_key), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.vpn_key));
+    await tester.tap(find.byIcon(Icons.info_outline));
     await tester.pump();
 
-    expect(find.text('Failed'), findsOneWidget);
-    expect(find.text('In Progress'), findsOneWidget);
-    expect(find.text('New'), findsOneWidget);
-    expect(find.text('Succeeded'), findsOneWidget);
-    expect(find.text('Skipped'), findsOneWidget);
+    for (final String status in TaskBox.statusColor.keys) {
+      expect(find.text(status), findsOneWidget);
+    }
     expect(find.text('Flaky'), findsOneWidget);
     expect(find.text('Passed on rerun'), findsOneWidget);
   });
