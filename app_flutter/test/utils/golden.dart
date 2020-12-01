@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
 
 /// Wrapper function for golden tests in Cocoon.
 ///
@@ -16,6 +17,6 @@ Future<void> expectGoldenMatches(
   String reason,
   dynamic skip = false, // true or a String
 }) {
-  final String goldenPath = 'goldens/' + goldenFileKey;
+  final String goldenPath = path.join('goldens', goldenFileKey);
   return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
 }
