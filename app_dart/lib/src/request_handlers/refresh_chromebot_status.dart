@@ -14,6 +14,7 @@ import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/buildbucket.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
 
@@ -39,6 +40,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
 
   static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
+      buildBucketClient: BuildBucketClient(),
       config: handler.config,
       clientContext: handler.authContext.clientContext,
     );
