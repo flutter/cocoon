@@ -12,7 +12,6 @@ import 'package:process/process.dart';
 import 'package:yaml/yaml.dart';
 
 import 'adb.dart';
-import 'list_processes.dart';
 
 /// Virtual current working directory, which affect functions, such as [exec].
 String cwd = Directory.current.path;
@@ -206,28 +205,6 @@ Future<Process> startProcess(String executable, List<String> arguments,
   return proc;
 }
 
-Future<Null> forceQuitRunningProcesses() async {
-  // Give normally quitting processes a chance to report their exit code.
-  await Future<void>.delayed(const Duration(seconds: 1));
-
-  // Whatever's left, kill it.
-  for (ProcessInfo p in _runningProcesses) {
-    logger.info('Force quitting process:\n$p');
-    if (!p.process.kill()) {
-      logger.warning('Failed to force quit process');
-    }
-  }
-  _runningProcesses.clear();
-
-  // Also kill sub-processes launched by top-level processes. We may not be
-  // able to find all of them, but finding those whose CWD is the Flutter
-  // repository are good candidates.
-  List<int> pids = await listFlutterProcessIds(config.flutterDirectory);
-  for (int pid in pids) {
-    Process.killPid(pid, ProcessSignal.sigkill);
-  }
-}
-
 /// Executes a command and returns its exit code.
 Future<int> exec(String executable, List<String> arguments,
     {Map<String, String> env, bool canFail: false, bool silent: false}) async {
@@ -275,18 +252,6 @@ Future<String> eval(String executable, List<String> arguments,
   return output.trimRight();
 }
 
-Future<int> flutter(String command, {List<String> options: const <String>[], bool canFail: false}) {
-  List<String> args = [command]..addAll(options);
-  return exec(path.join(config.flutterDirectory.path, 'bin', 'flutter'), args, canFail: canFail);
-}
-
-String get dartBin => path.join(config.flutterDirectory.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dart');
-
-Future<int> dart(List<String> args) {
-  args.insert(0, '--disable-dart-dev');
-  return exec(dartBin, args);
-}
-
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
   String previousCwd = cwd;
   try {
@@ -314,7 +279,6 @@ void cd(dynamic directory) {
 
 class Config {
   Config({
-    @required this.flutterDirectory,
     @required this.deviceOperatingSystem,
     @required this.hostType,
   });
@@ -322,9 +286,6 @@ class Config {
   static void initialize(String deviceOS) {
     String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home == null) throw "Unable to find \$HOME or \$USERPROFILE.";
-
-    Directory flutterDirectory = dir(home, '.cocoon', 'flutter');
-    mkdirs(flutterDirectory);
 
     DeviceOperatingSystem deviceOperatingSystem;
     switch (deviceOS) {
@@ -344,13 +305,11 @@ class Config {
     HostType hostType = HostType.physical;
 
     _config = Config(
-      flutterDirectory: flutterDirectory,
       deviceOperatingSystem: deviceOperatingSystem,
       hostType: hostType,
     );
   }
 
-  final Directory flutterDirectory;
   final DeviceOperatingSystem deviceOperatingSystem;
   final HostType hostType;
 
@@ -370,7 +329,6 @@ class Config {
 
   @override
   String toString() => '''
-flutterDirectory: $flutterDirectory
 adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
 deviceOperatingSystem: $deviceOperatingSystem
 hostType: $hostType

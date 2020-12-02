@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import "package:path/path.dart" show dirname, join;
 import 'package:yaml/yaml.dart';
 
 import 'package:device_doctor/src/adb.dart';
@@ -34,7 +35,7 @@ Future<void> main(List<String> args) async {
   }
 
   final ArgResults argResults = parser.parse(args);
-  final File configFile = file(argResults[configFileFlag] as String);
+  final File configFile = file(join(dirname(Platform.script.path), argResults[configFileFlag] as String));
   final YamlMap config = loadYaml(configFile.readAsStringSync()) as YamlMap;
   final String hostname = Platform.localHostname;
 

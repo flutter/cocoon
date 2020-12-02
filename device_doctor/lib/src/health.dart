@@ -61,7 +61,9 @@ Future<HealthCheckResult> closeIosDialog(
   if (discovery == null) {
     discovery = devices;
   }
-  Directory dialogDir = dir(Directory.current.path, 'tool', 'infra-dialog');
+  print (Platform.script.path);
+  print (Directory.current.path);
+  Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', 'infra-dialog');
   if (!await dialogDir.exists()) {
     fail('Unable to find infra-dialog at $dialogDir');
   }

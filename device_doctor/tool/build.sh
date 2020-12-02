@@ -37,7 +37,6 @@ fi
 
 cp -f LICENSE build/
 cp -f config.yaml build/
-cp device_doctor.sh build/
 if [[ $OS == "Darwin" ]]; then
   mkdir -p build/tool
   cp -rf tool/infra-dialog build/tool/
