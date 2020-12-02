@@ -245,6 +245,7 @@ class Config {
   Set<String> get rollerAccounts => const <String>{
         'skia-flutter-autoroll',
         'engine-flutter-autoroll',
+        'dependabot[bot]',
       };
 
   Future<String> generateJsonWebToken() async {
