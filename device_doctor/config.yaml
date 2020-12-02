@@ -1,5 +1,6 @@
 # The device operating system for different bots. Possible values: android, ios.
-keyonghan-macbookpro.roam.corp.google.com: ios
+# This configuration file tracks the Flutter devicelab hardware status, and 
+# needs to be updated whatever changes from real world.
 flutter-devicelab-linux-1: android
 flutter-devicelab-linux-2: android
 flutter-devicelab-linux-3: android

@@ -1,4 +1,4 @@
-// Copyright 2019 The Flutter Authors. All rights reserved.
+// Copyright 2020 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -19,6 +19,11 @@ const String helpFlag = 'help';
 String _action;
 String _deviceOS;
 
+/// Manage healthcheck, cleanup and restart for devices configured in
+/// config.yaml.
+///
+/// Usage:
+/// dart main.dart --action <healthcheck|cleanup|restart>
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser

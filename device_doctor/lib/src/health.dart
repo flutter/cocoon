@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
 import 'package:file/local.dart' as local;
 import 'package:file/file.dart' as file;
+import 'package:path/path.dart' as path;
 import 'package:platform/platform.dart' as platform;
 import 'package:process/process.dart';
 
@@ -61,8 +61,8 @@ Future<HealthCheckResult> closeIosDialog(
   if (discovery == null) {
     discovery = devices;
   }
-  print (Platform.script.path);
-  print (Directory.current.path);
+  print(Platform.script.path);
+  print(Directory.current.path);
   Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', 'infra-dialog');
   if (!await dialogDir.exists()) {
     fail('Unable to find infra-dialog at $dialogDir');
@@ -99,4 +99,3 @@ Future<HealthCheckResult> closeIosDialog(
   }
   return HealthCheckResult.success();
 }
-

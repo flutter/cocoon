@@ -33,8 +33,8 @@ The above script will build an executable binary in the `build` folder.
 device os info. is needed for device_doctor to manage devices. This file should
 be up-to-date with DeviceLab hardwares.
 
-`build/device_doctor` is the executable binary, and can be called
+`device_doctor` is the executable binary, and can be called
 
 ```bash
-./build/device_doctor --action <healthcheck|cleanup|restart>
+/path/to/device_doctor --action <healthcheck|cleanup|restart>
 ```

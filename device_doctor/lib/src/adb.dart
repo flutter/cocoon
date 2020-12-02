@@ -239,7 +239,7 @@ class AndroidDevice implements Device {
   }
 
   @override
-  Future<void> restart() async{
+  Future<void> restart() async {
     await shellExec('input', const ['keyevent', '26']);
   }
 
@@ -395,4 +395,3 @@ class IosDevice implements Device {
     await eval('idevicediagnostics', <String>['restart']);
   }
 }
-

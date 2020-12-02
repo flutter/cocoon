@@ -1,18 +1,18 @@
-// Copyright 2019 The Flutter Authors. All rights reserved.
+// Copyright 2020 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 import 'dart:io';
 
 import 'package:file/memory.dart';
+import 'package:mockito/mockito.dart';
+import 'package:platform/platform.dart' as platform;
 import 'package:process/process.dart';
 import 'package:test/test.dart';
-import 'package:platform/platform.dart' as platform;
-import 'package:mockito/mockito.dart';
 
 import 'package:device_doctor/src/adb.dart';
-import 'package:device_doctor/src/utils.dart';
 import 'package:device_doctor/src/health.dart';
+import 'package:device_doctor/src/utils.dart';
 
 void main() {
   group('testRemoveXcodeDerivedData', () {
@@ -170,4 +170,3 @@ class FakeProcess extends Fake implements Process {
         [1, 2, 3]
       ]);
 }
-

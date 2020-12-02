@@ -3,6 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be         
 # found in the LICENSE file.
 
+# Fetches corresponding dart sdk from CIPD for different platforms, builds
+# an executable binary of device_doctor to `build` folder.
+#
+# This currently supports linux, mac and windows.
+
 set -e
 
 command -v cipd > /dev/null || {
