@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:app_flutter/widgets/task_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -73,6 +74,33 @@ void main() {
     );
 
     expect(find.byIcon(Icons.settings), findsOneWidget);
+  });
+
+  testWidgets('shows key button & legend', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pump();
+
+    for (final String status in TaskBox.statusColor.keys) {
+      expect(find.text(status), findsOneWidget);
+    }
+    expect(find.text('Flaky'), findsOneWidget);
+    expect(find.text('Passed on rerun'), findsOneWidget);
   });
 
   testWidgets('shows branch dropdown button', (WidgetTester tester) async {

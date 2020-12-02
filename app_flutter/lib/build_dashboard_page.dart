@@ -11,6 +11,7 @@ import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';
 import 'widgets/filter_property_sheet.dart';
+import 'widgets/task_box.dart';
 import 'widgets/task_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
@@ -130,6 +131,67 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     );
   }
 
+  PopupMenuItem<String> _getTaskKeyEntry({@required Widget box, @required String description}) {
+    return PopupMenuItem<String>(
+      value: description,
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          const SizedBox(width: 10.0),
+          SizedBox.fromSize(size: const Size.square(TaskBox.cellSize), child: box),
+          const SizedBox(width: 10.0),
+          Text(description),
+        ],
+      ),
+    );
+  }
+
+  List<PopupMenuEntry<String>> _getTaskKey(bool isDark) {
+    final List<PopupMenuEntry<String>> key = <PopupMenuEntry<String>>[];
+
+    for (final String status in TaskBox.statusColor.keys) {
+      key.add(_getTaskKeyEntry(
+        box: Container(color: TaskBox.statusColor[status]),
+        description: status,
+      ));
+      key.add(const PopupMenuDivider());
+    }
+
+    key.add(_getTaskKeyEntry(
+      box: Center(
+        child: Container(
+          width: TaskBox.cellSize * 0.8,
+          height: TaskBox.cellSize * 0.8,
+          decoration: BoxDecoration(
+              border: Border.all(
+            width: 2.0,
+            color: isDark ? Colors.white : Colors.black,
+          )),
+        ),
+      ),
+      description: 'Flaky',
+    ));
+
+    key.add(const PopupMenuDivider());
+
+    key.add(_getTaskKeyEntry(
+      box: const Center(
+        child: Text(
+          '!',
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      description: 'Passed on rerun',
+    ));
+
+    key.add(const PopupMenuDivider());
+
+    return key;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -156,7 +218,13 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           title: statusTable[_buildState.isTreeBuilding],
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
+            PopupMenuButton<String>(
+              tooltip: 'Task Status Key',
+              child: const Icon(Icons.info_outline),
+              itemBuilder: (BuildContext context) => _getTaskKey(isDark),
+            ),
             IconButton(
+              tooltip: 'Settings',
               icon: const Icon(Icons.settings),
               onPressed: _settingsBasis == null ? () => _showSettingsDialog() : null,
             ),
