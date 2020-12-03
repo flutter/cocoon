@@ -11,7 +11,9 @@ import 'package:path/path.dart' as path;
 import 'package:platform/platform.dart' as platform;
 import 'package:process/process.dart';
 
-import 'adb.dart';
+import 'device.dart';
+import 'ios_device.dart';
+import 'process_helper.dart';
 import 'utils.dart';
 
 /// Completely removes Xcode DerivedData directory.
@@ -98,4 +100,17 @@ Future<HealthCheckResult> closeIosDialog(
     });
   }
   return HealthCheckResult.success();
+}
+
+/// Unlocks the login keychain on macOS.
+///
+/// Whic is required to
+///   1. Enable Xcode to access the certificate for code signing.
+///   2. Mitigate "Your session has expired" issue. See flutter/flutter#17860.
+Future<Null> unlockKeyChain() async {
+  if (Platform.isMacOS) {
+    await exec(
+        'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
+        canFail: false, silent: true);
+  }
 }

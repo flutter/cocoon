@@ -10,8 +10,9 @@ import 'package:platform/platform.dart' as platform;
 import 'package:process/process.dart';
 import 'package:test/test.dart';
 
-import 'package:device_doctor/src/adb.dart';
+import 'package:device_doctor/src/device.dart';
 import 'package:device_doctor/src/health.dart';
+import 'package:device_doctor/src/ios_device.dart';
 import 'package:device_doctor/src/utils.dart';
 
 void main() {

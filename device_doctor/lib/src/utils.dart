@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show utf8, JsonEncoder, LineSplitter;
+import 'dart:convert' show JsonEncoder;
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -11,16 +11,10 @@ import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
 import 'package:yaml/yaml.dart';
 
-import 'adb.dart';
-
 /// Virtual current working directory, which affect functions, such as [exec].
 String cwd = Directory.current.path;
 
-Config _config;
-Config get config => _config;
-
-List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
-ProcessManager _processManager = LocalProcessManager();
+ProcessManager processManager = LocalProcessManager();
 
 final Logger logger = PrintLogger(out: stdout, level: LogLevel.info);
 
@@ -79,49 +73,6 @@ String toLogString(String message, {LogLevel level}) {
   }
   buffer.write(message);
   return buffer.toString();
-}
-
-class ProcessInfo {
-  ProcessInfo(this.command, this.process);
-
-  final DateTime startTime = DateTime.now();
-  final String command;
-  final Process process;
-
-  @override
-  String toString() {
-    return '''
-  command : $command
-  started : $startTime
-  pid     : ${process.pid}
-'''
-        .trim();
-  }
-}
-
-/// Result of a health check for a specific parameter.
-class HealthCheckResult {
-  HealthCheckResult.success([this.details]) : succeeded = true;
-  HealthCheckResult.failure(this.details) : succeeded = false;
-  HealthCheckResult.error(dynamic error, dynamic stackTrace)
-      : succeeded = false,
-        details = 'ERROR: $error\n${stackTrace ?? ''}';
-
-  final bool succeeded;
-  final String details;
-
-  @override
-  String toString() {
-    StringBuffer buf = StringBuffer(succeeded ? 'succeeded' : 'failed');
-    if (details != null && details.trim().isNotEmpty) {
-      buf.writeln();
-      // Indent details by 4 spaces
-      for (String line in details.trim().split('\n')) {
-        buf.writeln('    $line');
-      }
-    }
-    return '$buf';
-  }
 }
 
 class BuildFailedError extends Error {
@@ -188,70 +139,6 @@ void section(String title) {
   logger.info('••• $title •••');
 }
 
-Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String> env, bool silent: false}) async {
-  String command = '$executable ${arguments?.join(" ") ?? ""}';
-  if (!silent) logger.info('Executing: $command');
-  Process proc =
-      await _processManager.start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: cwd);
-  ProcessInfo procInfo = ProcessInfo(command, proc);
-  _runningProcesses.add(procInfo);
-
-  // ignore: unawaited_futures
-  proc.exitCode.then((_) {
-    _runningProcesses.remove(procInfo);
-  });
-
-  return proc;
-}
-
-/// Executes a command and returns its exit code.
-Future<int> exec(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
-
-  final StreamSubscription<String> stdoutSubscription =
-      proc.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(logger.info);
-  final StreamSubscription<String> stderrSubscription =
-      proc.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen(logger.warning);
-
-  // Wait for stdout and stderr to be fully processed because proc.exitCode
-  // may complete first.
-  await Future.wait<void>(<Future<void>>[
-    stdoutSubscription.asFuture<void>(),
-    stderrSubscription.asFuture<void>(),
-  ]);
-  // The streams as futures have already completed, so waiting for the
-  // potentially async stream cancellation to complete likely has no benefit.
-  unawaited(stdoutSubscription.cancel());
-  unawaited(stderrSubscription.cancel());
-
-  int exitCode = await proc.exitCode;
-  if (exitCode != 0 && !canFail) {
-    final List<String> command = [executable]..addAll(arguments);
-    fail('Command "${command.join(' ')}" failed with exit code $exitCode.');
-  }
-
-  return exitCode;
-}
-
-/// Executes a command and returns its standard output as a String.
-///
-/// Standard error is redirected to the current process' standard error stream.
-Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
-  proc.stderr.listen((List<int> data) {
-    stderr.add(data);
-  });
-  String output = await utf8.decodeStream(proc.stdout);
-  int exitCode = await proc.exitCode;
-
-  if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
-
-  return output.trimRight();
-}
-
 Future<dynamic> inDirectory(dynamic directory, Future<dynamic> action()) async {
   String previousCwd = cwd;
   try {
@@ -275,65 +162,6 @@ void cd(dynamic directory) {
   }
 
   if (!d.existsSync()) throw 'Cannot cd into directory that does not exist: $directory';
-}
-
-class Config {
-  Config({
-    @required this.deviceOperatingSystem,
-    @required this.hostType,
-  });
-
-  static void initialize(String deviceOS) {
-    String home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-    if (home == null) throw "Unable to find \$HOME or \$USERPROFILE.";
-
-    DeviceOperatingSystem deviceOperatingSystem;
-    switch (deviceOS) {
-      case 'android':
-        deviceOperatingSystem = DeviceOperatingSystem.android;
-        break;
-      case 'ios':
-        deviceOperatingSystem = DeviceOperatingSystem.ios;
-        break;
-      case 'none':
-        deviceOperatingSystem = DeviceOperatingSystem.none;
-        break;
-      default:
-        throw BuildFailedError('Unrecognized device_os value: $deviceOS');
-    }
-
-    HostType hostType = HostType.physical;
-
-    _config = Config(
-      deviceOperatingSystem: deviceOperatingSystem,
-      hostType: hostType,
-    );
-  }
-
-  final DeviceOperatingSystem deviceOperatingSystem;
-  final HostType hostType;
-
-  String get adbPath {
-    String androidHome = Platform.environment['ANDROID_HOME'];
-
-    if (androidHome == null)
-      throw 'ANDROID_HOME environment variable missing. This variable must '
-          'point to the Android SDK directory containing platform-tools.';
-
-    String adbPath = path.join(androidHome, 'platform-tools', 'adb');
-
-    if (!_processManager.canRun(adbPath)) throw 'adb not found at: $adbPath';
-
-    return path.absolute(adbPath);
-  }
-
-  @override
-  String toString() => '''
-adbPath: ${deviceOperatingSystem == DeviceOperatingSystem.android ? adbPath : 'N/A'}
-deviceOperatingSystem: $deviceOperatingSystem
-hostType: $hostType
-'''
-      .trim();
 }
 
 String requireEnvVar(String name) {
@@ -361,12 +189,12 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   });
 }
 
-bool canRun(String path) => _processManager.canRun(path);
+bool canRun(String path) => processManager.canRun(path);
 
 final RegExp _whitespace = RegExp(r'\s+');
 
 List<String> runningProcessesOnWindows(String processName) {
-  final ProcessResult result = _processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
+  final ProcessResult result = processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {
     final String stdoutResult = result.stdout as String;
@@ -389,20 +217,6 @@ List<String> runningProcessesOnWindows(String processName) {
   return pids;
 }
 
-Future<void> killAllRunningProcessesOnWindows(String processName) async {
-  while (true) {
-    final pids = runningProcessesOnWindows(processName);
-    if (pids.isEmpty) {
-      return;
-    }
-    for (String pid in pids) {
-      _processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
-    }
-    // Killed processes don't release resources instantenously.
-    await Future<void>.delayed(Duration(seconds: 1));
-  }
-}
-
 /// Indicates to the linter that the given future is intentionally not `await`-ed.
 ///
 /// Has the same functionality as `unawaited` from `package:pedantic`.
@@ -413,49 +227,3 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
 /// futures are intentionally not awaited. This function may be used to ignore a
 /// particular future. It silences the unawaited_futures lint.
 void unawaited(Future<void> future) {}
-
-/// Unlocks the login keychain on macOS.
-///
-/// Whic is required to
-///   1. Enable Xcode to access the certificate for code signing.
-///   2. Mitigate "Your session has expired" issue. See flutter/flutter#17860.
-Future<Null> unlockKeyChain() async {
-  if (Platform.isMacOS) {
-    await exec(
-        'security', <String>['unlock-keychain', '-p', Platform.environment['FLUTTER_USER_SECRET'], 'login.keychain'],
-        canFail: false, silent: true);
-  }
-}
-
-/// Overall health of the device.
-class DeviceHealth {
-  /// Check results keyed by parameter.
-  final Map<String, HealthCheckResult> checks = <String, HealthCheckResult>{};
-
-  /// Whether all [checks] succeeded.
-  bool get ok => checks.isNotEmpty && checks.values.every((HealthCheckResult r) => r.succeeded);
-
-  /// Sets a health check [result] for a given [parameter].
-  void operator []=(String parameter, HealthCheckResult result) {
-    if (checks.containsKey(parameter)) {
-      logger.warning('duplicate health check ${parameter} submitted');
-    }
-    checks[parameter] = result;
-  }
-
-  void addAll(Map<String, HealthCheckResult> checks) {
-    checks.forEach((String p, HealthCheckResult r) {
-      this[p] = r;
-    });
-  }
-
-  /// Human-readable printout of the agent's health status.
-  @override
-  String toString() {
-    StringBuffer buf = new StringBuffer();
-    checks.forEach((String parameter, HealthCheckResult result) {
-      buf.writeln('$parameter: $result');
-    });
-    return buf.toString();
-  }
-}

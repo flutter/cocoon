@@ -5,15 +5,13 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import "package:path/path.dart" show dirname, join;
-import 'package:yaml/yaml.dart';
 
-import 'package:device_doctor/src/adb.dart';
+import 'package:device_doctor/src/device.dart';
 import 'package:device_doctor/src/health.dart';
-import 'package:device_doctor/src/utils.dart';
+import 'package:device_doctor/src/config.dart';
 
 const String actionFlag = 'action';
-const String configFileFlag = 'config-file';
+const String deviceOSFlag = 'deviceOS';
 const String helpFlag = 'help';
 
 String _action;
@@ -28,23 +26,15 @@ Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
     ..addOption('$actionFlag')
-    ..addOption('$configFileFlag', abbr: 'c', defaultsTo: 'config.yaml')
+    ..addOption('$deviceOSFlag')
     ..addFlag('$helpFlag');
 
   if (!_checkArgs(parser, args)) {
     stdout.write('\nRequired flags:\n'
-        '--$actionFlag Supported actions are healthcheck, restart, and cleanup.\n'
-        'Optional flags:\n'
-        '--$configFileFlag Device OS config file for hosts.\n');
+        '--$actionFlag Supported actions are healthcheck, recover, and cleanup.\n'
+        '--$deviceOSFlag Supported device OS: android or ios.\n');
     exit(1);
   }
-
-  final ArgResults argResults = parser.parse(args);
-  final File configFile = file(join(dirname(Platform.script.path), argResults[configFileFlag] as String));
-  final YamlMap config = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  final String hostname = Platform.localHostname;
-
-  _deviceOS = config[hostname] as String ?? '';
 
   Config.initialize(_deviceOS);
 
@@ -53,14 +43,14 @@ Future<void> main(List<String> args) async {
       final Map<String, HealthCheckResult> deviceChecks = await devices.checkDevices();
       final bool hasHealthyDevices = deviceChecks.values.where((HealthCheckResult r) => r.succeeded).isNotEmpty;
       if (!hasHealthyDevices) {
-        throw StateError('No healthy $_deviceOS device is available for $hostname');
+        throw StateError('No healthy $_deviceOS device is available');
       }
       if (_deviceOS == 'ios') {
         await closeIosDialog();
       }
       break;
-    case 'restart':
-      await devices.restartDevice();
+    case 'recover':
+      await devices.recoverDevice();
       break;
     case 'cleanup':
       await removeCachedData();
@@ -69,7 +59,7 @@ Future<void> main(List<String> args) async {
       }
       break;
     default:
-      print('ERROR: Supported actions are healthcheck, restart, and cleanup.');
+      print('ERROR: Supported actions are healthcheck, recover, and cleanup.');
       break;
   }
 }
@@ -82,8 +72,13 @@ bool _checkArgs(ArgParser parser, List<String> args) {
   }
 
   _action = argResults[actionFlag];
+  _deviceOS = argResults[deviceOSFlag];
   if (_action == null) {
     stderr.write('ERROR: --$actionFlag must be defined\n');
+    return false;
+  }
+  if (_deviceOS == null) {
+    stderr.write('ERROR: --$deviceOSFlag must be defined\n');
     return false;
   }
 

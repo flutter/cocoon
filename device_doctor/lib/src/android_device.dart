@@ -3,78 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show LineSplitter;
 import 'dart:io';
 
 import 'package:meta/meta.dart';
 
+import 'config.dart';
+import 'device.dart';
+import 'process_helper.dart';
 import 'utils.dart';
-
-/// The root of the API for controlling devices.
-DeviceDiscovery get devices => DeviceDiscovery();
-
-/// Type of host that is configured to test.
-enum HostType { vm, physical }
-
-/// Operating system on the devices that this host is configured to test.
-enum DeviceOperatingSystem { android, ios, none }
-
-/// Discovers available devices and chooses one to work with.
-abstract class DeviceDiscovery {
-  factory DeviceDiscovery() {
-    switch (config.deviceOperatingSystem) {
-      case DeviceOperatingSystem.android:
-        return AndroidDeviceDiscovery();
-      case DeviceOperatingSystem.ios:
-        return IosDeviceDiscovery();
-      case DeviceOperatingSystem.none:
-        return NoOpDeviceDiscovery();
-      default:
-        throw StateError('Unsupported device operating system: {config.deviceOperatingSystem}');
-    }
-  }
-
-  /// Lists all available devices' IDs.
-  Future<List<Device>> discoverDevices({int retriesDelayMs = 10000});
-
-  /// Checks the health of the available devices.
-  Future<Map<String, HealthCheckResult>> checkDevices();
-
-  /// Restarts the device.
-  Future<void> restartDevice();
-}
-
-/// A proxy for one specific device.
-abstract class Device {
-  /// A unique device identifier.
-  String get deviceId;
-
-  /// Whether the device is awake.
-  Future<bool> isAwake();
-
-  /// Whether the device is asleep.
-  Future<bool> isAsleep();
-
-  /// Wake up the device if it is not awake.
-  Future<void> wakeUp();
-
-  /// Send the device to sleep mode.
-  Future<void> sendToSleep();
-
-  /// Emulates pressing the power button, toggling the device's on/off state.
-  Future<void> togglePower();
-
-  /// Turns off TalkBack on Android devices, does nothing on iOS devices.
-  Future<void> disableAccessibility();
-
-  /// Unlocks the device.
-  ///
-  /// Assumes the device doesn't have a secure unlock pattern.
-  Future<void> unlock();
-
-  /// Restarts the device.
-  Future<void> restart();
-}
 
 /// Constant battery health values returned from Android Battery Manager.
 ///
@@ -180,9 +116,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<void> restartDevice() async {
+  Future<void> recoverDevice() async {
     for (Device device in await discoverDevices()) {
-      await device.restart();
+      await device.recover();
     }
   }
 }
@@ -239,7 +175,7 @@ class AndroidDevice implements Device {
   }
 
   @override
-  Future<void> restart() async {
+  Future<void> recover() async {
     await shellExec('input', const ['keyevent', '26']);
   }
 
@@ -291,107 +227,5 @@ class AndroidDevice implements Device {
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
   Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
     return eval(config.adbPath, ['shell', command]..addAll(arguments), env: env, canFail: false);
-  }
-}
-
-class IosDeviceDiscovery implements DeviceDiscovery {
-  factory IosDeviceDiscovery() {
-    return _instance ??= IosDeviceDiscovery._();
-  }
-
-  IosDeviceDiscovery._();
-
-  static IosDeviceDiscovery _instance;
-
-  @override
-  Future<List<Device>> discoverDevices({int retriesDelayMs = 10000}) async {
-    // Warm up device list. This is to ensure slow devices are discovered.
-    // https://github.com/flutter/flutter/issues/64753
-    // await eval('xcrun', <String>['xcdevice', 'list', '--timeout', '10']);
-    final List<String> iosDeviceIds = LineSplitter.split(await eval('idevice_id', <String>['-l'])).toList();
-    return iosDeviceIds.map((String id) => IosDevice(deviceId: id)).toList();
-  }
-
-  @override
-  Future<Map<String, HealthCheckResult>> checkDevices() async {
-    final Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    for (Device device in await discoverDevices()) {
-      results['ios-device-${device.deviceId}'] = HealthCheckResult.success();
-    }
-    return results;
-  }
-
-  @override
-  Future<void> restartDevice() async {
-    //await eval('idevicediagnostics', <String>['restart']);
-    for (Device device in await discoverDevices()) {
-      await device.restart();
-    }
-  }
-}
-
-class NoOpDeviceDiscovery implements DeviceDiscovery {
-  factory NoOpDeviceDiscovery() {
-    return _instance ??= NoOpDeviceDiscovery._();
-  }
-
-  NoOpDeviceDiscovery._();
-
-  static NoOpDeviceDiscovery _instance;
-
-  @override
-  Future<List<Device>> discoverDevices({int retriesDelayMs = 10000}) async {
-    return [];
-  }
-
-  @override
-  Future<Map<String, HealthCheckResult>> checkDevices() async {
-    Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
-    results['no-device'] = HealthCheckResult.success();
-    return results;
-  }
-
-  @override
-  Future<void> restartDevice() async {
-    return null;
-  }
-}
-
-/// iOS device.
-class IosDevice implements Device {
-  const IosDevice({@required this.deviceId});
-
-  @override
-  final String deviceId;
-
-  // The methods below are stubs for now. They will need to be expanded.
-  // We currently do not have a way to lock/unlock iOS devices. So we assume the
-  // devices are already unlocked. For now we'll just keep them at minimum
-  // screen brightness so they don't drain battery too fast.
-
-  @override
-  Future<bool> isAwake() async => true;
-
-  @override
-  Future<bool> isAsleep() async => false;
-
-  @override
-  Future<void> wakeUp() async {}
-
-  @override
-  Future<void> sendToSleep() async {}
-
-  @override
-  Future<void> togglePower() async {}
-
-  @override
-  Future<void> unlock() async {}
-
-  @override
-  Future<void> disableAccessibility() async {}
-
-  @override
-  Future<void> restart() async {
-    await eval('idevicediagnostics', <String>['restart']);
   }
 }

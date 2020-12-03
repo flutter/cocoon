@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
-import 'package:device_doctor/src/adb.dart';
-import 'package:device_doctor/src/utils.dart';
+import 'package:device_doctor/src/device.dart';
+import 'package:device_doctor/src/android_device.dart';
 
 void main() {
   group('AndroidDeviceDiscovery', () {
