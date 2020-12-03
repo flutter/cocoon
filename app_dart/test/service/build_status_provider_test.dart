@@ -150,7 +150,6 @@ void main() {
         expect(status, BuildStatus.failed);
       });
 
-
       test('returns failure when a task has an infra failure', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
         int row = 0;
