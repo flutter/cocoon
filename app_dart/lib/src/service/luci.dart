@@ -18,14 +18,14 @@ import 'buildbucket.dart';
 part 'luci.g.dart';
 
 const int _maxResults = 40;
-const Map<Status, String> _luciStatusToTaskStatus = <Status, String>{
+const Map<Status, String> luciStatusToTaskStatus = <Status, String>{
   Status.unspecified: Task.statusInProgress,
   Status.scheduled: Task.statusInProgress,
   Status.started: Task.statusInProgress,
   Status.canceled: Task.statusSkipped,
   Status.success: Task.statusSucceeded,
   Status.failure: Task.statusFailed,
-  Status.infraFailure: Task.statusFailed,
+  Status.infraFailure: Task.statusInfraFailure,
 };
 
 typedef LuciServiceProvider = LuciService Function(ApiRequestHandler<dynamic> handler);
@@ -35,12 +35,17 @@ typedef LuciServiceProvider = LuciService Function(ApiRequestHandler<dynamic> ha
 class LuciService {
   /// Creates a new [LuciService].
   ///
-  /// The [config] and [clientContext] arguments must not be null.
+  /// The [buildBucketClient], [config], and [clientContext] arguments must not be null.
   const LuciService({
+    @required this.buildBucketClient,
     @required this.config,
     @required this.clientContext,
-  })  : assert(config != null),
+  })  : assert(buildBucketClient != null),
+        assert(config != null),
         assert(clientContext != null);
+
+  /// Client for making buildbucket requests to.
+  final BuildBucketClient buildBucketClient;
 
   /// The Cocoon configuration. Guaranteed to be non-null.
   final Config config;
@@ -78,7 +83,7 @@ class LuciService {
       results[branchLuciBuilder][commit].add(LuciTask(
           commitSha: commit,
           ref: ref,
-          status: _luciStatusToTaskStatus[build.status],
+          status: luciStatusToTaskStatus[build.status],
           buildNumber: build.number,
           builderName: build.builderId.builder));
     }
@@ -108,7 +113,7 @@ class LuciService {
       results[builder].add(LuciTask(
         commitSha: commit,
         ref: ref,
-        status: _luciStatusToTaskStatus[build.status],
+        status: luciStatusToTaskStatus[build.status],
         buildNumber: build.number,
         builderName: build.builderId.builder,
       ));
@@ -121,8 +126,6 @@ class LuciService {
   ///
   /// Latest builds of each builder will be returned from new to old.
   Future<Iterable<Build>> getBuilds(String repo, bool requireTaskName, List<LuciBuilder> builders) async {
-    final BuildBucketClient buildBucketClient = BuildBucketClient();
-
     bool includeBuilder(LuciBuilder builder) {
       if (repo != null && builder.repo != repo) {
         return false;

@@ -73,6 +73,9 @@ class Task extends Model {
   /// The task is yet to be run.
   static const String statusNew = 'New';
 
+  /// The task failed to run due to an unexpected issue.
+  static const String statusInfraFailure = 'Infra Failure';
+
   /// The task is currently running.
   static const String statusInProgress = 'In Progress';
 
@@ -90,6 +93,7 @@ class Task extends Model {
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
     statusNew,
+    statusInfraFailure,
     statusInProgress,
     statusSucceeded,
     statusFailed,
