@@ -93,6 +93,7 @@ class Task extends Model {
   /// The list of legal values for the [status] property.
   static const List<String> legalStatusValues = <String>[
     statusNew,
+    statusInfraFailure,
     statusInProgress,
     statusSucceeded,
     statusFailed,
