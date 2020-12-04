@@ -123,7 +123,10 @@ class _TaskGridState extends State<TaskGrid> {
   static const Map<String, double> _statusScores = <String, double>{
     'Failed - Rerun': 1.0,
     'Failed': 0.7,
+    'Infra Failure - Rerun': 0.69,
+    'Infra Failure': 0.68,
     'Failed - Flaky': 0.67,
+    'Infra Failure - Flaky': 0.65,
     'In Progress - Flaky': 0.64,
     'New - Flaky': 0.63,
     'Succeeded - Flaky': 0.61,
