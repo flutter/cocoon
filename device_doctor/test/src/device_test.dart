@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:device_doctor/src/device.dart';
+import 'package:device_doctor/src/utils.dart';
 
 import 'fake_ios_device.dart';
 

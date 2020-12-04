@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 
 import 'device.dart';
 import 'process_helper.dart';
+import 'utils.dart';
 
 /// IOS implementation of [DeviceDiscovery].
 ///
@@ -26,9 +27,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({int retriesDelayMs = 10000}) async {
-    final List<String> iosDeviceIds = LineSplitter.split(await deviceListOutput()).toList();
-    return iosDeviceIds.map((String id) => IosDevice(deviceId: id)).toList();
+  Future<List<Device>> discoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
+    return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 
   Future<String> deviceListOutput() async {
@@ -45,7 +45,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<void> recoverDevice() async {
+  Future<void> recoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }

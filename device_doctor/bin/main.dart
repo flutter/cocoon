@@ -7,9 +7,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import 'package:device_doctor/src/config.dart';
+import 'package:device_doctor/src/device.dart';
 
 const String actionFlag = 'action';
-const String deviceOSFlag = 'deviceOS';
+const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
 
 /// These values will be initialized in `_checkArgs` function,
@@ -24,20 +25,23 @@ String _deviceOS;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addOption('$actionFlag')
-    ..addOption('$deviceOSFlag')
-    ..addFlag('$helpFlag');
+    ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.')
+    ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.')
+    ..addFlag('$helpFlag', help: 'Prints usage info.');
+
+  final ArgResults argResults = parser.parse(args);
+  _action = argResults[actionFlag];
+  _deviceOS = argResults[deviceOSFlag];
 
   if (!_checkArgs(parser, args)) {
-    stdout.write('\nRequired flags:\n'
-        '--$actionFlag Supported actions are healthcheck and recovery.\n'
-        '--$deviceOSFlag Supported device OS: android and ios.\n');
+    stdout.write('${parser.usage}');
     exit(1);
   }
 
-  Config.initialize(_deviceOS);
+  final Config config = Config(deviceOS: _deviceOS);
+  DeviceDiscovery(config);
 
-  // Healthcheck and recovery will be implemented here. PR to be continued.
+  // TODO(keyonghan): Implement healthcheck and recovery, https://github.com/flutter/flutter/issues/66193.
 }
 
 bool _checkArgs(ArgParser parser, List<String> args) {

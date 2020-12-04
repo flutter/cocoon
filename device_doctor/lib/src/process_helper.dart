@@ -6,6 +6,9 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+import 'package:process/process.dart';
+
 import 'utils.dart';
 
 List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
@@ -32,10 +35,11 @@ class ProcessInfo {
 /// Starts a process for an executable command, and returns the processes.
 Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false}) async {
+  ProcessManager processManager = LocalProcessManager();
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
-  Process proc =
-      await processManager.start(<String>[executable]..addAll(arguments), environment: env, workingDirectory: cwd);
+  Process proc = await processManager.start(<String>[executable]..addAll(arguments),
+      environment: env, workingDirectory: path.current);
   ProcessInfo procInfo = ProcessInfo(command, proc);
   _runningProcesses.add(procInfo);
 

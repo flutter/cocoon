@@ -6,31 +6,27 @@ import 'package:meta/meta.dart';
 
 import 'device.dart';
 
-Config _config;
-Config get config => _config;
-
-/// Configures device operating system based on injected decice OS.
+/// Configures device operating system based on injected device OS.
 ///
 /// This determines the [DeviceDiscovery].
+
 class Config {
   Config({
-    @required this.deviceOperatingSystem,
+    @required this.deviceOS,
   });
 
-  static void initialize(String deviceOS) {
+  final String deviceOS;
+  DeviceOperatingSystem get deviceOperatingSystem => _initialize(deviceOS);
+
+  static DeviceOperatingSystem _initialize(String deviceOS) {
     DeviceOperatingSystem deviceOperatingSystem;
     switch (deviceOS) {
       case 'ios':
         deviceOperatingSystem = DeviceOperatingSystem.ios;
         break;
     }
-
-    _config = Config(
-      deviceOperatingSystem: deviceOperatingSystem,
-    );
+    return deviceOperatingSystem;
   }
-
-  final DeviceOperatingSystem deviceOperatingSystem;
 
   @override
   String toString() => '''
