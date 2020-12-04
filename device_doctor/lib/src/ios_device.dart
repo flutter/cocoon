@@ -11,7 +11,7 @@ import 'device.dart';
 import 'process_helper.dart';
 
 /// IOS implementation of [DeviceDiscovery].
-/// 
+///
 /// Discovers available ios devices and chooses one to work with.
 class IosDeviceDiscovery implements DeviceDiscovery {
   factory IosDeviceDiscovery() {

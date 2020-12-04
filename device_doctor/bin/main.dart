@@ -12,6 +12,8 @@ const String actionFlag = 'action';
 const String deviceOSFlag = 'deviceOS';
 const String helpFlag = 'help';
 
+/// These values will be initialized in `_checkArgs` function,
+/// and used in `main` function.
 String _action;
 String _deviceOS;
 
@@ -28,8 +30,8 @@ Future<void> main(List<String> args) async {
 
   if (!_checkArgs(parser, args)) {
     stdout.write('\nRequired flags:\n'
-        '--$actionFlag Supported actions are healthcheck, recover, and cleanup.\n'
-        '--$deviceOSFlag Supported device OS: android or ios.\n');
+        '--$actionFlag Supported actions are healthcheck and recovery.\n'
+        '--$deviceOSFlag Supported device OS: android and ios.\n');
     exit(1);
   }
 
