@@ -160,9 +160,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String builderName = requestData[builderNameParam] as String;
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
     final List<Task> initialTasks = await query.run().toList();
-    // Expected initialTasks will return one CocoonAgentTask and one LuciTask.
-    // TODO(chillers): After migration to LUCI this can be removed as there will only be one entry, https://github.com/flutter/flutter/projects/151
+    log.debug('Found ${initialTasks.length} tasks for commit');
     final List<Task> tasks = <Task>[];
+    log.debug('Searching for task with builderName=$builderName');
     for (Task task in initialTasks) {
       if (task.builderName == builderName) {
         tasks.add(task);
@@ -181,6 +181,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Key _constructCommitKey(DatastoreService datastore) {
     final String id = 'flutter/flutter/${requestData[gitBranchParam]}/${requestData[gitShaParam]}';
     final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
+    log.debug('Consructed commit key = $id');
     return commitKey;
   }
 
