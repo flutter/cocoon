@@ -4,21 +4,20 @@
 
 import 'dart:async';
 
-import 'config.dart';
+import 'health.dart';
 import 'ios_device.dart';
-import 'utils.dart';
 
 /// Operating system on the devices that this host is configured to test.
 enum DeviceOperatingSystem { android, ios }
 
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
-  factory DeviceDiscovery(Config config) {
-    switch (config.deviceOperatingSystem) {
-      case DeviceOperatingSystem.ios:
+  factory DeviceDiscovery(String deviceOs) {
+    switch (deviceOs) {
+      case 'ios':
         return IosDeviceDiscovery();
       default:
-        throw StateError('Unsupported device operating system: ${config.deviceOperatingSystem}');
+        throw StateError('Unsupported device operating system: $deviceOs');
     }
   }
 
@@ -43,22 +42,10 @@ abstract class Device {
   /// Whether the device is asleep.
   Future<bool> isAsleep();
 
-  /// Wake up the device if it is not awake.
-  Future<void> wakeUp();
-
-  /// Send the device to sleep mode.
-  Future<void> sendToSleep();
-
-  /// Emulates pressing the power button, toggling the device's on/off state.
-  Future<void> togglePower();
-
-  /// Turns off TalkBack on Android devices, does nothing on iOS devices.
-  Future<void> disableAccessibility();
-
   /// Unlocks the device.
   ///
   /// Assumes the device doesn't have a secure unlock pattern.
-  Future<void> unlock();
+  Future<void> unlock() async {}
 
   /// Recovers the device back to a healthy state.
   Future<void> recover();

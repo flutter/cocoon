@@ -8,8 +8,8 @@ import 'dart:convert' show LineSplitter;
 import 'package:meta/meta.dart';
 
 import 'device.dart';
+import 'health.dart';
 import 'process_helper.dart';
-import 'utils.dart';
 
 /// IOS implementation of [DeviceDiscovery].
 ///
@@ -71,19 +71,7 @@ class IosDevice implements Device {
   Future<bool> isAsleep() async => false;
 
   @override
-  Future<void> wakeUp() async {}
-
-  @override
-  Future<void> sendToSleep() async {}
-
-  @override
-  Future<void> togglePower() async {}
-
-  @override
   Future<void> unlock() async {}
-
-  @override
-  Future<void> disableAccessibility() async {}
 
   @override
   Future<void> recover() async {}

@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 
-import 'package:device_doctor/src/config.dart';
 import 'package:device_doctor/src/device.dart';
 
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
+const List<String> supportedOptions = <String>['healthcheck', 'recovery'];
+const List<String> supportedDeviceOS = <String>['ios', 'android'];
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
@@ -25,42 +24,23 @@ String _deviceOS;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.')
-    ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.')
+    ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.', callback: (String value) {
+      if (value == null || !supportedOptions.contains(value)) {
+        throw FormatException('Invalid value for option --action: $value');
+      }
+    })
+    ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
+      if (value == null || !supportedDeviceOS.contains(value)) {
+        throw FormatException('Invalid value for option --action: $value');
+      }
+    })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
 
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
 
-  if (!_checkArgs(parser, args)) {
-    stdout.write('${parser.usage}');
-    exit(1);
-  }
-
-  final Config config = Config(deviceOS: _deviceOS);
-  DeviceDiscovery(config);
+  DeviceDiscovery(_deviceOS);
 
   // TODO(keyonghan): Implement healthcheck and recovery, https://github.com/flutter/flutter/issues/66193.
-}
-
-bool _checkArgs(ArgParser parser, List<String> args) {
-  final ArgResults argResults = parser.parse(args);
-  final bool printHelp = argResults[helpFlag];
-  if (printHelp) {
-    return false;
-  }
-
-  _action = argResults[actionFlag];
-  _deviceOS = argResults[deviceOSFlag];
-  if (_action == null) {
-    stderr.write('ERROR: --$actionFlag must be defined\n');
-    return false;
-  }
-  if (_deviceOS == null) {
-    stderr.write('ERROR: --$deviceOSFlag must be defined\n');
-    return false;
-  }
-
-  return true;
 }
