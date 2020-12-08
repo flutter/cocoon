@@ -7,9 +7,6 @@ import 'dart:async';
 import 'health.dart';
 import 'ios_device.dart';
 
-/// Operating system on the devices that this host is configured to test.
-enum DeviceOperatingSystem { android, ios }
-
 /// Discovers available devices and chooses one to work with.
 abstract class DeviceDiscovery {
   factory DeviceDiscovery(String deviceOs) {
