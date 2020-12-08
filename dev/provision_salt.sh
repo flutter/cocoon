@@ -14,6 +14,8 @@ function install_salt() {
   if [[ "$(uname)" == 'Linux' ]]; then
     wget -O - https://repo.saltstack.com/py3/debian/10/amd64/3002/SALTSTACK-GPG-KEY.pub | sudo apt-key add -
     echo 'deb http://repo.saltstack.com/py3/debian/10/amd64/3002 buster main' | sudo tee /etc/apt/sources.list.d/saltstack.list
+    # Also provision debian backports for m2crypto
+    echo 'deb http://deb.debian.org/debian buster-backports main' | sudo tee /etc/apt/sources.list.d/backports.list
     sudo apt update
     sudo apt install salt-minion
   elif [[ "$(uname)" == 'Darwin' ]]; then
