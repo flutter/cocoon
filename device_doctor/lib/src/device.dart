@@ -45,7 +45,7 @@ abstract class Device {
   /// Unlocks the device.
   ///
   /// Assumes the device doesn't have a secure unlock pattern.
-  Future<void> unlock() async {}
+  Future<void> unlock();
 
   /// Recovers the device back to a healthy state.
   Future<void> recover();
