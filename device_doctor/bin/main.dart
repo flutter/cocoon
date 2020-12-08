@@ -25,12 +25,12 @@ Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
     ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.', callback: (String value) {
-      if (value == null || !supportedOptions.contains(value)) {
+      if (!supportedOptions.contains(value)) {
         throw FormatException('Invalid value for option --action: $value');
       }
     })
     ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
-      if (value == null || !supportedDeviceOS.contains(value)) {
+      if (!supportedDeviceOS.contains(value)) {
         throw FormatException('Invalid value for option --action: $value');
       }
     })
