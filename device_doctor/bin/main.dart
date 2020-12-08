@@ -31,7 +31,7 @@ Future<void> main(List<String> args) async {
     })
     ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
       if (!supportedDeviceOS.contains(value)) {
-        throw FormatException('Invalid value for option --action: $value');
+        throw FormatException('Invalid value for option --device-os: $value');
       }
     })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
