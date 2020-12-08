@@ -184,7 +184,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     final String gitBranch = requestData[gitBranchParam] as String;
     final List<String> flutterBranches = await config.flutterBranches;
     if (!flutterBranches.contains(gitBranch)) {
-      throw BadRequestException('$gitBranch is not a flutter/flutter branch');
+      throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
+          'If this is a valid branch, '
+          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
     }
     final String id = 'flutter/flutter/$gitBranch/${requestData[gitShaParam]}';
     final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
