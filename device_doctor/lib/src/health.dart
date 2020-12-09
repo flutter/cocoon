@@ -82,8 +82,8 @@ class HealthCheckResult {
 /// an exception will be thrown.
 Future<void> healthcheck(Map<String, List<HealthCheckResult>> deviceChecks) async {
   if (deviceChecks.isEmpty) {
-    stderr.writeln('No healthy iOS device is available');
-    throw StateError('No healthy iOS device is available');
+    stderr.writeln('No healthy device is available');
+    throw StateError('No healthy device is available');
   }
   for (String deviceID in deviceChecks.keys) {
     List<HealthCheckResult> checks = deviceChecks[deviceID];
