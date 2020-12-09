@@ -190,8 +190,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
     final String id = 'flutter/flutter/$gitBranch/${requestData[gitShaParam]}';
     final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
-    log.debug('Consructed commit key = $id');
-    return commitKey;
+    log.debug('Constructed commit key=$id');
+    // Return the official key from Datastore for task lookups.
+    final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
+      throw BadRequestException('No such commit: $id');
+    });
+    return commit.key;
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {
