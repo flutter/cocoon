@@ -54,5 +54,6 @@ Future<void> main(List<String> args) async {
       break;
     case 'recovery':
       await deviceDiscovery.recoverDevices();
+      break;
   }
 }
