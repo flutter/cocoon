@@ -36,10 +36,12 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, HealthCheckResult>> checkDevices() async {
-    final Map<String, HealthCheckResult> results = <String, HealthCheckResult>{};
+  Future<Map<String, List<HealthCheckResult>>> checkDevices() async {
+    final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (Device device in await discoverDevices()) {
-      results['ios-device-${device.deviceId}'] = HealthCheckResult.success();
+      final List<HealthCheckResult> checks = <HealthCheckResult>[];
+      checks.add(HealthCheckResult.success('device_access'));
+      results['ios-device-${device.deviceId}'] = checks;
     }
     return results;
   }
@@ -74,5 +76,7 @@ class IosDevice implements Device {
   Future<void> unlock() async {}
 
   @override
-  Future<void> recover() async {}
+  Future<void> recover() async {
+    await eval('idevicediagnostics', <String>['restart']);
+  }
 }
