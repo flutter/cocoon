@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert' show LineSplitter;
 
@@ -43,6 +44,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       results['ios-device-${device.deviceId}'] = checks;
     }
+    await _healthcheck(results);
     return results;
   }
 
@@ -50,6 +52,28 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<void> recoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
     for (Device device in await discoverDevices()) {
       await device.recover();
+    }
+  }
+
+  /// Check healthiness for discovered devices.
+  ///
+  /// If any failed check, an explanation message will be sent to stdout and
+  /// an exception will be thrown.
+  Future<void> _healthcheck(Map<String, List<HealthCheckResult>> deviceChecks) async {
+    if (deviceChecks.isEmpty) {
+      stderr.writeln('No healthy iOS device is available');
+      throw StateError('No healthy iOS device is available');
+    }
+    for (String deviceID in deviceChecks.keys) {
+      List<HealthCheckResult> checks = deviceChecks[deviceID];
+      for (HealthCheckResult healthCheckResult in checks) {
+        if (!healthCheckResult.succeeded) {
+          stderr.writeln('${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
+          throw StateError('$deviceID: ${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
+        } else {
+          stdout.writeln('${healthCheckResult.name} check succeeded');
+        }
+      }
     }
   }
 }
@@ -77,6 +101,9 @@ class IosDevice implements Device {
 
   @override
   Future<void> recover() async {
+    // Restarts the device first.
     await eval('idevicediagnostics', <String>['restart']);
+    // Close pop up dialogs if any.
+    await closeIosDialog(deviceId: deviceId);
   }
 }

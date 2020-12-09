@@ -12,24 +12,19 @@ import 'package:test/test.dart';
 import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/utils.dart';
 
-import 'fake_ios_device.dart';
-
 void main() {
   group('testCloseIosDialog', () {
     MockProcessManager pm;
-    FakeIosDeviceDiscovery discovery;
 
     setUp(() async {
       pm = MockProcessManager();
-      discovery = FakeIosDeviceDiscovery();
-      discovery.outputs = <dynamic>['fakeDeviceId'];
     });
 
     test('succeeded', () async {
       Process proc = FakeProcess(0);
       when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
 
-      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery);
+      HealthCheckResult res = await closeIosDialog(pm: pm);
 
       expect(res.succeeded, isTrue);
     });
@@ -43,7 +38,7 @@ void main() {
         'FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER': 'a name with space',
       });
 
-      HealthCheckResult res = await closeIosDialog(pm: pm, discovery: discovery, pl: pl);
+      HealthCheckResult res = await closeIosDialog(pm: pm, pl: pl);
 
       expect(res.succeeded, isTrue);
     });
@@ -53,7 +48,7 @@ void main() {
       when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
 
       expect(
-        closeIosDialog(pm: pm, discovery: discovery),
+        closeIosDialog(pm: pm),
         throwsA(TypeMatcher<BuildFailedError>()),
       );
     });

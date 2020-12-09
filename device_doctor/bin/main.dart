@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 
 import 'package:device_doctor/src/device.dart';
-import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/ios_device.dart';
 
 const String actionFlag = 'action';
@@ -21,7 +18,12 @@ const List<String> supportedDeviceOS = <String>['ios', 'android'];
 String _action;
 String _deviceOS;
 
-/// Manage healthcheck and recovery for devices.
+/// Manage `healthcheck` and `recovery` for devices.
+/// 
+/// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
+/// and an exception will be thrown.
+/// 
+/// For `recovery`, device will do cleanup, reboot, and then dismiss any dialog for `ios` device.
 ///
 /// Usage:
 /// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>
@@ -48,35 +50,9 @@ Future<void> main(List<String> args) async {
 
   switch (_action) {
     case 'healthcheck':
-      await _healthcheck(deviceDiscovery);
+      await deviceDiscovery.checkDevices();
       break;
     case 'recovery':
       await deviceDiscovery.recoverDevices();
-      if (_deviceOS == 'ios') {
-        await closeIosDialog(discovery: deviceDiscovery);
-      }
-  }
-}
-
-/// Check healthiness for discovered devices.
-/// 
-/// If any failed check, an explanation message will be sent to stdout and 
-/// an exception will be thrown.
-Future<void> _healthcheck(IosDeviceDiscovery deviceDiscovery) async {
-  final Map<String, List<HealthCheckResult>> deviceChecks = await deviceDiscovery.checkDevices();
-  if (deviceChecks.isEmpty) {
-    stderr.writeln('No healthy $_deviceOS device is available');
-    throw StateError('No healthy $_deviceOS device is available');
-  }
-  for (String deviceID in deviceChecks.keys) {
-    List<HealthCheckResult> checks = deviceChecks[deviceID];
-    for (HealthCheckResult healthCheckResult in checks) {
-      if (!healthCheckResult.succeeded) {
-        stderr.writeln('${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
-        throw StateError('$deviceID: ${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
-      } else {
-        stdout.writeln('${healthCheckResult.name} check succeeded');
-      }
-    }
   }
 }

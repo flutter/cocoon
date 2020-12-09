@@ -9,8 +9,6 @@ import 'package:path/path.dart' as path;
 import 'package:platform/platform.dart' as platform;
 import 'package:process/process.dart';
 
-import 'device.dart';
-import 'ios_device.dart';
 import 'utils.dart';
 
 /// Closes system dialogs on iOS, e.g. the one about new system update.
@@ -18,41 +16,36 @@ import 'utils.dart';
 /// The dialogs often cause test flakiness and performance regressions.
 Future<HealthCheckResult> closeIosDialog(
     {ProcessManager pm = const LocalProcessManager(),
-    DeviceDiscovery discovery,
+    String deviceId,
     platform.Platform pl = const platform.LocalPlatform()}) async {
   Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', 'infra-dialog');
   if (!await dialogDir.exists()) {
     fail('Unable to find infra-dialog at $dialogDir');
   }
 
-  for (Device d in await discovery.discoverDevices()) {
-    if (!(d is IosDevice)) {
-      continue;
+  // Runs the single XCUITest in infra-dialog.
+  await inDirectory(dialogDir, () async {
+    List<String> command =
+        'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=$deviceId test'
+            .split(' ');
+    // By default the above command relies on automatic code signing, while on devicelab machines
+    // it should utilize manual code signing as that is more stable. Below overwrites the code
+    // signing config if one exists in the environment.
+    if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
+      command.add("CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
+      command.add("DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
+      command.add("PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
     }
-    // Runs the single XCUITest in infra-dialog.
-    await inDirectory(dialogDir, () async {
-      List<String> command =
-          'xcrun xcodebuild -project infra-dialog.xcodeproj -scheme infra-dialog -destination id=${d.deviceId} test'
-              .split(' ');
-      // By default the above command relies on automatic code signing, while on devicelab machines
-      // it should utilize manual code signing as that is more stable. Below overwrites the code
-      // signing config if one exists in the environment.
-      if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
-        command.add("CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
-        command.add("DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
-        command.add("PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}");
-      }
-      Process proc = await pm.start(command, workingDirectory: dialogDir.path);
-      logger.info('Executing: $command');
-      // Discards stdout and stderr as they are too large.
-      await proc.stdout.drain<Object>();
-      await proc.stderr.drain<Object>();
-      int exitCode = await proc.exitCode;
-      if (exitCode != 0) {
-        fail('Command "xcrun xcodebuild -project infra-dialog..." failed with exit code $exitCode.');
-      }
-    });
-  }
+    Process proc = await pm.start(command, workingDirectory: dialogDir.path);
+    logger.info('Executing: $command');
+    // Discards stdout and stderr as they are too large.
+    await proc.stdout.drain<Object>();
+    await proc.stderr.drain<Object>();
+    int exitCode = await proc.exitCode;
+    if (exitCode != 0) {
+      fail('Command "xcrun xcodebuild -project infra-dialog..." failed with exit code $exitCode.');
+    }
+  });
   return HealthCheckResult.success('close iOS dialog');
 }
 
