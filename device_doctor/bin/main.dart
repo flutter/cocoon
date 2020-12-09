@@ -19,10 +19,10 @@ String _action;
 String _deviceOS;
 
 /// Manage `healthcheck` and `recovery` for devices.
-/// 
+///
 /// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
 /// and an exception will be thrown.
-/// 
+///
 /// For `recovery`, device will do cleanup, reboot, and then dismiss any dialog for `ios` device.
 ///
 /// Usage:
