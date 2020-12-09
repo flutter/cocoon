@@ -14,7 +14,6 @@ const List<String> supportedDeviceOS = <String>['ios', 'android'];
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
-String _action;
 String _deviceOS;
 
 /// Manage healthcheck and recovery for devices.
@@ -31,13 +30,12 @@ Future<void> main(List<String> args) async {
     })
     ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
       if (!supportedDeviceOS.contains(value)) {
-        throw FormatException('Invalid value for option --action: $value');
+        throw FormatException('Invalid value for option --device-os: $value');
       }
     })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
 
   final ArgResults argResults = parser.parse(args);
-  _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
 
   DeviceDiscovery(_deviceOS);
