@@ -155,7 +155,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   /// To lookup the value, we construct the ancestor key, which corresponds to the [Commit].
   /// Then we query the tasks with that ancestor key and search for the one that matches the builder name.
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
-    final Key commitKey = _constructCommitKey(datastore);
+    final Key commitKey = await _constructCommitKey(datastore);
 
     final String builderName = requestData[builderNameParam] as String;
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
@@ -178,8 +178,17 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   }
 
   /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
-  Key _constructCommitKey(DatastoreService datastore) {
-    final String id = 'flutter/flutter/${requestData[gitBranchParam]}/${requestData[gitShaParam]}';
+  ///
+  /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
+  Future<Key> _constructCommitKey(DatastoreService datastore) async {
+    final String gitBranch = requestData[gitBranchParam] as String;
+    final List<String> flutterBranches = await config.flutterBranches;
+    if (!flutterBranches.contains(gitBranch)) {
+      throw BadRequestException('Failed to find flutter/flutter branch: $gitBranch\n'
+          'If this is a valid branch, '
+          'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
+    }
+    final String id = 'flutter/flutter/$gitBranch/${requestData[gitShaParam]}';
     final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
     log.debug('Consructed commit key = $id');
     return commitKey;

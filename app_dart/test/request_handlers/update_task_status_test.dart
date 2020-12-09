@@ -29,6 +29,7 @@ void main() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       config = FakeConfig(
         dbValue: datastoreDB,
+        flutterBranchesValue: <String>['master'],
         tabledataResourceApi: tabledataResourceApi,
         maxTaskRetriesValue: 2,
       );
@@ -219,6 +220,16 @@ void main() {
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
       expect(tester.post(handler), throwsA(isA<InternalServerError>()));
+    });
+
+    test('task name request fails with unknown branches', () async {
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: 'release-abc',
+        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
+      };
+      expect(tester.post(handler), throwsA(isA<BadRequestException>()));
     });
   });
 }
