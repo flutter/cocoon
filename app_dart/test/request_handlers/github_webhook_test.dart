@@ -222,7 +222,7 @@ void main() {
         'opened',
         issueNumber,
         'flutter-1.20-candidate.7',
-        headRef: 'flutter-1.20-candidate.7',
+        headRef: 'cherrypicks-flutter-1.20-candidate.7',
       );
       final Uint8List body = utf8.encode(request.body) as Uint8List;
       final Uint8List key = utf8.encode(keyString) as Uint8List;
