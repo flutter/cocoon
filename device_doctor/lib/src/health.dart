@@ -20,7 +20,10 @@ Future<HealthCheckResult> closeIosDialog(
     platform.Platform pl = const platform.LocalPlatform()}) async {
   Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', 'infra-dialog');
   if (!await dialogDir.exists()) {
-    fail('Unable to find infra-dialog at $dialogDir');
+    dialogDir = dir(Directory.current.path, 'tool', 'infra-dialog');
+    if (!await dialogDir.exists()) {
+      fail('Unable to find infra-dialog at $dialogDir');
+    }
   }
 
   // Runs the single XCUITest in infra-dialog.
