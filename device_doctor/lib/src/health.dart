@@ -14,11 +14,12 @@ import 'utils.dart';
 /// Closes system dialogs on iOS, e.g. the one about new system update.
 ///
 /// The dialogs often cause test flakiness and performance regressions.
-Future<HealthCheckResult> closeIosDialog(
-    {ProcessManager pm = const LocalProcessManager(),
-    String deviceId,
-    platform.Platform pl = const platform.LocalPlatform(),
-    String infraDialog = 'infra-dialog'}) async {
+Future<HealthCheckResult> closeIosDialog({
+  ProcessManager pm = const LocalProcessManager(),
+  String deviceId,
+  platform.Platform pl = const platform.LocalPlatform(),
+  String infraDialog = 'infra-dialog',
+}) async {
   Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', infraDialog);
   if (!await dialogDir.exists()) {
     dialogDir = dir(Directory.current.path, 'tool', infraDialog);
