@@ -333,7 +333,7 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
     final RegExp candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (pr.base.ref == pr.head.ref && candidateTest.hasMatch(pr.head.ref)) {
+    if (candidateTest.hasMatch(pr.base.ref) && candidateTest.hasMatch(pr.head.ref)) {
       // This is most likely a release branch
       body = config.releaseBranchPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
