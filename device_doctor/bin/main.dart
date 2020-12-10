@@ -4,7 +4,7 @@
 
 import 'package:args/args.dart';
 
-import 'package:device_doctor/src/device.dart';
+import 'package:device_doctor/device_doctor.dart';
 
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
@@ -14,9 +14,15 @@ const List<String> supportedDeviceOS = <String>['ios', 'android'];
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
+String _action;
 String _deviceOS;
 
-/// Manage healthcheck and recovery for devices.
+/// Manage `healthcheck` and `recovery` for devices.
+///
+/// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
+/// and an exception will be thrown.
+///
+/// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
 ///
 /// Usage:
 /// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>
@@ -36,9 +42,17 @@ Future<void> main(List<String> args) async {
     ..addFlag('$helpFlag', help: 'Prints usage info.');
 
   final ArgResults argResults = parser.parse(args);
+  _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
 
-  DeviceDiscovery(_deviceOS);
+  final IosDeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
 
-  // TODO(keyonghan): Implement healthcheck and recovery, https://github.com/flutter/flutter/issues/66193.
+  switch (_action) {
+    case 'healthcheck':
+      await deviceDiscovery.checkDevices();
+      break;
+    case 'recovery':
+      await deviceDiscovery.recoverDevices();
+      break;
+  }
 }

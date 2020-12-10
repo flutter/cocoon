@@ -30,16 +30,16 @@ void main() {
 
     test('checkDevices without device', () async {
       deviceDiscovery.outputs = <dynamic>[''];
-      Map<String, HealthCheckResult> results = await deviceDiscovery.checkDevices();
-      expect(results.keys.length, equals(0));
+      await expectLater(deviceDiscovery.checkDevices(), throwsStateError);
     });
 
     test('checkDevices with device', () async {
       deviceDiscovery.outputs = <dynamic>['abcdefg'];
-      Map<String, HealthCheckResult> results = await deviceDiscovery.checkDevices();
+      Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices();
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg'].succeeded, true);
+      expect(results['ios-device-abcdefg'].length, equals(1));
+      expect(results['ios-device-abcdefg'][0].succeeded, true);
     });
   });
 }

@@ -22,7 +22,7 @@ abstract class DeviceDiscovery {
   Future<List<Device>> discoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)});
 
   /// Checks the health of the available devices.
-  Future<Map<String, HealthCheckResult>> checkDevices();
+  Future<Map<String, List<HealthCheckResult>>> checkDevices();
 
   /// Recovers the device.
   Future<void> recoverDevices();
