@@ -52,8 +52,20 @@ void main() {
         throwsA(TypeMatcher<BuildFailedError>()),
       );
     });
+
+    test('tool is not found', () async {
+      Process proc = FakeProcess(123);
+      when(pm.start(any, workingDirectory: anyNamed('workingDirectory'))).thenAnswer((_) => Future.value(proc));
+
+      expect(
+        closeIosDialog(pm: pm, infraDialog: 'abc'),
+        throwsA(TypeMatcher<BuildFailedError>()),
+      );
+    });
   });
 }
+
+class MockPlatform extends Mock implements Platform {}
 
 class MockProcessManager extends Mock implements ProcessManager {}
 

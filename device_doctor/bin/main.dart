@@ -4,8 +4,7 @@
 
 import 'package:args/args.dart';
 
-import 'package:device_doctor/src/device.dart';
-import 'package:device_doctor/src/ios_device.dart';
+import 'package:device_doctor/device_doctor.dart';
 
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
@@ -23,7 +22,7 @@ String _deviceOS;
 /// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
 /// and an exception will be thrown.
 ///
-/// For `recovery`, device will do cleanup, reboot, and then dismiss any dialog for `ios` device.
+/// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
 ///
 /// Usage:
 /// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>

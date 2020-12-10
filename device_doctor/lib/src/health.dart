@@ -17,10 +17,11 @@ import 'utils.dart';
 Future<HealthCheckResult> closeIosDialog(
     {ProcessManager pm = const LocalProcessManager(),
     String deviceId,
-    platform.Platform pl = const platform.LocalPlatform()}) async {
-  Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', 'infra-dialog');
+    platform.Platform pl = const platform.LocalPlatform(),
+    String infraDialog = 'infra-dialog'}) async {
+  Directory dialogDir = dir(path.dirname(Platform.script.path), 'tool', infraDialog);
   if (!await dialogDir.exists()) {
-    dialogDir = dir(Directory.current.path, 'tool', 'infra-dialog');
+    dialogDir = dir(Directory.current.path, 'tool', infraDialog);
     if (!await dialogDir.exists()) {
       fail('Unable to find infra-dialog at $dialogDir');
     }
@@ -46,7 +47,7 @@ Future<HealthCheckResult> closeIosDialog(
     await proc.stderr.drain<Object>();
     int exitCode = await proc.exitCode;
     if (exitCode != 0) {
-      fail('Command "xcrun xcodebuild -project infra-dialog..." failed with exit code $exitCode.');
+      fail('Command "$command" failed with exit code $exitCode.');
     }
   });
   return HealthCheckResult.success('close iOS dialog');
