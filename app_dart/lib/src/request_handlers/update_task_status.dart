@@ -188,14 +188,16 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
           'If this is a valid branch, '
           'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
     }
+    // It is sub-optimal to scan the most recent commits from Datastore for the key needed. Ideally, we can
+    // construct commit key for lookup, but that fails in prod. See https://github.com/flutter/flutter/issues/71749
+    final List<Commit> recentCommits = await datastore.queryRecentCommits(branch: gitBranch).toList();
+    for (Commit commit in recentCommits) {
+      if (commit.sha == requestData[gitShaParam]) {
+        return commit.key;
+      }
+    }
     final String id = 'flutter/flutter/$gitBranch/${requestData[gitShaParam]}';
-    final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
-    log.debug('Constructed commit key=$id');
-    // Return the official key from Datastore for task lookups.
-    final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
-      throw BadRequestException('No such commit: $id');
-    });
-    return commit.key;
+    throw BadRequestException('No such commit: $id');
   }
 
   Future<void> _insertBigquery(Commit commit, Task task) async {

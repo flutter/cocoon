@@ -25,6 +25,12 @@ void main() {
     UpdateTaskStatus handler;
     final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
 
+    Commit commit;
+    const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
+    const int taskId = 4506830800027648;
+    const String taskKeyEncoded =
+        'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcl8LEglDaGVja2xpc3QiP2ZsdXR0ZXIvZmx1dHRlci9tYXN0ZXIvNzhjYmZiZmY0MjY3NjQzYmIxOTEzYmM4MjBmNWNlOGEzZTU5MWI0MAwLEgRUYXNrGICAmIeF3oAIDA';
+
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
       config = FakeConfig(
@@ -35,8 +41,7 @@ void main() {
       );
       tester = ApiRequestHandlerTester();
       tester.requestData = <String, dynamic>{
-        'TaskKey':
-            'ag9zfnR2b2xrZXJ0LXRlc3RyWAsSCUNoZWNrbGlzdCI4Zmx1dHRlci9mbHV0dGVyLzdkMDMzNzE2MTBjMDc5NTNhNWRlZjUwZDUwMDA0NTk0MWRlNTE2YjgMCxIEVGFzaxiAgIDg5eGTCAw',
+        'TaskKey': taskKeyEncoded,
         'NewStatus': 'Succeeded',
         'ResultData': <String, dynamic>{'90th_percentile_frame_build_time_millis': 3.12},
         'BenchmarkScoreKeys': <String>['90th_percentile_frame_build_time_millis'],
@@ -46,15 +51,15 @@ void main() {
         FakeAuthenticationProvider(),
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
+      commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
+        sha: commitSha,
+      );
     });
 
     test('updates datastore/bigquery entry for Task/TimeSeriesValue', () async {
-      final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
-      final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
-          commitKey: commit.key,
-          requiredCapabilities: <String>['ios']);
+      final Task task =
+          Task(key: commit.key.append(Task, id: taskId), commitKey: commit.key, requiredCapabilities: <String>['ios']);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
 
@@ -77,10 +82,8 @@ void main() {
     });
 
     test('failed tasks are automatically retried', () async {
-      final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         attempts: 1,
         commitKey: commit.key,
         isFlaky: false,
@@ -89,8 +92,7 @@ void main() {
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
       tester.requestData = <String, dynamic>{
-        'TaskKey':
-            'ag9zfnR2b2xrZXJ0LXRlc3RyWAsSCUNoZWNrbGlzdCI4Zmx1dHRlci9mbHV0dGVyLzdkMDMzNzE2MTBjMDc5NTNhNWRlZjUwZDUwMDA0NTk0MWRlNTE2YjgMCxIEVGFzaxiAgIDg5eGTCAw',
+        'TaskKey': taskKeyEncoded,
         'NewStatus': 'Failed',
       };
 
@@ -100,10 +102,8 @@ void main() {
     });
 
     test('flaky failed tasks are not automatically retried', () async {
-      final Commit commit = Commit(
-          key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         attempts: 1,
         commitKey: commit.key,
         isFlaky: true,
@@ -112,8 +112,7 @@ void main() {
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
       tester.requestData = <String, dynamic>{
-        'TaskKey':
-            'ag9zfnR2b2xrZXJ0LXRlc3RyWAsSCUNoZWNrbGlzdCI4Zmx1dHRlci9mbHV0dGVyLzdkMDMzNzE2MTBjMDc5NTNhNWRlZjUwZDUwMDA0NTk0MWRlNTE2YjgMCxIEVGFzaxiAgIDg5eGTCAw',
+        'TaskKey': taskKeyEncoded,
         'NewStatus': 'Failed',
       };
 
@@ -124,11 +123,8 @@ void main() {
     });
 
     test('task name requests can update tasks', () async {
-      final Commit commit = Commit(
-          key:
-              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/7d03371610c07953a5def50d500045941de516b8'));
       final Task task = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
@@ -139,7 +135,7 @@ void main() {
       config.db.values[task.key] = task;
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.gitShaParam: commitSha,
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
@@ -153,7 +149,7 @@ void main() {
     test('task name requests when task does not exists returns exception', () async {
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.gitShaParam: commitSha,
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
@@ -161,12 +157,9 @@ void main() {
     });
 
     test('task name request updates when there is both a Cocoon and Luci task', () async {
-      final Commit commit = Commit(
-          key:
-              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/7d03371610c07953a5def50d500045941de516b8'));
       config.db.values[commit.key] = commit;
       final Task cocoonTask = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         attempts: 0,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
@@ -175,7 +168,7 @@ void main() {
       );
       config.db.values[cocoonTask.key] = cocoonTask;
       final Task luciTask = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         builderName: 'linux_integration_ui_ios',
         attempts: 1,
@@ -185,7 +178,7 @@ void main() {
       config.db.values[luciTask.key] = luciTask;
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.gitShaParam: commitSha,
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
@@ -200,12 +193,9 @@ void main() {
     });
 
     test('task name request fails when there is only a Cocoon task', () async {
-      final Commit commit = Commit(
-          key:
-              config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/7d03371610c07953a5def50d500045941de516b8'));
       config.db.values[commit.key] = commit;
       final Task cocoonTask = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: taskId),
         name: 'integration_ui_ios',
         attempts: 0,
         isFlaky: true, // mark flaky so it doesn't get auto-retried
@@ -215,7 +205,7 @@ void main() {
       config.db.values[cocoonTask.key] = cocoonTask;
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.gitShaParam: commitSha,
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
@@ -225,7 +215,7 @@ void main() {
     test('task name request fails with unknown branches', () async {
       tester.requestData = <String, dynamic>{
         UpdateTaskStatus.gitBranchParam: 'release-abc',
-        UpdateTaskStatus.gitShaParam: '7d03371610c07953a5def50d500045941de516b8',
+        UpdateTaskStatus.gitShaParam: commitSha,
         UpdateTaskStatus.newStatusParam: 'Failed',
         UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
