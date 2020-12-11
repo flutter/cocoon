@@ -416,6 +416,7 @@ class LuciBuildService {
         'user_agent': const <String>['luci-scheduler'],
       },
       properties: <String, String>{
+        'branch': 'refs/heads/$branch',
         'git_ref': commitSha,
       },
     ));
