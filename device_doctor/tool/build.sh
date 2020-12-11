@@ -6,7 +6,7 @@
 # Fetches corresponding dart sdk from CIPD for different platforms, builds
 # an executable binary of device_doctor to `build` folder.
 #
-# This currently supports linux, mac and windows.
+# This currently supports linux and mac.
 
 set -e
 
@@ -18,12 +18,8 @@ command -v cipd > /dev/null || {
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd)"
 OS="`uname`"
 
-if [[ "{$OS}" == "Linux" || "{$OS}" == "Darwin" ]]; then
-  cipd ensure -ensure-file $DIR/ensure_file -root $DIR
-else
-  # dart2native is not available in stable yet for windows.
-  cipd ensure -ensure-file $DIR/ensure_file_windows -root $DIR
-fi
+cipd ensure -ensure-file $DIR/ensure_file -root $DIR
+
 pushd $DIR/..
 
 if [[ -d "build" ]]; then
@@ -32,13 +28,8 @@ if [[ -d "build" ]]; then
 fi
 
 mkdir -p build
-if [[ $OS == "Linux" || $OS == "Darwin" ]]; then
-  tool/dart-sdk/bin/pub get
-  tool/dart-sdk/bin/dart2native bin/main.dart -o build/device_doctor
-else
-  tool/dart-sdk/bin/pub.bat get
-  tool/dart-sdk/bin/dart2native.bat bin/main.dart -o build/device_doctor.exe
-fi
+tool/dart-sdk/bin/pub get
+tool/dart-sdk/bin/dart2native bin/main.dart -o build/device_doctor
 
 if [[ $OS == "Darwin" ]]; then
   mkdir -p build/tool
