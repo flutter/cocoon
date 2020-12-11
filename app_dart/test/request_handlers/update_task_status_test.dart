@@ -192,6 +192,45 @@ void main() {
       expect(cocoonTask.attempts, 0);
     });
 
+    test('task name request updates when input has whitespace', () async {
+      config.db.values[commit.key] = commit;
+      final Task cocoonTask = Task(
+        key: commit.key.append(Task, id: taskId),
+        name: 'integration_ui_ios',
+        attempts: 0,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+        status: Task.statusNew,
+      );
+      config.db.values[cocoonTask.key] = cocoonTask;
+      final Task luciTask = Task(
+        key: commit.key.append(Task, id: taskId),
+        name: 'integration_ui_ios',
+        builderName: 'linux_integration_ui_ios',
+        attempts: 1,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
+        commitKey: commit.key,
+      );
+      config.db.values[luciTask.key] = luciTask;
+      const int asciiLF = 10;
+      final List<int> branchChars = List<int>.from('master'.codeUnits)..add(asciiLF);
+      final List<int> shaChars = List<int>.from(commitSha.codeUnits)..add(asciiLF);
+      tester.requestData = <String, dynamic>{
+        UpdateTaskStatus.gitBranchParam: String.fromCharCodes(branchChars),
+        UpdateTaskStatus.gitShaParam: String.fromCharCodes(shaChars),
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
+      };
+
+      await tester.post(handler);
+
+      expect(luciTask.status, Task.statusFailed);
+      expect(luciTask.attempts, 1);
+
+      expect(cocoonTask.status, Task.statusNew);
+      expect(cocoonTask.attempts, 0);
+    });
+
     test('task name request fails when there is only a Cocoon task', () async {
       config.db.values[commit.key] = commit;
       final Task cocoonTask = Task(
