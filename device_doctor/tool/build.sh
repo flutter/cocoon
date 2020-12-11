@@ -6,7 +6,7 @@
 # Fetches corresponding dart sdk from CIPD for different platforms, builds
 # an executable binary of device_doctor to `build` folder.
 #
-# This currently supports linux, mac and windows.
+# This currently supports linux and mac.
 
 set -e
 
