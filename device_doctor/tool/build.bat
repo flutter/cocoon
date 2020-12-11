@@ -2,7 +2,6 @@
 :: Use of this source code is governed by a BSD-style license that can be
 :: found in the LICENSE file.
 
-@ECHO off
 REM Checks if cipd command is available.
 FOR /F "tokens=*" %%g IN ('where cipd') do (SET CIPD=%%g)
 IF %ERRORLEVEL% NEQ 0 (
