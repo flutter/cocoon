@@ -36,28 +36,28 @@ Future<void> main(List<String> args) async {
     ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.', callback: (String value) {
       if (!supportedOptions.contains(value)) {
         throw FormatException('\n-----\n'
-        'Invalid value for option --action: $value'
-        'Supported actions are healthcheck and recovery.'
-        '-----');
+            'Invalid value for option --action: $value.'
+            'Supported actions are healthcheck and recovery.'
+            '-----');
       }
     })
     ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
       if (!supportedDeviceOS.contains(value)) {
         throw FormatException('\n-----\n'
-        'Invalid value for option --device-os: $value\n'
-        'Supported device OS: android and ios.\n'
-        '-----');
+            'Invalid value for option --device-os: $value.\n'
+            'Supported device OS: android and ios.\n'
+            '-----');
       }
     })
     ..addOption('$propertiesFlag',
         help: 'A dict with string keys and values, defining properties to pass to the executable',
         callback: (String value) {
-      if (! supportedProperties.any((element) => value.contains(element))) {
+      if (!supportedProperties.any((element) => value.contains(element))) {
         throw FormatException('\n-----\n'
-        'Invalide value for option --properties: $value\n'
-        'A dict with string keys and values are expected\n'
-        'Supported keys are adb, idevice_id, idevicediagnostics.\n'
-        '-----');
+            'Invalid value for option --properties: $value.\n'
+            'A dict with string keys and values are expected.\n'
+            'Supported keys are adb, idevice_id, idevicediagnostics.\n'
+            '-----');
       }
     })
     ..addFlag('$helpFlag', help: 'Prints usage info.');

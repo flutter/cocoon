@@ -48,7 +48,8 @@ void main() {
         new TimeoutException('b'),
         new TimeoutException('c')
       ];
-      expect(() => deviceDiscovery.discoverDevices(retriesDelayMs: const Duration(seconds: 1)), throwsA(TypeMatcher<TimeoutException>()));
+      expect(() => deviceDiscovery.discoverDevices(retriesDelayMs: const Duration(seconds: 1)),
+          throwsA(TypeMatcher<TimeoutException>()));
     });
   });
 
