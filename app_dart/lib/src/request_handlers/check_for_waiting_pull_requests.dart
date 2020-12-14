@@ -43,6 +43,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     await _checkPRs('flutter', 'cocoon', log, client);
     await _checkPRs('flutter', 'engine', log, client);
     await _checkPRs('flutter', 'flutter', log, client);
+    await _checkPRs('flutter', 'plugins', log, client);
 
     return Body.empty;
   }
