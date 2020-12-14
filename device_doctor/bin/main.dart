@@ -56,7 +56,9 @@ Future<void> main(List<String> args) async {
         throw FormatException('\n-----\n'
             'Invalid value for option --properties: $value.\n'
             'A dict with string keys and values are expected.\n'
-            'Supported keys are adb, idevice_id, idevicediagnostics.\n'
+            'Supported keys are:\n'
+            '  For ios: idevice_id, idevicediagnostics.\n'
+            '  For android: adb.\n'
             '-----');
       }
     })
