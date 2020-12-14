@@ -2,15 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:args/args.dart';
 
 import 'package:device_doctor/device_doctor.dart';
 
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
+const String propertiesFlag = 'properties';
 const String helpFlag = 'help';
 const List<String> supportedOptions = <String>['healthcheck', 'recovery'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
+const List<String> supportedProperties = <String>['adb', 'idevice_id', 'idevicediagnostics'];
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
@@ -31,12 +35,29 @@ Future<void> main(List<String> args) async {
   parser
     ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.', callback: (String value) {
       if (!supportedOptions.contains(value)) {
-        throw FormatException('Invalid value for option --action: $value');
+        throw FormatException('\n-----\n'
+        'Invalid value for option --action: $value'
+        'Supported actions are healthcheck and recovery.'
+        '-----');
       }
     })
     ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
       if (!supportedDeviceOS.contains(value)) {
-        throw FormatException('Invalid value for option --device-os: $value');
+        throw FormatException('\n-----\n'
+        'Invalid value for option --device-os: $value\n'
+        'Supported device OS: android and ios.\n'
+        '-----');
+      }
+    })
+    ..addOption('$propertiesFlag',
+        help: 'A dict with string keys and values, defining properties to pass to the executable',
+        callback: (String value) {
+      if (! supportedProperties.any((element) => value.contains(element))) {
+        throw FormatException('\n-----\n'
+        'Invalide value for option --properties: $value\n'
+        'A dict with string keys and values are expected\n'
+        'Supported keys are adb, idevice_id, idevicediagnostics.\n'
+        '-----');
       }
     })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
@@ -44,6 +65,7 @@ Future<void> main(List<String> args) async {
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
+  properties = jsonDecode(argResults[propertiesFlag]);
 
   final IosDeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
 

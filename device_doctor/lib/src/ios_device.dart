@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'device.dart';
 import 'health.dart';
 import 'process_helper.dart';
+import 'utils.dart';
 
 /// IOS implementation of [DeviceDiscovery].
 ///
@@ -32,7 +33,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   Future<String> deviceListOutput() async {
-    return eval('idevice_id', <String>['-l']);
+    return eval(properties['idevice_id'], <String>['-l']);
   }
 
   @override
@@ -74,12 +75,9 @@ class IosDevice implements Device {
   Future<bool> isAsleep() async => false;
 
   @override
-  Future<void> unlock() async {}
-
-  @override
   Future<void> recover() async {
     // Restarts the device first.
-    await eval('idevicediagnostics', <String>['restart']);
+    await eval(properties['idevicediagnostics'], <String>['restart']);
     // Close pop up dialogs if any.
     await closeIosDialog(deviceId: deviceId);
   }

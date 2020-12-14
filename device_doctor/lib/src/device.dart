@@ -39,11 +39,6 @@ abstract class Device {
   /// Whether the device is asleep.
   Future<bool> isAsleep();
 
-  /// Unlocks the device.
-  ///
-  /// Assumes the device doesn't have a secure unlock pattern.
-  Future<void> unlock();
-
   /// Recovers the device back to a healthy state.
   Future<void> recover();
 }

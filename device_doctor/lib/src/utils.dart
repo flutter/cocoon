@@ -7,6 +7,14 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+/// Properties used in device_doctor tool.
+/// 
+/// {
+///   "adb": "/path/to/adb",
+///   "idevice_id": "/path/to/idevice_id",
+/// }
+Map<String, dynamic> properties;
+
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
