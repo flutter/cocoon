@@ -37,6 +37,7 @@ void main() {
     final List<PullRequestHelper> cocoonRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> engineRepoPRs = <PullRequestHelper>[];
+    final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String branch;
 
@@ -50,6 +51,7 @@ void main() {
       config = FakeConfig(rollerAccountsValue: <String>{}, cirrusGraphQLClient: cirrusGraphQLClient);
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
+      pluginRepoPRs.clear();
       statuses.clear();
       PullRequestHelper._counter = 0;
 
@@ -72,6 +74,8 @@ void main() {
           return createQueryResult(engineRepoPRs);
         } else if (repoName == 'cocoon') {
           return createQueryResult(cocoonRepoPRs);
+        } else if (repoName == 'plugins') {
+          return createQueryResult(pluginRepoPRs);
         } else {
           fail('unexpected repo $repoName');
         }
@@ -115,6 +119,15 @@ void main() {
             variables: <String, dynamic>{
               'sOwner': 'flutter',
               'sName': 'flutter',
+              'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
+            },
+          ),
+          QueryOptions(
+            document: labeledPullRequestsWithReviewsQuery,
+            fetchPolicy: FetchPolicy.noCache,
+            variables: <String, dynamic>{
+              'sOwner': 'flutter',
+              'sName': 'plugins',
               'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
             },
           ),
