@@ -74,7 +74,7 @@ Future<void> killAllRunningProcessesOnWindows(String processName, {ProcessManage
   // Avoid endless loop when a process from a different use exists, and fails
   // to get killed every try.
   int tries = 3;
-  while (tries>0) {
+  while (tries > 0) {
     tries--;
     final pids = runningProcessesOnWindows(processName);
     if (pids.isEmpty) {
