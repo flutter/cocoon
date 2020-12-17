@@ -28,7 +28,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
+  Future<List<Device>> discoverDevices({Duration retriesDelay = const Duration(seconds: 10)}) async {
     return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 
@@ -49,7 +49,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<void> recoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
+  Future<void> recoverDevices() async {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }

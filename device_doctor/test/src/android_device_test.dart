@@ -37,7 +37,7 @@ void main() {
       sb.writeln('List of devices attached');
       sb.writeln('ZY223JQNMR      device');
       deviceDiscovery.outputs = <dynamic>[new TimeoutException('a'), new TimeoutException('b'), sb.toString()];
-      List<Device> devices = await deviceDiscovery.discoverDevices(retriesDelayMs: const Duration(seconds: 1));
+      List<Device> devices = await deviceDiscovery.discoverDevices(retriesDelay: const Duration(seconds: 1));
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('ZY223JQNMR'));
     });
@@ -48,7 +48,7 @@ void main() {
         new TimeoutException('b'),
         new TimeoutException('c')
       ];
-      expect(() => deviceDiscovery.discoverDevices(retriesDelayMs: const Duration(seconds: 1)),
+      expect(() => deviceDiscovery.discoverDevices(retriesDelay: const Duration(seconds: 1)),
           throwsA(TypeMatcher<TimeoutException>()));
     });
   });

@@ -14,8 +14,6 @@ const String propertiesFlag = 'properties';
 const String helpFlag = 'help';
 const List<String> supportedOptions = <String>['healthcheck', 'recovery'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
-const List<String> supportedIosProperties = <String>['idevice_id', 'idevicediagnostics'];
-const List<String> supportedAndroidProperties = <String>['adb'];
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
@@ -50,18 +48,22 @@ Future<void> main(List<String> args) async {
             '-----');
       }
     })
-    ..addOption(
-      '$propertiesFlag',
-      help: 'A dict with string keys and values, defining properties to pass to the executable',
-    )
+    ..addOption('$propertiesFlag',
+        help: 'A dict with string keys and values, defining properties to pass to the executable',
+        callback: (String value) {
+      if (value == null) {
+        throw FormatException('\n-----\n'
+            'Invalid value for option --properties: $value.\n'
+            'Supported value is a dict with string keys and values, defining properties to pass to the executable.\n'
+            '-----');
+      }
+    })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
 
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
   properties = jsonDecode(argResults[propertiesFlag]);
-
-  _validateProperties(_deviceOS, properties);
 
   final IosDeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
 
@@ -72,25 +74,5 @@ Future<void> main(List<String> args) async {
     case 'recovery':
       await deviceDiscovery.recoverDevices();
       break;
-  }
-}
-
-/// Different properties need to be defined for corresponding devices:
-///
-///   ios: `idevice_id`, `idevicediagnostics`
-///   android: `adb`
-void _validateProperties(String deviceOS, Map<String, dynamic> properties) {
-  if (deviceOS == 'ios') {
-    for (String property in supportedIosProperties) {
-      if (!properties.keys.contains(property)) {
-        throw FormatException('\n-----\n$property is not defined for $deviceOS device.\n-----');
-      }
-    }
-  } else {
-    for (String property in supportedAndroidProperties) {
-      if (!properties.keys.contains(property)) {
-        throw FormatException('\n-----\n$property is not defined for $deviceOS device.\n-----');
-      }
-    }
   }
 }

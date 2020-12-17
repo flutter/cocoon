@@ -43,22 +43,23 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   static AndroidDeviceDiscovery _instance;
 
-  Future<String> deviceListOutput() async {
-    return eval(properties['adb'], <String>['devices', '-l'], canFail: false).timeout(Duration(seconds: 15));
+  Future<String> deviceListOutput(Duration timeout) async {
+    return eval(properties['adb'], <String>['devices', '-l'], canFail: false).timeout(timeout);
   }
 
-  Future<List<String>> deviceListOutputWithRetries(Duration retriesDelayMs) async {
+  Future<List<String>> deviceListOutputWithRetries(Duration retriesDelay) async {
+    const Duration deviceOutputTimeout = Duration(seconds: 15);
     RetryOptions r = RetryOptions(
       maxAttempts: 3,
-      delayFactor: retriesDelayMs,
+      delayFactor: retriesDelay,
     );
     return await r.retry(
       () async {
-        String result = await deviceListOutput();
+        String result = await deviceListOutput(deviceOutputTimeout);
         return result.trim().split('\n');
       },
       retryIf: (Exception e) => e is TimeoutException,
-      //onRetry: (Exception e) => killAdbServer(),
+      onRetry: (Exception e) => killAdbServer(),
     );
   }
 
@@ -71,8 +72,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
-    List<String> output = await deviceListOutputWithRetries(retriesDelayMs);
+  Future<List<Device>> discoverDevices({Duration retriesDelay = const Duration(seconds: 10)}) async {
+    List<String> output = await deviceListOutputWithRetries(retriesDelay);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *

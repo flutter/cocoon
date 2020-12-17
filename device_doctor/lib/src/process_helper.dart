@@ -12,7 +12,6 @@ import 'package:process/process.dart';
 
 import 'utils.dart';
 
-List<ProcessInfo> _runningProcesses = <ProcessInfo>[];
 final RegExp _whitespace = RegExp(r'\s+');
 
 /// Defines detailed information of a process.
@@ -42,13 +41,6 @@ Future<Process> startProcess(String executable, List<String> arguments,
   if (!silent) logger.info('Executing: $command');
   Process proc = await processManager.start(<String>[executable]..addAll(arguments),
       environment: env, workingDirectory: path.current);
-  ProcessInfo procInfo = ProcessInfo(command, proc);
-  _runningProcesses.add(procInfo);
-
-  // ignore: unawaited_futures
-  proc.exitCode.then((_) {
-    _runningProcesses.remove(procInfo);
-  });
 
   return proc;
 }
@@ -77,9 +69,13 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   });
 }
 
-Future<void> killAllRunningProcessesOnWindows(String processName) async {
-  ProcessManager processManager = LocalProcessManager();
-  while (true) {
+Future<void> killAllRunningProcessesOnWindows(String processName, {ProcessManager processManager}) async {
+  processManager ??= LocalProcessManager();
+  // Avoid endless loop when a process from a different use exists, and fails
+  // to get killed every try.
+  int tries = 3;
+  while (tries>0) {
+    tries--;
     final pids = runningProcessesOnWindows(processName);
     if (pids.isEmpty) {
       return;
@@ -88,12 +84,13 @@ Future<void> killAllRunningProcessesOnWindows(String processName) async {
       processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
     }
     // Killed processes don't release resources instantenously.
-    await Future<void>.delayed(Duration(seconds: 1));
+    const Duration delay = Duration(seconds: 1);
+    await Future<void>.delayed(delay);
   }
 }
 
-List<String> runningProcessesOnWindows(String processName) {
-  ProcessManager processManager = LocalProcessManager();
+List<String> runningProcessesOnWindows(String processName, {ProcessManager processManager}) {
+  processManager ??= LocalProcessManager();
   final ProcessResult result = processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']);
   List<String> pids = <String>[];
   if (result.exitCode == 0) {

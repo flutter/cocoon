@@ -15,6 +15,9 @@ import 'package:path/path.dart' as path;
 /// }
 Map<String, dynamic> properties;
 
+const List<String> supportedIosProperties = <String>['idevice_id', 'idevicediagnostics'];
+const List<String> supportedAndroidProperties = <String>['adb'];
+
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {

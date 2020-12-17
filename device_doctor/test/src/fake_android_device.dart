@@ -20,13 +20,18 @@ class FakeAndroidDeviceDiscovery extends AndroidDeviceDiscovery {
   }
 
   @override
-  Future<String> deviceListOutput() async {
+  Future<String> deviceListOutput(Duration timeout) async {
     _pos++;
     if (_outputs[_pos - 1] is String) {
       return _outputs[_pos - 1] as String;
     } else {
       throw _outputs[_pos - 1];
     }
+  }
+
+  @override
+  void killAdbServer() async {
+    return;
   }
 }
 
