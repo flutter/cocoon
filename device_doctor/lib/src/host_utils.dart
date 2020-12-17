@@ -11,7 +11,7 @@ import 'package:process/process.dart';
 final RegExp _whitespace = RegExp(r'\s+');
 
 /// Kill all running processes on windows.
-/// 
+///
 /// This is used when we first fail to list devices and need a retry.
 Future<bool> killAllRunningProcessesOnWindows(String processName, {ProcessManager processManager}) async {
   processManager ??= LocalProcessManager();
