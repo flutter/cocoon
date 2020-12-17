@@ -8,22 +8,9 @@ import 'package:mockito/mockito.dart';
 import 'package:process/process.dart';
 import 'package:test/test.dart';
 
-import 'package:device_doctor/src/process_helper.dart';
+import 'package:device_doctor/src/host_utils.dart';
 
 void main() {
-  group('grep', () {
-    String pattern;
-    String from;
-
-    test('deviceDiscovery no retries', () async {
-      pattern = 'abc';
-      from = 'abc\n'
-          'def\n'
-          'abcd';
-      expect(grep(pattern, from: from), equals(<String>['abc', 'abcd']));
-    });
-  });
-
   group('runningProcessesOnWindows', () {
     MockProcessManager processManager;
     String output;

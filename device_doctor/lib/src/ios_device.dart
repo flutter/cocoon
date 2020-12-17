@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import 'device.dart';
 import 'health.dart';
-import 'process_helper.dart';
 import 'utils.dart';
 
 /// IOS implementation of [DeviceDiscovery].
@@ -28,12 +27,12 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelay = const Duration(seconds: 10)}) async {
+  Future<List<Device>> discoverDevices({Duration retriesDelaySeconds = const Duration(seconds: 10)}) async {
     return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 
   Future<String> deviceListOutput() async {
-    return eval(properties['idevice_id'], <String>['-l']);
+    return eval('idevice_id', <String>['-l']);
   }
 
   @override
@@ -63,21 +62,10 @@ class IosDevice implements Device {
   @override
   final String deviceId;
 
-  // The methods below are stubs for now. They will need to be expanded.
-  // We currently do not have a way to lock/unlock iOS devices. So we assume the
-  // devices are already unlocked. For now we'll just keep them at minimum
-  // screen brightness so they don't drain battery too fast.
-
-  @override
-  Future<bool> isAwake() async => true;
-
-  @override
-  Future<bool> isAsleep() async => false;
-
   @override
   Future<void> recover() async {
     // Restarts the device first.
-    await eval(properties['idevicediagnostics'], <String>['restart']);
+    await eval('idevicediagnostics', <String>['restart']);
     // Close pop up dialogs if any.
     await closeIosDialog(deviceId: deviceId);
   }

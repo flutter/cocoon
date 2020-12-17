@@ -9,8 +9,8 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import 'device.dart';
-import 'process_helper.dart';
 import 'health.dart';
+import 'host_utils.dart';
 import 'utils.dart';
 
 /// Constant battery health values returned from Android Battery Manager.
@@ -44,14 +44,14 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   static AndroidDeviceDiscovery _instance;
 
   Future<String> deviceListOutput(Duration timeout) async {
-    return eval(properties['adb'], <String>['devices', '-l'], canFail: false).timeout(timeout);
+    return eval('adb', <String>['devices', '-l'], canFail: false).timeout(timeout);
   }
 
-  Future<List<String>> deviceListOutputWithRetries(Duration retriesDelay) async {
+  Future<List<String>> deviceListOutputWithRetries(Duration retriesDelaySeconds) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
     RetryOptions r = RetryOptions(
       maxAttempts: 3,
-      delayFactor: retriesDelay,
+      delayFactor: retriesDelaySeconds,
     );
     return await r.retry(
       () async {
@@ -67,13 +67,13 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     if (Platform.isWindows) {
       await killAllRunningProcessesOnWindows('adb');
     } else {
-      await eval(properties['adb'], <String>['kill-server'], canFail: false);
+      await eval('adb', <String>['kill-server'], canFail: false);
     }
   }
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelay = const Duration(seconds: 10)}) async {
-    List<String> output = await deviceListOutputWithRetries(retriesDelay);
+  Future<List<Device>> discoverDevices({Duration retriesDelaySeconds = const Duration(seconds: 10)}) async {
+    List<String> output = await deviceListOutputWithRetries(retriesDelaySeconds);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
@@ -132,20 +132,18 @@ class AndroidDevice implements Device {
   final String deviceId;
 
   /// Whether the device is awake.
-  @override
   Future<bool> isAwake() async {
     return await _getWakefulness() == 'Awake';
   }
 
   /// Whether the device is asleep.
-  @override
   Future<bool> isAsleep() async {
     return await _getWakefulness() == 'Asleep';
   }
 
   @override
   Future<void> recover() async {
-    await eval(properties['adb'], <String>['reboot'], canFail: false);
+    await eval('adb', <String>['reboot'], canFail: false);
   }
 
   /// Retrieves device's wakefulness state.
@@ -191,6 +189,6 @@ class AndroidDevice implements Device {
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
   Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
-    return eval(properties['adb'], ['shell', command]..addAll(arguments), env: env, canFail: false);
+    return eval('adb', ['shell', command]..addAll(arguments), env: env, canFail: false);
   }
 }

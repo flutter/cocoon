@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:args/args.dart';
 
 import 'package:device_doctor/device_doctor.dart';
@@ -48,22 +46,11 @@ Future<void> main(List<String> args) async {
             '-----');
       }
     })
-    ..addOption('$propertiesFlag',
-        help: 'A dict with string keys and values, defining properties to pass to the executable',
-        callback: (String value) {
-      if (value == null) {
-        throw FormatException('\n-----\n'
-            'Invalid value for option --properties: $value.\n'
-            'Supported value is a dict with string keys and values, defining properties to pass to the executable.\n'
-            '-----');
-      }
-    })
     ..addFlag('$helpFlag', help: 'Prints usage info.');
 
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
-  properties = jsonDecode(argResults[propertiesFlag]);
 
   final IosDeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
 

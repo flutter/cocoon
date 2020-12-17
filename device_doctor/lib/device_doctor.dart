@@ -4,6 +4,6 @@
 
 export 'src/device.dart';
 export 'src/health.dart';
+export 'src/host_utils.dart';
 export 'src/ios_device.dart';
-export 'src/process_helper.dart';
 export 'src/utils.dart';
