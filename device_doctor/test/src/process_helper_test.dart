@@ -52,6 +52,39 @@ void main() {
       expect(processes, equals(<String>[]));
     });
   });
+
+  group('killAllRunningProcessesOnWindows', () {
+    MockProcessManager processManager;
+    String output;
+    String pid;
+
+    setUp(() {
+      processManager = MockProcessManager();
+      when(processManager.runSync(<String>['powershell', 'Get-CimInstance', 'Win32_Process']))
+          .thenAnswer((_) => ProcessResult(1, 0, output, 'def'));
+    });
+
+    test('when there are unkilled processes', () async {
+      when(processManager.runSync(<String>['taskkill', '/pid', pid, '/f']))
+          .thenAnswer((_) => ProcessResult(1, 0, 'test', 'test'));
+      pid = '123';
+      output = '$pid abc';
+      final bool result = await killAllRunningProcessesOnWindows('abc', processManager: processManager);
+      expect(result, equals(false));
+    });
+
+    test('when all processes are killed', () async {
+      pid = '123';
+      output = '$pid abc';
+      when(processManager.runSync(<String>['taskkill', '/pid', pid, '/f'])).thenAnswer((_) {
+        pid = '';
+        output = '';
+        return ProcessResult(1, 0, 'test', 'test');
+      });
+      final bool result = await killAllRunningProcessesOnWindows('abc', processManager: processManager);
+      expect(result, equals(true));
+    });
+  });
 }
 
 class MockProcessManager extends Mock implements ProcessManager {}

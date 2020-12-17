@@ -69,16 +69,16 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   });
 }
 
-Future<void> killAllRunningProcessesOnWindows(String processName, {ProcessManager processManager}) async {
+Future<bool> killAllRunningProcessesOnWindows(String processName, {ProcessManager processManager}) async {
   processManager ??= LocalProcessManager();
   // Avoid endless loop when a process from a different use exists, and fails
   // to get killed every try.
   int tries = 3;
   while (tries > 0) {
     tries--;
-    final pids = runningProcessesOnWindows(processName);
+    final pids = runningProcessesOnWindows(processName, processManager: processManager);
     if (pids.isEmpty) {
-      return;
+      return true;
     }
     for (String pid in pids) {
       processManager.runSync(<String>['taskkill', '/pid', pid, '/f']);
@@ -87,6 +87,7 @@ Future<void> killAllRunningProcessesOnWindows(String processName, {ProcessManage
     const Duration delay = Duration(seconds: 1);
     await Future<void>.delayed(delay);
   }
+  return false;
 }
 
 List<String> runningProcessesOnWindows(String processName, {ProcessManager processManager}) {
