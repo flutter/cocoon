@@ -5,7 +5,11 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:process/process.dart';
+
+import 'dart:convert' show utf8;
 
 final Logger logger = Logger('DeviceDoctor');
 
@@ -50,4 +54,41 @@ void cd(dynamic directory) {
   }
 
   if (!d.existsSync()) throw 'Cannot cd into directory that does not exist: $directory';
+}
+
+/// Starts a process for an executable command, and returns the processes.
+Future<Process> startProcess(String executable, List<String> arguments,
+    {Map<String, String> env, bool silent: false, ProcessManager processManager = const LocalProcessManager()}) async {
+  String command = '$executable ${arguments?.join(" ") ?? ""}';
+  if (!silent) logger.info('Executing: $command');
+  Process proc = await processManager.start(<String>[executable]..addAll(arguments),
+      environment: env, workingDirectory: path.current);
+  return proc;
+}
+
+/// Executes a command and returns its standard output as a String.
+///
+/// Standard error is redirected to the current process' standard error stream.
+Future<String> eval(String executable, List<String> arguments,
+    {Map<String, String> env,
+    bool canFail: false,
+    bool silent: false,
+    ProcessManager processManager = const LocalProcessManager()}) async {
+  Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
+  proc.stderr.listen((List<int> data) {
+    stderr.add(data);
+  });
+  String output = await utf8.decodeStream(proc.stdout);
+  int exitCode = await proc.exitCode;
+
+  if (exitCode != 0 && !canFail) fail('Executable $executable failed with exit code $exitCode.');
+
+  return output.trimRight();
+}
+
+/// Splits [from] into lines and selects those that contain [pattern].
+Iterable<String> grep(Pattern pattern, {@required String from}) {
+  return from.split('\n').where((String line) {
+    return line.contains(pattern);
+  });
 }

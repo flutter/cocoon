@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 
 import 'device.dart';
 import 'health.dart';
-import 'process_helper.dart';
+import 'utils.dart';
 
 /// IOS implementation of [DeviceDiscovery].
 ///
@@ -27,7 +27,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
+  Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
     return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 
@@ -48,7 +48,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<void> recoverDevices({Duration retriesDelayMs = const Duration(seconds: 10)}) async {
+  Future<void> recoverDevices() async {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }
@@ -61,20 +61,6 @@ class IosDevice implements Device {
 
   @override
   final String deviceId;
-
-  // The methods below are stubs for now. They will need to be expanded.
-  // We currently do not have a way to lock/unlock iOS devices. So we assume the
-  // devices are already unlocked. For now we'll just keep them at minimum
-  // screen brightness so they don't drain battery too fast.
-
-  @override
-  Future<bool> isAwake() async => true;
-
-  @override
-  Future<bool> isAsleep() async => false;
-
-  @override
-  Future<void> unlock() async {}
 
   @override
   Future<void> recover() async {
