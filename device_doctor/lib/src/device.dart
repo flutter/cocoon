@@ -22,7 +22,7 @@ abstract class DeviceDiscovery {
   }
 
   /// Lists all available devices' IDs.
-  Future<List<Device>> discoverDevices({Duration retriesDelaySeconds = const Duration(seconds: 10)});
+  Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)});
 
   /// Checks the health of the available devices.
   Future<Map<String, List<HealthCheckResult>>> checkDevices();

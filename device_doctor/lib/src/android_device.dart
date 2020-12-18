@@ -34,12 +34,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     return eval('adb', <String>['devices', '-l'], canFail: false, processManager: processManager).timeout(timeout);
   }
 
-  Future<List<String>> _deviceListOutputWithRetries(Duration retriesDelaySeconds,
-      {ProcessManager processManager}) async {
+  Future<List<String>> _deviceListOutputWithRetries(Duration retryDuration, {ProcessManager processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
     RetryOptions r = RetryOptions(
       maxAttempts: 3,
-      delayFactor: retriesDelaySeconds,
+      delayFactor: retryDuration,
     );
     return await r.retry(
       () async {
@@ -61,9 +60,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   @override
   Future<List<Device>> discoverDevices(
-      {Duration retriesDelaySeconds = const Duration(seconds: 10), ProcessManager processManager}) async {
+      {Duration retryDuration = const Duration(seconds: 10), ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
-    List<String> output = await _deviceListOutputWithRetries(retriesDelaySeconds, processManager: processManager);
+    List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *

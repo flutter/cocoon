@@ -70,7 +70,10 @@ Future<Process> startProcess(String executable, List<String> arguments,
 ///
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, bool silent: false, ProcessManager processManager}) async {
+    {Map<String, String> env,
+    bool canFail: false,
+    bool silent: false,
+    ProcessManager processManager = const LocalProcessManager()}) async {
   Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);

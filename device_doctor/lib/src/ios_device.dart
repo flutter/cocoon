@@ -27,7 +27,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   static IosDeviceDiscovery _instance;
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelaySeconds = const Duration(seconds: 10)}) async {
+  Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)}) async {
     return LineSplitter.split(await deviceListOutput()).map((String id) => IosDevice(deviceId: id)).toList();
   }
 

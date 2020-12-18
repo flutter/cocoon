@@ -36,7 +36,7 @@ void main() {
       process = FakeProcess(0, out: output);
 
       List<Device> devices = await deviceDiscovery.discoverDevices(
-          retriesDelaySeconds: const Duration(seconds: 0), processManager: processManager);
+          retryDuration: const Duration(seconds: 0), processManager: processManager);
       expect(devices.length, equals(1));
       expect(devices[0].deviceId, equals('ZY223JQNMR'));
     });
@@ -44,9 +44,7 @@ void main() {
     test('deviceDiscovery fails', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => throw TimeoutException('test'));
-      expect(
-          deviceDiscovery.discoverDevices(
-              retriesDelaySeconds: const Duration(seconds: 0), processManager: processManager),
+      expect(deviceDiscovery.discoverDevices(retryDuration: const Duration(seconds: 0), processManager: processManager),
           throwsA(TypeMatcher<TimeoutException>()));
     });
   });
