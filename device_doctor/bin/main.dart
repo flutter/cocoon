@@ -52,7 +52,7 @@ Future<void> main(List<String> args) async {
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
 
-  final IosDeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
+  final DeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
 
   switch (_action) {
     case 'healthcheck':

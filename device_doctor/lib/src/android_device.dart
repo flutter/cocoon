@@ -6,26 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 import 'package:retry/retry.dart';
 
 import 'device.dart';
 import 'health.dart';
 import 'host_utils.dart';
 import 'utils.dart';
-
-/// Constant battery health values returned from Android Battery Manager.
-///
-/// https://developer.android.com/reference/android/os/BatteryManager.html
-class AndroidBatteryHealth {
-  // Match SCREAMING_CAPS to Android constants.
-  static const BATTERY_HEALTH_UNKNOWN = 1;
-  static const BATTERY_HEALTH_GOOD = 2;
-  static const BATTERY_HEALTH_OVERHEAT = 3;
-  static const BATTERY_HEALTH_DEAD = 4;
-  static const BATTERY_HEALTH_OVER_VOLTAGE = 5;
-  static const BATTERY_HEALTH_UNSPECIFIED_FAILURE = 6;
-  static const BATTERY_HEALTH_COLD = 7;
-}
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
   factory AndroidDeviceDiscovery() {
@@ -43,11 +30,12 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 
   static AndroidDeviceDiscovery _instance;
 
-  Future<String> deviceListOutput(Duration timeout) async {
-    return eval('adb', <String>['devices', '-l'], canFail: false).timeout(timeout);
+  Future<String> _deviceListOutput(Duration timeout, {ProcessManager processManager}) async {
+    return eval('adb', <String>['devices', '-l'], canFail: false, processManager: processManager).timeout(timeout);
   }
 
-  Future<List<String>> deviceListOutputWithRetries(Duration retriesDelaySeconds) async {
+  Future<List<String>> _deviceListOutputWithRetries(Duration retriesDelaySeconds,
+      {ProcessManager processManager}) async {
     const Duration deviceOutputTimeout = Duration(seconds: 15);
     RetryOptions r = RetryOptions(
       maxAttempts: 3,
@@ -55,25 +43,27 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     );
     return await r.retry(
       () async {
-        String result = await deviceListOutput(deviceOutputTimeout);
+        String result = await _deviceListOutput(deviceOutputTimeout, processManager: processManager);
         return result.trim().split('\n');
       },
       retryIf: (Exception e) => e is TimeoutException,
-      onRetry: (Exception e) => killAdbServer(),
+      onRetry: (Exception e) => _killAdbServer(processManager: processManager),
     );
   }
 
-  void killAdbServer() async {
+  void _killAdbServer({ProcessManager processManager}) async {
     if (Platform.isWindows) {
-      await killAllRunningProcessesOnWindows('adb');
+      await killAllRunningProcessesOnWindows('adb', processManager: processManager);
     } else {
-      await eval('adb', <String>['kill-server'], canFail: false);
+      await eval('adb', <String>['kill-server'], canFail: false, processManager: processManager);
     }
   }
 
   @override
-  Future<List<Device>> discoverDevices({Duration retriesDelaySeconds = const Duration(seconds: 10)}) async {
-    List<String> output = await deviceListOutputWithRetries(retriesDelaySeconds);
+  Future<List<Device>> discoverDevices(
+      {Duration retriesDelaySeconds = const Duration(seconds: 10), ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
+    List<String> output = await _deviceListOutputWithRetries(retriesDelaySeconds, processManager: processManager);
     List<String> results = <String>[];
     for (String line in output) {
       // Skip lines like: * daemon started successfully *
@@ -103,15 +93,6 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     for (AndroidDevice device in await discoverDevices()) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
-      HealthCheckResult check;
-      try {
-        // Just a smoke test that we can read wakefulness state
-        await device._getWakefulness();
-        check = await device.batteryHealth();
-      } catch (e, s) {
-        check = HealthCheckResult.error('battery_health', e, s);
-      }
-      checks.add(check);
       results['android-device-${device.deviceId}'] = checks;
     }
     return results;
@@ -131,60 +112,9 @@ class AndroidDevice implements Device {
   @override
   final String deviceId;
 
-  /// Whether the device is awake.
-  Future<bool> isAwake() async {
-    return await _getWakefulness() == 'Awake';
-  }
-
-  /// Whether the device is asleep.
-  Future<bool> isAsleep() async {
-    return await _getWakefulness() == 'Asleep';
-  }
-
   @override
   Future<void> recover() async {
     await eval('adb', <String>['reboot'], canFail: false);
-  }
-
-  /// Retrieves device's wakefulness state.
-  ///
-  /// See: https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/PowerManagerInternal.java
-  Future<String> _getWakefulness() async {
-    String powerInfo = await shellEval('dumpsys', ['power']);
-    String wakefulness = grep('mWakefulness=', from: powerInfo).single.split('=')[1].trim();
-    return wakefulness;
-  }
-
-  /// Retrieves battery health reported from dumpsys battery.
-  Future<HealthCheckResult> batteryHealth() async {
-    try {
-      const String batteryHealthName = 'battery_health';
-      String batteryInfo = await shellEval('dumpsys', ['battery']);
-      String batteryTemperatureString = grep('health: ', from: batteryInfo).single.split(': ')[1].trim();
-      int batteryHeath = int.parse(batteryTemperatureString);
-      switch (batteryHeath) {
-        case AndroidBatteryHealth.BATTERY_HEALTH_OVERHEAT:
-          return HealthCheckResult.failure(batteryHealthName, 'Battery overheated');
-        case AndroidBatteryHealth.BATTERY_HEALTH_DEAD:
-          return HealthCheckResult.failure(batteryHealthName, 'Battery dead');
-        case AndroidBatteryHealth.BATTERY_HEALTH_OVER_VOLTAGE:
-          return HealthCheckResult.failure(batteryHealthName, 'Battery over voltage');
-        case AndroidBatteryHealth.BATTERY_HEALTH_UNSPECIFIED_FAILURE:
-          return HealthCheckResult.failure(batteryHealthName, 'Unspecified battery failure');
-        case AndroidBatteryHealth.BATTERY_HEALTH_COLD:
-          return HealthCheckResult.failure(batteryHealthName, 'Battery cold');
-        case AndroidBatteryHealth.BATTERY_HEALTH_UNKNOWN:
-          return HealthCheckResult.success(batteryHealthName, 'Battery health unknown');
-        case AndroidBatteryHealth.BATTERY_HEALTH_GOOD:
-          return HealthCheckResult.success(batteryHealthName);
-        default:
-          // Unknown code.
-          return HealthCheckResult.success('Unknown', 'Unknown battery health value $batteryHeath');
-      }
-    } catch (e) {
-      // dumpsys battery not supported.
-      return HealthCheckResult.success('Unknown', 'Unknown battery health');
-    }
   }
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].

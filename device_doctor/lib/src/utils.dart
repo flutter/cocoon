@@ -58,13 +58,11 @@ void cd(dynamic directory) {
 
 /// Starts a process for an executable command, and returns the processes.
 Future<Process> startProcess(String executable, List<String> arguments,
-    {Map<String, String> env, bool silent: false}) async {
-  ProcessManager processManager = LocalProcessManager();
+    {Map<String, String> env, bool silent: false, ProcessManager processManager = const LocalProcessManager()}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
   Process proc = await processManager.start(<String>[executable]..addAll(arguments),
       environment: env, workingDirectory: path.current);
-
   return proc;
 }
 
@@ -72,8 +70,8 @@ Future<Process> startProcess(String executable, List<String> arguments,
 ///
 /// Standard error is redirected to the current process' standard error stream.
 Future<String> eval(String executable, List<String> arguments,
-    {Map<String, String> env, bool canFail: false, bool silent: false}) async {
-  Process proc = await startProcess(executable, arguments, env: env, silent: silent);
+    {Map<String, String> env, bool canFail: false, bool silent: false, ProcessManager processManager}) async {
+  Process proc = await startProcess(executable, arguments, env: env, silent: silent, processManager: processManager);
   proc.stderr.listen((List<int> data) {
     stderr.add(data);
   });
