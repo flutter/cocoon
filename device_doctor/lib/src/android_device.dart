@@ -103,7 +103,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   /// It supports multiple devices, but here we are assuming only one device is attached.
   @override
   Future<Map<String, List<String>>> checkDeviceProperties({ProcessManager processManager}) async {
-    final List<AndroidDevice> devices = await discoverDevices();
+    final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
     if (devices.isEmpty) {
       return <String, List<String>>{};
     }

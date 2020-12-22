@@ -58,6 +58,7 @@ void main() {
     Process device_type_model_process;
     Process device_type_board_process;
     Process process;
+    List<List<int>> output;
 
     setUp(() {
       deviceDiscovery = AndroidDeviceDiscovery();
@@ -67,8 +68,11 @@ void main() {
     test('returns empty when no device is attached', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-
-      process = FakeProcess(0, out: <List<int>>[utf8.encode('')]);
+      
+      StringBuffer sb = new StringBuffer();
+      sb.writeln('List of devices attached');
+      output = <List<int>>[utf8.encode(sb.toString())];
+      process = FakeProcess(0, out: output);
 
       expect(await deviceDiscovery.checkDeviceProperties(processManager: processManager),
           equals(<String, List<String>>{}));
