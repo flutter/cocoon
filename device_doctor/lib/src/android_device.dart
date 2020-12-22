@@ -98,31 +98,40 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     return results;
   }
 
+  /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
+  ///
+  /// It supports multiple devices, but here we are assuming only one device is attached.
   @override
   Future<Map<String, List<String>>> checkDeviceProperties() async {
     final List<AndroidDevice> devices = await discoverDevices();
     if (devices.isEmpty) {
       return <String, List<String>>{};
     }
-    return getDeviceProperties(devices[0]);
+    final Map<String, List<String>> properties = await getDeviceProperties(devices[0]);
+    stdout.write(json.encode(properties));
+    return properties;
   }
 
-  Future<Map<String, List<String>>> getDeviceProperties(AndroidDevice device) async {
+  /// Gets android device properties based on swarming bot configuration.
+  ///
+  /// Refer function `get_dimensions` from
+  /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
+  Future<Map<String, List<String>>> getDeviceProperties(AndroidDevice device, {ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
     final Map<String, List<String>> properties = <String, List<String>>{};
     properties['device_os_flavor'] = <String>[
-      await device.shellEval('getprop', <String>['ro.product.brand'])
+      await device.shellEval('getprop', <String>['ro.product.brand'], processManager: processManager)
     ];
-    final String device_os = await device.shellEval('getprop', <String>['ro.build.id']);
+    final String device_os = await device.shellEval('getprop', <String>['ro.build.id'], processManager: processManager);
     properties['device_os'] = <String>[device_os[0], device_os];
     properties['device_os_type'] = <String>[
-      await device.shellEval('getprop', <String>['ro.build.type'])
+      await device.shellEval('getprop', <String>['ro.build.type'], processManager: processManager)
     ];
 
     properties['device_type'] = <String>[
-      await device.shellEval('getprop', <String>['ro.product.model']),
-      await device.shellEval('getprop', <String>['ro.product.board'])
+      await device.shellEval('getprop', <String>['ro.product.model'], processManager: processManager),
+      await device.shellEval('getprop', <String>['ro.product.board'], processManager: processManager)
     ];
-    stdout.write(json.encode(properties));
     return properties;
   }
 
@@ -146,7 +155,9 @@ class AndroidDevice implements Device {
   }
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
-  Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
-    return eval('adb', ['-s', deviceId, 'shell', command]..addAll(arguments), env: env, canFail: false);
+  Future<String> shellEval(String command, List<String> arguments,
+      {Map<String, String> env, ProcessManager processManager}) {
+    return eval('adb', ['-s', deviceId, 'shell', command]..addAll(arguments),
+        env: env, canFail: false, processManager: processManager);
   }
 }
