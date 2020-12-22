@@ -8,9 +8,8 @@ import 'package:device_doctor/device_doctor.dart';
 
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
-const String propertiesFlag = 'properties';
 const String helpFlag = 'help';
-const List<String> supportedOptions = <String>['healthcheck', 'recovery'];
+const List<String> supportedOptions = <String>['healthcheck', 'recovery', 'propertycheck'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 
 /// These values will be initialized in `_checkArgs` function,
@@ -30,7 +29,8 @@ String _deviceOS;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addOption('$actionFlag', help: 'Supported actions are healthcheck and recovery.', callback: (String value) {
+    ..addOption('$actionFlag', help: 'Supported actions are healthcheck, recovery and propertycheck.',
+        callback: (String value) {
       if (!supportedOptions.contains(value)) {
         throw FormatException('\n-----\n'
             'Invalid value for option --action: $value.'
@@ -61,5 +61,7 @@ Future<void> main(List<String> args) async {
     case 'recovery':
       await deviceDiscovery.recoverDevices();
       break;
+    case 'propertycheck':
+      await deviceDiscovery.checkDeviceProperties();
   }
 }

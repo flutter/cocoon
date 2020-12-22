@@ -48,6 +48,19 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
+  Future<Map<String, List<String>>> checkDeviceProperties() async {
+    final List<IosDevice> devices = await discoverDevices();
+    if (devices.isEmpty) {
+      return <String, List<String>>{};
+    }
+    return getDeviceProperties(devices[0]);
+  }
+
+  Future<Map<String, List<String>>> getDeviceProperties(IosDevice device) async {
+    return <String, List<String>>{};
+  }
+
+  @override
   Future<void> recoverDevices() async {
     for (Device device in await discoverDevices()) {
       await device.recover();

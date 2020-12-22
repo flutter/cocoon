@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -59,7 +60,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<List<Device>> discoverDevices(
+  Future<List<AndroidDevice>> discoverDevices(
       {Duration retryDuration = const Duration(seconds: 10), ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
     List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
@@ -98,6 +99,34 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
+  Future<Map<String, List<String>>> checkDeviceProperties() async {
+    final List<AndroidDevice> devices = await discoverDevices();
+    if (devices.isEmpty) {
+      return <String, List<String>>{};
+    }
+    return getDeviceProperties(devices[0]);
+  }
+
+  Future<Map<String, List<String>>> getDeviceProperties(AndroidDevice device) async {
+    final Map<String, List<String>> properties = <String, List<String>>{};
+    properties['device_os_flavor'] = <String>[
+      await device.shellEval('getprop', <String>['ro.product.brand'])
+    ];
+    final String device_os = await device.shellEval('getprop', <String>['ro.build.id']);
+    properties['device_os'] = <String>[device_os[0], device_os];
+    properties['device_os_type'] = <String>[
+      await device.shellEval('getprop', <String>['ro.build.type'])
+    ];
+
+    properties['device_type'] = <String>[
+      await device.shellEval('getprop', <String>['ro.product.model']),
+      await device.shellEval('getprop', <String>['ro.product.board'])
+    ];
+    stdout.write(json.encode(properties));
+    return properties;
+  }
+
+  @override
   Future<void> recoverDevices() async {
     for (Device device in await discoverDevices()) {
       await device.recover();
@@ -113,11 +142,11 @@ class AndroidDevice implements Device {
 
   @override
   Future<void> recover() async {
-    await eval('adb', <String>['reboot'], canFail: false);
+    await eval('adb', <String>['-s', deviceId, 'reboot'], canFail: false);
   }
 
   /// Executes [command] on `adb shell` and returns its standard output as a [String].
   Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
-    return eval('adb', ['shell', command]..addAll(arguments), env: env, canFail: false);
+    return eval('adb', ['-s', deviceId, 'shell', command]..addAll(arguments), env: env, canFail: false);
   }
 }

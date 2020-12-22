@@ -27,6 +27,9 @@ abstract class DeviceDiscovery {
   /// Checks the health of the available devices.
   Future<Map<String, List<HealthCheckResult>>> checkDevices();
 
+  /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
+  Future<Map<String, List<String>>> checkDeviceProperties();
+
   /// Recovers the device.
   Future<void> recoverDevices();
 }
