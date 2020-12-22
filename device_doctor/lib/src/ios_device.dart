@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show LineSplitter;
 
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 
 import 'device.dart';
 import 'health.dart';
@@ -52,7 +53,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   /// But we will implement this to replace existing chromium side bot config logic
   /// after devicelab migration to LUCI is done.
   @override
-  Future<Map<String, List<String>>> checkDeviceProperties() async {
+  Future<Map<String, List<String>>> checkDeviceProperties({ProcessManager processManager}) async {
     return <String, List<String>>{};
   }
 

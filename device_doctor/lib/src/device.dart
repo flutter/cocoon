@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:process/process.dart';
+
 import 'android_device.dart';
 import 'health.dart';
 import 'ios_device.dart';
@@ -30,7 +32,7 @@ abstract class DeviceDiscovery {
   /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
   ///
   /// Currently it supports only android devices, but can extend to iOS devices.
-  Future<Map<String, List<String>>> checkDeviceProperties();
+  Future<Map<String, List<String>>> checkDeviceProperties({ProcessManager processManager});
 
   /// Recovers the device.
   Future<void> recoverDevices();

@@ -70,7 +70,8 @@ void main() {
 
       process = FakeProcess(0, out: <List<int>>[utf8.encode('')]);
 
-      expect(await deviceDiscovery.checkDeviceProperties(), equals(<String, List<String>>{}));
+      expect(await deviceDiscovery.checkDeviceProperties(processManager: processManager),
+          equals(<String, List<String>>{}));
     });
 
     test('get device properties', () async {
