@@ -68,7 +68,7 @@ void main() {
     test('returns empty when no device is attached', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
-      
+
       StringBuffer sb = new StringBuffer();
       sb.writeln('List of devices attached');
       output = <List<int>>[utf8.encode(sb.toString())];
