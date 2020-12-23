@@ -68,7 +68,7 @@ void main() {
       output = 'List of devices attached';
       process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
-      expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, List<String>>{}));
+      expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, String>{}));
     });
 
     test('get device properties', () async {
@@ -85,14 +85,15 @@ void main() {
 
       property_process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
 
-      Map<String, List<String>> deviceProperties = await deviceDiscovery
+      Map<String, String> deviceProperties = await deviceDiscovery
           .getDeviceProperties(AndroidDevice(deviceId: 'ZY223JQNMR'), processManager: processManager);
 
-      const Map<String, List<String>> expectedProperties = <String, List<String>>{
-        'device_os_flavor': <String>['abc'],
-        'device_os': <String>['d', 'def'],
-        'device_os_type': <String>['ghi'],
-        'device_type': <String>['jkl', 'mno']
+      const Map<String, String> expectedProperties = <String, String>{
+        'product_brand': 'abc',
+        'build_id': 'def',
+        'build_type': 'ghi',
+        'product_model': 'jkl',
+        'product_board': 'mno'
       };
       expect(deviceProperties, equals(expectedProperties));
     });

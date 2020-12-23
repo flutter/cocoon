@@ -50,8 +50,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
   /// Checks and returns the device properties.
   @override
-  Future<Map<String, List<String>>> deviceProperties({ProcessManager processManager}) async {
-    return <String, List<String>>{};
+  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
+    return <String, String>{};
   }
 
   @override

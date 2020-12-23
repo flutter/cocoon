@@ -102,12 +102,12 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// It supports multiple devices, but here we are assuming only one device is attached.
   @override
-  Future<Map<String, List<String>>> deviceProperties({ProcessManager processManager}) async {
+  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
     final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
     if (devices.isEmpty) {
-      return <String, List<String>>{};
+      return <String, String>{};
     }
-    final Map<String, List<String>> properties = await getDeviceProperties(devices[0], processManager: processManager);
+    final Map<String, String> properties = await getDeviceProperties(devices[0], processManager: processManager);
     stdout.write(json.encode(properties));
     return properties;
   }
@@ -116,9 +116,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   ///
   /// Refer function `get_dimensions` from
   /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
-  Future<Map<String, List<String>>> getDeviceProperties(AndroidDevice device, {ProcessManager processManager}) async {
+  Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
-    final Map<String, List<String>> deviceProperties = <String, List<String>>{};
+    final Map<String, String> deviceProperties = <String, String>{};
     final Map<String, String> propertyMap = <String, String>{};
     LineSplitter.split(
             await eval('adb', <String>['-s', device.deviceId, 'shell', 'getprop'], processManager: processManager))
@@ -127,11 +127,11 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       propertyMap[propertyList[0].trim()] = propertyList[1].trim();
     });
 
-    deviceProperties['device_os_flavor'] = <String>[propertyMap['ro.product.brand']];
-    final String device_os = propertyMap['ro.build.id'];
-    deviceProperties['device_os'] = <String>[device_os[0], device_os];
-    deviceProperties['device_os_type'] = <String>[propertyMap['ro.build.type']];
-    deviceProperties['device_type'] = <String>[propertyMap['ro.product.model'], propertyMap['ro.product.board']];
+    deviceProperties['product_brand'] = propertyMap['ro.product.brand'];
+    deviceProperties['build_id'] = propertyMap['ro.build.id'];
+    deviceProperties['build_type'] = propertyMap['ro.build.type'];
+    deviceProperties['product_model'] = propertyMap['ro.product.model'];
+    deviceProperties['product_board'] = propertyMap['ro.product.board'];
     return deviceProperties;
   }
 
