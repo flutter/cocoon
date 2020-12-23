@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show LineSplitter;
 
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 
 import 'device.dart';
 import 'health.dart';
@@ -45,6 +46,12 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     }
     await healthcheck(results);
     return results;
+  }
+
+  /// Checks and returns the device properties.
+  @override
+  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
+    return <String, String>{};
   }
 
   @override

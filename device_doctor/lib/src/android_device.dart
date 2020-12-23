@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -59,7 +60,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<List<Device>> discoverDevices(
+  Future<List<AndroidDevice>> discoverDevices(
       {Duration retryDuration = const Duration(seconds: 10), ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
     List<String> output = await _deviceListOutputWithRetries(retryDuration, processManager: processManager);
@@ -97,6 +98,43 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     return results;
   }
 
+  /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
+  ///
+  /// It supports multiple devices, but here we are assuming only one device is attached.
+  @override
+  Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
+    final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
+    if (devices.isEmpty) {
+      return <String, String>{};
+    }
+    final Map<String, String> properties = await getDeviceProperties(devices[0], processManager: processManager);
+    stdout.write(json.encode(properties));
+    return properties;
+  }
+
+  /// Gets android device properties based on swarming bot configuration.
+  ///
+  /// Refer function `get_dimensions` from
+  /// https://source.chromium.org/chromium/infra/infra/+/master:luci/appengine/swarming/swarming_bot/api/platforms/android.py
+  Future<Map<String, String>> getDeviceProperties(AndroidDevice device, {ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
+    final Map<String, String> deviceProperties = <String, String>{};
+    final Map<String, String> propertyMap = <String, String>{};
+    LineSplitter.split(
+            await eval('adb', <String>['-s', device.deviceId, 'shell', 'getprop'], processManager: processManager))
+        .forEach((String property) {
+      final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
+      propertyMap[propertyList[0].trim()] = propertyList[1].trim();
+    });
+
+    deviceProperties['product_brand'] = propertyMap['ro.product.brand'];
+    deviceProperties['build_id'] = propertyMap['ro.build.id'];
+    deviceProperties['build_type'] = propertyMap['ro.build.type'];
+    deviceProperties['product_model'] = propertyMap['ro.product.model'];
+    deviceProperties['product_board'] = propertyMap['ro.product.board'];
+    return deviceProperties;
+  }
+
   @override
   Future<void> recoverDevices() async {
     for (Device device in await discoverDevices()) {
@@ -113,11 +151,6 @@ class AndroidDevice implements Device {
 
   @override
   Future<void> recover() async {
-    await eval('adb', <String>['reboot'], canFail: false);
-  }
-
-  /// Executes [command] on `adb shell` and returns its standard output as a [String].
-  Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) {
-    return eval('adb', ['shell', command]..addAll(arguments), env: env, canFail: false);
+    await eval('adb', <String>['-s', deviceId, 'reboot'], canFail: false);
   }
 }

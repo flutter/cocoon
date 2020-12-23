@@ -48,4 +48,54 @@ void main() {
           throwsA(TypeMatcher<TimeoutException>()));
     });
   });
+
+  group('AndroidDeviceProperties', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process property_process;
+    Process process;
+    String output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery();
+      processManager = MockProcessManager();
+    });
+
+    test('returns empty when no device is attached', () async {
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = 'List of devices attached';
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      expect(await deviceDiscovery.deviceProperties(processManager: processManager), equals(<String, String>{}));
+    });
+
+    test('get device properties', () async {
+      when(processManager.start(<dynamic>['adb', '-s', 'ZY223JQNMR', 'shell', 'getprop'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(property_process));
+
+      output = '''[ro.product.brand]: [abc]
+      [ro.build.id]: [def]
+      [ro.build.type]: [ghi]
+      [ro.product.model]: [jkl]
+      [ro.product.board]: [mno]
+      ''';
+
+      property_process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      Map<String, String> deviceProperties = await deviceDiscovery
+          .getDeviceProperties(AndroidDevice(deviceId: 'ZY223JQNMR'), processManager: processManager);
+
+      const Map<String, String> expectedProperties = <String, String>{
+        'product_brand': 'abc',
+        'build_id': 'def',
+        'build_type': 'ghi',
+        'product_model': 'jkl',
+        'product_board': 'mno'
+      };
+      expect(deviceProperties, equals(expectedProperties));
+    });
+  });
 }
