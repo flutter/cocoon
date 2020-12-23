@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 
 import 'package:device_doctor/device_doctor.dart';
@@ -31,24 +33,21 @@ String _deviceOS;
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addOption('$actionFlag', help: 'Supported actions are healthcheck, recovery and properties.',
-        callback: (String value) {
-      if (!supportedOptions.contains(value)) {
-        throw FormatException('\n-----\n'
-            'Invalid value for option --action: $value.'
-            'Supported actions are healthcheck and recovery.'
-            '-----');
+    ..addFlag('$helpFlag', help: 'Prints usage info.', callback: (bool value) {
+      if (value) {
+        stdout.write('${parser.usage}\n');
+        exit(1);
       }
     })
-    ..addOption('$deviceOSFlag', help: 'Supported device OS: android and ios.', callback: (String value) {
-      if (!supportedDeviceOS.contains(value)) {
-        throw FormatException('\n-----\n'
-            'Invalid value for option --device-os: $value.\n'
-            'Supported device OS: android and ios.\n'
-            '-----');
-      }
+    ..addOption('$actionFlag', help: 'Supported actions.', allowed: supportedOptions, allowedHelp: {
+      'healthcheck': 'Check device health status.',
+      'recovery': 'Clean up and reboot device.',
+      'properties': 'Return device properties/dimensions.'
     })
-    ..addFlag('$helpFlag', help: 'Prints usage info.');
+    ..addOption('$deviceOSFlag',
+        help: 'Supported device OS.',
+        allowed: supportedDeviceOS,
+        allowedHelp: {'android': 'Available for linux, mac, and windows.', 'ios': 'Available for mac.'});
 
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
