@@ -8,17 +8,20 @@
       {
          "name":"Linux device_doctor",
          "repo":"cocoon",
-         "enabled":true
+         "enabled":true,
+         "run_if": ["device_doctor/**"]
       },
       {
          "name":"Mac device_doctor",
          "repo":"cocoon",
-         "enabled":true
+         "enabled":true,
+         "run_if": ["device_doctor/**"]
       },
       {
          "name":"Windows device_doctor",
          "repo":"cocoon",
-         "enabled":true
+         "enabled":true,
+         "run_if": ["device_doctor/**"]
       }
    ]
 }
