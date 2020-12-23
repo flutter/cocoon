@@ -17,19 +17,21 @@ const List<String> supportedDeviceOS = <String>['ios', 'android'];
 String _action;
 String _deviceOS;
 
-/// Manage `healthcheck` and `recovery` for devices.
+/// Manage `healthcheck`, `recovery`, and `properties` for devices.
 ///
 /// For `healthcheck`, if no device is found or any health check fails an stderr will be logged,
 /// and an exception will be thrown.
 ///
 /// For `recovery`, it will do cleanup, reboot, etc. to try bringing device back to a working state.
 ///
+/// For `properties`, it will return device properties/dimensions, like manufacture, base_buildid, etc.
+///
 /// Usage:
 /// dart main.dart --action <healthcheck|recovery> --deviceOS <android|ios>
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser();
   parser
-    ..addOption('$actionFlag', help: 'Supported actions are healthcheck, recovery and propertycheck.',
+    ..addOption('$actionFlag', help: 'Supported actions are healthcheck, recovery and properties.',
         callback: (String value) {
       if (!supportedOptions.contains(value)) {
         throw FormatException('\n-----\n'
@@ -61,7 +63,7 @@ Future<void> main(List<String> args) async {
     case 'recovery':
       await deviceDiscovery.recoverDevices();
       break;
-    case 'propertycheck':
-      await deviceDiscovery.checkDeviceProperties();
+    case 'properties':
+      await deviceDiscovery.deviceProperties();
   }
 }

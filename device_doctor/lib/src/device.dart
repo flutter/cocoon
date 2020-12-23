@@ -32,7 +32,7 @@ abstract class DeviceDiscovery {
   /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
   ///
   /// Currently it supports only android devices, but can extend to iOS devices.
-  Future<Map<String, List<String>>> checkDeviceProperties({ProcessManager processManager});
+  Future<Map<String, List<String>>> deviceProperties({ProcessManager processManager});
 
   /// Recovers the device.
   Future<void> recoverDevices();

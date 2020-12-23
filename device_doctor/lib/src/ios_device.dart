@@ -48,12 +48,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     return results;
   }
 
-  /// iOS device property check is not needed at this moment.
-  ///
-  /// But we will implement this to replace existing chromium side bot config logic
-  /// after devicelab migration to LUCI is done.
+  /// Checks and returns the device properties.
   @override
-  Future<Map<String, List<String>>> checkDeviceProperties({ProcessManager processManager}) async {
+  Future<Map<String, List<String>>> deviceProperties({ProcessManager processManager}) async {
     return <String, List<String>>{};
   }
 
