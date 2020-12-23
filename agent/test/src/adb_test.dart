@@ -261,6 +261,12 @@ class FakeDevice extends AndroidDevice {
   }
 
   @override
+  Future<String> shellEval(String command, List<String> arguments, {Map<String, String> env}) async {
+    commandLog.add(CommandArgs(command: command, arguments: arguments, env: env));
+    return output;
+  }
+
+  @override
   Future<Null> shellExec(String command, List<String> arguments, {Map<String, String> env}) async {
     commandLog.add(CommandArgs(command: command, arguments: arguments, env: env));
     dynamic exitError = exitErrorFactory();
