@@ -26,3 +26,5 @@ MKDIR %BUILD_DIR%\build
 
 tool\dart-sdk\bin\pub.bat get
 tool\dart-sdk\bin\dart2native.bat bin\main.dart -o build\device_doctor.exe
+
+xcopy %BUILD_DIR%\LICENSE %BUILD_DIR%\build\.

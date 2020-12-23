@@ -31,6 +31,8 @@ mkdir -p build
 tool/dart-sdk/bin/pub get
 tool/dart-sdk/bin/dart2native bin/main.dart -o build/device_doctor
 
+cp -f LICENSE build/
+
 if [[ $OS == "Darwin" ]]; then
   mkdir -p build/tool
   cp -rf tool/infra-dialog build/tool/
