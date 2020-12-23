@@ -16,6 +16,7 @@ Different devices require different tools to be in the `path` beforehand.
 ### iOS
 * `idevice_id`
 * `idevicediagnostics`
+* `xcrun`
 
 ## Building
 
