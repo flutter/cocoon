@@ -4,6 +4,21 @@
          "name":"Cocoon",
          "repo":"cocoon",
          "enabled":true
+      },
+      {
+         "name":"Linux device_doctor",
+         "repo":"cocoon",
+         "enabled":true
+      },
+      {
+         "name":"Mac device_doctor",
+         "repo":"cocoon",
+         "enabled":true
+      },
+      {
+         "name":"Windows device_doctor",
+         "repo":"cocoon",
+         "enabled":true
       }
    ]
 }
