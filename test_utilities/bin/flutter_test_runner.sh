@@ -13,8 +13,9 @@
 # Remember to also update the Windows version (flutter_test_runner.bat) when
 # changing this file.
 
-# Runner for flutter tests. It expects a single parameter with the full
-# path to the flutter project where tests will be run.
+# Runner for Flutter tests. The first parameter is required with the full path
+# to the Flutter project under test. The second parameter is passed to the
+# flutter test command, and can be used to skip running goldens.
 
 set -ex
 
@@ -24,7 +25,7 @@ pushd $1 > /dev/null
 flutter packages get
 flutter analyze
 dartfmt --line-length=120 --set-exit-if-changed --dry-run lib/ test/
-flutter test --test-randomize-ordering-seed=random --reporter expanded
+flutter test --test-randomize-ordering-seed=random --reporter expanded $2
 
 popd > /dev/null
 
