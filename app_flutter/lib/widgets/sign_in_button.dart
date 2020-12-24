@@ -39,7 +39,7 @@ class SignInButton extends StatelessWidget {
               imageUrl: authService.user?.photoUrl,
               placeholder: Padding(
                 child: Text(authService.user.email),
-                padding: const EdgeInsets.only(right: 10.0, top: 20.0),
+                padding: const EdgeInsets.only(right: 10.0),
               ),
             ),
             offset: const Offset(0, 50),
