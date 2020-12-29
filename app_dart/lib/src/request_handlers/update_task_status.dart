@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
+import 'package:metrics_center/metrics_center.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/commit.dart';
@@ -104,6 +105,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await _insertBigquery(commit, task);
     }
 
+    await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
+    // TODO(liyuqian): remove the TimeSeries and TimeSeriesValue code below once
+    // metrics center migration is done.
+
     // TODO(tvolkert): PushBuildStatusToGithub
     for (String scoreKey in scoreKeys) {
       final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey, datastore);
@@ -120,6 +125,38 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await datastore.insert(<TimeSeriesValue>[seriesValue]);
     }
     return UpdateTaskStatusResponse(task);
+  }
+
+  Future<void> _writeToMetricsCenter(
+    Map<String, dynamic> resultData,
+    List<String> scoreKeys,
+    Commit commit,
+    Task task,
+  ) async {
+    final FlutterDestination metricsDestination =
+      await FlutterDestination.makeFromCredentialsJson(
+        (await config.deviceLabServiceAccount).toJson(),
+      );
+    final List<MetricPoint> metricPoints = <MetricPoint>[];
+    for (String scoreKey in scoreKeys) {
+      metricPoints.add(
+        MetricPoint(
+          (resultData[scoreKey] as num).toDouble(),
+          <String, String>{
+            kGithubRepoKey: kFlutterEngineRepo,
+            kGitRevisionKey: commit.sha,
+            'branch': commit.branch,
+            kNameKey: task.name,
+            kSubResultKey: scoreKey,
+            // The unit should be encoded either in task.name or scoreKey
+            // so we don't have to depend on TimeSeries or TimeSeriesValue to
+            // know that. It allows us to remove the code and data that are
+            // related to TimeSeries and TimeSeriesValue.
+          },
+        ),
+      );
+    }
+    await metricsDestination.update(metricPoints);
   }
 
   /// Retrieve [Task] to update from [DatastoreService].
