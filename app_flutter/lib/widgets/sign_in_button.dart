@@ -25,6 +25,10 @@ class SignInButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final GoogleSignInService authService = Provider.of<GoogleSignInService>(context);
+    final Color textButtonForeground = (colorBrightness ?? Theme.of(context).brightness) == Brightness.dark
+      ? Colors.white
+      : Colors.black87;
+
     return FutureBuilder<bool>(
       future: authService.isAuthenticated,
       builder: (BuildContext context, AsyncSnapshot<bool> isAuthenticated) {
@@ -55,9 +59,9 @@ class SignInButton extends StatelessWidget {
             },
           );
         }
-        return FlatButton(
+        return TextButton(
           child: const Text('SIGN IN'),
-          colorBrightness: colorBrightness ?? Theme.of(context).brightness,
+          style: TextButton.styleFrom(primary: textButtonForeground),
           onPressed: authService.signIn,
         );
       },

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 typedef AsyncVoidCallback = Future<void> Function();
 
-/// A [RaisedButton] whose [onPressed] returns a [Future], and which
+/// An [ElevatedButton] whose [onPressed] returns a [Future], and which
 /// overlays a progress indicator when the button is pressed until the
 /// future completes.
 ///
@@ -60,7 +60,7 @@ class _ProgressButtonState extends State<ProgressButton> {
   Widget build(BuildContext context) {
     return Stack(
       children: <Widget>[
-        RaisedButton(
+        ElevatedButton(
           child: widget.child,
           onPressed: _busy // dartfmt will soon require this new formatting
               ? null

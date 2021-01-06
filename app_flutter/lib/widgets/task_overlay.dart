@@ -305,7 +305,7 @@ class TaskOverlayContents extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
                   if (qualifiedTask.isDevicelab)
-                    RaisedButton(
+                    ElevatedButton(
                       child: Text.rich(
                         TextSpan(
                           text: 'SHOW ',
