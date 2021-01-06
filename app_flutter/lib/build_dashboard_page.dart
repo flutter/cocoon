@@ -103,15 +103,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    FlatButton(
+                    TextButton(
                       child: const Text('Defaults'),
                       onPressed: _filter.isDefault ? null : () => _filter.reset(),
                     ),
-                    FlatButton(
+                    TextButton(
                       child: const Text('Apply'),
                       onPressed: _filter == _settingsBasis ? null : () => _navigateWithSettings(context, _filter),
                     ),
-                    FlatButton(
+                    TextButton(
                       child: const Text('Cancel'),
                       onPressed: () {
                         if (_filter != _settingsBasis) {

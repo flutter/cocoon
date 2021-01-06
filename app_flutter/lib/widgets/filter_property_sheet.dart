@@ -311,7 +311,7 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
       children: <Widget>[
         if (widget.onClose != null)
           Positioned(
-            child: FlatButton(
+            child: TextButton(
               child: const Icon(Icons.close),
               onPressed: widget.onClose,
             ),

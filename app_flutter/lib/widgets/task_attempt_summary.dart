@@ -43,7 +43,7 @@ class TaskAttemptSummary extends StatelessWidget {
     return ListBody(
       children: List<Widget>.generate(task.attempts, (int i) {
         final int attemptNumber = i + 1; // attempts start at 1, not 0
-        return RaisedButton(
+        return ElevatedButton(
           child: Text('OPEN LOG FOR ATTEMPT #$attemptNumber'),
           // If the given task attempt does not exist, such as in profile mode, it will redirect to show all logs.
           onPressed: () => launch(_stackdriverUrl(task, attemptNumber)),

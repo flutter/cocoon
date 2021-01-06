@@ -25,7 +25,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(RaisedButton), findsNothing);
+      expect(find.byType(ElevatedButton), findsNothing);
     });
 
     testWidgets('shows only 1 button for 1 attempt', (WidgetTester tester) async {
@@ -41,7 +41,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(RaisedButton), findsNWidgets(1));
+      expect(find.byType(ElevatedButton), findsNWidgets(1));
       expect(find.text('OPEN LOG FOR ATTEMPT #1'), findsOneWidget);
     });
 
@@ -58,7 +58,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(RaisedButton), findsNWidgets(3));
+      expect(find.byType(ElevatedButton), findsNWidgets(3));
       expect(find.text('OPEN LOG FOR ATTEMPT #1'), findsOneWidget);
       expect(find.text('OPEN LOG FOR ATTEMPT #2'), findsOneWidget);
       expect(find.text('OPEN LOG FOR ATTEMPT #3'), findsOneWidget);
@@ -85,7 +85,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(RaisedButton));
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
 
       expect(
