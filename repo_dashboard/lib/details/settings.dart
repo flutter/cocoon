@@ -80,7 +80,7 @@ class _SettingsFormState extends State<SettingsForm> {
             ),
           ),
           Center(
-            child: RaisedButton(
+            child: ElevatedButton(
               child: github.isSignedIn ? const Text('Clear') : const Text('Update'),
               onPressed: github.isSignedIn ? _handleSignOut : _handleSignIn,
             ),

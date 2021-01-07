@@ -28,7 +28,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
     final List<String> buildNumberList = task.buildNumberList.isEmpty ? <String>[] : task.buildNumberList.split(',');
     return ListBody(
       children: List<Widget>.generate(buildNumberList.length, (int i) {
-        return RaisedButton(
+        return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () => launch(_luciProdLogUrl(task.builderName, buildNumberList[i])),
         );

@@ -43,7 +43,7 @@ class IndexPage extends StatelessWidget {
                 for (CocoonLink link in cocoonLinks)
                   Column(children: <Widget>[
                     IntrinsicWidth(
-                      child: RaisedButton.icon(
+                      child: ElevatedButton.icon(
                           icon: link.icon, label: Text(link.name.toUpperCase()), onPressed: link.action),
                       stepWidth: 80.0,
                     ),

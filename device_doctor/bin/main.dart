@@ -11,7 +11,7 @@ import 'package:device_doctor/device_doctor.dart';
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
-const List<String> supportedOptions = <String>['healthcheck', 'recovery', 'propertycheck'];
+const List<String> supportedOptions = <String>['healthcheck', 'recovery', 'properties'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
 
 /// These values will be initialized in `_checkArgs` function,

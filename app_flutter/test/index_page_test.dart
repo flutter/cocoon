@@ -37,7 +37,7 @@ void main() {
     await tester.pump(); // start animation of drawer opening
     await tester.pump(const Duration(seconds: 1)); // end animation of drawer opening
 
-    final List<Element> raisedButtons = find.byType(RawMaterialButton).evaluate().toList();
+    final List<Element> raisedButtons = find.byType(TextButton).evaluate().toList();
 
     final List<Element> listTiles = find.byType(ListTile).evaluate().toList();
 
