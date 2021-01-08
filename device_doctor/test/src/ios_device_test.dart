@@ -30,7 +30,8 @@ void main() {
 
     test('checkDevices without device', () async {
       deviceDiscovery.outputs = <dynamic>[''];
-      await expectLater(deviceDiscovery.checkDevices(), throwsStateError);
+      Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices();
+      await expectLater(results.keys.length, 0);
     });
 
     test('checkDevices with device', () async {
