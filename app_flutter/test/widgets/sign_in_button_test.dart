@@ -90,7 +90,9 @@ void main() {
     // TODO(chillers): look for GoogleUserCircleAvatar once we use that (see sign_in_button.dart)
     expect(find.text('SIGN IN'), findsNothing);
     expect(find.text('test@flutter.dev'), findsOneWidget);
-    await expectGoldenMatches(find.byType(Overlay), 'sign_in_button.authenticated.png');
+    // TODO(xu-baolin): Re-enable this ASAP.
+    // Tracking at https://github.com/flutter/flutter/issues/73527
+    // await expectGoldenMatches(find.byType(Overlay), 'sign_in_button.authenticated.png');
   });
 
   testWidgets('SignInButton calls sign out on tap when authenticated', (WidgetTester tester) async {
