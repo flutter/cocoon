@@ -88,14 +88,12 @@ class HealthCheckResult {
 Future<void> healthcheck(Map<String, List<HealthCheckResult>> deviceChecks) async {
   if (deviceChecks.isEmpty) {
     stderr.writeln('No healthy device is available');
-    throw StateError('No healthy device is available');
   }
   for (String deviceID in deviceChecks.keys) {
     List<HealthCheckResult> checks = deviceChecks[deviceID];
     for (HealthCheckResult healthCheckResult in checks) {
       if (!healthCheckResult.succeeded) {
         stderr.writeln('${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
-        throw StateError('$deviceID: ${healthCheckResult.name} check failed with: ${healthCheckResult.details}');
       } else {
         stdout.writeln('${healthCheckResult.name} check succeeded');
       }
