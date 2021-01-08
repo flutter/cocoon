@@ -95,6 +95,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       results['android-device-${device.deviceId}'] = checks;
     }
+    await healthcheck(results);
     return results;
   }
 
