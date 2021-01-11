@@ -819,7 +819,8 @@ class PullRequestHelper {
     this.author = 'some_rando',
     this.authorId = 565656,
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', authorId: 9876, state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+      PullRequestReviewHelper(
+          authorName: 'member', authorId: 9876, state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
