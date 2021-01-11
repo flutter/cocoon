@@ -48,7 +48,7 @@ void main() {
       log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeCirrusGraphQLClient();
-      config = FakeConfig(rollerAccountsValue: <String>{}, cirrusGraphQLClient: cirrusGraphQLClient);
+      config = FakeConfig(rollerAccountsValue: <int>{}, cirrusGraphQLClient: cirrusGraphQLClient);
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
@@ -150,9 +150,9 @@ void main() {
     });
 
     test('Merges unapproved PR from autoroller', () async {
-      config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
-      flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller', reviews: const <PullRequestReviewHelper>[]));
-      engineRepoPRs.add(PullRequestHelper(author: 'skia-roller', reviews: const <PullRequestReviewHelper>[]));
+      config.rollerAccountsValue = <int>{123456789, 987654321};
+      flutterRepoPRs.add(PullRequestHelper(authorId: 123456789, reviews: const <PullRequestReviewHelper>[]));
+      engineRepoPRs.add(PullRequestHelper(authorId: 987654321, reviews: const <PullRequestReviewHelper>[]));
 
       await tester.get(handler);
 
@@ -405,7 +405,7 @@ This pull request is not suitable for automatic merging in its current state.
     });
 
     test('Does not merge unapproved PR from a hacker', () async {
-      config.rollerAccountsValue = <String>{'engine-roller', 'skia-roller'};
+      config.rollerAccountsValue = <int>{123456789, 987654321};
       flutterRepoPRs.add(PullRequestHelper(author: 'engine-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
       engineRepoPRs.add(PullRequestHelper(author: 'skia-roller-hacker', reviews: const <PullRequestReviewHelper>[]));
 
@@ -768,11 +768,13 @@ enum MemberType {
 class PullRequestReviewHelper {
   const PullRequestReviewHelper({
     @required this.authorName,
+    @required this.authorId,
     @required this.state,
     @required this.memberType,
   });
 
   final String authorName;
+  final int authorId;
   final ReviewState state;
   final MemberType memberType;
 }
@@ -815,8 +817,9 @@ class CheckRunHelper {
 class PullRequestHelper {
   PullRequestHelper({
     this.author = 'some_rando',
+    this.authorId = 565656,
     this.reviews = const <PullRequestReviewHelper>[
-      PullRequestReviewHelper(authorName: 'member', state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
+      PullRequestReviewHelper(authorName: 'member', authorId: 9876, state: ReviewState.APPROVED, memberType: MemberType.MEMBER)
     ],
     this.lastCommitHash = oid,
     this.lastCommitStatuses = const <StatusHelper>[StatusHelper.flutterBuildSuccess],
@@ -830,6 +833,7 @@ class PullRequestHelper {
   String get id => _count.toString();
 
   final String author;
+  final int authorId;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
   final List<StatusHelper> lastCommitStatuses;
@@ -838,13 +842,13 @@ class PullRequestHelper {
 
   Map<String, dynamic> toEntry() {
     return <String, dynamic>{
-      'author': <String, dynamic>{'login': author},
+      'author': <String, dynamic>{'login': author, 'id': authorId},
       'id': id,
       'number': _count,
       'reviews': <String, dynamic>{
         'nodes': reviews.map((PullRequestReviewHelper review) {
           return <String, dynamic>{
-            'author': <String, dynamic>{'login': review.authorName},
+            'author': <String, dynamic>{'login': review.authorName, 'id': review.authorId},
             'authorAssociation': review.memberType.toString().replaceFirst('MemberType.', ''),
             'state': review.state.toString().replaceFirst('ReviewState.', ''),
           };
@@ -939,31 +943,37 @@ QueryResult createCirrusQueryResult(List<dynamic> statuses, String branch) {
 
 const PullRequestReviewHelper ownerApprove = PullRequestReviewHelper(
   authorName: 'owner',
+  authorId: 1234,
   memberType: MemberType.OWNER,
   state: ReviewState.APPROVED,
 );
 const PullRequestReviewHelper changePleaseChange = PullRequestReviewHelper(
   authorName: 'change_please',
+  authorId: 5678,
   memberType: MemberType.MEMBER,
   state: ReviewState.CHANGES_REQUESTED,
 );
 const PullRequestReviewHelper changePleaseApprove = PullRequestReviewHelper(
   authorName: 'change_please',
+  authorId: 9012,
   memberType: MemberType.MEMBER,
   state: ReviewState.APPROVED,
 );
 const PullRequestReviewHelper memberApprove = PullRequestReviewHelper(
   authorName: 'member',
+  authorId: 3456,
   memberType: MemberType.MEMBER,
   state: ReviewState.APPROVED,
 );
 const PullRequestReviewHelper nonMemberApprove = PullRequestReviewHelper(
   authorName: 'random_person',
+  authorId: 7890,
   memberType: MemberType.OTHER,
   state: ReviewState.APPROVED,
 );
 const PullRequestReviewHelper nonMemberChangeRequest = PullRequestReviewHelper(
   authorName: 'random_person',
+  authorId: 2345,
   memberType: MemberType.OTHER,
   state: ReviewState.CHANGES_REQUESTED,
 );
