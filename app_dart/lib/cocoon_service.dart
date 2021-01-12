@@ -12,6 +12,7 @@ export 'src/request_handlers/get_authentication_status.dart';
 export 'src/request_handlers/get_benchmarks.dart';
 export 'src/request_handlers/get_branches.dart';
 export 'src/request_handlers/get_build_status.dart';
+export 'src/request_handlers/get_failed_tasks.dart';
 export 'src/request_handlers/get_log.dart';
 export 'src/request_handlers/get_status.dart';
 export 'src/request_handlers/get_timeseries_history.dart';

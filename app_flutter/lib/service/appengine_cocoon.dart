@@ -97,6 +97,36 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<String>>> fetchFailingTasks({
+    String branch,
+  }) async {
+    final Map<String, String> queryParameters = <String, String>{
+      'branch': branch ?? _defaultBranch,
+    };
+    final String getFailingTasksUrl = apiEndpoint('/api/public/failing-tasks', queryParameters: queryParameters);
+
+    /// This endpoint returns JSON {FailingTasks: [<array of failing task names>]}
+    final http.Response response = await _client.get(getFailingTasksUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse<List<String>>.error('/api/public/failing-tasks returned ${response.statusCode}');
+    }
+
+    Map<String, Object> jsonResponse;
+    try {
+      jsonResponse = jsonDecode(response.body);
+    } catch (error) {
+      return const CocoonResponse<List<String>>.error('/api/public/failing-tasks had a malformed response');
+    }
+
+    if (!jsonResponse.containsKey('FailingTasks') || jsonResponse['FailingTasks'] is! List<String>) {
+      return const CocoonResponse<List<String>>.error('/api/public/failing-tasks had a malformed response');
+    }
+
+    return CocoonResponse<List<String>>.data(jsonResponse['FailingTasks']);
+  }
+
+  @override
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
     final String getStatusUrl = apiEndpoint('/api/public/get-status');
 

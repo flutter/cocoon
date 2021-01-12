@@ -30,31 +30,8 @@ class BuildStatusService {
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
 
-  /// Calculates and returns the "overall" status of the Flutter build.
-  ///
-  /// This calculation operates by looking for the most recent success or
-  /// failure for every (non-flaky) task in the manifest.
-  ///
-  /// Take the example build dashboard below:
-  /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
-  /// +---+---+---+---+
-  /// | A | B | C | D |
-  /// +---+---+---+---+
-  /// | ✔ | ☐ | ░ | s |
-  /// +---+---+---+---+
-  /// | ✔ | ░ | ✔ | ✖ |
-  /// +---+---+---+---+
-  /// | ✔ | ✖ | ✔ | ✔ |
-  /// +---+---+---+---+
-  /// This build will fail because only of Task B. Task D is not included in
-  /// the latest commit status, so it does not impact the build status.
-  /// Task B fails because its last known status was to be failing, even though
-  /// there is currently a newer version that is in progress.
-  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
-    final List<CommitStatus> statuses = await retrieveCommitStatus(
-      limit: numberOfCommitsToReferenceForTreeStatus,
-      branch: branch,
-    ).toList();
+  BuildStatus _calculateOverallStatus(List<CommitStatus> statuses, [ List<String> failedTasks ]) {
+    failedTasks?.clear();
     if (statuses.isEmpty) {
       return BuildStatus.failed;
     }
@@ -64,6 +41,7 @@ class BuildStatusService {
       return BuildStatus.failed;
     }
 
+    BuildStatus result = BuildStatus.succeeded;
     for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
@@ -81,14 +59,58 @@ class BuildStatusService {
               /// the build status to fail.
               tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
-              return BuildStatus.failed;
+              failedTasks?.add(task.name);
+              result = BuildStatus.failed;
             }
           }
         }
       }
     }
+    return result;
+  }
 
-    return BuildStatus.succeeded;
+  /// Calculates and returns the "overall" status of the Flutter build.
+  ///
+  /// This calculation operates by looking for the most recent success or
+  /// failure for every (non-flaky) task in the manifest.
+  ///
+  /// Take the example build dashboard below:
+  /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
+  /// +---+---+---+---+
+  /// | A | B | C | D |
+  /// +---+---+---+---+
+  /// | ✔ | ☐ | ░ | s |
+  /// +---+---+---+---+
+  /// | ✔ | ░ | ✔ | ✖ |
+  /// +---+---+---+---+
+  /// | ✔ | ✖ | ✔ | ✔ |
+  /// +---+---+---+---+
+  /// This build will fail because of Task B only. Task D is not included in
+  /// the latest commit status, so it does not impact the build status.
+  /// Task B fails because its last known status was to be failing, even though
+  /// there is currently a newer version that is in progress.
+  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
+    final List<CommitStatus> statuses = await retrieveCommitStatus(
+      limit: numberOfCommitsToReferenceForTreeStatus,
+      branch: branch,
+    ).toList();
+    return _calculateOverallStatus(statuses);
+  }
+
+  /// Calculates the list of tasks that are currently failing and causing the
+  /// build to be broken.
+  ///
+  /// This uses the same algorithm as calculateCumulativeStatus, but
+  Future<List<String>> getFailingTasks({String branch}) async {
+    final List<CommitStatus> statuses = await retrieveCommitStatus(
+      limit: numberOfCommitsToReferenceForTreeStatus,
+      branch: branch,
+    ).toList();
+    final List<String> failedTasks = <String>[];
+    if (_calculateOverallStatus(statuses, failedTasks) == BuildStatus.failed) {
+      return failedTasks;
+    }
+    return <String>[];
   }
 
   /// Creates a map of the tasks that need to be checked for the build status.

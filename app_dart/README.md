@@ -111,7 +111,7 @@ If you see Serving requests at 0.0.0.0:8080 the dev server is working.
 * Running a local development instance
 
 Once you've installed Docker and have the `docker` command-line tool in
-your path, then you you can use the following commands to build, run, stop,
+your path, then you can use the following commands to build, run, stop,
 and kill a local development instance.
 
 ```sh
@@ -154,7 +154,7 @@ the latest master commit. Open
 and click run in the push-master trigger ([example](https://screenshot.googleplex.com/4DDy4XdVQxMKqCd))
 
 * Using a cocoon checkout
-Let `PROJECT_ID` be the Google Cloud Proejct Id and `VERSION` be the version you're deploying to App Engine. Visit
+Let `PROJECT_ID` be the Google Cloud Project ID and `VERSION` be the version you're deploying to App Engine. Visit
 https://console.cloud.google.com/appengine/versions?project=flutter-dashboard
 for the list of current versions.
 

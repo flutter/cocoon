@@ -36,6 +36,13 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<String>>> fetchFailingTasks({
+    String branch,
+  }) async {
+    return const CocoonResponse<List<String>>.data(<String>['failed_task_1']);
+  }
+
+  @override
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
     return CocoonResponse<List<Agent>>.data(_createFakeAgentStatuses());
   }

@@ -67,4 +67,7 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   Future<void> updateCurrentBranch(String branch) => throw UnimplementedError();
+
+  @override
+  List<String> get failingTasks => <String>[];
 }

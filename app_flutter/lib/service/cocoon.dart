@@ -38,6 +38,11 @@ abstract class CocoonService {
     String branch,
   });
 
+  /// Get the current list of tasks which are failing.
+  Future<CocoonResponse<List<String>>> fetchFailingTasks({
+    String branch,
+  });
+
   /// Get the current Flutter infra agent statuses.
   Future<CocoonResponse<List<Agent>>> fetchAgentStatuses();
 

@@ -4,6 +4,8 @@
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/model/appengine/stage.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 
 class FakeBuildStatusService implements BuildStatusService {
   FakeBuildStatusService({
@@ -20,6 +22,21 @@ class FakeBuildStatusService implements BuildStatusService {
       throw AssertionError();
     }
     return cumulativeStatus;
+  }
+
+  @override
+  Future<List<String>> getFailingTasks({String branch}) async {
+    final List<String> failingTasks = <String>[];
+    for (CommitStatus status in commitStatuses) {
+      for (Stage stage in status.stages) {
+        for (Task task in stage.tasks) {
+          if (!task.isFlaky && task.status == 'statusFailed' || task.status == 'statusInfraFailure') {
+            failingTasks.add(task.name);
+          }
+        }
+      }
+    }
+    return failingTasks;
   }
 
   @override
