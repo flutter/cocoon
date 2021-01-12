@@ -191,12 +191,12 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       if (utcDate.add(const Duration(hours: 1)).isAfter(DateTime.now().toUtc())) {
         continue;
       }
-      final int authorId = pullRequest['author']['id'] as int;
+      final String author = pullRequest['author']['login'] as String;
       final String id = pullRequest['id'] as String;
       final int number = pullRequest['number'] as int;
 
       final Set<String> changeRequestAuthors = <String>{};
-      final bool hasApproval = config.rollerAccounts.contains(authorId) ||
+      final bool hasApproval = config.rollerAccounts.contains(author) ||
           _checkApproval(
             (pullRequest['reviews']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>(),
             changeRequestAuthors,
