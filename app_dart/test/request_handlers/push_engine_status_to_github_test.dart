@@ -118,6 +118,35 @@ void main() {
       expect(status.status, 'failure');
       expect(status.updateTimeMillis, isNotNull);
     });
+
+    test('update engine status in datastore for infra failure - success to failure', () async {
+      final PullRequest pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
+      config.db.values[status.key] = status;
+
+      final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
+        await LuciBuilder.getProdBuilders('engine', config),
+        key: (dynamic builder) => builder as LuciBuilder,
+        value: (dynamic builder) => <LuciTask>[
+          const LuciTask(
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusInfraFailure,
+              buildNumber: 1,
+              builderName: 'abc')
+        ],
+      );
+      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+        return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
+      });
+
+      expect(status.status, 'success');
+      await tester.get(handler);
+      expect(status.status, 'failure');
+      expect(status.updateTimeMillis, isNotNull);
+    });
     test('update engine status in datastore with - failure to success', () async {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];

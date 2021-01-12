@@ -110,6 +110,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       }
       switch (task.status) {
         case Task.statusFailed:
+        case Task.statusInfraFailure:
           log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           return GithubBuildStatusUpdate.statusFailure;
         case Task.statusSucceeded:
