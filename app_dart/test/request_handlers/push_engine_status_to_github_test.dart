@@ -131,7 +131,11 @@ void main() {
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
-              commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusInfraFailure, buildNumber: 1, builderName: 'abc')
+              commitSha: 'abc',
+              ref: 'refs/heads/master',
+              status: Task.statusInfraFailure,
+              buildNumber: 1,
+              builderName: 'abc')
         ],
       );
       when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
