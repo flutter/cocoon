@@ -59,8 +59,13 @@ class BuildStatusService {
               /// the build status to fail.
               tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
-              failedTasks?.add(task.name);
-              result = BuildStatus.failed;
+              if (failedTasks != null) {
+                // Don't fail fast if we are collecting failed tasks.
+                failedTasks.add(task.name);
+                result = BuildStatus.failed;
+              } else {
+                return BuildStatus.failed;
+              }
             }
           }
         }
