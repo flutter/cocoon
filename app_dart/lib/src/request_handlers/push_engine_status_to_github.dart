@@ -112,6 +112,9 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
         case Task.statusFailed:
           log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           return GithubBuildStatusUpdate.statusFailure;
+        case Task.statusInfraFailure:
+          log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
+          return GithubBuildStatusUpdate.statusFailure;
         case Task.statusSucceeded:
           log.debug('Using ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
           return GithubBuildStatusUpdate.statusSuccess;
