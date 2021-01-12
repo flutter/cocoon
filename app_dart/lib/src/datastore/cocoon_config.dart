@@ -238,15 +238,14 @@ class Config {
     return ServiceAccountCredentials.fromJson(json.decode(rawValue));
   }
 
-  /// The user IDs of autoroller accounts for the repositories.
+  /// The names of autoroller accounts for the repositories.
   ///
   /// These accounts should not need reviews before merging. See
   /// https://github.com/flutter/flutter/wiki/Autorollers
-  /// Find the ID number via https://api.github.com/users/<username>
-  Set<int> get rollerAccounts => const <int>{
-        37626415, // skia-flutter-autoroll
-        42042535, // engine-flutter-autoroll
-        49699333, // dependabot[bot]
+  Set<String> get rollerAccounts => const <String>{
+        'skia-flutter-autoroll',
+        'engine-flutter-autoroll',
+        'dependabot[bot]',
       };
 
   Future<String> generateJsonWebToken() async {

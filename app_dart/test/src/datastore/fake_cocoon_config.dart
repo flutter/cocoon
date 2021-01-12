@@ -79,7 +79,7 @@ class FakeConfig implements Config {
   Logging loggingServiceValue;
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
-  Set<int> rollerAccountsValue;
+  Set<String> rollerAccountsValue;
   int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
@@ -202,7 +202,7 @@ class FakeConfig implements Config {
   Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue;
 
   @override
-  Set<int> get rollerAccounts => rollerAccountsValue;
+  Set<String> get rollerAccounts => rollerAccountsValue;
 
   @override
   bool githubPresubmitSupportedRepo(String repositoryName) {
