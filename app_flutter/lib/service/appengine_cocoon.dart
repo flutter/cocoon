@@ -67,7 +67,7 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+  Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
@@ -79,51 +79,10 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<bool>.error('/api/public/build-status returned ${response.statusCode}');
+      return CocoonResponse<BuildStatusResponse>.error('/api/public/build-status returned ${response.statusCode}');
     }
 
-    Map<String, Object> jsonResponse;
-    try {
-      jsonResponse = jsonDecode(response.body);
-    } catch (error) {
-      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
-    }
-
-    if (!_isBuildStatusResponseValid(jsonResponse)) {
-      return const CocoonResponse<bool>.error('/api/public/build-status had a malformed response');
-    }
-
-    return CocoonResponse<bool>.data(jsonResponse['AnticipatedBuildStatus'] == 'Succeeded');
-  }
-
-  @override
-  Future<CocoonResponse<List<String>>> fetchFailingTasks({
-    String branch,
-  }) async {
-    final Map<String, String> queryParameters = <String, String>{
-      'branch': branch ?? _defaultBranch,
-    };
-    final String getFailingTasksUrl = apiEndpoint('/api/public/failing-tasks', queryParameters: queryParameters);
-
-    /// This endpoint returns JSON {FailingTasks: [<array of failing task names>]}
-    final http.Response response = await _client.get(getFailingTasksUrl);
-
-    if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>.error('/api/public/failing-tasks returned ${response.statusCode}');
-    }
-
-    Map<String, Object> jsonResponse;
-    try {
-      jsonResponse = jsonDecode(response.body);
-    } catch (error) {
-      return const CocoonResponse<List<String>>.error('/api/public/failing-tasks had a malformed response');
-    }
-
-    if (!jsonResponse.containsKey('FailingTasks') || jsonResponse['FailingTasks'] is! List<String>) {
-      return const CocoonResponse<List<String>>.error('/api/public/failing-tasks had a malformed response');
-    }
-
-    return CocoonResponse<List<String>>.data(jsonResponse['FailingTasks']);
+    return CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse.fromJson(response.body));
   }
 
   @override
@@ -298,27 +257,6 @@ class AppEngineCocoonService implements CocoonService {
     final String url = uri.toString();
 
     return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
-  }
-
-  /// Check if [Map<String,Object>] follows the format for build-status.
-  ///
-  /// Template of the response it should receive:
-  /// ```json
-  /// {
-  ///   "AnticipatedBuildStatus": "Succeeded"|"Failed"
-  /// }
-  /// ```
-  bool _isBuildStatusResponseValid(Map<String, Object> response) {
-    if (!response.containsKey('AnticipatedBuildStatus')) {
-      return false;
-    }
-
-    final String treeBuildStatus = response['AnticipatedBuildStatus'];
-    if (treeBuildStatus != 'Failed' && treeBuildStatus != 'Succeeded') {
-      return false;
-    }
-
-    return true;
   }
 
   List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {

@@ -205,7 +205,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     final BuildState _buildState = Provider.of<BuildState>(context);
     String failingTasksStr = '';
-    if (_buildState != null && !_buildState.isTreeBuilding) {
+    if (_buildState != null && _buildState.isTreeBuilding != null && !_buildState.isTreeBuilding) {
       failingTasksStr = ' (failing: ${_buildState.failingTasks.join(', ')})';
     }
 

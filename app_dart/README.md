@@ -47,6 +47,9 @@ To update the Protocol Buffer generated code:
 1. [Download](https://github.com/protocolbuffers/protobuf/releases) and install
    the protocol buffer compiler (`protoc`). Once installed, update your `PATH`
    to include the path to the `protoc` binary.
+   
+   On Linux, you may be able to use `sudo apt-get install protocol-compiler` to install.
+   On macOS, you may be able to use `brew install protobuf`
 
 2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
    package. Once installed, update your `PATH` to include the path to the
@@ -65,8 +68,10 @@ To update the Protocol Buffer generated code:
 4. Remove the unused generated files:
 
    ```sh
-   $ find -E . -regex '.*\.(pbenum|pbjson|pbserver)\.dart' -delete
+   $ find . -regex '.*\.\(pbjson\|pbserver\)\.dart' -delete
    ```
+   (you can remove the `*.pbenum.dart` files too, except for protobuffers that actually define enums,
+   like `build_status_response.proto`) 
 
 ### Generating cloud datastore indexes
 

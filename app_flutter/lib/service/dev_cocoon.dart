@@ -29,17 +29,17 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+  Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
   }) async {
-    return CocoonResponse<bool>.data(_random.nextBool());
-  }
+    final bool failed = _random.nextBool();
+    final BuildStatusResponse response = BuildStatusResponse()
+      ..buildStatus = failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+    if (failed) {
+      response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
+    }
 
-  @override
-  Future<CocoonResponse<List<String>>> fetchFailingTasks({
-    String branch,
-  }) async {
-    return const CocoonResponse<List<String>>.data(<String>['failed_task_1']);
+    return CocoonResponse<BuildStatusResponse>.data(response);
   }
 
   @override

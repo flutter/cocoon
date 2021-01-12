@@ -10,7 +10,7 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent, Commit, CommitStatus, Key, RootKey, Stage, Task;
+import 'package:cocoon_service/protos.dart';
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';
@@ -190,9 +190,9 @@ void main() {
     });
 
     test('data should be true when given Succeeded', () async {
-      final CocoonResponse<bool> treeBuildStatus = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus.data, true);
+      expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.success);
     });
 
     test('data should be false when given Failed', () async {
@@ -200,9 +200,9 @@ void main() {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
 
-      final CocoonResponse<bool> treeBuildStatus = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
-      expect(treeBuildStatus.data, false);
+      expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.failure);
     });
 
     /// This requires a separate test run on the web platform.
@@ -238,14 +238,14 @@ void main() {
     test('should have error if given non-200 response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<bool> response = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<bool> response = await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
   });

@@ -107,12 +107,6 @@ Future<void> main() async {
         delegate: GetBuildStatus(config),
         ttl: const Duration(seconds: 15),
       ),
-      '/api/public/failed-tasks': CacheRequestHandler<Body>(
-        cache: cache,
-        config: config,
-        delegate: GetFailedTasks(config),
-        ttl: const Duration(seconds: 15),
-      ),
       '/api/public/get-benchmarks': CacheRequestHandler<Body>(
         cache: cache,
         config: config,

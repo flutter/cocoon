@@ -30,50 +30,6 @@ class BuildStatusService {
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
 
-  BuildStatus _calculateOverallStatus(List<CommitStatus> statuses, [ List<String> failedTasks ]) {
-    failedTasks?.clear();
-    if (statuses.isEmpty) {
-      return BuildStatus.failed;
-    }
-
-    final Map<String, bool> tasksInProgress = _findTasksRelevantToLatestStatus(statuses);
-    if (tasksInProgress.isEmpty) {
-      return BuildStatus.failed;
-    }
-
-    BuildStatus result = BuildStatus.succeeded;
-    for (CommitStatus status in statuses) {
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
-          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
-          /// for a previous run of the task from the previous commit.
-          final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
-
-          /// Tasks that are not relevant to the latest status will have a
-          /// null value in the map.
-          final bool taskInProgress = tasksInProgress[task.name] ?? true;
-
-          if (isRelevantToLatestStatus && taskInProgress) {
-            if (task.isFlaky || _isSuccessful(task)) {
-              /// This task no longer needs to be checked to see if it causing
-              /// the build status to fail.
-              tasksInProgress[task.name] = false;
-            } else if (_isFailed(task) || _isRerunning(task)) {
-              if (failedTasks != null) {
-                // Don't fail fast if we are collecting failed tasks.
-                failedTasks.add(task.name);
-                result = BuildStatus.failed;
-              } else {
-                return BuildStatus.failed;
-              }
-            }
-          }
-        }
-      }
-    }
-    return result;
-  }
-
   /// Calculates and returns the "overall" status of the Flutter build.
   ///
   /// This calculation operates by looking for the most recent success or
@@ -99,23 +55,40 @@ class BuildStatusService {
       limit: numberOfCommitsToReferenceForTreeStatus,
       branch: branch,
     ).toList();
-    return _calculateOverallStatus(statuses);
-  }
-
-  /// Calculates the list of tasks that are currently failing and causing the
-  /// build to be broken.
-  ///
-  /// This uses the same algorithm as calculateCumulativeStatus, but
-  Future<List<String>> getFailingTasks({String branch}) async {
-    final List<CommitStatus> statuses = await retrieveCommitStatus(
-      limit: numberOfCommitsToReferenceForTreeStatus,
-      branch: branch,
-    ).toList();
-    final List<String> failedTasks = <String>[];
-    if (_calculateOverallStatus(statuses, failedTasks) == BuildStatus.failed) {
-      return failedTasks;
+    if (statuses.isEmpty) {
+      return BuildStatus.failure();
     }
-    return <String>[];
+
+    final Map<String, bool> tasksInProgress = _findTasksRelevantToLatestStatus(statuses);
+    if (tasksInProgress.isEmpty) {
+      return BuildStatus.failure();
+    }
+
+    final List<String> failedTasks = <String>[];
+    for (CommitStatus status in statuses) {
+      for (Stage stage in status.stages) {
+        for (Task task in stage.tasks) {
+          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
+          /// for a previous run of the task from the previous commit.
+          final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
+
+          /// Tasks that are not relevant to the latest status will have a
+          /// null value in the map.
+          final bool taskInProgress = tasksInProgress[task.name] ?? true;
+
+          if (isRelevantToLatestStatus && taskInProgress) {
+            if (task.isFlaky || _isSuccessful(task)) {
+              /// This task no longer needs to be checked to see if it causing
+              /// the build status to fail.
+              tasksInProgress[task.name] = false;
+            } else if (_isFailed(task) || _isRerunning(task)) {
+              failedTasks.add(task.name);
+            }
+          }
+        }
+      }
+    }
+    return failedTasks.isNotEmpty ? BuildStatus.failure(failedTasks) : BuildStatus.success();
   }
 
   /// Creates a map of the tasks that need to be checked for the build status.
@@ -178,12 +151,18 @@ class CommitStatus {
 
 @immutable
 class BuildStatus {
-  const BuildStatus._(this.value);
+  const BuildStatus._(this.value, [this.failedTasks = const <String>[]])
+      : assert(value == GithubBuildStatusUpdate.statusSuccess ||
+               value == GithubBuildStatusUpdate.statusFailure);
+  factory BuildStatus.success() => const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
+  factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) => BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
 
   final String value;
+  final List<String> failedTasks;
 
-  static const BuildStatus succeeded = BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
-  static const BuildStatus failed = BuildStatus._(GithubBuildStatusUpdate.statusFailure);
+  bool get succeeded {
+    return value == GithubBuildStatusUpdate.statusSuccess;
+  }
 
   String get githubStatus => value;
 

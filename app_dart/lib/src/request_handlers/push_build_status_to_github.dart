@@ -73,7 +73,7 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           final CreateStatus request = CreateStatus(buildStatus.githubStatus);
           request.targetUrl = 'https://flutter-dashboard.appspot.com/#/build';
           request.context = config.flutterBuild;
-          if (buildStatus != BuildStatus.succeeded) {
+          if (buildStatus.succeeded) {
             request.description = config.flutterBuildDescription;
           }
 

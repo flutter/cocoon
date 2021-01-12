@@ -39,7 +39,7 @@ void main() {
     when(buildState.cocoonService.fetchCommitStatuses(branch: anyNamed('branch')))
         .thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
     when(buildState.cocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-        .thenAnswer((_) => Completer<CocoonResponse<bool>>().future);
+        .thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
 
     await tester.pumpWidget(
       MaterialApp(

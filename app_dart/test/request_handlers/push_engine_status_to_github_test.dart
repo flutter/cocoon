@@ -98,7 +98,7 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
-      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
@@ -151,7 +151,7 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
-      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
 
       config.db.values[status.key] = status;
 
@@ -181,7 +181,7 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
-      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
 
@@ -223,7 +223,7 @@ void main() {
       final PullRequest pr = newPullRequest(123, 'abc', 'master');
       prsFromGitHub = <PullRequest>[pr];
 
-      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
+      final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
 
       config.db.values[status.key] = status;
 

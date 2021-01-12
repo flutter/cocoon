@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, Task;
+import 'package:cocoon_service/protos.dart' show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
@@ -41,7 +41,7 @@ class BuildState extends ChangeNotifier {
 
   /// Whether or not flutter/flutter currently passes tests.
   bool get isTreeBuilding => _isTreeBuilding;
-  bool _isTreeBuilding = true;
+  bool _isTreeBuilding;
 
   List<String> get failingTasks => _failingTasks;
   List<String> _failingTasks = <String>[];
@@ -139,24 +139,15 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<bool> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
         if (!_active) {
           return null;
         }
         if (response.error != null) {
           _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
         } else {
-          _isTreeBuilding = response.data;
-          if (_isTreeBuilding) {
-            _failingTasks = <String>[];
-          } else {
-            final CocoonResponse<List<String>> failingTasksResponse = await cocoonService.fetchFailingTasks(branch: _currentBranch);
-            if (response.error != null) {
-              _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
-            } else {
-              _failingTasks = failingTasksResponse.data;
-            }
-          }
+          _isTreeBuilding = response.data.buildStatus == EnumBuildStatus.success;
+          _failingTasks = response.data.failingTasks;
           notifyListeners();
         }
       }(),

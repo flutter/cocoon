@@ -105,12 +105,13 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
     if (path.extension(entity.path) == '.tmpl') continue;
     if (entity is File) {
       if (_isGeneratedPluginRegistrant(entity)) continue;
+      if (path.basename(entity.path) == 'AppDelegate.h') continue;
       if (path.basename(entity.path) == 'flutter_export_environment.sh') continue;
       if (path.basename(entity.path) == 'gradlew.bat') continue;
-      if (path.basename(entity.path) == 'AppDelegate.h') continue;
       if (path.basename(entity.path) == 'Runner-Bridging-Header.h') continue;
       if (path.basename(entity.path).endsWith('g.dart')) continue;
       if (path.basename(entity.path).endsWith('pb.dart')) continue;
+      if (path.basename(entity.path).endsWith('pbenum.dart')) continue;
       if (extension == null || path.extension(entity.path) == '.$extension') {
         matches += 1;
         yield entity;
@@ -131,12 +132,10 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
 }
 
 bool _isGeneratedPluginRegistrant(File file) {
-  final String filename = path.basename(file.path);
-  return !file.path.contains('.pub-cache') &&
-      (filename == 'GeneratedPluginRegistrant.java' ||
-          filename == 'GeneratedPluginRegistrant.h' ||
-          filename == 'GeneratedPluginRegistrant.m' ||
-          filename == 'generated_plugin_registrant.dart');
+  final String filename = path.basenameWithoutExtension(file.path);
+  return !path.split(file.path).contains('.pub-cache') &&
+         (filename == 'generated_plugin_registrant' ||
+          filename == 'GeneratedPluginRegistrant');
 }
 
 void exitWithError(List<String> messages) {
