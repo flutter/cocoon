@@ -86,7 +86,7 @@ void main() {
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['failed_test_1']));
+        expect(status, BuildStatus.failure(const <String>[]));
       });
 
       test('returns success if top commit is all green', () async {
@@ -110,7 +110,7 @@ void main() {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['failed_test_1']));
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('ignores failures on flaky commits', () async {
@@ -137,7 +137,7 @@ void main() {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['failed_test_1']));
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns failure when green but a task is rerunning', () async {
@@ -147,7 +147,7 @@ void main() {
           return row++ == 0 ? middleTaskRerunning : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['failed_test_1']));
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns failure when a task has an infra failure', () async {
@@ -157,7 +157,7 @@ void main() {
           return row++ == 0 ? middleTaskInfraFailure : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failure(const <String>['failed_test_1']));
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns success when all green with a successful rerun', () async {

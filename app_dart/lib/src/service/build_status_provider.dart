@@ -152,10 +152,10 @@ class CommitStatus {
 @immutable
 class BuildStatus {
   const BuildStatus._(this.value, [this.failedTasks = const <String>[]])
-      : assert(value == GithubBuildStatusUpdate.statusSuccess ||
-               value == GithubBuildStatusUpdate.statusFailure);
+      : assert(value == GithubBuildStatusUpdate.statusSuccess || value == GithubBuildStatusUpdate.statusFailure);
   factory BuildStatus.success() => const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
-  factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) => BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
+  factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) =>
+      BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
 
   final String value;
   final List<String> failedTasks;
@@ -167,5 +167,35 @@ class BuildStatus {
   String get githubStatus => value;
 
   @override
-  String toString() => value;
+  int get hashCode {
+    int hash = 17;
+    hash = hash * 31 + value.hashCode;
+    hash = hash * 31 + failedTasks.hashCode;
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is BuildStatus) {
+      if (value != other.value) {
+        return false;
+      }
+      if (other.failedTasks.length != failedTasks.length) {
+        return false;
+      }
+      for (int i = 0; i < failedTasks.length; ++i) {
+        if (failedTasks[i] != other.failedTasks[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => '$value $failedTasks';
 }

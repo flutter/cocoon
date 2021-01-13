@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
+import 'package:cocoon_service/protos.dart'
+    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
@@ -64,7 +65,8 @@ class BuildState extends ChangeNotifier {
   static const String errorMessageFetchingTreeStatus = 'An error occurred fetching tree status from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageFetchingFailingTasks = 'An error occurred fetching the list of failing tasks from Cocoon';
+  static const String errorMessageFetchingFailingTasks =
+      'An error occurred fetching the list of failing tasks from Cocoon';
 
   @visibleForTesting
   static const String errorMessageFetchingBranches =
@@ -139,7 +141,8 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<BuildStatusResponse> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<BuildStatusResponse> response =
+            await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
         if (!_active) {
           return null;
         }

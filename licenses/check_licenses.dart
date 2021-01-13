@@ -134,8 +134,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
 bool _isGeneratedPluginRegistrant(File file) {
   final String filename = path.basenameWithoutExtension(file.path);
   return !path.split(file.path).contains('.pub-cache') &&
-         (filename == 'generated_plugin_registrant' ||
-          filename == 'GeneratedPluginRegistrant');
+      (filename == 'generated_plugin_registrant' || filename == 'GeneratedPluginRegistrant');
 }
 
 void exitWithError(List<String> messages) {

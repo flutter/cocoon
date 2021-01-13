@@ -11,8 +11,7 @@ part of 'manifest.dart';
 Manifest _$ManifestFromJson(Map json) {
   return Manifest(
     tasks: (json['tasks'] as Map)?.map(
-      (k, e) => MapEntry(
-          k as String, e == null ? null : ManifestTask.fromJson(e as Map)),
+      (k, e) => MapEntry(k as String, e == null ? null : ManifestTask.fromJson(e as Map)),
     ),
   );
 }
@@ -22,15 +21,11 @@ Map<String, dynamic> _$ManifestToJson(Manifest instance) => <String, dynamic>{
     };
 
 ManifestTask _$ManifestTaskFromJson(Map json) {
-  $checkKeys(json,
-      requiredKeys: const ['stage'], disallowNullValues: const ['stage']);
+  $checkKeys(json, requiredKeys: const ['stage'], disallowNullValues: const ['stage']);
   return ManifestTask(
     description: json['description'] as String,
     stage: json['stage'] as String,
-    requiredAgentCapabilities: (json['required_agent_capabilities'] as List)
-            ?.map((e) => e as String)
-            ?.toList() ??
-        [],
+    requiredAgentCapabilities: (json['required_agent_capabilities'] as List)?.map((e) => e as String)?.toList() ?? [],
     isFlaky: json['flaky'] as bool ?? false,
     timeoutInMinutes: json['timeout_in_minutes'] as int ?? 0,
   );
