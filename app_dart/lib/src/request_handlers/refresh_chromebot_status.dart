@@ -95,11 +95,8 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         final Task update = datastoreTask.task;
         update.status = latestLuciTask.status;
 
-        if (_shouldRerunTask(latestLuciTask, update.attempts)) {
-          await luciBuildService.rescheduleProdBuild(
-            commitSha: commitSha,
-            builderName: latestLuciTask.builderName,
-          );
+        if (await luciBuildService.checkRerunBuilder(
+            commitSha: commitSha, luciTask: latestLuciTask, taskAttempts: update.attempts)) {
           update.status = Task.statusNew;
           update.attempts += 1;
         }
@@ -114,15 +111,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         }
       }
     }
-  }
-
-  /// Auto-rerun Mac builders with `infra failure`.
-  ///
-  /// This is a workaround for -9 retcode issue: https://github.com/flutter/flutter/issues/68322.
-  bool _shouldRerunTask(LuciTask luciTask, int attempts) {
-    return luciTask.builderName.contains('Mac') &&
-        luciTask.status == Task.statusInfraFailure &&
-        attempts < config.maxTaskRetries;
   }
 
   Future<void> _insertBigquery(Task task) async {

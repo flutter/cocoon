@@ -14,6 +14,7 @@ import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
+import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../service/luci.dart';
@@ -419,5 +420,27 @@ class LuciBuildService {
         'git_ref': commitSha,
       },
     ));
+  }
+
+  /// Check to auto-rerun Mac builders with `infra failure`.
+  ///
+  /// This is a workaround for -9 retcode issue: https://github.com/flutter/flutter/issues/68322.
+  Future<bool> checkRerunBuilder({
+    @required String commitSha,
+    @required LuciTask luciTask,
+    @required int taskAttempts,
+    String repo = 'flutter',
+  }) async {
+    if (luciTask.builderName.contains('Mac') &&
+        luciTask.status == Task.statusInfraFailure &&
+        taskAttempts < config.maxLuciTaskRetries) {
+      await rescheduleProdBuild(
+        commitSha: commitSha,
+        builderName: luciTask.builderName,
+        repo: repo,
+      );
+      return true;
+    }
+    return false;
   }
 }
