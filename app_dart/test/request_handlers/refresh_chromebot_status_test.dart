@@ -28,6 +28,7 @@ void main() {
     RefreshChromebotStatus handler;
     FakeHttpClient branchHttpClient;
     FakeTabledataResourceApi tabledataResourceApi;
+    MockLuciBuildService mockLuciBuildService;
 
     setUp(() {
       branchHttpClient = FakeHttpClient();
@@ -35,9 +36,11 @@ void main() {
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
+      mockLuciBuildService = MockLuciBuildService();
       handler = RefreshChromebotStatus(
         config,
         FakeAuthenticationProvider(),
+        mockLuciBuildService,
         luciServiceProvider: (_) => mockLuciService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
@@ -232,6 +235,51 @@ void main() {
       expect(task.status, Task.statusNew);
       await tester.get(handler);
       expect(task.status, Task.statusSucceeded);
+    });
+
+    test('rerun Mac builder when hiting recipe infra failure', () async {
+      config.maxTaskRetriesValue = 2;
+      final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      final Task task = Task(
+          key: commit.key.append(Task, id: 123),
+          commitKey: commit.key,
+          status: Task.statusInProgress,
+          buildNumberList: '1',
+          attempts: 0,
+          builderName: 'Mac abc');
+      config.db.values[commit.key] = commit;
+      config.db.values[task.key] = task;
+
+      final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+          Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
+              <LuciBuilder>[const LuciBuilder(name: 'Mac abc', repo: 'flutter', taskName: 'def', flaky: false)],
+              key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
+              value: (dynamic builder) => <String, List<LuciTask>>{
+                    'abc': <LuciTask>[
+                      const LuciTask(
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusInfraFailure,
+                          buildNumber: 1,
+                          builderName: 'Mac abc')
+                    ],
+                  });
+      when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+          .thenAnswer((Invocation invocation) {
+        return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
+      });
+
+      expect(task.status, Task.statusInProgress);
+      await tester.get(handler);
+      expect(
+        verify(mockLuciBuildService.rescheduleProdBuild(
+          commitSha: captureAnyNamed('commitSha'),
+          builderName: captureAnyNamed('builderName'),
+        )).captured,
+        <dynamic>['abc', 'Mac abc'],
+      );
+      expect(task.status, Task.statusNew);
+      expect(task.attempts, 1);
     });
 
     test('update task status with latest status when multilple reruns exist', () async {
