@@ -17,12 +17,14 @@ import '../request_handling/body.dart';
 import '../service/buildbucket.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
+import '../service/luci_build_service.dart';
 
 @immutable
 class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   const RefreshChromebotStatus(
     Config config,
-    AuthenticationProvider authenticationProvider, {
+    AuthenticationProvider authenticationProvider,
+    this.luciBuildService, {
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
@@ -33,6 +35,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         assert(gitHubBackoffCalculator != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
+  final LuciBuildService luciBuildService;
   final LuciServiceProvider luciServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider branchHttpClientProvider;
@@ -80,22 +83,31 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     /// [builderNumberList] when luci rerun happens, and update [devicelabTask]
     /// status when the status of latest luci run changes.
     for (FullTask datastoreTask in datastoreTasks) {
-      if (luciTasksMap.containsKey(datastoreTask.commit.sha)) {
-        final List<LuciTask> luciTasks = luciTasksMap[datastoreTask.commit.sha];
-        final String buildNumberList =
-            luciTasks.reversed.map((LuciTask luciTask) => luciTask.buildNumber.toString()).toList().join(',');
-        if (buildNumberList != datastoreTask.task.buildNumberList ||
-            luciTasks.first.status != datastoreTask.task.status) {
-          final Task update = datastoreTask.task;
-          update.status = luciTasks.first.status;
-          update.buildNumberList = buildNumberList;
-          update.builderName = builder.name;
-          update.luciBucket = 'luci.flutter.prod';
-          await datastore.insert(<Task>[update]);
-          // Save luci task record to BigQuery only when task finishes.
-          if (update.status == Task.statusFailed || update.status == Task.statusSucceeded) {
-            await _insertBigquery(update);
-          }
+      final String commitSha = datastoreTask.commit.sha;
+      if (!luciTasksMap.containsKey(commitSha)) {
+        continue;
+      }
+      final List<LuciTask> luciTasks = luciTasksMap[commitSha];
+      final String buildNumberList =
+          luciTasks.reversed.map((LuciTask luciTask) => luciTask.buildNumber.toString()).toList().join(',');
+      final LuciTask latestLuciTask = luciTasks.first;
+      if (buildNumberList != datastoreTask.task.buildNumberList || latestLuciTask.status != datastoreTask.task.status) {
+        final Task update = datastoreTask.task;
+        update.status = latestLuciTask.status;
+
+        if (await luciBuildService.checkRerunBuilder(
+            commitSha: commitSha, luciTask: latestLuciTask, taskAttempts: update.attempts)) {
+          update.status = Task.statusNew;
+          update.attempts += 1;
+        }
+
+        update.buildNumberList = buildNumberList;
+        update.builderName = builder.name;
+        update.luciBucket = 'luci.flutter.prod';
+        await datastore.insert(<Task>[update]);
+        // Save luci task record to BigQuery only when task finishes.
+        if (update.status == Task.statusFailed || update.status == Task.statusSucceeded) {
+          await _insertBigquery(update);
         }
       }
     }

@@ -19,6 +19,10 @@ import '../model/luci/push_message.dart' as push_message;
 import '../service/luci.dart';
 import 'buildbucket.dart';
 
+/// List of Mac builders that have shards, and hit -9 retcode issue:
+/// https://github.com/flutter/flutter/issues/68322
+const List<String> kMacBuildersWithShards = <String>['Mac build_tests', 'Mac framework_tests', 'Mac tool_tests'];
+
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
 /// get the list of available builders.
@@ -419,5 +423,34 @@ class LuciBuildService {
         'git_ref': commitSha,
       },
     ));
+  }
+
+  /// Check to auto-rerun Mac builders with `infra failure`.
+  ///
+  /// This is a workaround for -9 retcode issue: https://github.com/flutter/flutter/issues/68322.
+  Future<bool> checkRerunBuilder({
+    @required String commitSha,
+    @required LuciTask luciTask,
+    @required int taskAttempts,
+    String repo = 'flutter',
+  }) async {
+    if (_shouldRerunBuilder(luciTask) && taskAttempts < config.maxLuciTaskRetries) {
+      await rescheduleProdBuild(
+        commitSha: commitSha,
+        builderName: luciTask.builderName,
+        repo: repo,
+      );
+      return true;
+    }
+    return false;
+  }
+
+  bool _shouldRerunBuilder(LuciTask luciTask) {
+    if (luciTask.summaryMarkdown == null || !luciTask.builderName.contains('Mac')) {
+      return false;
+    }
+    return luciTask.summaryMarkdown.contains('retcode: -9') ||
+        (kMacBuildersWithShards.contains(luciTask.builderName) &&
+            luciTask.summaryMarkdown == 'Step(\'display builds.build(s) failed\') (retcode: 1)');
   }
 }

@@ -567,7 +567,7 @@ class Input extends JsonBody {
   static Input fromJson(Map<String, dynamic> json) => _$InputFromJson(json);
 
   /// The build properties of a build.
-  final Map<String, String> properties;
+  final Map<String, dynamic> properties;
 
   /// The [GitilesCommit] information for a build.
   final GitilesCommit gitilesCommit;

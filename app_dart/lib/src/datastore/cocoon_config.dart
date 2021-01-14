@@ -203,6 +203,9 @@ class Config {
 
   int get maxTaskRetries => 2;
 
+  /// Max retries for Luci builder with infra failure.
+  int get maxLuciTaskRetries => 1;
+
   /// The number of times to retry a LUCI job on infra failures.
   int get luciTryInfraFailureRetries => 2;
 

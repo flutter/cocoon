@@ -78,7 +78,7 @@ Future<void> main() async {
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider),
-      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider),
+      '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
       '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(

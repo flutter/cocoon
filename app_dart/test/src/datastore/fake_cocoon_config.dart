@@ -25,6 +25,7 @@ class FakeConfig implements Config {
     this.githubClient,
     this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
+    this.maxLuciTaskRetriesValue,
     this.commitNumberValue,
     this.keyHelperValue,
     this.oauthClientIdValue,
@@ -65,6 +66,7 @@ class FakeConfig implements Config {
   FakeDatastoreDB dbValue;
   ServiceAccountInfo deviceLabServiceAccountValue;
   int maxTaskRetriesValue;
+  int maxLuciTaskRetriesValue;
   int commitNumberValue;
   FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
@@ -122,6 +124,9 @@ class FakeConfig implements Config {
 
   @override
   int get maxTaskRetries => maxTaskRetriesValue;
+
+  @override
+  int get maxLuciTaskRetries => maxLuciTaskRetriesValue;
 
   @override
   int get maxRecords => maxRecordsValue;
