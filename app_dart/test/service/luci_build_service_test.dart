@@ -347,14 +347,15 @@ void main() {
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
     });
 
-    test('Rerun a Mac builder with infra failure', () async {
+    test('Rerun a Mac builder with infra failure: -9 in parent build', () async {
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
           commitSha: 'abc',
           ref: 'refs/heads/master',
           status: Task.statusInfraFailure,
           buildNumber: 1,
-          builderName: 'Mac abc');
+          builderName: 'Mac abc',
+          summaryMarkdown: 'Step(\'checkout source code.Checkout flutter/flutter.git fetch\') (retcode: -9)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
@@ -364,14 +365,51 @@ void main() {
       expect(rerunFlag, true);
     });
 
-    test('Do not rerun a Mac builder with non-infra failure', () async {
+    test('Rerun a Mac builder with infra failure: -9 in shards', () async {
+      config.maxLuciTaskRetriesValue = 1;
+      const LuciTask luciTask = LuciTask(
+          commitSha: 'abc',
+          ref: 'refs/heads/master',
+          status: Task.statusInfraFailure,
+          buildNumber: 1,
+          builderName: 'Mac tool_tests',
+          summaryMarkdown: 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+      final bool rerunFlag = await service.checkRerunBuilder(
+        commitSha: 'abc',
+        luciTask: luciTask,
+        taskAttempts: 0,
+        repo: 'flutter',
+      );
+      expect(rerunFlag, true);
+    });
+
+    test('Do not rerun a Mac builder with infra failure: -9 in shards but not supported builder', () async {
+      config.maxLuciTaskRetriesValue = 1;
+      const LuciTask luciTask = LuciTask(
+          commitSha: 'abc',
+          ref: 'refs/heads/master',
+          status: Task.statusInfraFailure,
+          buildNumber: 1,
+          builderName: 'Mac abc',
+          summaryMarkdown: 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+      final bool rerunFlag = await service.checkRerunBuilder(
+        commitSha: 'abc',
+        luciTask: luciTask,
+        taskAttempts: 0,
+        repo: 'flutter',
+      );
+      expect(rerunFlag, false);
+    });
+
+    test('Do not rerun a Mac builder with non -9 retcode', () async {
       config.maxLuciTaskRetriesValue = 1;
       const LuciTask luciTask = LuciTask(
           commitSha: 'abc',
           ref: 'refs/heads/master',
           status: Task.statusFailed,
           buildNumber: 1,
-          builderName: 'Mac abc');
+          builderName: 'Mac abc',
+          summaryMarkdown: 'test failure');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
@@ -388,7 +426,8 @@ void main() {
           ref: 'refs/heads/master',
           status: Task.statusInfraFailure,
           buildNumber: 1,
-          builderName: 'Linux abc');
+          builderName: 'Linux abc',
+          summaryMarkdown: 'Step(\'checkout source code.Checkout flutter/flutter.git fetch\') (retcode: -9)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
@@ -405,7 +444,8 @@ void main() {
           ref: 'refs/heads/master',
           status: Task.statusInfraFailure,
           buildNumber: 1,
-          builderName: 'Mac abc');
+          builderName: 'Mac abc',
+          summaryMarkdown: 'Step(\'checkout source code.Checkout flutter/flutter.git fetch\') (retcode: -9)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,

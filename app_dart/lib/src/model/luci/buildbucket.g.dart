@@ -404,9 +404,7 @@ Map<String, dynamic> _$NotificationConfigToJson(NotificationConfig instance) {
 
 Input _$InputFromJson(Map<String, dynamic> json) {
   return Input(
-    properties: (json['properties'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(k, e as String),
-    ),
+    properties: json['properties'] as Map<String, dynamic>,
     gitilesCommit:
         json['gitilesCommit'] == null ? null : GitilesCommit.fromJson(json['gitilesCommit'] as Map<String, dynamic>),
     experimental: json['experimental'] as bool,

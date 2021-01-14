@@ -85,7 +85,8 @@ class LuciService {
           ref: ref,
           status: luciStatusToTaskStatus[build.status],
           buildNumber: build.number,
-          builderName: build.builderId.builder));
+          builderName: build.builderId.builder,
+          summaryMarkdown: build.summaryMarkdown,));
     }
     return results;
   }
@@ -147,6 +148,8 @@ class LuciService {
               builder: builder.name,
             ),
           ),
+          fields:
+              'builds.*.id,builds.*.input,builds.*.builder,builds.*.number,builds.*.status,builds.*.summaryMarkdown',
         ),
       );
     }).toList();
@@ -236,7 +239,8 @@ class LuciTask {
       @required this.ref,
       @required this.status,
       @required this.buildNumber,
-      @required this.builderName})
+      @required this.builderName,
+      this.summaryMarkdown})
       : assert(commitSha != null),
         assert(ref != null),
         assert(status != null),
@@ -257,4 +261,7 @@ class LuciTask {
 
   /// The builder name of this task.
   final String builderName;
+
+  /// The builder name of this task.
+  final String summaryMarkdown;
 }
