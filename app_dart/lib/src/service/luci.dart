@@ -81,12 +81,13 @@ class LuciService {
       results[branchLuciBuilder] ??= <String, List<LuciTask>>{};
       results[branchLuciBuilder][commit] ??= <LuciTask>[];
       results[branchLuciBuilder][commit].add(LuciTask(
-          commitSha: commit,
-          ref: ref,
-          status: luciStatusToTaskStatus[build.status],
-          buildNumber: build.number,
-          builderName: build.builderId.builder,
-          summaryMarkdown: build.summaryMarkdown,));
+        commitSha: commit,
+        ref: ref,
+        status: luciStatusToTaskStatus[build.status],
+        buildNumber: build.number,
+        builderName: build.builderId.builder,
+        summaryMarkdown: build.summaryMarkdown,
+      ));
     }
     return results;
   }
