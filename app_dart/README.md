@@ -47,6 +47,9 @@ To update the Protocol Buffer generated code:
 1. [Download](https://github.com/protocolbuffers/protobuf/releases) and install
    the protocol buffer compiler (`protoc`). Once installed, update your `PATH`
    to include the path to the `protoc` binary.
+   
+   On Linux, you may be able to use `sudo apt-get install protocol-compiler` to install.
+   On macOS, you may be able to use `brew install protobuf`
 
 2. Install the [`protoc_plugin`](https://pub.dev/packages/protoc_plugin) Dart
    package. Once installed, update your `PATH` to include the path to the
@@ -65,8 +68,10 @@ To update the Protocol Buffer generated code:
 4. Remove the unused generated files:
 
    ```sh
-   $ find -E . -regex '.*\.(pbenum|pbjson|pbserver)\.dart' -delete
+   $ find . -regex '.*\.\(pbjson\|pbserver\)\.dart' -delete
    ```
+   (you can remove the `*.pbenum.dart` files too, except for protobuffers that actually define enums,
+   like `build_status_response.proto`) 
 
 ### Generating cloud datastore indexes
 
@@ -111,7 +116,7 @@ If you see Serving requests at 0.0.0.0:8080 the dev server is working.
 * Running a local development instance
 
 Once you've installed Docker and have the `docker` command-line tool in
-your path, then you you can use the following commands to build, run, stop,
+your path, then you can use the following commands to build, run, stop,
 and kill a local development instance.
 
 ```sh
@@ -154,7 +159,7 @@ the latest master commit. Open
 and click run in the push-master trigger ([example](https://screenshot.googleplex.com/4DDy4XdVQxMKqCd))
 
 * Using a cocoon checkout
-Let `PROJECT_ID` be the Google Cloud Proejct Id and `VERSION` be the version you're deploying to App Engine. Visit
+Let `PROJECT_ID` be the Google Cloud Project ID and `VERSION` be the version you're deploying to App Engine. Visit
 https://console.cloud.google.com/appengine/versions?project=flutter-dashboard
 for the list of current versions.
 

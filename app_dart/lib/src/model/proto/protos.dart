@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 export 'internal/agent.pb.dart';
+export 'internal/build_status_response.pb.dart';
 export 'internal/commit.pb.dart';
 export 'internal/commit_status.pb.dart';
 export 'internal/key.pb.dart';

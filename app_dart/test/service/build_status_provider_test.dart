@@ -86,14 +86,14 @@ void main() {
     group('calculateStatus', () {
       test('returns failure if there are no commits', () async {
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failed);
+        expect(status, BuildStatus.failure(const <String>[]));
       });
 
       test('returns success if top commit is all green', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => allGreen);
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.succeeded);
+        expect(status, BuildStatus.success());
       });
 
       test('returns success if top commit is all green followed by red commit', () async {
@@ -103,21 +103,21 @@ void main() {
           return row++ == 0 ? allGreen : middleTaskFailed;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.succeeded);
+        expect(status, BuildStatus.success());
       });
 
       test('returns failure if last commit contains any red tasks', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failed);
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('ignores failures on flaky commits', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.succeeded);
+        expect(status, BuildStatus.success());
       });
 
       test('returns success if partial green, and all unfinished tasks were last green', () async {
@@ -127,7 +127,7 @@ void main() {
           return row++ == 0 ? middleTaskInProgress : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.succeeded);
+        expect(status, BuildStatus.success());
       });
 
       test('returns failure if partial green, and any unfinished task was last red', () async {
@@ -137,7 +137,7 @@ void main() {
           return row++ == 0 ? middleTaskInProgress : middleTaskFailed;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failed);
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns failure when green but a task is rerunning', () async {
@@ -147,7 +147,7 @@ void main() {
           return row++ == 0 ? middleTaskRerunning : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failed);
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns failure when a task has an infra failure', () async {
@@ -157,7 +157,7 @@ void main() {
           return row++ == 0 ? middleTaskInfraFailure : allGreen;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.failed);
+        expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
       test('returns success when all green with a successful rerun', () async {
@@ -167,7 +167,7 @@ void main() {
           return row++ == 0 ? middleTaskRerunGreen : allRed;
         });
         final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
-        expect(status, BuildStatus.succeeded);
+        expect(status, BuildStatus.success());
       });
 
       test('return status when with branch parameter', () async {

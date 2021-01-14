@@ -8,7 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Key, RootKey;
+import 'package:cocoon_service/protos.dart'
+    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, Key, RootKey;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
@@ -31,8 +32,9 @@ void main() {
       when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch'))).thenAnswer((_) =>
           Future<CocoonResponse<List<CommitStatus>>>.value(
               CocoonResponse<List<CommitStatus>>.data(<CommitStatus>[setupCommitStatus])));
-      when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(true)));
+      when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch'))).thenAnswer((_) =>
+          Future<CocoonResponse<BuildStatusResponse>>.value(
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success)));
       when(mockCocoonService.fetchFlutterBranches()).thenAnswer((_) => Future<CocoonResponse<List<String>>>.value(
           const CocoonResponse<List<String>>.data(<String>[_defaultBranch])));
     });
@@ -129,7 +131,7 @@ void main() {
           await tester.pump(buildState.refreshRate);
         },
         output: <String>[
-          'An error occured fetching build statuses from Cocoon: error',
+          'An error occurred fetching build statuses from Cocoon: error',
         ],
       );
       verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).called(1);
@@ -158,14 +160,15 @@ void main() {
       verifyNever(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch));
 
       when(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).thenAnswer(
-        (_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.error('error')),
+        (_) =>
+            Future<CocoonResponse<BuildStatusResponse>>.value(const CocoonResponse<BuildStatusResponse>.error('error')),
       );
       await checkOutput(
         block: () async {
           await tester.pump(buildState.refreshRate);
         },
         output: <String>[
-          'An error occured fetching tree status from Cocoon: error',
+          'An error occurred fetching tree status from Cocoon: error',
         ],
       );
       verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).called(1);
@@ -242,10 +245,14 @@ void main() {
         ),
       );
       // Mark tree green on master, red on dev
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'master'))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(true)));
-      when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev'))
-          .thenAnswer((_) => Future<CocoonResponse<bool>>.value(const CocoonResponse<bool>.data(false)));
+      when(mockCocoonService.fetchTreeBuildStatus(branch: 'master')).thenAnswer((_) =>
+          Future<CocoonResponse<BuildStatusResponse>>.value(
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()..buildStatus = EnumBuildStatus.success)));
+      when(mockCocoonService.fetchTreeBuildStatus(branch: 'dev')).thenAnswer((_) =>
+          Future<CocoonResponse<BuildStatusResponse>>.value(
+              CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse()
+                ..buildStatus = EnumBuildStatus.failure
+                ..failingTasks.addAll(<String>['failing_task_1']))));
       final BuildState buildState = BuildState(
         authService: MockGoogleSignInService(),
         cocoonService: mockCocoonService,
@@ -276,7 +283,7 @@ void main() {
     when(mockCocoonService.fetchCommitStatuses(branch: anyNamed('branch')))
         .thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
     when(mockCocoonService.fetchTreeBuildStatus(branch: anyNamed('branch')))
-        .thenAnswer((_) => Completer<CocoonResponse<bool>>().future);
+        .thenAnswer((_) => Completer<CocoonResponse<BuildStatusResponse>>().future);
     final GoogleSignInService signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
     final BuildState buildState = BuildState(
       cocoonService: mockCocoonService,

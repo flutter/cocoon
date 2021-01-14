@@ -4,19 +4,14 @@
 
 import 'dart:async';
 
+import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-import '../model/appengine/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
-
-const Map<BuildStatus, String> _buildStatusLookup = <BuildStatus, String>{
-  BuildStatus.succeeded: Task.statusSucceeded,
-  BuildStatus.failed: Task.statusFailed,
-};
 
 @immutable
 class GetBuildStatus extends RequestHandler<Body> {
@@ -39,9 +34,10 @@ class GetBuildStatus extends RequestHandler<Body> {
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
     final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch);
+    final BuildStatusResponse response = BuildStatusResponse()
+      ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
+      ..failingTasks.addAll(status.failedTasks);
 
-    return Body.forJson(<String, dynamic>{
-      'AnticipatedBuildStatus': _buildStatusLookup[status],
-    });
+    return Body.forJson(response.writeToJsonMap());
   }
 }

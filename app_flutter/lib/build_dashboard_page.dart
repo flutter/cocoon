@@ -184,7 +184,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           ),
         ),
       ),
-      description: 'Passed on rerun',
+      description: 'Ran more than once',
     ));
 
     key.add(const PopupMenuDivider());
@@ -203,14 +203,19 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       true: isDark ? Colors.green[800] : Colors.green,
     };
 
+    final BuildState _buildState = Provider.of<BuildState>(context);
+    String failingTasksStr = '';
+    if (_buildState != null && _buildState.isTreeBuilding != null && !_buildState.isTreeBuilding) {
+      failingTasksStr = ' (failing: ${_buildState.failingTasks.join(', ')})';
+    }
+
     /// Message to show on [AppBar] based on [buildState.isTreeBuilding].
-    const Map<bool, Text> statusTable = <bool, Text>{
-      null: Text('Loading...'),
-      false: Text('Tree is Closed'),
-      true: Text('Tree is Open'),
+    final Map<bool, Text> statusTable = <bool, Text>{
+      null: const Text('Loading...'),
+      false: Text('Tree is Closed$failingTasksStr', overflow: TextOverflow.ellipsis),
+      true: const Text('Tree is Open'),
     };
 
-    final BuildState _buildState = Provider.of<BuildState>(context);
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(

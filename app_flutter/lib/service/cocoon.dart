@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task, BuildStatusResponse;
 
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
@@ -34,7 +34,7 @@ abstract class CocoonService {
   });
 
   /// Gets the current build status of flutter/flutter.
-  Future<CocoonResponse<bool>> fetchTreeBuildStatus({
+  Future<CocoonResponse<BuildStatusResponse>> fetchTreeBuildStatus({
     String branch,
   });
 

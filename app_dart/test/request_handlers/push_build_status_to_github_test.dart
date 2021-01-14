@@ -131,7 +131,7 @@ void main() {
 
         test('if there are no PRs', () async {
           config.flutterBranchesValue = <String>['master'];
-          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
+          buildStatusService.cumulativeStatus = BuildStatus.success();
           final Body body = await tester.get<Body>(handler);
           final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
           expect(body, same(Body.empty));
@@ -146,8 +146,8 @@ void main() {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           config.flutterBranchesValue = <String>['master'];
-          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.succeeded);
+          buildStatusService.cumulativeStatus = BuildStatus.success();
+          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
@@ -160,13 +160,14 @@ void main() {
           githubPullRequestsMaster = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+          buildStatusService.cumulativeStatus = BuildStatus.success();
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_task_1']));
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 0);
-          expect(status.status, BuildStatus.failed.githubStatus);
+          expect(status.status, BuildStatus.failure().githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
@@ -177,14 +178,15 @@ void main() {
           githubPullRequestsOther = <int>[1];
           final PullRequest pr = newPullRequest(id: 1, sha: '1');
           config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
-          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failed);
+          buildStatusService.cumulativeStatus = BuildStatus.success();
+          final GithubBuildStatusUpdate status =
+              newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
           db.values[status.key] = status;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(status.updates, 1);
           expect(status.updateTimeMillis, isNotNull);
-          expect(status.status, BuildStatus.succeeded.githubStatus);
+          expect(status.status, BuildStatus.success().githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });
@@ -195,17 +197,19 @@ void main() {
           final PullRequest prMaster = newPullRequest(id: 123, sha: '123');
           final PullRequest prOther = newPullRequest(id: 456, sha: '456');
           config.flutterBranchesValue = <String>['flutter-0.0-candidate.0', 'master'];
-          buildStatusService.cumulativeStatus = BuildStatus.succeeded;
-          final GithubBuildStatusUpdate statusOther = newStatusUpdate(prOther, BuildStatus.failed);
+          buildStatusService.cumulativeStatus = BuildStatus.success();
+          final GithubBuildStatusUpdate statusOther =
+              newStatusUpdate(prOther, BuildStatus.failure(const <String>['failed_test_1']));
           db.values[statusOther.key] = statusOther;
-          final GithubBuildStatusUpdate statusMaster = newStatusUpdate(prMaster, BuildStatus.failed);
+          final GithubBuildStatusUpdate statusMaster =
+              newStatusUpdate(prMaster, BuildStatus.failure(const <String>['failed_test_1']));
           db.values[statusMaster.key] = statusMaster;
           final Body body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(statusMaster.updates, 1);
           expect(statusOther.updates, 1);
-          expect(statusMaster.status, BuildStatus.succeeded.githubStatus);
-          expect(statusOther.status, BuildStatus.succeeded.githubStatus);
+          expect(statusMaster.status, BuildStatus.success().githubStatus);
+          expect(statusOther.status, BuildStatus.success().githubStatus);
           expect(log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
           expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
         });

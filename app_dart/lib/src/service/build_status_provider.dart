@@ -46,7 +46,7 @@ class BuildStatusService {
   /// +---+---+---+---+
   /// | ✔ | ✖ | ✔ | ✔ |
   /// +---+---+---+---+
-  /// This build will fail because only of Task B. Task D is not included in
+  /// This build will fail because of Task B only. Task D is not included in
   /// the latest commit status, so it does not impact the build status.
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
@@ -56,14 +56,15 @@ class BuildStatusService {
       branch: branch,
     ).toList();
     if (statuses.isEmpty) {
-      return BuildStatus.failed;
+      return BuildStatus.failure();
     }
 
     final Map<String, bool> tasksInProgress = _findTasksRelevantToLatestStatus(statuses);
     if (tasksInProgress.isEmpty) {
-      return BuildStatus.failed;
+      return BuildStatus.failure();
     }
 
+    final List<String> failedTasks = <String>[];
     for (CommitStatus status in statuses) {
       for (Stage stage in status.stages) {
         for (Task task in stage.tasks) {
@@ -81,14 +82,13 @@ class BuildStatusService {
               /// the build status to fail.
               tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
-              return BuildStatus.failed;
+              failedTasks.add(task.name);
             }
           }
         }
       }
     }
-
-    return BuildStatus.succeeded;
+    return failedTasks.isNotEmpty ? BuildStatus.failure(failedTasks) : BuildStatus.success();
   }
 
   /// Creates a map of the tasks that need to be checked for the build status.
@@ -151,15 +151,51 @@ class CommitStatus {
 
 @immutable
 class BuildStatus {
-  const BuildStatus._(this.value);
+  const BuildStatus._(this.value, [this.failedTasks = const <String>[]])
+      : assert(value == GithubBuildStatusUpdate.statusSuccess || value == GithubBuildStatusUpdate.statusFailure);
+  factory BuildStatus.success() => const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
+  factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) =>
+      BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
 
   final String value;
+  final List<String> failedTasks;
 
-  static const BuildStatus succeeded = BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
-  static const BuildStatus failed = BuildStatus._(GithubBuildStatusUpdate.statusFailure);
+  bool get succeeded {
+    return value == GithubBuildStatusUpdate.statusSuccess;
+  }
 
   String get githubStatus => value;
 
   @override
-  String toString() => value;
+  int get hashCode {
+    int hash = 17;
+    hash = hash * 31 + value.hashCode;
+    hash = hash * 31 + failedTasks.hashCode;
+    return hash;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is BuildStatus) {
+      if (value != other.value) {
+        return false;
+      }
+      if (other.failedTasks.length != failedTasks.length) {
+        return false;
+      }
+      for (int i = 0; i < failedTasks.length; ++i) {
+        if (failedTasks[i] != other.failedTasks[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => '$value $failedTasks';
 }

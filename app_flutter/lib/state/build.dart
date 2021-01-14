@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, RootKey, Task;
+import 'package:cocoon_service/protos.dart'
+    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
@@ -43,6 +44,9 @@ class BuildState extends ChangeNotifier {
   bool get isTreeBuilding => _isTreeBuilding;
   bool _isTreeBuilding;
 
+  List<String> get failingTasks => _failingTasks;
+  List<String> _failingTasks = <String>[];
+
   /// Whether more [List<CommitStatus>] can be loaded from Cocoon.
   ///
   /// If [fetchMoreCommitStatuses] returns no data, it is assumed the last
@@ -55,14 +59,18 @@ class BuildState extends ChangeNotifier {
   final ErrorSink _errors = ErrorSink();
 
   @visibleForTesting
-  static const String errorMessageFetchingStatuses = 'An error occured fetching build statuses from Cocoon';
+  static const String errorMessageFetchingStatuses = 'An error occurred fetching build statuses from Cocoon';
 
   @visibleForTesting
-  static const String errorMessageFetchingTreeStatus = 'An error occured fetching tree status from Cocoon';
+  static const String errorMessageFetchingTreeStatus = 'An error occurred fetching tree status from Cocoon';
+
+  @visibleForTesting
+  static const String errorMessageFetchingFailingTasks =
+      'An error occurred fetching the list of failing tasks from Cocoon';
 
   @visibleForTesting
   static const String errorMessageFetchingBranches =
-      'An error occured fetching branches from flutter/flutter on Cocoon.';
+      'An error occurred fetching branches from flutter/flutter on Cocoon.';
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting
@@ -133,14 +141,16 @@ class BuildState extends ChangeNotifier {
         }
       }(),
       () async {
-        final CocoonResponse<bool> response = await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
+        final CocoonResponse<BuildStatusResponse> response =
+            await cocoonService.fetchTreeBuildStatus(branch: _currentBranch);
         if (!_active) {
           return null;
         }
         if (response.error != null) {
           _errors.send('$errorMessageFetchingTreeStatus: ${response.error}');
         } else {
-          _isTreeBuilding = response.data;
+          _isTreeBuilding = response.data.buildStatus == EnumBuildStatus.success;
+          _failingTasks = response.data.failingTasks;
           notifyListeners();
         }
       }(),
@@ -152,6 +162,7 @@ class BuildState extends ChangeNotifier {
     _currentBranch = branch;
     _moreStatusesExist = true;
     _isTreeBuilding = null;
+    _failingTasks = <String>[];
     _statuses = <CommitStatus>[];
 
     /// Clear previous branch data from the widgets
@@ -179,7 +190,7 @@ class BuildState extends ChangeNotifier {
     List<CommitStatus> recentStatuses,
   ) {
     if (!_statusesMatchCurrentBranch(recentStatuses)) {
-      // Do not merge statueses if they are not from the current branch.
+      // Do not merge statuses if they are not from the current branch.
       // Happens in delayed network requests after switching branches.
       return;
     }
