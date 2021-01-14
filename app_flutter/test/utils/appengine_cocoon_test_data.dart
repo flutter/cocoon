@@ -139,16 +139,8 @@ const String jsonGetBranchesResponse = '''
   }
 ''';
 
-const String jsonBuildStatusTrueResponse = '''
-  {
-    "AnticipatedBuildStatus": "Succeeded"
-  }
-''';
+const String jsonBuildStatusTrueResponse = '{"1":1}';
 
-const String jsonBuildStatusFalseResponse = '''
-  {
-    "AnticipatedBuildStatus": "Failed"
-  }
-''';
+const String jsonBuildStatusFalseResponse = '{"1":2,"2":["failed_task_1"]}';
 
 const String baseApiUrl = 'https://flutter-dashboard.appspot.com';

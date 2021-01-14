@@ -131,7 +131,7 @@ void main() {
           await tester.pump(buildState.refreshRate);
         },
         output: <String>[
-          'An error occured fetching build statuses from Cocoon: error',
+          'An error occurred fetching build statuses from Cocoon: error',
         ],
       );
       verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).called(1);
@@ -168,7 +168,7 @@ void main() {
           await tester.pump(buildState.refreshRate);
         },
         output: <String>[
-          'An error occured fetching tree status from Cocoon: error',
+          'An error occurred fetching tree status from Cocoon: error',
         ],
       );
       verify(mockCocoonService.fetchTreeBuildStatus(branch: _defaultBranch)).called(1);

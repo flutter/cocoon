@@ -82,7 +82,13 @@ class AppEngineCocoonService implements CocoonService {
       return CocoonResponse<BuildStatusResponse>.error('/api/public/build-status returned ${response.statusCode}');
     }
 
-    return CocoonResponse<BuildStatusResponse>.data(BuildStatusResponse.fromJson(response.body));
+    BuildStatusResponse protoResponse;
+    try {
+      protoResponse = BuildStatusResponse.fromJson(response.body);
+    } on FormatException {
+      return const CocoonResponse<BuildStatusResponse>.error('/api/public/build-status had a malformed response');
+    }
+    return CocoonResponse<BuildStatusResponse>.data(protoResponse);
   }
 
   @override

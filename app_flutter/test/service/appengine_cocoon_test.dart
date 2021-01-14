@@ -186,7 +186,7 @@ void main() {
     });
 
     test('should return CocoonResponse<bool>', () {
-      expect(service.fetchTreeBuildStatus(), const TypeMatcher<Future<CocoonResponse<bool>>>());
+      expect(service.fetchTreeBuildStatus(), const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
     });
 
     test('data should be true when given Succeeded', () async {
@@ -199,7 +199,6 @@ void main() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
-
       final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
       expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.failure);

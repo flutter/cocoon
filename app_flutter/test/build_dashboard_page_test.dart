@@ -100,7 +100,7 @@ void main() {
       expect(find.text(status), findsOneWidget);
     }
     expect(find.text('Flaky'), findsOneWidget);
-    expect(find.text('Passed on rerun'), findsOneWidget);
+    expect(find.text('Ran more than once'), findsOneWidget);
   });
 
   testWidgets('shows branch dropdown button', (WidgetTester tester) async {
@@ -188,7 +188,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Tree is Closed'), findsOneWidget);
+    expect(find.textContaining('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red);
@@ -211,7 +211,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Tree is Closed'), findsOneWidget);
+    expect(find.textContaining('Tree is Closed'), findsOneWidget);
 
     final AppBar appbarWidget = find.byType(AppBar).evaluate().first.widget as AppBar;
     expect(appbarWidget.backgroundColor, Colors.red[800]);
