@@ -9,6 +9,24 @@
 Must run on port 8080 for Google Sign In to work since that is the
 only enabled port for localhost.
 
+## Running native app locally
+
+`flutter run -d <macos|linux|windows>`
+
+If you want to run a debug native app with production data, you can run it like so:
+
+`flutter run -d <macos|linux|windows> -a --use-production-service`
+
+If you want to run a release native app with fake data, use:
+
+`flutter run -d <macos|linux|windows> --release -a --no-use-production-service`
+
+[Unfortunately, there's no web equivalent for passing command line arguments yet]
+
+You can also build a release AOT-compiled desktop app with `flutter build
+<macos|linux|windows> --release` and then just run the app with the appropriate
+argument.
+
 ## Style
 
 ### File organization
