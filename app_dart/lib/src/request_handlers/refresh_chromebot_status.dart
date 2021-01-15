@@ -96,7 +96,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         update.status = latestLuciTask.status;
 
         if (await luciBuildService.checkRerunBuilder(
-            commitSha: commitSha, luciTask: latestLuciTask, taskAttempts: update.attempts)) {
+            commitSha: commitSha, luciTask: latestLuciTask, taskAttempts: update.attempts - 1)) {
           update.status = Task.statusNew;
           update.attempts += 1;
         }

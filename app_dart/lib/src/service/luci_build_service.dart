@@ -14,6 +14,7 @@ import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
+import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../service/luci.dart';
@@ -446,7 +447,9 @@ class LuciBuildService {
   }
 
   bool _shouldRerunBuilder(LuciTask luciTask) {
-    if (luciTask.summaryMarkdown == null || !luciTask.builderName.contains('Mac')) {
+    if (luciTask.summaryMarkdown == null ||
+        !luciTask.builderName.contains('Mac') ||
+        luciTask.status != Task.statusInfraFailure) {
       return false;
     }
     return luciTask.summaryMarkdown.contains('retcode: -9') ||
