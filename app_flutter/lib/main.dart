@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'agent_dashboard_page.dart';
@@ -15,9 +16,16 @@ import 'state/index.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
 
-void main() {
+void main(List<String> args) {
   final GoogleSignInService authService = GoogleSignInService();
-  final CocoonService cocoonService = CocoonService();
+  bool useProductionService = kReleaseMode;
+  if (args.contains('--use-production-service')) {
+    useProductionService = true;
+  }
+  if (args.contains('--no-use-production-service')) {
+    useProductionService = false;
+  }
+  final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
   runApp(
     StateProvider(
       signInService: authService,

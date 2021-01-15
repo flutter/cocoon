@@ -11,4 +11,4 @@ PRODUCT_NAME = app_flutter
 PRODUCT_BUNDLE_IDENTIFIER = com.example.appFlutter
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2020 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2021 com.example. All rights reserved.
