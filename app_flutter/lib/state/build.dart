@@ -159,6 +159,10 @@ class BuildState extends ChangeNotifier {
 
   /// Update build state to be on [branch] and erase previous branch data.
   Future<void> updateCurrentBranch(String branch) {
+    if (_currentBranch == branch) {
+      // Do nothing if the branch hasn't changed.
+      return Future<void>.value();
+    }
     _currentBranch = branch;
     _moreStatusesExist = true;
     _isTreeBuilding = null;
