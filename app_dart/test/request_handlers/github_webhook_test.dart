@@ -1061,6 +1061,34 @@ void main() {
         await _testActions('synchronize');
       });
 
+      test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
+        request.body = jsonTemplate(
+          'synchronize',
+          issueNumber,
+          kDefaultBranchName,
+          includeCqLabel: true,
+          // This PR is unmergeable (probably merge conflict)
+          isMergeable: false,
+        );
+        final Uint8List body = utf8.encode(request.body) as Uint8List;
+        final Uint8List key = utf8.encode(keyString) as Uint8List;
+        final String hmac = getHmac(body, key);
+        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+        final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
+        when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
+        final MockIssuesService mockIssuesService = MockIssuesService();
+        when(gitHubClient.issues).thenReturn(mockIssuesService);
+        final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+        when(mockIssuesService.listCommentsByIssue(slug, issueNumber))
+            .thenAnswer((Invocation _invocation) {
+          return Stream<IssueComment>.fromIterable(<IssueComment>[]);
+        });
+
+        await tester.post(webhook);
+        verifyNever(mockBuildBucketClient.batch(captureAny));
+        verify(mockIssuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
+      });
+
       test('When synchronized, cancels existing builds and schedules new ones', () async {
         when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
           return const BatchResponse(
@@ -1114,6 +1142,7 @@ void main() {
         );
       });
     });
+
     group('checksAPI', () {
       void _generateRequest(String bodyString) {
         request.body = bodyString;
@@ -1149,7 +1178,8 @@ String jsonTemplate(String action, int number, String baseRef,
         bool isDraft = false,
         bool merged = false,
         String repoFullName = 'flutter/flutter',
-        String repoName = 'flutter'}) =>
+        String repoName = 'flutter',
+        bool isMergeable = true}) =>
     '''{
   "action": "$action",
   "number": $number,
@@ -1515,7 +1545,7 @@ String jsonTemplate(String action, int number, String baseRef,
     "author_association": "MEMBER",
     "draft" : $isDraft,
     "merged": $merged,
-    "mergeable": null,
+    "mergeable": $isMergeable,
     "rebaseable": true,
     "mergeable_state": "draft",
     "merged_by": null,

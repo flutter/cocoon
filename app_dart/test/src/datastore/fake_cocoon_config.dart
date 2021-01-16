@@ -30,7 +30,8 @@ class FakeConfig implements Config {
     this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
-    this.missingTestsPullRequestMessageValue,
+    this.mergeConflictPullRequestMessageValue = 'default mergeConflictPullRequestMessageValue',
+    this.missingTestsPullRequestMessageValue = 'default missingTestsPullRequestMessageValue',
     this.wrongBaseBranchPullRequestMessageValue,
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
@@ -71,6 +72,7 @@ class FakeConfig implements Config {
   FakeKeyHelper keyHelperValue;
   String oauthClientIdValue;
   String githubOAuthTokenValue;
+  String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
   String wrongBaseBranchPullRequestMessageValue;
   String wrongHeadBranchPullRequestMessageValue;
@@ -172,6 +174,9 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue;
+
+  @override
+  String get mergeConflictPullRequestMessage => mergeConflictPullRequestMessageValue;
 
   @override
   String get missingTestsPullRequestMessage => missingTestsPullRequestMessageValue;
