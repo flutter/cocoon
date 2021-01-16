@@ -121,14 +121,29 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
       if (path.basename(entity.path) == '.git') continue;
       if (path.basename(entity.path) == '.gradle') continue;
       if (path.basename(entity.path) == '.dart_tool') continue;
-      if (path.basename(entity.path) == 'build') continue;
-      if (path.basename(entity.path) == 'ios') continue;
-      if (path.basename(entity.path) == 'android') continue;
+      if (_isPartOfAppTemplate(entity)) continue;
       pending.addAll(entity.listSync());
     }
   }
   assert(matches >= minimumMatches,
       'Expected to find at least $minimumMatches files with extension ".$extension" in "$workingDirectory", but only found $matches.');
+}
+
+bool _isPartOfAppTemplate(Directory directory) {
+  const Set<String> templateDirs = <String>{
+    'android',
+    'build',
+    'ios',
+    'linux',
+    'macos',
+    'web',
+    'windows',
+  };
+  // Project directories will have a metadata file in them.
+  if (File(path.join(directory.parent.path, '.metadata')).existsSync()) {
+    return templateDirs.contains(path.basename(directory.path));
+  }
+  return false;
 }
 
 bool _isGeneratedPluginRegistrant(File file) {
