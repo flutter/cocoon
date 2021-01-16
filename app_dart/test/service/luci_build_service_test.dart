@@ -359,7 +359,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, true);
@@ -377,7 +377,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, true);
@@ -395,7 +395,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, false);
@@ -413,7 +413,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, false);
@@ -431,7 +431,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, false);
@@ -449,7 +449,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 1,
+        retries: 1,
         repo: 'flutter',
       );
       expect(rerunFlag, false);
@@ -467,7 +467,7 @@ void main() {
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
-        taskAttempts: 0,
+        retries: 0,
         repo: 'flutter',
       );
       expect(rerunFlag, false);
