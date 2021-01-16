@@ -192,6 +192,21 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     return key;
   }
 
+  String _getStatusTitle(BuildState buildState) {
+    if (buildState == null || buildState.isTreeBuilding == null) {
+      return 'Loading...';
+    }
+    if (buildState.isTreeBuilding) {
+      return 'Tree is Open';
+    } else {
+      if (buildState.failingTasks.isNotEmpty) {
+        return 'Tree is Closed (failing: ${buildState.failingTasks.join(', ')})';
+      } else {
+        return 'Tree is Closed';
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -204,23 +219,12 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final BuildState _buildState = Provider.of<BuildState>(context);
-    String failingTasksStr = '';
-    if (_buildState != null && _buildState.isTreeBuilding != null && !_buildState.isTreeBuilding) {
-      failingTasksStr = ' (failing: ${_buildState.failingTasks.join(', ')})';
-    }
-
-    /// Message to show on [AppBar] based on [buildState.isTreeBuilding].
-    final Map<bool, Text> statusTable = <bool, Text>{
-      null: const Text('Loading...'),
-      false: Text('Tree is Closed$failingTasksStr', overflow: TextOverflow.ellipsis),
-      true: const Text('Tree is Open'),
-    };
 
     return AnimatedBuilder(
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(
         appBar: CocoonAppBar(
-          title: statusTable[_buildState.isTreeBuilding],
+          title: Text(_getStatusTitle(_buildState)),
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             PopupMenuButton<String>(
