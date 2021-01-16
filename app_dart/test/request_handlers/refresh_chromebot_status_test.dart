@@ -53,7 +53,7 @@ void main() {
         when(mockLuciBuildService.checkRerunBuilder(
                 commitSha: anyNamed('commitSha'),
                 luciTask: anyNamed('luciTask'),
-                taskAttempts: anyNamed('taskAttempts')))
+                retries: anyNamed('taskAttempts')))
             .thenAnswer((_) => Future<bool>.value(false));
       });
 
@@ -335,7 +335,7 @@ void main() {
         when(mockLuciBuildService.checkRerunBuilder(
                 commitSha: anyNamed('commitSha'),
                 luciTask: anyNamed('luciTask'),
-                taskAttempts: anyNamed('taskAttempts')))
+                retries: anyNamed('taskAttempts')))
             .thenAnswer((_) => Future<bool>.value(true));
       });
 
