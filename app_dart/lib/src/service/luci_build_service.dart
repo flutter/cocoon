@@ -432,10 +432,10 @@ class LuciBuildService {
   Future<bool> checkRerunBuilder({
     @required String commitSha,
     @required LuciTask luciTask,
-    @required int taskAttempts,
+    @required int retries,
     String repo = 'flutter',
   }) async {
-    if (_shouldRerunBuilder(luciTask) && taskAttempts < config.maxLuciTaskRetries) {
+    if (_shouldRerunBuilder(luciTask) && retries < config.maxLuciTaskRetries) {
       await rescheduleProdBuild(
         commitSha: commitSha,
         builderName: luciTask.builderName,
