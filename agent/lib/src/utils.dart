@@ -516,7 +516,7 @@ Future<Null> getFlutter(String revision) async {
     await exec('git', ['checkout', revision]);
   });
 
-  await flutter('config', options: ['--no-analytics', '--verbose']);
+  await flutter('config', options: ['--no-analytics', '--verbose'], canFail: true);
 
   section('flutter doctor');
   await flutter('doctor', options: ['--verbose']);
