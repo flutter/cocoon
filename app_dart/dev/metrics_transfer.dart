@@ -36,7 +36,6 @@ Future<void> main() async {
   final SkiaPerfDestination destination = await SkiaPerfDestination.make(
     client,
     kProjectId,
-    isTesting: true, // TODO(liyuqian): set isTesting to false
   );
   final TransferHandler handler = TransferHandler(db, destination);
 
@@ -135,8 +134,18 @@ class TransferHandler {
           from.millisecondsSinceEpoch, to.millisecondsSinceEpoch);
       print('  Read ${timeSeriesValues.length} TimeSeriesValues.');
       if (timeSeriesValues.isNotEmpty) {
-        final List<BenchmarkMetricPoint> points =
-            await transform(timeSeriesMap, timeSeriesValues);
+        List<BenchmarkMetricPoint> points;
+        try {
+          points = await transform(timeSeriesMap, timeSeriesValues);
+        } catch (e) {
+          if (e.toString().contains(_kGithubRateError)) {
+            print('  Github limits 5000 API calls per hour. Wait 1 hour...');
+            await Future<void>.delayed(const Duration(hours: 1));
+            points = await transform(timeSeriesMap, timeSeriesValues);
+          } else {
+            rethrow;
+          }
+        }
         print('  Transformed ${points.length} metric points.');
         print('  The first one is ${_truncate(points.first.toString())}');
         await _destination.update(points);
@@ -212,3 +221,6 @@ const String kMissingSecretMessage =
     'Cannot find environment variable $kOAuthClientSecretKey. '
     'Please find the oauth client secret of $kOAuthClientId, and set it '
     'as environment variable $kOAuthClientSecretKey.';
+
+const String _kGithubRateError =
+    'GitHub Error: API rate limit exceeded for user ID';
