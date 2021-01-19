@@ -50,9 +50,9 @@ class UpdateTimeSeries extends ApiRequestHandler<UpdateTimeSeriesResponse> {
     final String unit = requestData[unitParam] as String;
     final bool archived = requestData[archivedParam] as bool;
 
-    Key timeSeriesKey;
+    Key<String> timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String) as Key<String>;
     } catch (error) {
       throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }

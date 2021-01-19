@@ -37,7 +37,7 @@ class ResetDevicelabTask extends ApiRequestHandler<Body> {
     final String encodedKey = requestData[keyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key key = keyHelper.decode(encodedKey);
+    final Key<dynamic> key = keyHelper.decode(encodedKey);
     final Task task = await datastore.lookupByValue(key);
     if (task == null) {
       throw const BadRequestException('Invalid key. Entity does not exist.');

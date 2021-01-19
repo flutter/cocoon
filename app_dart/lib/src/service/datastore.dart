@@ -242,8 +242,8 @@ class DatastoreService {
   }
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
-  Future<List<List<Model>>> shard(List<Model> rows) async {
-    final List<List<Model>> shards = <List<Model>>[];
+  Future<List<List<Model<dynamic>>>> shard(List<Model<dynamic>> rows) async {
+    final List<List<Model<dynamic>>> shards = <List<Model<dynamic>>>[];
     for (int i = 0; i < rows.length; i += maxEntityGroups) {
       shards.add(rows.sublist(i, i + min<int>(rows.length - i, maxEntityGroups)));
     }
@@ -251,9 +251,9 @@ class DatastoreService {
   }
 
   /// Inserts [rows] into datastore sharding the inserts if needed.
-  Future<void> insert(List<Model> rows) async {
-    final List<List<Model>> shards = await shard(rows);
-    for (List<Model> shard in shards) {
+  Future<void> insert(List<Model<dynamic>> rows) async {
+    final List<List<Model<dynamic>>> shards = await shard(rows);
+    for (List<Model<dynamic>> shard in shards) {
       await runTransactionWithRetries(() async {
         await db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: shard);
@@ -264,7 +264,7 @@ class DatastoreService {
   }
 
   /// Looks up registers by [keys].
-  Future<List<T>> lookupByKey<T extends Model>(List<Key> keys) async {
+  Future<List<T>> lookupByKey<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     List<T> results = <T>[];
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {
@@ -275,7 +275,7 @@ class DatastoreService {
   }
 
   /// Looks up registers by value using a single [key].
-  Future<T> lookupByValue<T extends Model>(Key key, {T Function() orElse}) async {
+  Future<T> lookupByValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function() orElse}) async {
     T result;
     await runTransactionWithRetries(() async {
       await db.withTransaction<void>((Transaction transaction) async {

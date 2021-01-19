@@ -37,7 +37,7 @@ class AuthorizeAgent extends ApiRequestHandler<AuthorizeAgentResponse> {
     final String agentId = requestData[agentIdParam] as String;
     final DatastoreService datastore = datastoreProvider(config.db);
     final AgentService agentService = agentServiceProvider();
-    final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
+    final Key<String> key = datastore.db.emptyKey.append<String>(Agent, id: agentId);
     final Agent agent = await datastore.db.lookupValue<Agent>(
       key,
       orElse: () {

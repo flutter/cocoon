@@ -337,7 +337,7 @@ class Config {
 }
 
 @Kind(name: 'CocoonConfig', idType: IdType.String)
-class CocoonConfig extends Model {
+class CocoonConfig extends Model<String> {
   @StringProperty(propertyName: 'ParameterValue')
   String value;
 }

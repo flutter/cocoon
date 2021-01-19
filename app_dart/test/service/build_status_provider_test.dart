@@ -13,12 +13,12 @@ import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 
 List<Commit> oneCommit = <Commit>[
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
+  Commit(key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
 ];
 
 List<Commit> twoCommits = <Commit>[
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
-  Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2'),
+  Commit(key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha1'), sha: 'sha1'),
+  Commit(key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2'),
 ];
 
 List<Task> allGreen = <Task>[
@@ -172,11 +172,11 @@ void main() {
 
       test('return status when with branch parameter', () async {
         final Commit commit1 = Commit(
-            key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
+            key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
             sha: 'sha1',
             branch: 'flutter-0.0-candidate.0');
         final Commit commit2 =
-            Commit(key: Key.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2', branch: 'master');
+            Commit(key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2', branch: 'master');
 
         db.values[commit1.key] = commit1;
         db.values[commit2.key] = commit2;

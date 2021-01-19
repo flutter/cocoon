@@ -42,9 +42,9 @@ class GetTimeSeriesHistory extends NoAuthRequestHandler<GetTimeSeriesHistoryResp
     final KeyHelper keyHelper = KeyHelper(applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
     final Set<Commit> commits = await datastore.queryRecentCommits(limit: maxRecords).toSet();
 
-    Key timeSeriesKey;
+    Key<String> timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String) as Key<String>;
     } on FormatException {
       throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }

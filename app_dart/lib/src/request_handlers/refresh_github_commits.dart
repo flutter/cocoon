@@ -151,7 +151,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final List<Commit> newCommits = <Commit>[];
     for (RepositoryCommit commit in commits) {
       final String id = 'flutter/flutter/$branch/${commit.sha}';
-      final Key key = datastore.db.emptyKey.append(Commit, id: id);
+      final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
 
       if (await datastore.db.lookupValue<Commit>(key, orElse: () => null) == null) {
         newCommits.add(Commit(
@@ -175,7 +175,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   }
 
   Future<List<Task>> _createTasks({
-    @required Key commitKey,
+    @required Key<String> commitKey,
     @required String sha,
     @required int createTimestamp,
   }) async {

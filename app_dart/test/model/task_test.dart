@@ -22,7 +22,7 @@ void main() {
 
     test('creates a valid chromebot task', () {
       final DatastoreDB db = DatastoreDB(null);
-      final Key key = db.emptyKey.append(Task, id: 42);
+      final Key<String> key = db.emptyKey.append<String>(Task, id: '42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
         repo: 'flutter/flutter',
@@ -41,7 +41,7 @@ void main() {
 
     test('disallows flaky be null', () {
       final DatastoreDB db = DatastoreDB(null);
-      final Key key = db.emptyKey.append(Task, id: 42);
+      final Key<String> key = db.emptyKey.append<String>(Task, id: '42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
         repo: 'flutter/flutter',

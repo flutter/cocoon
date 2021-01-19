@@ -12,9 +12,9 @@ part 'commit.g.dart';
 /// Class that represents a commit that has landed on the master branch of a
 /// Flutter repository.
 @Kind(name: 'Checklist', idType: IdType.String)
-class Commit extends Model {
+class Commit extends Model<String> {
   Commit({
-    Key key,
+    Key<String> key,
     this.timestamp,
     this.sha,
     this.author,
@@ -92,7 +92,7 @@ class SerializableCommit {
 
   @JsonKey(name: 'Key')
   @KeyConverter()
-  Key get key => commit.key;
+  Key<String> get key => commit.key;
 
   @JsonKey(name: 'Checklist')
   Map<String, dynamic> get facade {

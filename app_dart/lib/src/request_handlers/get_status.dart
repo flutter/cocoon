@@ -66,7 +66,7 @@ class GetStatus extends RequestHandler<Body> {
     int lastCommitTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     if (encodedLastCommitKey != null) {
-      final Key ownerKey = keyHelper.decode(encodedLastCommitKey);
+      final Key<int> ownerKey = keyHelper.decode(encodedLastCommitKey) as Key<int>;
       final Commit commit = await datastore.db.lookupValue<Commit>(ownerKey, orElse: () => null);
 
       lastCommitTimestamp = commit?.timestamp;

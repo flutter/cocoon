@@ -28,7 +28,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.5"
+    version: "0.11.0"
   args:
     dependency: transitive
     description:
@@ -217,7 +217,7 @@ packages:
       name: gcloud
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.3"
+    version: "0.7.3"
   github:
     dependency: "direct main"
     description:
@@ -674,4 +674,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.12.0-0.0 <=2.12.0-214.0.dev"
+  dart: ">=2.12.0-0.0 <=2.12.0-224.0.dev"

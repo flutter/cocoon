@@ -7,9 +7,9 @@ import 'package:gcloud/db.dart';
 /// Class that represents an update having been posted to a GitHub
 /// flutter/flutter PR on the status of tryjobs generated on Flutter Gold.
 @Kind(name: 'GithubGoldStatusUpdate')
-class GithubGoldStatusUpdate extends Model {
+class GithubGoldStatusUpdate extends Model<int> {
   GithubGoldStatusUpdate({
-    Key key,
+    Key<int> key,
     this.pr,
     this.head,
     this.status,

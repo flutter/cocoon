@@ -10,14 +10,14 @@ environment:
   sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
-  appengine: ^0.10.0
+  appengine: ^0.11.0
   collection: ^1.14.11
   corsac_jwt: ^0.2.2
   crypto: ^2.0.6
   dbcrypt: ^1.0.0
   file: ^5.1.0
   fixnum: ^0.10.9
-  gcloud: ^0.6.3
+  gcloud: ^0.7.3
   github: ^7.0.1
   googleapis: ^0.54.0
   googleapis_auth: ^0.2.10
