@@ -152,6 +152,12 @@ class Config {
 
   Future<String> get webhookKey => _getSingleValue('WebhookKey');
 
+  String get mergeConflictPullRequestMessage => 'This pull request is not '
+      'mergeable in its current state, likely because of a merge conflict. '
+      'Pre-submit CI jobs were not triggered. Pushing a new commit to this '
+      'branch that resolves the issue will result in pre-submit jobs being '
+      'scheduled.';
+
   String get missingTestsPullRequestMessage => 'It looks like this pull '
       'request may not have tests. Please make sure to add tests before merging. '
       'If you need an exemption to this rule, contact Hixie on the #hackers '

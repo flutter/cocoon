@@ -141,9 +141,23 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<void> _scheduleIfMergeable(
     PullRequestEvent pullRequestEvent,
   ) async {
+    final PullRequest pr = pullRequestEvent.pullRequest;
+
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
-    final PullRequest pr = pullRequestEvent.pullRequest;
+    if (pr.mergeable == false) {
+      final RepositorySlug slug = pullRequestEvent.repository.slug();
+      final GitHub gitHubClient = await config.createGitHubClient(
+        slug.owner,
+        slug.name,
+      );
+      final String body = config.mergeConflictPullRequestMessage;
+      if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
+        await gitHubClient.issues.createComment(slug, pr.number, body);
+      }
+
+      return;
+    }
 
     // Always cancel running builds so we don't ever schedule duplicates.
     await luciBuildService.cancelBuilds(
