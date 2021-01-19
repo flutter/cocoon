@@ -101,7 +101,8 @@ void main() {
 
       test('Does nothing', () async {
         config.githubClient = ThrowingGitHub();
-        db.onCommit = (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
+        db.onCommit =
+            (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
         db.addOnQuery<GithubGoldStatusUpdate>((Iterable<GithubGoldStatusUpdate> results) {
           throw AssertionError();
         });
@@ -155,7 +156,8 @@ void main() {
 
       group('does not update GitHub or Datastore', () {
         setUp(() {
-          db.onCommit = (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
+          db.onCommit =
+              (List<gcloud_db.Model<dynamic>> insert, List<gcloud_db.Key<dynamic>> deletes) => throw AssertionError();
           when(repositoriesService.createStatus(any, any, any)).thenThrow(AssertionError());
         });
 

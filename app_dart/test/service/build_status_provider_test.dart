@@ -175,8 +175,8 @@ void main() {
             key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha1'),
             sha: 'sha1',
             branch: 'flutter-0.0-candidate.0');
-        final Commit commit2 =
-            Commit(key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2', branch: 'master');
+        final Commit commit2 = Commit(
+            key: Key<String>.emptyKey(Partition('ns')).append(Commit, id: 'sha2'), sha: 'sha2', branch: 'master');
 
         db.values[commit1.key] = commit1;
         db.values[commit2.key] = commit2;
