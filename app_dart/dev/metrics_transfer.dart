@@ -27,12 +27,10 @@ Future<void> main() async {
   const String kProjectId = 'flutter-dashboard';
   _checkGithubToken();
   final AutoRefreshingAuthClient client = await clientViaUserConsent(
-      ClientId(kOAuthClientId, _getOAuthClientSecret()),
-      DatastoreImpl.SCOPES + Storage.SCOPES, (String uri) {
+      ClientId(kOAuthClientId, _getOAuthClientSecret()), DatastoreImpl.SCOPES + Storage.SCOPES, (String uri) {
     print('Please follow the following URL for authentication: $uri');
   });
-  final DatastoreDB db =
-      DatastoreDB(DatastoreImpl(client, kProjectId));
+  final DatastoreDB db = DatastoreDB(DatastoreImpl(client, kProjectId));
   final SkiaPerfDestination destination = await SkiaPerfDestination.make(
     client,
     kProjectId,
@@ -80,8 +78,7 @@ class TransferHandler {
 
   /// Reads benchmark records with [createTimestamp] later than [sinceMillis].
   /// And limits the result size to no larger than [batchSize].
-  Future<List<TimeSeriesValue>> readTimeSeriesValue(
-      int beginMillis, int endMillis,
+  Future<List<TimeSeriesValue>> readTimeSeriesValue(int beginMillis, int endMillis,
       {int batchSize = 1000 * 1000}) async {
     final Query<TimeSeriesValue> query = _db.query<TimeSeriesValue>()
       ..filter('createTimestamp >=', beginMillis)
@@ -99,8 +96,7 @@ class TransferHandler {
   /// [TimeSeries] into [BenchmarkMetricPoint] that can be consumed by metrics
   /// center.
   Future<List<BenchmarkMetricPoint>> transform(
-      Map<String, TimeSeries> timeSeriesMap,
-      List<TimeSeriesValue> timeSeriesValues) async {
+      Map<String, TimeSeries> timeSeriesMap, List<TimeSeriesValue> timeSeriesValues) async {
     final List<BenchmarkMetricPoint> points = <BenchmarkMetricPoint>[];
     for (TimeSeriesValue tsv in timeSeriesValues) {
       // The id is string typed, see the definition of [TimeSeries].
@@ -130,8 +126,8 @@ class TransferHandler {
     DateTime from = start, to = start.add(_kStep);
     for (int i = 1; i <= stepCount; from = to, to = to.add(_kStep), i += 1) {
       print('Step $i/$stepCount: transferring from ${_t(from)} to ${_t(to)}');
-      final List<TimeSeriesValue> timeSeriesValues = await readTimeSeriesValue(
-          from.millisecondsSinceEpoch, to.millisecondsSinceEpoch);
+      final List<TimeSeriesValue> timeSeriesValues =
+          await readTimeSeriesValue(from.millisecondsSinceEpoch, to.millisecondsSinceEpoch);
       print('  Read ${timeSeriesValues.length} TimeSeriesValues.');
       if (timeSeriesValues.isNotEmpty) {
         List<BenchmarkMetricPoint> points;
@@ -217,10 +213,8 @@ const String kOAuthClientId = '308150028417-8393psgs5bbp7h1v3m7eedaai865fbp6'
     '.apps.googleusercontent.com';
 const String kGithubTokenKey = 'GITHUB_TOKEN';
 
-const String kMissingSecretMessage =
-    'Cannot find environment variable $kOAuthClientSecretKey. '
+const String kMissingSecretMessage = 'Cannot find environment variable $kOAuthClientSecretKey. '
     'Please find the oauth client secret of $kOAuthClientId, and set it '
     'as environment variable $kOAuthClientSecretKey.';
 
-const String _kGithubRateError =
-    'GitHub Error: API rate limit exceeded for user ID';
+const String _kGithubRateError = 'GitHub Error: API rate limit exceeded for user ID';

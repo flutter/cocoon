@@ -81,8 +81,7 @@ Future<void> main() async {
 
     // Capture print for verifications.
     final List<String> prints = <String>[];
-    final ZoneSpecification spec =
-        ZoneSpecification(print: (_, __, ___, String msg) => prints.add(msg));
+    final ZoneSpecification spec = ZoneSpecification(print: (_, __, ___, String msg) => prints.add(msg));
     Zone.current.fork(specification: spec).run<void>(fakeAsyncTestWithClock);
 
     expect(
@@ -126,8 +125,8 @@ Step 3/3: transferring from 2020-12-09 00:00:00.000 to 2020-12-10 00:00:00.000
   });
 
   test('transform returns a list.', () async {
-    final List<BenchmarkMetricPoint> points = await handler.transform(
-        <String, TimeSeries>{'fakeTsId': ts}, <TimeSeriesValue>[tsv]);
+    final List<BenchmarkMetricPoint> points =
+        await handler.transform(<String, TimeSeries>{'fakeTsId': ts}, <TimeSeriesValue>[tsv]);
 
     expect(points.first.value, 2.0);
     expect(points.first.tags, <String, String>{

@@ -245,7 +245,7 @@ packages:
       name: github
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.0.3"
+    version: "7.0.4"
   glob:
     dependency: transitive
     description:
@@ -389,10 +389,10 @@ packages:
   metrics_center:
     dependency: "direct dev"
     description:
-      path: "/Users/liyuqian/flutter/flutter/dev/benchmarks/metrics_center"
-      relative: false
-    source: path
-    version: "0.0.3"
+      name: metrics_center
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
   mime:
     dependency: "direct main"
     description:
