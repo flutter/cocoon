@@ -1079,8 +1079,7 @@ void main() {
         final MockIssuesService mockIssuesService = MockIssuesService();
         when(gitHubClient.issues).thenReturn(mockIssuesService);
         final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-        when(mockIssuesService.listCommentsByIssue(slug, issueNumber))
-            .thenAnswer((Invocation _invocation) {
+        when(mockIssuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer((Invocation _invocation) {
           return Stream<IssueComment>.fromIterable(<IssueComment>[]);
         });
 
