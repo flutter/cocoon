@@ -81,7 +81,7 @@ class TransferHandler {
     final Map<String, TimeSeries> map = <String, TimeSeries>{};
     await for (TimeSeries ts in _db.query<TimeSeries>().run()) {
       // The id is string typed, see the definition of [TimeSeries].
-      map[ts.id as String] = ts;
+      map[ts.id] = ts;
     }
     return map;
   }
