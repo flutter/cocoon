@@ -96,7 +96,7 @@ class KeyHelper {
     final Uint8List decoded = base64Url.decode(encoded);
     final Reference reference = Reference.fromBuffer(decoded);
     return reference.path.element.fold<Key<dynamic>>(
-      Key<dynamic>.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
+      Key<int>.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
       (Key<dynamic> previous, Path_Element element) {
         final Iterable<MapEntry<Type, Kind>> entries =
             types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
@@ -104,10 +104,11 @@ class KeyHelper {
           throw StateError('Unknown type: ${element.type}');
         }
         final MapEntry<Type, Kind> entry = entries.single;
-        return previous.append<dynamic>(
-          entry.key,
-          id: entry.value.idType == IdType.String ? element.name : element.id.toInt(),
-        );
+        if (entry.value.idType == IdType.String) {
+          return previous.append<String>(entry.key, id: element.name);
+        } else {
+          return previous.append<int>(entry.key, id: element.id.toInt());
+        }
       },
     );
   }

@@ -72,7 +72,8 @@ class GetTimeSeriesHistoryResponse extends JsonBody {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'BenchmarkData': BenchmarkData(
-          timeSeriesEntity: TimeseriesEntity(timeSeries: timeSeries, key: const KeyConverter().toJson(timeSeries.key)),
+          timeSeriesEntity:
+              TimeseriesEntity(timeSeries: timeSeries, key: const StringKeyConverter().toJson(timeSeries.key)),
           values: timeSeriesValues),
       // TODO(keyonghan): implemement last position
       // https://github.com/flutter/flutter/issues/42362

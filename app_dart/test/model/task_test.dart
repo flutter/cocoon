@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart';
@@ -22,14 +23,14 @@ void main() {
 
     test('creates a valid chromebot task', () {
       final DatastoreDB db = DatastoreDB(null);
-      final Key<String> key = db.emptyKey.append<String>(Task, id: '42');
+      final Key<String> commitKey = db.emptyKey.append<String>(Commit, id: '42');
       const LuciBuilder builder = LuciBuilder(
         name: 'builderAbc',
         repo: 'flutter/flutter',
         taskName: 'taskName',
         flaky: false,
       );
-      final Task task = Task.chromebot(commitKey: key, createTimestamp: 123, builder: builder);
+      final Task task = Task.chromebot(commitKey: commitKey, createTimestamp: 123, builder: builder);
       validateModel(task);
       expect(task.name, 'taskName');
       expect(task.builderName, 'builderAbc');

@@ -42,7 +42,9 @@ void main() {
     for (ClassMirror modelClass in classes) {
       group('${modelClass.reflectedType}', () {
         test('extends Model', () {
-          expect(modelClass.superclass.reflectedType, Model);
+          final bool isStringModel = modelClass.superclass.reflectedType.toString() == 'Model<String>';
+          final bool isIntModel = modelClass.superclass.reflectedType.toString() == 'Model<int>';
+          expect(isStringModel || isIntModel, isTrue);
         });
 
         final Iterable<VariableMirror> propertyVariables = modelClass.declarations.values
