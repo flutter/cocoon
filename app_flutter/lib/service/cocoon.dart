@@ -15,10 +15,12 @@ import 'dev_cocoon.dart';
 abstract class CocoonService {
   /// Creates a new [CocoonService] based on if the Flutter app is in production.
   ///
-  /// Production uses the Cocoon backend running on AppEngine.
-  /// Otherwise, it uses fake data populated from a fake service.
-  factory CocoonService() {
-    if (kReleaseMode) {
+  /// If `useProductionService` is true, then use the production Cocoon backend
+  /// running on AppEngine, otherwise use fake data populated from a fake
+  /// service. Defaults to production data on a release build, and fake data on
+  /// a debug build.
+  factory CocoonService({bool useProductionService = kReleaseMode}) {
+    if (useProductionService) {
       return AppEngineCocoonService();
     }
     return DevelopmentCocoonService(DateTime.now());

@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io' if (kIsWeb) '';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'agent_dashboard_page.dart';
@@ -15,9 +18,34 @@ import 'state/index.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
 
-void main() {
+void usage() {
+  // ignore: avoid_print
+  print('''
+Usage: cocoon [--use-production-service | --no-use-production-service]
+
+  --[no-]use-production-service  Enable/disable using the production Cocoon
+                                 service for source data. Defaults to the
+                                 production service in a release build, and the
+                                 fake service in a debug build.
+''');
+}
+
+void main([List<String> args = const <String>[]]) {
+  bool useProductionService = kReleaseMode;
+  if (args.contains('--help')) {
+    usage();
+    if (!kIsWeb) {
+      exit(0);
+    }
+  }
+  if (args.contains('--use-production-service')) {
+    useProductionService = true;
+  }
+  if (args.contains('--no-use-production-service')) {
+    useProductionService = false;
+  }
   final GoogleSignInService authService = GoogleSignInService();
-  final CocoonService cocoonService = CocoonService();
+  final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
   runApp(
     StateProvider(
       signInService: authService,
