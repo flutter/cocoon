@@ -9,7 +9,7 @@ part of 'task.dart';
 // **************************************************************************
 
 Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
-      'ChecklistKey': const KeyConverter().toJson(instance.commitKey),
+      'ChecklistKey': const StringKeyConverter().toJson(instance.commitKey),
       'CreateTimestamp': instance.createTimestamp,
       'StartTimestamp': instance.startTimestamp,
       'EndTimestamp': instance.endTimestamp,
@@ -28,7 +28,8 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'Status': instance.status,
     };
 
-Map<String, dynamic> _$SerializableTaskToJson(SerializableTask instance) => <String, dynamic>{
+Map<String, dynamic> _$SerializableTaskToJson(SerializableTask instance) =>
+    <String, dynamic>{
       'Task': instance.task,
-      'Key': const KeyConverter().toJson(instance.key),
+      'Key': const IntKeyConverter().toJson(instance.key),
     };
