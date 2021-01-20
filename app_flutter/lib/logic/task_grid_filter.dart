@@ -36,9 +36,7 @@ class TaskGridFilter extends FilterPropertySource {
   void applyMap(Map<String, String> valueMap) {
     if (valueMap != null) {
       for (final MapEntry<String, String> mapEntry in valueMap.entries) {
-        if (_allProperties.containsKey(mapEntry.key)) {
-          _allProperties[mapEntry.key].stringValue = mapEntry.value;
-        }
+        _allProperties[mapEntry.key].stringValue = mapEntry.value;
       }
     }
   }
