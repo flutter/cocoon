@@ -103,7 +103,7 @@ class Task extends Model<int> {
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
   @JsonKey(name: 'ChecklistKey')
-  @KeyConverter()
+  @StringKeyConverter()
   Key<String> commitKey;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
@@ -272,7 +272,7 @@ class SerializableTask {
   final Task task;
 
   @JsonKey(name: 'Key')
-  @KeyConverter()
+  @IntKeyConverter()
   Key<int> get key => task.key;
 
   /// Serializes this object to a JSON primitive.

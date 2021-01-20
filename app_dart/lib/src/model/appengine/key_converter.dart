@@ -17,3 +17,23 @@ class KeyConverter implements JsonConverter<Key<dynamic>, String> {
   @override
   String toJson(Key<dynamic> key) => key == null ? null : KeyHelper().encode(key);
 }
+
+class StringKeyConverter implements JsonConverter<Key<String>, String> {
+  const StringKeyConverter();
+
+  @override
+  Key<String> fromJson(String json) => json == null ? null : KeyHelper().decode(json) as Key<String>;
+
+  @override
+  String toJson(Key<String> key) => key == null ? null : KeyHelper().encode(key);
+}
+
+class IntKeyConverter implements JsonConverter<Key<int>, String> {
+  const IntKeyConverter();
+
+  @override
+  Key<int> fromJson(String json) => json == null ? null : KeyHelper().decode(json) as Key<int>;
+
+  @override
+  String toJson(Key<int> key) => key == null ? null : KeyHelper().encode(key);
+}

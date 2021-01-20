@@ -52,7 +52,7 @@ class TimeSeriesValue extends Model<int> {
   /// The key of the task whose execution produced this measurement.
   @ModelKeyProperty(propertyName: 'TaskKey', required: true)
   @JsonKey(name: 'TaskKey')
-  @KeyConverter()
+  @IntKeyConverter()
   Key<int> taskKey;
 
   /// The SHA1 hash of the commit at which this measurement was taken.

@@ -91,7 +91,7 @@ class SerializableCommit {
   final Commit commit;
 
   @JsonKey(name: 'Key')
-  @KeyConverter()
+  @StringKeyConverter()
   Key<String> get key => commit.key;
 
   @JsonKey(name: 'Checklist')
