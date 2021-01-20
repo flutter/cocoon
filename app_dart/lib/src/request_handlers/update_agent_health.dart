@@ -37,7 +37,7 @@ class UpdateAgentHealth extends ApiRequestHandler<UpdateAgentHealthResponse> {
     final bool isHealthy = requestData[isHealthyParam] as bool;
     final String healthDetails = requestData[healthDetailsParam] as String;
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
+    final Key<String> key = datastore.db.emptyKey.append<String>(Agent, id: agentId);
     final Agent agent = await datastore.db.lookupValue<Agent>(
       key,
       orElse: () {

@@ -132,7 +132,7 @@ class FakeKeyHelper extends KeyHelper {
   }) : super(applicationContext: applicationContext);
 
   @override
-  String encode(Key key) {
+  String encode(Key<dynamic> key) {
     return '';
   }
 }

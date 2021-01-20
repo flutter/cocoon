@@ -67,7 +67,7 @@ class KeyHelper {
   /// See also:
   ///
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L231>
-  String encode(Key key) {
+  String encode(Key<dynamic> key) {
     final Reference reference = Reference()
       ..app = applicationContext.applicationID
       ..path = _asPath(key);
@@ -85,7 +85,7 @@ class KeyHelper {
   ///
   ///  * [encode], which is the complement to this method.
   ///  * <https://github.com/golang/appengine/blob/b2f4a3cf3c67576a2ee09e1fe62656a5086ce880/datastore/key.go#L244>
-  Key decode(String encoded) {
+  Key<dynamic> decode(String encoded) {
     // Re-add padding.
     final int remainder = encoded.length % 4;
     if (remainder != 0) {
@@ -95,19 +95,20 @@ class KeyHelper {
 
     final Uint8List decoded = base64Url.decode(encoded);
     final Reference reference = Reference.fromBuffer(decoded);
-    return reference.path.element.fold<Key>(
-      Key.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
-      (Key previous, Path_Element element) {
+    return reference.path.element.fold<Key<dynamic>>(
+      Key<int>.emptyKey(Partition(reference.nameSpace.isEmpty ? null : reference.nameSpace)),
+      (Key<dynamic> previous, Path_Element element) {
         final Iterable<MapEntry<Type, Kind>> entries =
             types.entries.where((MapEntry<Type, Kind> entry) => entry.value.name == element.type);
         if (entries.isEmpty) {
           throw StateError('Unknown type: ${element.type}');
         }
         final MapEntry<Type, Kind> entry = entries.single;
-        return previous.append(
-          entry.key,
-          id: entry.value.idType == IdType.String ? element.name : element.id.toInt(),
-        );
+        if (entry.value.idType == IdType.String) {
+          return previous.append<String>(entry.key, id: element.name);
+        } else {
+          return previous.append<int>(entry.key, id: element.id.toInt());
+        }
       },
     );
   }
@@ -134,13 +135,13 @@ class KeyHelper {
     return Map<Type, Kind>.unmodifiable(result);
   }
 
-  Path _asPath(Key key) {
-    final List<Key> path = <Key>[];
-    for (Key current = key; current != null && !current.isEmpty; current = current.parent) {
+  Path _asPath(Key<dynamic> key) {
+    final List<Key<dynamic>> path = <Key<dynamic>>[];
+    for (Key<dynamic> current = key; current != null && !current.isEmpty; current = current.parent) {
       path.insert(0, current);
     }
     return Path()
-      ..element.addAll(path.map<Path_Element>((Key key) {
+      ..element.addAll(path.map<Path_Element>((Key<dynamic> key) {
         final Path_Element element = Path_Element();
         if (key.type != null) {
           element.type = types.containsKey(key.type) ? types[key.type].name : key.type.toString();

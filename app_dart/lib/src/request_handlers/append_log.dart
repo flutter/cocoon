@@ -46,9 +46,9 @@ class AppendLog extends ApiRequestHandler<Body> {
 
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key ownerKey = keyHelper.decode(encodedOwnerKey);
+    final Key<int> ownerKey = keyHelper.decode(encodedOwnerKey) as Key<int>;
 
-    final Task task = await datastore.lookupByValue<Model>(ownerKey, orElse: () {
+    final Task task = await datastore.lookupByValue<Model<int>>(ownerKey, orElse: () {
       throw const InternalServerError('Invalid owner key. Owner entity does not exist');
     }) as Task;
 

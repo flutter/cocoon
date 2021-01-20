@@ -94,7 +94,7 @@ void main() {
 
     test('Shard', () async {
       // default maxEntityGroups = 5
-      List<List<Model>> shards =
+      List<List<Model<dynamic>>> shards =
           await datastoreService.shard(<Commit>[Commit(), Commit(), Commit(), Commit(), Commit(), Commit()]);
       expect(shards, hasLength(2));
       expect(shards[0], hasLength(5));
@@ -121,7 +121,7 @@ void main() {
 
     test('LookupByKey', () async {
       config.db.values[commit.key] = commit;
-      final List<Commit> commits = await datastoreService.lookupByKey(<Key>[commit.key]);
+      final List<Commit> commits = await datastoreService.lookupByKey(<Key<dynamic>>[commit.key]);
       expect(commits, hasLength(1));
       expect(commits[0], equals(commit));
     });

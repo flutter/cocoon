@@ -18,10 +18,10 @@ part 'task.g.dart';
 /// particular commit.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Task')
-class Task extends Model {
+class Task extends Model<int> {
   /// Creates a new [Task].
   Task({
-    Key key,
+    Key<int> key,
     this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
@@ -49,7 +49,7 @@ class Task extends Model {
 
   /// Construct [Task] from a [LuciBuilder].
   factory Task.chromebot({
-    @required Key commitKey,
+    @required Key<String> commitKey,
     @required int createTimestamp,
     @required LuciBuilder builder,
   }) {
@@ -103,8 +103,8 @@ class Task extends Model {
   /// The key of the commit that owns this task.
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
   @JsonKey(name: 'ChecklistKey')
-  @KeyConverter()
-  Key commitKey;
+  @StringKeyConverter()
+  Key<String> commitKey;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -272,8 +272,8 @@ class SerializableTask {
   final Task task;
 
   @JsonKey(name: 'Key')
-  @KeyConverter()
-  Key get key => task.key;
+  @IntKeyConverter()
+  Key<int> get key => task.key;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$SerializableTaskToJson(this);

@@ -187,7 +187,7 @@ void main() {
       final Commit commit = shaToCommit('1', 'master');
       db.values[commit.key] = commit;
 
-      db.onCommit = (List<gcloud_db.Model> inserts, List<gcloud_db.Key> deletes) {
+      db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
         if (inserts.whereType<Commit>().where((Commit commit) => commit.sha == '3').isNotEmpty) {
           throw StateError('Commit failed');
         }

@@ -26,10 +26,11 @@ void main() {
     TaskService taskService;
 
     Task newTask() {
-      final String taskId = 'test_${taskIdCounter++}';
+      final int taskId = taskIdCounter++;
+      final String taskName = 'test_$taskId';
       return Task(
         key: commit.key.append(Task, id: taskId),
-        name: taskId,
+        name: taskName,
         status: Task.statusNew,
         stageName: 'devicelab',
         attempts: 0,

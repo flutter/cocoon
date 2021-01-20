@@ -39,7 +39,7 @@ class CreateAgent extends ApiRequestHandler<CreateAgentResponse> {
     final List<String> capabilities = (requestData[capabilitiesParam] as List<dynamic>).cast<String>().toList();
     final DatastoreService datastore = datastoreProvider(config.db);
     final AgentService agentService = agentServiceProvider();
-    final Key key = datastore.db.emptyKey.append(Agent, id: agentId);
+    final Key<String> key = datastore.db.emptyKey.append<String>(Agent, id: agentId);
 
     if (await datastore.db.lookupValue<Agent>(key, orElse: () => null) != null) {
       throw BadRequestException('Agent ID: $agentId already exists');

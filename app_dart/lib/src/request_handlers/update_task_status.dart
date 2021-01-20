@@ -140,7 +140,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Task> _getTaskFromEncodedKey(DatastoreService datastore) {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key taskKey = keyHelper.decode(requestData[taskKeyParam] as String);
+    final Key<int> taskKey = keyHelper.decode(requestData[taskKeyParam] as String) as Key<int>;
     return datastore.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
     });
@@ -155,7 +155,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   /// To lookup the value, we construct the ancestor key, which corresponds to the [Commit].
   /// Then we query the tasks with that ancestor key and search for the one that matches the builder name.
   Future<Task> _getTaskFromNamedParams(DatastoreService datastore) async {
-    final Key commitKey = await _constructCommitKey(datastore);
+    final Key<String> commitKey = await _constructCommitKey(datastore);
 
     final String builderName = requestData[builderNameParam] as String;
     final Query<Task> query = datastore.db.query<Task>(ancestorKey: commitKey);
@@ -180,7 +180,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   /// Construct the Datastore key for [Commit] that is the ancestor to this [Task].
   ///
   /// Throws [BadRequestException] if the given git branch does not exist in [CocoonConfig].
-  Future<Key> _constructCommitKey(DatastoreService datastore) async {
+  Future<Key<String>> _constructCommitKey(DatastoreService datastore) async {
     final String gitBranch = (requestData[gitBranchParam] as String).trim();
     final String gitSha = (requestData[gitShaParam] as String).trim();
     final List<String> flutterBranches = await config.flutterBranches;
@@ -190,7 +190,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
           'see https://github.com/flutter/cocoon/tree/master/app_dart#branching-support-for-flutter-repo');
     }
     final String id = 'flutter/flutter/$gitBranch/$gitSha';
-    final Key commitKey = datastore.db.emptyKey.append(Commit, id: id);
+    final Key<String> commitKey = datastore.db.emptyKey.append<String>(Commit, id: id);
     log.debug('Constructed commit key=$id');
     // Return the official key from Datastore for task lookups.
     final Commit commit = await config.db.lookupValue<Commit>(commitKey, orElse: () {
@@ -236,8 +236,8 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     DatastoreService datastore,
   ) async {
     final String id = '${task.name}.$scoreKey';
-    final Key timeSeriesKey = Key.emptyKey(Partition(null)).append(TimeSeries, id: id);
-    TimeSeries series = (await datastore.lookupByKey<TimeSeries>(<Key>[timeSeriesKey])).single;
+    final Key<String> timeSeriesKey = Key<String>.emptyKey(Partition(null)).append<String>(TimeSeries, id: id);
+    TimeSeries series = (await datastore.lookupByKey<TimeSeries>(<Key<String>>[timeSeriesKey])).single;
 
     if (series == null) {
       series = TimeSeries(

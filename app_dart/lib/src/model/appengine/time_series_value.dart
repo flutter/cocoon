@@ -13,10 +13,10 @@ part 'time_series_value.g.dart';
 /// [TimeSeries].
 @JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'TimeseriesValue')
-class TimeSeriesValue extends Model {
+class TimeSeriesValue extends Model<int> {
   /// Creates a new [TimeSeriesValue].
   TimeSeriesValue({
-    Key key,
+    Key<int> key,
     this.dataMissing = false,
     this.value,
     this.createTimestamp,
@@ -52,8 +52,8 @@ class TimeSeriesValue extends Model {
   /// The key of the task whose execution produced this measurement.
   @ModelKeyProperty(propertyName: 'TaskKey', required: true)
   @JsonKey(name: 'TaskKey')
-  @KeyConverter()
-  Key taskKey;
+  @IntKeyConverter()
+  Key<int> taskKey;
 
   /// The SHA1 hash of the commit at which this measurement was taken.
   ///

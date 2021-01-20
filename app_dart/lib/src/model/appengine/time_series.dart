@@ -14,10 +14,10 @@ part 'time_series.g.dart';
 /// children of [TimeSeries] keys.
 @JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'Timeseries', idType: IdType.String)
-class TimeSeries extends Model {
+class TimeSeries extends Model<String> {
   /// Creates a new [TimeSeries].
   TimeSeries({
-    Key key,
+    Key<String> key,
     this.archived = false,
     this.baseline = 0,
     this.goal = 0,

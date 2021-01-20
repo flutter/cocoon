@@ -41,9 +41,9 @@ class UpdateBenchmarkTargets extends ApiRequestHandler<UpdateBenchmarkTargetsRes
     double goal = requestData[goalParam] as double;
     double baseline = requestData[baselineParam] as double;
 
-    Key timeSeriesKey;
+    Key<String> timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String) as Key<String>;
     } catch (error) {
       throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }

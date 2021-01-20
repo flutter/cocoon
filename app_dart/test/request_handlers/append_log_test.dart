@@ -95,9 +95,9 @@ Deleting build/ directories, if any.
       expect(datastoreDB.values.keys.length, 2);
 
       // To get the log chunk key, remove the known task key
-      final List<Key> dbKeys = datastoreDB.values.keys.toList();
+      final List<Key<dynamic>> dbKeys = datastoreDB.values.keys.toList();
       dbKeys.remove(task.key);
-      final Key logChunkKey = dbKeys[0];
+      final Key<int> logChunkKey = dbKeys[0] as Key<int>;
 
       final LogChunk logChunk = await datastoreDB.lookupValue<LogChunk>(logChunkKey);
       expect(logChunk, isNotNull);

@@ -43,7 +43,7 @@ class GetLog extends ApiRequestHandler<Body> {
     }
 
     final KeyHelper keyHelper = KeyHelper(applicationContext: context.applicationContext);
-    final Key ownerKey = keyHelper.decode(encodedOwnerKey);
+    final Key<int> ownerKey = keyHelper.decode(encodedOwnerKey) as Key<int>;
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final Task task = await datastore.db.lookupValue<Task>(ownerKey, orElse: () => null);
@@ -56,7 +56,7 @@ class GetLog extends ApiRequestHandler<Body> {
     return Body.forStream(_getResponse(datastore, task, ownerKey));
   }
 
-  Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key ownerKey) async* {
+  Stream<Uint8List> _getResponse(DatastoreService datastore, Task task, Key<int> ownerKey) async* {
     yield utf8.encode('\n\n------------ TASK ------------\n') as Uint8List;
     yield utf8.encode(task.toString()) as Uint8List;
 

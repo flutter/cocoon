@@ -12,10 +12,10 @@ part 'agent.g.dart';
 /// Class that represents a worker capable of running tasks.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Agent', idType: IdType.String)
-class Agent extends Model {
+class Agent extends Model<String> {
   /// Creates a new [Agent].
   Agent({
-    Key key,
+    Key<String> key,
     this.agentId,
     this.healthCheckTimestamp,
     this.isHealthy,

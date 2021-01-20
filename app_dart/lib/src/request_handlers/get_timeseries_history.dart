@@ -42,9 +42,9 @@ class GetTimeSeriesHistory extends NoAuthRequestHandler<GetTimeSeriesHistoryResp
     final KeyHelper keyHelper = KeyHelper(applicationContext: AppEngineContext(false, '', '', '', '', '', Uri()));
     final Set<Commit> commits = await datastore.queryRecentCommits(limit: maxRecords).toSet();
 
-    Key timeSeriesKey;
+    Key<String> timeSeriesKey;
     try {
-      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String);
+      timeSeriesKey = keyHelper.decode(requestData[timeSeriesKeyParam] as String) as Key<String>;
     } on FormatException {
       throw BadRequestException('Bad timeSeries key: ${requestData[timeSeriesKeyParam]}');
     }
@@ -72,7 +72,8 @@ class GetTimeSeriesHistoryResponse extends JsonBody {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'BenchmarkData': BenchmarkData(
-          timeSeriesEntity: TimeseriesEntity(timeSeries: timeSeries, key: const KeyConverter().toJson(timeSeries.key)),
+          timeSeriesEntity:
+              TimeseriesEntity(timeSeries: timeSeries, key: const StringKeyConverter().toJson(timeSeries.key)),
           values: timeSeriesValues),
       // TODO(keyonghan): implemement last position
       // https://github.com/flutter/flutter/issues/42362

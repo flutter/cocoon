@@ -13,18 +13,18 @@ class KeyWrapper {
   const KeyWrapper(this.key) : assert(key != null);
 
   factory KeyWrapper.fromProto(pb.RootKey root) {
-    Key result = Key.emptyKey(Partition(root.namespace));
+    Key<dynamic> result = Key<dynamic>.emptyKey(Partition(root.namespace));
     for (pb.Key key = root.child; key != null; key = key.child) {
       final Type type = _typeFromString(key.type);
       switch (key.whichId()) {
         case pb.Key_Id.uid:
-          result = result.append(type, id: key.uid.toInt());
+          result = result.append<int>(type, id: key.uid.toInt());
           break;
         case pb.Key_Id.name:
-          result = result.append(type, id: key.name);
+          result = result.append<String>(type, id: key.name);
           break;
         case pb.Key_Id.notSet:
-          result = result.append(type);
+          result = result.append<dynamic>(type);
           break;
       }
     }
@@ -32,11 +32,11 @@ class KeyWrapper {
     return KeyWrapper(result);
   }
 
-  final Key key;
+  final Key<dynamic> key;
 
   pb.RootKey toProto() {
     pb.Key previous;
-    for (Key slice = key; slice != null; slice = key.parent) {
+    for (Key<dynamic> slice = key; slice != null; slice = key.parent) {
       final pb.Key current = pb.Key();
       if (slice.type != null) {
         current.type = slice.type.toString();

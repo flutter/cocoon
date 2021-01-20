@@ -13,7 +13,7 @@ TimeSeriesValue _$TimeSeriesValueFromJson(Map<String, dynamic> json) {
     dataMissing: json['DataMissing'] as bool ?? false,
     value: (json['Value'] as num)?.toDouble(),
     createTimestamp: json['CreateTimestamp'] as int,
-    taskKey: const KeyConverter().fromJson(json['TaskKey'] as String),
+    taskKey: const IntKeyConverter().fromJson(json['TaskKey'] as String),
     revision: json['Revision'] as String,
   );
 }
@@ -22,6 +22,6 @@ Map<String, dynamic> _$TimeSeriesValueToJson(TimeSeriesValue instance) => <Strin
       'DataMissing': instance.dataMissing,
       'Value': instance.value,
       'CreateTimestamp': instance.createTimestamp,
-      'TaskKey': const KeyConverter().toJson(instance.taskKey),
+      'TaskKey': const IntKeyConverter().toJson(instance.taskKey),
       'Revision': instance.revision,
     };

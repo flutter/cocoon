@@ -45,9 +45,9 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String encodedKey = requestData[taskKeyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key key = keyHelper.decode(encodedKey);
+    final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
     log.info('Rescheduling task with Key: ${key.id}');
-    final Task task = (await datastore.lookupByKey<Task>(<Key>[key])).single;
+    final Task task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
     if (task == null) {
       throw BadRequestException('No such task: $key');
     }

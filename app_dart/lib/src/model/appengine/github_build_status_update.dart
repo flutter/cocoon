@@ -7,9 +7,9 @@ import 'package:gcloud/db.dart';
 /// Class that represents an update having been posted to a GitHub PR on the
 /// status of the Flutter build.
 @Kind(name: 'GithubBuildStatusUpdate')
-class GithubBuildStatusUpdate extends Model {
+class GithubBuildStatusUpdate extends Model<int> {
   GithubBuildStatusUpdate({
-    Key key,
+    Key<int> key,
     this.repository,
     this.pr,
     this.head,
