@@ -83,7 +83,7 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
     if (agentId != null) {
       // Authenticate as an agent. Note that it could simultaneously be cron
       // and agent, or Google account and agent.
-      final Key agentKey = config.db.emptyKey.append(Agent, id: agentId);
+      final Key<String> agentKey = config.db.emptyKey.append(Agent, id: agentId);
       final Agent agent = await config.db.lookupValue<Agent>(agentKey, orElse: () {
         throw Unauthenticated('Invalid agent: $agentId');
       });

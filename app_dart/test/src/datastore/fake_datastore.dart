@@ -17,7 +17,7 @@ import 'package:gcloud/db.dart';
 /// from the callback.
 ///
 /// The callback must not return null.
-typedef QueryCallback<T extends Model> = Iterable<T> Function(Iterable<T> results);
+typedef QueryCallback<T extends Model<dynamic>> = Iterable<T> Function(Iterable<T> results);
 
 /// Signature for a callback function that will be notified whenever `commit()`
 /// is called, either via [FakeDatastoreDB.commit] or [FakeTransaction.commit].
@@ -36,13 +36,13 @@ typedef CommitCallback = void Function(List<Model> inserts, List<Key> deletes);
 /// test.
 class FakeDatastoreDB implements DatastoreDB {
   FakeDatastoreDB({
-    Map<Key, Model> values,
+    Map<Key<dynamic>, Model<dynamic>> values,
     Map<Type, QueryCallback<dynamic>> onQuery,
     this.onCommit,
-  })  : values = values ?? <Key, Model>{},
+  })  : values = values ?? <Key<dynamic>, Model<dynamic>>{},
         onQuery = onQuery ?? <Type, QueryCallback<dynamic>>{};
 
-  final Map<Key, Model> values;
+  final Map<Key<dynamic>, Model<dynamic>> values;
   final Map<Type, QueryCallback<dynamic>> onQuery;
   CommitCallback onCommit;
 
@@ -51,7 +51,7 @@ class FakeDatastoreDB implements DatastoreDB {
   ///
   /// The [callback] argument will replace any existing callback that has been
   /// specified for type `T`, as only one callback may exist per type.
-  void addOnQuery<T extends Model>(QueryCallback<T> callback) {
+  void addOnQuery<T extends Model<dynamic>>(QueryCallback<T> callback) {
     final QueryCallback<dynamic> untypedCallback = (Iterable<dynamic> results) {
       return callback(results.cast<T>()).cast<dynamic>();
     };
@@ -59,14 +59,14 @@ class FakeDatastoreDB implements DatastoreDB {
   }
 
   @override
-  Future<dynamic> commit({List<Model> inserts, List<Key> deletes}) async {
-    inserts ??= <Model>[];
-    deletes ??= <Key>[];
+  Future<dynamic> commit({List<Model<dynamic>> inserts, List<Key<dynamic>> deletes}) async {
+    inserts ??= <Model<dynamic>>[];
+    deletes ??= <Key<dynamic>>[];
     if (onCommit != null) {
-      onCommit(List<Model>.unmodifiable(inserts), List<Key>.unmodifiable(deletes));
+      onCommit(List<Model<dynamic>>.unmodifiable(inserts), List<Key<dynamic>>.unmodifiable(deletes));
     }
     deletes.forEach(values.remove);
-    for (Model model in inserts) {
+    for (Model<dynamic> model in inserts) {
       values[model.key] = model;
     }
   }
@@ -81,12 +81,12 @@ class FakeDatastoreDB implements DatastoreDB {
   Key get emptyKey => defaultPartition.emptyKey;
 
   @override
-  Future<List<T>> lookup<T extends Model>(List<Key> keys) async {
-    return keys.map<T>((Key key) => values[key] as T).toList();
+  Future<List<T>> lookup<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
+    return keys.map<T>((Key<dynamic> key) => values[key] as T).toList();
   }
 
   @override
-  Future<T> lookupValue<T extends Model>(Key key, {T orElse()}) async {
+  Future<T> lookupValue<T extends Model<dynamic>>(Key key, {T orElse()}) async {
     final List<T> values = await lookup(<Key>[key]);
     T value = values.single;
     if (value == null) {
@@ -106,7 +106,7 @@ class FakeDatastoreDB implements DatastoreDB {
   Partition newPartition(String namespace) => Partition(namespace);
 
   @override
-  FakeQuery<T> query<T extends Model>({Partition partition, Key ancestorKey}) {
+  FakeQuery<T> query<T extends Model<dynamic>>({Partition partition, Key<dynamic> ancestorKey}) {
     final List<T> results = values.values.whereType<T>().toList();
     return FakeQuery<T>._(this, results);
   }
@@ -123,7 +123,7 @@ class FakeDatastoreDB implements DatastoreDB {
 ///
 /// This fake query ignores any [filter] or [order] directives, though it does
 /// respect [limit] and [offset] directives.
-class FakeQuery<T extends Model> implements Query<T> {
+class FakeQuery<T extends Model<dynamic>> implements Query<T> {
   FakeQuery._(this.db, this.results);
 
   final FakeDatastoreDB db;
@@ -206,8 +206,8 @@ class FakeOrderSpec {
 class FakeTransaction implements Transaction {
   FakeTransaction._(this.db);
 
-  final Map<Key, Model> inserts = <Key, Model>{};
-  final Set<Key> deletes = <Key>{};
+  final Map<Key<dynamic>, Model<dynamic>> inserts = <Key<dynamic>, Model<dynamic>>{};
+  final Set<Key<dynamic>> deletes = <Key<dynamic>>{};
   bool sealed = false;
 
   @override
@@ -219,9 +219,9 @@ class FakeTransaction implements Transaction {
       throw StateError('Transaction sealed');
     }
     if (db.onCommit != null) {
-      db.onCommit(List<Model>.unmodifiable(inserts.values), List<Key>.unmodifiable(deletes));
+      db.onCommit(List<Model<dynamic>>.unmodifiable(inserts.values), List<Key<dynamic>>.unmodifiable(deletes));
     }
-    for (MapEntry<Key, Model> entry in inserts.entries) {
+    for (MapEntry<Key<dynamic>, Model<dynamic>> entry in inserts.entries) {
       db.values[entry.key] = entry.value;
     }
     deletes.forEach(db.values.remove);
@@ -229,9 +229,9 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  Future<List<T>> lookup<T extends Model>(List<Key> keys) async {
+  Future<List<T>> lookup<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     final List<T> results = <T>[];
-    for (Key key in keys) {
+    for (Key<dynamic> key in keys) {
       if (deletes.contains(key)) {
         results.add(null);
       } else if (inserts.containsKey(key)) {
@@ -246,8 +246,8 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  Future<T> lookupValue<T extends Model>(Key key, {T orElse()}) async {
-    final List<T> values = await lookup(<Key>[key]);
+  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T orElse()}) async {
+    final List<T> values = await lookup(<Key<dynamic>>[key]);
     T value = values.single;
     if (value == null) {
       if (orElse != null) {
@@ -260,7 +260,7 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  Query<T> query<T extends Model>(Key ancestorKey, {Partition partition}) {
+  Query<T> query<T extends Model<dynamic>>(Key<dynamic> ancestorKey, {Partition partition}) {
     final List<T> queryResults = <T>[
       ...inserts.values.whereType<T>(),
       ...db.values.values.whereType<T>(),
@@ -270,16 +270,16 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  void queueMutations({List<Model> inserts, List<Key> deletes}) {
+  void queueMutations({List<Model<dynamic>> inserts, List<Key<dynamic>> deletes}) {
     if (sealed) {
       throw StateError('Transaction sealed');
     }
     if (inserts != null) {
       final math.Random random = math.Random();
-      for (Model insert in inserts) {
-        Key key = insert.key;
+      for (Model<dynamic> insert in inserts) {
+        Key<dynamic> key = insert.key;
         if (key.id == null) {
-          key = Key(key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));
+          key = Key<dynamic>(key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));
         }
         this.inserts[key] = insert;
       }

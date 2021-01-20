@@ -12,10 +12,10 @@ import 'package:gcloud/db.dart';
 /// to the Cocooon backend. This class represents instances where non-Google
 /// users have been explicitly allowlisted to make such requests.
 @Kind(name: 'AllowedAccount')
-class AllowedAccount extends Model {
+class AllowedAccount extends Model<int> {
   /// Creates a new [AllowedAccount].
   AllowedAccount({
-    Key key,
+    Key<int> key,
     this.email,
   }) {
     parentKey = key?.parent;

@@ -61,7 +61,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       if (agentId == null) {
         throw const BadRequestException('AgentID not specified in request');
       }
-      final Key key = config.db.emptyKey.append(Agent, id: agentId);
+      final Key<String> key = config.db.emptyKey.append(Agent, id: agentId);
       agent = await config.db.lookupValue<Agent>(key, orElse: () {
         throw BadRequestException('Invalid agent ID: $agentId');
       });
@@ -76,7 +76,7 @@ class ReserveTask extends ApiRequestHandler<ReserveTaskResponse> {
       }
 
       try {
-        await reservationService.secureReservation(task.task, agent.id as String);
+        await reservationService.secureReservation(task.task, agent.id);
         final ClientContext clientContext = authContext.clientContext;
         final AccessToken token = await accessTokenService.createAccessToken(
           scopes: const <String>['https://www.googleapis.com/auth/devstorage.read_write'],

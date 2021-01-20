@@ -13,10 +13,10 @@ part 'time_series_value.g.dart';
 /// [TimeSeries].
 @JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'TimeseriesValue')
-class TimeSeriesValue extends Model {
+class TimeSeriesValue extends Model<int> {
   /// Creates a new [TimeSeriesValue].
   TimeSeriesValue({
-    Key key,
+    Key<int> key,
     this.dataMissing = false,
     this.value,
     this.createTimestamp,

@@ -18,10 +18,10 @@ part 'task.g.dart';
 /// particular commit.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Task')
-class Task extends Model {
+class Task extends Model<int> {
   /// Creates a new [Task].
   Task({
-    Key key,
+    Key<int> key,
     this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,

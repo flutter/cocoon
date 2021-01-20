@@ -7,10 +7,10 @@ import 'package:gcloud/db.dart';
 /// Class representing a chunk of log output that was captured while running
 /// a [Task].
 @Kind(name: 'LogChunk')
-class LogChunk extends Model {
+class LogChunk extends Model<int> {
   /// Creates a new [LogChunk].
   LogChunk({
-    Key key,
+    Key<int> key,
     this.data,
     this.createTimestamp,
     this.ownerKey,
