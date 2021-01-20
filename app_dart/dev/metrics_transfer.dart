@@ -23,6 +23,16 @@ import 'package:metrics_center/metrics_center.dart';
 // ignore: implementation_imports
 import 'package:gcloud/src/datastore_impl.dart';
 
+// To run this, type a command like the following:
+// `OAUTH_CLIENT_SECRET=****** dart dev/metrics_transfer.dart`.
+//
+// The OAUTH_CLIENT_SECRET is available on
+// http://console.cloud.google.com/apis/credentials?project=flutter-dashboard.
+// Be sure to find the secret of the client id that matches kOAuthClientId.
+//
+// The script will ask you to follow a URL for authentication. Once
+// authenticated, the script will ask for the start date: all metrics after
+// that date will be transferred.
 Future<void> main() async {
   const String kProjectId = 'flutter-dashboard';
   _checkGithubToken();
