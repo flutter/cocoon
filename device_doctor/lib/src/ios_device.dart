@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show LineSplitter;
+import 'dart:convert' show LineSplitter, json;
 
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
@@ -44,7 +44,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       results['ios-device-${device.deviceId}'] = checks;
     }
-    await healthcheck(results);
+    final Map<String, String> healthCheckMap = await healthcheck(results);
+    await writeToFile(json.encode(healthCheckMap), kDeviceHealthcheckFilename);
     return results;
   }
 
