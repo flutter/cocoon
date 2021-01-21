@@ -12,7 +12,7 @@ import 'package:process/process.dart';
 import 'dart:convert' show utf8;
 
 const String kDevicePropertiesFilename = '.properties';
-const String kDeviceHealthcheckFilename = '.healthcheck';
+const String kDeviceFailedHealthcheckFilename = '.failedhealthcheck';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {

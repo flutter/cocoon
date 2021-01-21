@@ -96,7 +96,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, String> healthCheckMap = await healthcheck(results);
-    await writeToFile(json.encode(healthCheckMap), kDeviceHealthcheckFilename);
+    await writeToFile(json.encode(healthCheckMap), kDeviceFailedHealthcheckFilename);
     return results;
   }
 
