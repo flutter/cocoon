@@ -37,13 +37,13 @@ typedef CommitCallback = void Function(List<Model<dynamic>> inserts, List<Key<dy
 class FakeDatastoreDB implements DatastoreDB {
   FakeDatastoreDB({
     Map<Key<dynamic>, Model<dynamic>> values,
-    Map<Type, QueryCallback<dynamic>> onQuery,
+    Map<Type, QueryCallback<Model<dynamic>>> onQuery,
     this.onCommit,
   })  : values = values ?? <Key<dynamic>, Model<dynamic>>{},
-        onQuery = onQuery ?? <Type, QueryCallback<dynamic>>{};
+        onQuery = onQuery ?? <Type, QueryCallback<Model<dynamic>>>{};
 
   final Map<Key<dynamic>, Model<dynamic>> values;
-  final Map<Type, QueryCallback<dynamic>> onQuery;
+  final Map<Type, QueryCallback<Model<dynamic>>> onQuery;
   CommitCallback onCommit;
 
   /// Adds a [QueryCallback] to the set of callbacks that will be notified when
@@ -52,8 +52,8 @@ class FakeDatastoreDB implements DatastoreDB {
   /// The [callback] argument will replace any existing callback that has been
   /// specified for type `T`, as only one callback may exist per type.
   void addOnQuery<T extends Model<dynamic>>(QueryCallback<T> callback) {
-    final QueryCallback<dynamic> untypedCallback = (Iterable<dynamic> results) {
-      return callback(results.cast<T>()).cast<dynamic>();
+    final QueryCallback<Model<dynamic>> untypedCallback = (Iterable<Model<dynamic>> results) {
+      return callback(results.cast<T>()).cast<Model<dynamic>>();
     };
     onQuery[T] = untypedCallback;
   }
