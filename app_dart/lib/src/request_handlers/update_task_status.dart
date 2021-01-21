@@ -133,10 +133,9 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     Commit commit,
     Task task,
   ) async {
-    final FlutterDestination metricsDestination =
-      await FlutterDestination.makeFromCredentialsJson(
-        (await config.deviceLabServiceAccount).toJson(),
-      );
+    final FlutterDestination metricsDestination = await FlutterDestination.makeFromCredentialsJson(
+      (await config.deviceLabServiceAccount).toJson(),
+    );
     final List<MetricPoint> metricPoints = <MetricPoint>[];
     for (String scoreKey in scoreKeys) {
       metricPoints.add(
