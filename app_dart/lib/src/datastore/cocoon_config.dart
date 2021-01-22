@@ -16,6 +16,7 @@ import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:metrics_center/metrics_center.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
@@ -337,6 +338,12 @@ class Config {
   Future<GithubService> createGithubService(String owner, String repository) async {
     final GitHub github = await createGitHubClient(owner, repository);
     return GithubService(github);
+  }
+
+  Future<FlutterDestination> createMetricsDestination() async {
+    return await FlutterDestination.makeFromCredentialsJson(
+      (await deviceLabServiceAccount).toJson(),
+    );
   }
 
   bool githubPresubmitSupportedRepo(String repositoryName) {
