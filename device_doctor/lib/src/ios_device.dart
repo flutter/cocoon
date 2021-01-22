@@ -44,7 +44,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       results['ios-device-${device.deviceId}'] = checks;
     }
-    final Map<String, String> healthCheckMap = await healthcheck(results);
+    final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
     await writeToFile(json.encode(healthCheckMap), kDeviceFailedHealthcheckFilename);
     return results;
   }

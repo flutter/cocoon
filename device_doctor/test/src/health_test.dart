@@ -72,8 +72,10 @@ void main() {
     });
 
     test('with no device', () async {
-      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
-      expect(healthcheckMap, <String, String>{'Attached device': 'No device is available'});
+      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, Map<String, dynamic>>{
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': false, 'details': kAttachedDeviceHealthcheckValue}
+      });
     });
 
     test('with failed check', () async {
@@ -82,8 +84,12 @@ void main() {
         HealthCheckResult.failure('check2', 'abc')
       ];
       deviceChecks['device1'] = healthChecks;
-      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
-      expect(healthcheckMap, <String, String>{'check2': 'abc'});
+      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, Map<String, dynamic>>{
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
+        'check1': <String, dynamic>{'status': true, 'details': null},
+        'check2': <String, dynamic>{'status': false, 'details': 'abc'}
+      });
     });
 
     test('without failed check', () async {
@@ -92,8 +98,12 @@ void main() {
         HealthCheckResult.success('check2')
       ];
       deviceChecks['device1'] = healthChecks;
-      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
-      expect(healthcheckMap, <String, String>{});
+      final Map<String, Map<String, dynamic>> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, Map<String, dynamic>>{
+        kAttachedDeviceHealthcheckKey: <String, dynamic>{'status': true, 'details': null},
+        'check1': <String, dynamic>{'status': true, 'details': null},
+        'check2': <String, dynamic>{'status': true, 'details': null}
+      });
     });
   });
 }

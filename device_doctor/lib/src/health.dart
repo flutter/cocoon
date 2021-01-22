@@ -82,17 +82,24 @@ class HealthCheckResult {
 }
 
 /// Check healthiness for discovered devices.
-Future<Map<String, String>> healthcheck(Map<String, List<HealthCheckResult>> deviceChecks) async {
-  final Map<String, String> healthcheckMap = <String, String>{};
+Future<Map<String, Map<String, dynamic>>> healthcheck(Map<String, List<HealthCheckResult>> deviceChecks) async {
+  final Map<String, Map<String, dynamic>> healthcheckMap = <String, Map<String, dynamic>>{};
   if (deviceChecks.isEmpty) {
-    healthcheckMap['Attached device'] = 'No device is available';
+    healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{
+      'status': false,
+      'details': kAttachedDeviceHealthcheckValue
+    };
+  } else {
+    healthcheckMap[kAttachedDeviceHealthcheckKey] = <String, dynamic>{'status': true, 'details': null};
   }
   for (String deviceID in deviceChecks.keys) {
     List<HealthCheckResult> checks = deviceChecks[deviceID];
     for (HealthCheckResult healthCheckResult in checks) {
-      if (!healthCheckResult.succeeded) {
-        healthcheckMap[healthCheckResult.name] = healthCheckResult.details;
-      }
+      final Map<String, dynamic> healthCheckResultMap = <String, dynamic>{
+        'status': healthCheckResult.succeeded,
+        'details': healthCheckResult.details
+      };
+      healthcheckMap[healthCheckResult.name] = healthCheckResultMap;
     }
   }
   return healthcheckMap;
