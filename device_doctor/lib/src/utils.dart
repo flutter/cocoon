@@ -11,6 +11,8 @@ import 'package:process/process.dart';
 
 import 'dart:convert' show utf8;
 
+const String kDevicePropertiesFilename = '.properties';
+const String kDeviceFailedHealthcheckFilename = '.failedhealthcheck';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
@@ -91,4 +93,31 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   return from.split('\n').where((String line) {
     return line.contains(pattern);
   });
+}
+
+/// Get file based on `Platform` home directory.
+File getFile(String fileName) {
+  if (Platform.isLinux || Platform.isMacOS) {
+    return File(path.join(Platform.environment['HOME'], '$fileName'));
+  }
+  if (!Platform.isWindows) {
+    throw StateError('Unexpected platform ${Platform.operatingSystem}');
+  }
+  return File(path.join(Platform.environment['USERPROFILE'], '.$fileName'));
+}
+
+/// Write [results] to [fileName] based on `Platform` home directory.
+void writeToFile(String results, String fileName) {
+  final File file = getFile(fileName);
+  if (file.existsSync()) {
+    try {
+      file.deleteSync();
+    } on FileSystemException catch (error) {
+      print('Failed to delete ${file.path}: $error');
+    }
+  }
+  file
+    ..createSync()
+    ..writeAsStringSync(results);
+  return;
 }

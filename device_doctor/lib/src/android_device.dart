@@ -95,7 +95,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       results['android-device-${device.deviceId}'] = checks;
     }
-    await healthcheck(results);
+    final Map<String, String> healthCheckMap = await healthcheck(results);
+    await writeToFile(json.encode(healthCheckMap), kDeviceFailedHealthcheckFilename);
     return results;
   }
 
@@ -109,7 +110,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       return <String, String>{};
     }
     final Map<String, String> properties = await getDeviceProperties(devices[0], processManager: processManager);
-    stdout.write(json.encode(properties));
+    final String propertiesJson = json.encode(properties);
+
+    await writeToFile(propertiesJson, kDevicePropertiesFilename);
+    stdout.write(propertiesJson);
     return properties;
   }
 

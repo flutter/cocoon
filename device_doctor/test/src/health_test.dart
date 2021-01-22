@@ -63,6 +63,39 @@ void main() {
       );
     });
   });
+
+  group('healthCheck', () {
+    Map<String, List<HealthCheckResult>> deviceChecks;
+
+    setUp(() async {
+      deviceChecks = <String, List<HealthCheckResult>>{};
+    });
+
+    test('with no device', () async {
+      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, String>{'Attached device': 'No device is available'});
+    });
+
+    test('with failed check', () async {
+      final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
+        HealthCheckResult.success('check1'),
+        HealthCheckResult.failure('check2', 'abc')
+      ];
+      deviceChecks['device1'] = healthChecks;
+      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, String>{'check2': 'abc'});
+    });
+
+    test('without failed check', () async {
+      final List<HealthCheckResult> healthChecks = <HealthCheckResult>[
+        HealthCheckResult.success('check1'),
+        HealthCheckResult.success('check2')
+      ];
+      deviceChecks['device1'] = healthChecks;
+      final Map<String, String> healthcheckMap = await healthcheck(deviceChecks);
+      expect(healthcheckMap, <String, String>{});
+    });
+  });
 }
 
 class MockPlatform extends Mock implements Platform {}
