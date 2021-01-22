@@ -12,7 +12,9 @@ import 'package:process/process.dart';
 import 'dart:convert' show utf8;
 
 const String kDevicePropertiesFilename = '.properties';
-const String kDeviceFailedHealthcheckFilename = '.failedhealthcheck';
+const String kDeviceFailedHealthcheckFilename = '.healthcheck';
+const String kAttachedDeviceHealthcheckKey = 'attached_device';
+const String kAttachedDeviceHealthcheckValue = 'No device is available';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
