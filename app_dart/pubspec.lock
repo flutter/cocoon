@@ -387,7 +387,7 @@ packages:
     source: hosted
     version: "1.3.0-nullsafety.6"
   metrics_center:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: metrics_center
       url: "https://pub.dartlang.org"
