@@ -202,7 +202,7 @@ class Config {
   String flutterGoldFollowUpAlert(String url) => 'Golden file changes are available for triage from new commit, '
       'Click [here to view]($url).\n\n';
 
-  String get flutterGoldAlertConstant => 'For more guidance, visit '
+  String get flutterGoldAlertConstant => '\n\nFor more guidance, visit '
       '[Writing a golden file test for `package:flutter`](https://github.com/flutter/flutter/wiki/Writing-a-golden-file-test-for-package:flutter).\n\n'
       '__Reviewers__: Read the [Tree Hygiene page](https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.\n\n';
