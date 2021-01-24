@@ -163,6 +163,12 @@ class Config {
       'If you need an exemption to this rule, contact Hixie on the #hackers '
       'channel in [Chat](https://github.com/flutter/flutter/wiki/Chat).'
       '\n\n'
+      'If you are not sure if you need tests, consider this rule of thumb: '
+      'the purpose of a test is to make sure someone doesn\'t accidentally '
+      'revert the fix. Ask yourself, is there anything in your PR that you '
+      'feel it is important we not accidentally revert back to how it was '
+      'before your fix?'
+      '\n\n'
       '__Reviewers__: Read the [Tree Hygiene page]'
       '(https://github.com/flutter/flutter/wiki/Tree-hygiene#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing.';
