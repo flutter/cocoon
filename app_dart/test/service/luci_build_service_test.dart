@@ -373,7 +373,8 @@ void main() {
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac tool_tests',
-          summaryMarkdown: 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+          summaryMarkdown:
+              'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
@@ -391,7 +392,8 @@ void main() {
           status: Task.statusInfraFailure,
           buildNumber: 1,
           builderName: 'Mac abc',
-          summaryMarkdown: 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+          summaryMarkdown:
+              'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
@@ -463,7 +465,8 @@ void main() {
           status: Task.statusFailed,
           buildNumber: 1,
           builderName: 'Mac tool_tests',
-          summaryMarkdown: 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+          summaryMarkdown:
+              'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
       final bool rerunFlag = await service.checkRerunBuilder(
         commitSha: 'abc',
         luciTask: luciTask,
