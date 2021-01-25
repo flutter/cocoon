@@ -454,6 +454,7 @@ class LuciBuildService {
     }
     return luciTask.summaryMarkdown.contains('retcode: -9') ||
         (kMacBuildersWithShards.contains(luciTask.builderName) &&
-            luciTask.summaryMarkdown == 'Step(\'display builds.build(s) failed\') (retcode: 1)');
+            luciTask.summaryMarkdown ==
+                'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
   }
 }
