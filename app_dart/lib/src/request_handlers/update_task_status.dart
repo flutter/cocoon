@@ -127,6 +127,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     return UpdateTaskStatusResponse(task);
   }
 
+  // Convert `resultData` (`requestData['ResultData']`) and `scoreKeys`
+  // (`requestData['BenchmarkScoreKeys']`) into `MetricPoint`s, and write them
+  // into `metrics_center`'s `FlutterDestination`.
+  //
+  // This enables the perf dashboard configured by the `metrics_center` (e.g.,
+  // Skia perf) to provide perf metric queries and regression alerts.
   Future<void> _writeToMetricsCenter(
     Map<String, dynamic> resultData,
     List<String> scoreKeys,

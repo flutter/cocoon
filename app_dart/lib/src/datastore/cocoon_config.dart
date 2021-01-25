@@ -340,6 +340,12 @@ class Config {
     return GithubService(github);
   }
 
+  /// Return a [FlutterDestination] (subclass of [MetricsDestination]) for
+  /// storing all Flutter-related performance metrics (framework, engine, ...).
+  ///
+  /// The destination is created from the [deviceLabServiceAccount] credentials
+  /// so the destination storage (e.g., the GCS bucket) must grant access to
+  /// that account.
   Future<FlutterDestination> createMetricsDestination() async {
     return await FlutterDestination.makeFromCredentialsJson(
       (await deviceLabServiceAccount).toJson(),
