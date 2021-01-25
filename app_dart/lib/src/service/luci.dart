@@ -3,6 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
+
+import 'package:retry/retry.dart';
 
 import 'package:appengine/appengine.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -63,7 +66,23 @@ class LuciService {
   }) async {
     assert(requireTaskName != null);
     final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
-    final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
+    final List<Build> builds = <Build>[];
+
+    // Get builds data is batches of 50 builders also add retries to the operations.
+    const RetryOptions r = RetryOptions(maxAttempts: 3);
+    for (int j = 0; j < builders.length; j += 50) {
+      final List<LuciBuilder> partialBuilders = builders.sublist(j, min(j + 49, builders.length - 1));
+      await r.retry(
+        () async {
+          final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
+          builds.addAll(partialBuilds);
+        },
+        retryIf: (Exception e) => e is BuildBucketException,
+      );
+      // wait in between requests to prevent rate limiting.
+      final Random random = Random();
+      await Future<dynamic>.delayed(Duration(seconds: random.nextInt(10)));
+    }
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
         <BranchLuciBuilder, Map<String, List<LuciTask>>>{};
@@ -102,7 +121,23 @@ class LuciService {
   }) async {
     assert(requireTaskName != null);
     final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
-    final Iterable<Build> builds = await getBuilds(repo, requireTaskName, builders);
+    final List<Build> builds = <Build>[];
+
+    // Request builders data in batches of 50 to prevent failures in the grpc service.
+    const RetryOptions r = RetryOptions(maxAttempts: 3);
+    for (int j = 0; j < builders.length; j += 50) {
+      final List<LuciBuilder> partialBuilders = builders.sublist(j, min(j + 49, builders.length - 1));
+      await r.retry(
+        () async {
+          final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
+          builds.addAll(partialBuilds);
+        },
+        retryIf: (Exception e) => e is BuildBucketException,
+      );
+      // Wait in between requests to prevent rate limiting.
+      final Random random = Random();
+      await Future<dynamic>.delayed(Duration(seconds: random.nextInt(10)));
+    }
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
