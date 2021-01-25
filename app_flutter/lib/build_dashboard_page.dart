@@ -192,17 +192,17 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     return key;
   }
 
-  String _getStatusTitle(BuildState buildState) {
+  Widget _getStatusTitle(BuildState buildState) {
     if (buildState == null || buildState.isTreeBuilding == null) {
-      return 'Loading...';
+      return const Text('Loading...');
     }
     if (buildState.isTreeBuilding) {
-      return 'Tree is Open';
+      return const Text('Tree is Open');
     } else {
       if (buildState.failingTasks.isNotEmpty) {
-        return 'Tree is Closed (failing: ${buildState.failingTasks.join(', ')})';
+        return SelectableText('Tree is Closed (failing: ${buildState.failingTasks.join(', ')})');
       } else {
-        return 'Tree is Closed';
+        return const Text('Tree is Closed');
       }
     }
   }
@@ -224,7 +224,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       animation: _buildState,
       builder: (BuildContext context, Widget child) => Scaffold(
         appBar: CocoonAppBar(
-          title: Text(_getStatusTitle(_buildState)),
+          title: _getStatusTitle(_buildState),
           backgroundColor: colorTable[_buildState.isTreeBuilding],
           actions: <Widget>[
             PopupMenuButton<String>(
