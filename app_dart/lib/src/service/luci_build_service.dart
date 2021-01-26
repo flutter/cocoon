@@ -14,7 +14,6 @@ import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
-import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import '../service/luci.dart';
@@ -438,7 +437,7 @@ class LuciBuildService {
     @required int retries,
     String repo = 'flutter',
   }) async {
-    if (_shouldRerunBuilder(luciTask) && retries < config.maxLuciTaskRetries) {
+    if (_shouldRerunBuilder(luciTask, repo) && retries < config.maxLuciTaskRetries) {
       await rescheduleProdBuild(
         commitSha: commitSha,
         builderName: luciTask.builderName,
@@ -449,15 +448,19 @@ class LuciBuildService {
     return false;
   }
 
-  bool _shouldRerunBuilder(LuciTask luciTask) {
-    if (luciTask.summaryMarkdown == null ||
-        !luciTask.builderName.contains('Mac') ||
-        luciTask.status != Task.statusInfraFailure) {
+  bool _shouldRerunBuilder(LuciTask luciTask, String repo) {
+    if (luciTask.summaryMarkdown == null || !luciTask.builderName.contains('Mac')) {
       return false;
     }
-    return luciTask.summaryMarkdown.contains('retcode: -9') ||
-        (kMacBuildersWithShards.contains(luciTask.builderName) &&
-            luciTask.summaryMarkdown ==
-                'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
+    switch (repo) {
+      case 'flutter':
+        return luciTask.summaryMarkdown.contains('retcode: -9') ||
+            (kMacBuildersWithShards.contains(luciTask.builderName) &&
+                luciTask.summaryMarkdown ==
+                    'recipe infra failure: Infra Failure: Step(\'display builds.build(s) failed\') (retcode: 1)');
+      case 'engine':
+        return luciTask.summaryMarkdown.contains('retcode: -9');
+    }
+    return false;
   }
 }

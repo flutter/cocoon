@@ -153,6 +153,7 @@ class LuciService {
         status: luciStatusToTaskStatus[build.status],
         buildNumber: build.number,
         builderName: build.builderId.builder,
+        summaryMarkdown: build.summaryMarkdown,
       ));
     }
     return results;
