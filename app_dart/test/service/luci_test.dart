@@ -70,4 +70,36 @@ void main() {
       expect(luciTask.status, luciStatusToTaskStatus[luciBuild.status]);
     }
   });
+  test('luci getBuildsForBuilders works correctly', () async {
+    final FakeConfig config = FakeConfig(githubService: FakeGithubService());
+    final FakeClientContext clientContext = FakeClientContext();
+    final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+    final LuciService service =
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+    const LuciBuilder builder = LuciBuilder(name: 'Linux', repo: 'flutter', flaky: false);
+    final List<Build> builds = List<Build>.generate(
+      luciStatusToTaskStatus.keys.length,
+      (int index) => Build(
+        id: index,
+        number: index,
+        builderId: const BuilderId(
+          project: 'flutter',
+          bucket: 'prod',
+          builder: 'Linux',
+        ),
+        status: luciStatusToTaskStatus.keys.toList()[index],
+      ),
+    );
+    when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+      return BatchResponse(
+        responses: <Response>[
+          Response(
+            searchBuilds: SearchBuildsResponse(builds: builds),
+          ),
+        ],
+      );
+    });
+    final List<Build> resultBuilds = await service.getBuildsForBuilderList(<LuciBuilder>[builder], repo: 'flutter');
+    expect(resultBuilds, builds);
+  });
 }
