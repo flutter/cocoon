@@ -21,6 +21,10 @@ import 'buildbucket.dart';
 part 'luci.g.dart';
 
 const int _maxResults = 40;
+
+/// The batch size used to query buildbucket service.
+const int _buildersBatchSize = 50;
+
 const Map<Status, String> luciStatusToTaskStatus = <Status, String>{
   Status.unspecified: Task.statusInProgress,
   Status.scheduled: Task.statusInProgress,
@@ -66,23 +70,7 @@ class LuciService {
   }) async {
     assert(requireTaskName != null);
     final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
-    final List<Build> builds = <Build>[];
-
-    // Get builds data is batches of 50 builders also add retries to the operations.
-    const RetryOptions r = RetryOptions(maxAttempts: 3);
-    for (int j = 0; j < builders.length; j += 50) {
-      final List<LuciBuilder> partialBuilders = builders.sublist(j, min(j + 49, builders.length - 1));
-      await r.retry(
-        () async {
-          final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
-          builds.addAll(partialBuilds);
-        },
-        retryIf: (Exception e) => e is BuildBucketException,
-      );
-      // wait in between requests to prevent rate limiting.
-      final Random random = Random();
-      await Future<dynamic>.delayed(Duration(seconds: random.nextInt(10)));
-    }
+    final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
         <BranchLuciBuilder, Map<String, List<LuciTask>>>{};
@@ -111,22 +99,20 @@ class LuciService {
     return results;
   }
 
-  /// Gets the list of recent LUCI tasks, broken out by the [LuciBuilder] that
-  /// owns them.
-  ///
-  /// The list of known LUCI builders is specified in [LuciBuilder.all].
-  Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
+  /// Gets builds associated with a list of [builders] in batches with
+  /// retries for [repo] including the task name or not.
+  Future<List<Build>> getBuildsForBuilderList(
+    List<LuciBuilder> builders, {
     String repo,
     bool requireTaskName = false,
   }) async {
-    assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
     final List<Build> builds = <Build>[];
 
     // Request builders data in batches of 50 to prevent failures in the grpc service.
     const RetryOptions r = RetryOptions(maxAttempts: 3);
-    for (int j = 0; j < builders.length; j += 50) {
-      final List<LuciBuilder> partialBuilders = builders.sublist(j, min(j + 49, builders.length - 1));
+    for (int j = 0; j < builders.length; j += _buildersBatchSize) {
+      final List<LuciBuilder> partialBuilders =
+          builders.sublist(j, min(j + _buildersBatchSize - 1, builders.length - 1));
       await r.retry(
         () async {
           final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
@@ -138,6 +124,20 @@ class LuciService {
       final Random random = Random();
       await Future<dynamic>.delayed(Duration(seconds: random.nextInt(10)));
     }
+    return builds;
+  }
+
+  /// Gets the list of recent LUCI tasks, broken out by the [LuciBuilder] that
+  /// owns them.
+  ///
+  /// The list of known LUCI builders is specified in [LuciBuilder.all].
+  Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
+    String repo,
+    bool requireTaskName = false,
+  }) async {
+    assert(requireTaskName != null);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
+    final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
     for (Build build in builds) {
