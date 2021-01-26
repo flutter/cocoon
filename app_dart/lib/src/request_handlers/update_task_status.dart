@@ -105,7 +105,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await _insertBigquery(commit, task);
     }
 
-    await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
+    try {
+      await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
+    } catch (e) {
+      log.error(e.toString());
+    }
+
     // TODO(liyuqian): remove the TimeSeries and TimeSeriesValue code below once
     // metrics center migration is done.
 
