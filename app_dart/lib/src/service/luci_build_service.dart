@@ -423,6 +423,9 @@ class LuciBuildService {
       properties: <String, String>{
         'git_ref': commitSha,
       },
+      // Run manual retries with higher priority to ensure tasks that can
+      // potentially open the tree are not wating for ~30 mins in the queue.
+      priority: 29,
     ));
   }
 
