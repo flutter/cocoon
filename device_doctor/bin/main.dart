@@ -11,13 +11,16 @@ import 'package:device_doctor/device_doctor.dart';
 const String actionFlag = 'action';
 const String deviceOSFlag = 'device-os';
 const String helpFlag = 'help';
+const String outputFlag = 'output';
 const List<String> supportedOptions = <String>['healthcheck', 'recovery', 'properties'];
 const List<String> supportedDeviceOS = <String>['ios', 'android'];
+const String defaultOutputPath = '.output';
 
 /// These values will be initialized in `_checkArgs` function,
 /// and used in `main` function.
 String _action;
 String _deviceOS;
+String _output;
 
 /// Manage `healthcheck`, `recovery`, and `properties` for devices.
 ///
@@ -44,6 +47,7 @@ Future<void> main(List<String> args) async {
       'recovery': 'Clean up and reboot device.',
       'properties': 'Return device properties/dimensions.'
     })
+    ..addOption('$outputFlag', help: 'Path to the output file')
     ..addOption('$deviceOSFlag',
         help: 'Supported device OS.',
         allowed: supportedDeviceOS,
@@ -52,8 +56,9 @@ Future<void> main(List<String> args) async {
   final ArgResults argResults = parser.parse(args);
   _action = argResults[actionFlag];
   _deviceOS = argResults[deviceOSFlag];
+  _output = argResults[outputFlag] ?? defaultOutputPath;
 
-  final DeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS);
+  final DeviceDiscovery deviceDiscovery = DeviceDiscovery(_deviceOS, _output);
 
   switch (_action) {
     case 'healthcheck':

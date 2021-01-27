@@ -11,8 +11,6 @@ import 'package:process/process.dart';
 
 import 'dart:convert' show utf8;
 
-const String kDevicePropertiesFilename = '.properties';
-const String kDeviceFailedHealthcheckFilename = '.healthcheck';
 const String kAttachedDeviceHealthcheckKey = 'attached_device';
 const String kAttachedDeviceHealthcheckValue = 'No device is available';
 final Logger logger = Logger('DeviceDoctor');
@@ -97,20 +95,9 @@ Iterable<String> grep(Pattern pattern, {@required String from}) {
   });
 }
 
-/// Get file based on `Platform` home directory.
-File getFile(String fileName) {
-  if (Platform.isLinux || Platform.isMacOS) {
-    return File(path.join(Platform.environment['HOME'], '$fileName'));
-  }
-  if (!Platform.isWindows) {
-    throw StateError('Unexpected platform ${Platform.operatingSystem}');
-  }
-  return File(path.join(Platform.environment['USERPROFILE'], '.$fileName'));
-}
-
-/// Write [results] to [fileName] based on `Platform` home directory.
-void writeToFile(String results, String fileName) {
-  final File file = getFile(fileName);
+/// Write [results] to [filePath].
+void writeToFile(String results, String filePath) {
+  final File file = File(filePath);
   if (file.existsSync()) {
     try {
       file.deleteSync();

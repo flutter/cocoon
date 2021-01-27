@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:device_doctor/src/ios_device.dart';
 
 class FakeIosDeviceDiscovery extends IosDeviceDiscovery {
-  FakeIosDeviceDiscovery() : super.testing();
+  FakeIosDeviceDiscovery(String output) : super.testing(output);
 
   List<dynamic> _outputs;
   int _pos = 0;

@@ -16,14 +16,16 @@ import 'utils.dart';
 ///
 /// Discovers available ios devices and chooses one to work with.
 class IosDeviceDiscovery implements DeviceDiscovery {
-  factory IosDeviceDiscovery() {
-    return _instance ??= IosDeviceDiscovery._();
+  factory IosDeviceDiscovery(String output) {
+    return _instance ??= IosDeviceDiscovery._(output);
   }
 
-  IosDeviceDiscovery._();
+  final String _outputFilePath;
+
+  IosDeviceDiscovery._(this._outputFilePath);
 
   @visibleForTesting
-  IosDeviceDiscovery.testing();
+  IosDeviceDiscovery.testing(this._outputFilePath);
 
   static IosDeviceDiscovery _instance;
 
@@ -45,7 +47,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
-    await writeToFile(json.encode(healthCheckMap), kDeviceFailedHealthcheckFilename);
+    await writeToFile(json.encode(healthCheckMap), _outputFilePath);
     return results;
   }
 

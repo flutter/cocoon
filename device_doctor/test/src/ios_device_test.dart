@@ -14,7 +14,7 @@ void main() {
     FakeIosDeviceDiscovery deviceDiscovery;
 
     setUp(() {
-      deviceDiscovery = FakeIosDeviceDiscovery();
+      deviceDiscovery = FakeIosDeviceDiscovery('/tmp/output');
     });
 
     test('deviceDiscovery', () async {

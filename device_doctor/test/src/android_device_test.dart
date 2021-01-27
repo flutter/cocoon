@@ -22,7 +22,7 @@ void main() {
     Process process;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery();
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
       processManager = MockProcessManager();
     });
 
@@ -57,7 +57,7 @@ void main() {
     String output;
 
     setUp(() {
-      deviceDiscovery = AndroidDeviceDiscovery();
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
       processManager = MockProcessManager();
     });
 

@@ -16,13 +16,15 @@ import 'host_utils.dart';
 import 'utils.dart';
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
-  factory AndroidDeviceDiscovery() {
-    return _instance ??= AndroidDeviceDiscovery._();
+  factory AndroidDeviceDiscovery(String output) {
+    return _instance ??= AndroidDeviceDiscovery._(output);
   }
-  AndroidDeviceDiscovery._();
+
+  final String _outputFilePath;
+  AndroidDeviceDiscovery._(this._outputFilePath);
 
   @visibleForTesting
-  AndroidDeviceDiscovery.testing();
+  AndroidDeviceDiscovery.testing(this._outputFilePath);
 
   // Parses information about a device. Example:
   //
@@ -96,7 +98,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
-    await writeToFile(json.encode(healthCheckMap), kDeviceFailedHealthcheckFilename);
+    await writeToFile(json.encode(healthCheckMap), _outputFilePath);
     return results;
   }
 
@@ -106,13 +108,15 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   @override
   Future<Map<String, String>> deviceProperties({ProcessManager processManager}) async {
     final List<AndroidDevice> devices = await discoverDevices(processManager: processManager);
+    Map<String, String> properties = <String, String>{};
     if (devices.isEmpty) {
-      return <String, String>{};
+      await writeToFile(json.encode(properties), _outputFilePath);
+      return properties;
     }
-    final Map<String, String> properties = await getDeviceProperties(devices[0], processManager: processManager);
+    properties = await getDeviceProperties(devices[0], processManager: processManager);
     final String propertiesJson = json.encode(properties);
 
-    await writeToFile(propertiesJson, kDevicePropertiesFilename);
+    await writeToFile(propertiesJson, _outputFilePath);
     stdout.write(propertiesJson);
     return properties;
   }
