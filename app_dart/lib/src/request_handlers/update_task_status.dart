@@ -156,7 +156,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
         MetricPoint(
           (resultData[scoreKey] as num).toDouble(),
           <String, String>{
-            kGithubRepoKey: kFlutterEngineRepo,
+            kGithubRepoKey: kFlutterFrameworkRepo,
             kGitRevisionKey: commit.sha,
             'branch': commit.branch,
             kNameKey: task.name,
