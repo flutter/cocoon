@@ -105,10 +105,15 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await _insertBigquery(commit, task);
     }
 
+    // TODO(liyuqian): before merging the PR, remove this try block to let the
+    // handler fail with exceptions. That way, we can get notified when
+    // unexpected failures happen in the future.
     try {
       await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
-    } catch (e) {
-      log.error(e.toString());
+    } catch (e, s) {
+      log.error('Exception: $e');
+      log.error('Stacktrace: $s');
+      log.error('Account: ${(await config.deviceLabServiceAccount).email}');
     }
 
     // TODO(liyuqian): remove the TimeSeries and TimeSeriesValue code below once
