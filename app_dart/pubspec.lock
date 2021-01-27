@@ -387,12 +387,12 @@ packages:
     source: hosted
     version: "1.3.0-nullsafety.6"
   metrics_center:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: metrics_center
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.4"
+    version: "0.0.7"
   mime:
     dependency: "direct main"
     description:
@@ -702,4 +702,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.12.0-0.0 <=2.12.0-224.0.dev"
+  dart: ">=2.12.0-0.0 <=2.12.0-236.0.dev"
