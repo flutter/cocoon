@@ -438,6 +438,7 @@ class LuciBuildService {
     String repo = 'flutter',
   }) async {
     if (_shouldRerunBuilder(luciTask, repo) && retries < config.maxLuciTaskRetries) {
+      log.info('Rerun Mac builder: ${luciTask.builderName} for commit $commitSha');
       await rescheduleProdBuild(
         commitSha: commitSha,
         builderName: luciTask.builderName,
