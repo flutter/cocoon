@@ -345,6 +345,7 @@ void main() {
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      service.setLogger(FakeLogging());
     });
 
     test('Rerun a flutter Mac builder with infra failure: -9 in parent build', () async {
