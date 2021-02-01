@@ -38,6 +38,7 @@ void main() {
     MockRepositoriesService repositoriesService;
     List<PullRequest> prsFromGitHub;
     FakeGithubService githubService;
+    MockLuciBuildService mockLuciBuildService;
 
     PullRequest newPullRequest(int number, String sha, String baseRef, {bool draft = false}) {
       return PullRequest()
@@ -68,6 +69,7 @@ void main() {
       pullRequestsService = MockPullRequestsService();
       issuesService = MockIssuesService();
       repositoriesService = MockRepositoriesService();
+      mockLuciBuildService = MockLuciBuildService();
       config = FakeConfig(
         tabledataResourceApi: tabledataResourceApi,
         githubService: githubService,
@@ -79,6 +81,7 @@ void main() {
       handler = PushEngineStatusToGithub(
         config,
         FakeAuthenticationProvider(clientContext: clientContext),
+        mockLuciBuildService,
         luciServiceProvider: (_) => mockLuciService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
