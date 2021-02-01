@@ -199,7 +199,7 @@ Future<http.Response> _getResponse(Uri url) async {
     headers['If-None-Match'] = requestETag;
   }
 
-  final http.Response response = await _client.get(url.toString(), headers: headers).catchError((Error error) {
+  final http.Response response = await _client.get(url.toString(), headers: headers).catchError((Object error) {
     debugPrint('Error fetching"$url": $error');
   });
 
