@@ -49,6 +49,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
       // Don't push GitHub status from the local dev server.
       return Body.empty;
     }
+    luciBuildService.setLogger(log);
 
     final LuciService luciService = luciServiceProvider(this);
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
