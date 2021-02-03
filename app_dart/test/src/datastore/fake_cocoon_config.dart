@@ -44,7 +44,6 @@ class FakeConfig implements Config {
     this.metricsDestination,
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
-    this.luciTryInfraFailureRetriesValue,
     this.flutterSlugValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
@@ -87,7 +86,6 @@ class FakeConfig implements Config {
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
   Set<String> rollerAccountsValue;
-  int luciTryInfraFailureRetriesValue;
   RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
   int maxRecordsValue;
@@ -99,9 +97,6 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlertValue;
   String flutterGoldDraftChangeValue;
   String flutterGoldStalePRValue;
-
-  @override
-  int get luciTryInfraFailureRetries => luciTryInfraFailureRetriesValue;
 
   @override
   Future<GitHub> createGitHubClient(String owner, String repository) async => githubClient;

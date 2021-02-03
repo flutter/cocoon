@@ -219,9 +219,6 @@ class Config {
   /// Max retries for Luci builder with infra failure.
   int get maxLuciTaskRetries => 1;
 
-  /// The number of times to retry a LUCI job on infra failures.
-  int get luciTryInfraFailureRetries => 2;
-
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
