@@ -47,7 +47,7 @@ void main() {
 
   setUp(() async {
     serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
-    config = FakeConfig(luciTryInfraFailureRetriesValue: 2, deviceLabServiceAccountValue: serviceAccountInfo);
+    config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
     buildBucketClient = MockBuildBucketClient();
     serviceAccountInfo = await config.deviceLabServiceAccount;
     luciBuildService = LuciBuildService(
