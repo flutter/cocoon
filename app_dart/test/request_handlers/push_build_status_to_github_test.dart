@@ -194,10 +194,10 @@ void main() {
         });
 
         test('update if statuses have changed since last update - multiple branches', () async {
-          githubPullRequestsMaster = <int>[123];
-          githubPullRequestsOther = <int>[456];
-          final PullRequest prMaster = newPullRequest(id: 123, sha: '123');
-          final PullRequest prOther = newPullRequest(id: 456, sha: '456');
+          githubPullRequestsMaster = <int>[11111];
+          githubPullRequestsOther = <int>[22222];
+          final PullRequest prMaster = newPullRequest(id: 11111, sha: 'abcd');
+          final PullRequest prOther = newPullRequest(id: 22222, sha: 'efgh');
           config.flutterBranchesValue = <String>['flutter-0.0-candidate.0', 'master'];
           buildStatusService.cumulativeStatus = BuildStatus.success();
           final GithubBuildStatusUpdate statusOther =
