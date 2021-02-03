@@ -124,7 +124,6 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     final String propertiesJson = json.encode(properties);
 
     await writeToFile(propertiesJson, _outputFilePath);
-    stdout.write(propertiesJson);
     return properties;
   }
 
