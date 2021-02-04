@@ -108,6 +108,13 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   @override
+  void dispose() {
+    verticalController?.dispose();
+    horizontalController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LatticeScrollView(
       // TODO(ianh): Provide some vertical scroll physics that disable
