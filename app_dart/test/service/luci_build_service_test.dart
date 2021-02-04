@@ -303,7 +303,6 @@ void main() {
       config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
       mockBuildBucketClient = MockBuildBucketClient();
       service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-      config.luciTryInfraFailureRetriesValue = 3;
       final Map<String, dynamic> json = jsonDecode(buildPushMessageString(
         'COMPLETED',
         result: 'FAILURE',
