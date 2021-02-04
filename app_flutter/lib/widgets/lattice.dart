@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 typedef Painter = void Function(Canvas canvas, Rect rect);
 
@@ -67,24 +68,32 @@ class LatticeScrollView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextDirection textDirection = this.textDirection ?? Directionality.of(context);
-    return Scrollable(
-      dragStartBehavior: dragStartBehavior,
-      axisDirection: textDirectionToAxisDirection(textDirection),
+    return Scrollbar(
       controller: horizontalController,
-      physics: horizontalPhysics,
-      viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) => _FakeViewport(
-        child: Scrollable(
-          dragStartBehavior: dragStartBehavior,
-          axisDirection: AxisDirection.down,
-          controller: verticalController,
-          physics: verticalPhysics,
-          viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
-            child: _LatticeBody(
-              textDirection: textDirection,
-              horizontalOffset: horizontalOffset,
-              verticalOffset: verticalOffset,
-              cells: cells,
-              cellSize: cellSize,
+      isAlwaysShown: true,
+      child: Scrollable(
+        dragStartBehavior: dragStartBehavior,
+        axisDirection: textDirectionToAxisDirection(textDirection),
+        controller: horizontalController,
+        physics: horizontalPhysics,
+        viewportBuilder: (BuildContext context, ViewportOffset horizontalOffset) => _FakeViewport(
+          child: Scrollbar(
+            isAlwaysShown: true,
+            controller: verticalController,
+            child: Scrollable(
+              dragStartBehavior: dragStartBehavior,
+              axisDirection: AxisDirection.down,
+              controller: verticalController,
+              physics: verticalPhysics,
+              viewportBuilder: (BuildContext context, ViewportOffset verticalOffset) => _FakeViewport(
+                child: _LatticeBody(
+                  textDirection: textDirection,
+                  horizontalOffset: horizontalOffset,
+                  verticalOffset: verticalOffset,
+                  cells: cells,
+                  cellSize: cellSize,
+                ),
+              ),
             ),
           ),
         ),
