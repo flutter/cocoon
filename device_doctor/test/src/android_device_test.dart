@@ -9,8 +9,9 @@ import 'dart:io';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import 'package:device_doctor/src/device.dart';
 import 'package:device_doctor/src/android_device.dart';
+import 'package:device_doctor/src/device.dart';
+import 'package:device_doctor/src/utils.dart';
 
 import 'utils.dart';
 
@@ -45,7 +46,7 @@ void main() {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => throw TimeoutException('test'));
       expect(deviceDiscovery.discoverDevices(retryDuration: const Duration(seconds: 0), processManager: processManager),
-          throwsA(TypeMatcher<TimeoutException>()));
+          throwsA(TypeMatcher<BuildFailedError>()));
     });
   });
 

@@ -27,7 +27,7 @@ abstract class DeviceDiscovery {
   Future<List<Device>> discoverDevices({Duration retryDuration = const Duration(seconds: 10)});
 
   /// Checks the health of the available devices.
-  Future<Map<String, List<HealthCheckResult>>> checkDevices();
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager});
 
   /// Checks and returns the device properties, like manufacturer, base_buildid, etc.
   ///

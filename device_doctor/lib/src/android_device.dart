@@ -90,9 +90,10 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices() async {
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
-    for (AndroidDevice device in await discoverDevices()) {
+    for (AndroidDevice device in await discoverDevices(processManager: processManager)) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
       results['android-device-${device.deviceId}'] = checks;
