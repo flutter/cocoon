@@ -39,11 +39,13 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   }
 
   @override
-  Future<Map<String, List<HealthCheckResult>>> checkDevices() async {
+  Future<Map<String, List<HealthCheckResult>>> checkDevices({ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (Device device in await discoverDevices()) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
+      checks.add(await _keychainUnlockCheck(processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -62,6 +64,17 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }
+  }
+
+  Future<HealthCheckResult> _keychainUnlockCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      await eval(kUnlockLoginKeychain, <String>[], processManager: processManager);
+      healthCheckResult = HealthCheckResult.success(kKeychainUnlockCheckKey);
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kKeychainUnlockCheckKey, error.toString());
+    }
+    return healthCheckResult;
   }
 }
 

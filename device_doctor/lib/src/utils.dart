@@ -13,6 +13,8 @@ import 'dart:convert' show utf8;
 
 const String kAttachedDeviceHealthcheckKey = 'attached_device';
 const String kAttachedDeviceHealthcheckValue = 'No device is available';
+const String kKeychainUnlockCheckKey = 'keychain_unlock';
+const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
@@ -63,8 +65,13 @@ Future<Process> startProcess(String executable, List<String> arguments,
     {Map<String, String> env, bool silent: false, ProcessManager processManager = const LocalProcessManager()}) async {
   String command = '$executable ${arguments?.join(" ") ?? ""}';
   if (!silent) logger.info('Executing: $command');
-  Process proc = await processManager.start(<String>[executable]..addAll(arguments),
-      environment: env, workingDirectory: path.current);
+  Process proc;
+  try {
+    proc = await processManager.start(<String>[executable]..addAll(arguments),
+        environment: env, workingDirectory: path.current);
+  } catch (error) {
+    fail(error.toString());
+  }
   return proc;
 }
 
