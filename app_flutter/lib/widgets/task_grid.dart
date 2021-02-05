@@ -94,12 +94,24 @@ class _TaskGridState extends State<TaskGrid> {
   // lattice matrix each time the task grid has to update, regardless of whether
   // we've received new data or not.
 
+  ScrollController verticalController;
+  ScrollController horizontalController;
+
   @override
   void initState() {
     super.initState();
+    verticalController ??= ScrollController();
+    horizontalController ??= ScrollController();
     widget.filter?.addListener(() {
       setState(() {});
     });
+  }
+
+  @override
+  void dispose() {
+    verticalController?.dispose();
+    horizontalController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -113,6 +125,8 @@ class _TaskGridState extends State<TaskGrid> {
       // rather than the current hack of loading during build.
       cells: _processCommitStatuses(widget.commitStatuses, widget.filter),
       cellSize: const Size.square(TaskBox.cellSize),
+      verticalController: verticalController,
+      horizontalController: horizontalController,
     );
   }
 
