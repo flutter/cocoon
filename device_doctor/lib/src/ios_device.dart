@@ -99,7 +99,8 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> devicePairCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String devicePairCheckResult = await eval('idevicepair', <String>['validate'], processManager: processManager);
+      final String devicePairCheckResult =
+          await eval('idevicepair', <String>['validate'], processManager: processManager);
       if (devicePairCheckResult.contains('SUCCESS')) {
         healthCheckResult = HealthCheckResult.success(kDevicePairCheckKey);
       } else {
