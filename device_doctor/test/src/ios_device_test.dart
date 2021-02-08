@@ -79,7 +79,7 @@ void main() {
       expect(healthCheckResult.succeeded, true);
     });
 
-    test('Keychain unlock check - exeption', () async {
+    test('Keychain unlock check - exception', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       process = FakeProcess(1);
@@ -101,7 +101,7 @@ void main() {
       expect(healthCheckResult.succeeded, true);
     });
 
-    test('Cert check - failure', () async {
+    test('Cert check - failure without target certificate', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       StringBuffer sb = new StringBuffer();
@@ -115,7 +115,23 @@ void main() {
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
-    test('Cert check - exeption', () async {
+    test('Cert check - failure with multiple certificates', () async {
+      when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      StringBuffer sb = new StringBuffer();
+      sb.writeln('1) abcdefg "Apple Development: Flutter Devicelab (hijklmn)"');
+
+      sb.writeln('1) opqrst "uvwxyz"');
+      sb.writeln('2 valid identities found');
+      output = <List<int>>[utf8.encode(sb.toString())];
+      process = FakeProcess(0, out: output);
+      HealthCheckResult healthCheckResult = await deviceDiscovery.certCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kCertCheckKey);
+      expect(healthCheckResult.details, sb.toString().trim());
+    });
+
+    test('Cert check - exception', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       process = FakeProcess(1);
@@ -149,7 +165,7 @@ void main() {
       expect(healthCheckResult.details, sb.toString().trim());
     });
 
-    test('Device pair check - exeption', () async {
+    test('Device pair check - exception', () async {
       when(processManager.start(any, workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
       process = FakeProcess(1);
