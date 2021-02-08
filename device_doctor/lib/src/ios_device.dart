@@ -45,7 +45,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     for (Device device in await discoverDevices()) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
-      checks.add(await _keychainUnlockCheck(processManager: processManager));
+      checks.add(await keychainUnlockCheck(processManager: processManager));
+      checks.add(await certCheck(processManager: processManager));
+      checks.add(await devicePairCheck(processManager: processManager));
       results['ios-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -66,13 +68,45 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     }
   }
 
-  Future<HealthCheckResult> _keychainUnlockCheck({ProcessManager processManager}) async {
+  Future<HealthCheckResult> keychainUnlockCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       await eval(kUnlockLoginKeychain, <String>[], processManager: processManager);
       healthCheckResult = HealthCheckResult.success(kKeychainUnlockCheckKey);
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kKeychainUnlockCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  Future<HealthCheckResult> certCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String certCheckResult =
+          await eval('security', <String>['find-identity', '-p', 'codesigning', '-v'], processManager: processManager);
+      if (certCheckResult.contains('Apple Development: Flutter Devicelab') &&
+          certCheckResult.contains('1 valid identities found')) {
+        healthCheckResult = HealthCheckResult.success(kCertCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kCertCheckKey, certCheckResult);
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kCertCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  Future<HealthCheckResult> devicePairCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String devicePairCheckResult = await eval('idevicepair', <String>['validate'], processManager: processManager);
+      if (devicePairCheckResult.contains('SUCCESS')) {
+        healthCheckResult = HealthCheckResult.success(kDevicePairCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kDevicePairCheckKey, devicePairCheckResult);
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kDevicePairCheckKey, error.toString());
     }
     return healthCheckResult;
   }
