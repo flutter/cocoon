@@ -68,6 +68,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     }
   }
 
+  @visibleForTesting
   Future<HealthCheckResult> keychainUnlockCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
@@ -79,6 +80,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     return healthCheckResult;
   }
 
+  @visibleForTesting
   Future<HealthCheckResult> certCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
@@ -96,6 +98,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
     return healthCheckResult;
   }
 
+  @visibleForTesting
   Future<HealthCheckResult> devicePairCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
