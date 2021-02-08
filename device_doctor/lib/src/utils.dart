@@ -15,6 +15,8 @@ const String kAttachedDeviceHealthcheckKey = 'attached_device';
 const String kAttachedDeviceHealthcheckValue = 'No device is available';
 const String kKeychainUnlockCheckKey = 'keychain_unlock';
 const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
+const String kCertCheckKey = 'codesigning_cert';
+const String kDevicePairCheckKey = 'device_pair';
 final Logger logger = Logger('DeviceDoctor');
 
 void fail(String message) {
