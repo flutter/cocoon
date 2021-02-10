@@ -106,25 +106,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
-
-    // TODO(liyuqian): remove the TimeSeries and TimeSeriesValue code below once
-    // metrics center migration is done.
-
-    // TODO(tvolkert): PushBuildStatusToGithub
-    for (String scoreKey in scoreKeys) {
-      final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey, datastore);
-      final num value = resultData[scoreKey] as num;
-
-      final TimeSeriesValue seriesValue = TimeSeriesValue(
-        key: series.key.append(TimeSeriesValue),
-        createTimestamp: DateTime.now().millisecondsSinceEpoch,
-        revision: commit.sha,
-        branch: commit.branch,
-        taskKey: task.key,
-        value: value.toDouble(),
-      );
-      await datastore.insert(<TimeSeriesValue>[seriesValue]);
-    }
     return UpdateTaskStatusResponse(task);
   }
 
