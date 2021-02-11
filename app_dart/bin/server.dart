@@ -61,7 +61,7 @@ Future<void> main() async {
         config: config,
         cache: cache,
         ttl: const Duration(minutes: 1),
-        delegate: GithubQuotaStatus(config, authProvider),
+        delegate: GithubQuotaStatus(config),
       ),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
