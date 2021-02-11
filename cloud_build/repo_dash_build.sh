@@ -10,7 +10,7 @@ set -e
 rm -rf build
 flutter pub get
 flutter config --enable-web
-flutter build web --dart-define FLUTTER_WEB_USE_SKIA=true
+flutter build web --web-renderer=canvaskit --release
 rm -rf ../app_dart/build/web/repository
 cp -r build/web/ ../app_dart/build/web/repository
 flutter clean
