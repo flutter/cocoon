@@ -120,4 +120,10 @@ class GithubService {
       return file['filename'] as String;
     }).toList();
   }
+
+  // Returns JSON of the current GitHub API quota usage.
+  // https://docs.github.com/en/rest/reference/rate-limit
+  Future<Map<String, dynamic>> getQuotaUsage() async {
+    return github.getJSON<String, dynamic>('/rate_limit') as Map<String, dynamic>;
+  }
 }

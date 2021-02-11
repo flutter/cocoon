@@ -6,14 +6,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
-import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
+
+import 'package:cocoon_service/cocoon_service.dart';
 
 /// For local development, you might want to set this to true.
 const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
@@ -62,6 +57,12 @@ Future<void> main() async {
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
+      '/api/github-quota-status': CacheRequestHandler<Body>(
+        config: config,
+        cache: cache,
+        ttl: const Duration(minutes: 1),
+        delegate: GithubQuotaStatus(config, authProvider),
+      ),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
         buildBucketClient,

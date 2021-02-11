@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 export 'src/datastore/cocoon_config.dart';
+export 'src/model/appengine/service_account_info.dart';
 export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/authorize_agent.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
@@ -15,6 +16,7 @@ export 'src/request_handlers/get_build_status.dart';
 export 'src/request_handlers/get_log.dart';
 export 'src/request_handlers/get_status.dart';
 export 'src/request_handlers/get_timeseries_history.dart';
+export 'src/request_handlers/github_quota_status.dart';
 export 'src/request_handlers/github_webhook.dart';
 export 'src/request_handlers/luci_status.dart';
 export 'src/request_handlers/push_build_status_to_github.dart';
@@ -40,3 +42,6 @@ export 'src/request_handling/swarming_authentication.dart';
 export 'src/service/access_token_provider.dart';
 export 'src/service/buildbucket.dart';
 export 'src/service/cache_service.dart';
+export 'src/service/github_checks_service.dart';
+export 'src/service/github_status_service.dart';
+export 'src/service/luci_build_service.dart';
