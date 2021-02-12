@@ -16,17 +16,19 @@ import '../service/github_service.dart';
 ///
 /// This endpoint pushes data to BigQuery for metric collection to analyze usage over time.
 @immutable
-class GithubQuotaStatus extends RequestHandler<Body> {
-  const GithubQuotaStatus(
+class GithubRateLimitStatus extends RequestHandler<Body> {
+  const GithubRateLimitStatus(
     Config config,
   ) : super(config: config);
 
   @override
   Future<Body> get() async {
     final List<Map<String, dynamic>> totalQuotaUsage = <Map<String, dynamic>>[];
+
+    /// Pull quota usage for all supported repos.
     for (String repository in Config.supportedRepos) {
       final GithubService githubService = await config.createGithubService('flutter', repository);
-      final Map<String, dynamic> quotaUsage = await githubService.getQuotaUsage();
+      final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
       quotaUsage['repo'] = repository;
       totalQuotaUsage.add(quotaUsage);
 

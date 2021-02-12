@@ -57,12 +57,6 @@ Future<void> main() async {
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
       '/api/get-log': GetLog(config, authProvider),
-      '/api/github-quota-status': CacheRequestHandler<Body>(
-        config: config,
-        cache: cache,
-        ttl: const Duration(minutes: 1),
-        delegate: GithubQuotaStatus(config),
-      ),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
         buildBucketClient,
@@ -125,6 +119,12 @@ Future<void> main() async {
         config: config,
         delegate: GetBranches(config),
         ttl: const Duration(minutes: 15),
+      ),
+      '/api/public/github-rate-limit-status': CacheRequestHandler<Body>(
+        config: config,
+        cache: cache,
+        ttl: const Duration(minutes: 1),
+        delegate: GithubRateLimitStatus(config),
       ),
     };
 

@@ -121,13 +121,11 @@ class GithubService {
     }).toList();
   }
 
-  // Returns JSON of the current GitHub API quota usage.
-  // https://docs.github.com/en/rest/reference/rate-limit
-  Future<Map<String, int>> getQuotaUsage() async {
-    return <String, int>{
-      'limit': github.rateLimitLimit,
-      'remaining': github.rateLimitRemaining,
-      'reset_ms': github.rateLimitReset.millisecondsSinceEpoch
-    };
-  }
+  /// Returns JSON of the current GitHub API quota usage.
+  ///
+  /// This does not consume any API usage.
+  ///
+  /// Reference:
+  ///   * https://docs.github.com/en/rest/reference/rate-limit
+  Future<RateLimit> getRateLimit() => MiscService(github).getRateLimit();
 }
