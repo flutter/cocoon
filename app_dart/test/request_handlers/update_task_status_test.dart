@@ -4,7 +4,6 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/appengine/time_series.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -69,16 +68,11 @@ void main() {
       );
     });
 
-    test('updates datastore/bigquery entry for Task/TimeSeriesValue', () async {
+    test('updates datastore/bigquery entry for Task', () async {
       final Task task =
           Task(key: commit.key.append(Task, id: taskId), commitKey: commit.key, requiredCapabilities: <String>['ios']);
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
-
-      final TimeSeries timeSeries = TimeSeries(
-          key: config.db.emptyKey
-              .append(TimeSeries, id: 'cubic_bezier_perf__timeline_summary.90th_percentile_frame_build_time_millis'));
-      config.db.values[timeSeries.key] = timeSeries;
 
       expect(task.status, isNull);
 

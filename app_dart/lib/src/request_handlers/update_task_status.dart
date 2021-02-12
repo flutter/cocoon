@@ -14,8 +14,6 @@ import '../datastore/cocoon_config.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
-import '../model/appengine/time_series.dart';
-import '../model/appengine/time_series_value.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -106,25 +104,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     }
 
     await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
-
-    // TODO(liyuqian): remove the TimeSeries and TimeSeriesValue code below once
-    // metrics center migration is done.
-
-    // TODO(tvolkert): PushBuildStatusToGithub
-    for (String scoreKey in scoreKeys) {
-      final TimeSeries series = await _getOrCreateTimeSeries(task, scoreKey, datastore);
-      final num value = resultData[scoreKey] as num;
-
-      final TimeSeriesValue seriesValue = TimeSeriesValue(
-        key: series.key.append(TimeSeriesValue),
-        createTimestamp: DateTime.now().millisecondsSinceEpoch,
-        revision: commit.sha,
-        branch: commit.branch,
-        taskKey: task.key,
-        value: value.toDouble(),
-      );
-      await datastore.insert(<TimeSeriesValue>[seriesValue]);
-    }
     return UpdateTaskStatusResponse(task);
   }
 
@@ -269,29 +248,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     } on ApiRequestError {
       log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
     }
-  }
-
-  Future<TimeSeries> _getOrCreateTimeSeries(
-    Task task,
-    String scoreKey,
-    DatastoreService datastore,
-  ) async {
-    final String id = '${task.name}.$scoreKey';
-    final Key<String> timeSeriesKey = Key<String>.emptyKey(Partition(null)).append<String>(TimeSeries, id: id);
-    TimeSeries series = (await datastore.lookupByKey<TimeSeries>(<Key<String>>[timeSeriesKey])).single;
-
-    if (series == null) {
-      series = TimeSeries(
-        key: timeSeriesKey,
-        timeSeriesId: id,
-        taskName: task.name,
-        label: scoreKey,
-        unit: 'ms',
-      );
-      await datastore.insert(<TimeSeries>[series]);
-    }
-
-    return series;
   }
 }
 
