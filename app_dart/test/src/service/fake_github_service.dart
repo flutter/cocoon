@@ -29,4 +29,9 @@ class FakeGithubService implements GithubService {
   Future<List<String>> listFiles(RepositorySlug slug, int prNumber) async {
     return <String>['abc/def'];
   }
+
+  @override
+  Future<RateLimit> getRateLimit() {
+    throw UnimplementedError();
+  }
 }
