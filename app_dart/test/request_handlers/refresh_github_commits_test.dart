@@ -2,15 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handlers/refresh_github_commits.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -18,12 +9,17 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/request_handlers/refresh_github_commits.dart';
+import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
+
 import '../src/datastore/fake_cocoon_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';
 
@@ -40,7 +36,6 @@ void main() {
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeHttpClient httpClient;
-    FakeHttpClient branchHttpClient;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
@@ -90,14 +85,12 @@ void main() {
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
       httpClient = FakeHttpClient();
-      branchHttpClient = FakeHttpClient();
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         httpClientProvider: () => httpClient,
-        branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
       );
 
@@ -115,8 +108,6 @@ void main() {
       expect(yieldedCommitCount, 0);
       expect(db.values, isEmpty);
       expect(await body.serialize().toList(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
     });
 
     test('checks branch property for commits', () async {
@@ -147,8 +138,6 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 6);
       expect(db.values.values.whereType<Task>().length, 10);
       expect(await body.serialize().toList(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
     });
 
     test('inserts the latest single commit if a new branch is found', () async {
@@ -199,43 +188,6 @@ void main() {
       expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '2', '4']);
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 2, 4]);
       expect(await body.serialize().toList(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
-    });
-
-    test('retries manifest download upon HTTP failure', () async {
-      int retry = 0;
-      httpClient.onIssueRequest = (FakeHttpClientRequest request) {
-        request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
-        retry++;
-      };
-
-      githubCommits = <String>['1'];
-      config.flutterBranchesValue = <String>['master'];
-      httpClient.request.response.body = singleTaskManifestYaml;
-      final Body body = await tester.get<Body>(handler);
-      expect(retry, 2);
-      expect(db.values.values.whereType<Commit>().length, 1);
-      expect(db.values.values.whereType<Task>().length, 5);
-      expect(await body.serialize().toList(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
-    });
-
-    test('gives up manifest download after 3 tries', () async {
-      int retry = 0;
-      httpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-
-      githubCommits = <String>['1'];
-      config.flutterBranchesValue = <String>['master'];
-      httpClient.request.response.body = singleTaskManifestYaml;
-      httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-      await expectLater(tester.get<Body>(handler), throwsA(isA<HttpStatusException>()));
-      expect(retry, 3);
-      expect(db.values.values.whereType<Commit>(), isEmpty);
-      expect(db.values.values.whereType<Task>(), isEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
-      expect(tester.log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
     });
   });
 }
