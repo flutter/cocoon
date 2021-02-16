@@ -25,3 +25,6 @@ cron:
 - description: insert agent health status to bigquery
   url: /api/update-agent-health-history
   schedule: every 1 minutes
+- description: push github rate limit history to bigquery
+  url: /api/public/github-rate-limit-status
+  schedule: every 1 minutes

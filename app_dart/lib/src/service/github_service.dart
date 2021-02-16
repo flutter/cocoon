@@ -120,4 +120,12 @@ class GithubService {
       return file['filename'] as String;
     }).toList();
   }
+
+  /// Returns JSON of the current GitHub API quota usage.
+  ///
+  /// This does not consume any API usage.
+  ///
+  /// Reference:
+  ///   * https://docs.github.com/en/rest/reference/rate-limit
+  Future<RateLimit> getRateLimit() => MiscService(github).getRateLimit();
 }
