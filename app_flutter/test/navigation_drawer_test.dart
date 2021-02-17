@@ -24,8 +24,8 @@ void main() {
 
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Build'), findsOneWidget);
-      expect(find.text('Framework Benchmarks on Skia Perf'), findsOneWidget);
-      expect(find.text('Engine Benchmarks on Skia Perf'), findsOneWidget);
+      expect(find.text('Framework Benchmarks'), findsOneWidget);
+      expect(find.text('Engine Benchmarks'), findsOneWidget);
       expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
@@ -93,7 +93,7 @@ void main() {
         ),
       );
 
-      const String skiaPerfText = 'Engine Benchmarks on Skia Perf';
+      const String skiaPerfText = 'Engine Benchmarks';
       expect(find.text(skiaPerfText), findsOneWidget);
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();

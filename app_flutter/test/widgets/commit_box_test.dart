@@ -73,7 +73,7 @@ void main() {
 
     // Since the overlay positions itself a little below the center of the widget,
     // it is safe to click the center of the widget to close it again.
-    await tester.tap(find.byType(CommitBox), warnIfMissed: false);
+    await tester.tap(find.byType(CommitBox));
     await tester.pump();
 
     expect(find.text(shortSha), findsNothing);
