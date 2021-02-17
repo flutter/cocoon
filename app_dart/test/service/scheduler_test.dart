@@ -46,20 +46,23 @@ void main() {
       httpClient = FakeHttpClient();
       httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
 
-      scheduler = Scheduler(config: config, datastore: DatastoreService(db, 2), httpClient: httpClient, log: FakeLogging());
+      scheduler =
+          Scheduler(config: config, datastore: DatastoreService(db, 2), httpClient: httpClient, log: FakeLogging());
     });
 
     List<Commit> createCommitList(List<String> shas) {
-      return List<Commit>.generate(shas.length, (int index) => Commit(
-        author: 'Username',
-        authorAvatarUrl: 'http://example.org/avatar.jpg',
-        branch: 'master',
-        key: db.emptyKey.append(Commit, id: 'flutter/flutter/master/${shas[index]}'),
-        message: 'commit message',
-        repository: 'flutter',
-        sha: shas[index],
-        timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
-      ));
+      return List<Commit>.generate(
+          shas.length,
+          (int index) => Commit(
+                author: 'Username',
+                authorAvatarUrl: 'http://example.org/avatar.jpg',
+                branch: 'master',
+                key: db.emptyKey.append(Commit, id: 'flutter/flutter/master/${shas[index]}'),
+                message: 'commit message',
+                repository: 'flutter',
+                sha: shas[index],
+                timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
+              ));
     }
 
     Commit shaToCommit(String sha, {String branch = 'master'}) {

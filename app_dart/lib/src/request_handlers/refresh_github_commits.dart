@@ -50,7 +50,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    final Scheduler scheduler = Scheduler(config: config, datastore: datastore, httpClient: httpClientProvider(), gitHubBackoffCalculator: gitHubBackoffCalculator, log: log);
+    final Scheduler scheduler = Scheduler(
+        config: config,
+        datastore: datastore,
+        httpClient: httpClientProvider(),
+        gitHubBackoffCalculator: gitHubBackoffCalculator,
+        log: log);
 
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastProcessedCommit = await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
@@ -71,12 +76,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
 
       final List<Commit> recentCommits = await _getRecentCommits(commits, datastore, branch);
       await scheduler.addCommits(recentCommits);
-
     }
     return Body.empty;
   }
 
-  Future<List<Commit>> _getRecentCommits(List<RepositoryCommit> commits, DatastoreService datastore, String branch) async {
+  Future<List<Commit>> _getRecentCommits(
+      List<RepositoryCommit> commits, DatastoreService datastore, String branch) async {
     final List<Commit> recentCommits = <Commit>[];
     for (RepositoryCommit commit in commits) {
       final String id = 'flutter/flutter/$branch/${commit.sha}';

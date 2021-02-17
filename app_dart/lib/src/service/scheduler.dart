@@ -55,7 +55,7 @@ class Scheduler {
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
       await _addCommit(commit);
-    } 
+    }
   }
 
   Future<void> _addCommit(Commit commit) async {
