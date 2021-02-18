@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'package:device_doctor/src/android_device.dart';
 import 'package:device_doctor/src/device.dart';
+import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/utils.dart';
 
 import 'utils.dart';
@@ -97,6 +98,75 @@ void main() {
         'product_board': 'mno'
       };
       expect(deviceProperties, equals(expectedProperties));
+    });
+  });
+
+  group('AndroidDeviceHealthCheck', () {
+    AndroidDeviceDiscovery deviceDiscovery;
+    MockProcessManager processManager;
+    Process process;
+    String output;
+
+    setUp(() {
+      deviceDiscovery = AndroidDeviceDiscovery('/tmp/output');
+      processManager = MockProcessManager();
+    });
+
+    test('returns success when adb power service is available', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', '-l', '|', 'grep', 'power\$'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = 'power';
+
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, true);
+      expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
+    });
+
+    test('returns failure when adb power service is not available - no power match', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', '-l', '|', 'grep', 'power\$'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = 'abc';
+
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
+      expect(healthCheckResult.details, 'Can\'t find service: power');
+    });
+
+    test('returns failure when adb power service is not available - no exact power match', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', '-l', '|', 'grep', 'power\$'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = 'abc power def';
+
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
+      expect(healthCheckResult.details, 'Can\'t find service: power');
+    });
+
+    test('returns failure when adb returns none 0 code', () async {
+      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', '-l', '|', 'grep', 'power\$'],
+              workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      process = FakeProcess(1);
+
+      HealthCheckResult healthCheckResult = await deviceDiscovery.adbPowerServiceCheck(processManager: processManager);
+      expect(healthCheckResult.succeeded, false);
+      expect(healthCheckResult.name, kAdbPowerServiceCheckKey);
+      expect(healthCheckResult.details, 'Executable adb failed with exit code 1.');
     });
   });
 }
