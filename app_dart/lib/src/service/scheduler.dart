@@ -25,7 +25,7 @@ import 'datastore.dart';
 /// Scheduler responsibilties include:
 ///   1. Tracking commits in Cocoon
 ///   2. Ensuring commits are validated (via scheduling tasks against commits)
-///   3. Retry mechanisms for taskss
+///   3. Retry mechanisms for tasks
 class Scheduler {
   Scheduler({
     @required this.config,
@@ -48,8 +48,6 @@ class Scheduler {
   ///   * Write it to datastore
   ///   * Schedule tasks listed in its scheduler config
   /// Otherwise, ignore it.
-  ///
-  /// [commits] is assumed to be sorted in descending order by merged timestamp.
   Future<void> addCommits(List<Commit> commits) async {
     final List<Commit> newCommits = await _getNewCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
@@ -78,7 +76,6 @@ class Scheduler {
     final List<Commit> newCommits = <Commit>[];
     // Ensure commits are sorted from newest to oldest
     commits.sort((Commit a, Commit b) => a.timestamp.compareTo(b.timestamp));
-    print(commits);
     for (Commit commit in commits) {
       if (await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) == null) {
         newCommits.add(commit);
@@ -143,7 +140,7 @@ class Scheduler {
         log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
       });
     } catch (error) {
-      log.error('Failed to add commit ${commit.sha}: $error');
+      log.error('Failed to commit tasks for ${commit.sha}: $error');
     }
 
     return tasks;

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -21,6 +20,7 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
+import '../service/scheduler.dart';
 
 /// Queries GitHub for the list of recent commits according to different branches,
 /// and creates corresponding rows in the cloud datastore and the BigQuery for any commits
