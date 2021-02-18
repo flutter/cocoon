@@ -67,6 +67,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
       List<RepositoryCommit> commits;
       try {
         commits = await githubService.listCommits(slug, branch, lastCommitTimestampMills);
+        log.debug('Retrieved ${commits.length} commits from GitHub');
       } on GitHubError catch (error) {
         log.error('$error');
         continue;

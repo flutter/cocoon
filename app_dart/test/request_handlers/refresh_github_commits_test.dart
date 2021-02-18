@@ -134,9 +134,10 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 4);
       expect(db.values.values.whereType<Task>().length, 0);
       httpClient.request.response.body = singleTaskManifestYaml;
+      // Commits 7, 8, 9 will get added and scheduled to the tree
       final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 6);
-      expect(db.values.values.whereType<Task>().length, 10);
+      expect(db.values.values.whereType<Commit>().length, 7);
+      expect(db.values.values.whereType<Task>().length, 15);
       expect(await body.serialize().toList(), isEmpty);
     });
 
@@ -185,8 +186,8 @@ void main() {
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);
-      expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '2', '4']);
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 2, 4]);
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
+      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);
     });
   });

@@ -110,8 +110,9 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 3);
       // The 2 new commits are scheduled tasks, existing commit has none.
       expect(db.values.values.whereType<Task>().length, 2 * 5);
-      expect(db.values.values.whereType<Commit>().map<String>(toSha), <String>['1', '2', '4']);
-      expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), <int>[1, 2, 4]);
+      // Check commits were added, but 3 was not
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
     });
 
     test('retries manifest download upon HTTP failure', () async {

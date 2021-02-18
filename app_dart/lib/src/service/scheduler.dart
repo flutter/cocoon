@@ -74,8 +74,8 @@ class Scheduler {
   /// Return subset of [commits] not stored in Datastore.
   Future<List<Commit>> _getNewCommits(List<Commit> commits) async {
     final List<Commit> newCommits = <Commit>[];
-    // Ensure commits are sorted from newest to oldest
-    commits.sort((Commit a, Commit b) => a.timestamp.compareTo(b.timestamp));
+    // Ensure commits are sorted from newest to oldest (descending order)
+    commits.sort((Commit a, Commit b) => b.timestamp.compareTo(a.timestamp));
     for (Commit commit in commits) {
       if (await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) == null) {
         newCommits.add(commit);
