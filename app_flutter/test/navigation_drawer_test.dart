@@ -24,9 +24,8 @@ void main() {
 
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Build'), findsOneWidget);
-      expect(find.text('Benchmarks'), findsOneWidget);
-      expect(find.text('Framework Benchmarks on Skia Perf'), findsOneWidget);
-      expect(find.text('Engine Benchmarks on Skia Perf'), findsOneWidget);
+      expect(find.text('Framework Benchmarks'), findsOneWidget);
+      expect(find.text('Engine Benchmarks'), findsOneWidget);
       expect(find.text('Repository'), findsOneWidget);
       expect(find.text('Infra Agents'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
@@ -83,37 +82,6 @@ void main() {
       expect(find.text('infra agents'), findsOneWidget);
     });
 
-    testWidgets('performance opens performance html url', (WidgetTester tester) async {
-      const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
-      final List<MethodCall> log = <MethodCall>[];
-      urlLauncherChannel.setMockMethodCallHandler((MethodCall methodCall) async => log.add(methodCall));
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: NavigationDrawer(),
-        ),
-      );
-
-      expect(find.text('Benchmarks'), findsOneWidget);
-      await tester.tap(find.text('Benchmarks'));
-      await tester.pump();
-
-      expect(
-        log,
-        <Matcher>[
-          isMethodCall('launch', arguments: <String, Object>{
-            'url': '/benchmarks.html',
-            'useSafariVC': false,
-            'useWebView': false,
-            'enableJavaScript': false,
-            'enableDomStorage': false,
-            'universalLinksOnly': false,
-            'headers': <String, String>{}
-          })
-        ],
-      );
-    });
-
     testWidgets('skia perf links opens skia perf url', (WidgetTester tester) async {
       const MethodChannel urlLauncherChannel = MethodChannel('plugins.flutter.io/url_launcher');
       final List<MethodCall> log = <MethodCall>[];
@@ -125,7 +93,7 @@ void main() {
         ),
       );
 
-      const String skiaPerfText = 'Engine Benchmarks on Skia Perf';
+      const String skiaPerfText = 'Engine Benchmarks';
       expect(find.text(skiaPerfText), findsOneWidget);
       await tester.tap(find.text(skiaPerfText));
       await tester.pump();

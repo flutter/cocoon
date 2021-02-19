@@ -49,9 +49,8 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: FakeInserter(child: IndexPage())));
 
     expect(find.text('BUILD'), findsOneWidget);
-    expect(find.text('BENCHMARKS'), findsOneWidget);
-    expect(find.text('FRAMEWORK BENCHMARKS ON SKIA PERF'), findsOneWidget);
-    expect(find.text('ENGINE BENCHMARKS ON SKIA PERF'), findsOneWidget);
+    expect(find.text('FRAMEWORK BENCHMARKS'), findsOneWidget);
+    expect(find.text('ENGINE BENCHMARKS'), findsOneWidget);
     expect(find.text('REPOSITORY'), findsOneWidget);
     expect(find.text('INFRA AGENTS'), findsOneWidget);
   });

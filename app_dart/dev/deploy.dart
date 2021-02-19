@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:pedantic/pedantic.dart';
 
-const String angularDartProjectDirectory = '../app';
 const String cloudbuildDirectory = 'cloud_build';
 const String workspaceDirectory = '../';
 
@@ -140,12 +139,6 @@ Future<void> main(List<String> arguments) async {
   await Process.run(
     'bash',
     <String>['$cloudbuildDirectory/repo_dash_build.sh'],
-    workingDirectory: workspaceDirectory,
-  );
-
-  await Process.run(
-    'bash',
-    <String>['$cloudbuildDirectory/app_build.sh'],
     workingDirectory: workspaceDirectory,
   );
 

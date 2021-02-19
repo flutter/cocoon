@@ -26,17 +26,12 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
     ),
     CocoonLink(
-      name: 'Benchmarks',
-      icon: const Icon(Icons.show_chart),
-      action: () => launch('/benchmarks.html'),
-    ),
-    CocoonLink(
-      name: 'Framework Benchmarks on Skia Perf',
+      name: 'Framework Benchmarks',
       icon: const Icon(Icons.show_chart),
       action: () => launch('https://flutter-flutter-perf.skia.org/'),
     ),
     CocoonLink(
-      name: 'Engine Benchmarks on Skia Perf',
+      name: 'Engine Benchmarks',
       icon: const Icon(Icons.show_chart),
       action: () => launch('https://flutter-engine-perf.skia.org/'),
     ),

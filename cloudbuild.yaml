@@ -13,11 +13,6 @@ steps:
     entrypoint: '/bin/bash'
     args: ['cloud_build/repo_dash_build.sh']
 
-  # Build angular dart app.
-  - name: gcr.io/$PROJECT_ID/flutter
-    entrypoint: '/bin/bash'
-    args: ['cloud_build/app_build.sh']
-
   # Deploy a new version to google cloud.
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: '/bin/bash'
