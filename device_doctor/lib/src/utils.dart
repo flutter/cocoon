@@ -13,6 +13,7 @@ import 'dart:convert' show utf8;
 
 const String kAttachedDeviceHealthcheckKey = 'attached_device';
 const String kAttachedDeviceHealthcheckValue = 'No device is available';
+const String kAdbPowerServiceCheckKey = 'adb_power_service';
 const String kKeychainUnlockCheckKey = 'keychain_unlock';
 const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 const String kCertCheckKey = 'codesigning_cert';

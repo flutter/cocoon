@@ -96,6 +96,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     for (AndroidDevice device in await discoverDevices(processManager: processManager)) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
+      checks.add(await adbPowerServiceCheck(processManager: processManager));
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -150,6 +151,18 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     for (Device device in await discoverDevices()) {
       await device.recover();
     }
+  }
+
+  @visibleForTesting
+  Future<HealthCheckResult> adbPowerServiceCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      await eval('adb', <String>['shell', 'dumpsys', 'power'], processManager: processManager);
+      healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, error.toString());
+    }
+    return healthCheckResult;
   }
 }
 
