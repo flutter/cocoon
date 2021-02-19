@@ -37,7 +37,7 @@ Future<void> run(List<String> arguments) async {
 // TESTS
 String _generateLicense(String prefix) {
   assert(prefix != null);
-  return '${prefix}Copyright (2014|2015|2016|2017|2018|2019|2020) The Flutter Authors. All rights reserved.\n'
+  return '${prefix}Copyright (2014|2015|2016|2017|2018|2019|2020|2021) The Flutter Authors. All rights reserved.\n'
       '${prefix}Use of this source code is governed by a BSD-style license that can be\n'
       '${prefix}found in the LICENSE file.';
 }
