@@ -112,8 +112,8 @@ void main() {
     });
 
     test('returns success when adb power service is available', () async {
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power'],
-              workingDirectory: anyNamed('workingDirectory')))
+      when(processManager
+              .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       process = FakeProcess(0);
@@ -124,8 +124,8 @@ void main() {
     });
 
     test('returns failure when adb returns none 0 code', () async {
-      when(processManager.start(<dynamic>['adb', 'shell', 'dumpsys', 'power'],
-              workingDirectory: anyNamed('workingDirectory')))
+      when(processManager
+              .start(<dynamic>['adb', 'shell', 'dumpsys', 'power'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
 
       process = FakeProcess(1);
