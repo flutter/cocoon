@@ -157,13 +157,8 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   Future<HealthCheckResult> adbPowerServiceCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
-      final String result =
-          await eval('adb', <String>['shell', 'dumpsys', '-l', '|', 'grep', 'power\$'], processManager: processManager);
-      if (result.trim() == 'power') {
-        healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
-      } else {
-        healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, 'Can\'t find service: power');
-      }
+      await eval('adb', <String>['shell', 'dumpsys', 'power'], processManager: processManager);
+      healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, error.toString());
     }
