@@ -37,6 +37,10 @@ dev_dependencies:
     sdk: flutter
   test: ^1.6.0
 
+dependency_overrides:
+  # Override path_provider to pick up fixes for FFI changes.
+  path_provider: ^2.0.0-nullsafety.1
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
