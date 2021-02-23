@@ -167,12 +167,16 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
   }
 
   @visibleForTesting
+  /// The health check for Android device developer mode.
+  /// 
+  /// Developer mode `on` is expected for a healthy Android device.
   Future<HealthCheckResult> developerModeCheck({ProcessManager processManager}) async {
     HealthCheckResult healthCheckResult;
     try {
       final String result = await eval(
           'adb', <String>['shell', 'settings', 'get', 'global', 'development_settings_enabled'],
           processManager: processManager);
+      // The output of `development_settings_enabled` is `1` when developer mode is on. 
       if (result == '1') {
         healthCheckResult = HealthCheckResult.success(kDeveloperModeCheckKey);
       } else {
