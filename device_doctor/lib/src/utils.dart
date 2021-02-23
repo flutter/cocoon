@@ -16,6 +16,7 @@ const String kAttachedDeviceHealthcheckValue = 'No device is available';
 const String kAdbPowerServiceCheckKey = 'adb_power_service';
 const String kDeveloperModeCheckKey = 'developer_mode';
 const String kKeychainUnlockCheckKey = 'keychain_unlock';
+const String kUserAutoLoginCheckKey = 'swarming_user_auto_login';
 const String kUnlockLoginKeychain = '/usr/local/bin/unlock_login_keychain.sh';
 const String kCertCheckKey = 'codesigning_cert';
 const String kDevicePairCheckKey = 'device_pair';

@@ -13,6 +13,7 @@ import 'package:retry/retry.dart';
 import 'device.dart';
 import 'health.dart';
 import 'host_utils.dart';
+import 'mac.dart';
 import 'utils.dart';
 
 class AndroidDeviceDiscovery implements DeviceDiscovery {
@@ -98,6 +99,9 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       checks.add(HealthCheckResult.success('device_access'));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
+      if (Platform.isMacOS) {
+        checks.add(await userAutoLoginCheck(processManager: processManager));
+      }
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
