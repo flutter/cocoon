@@ -1,7 +1,6 @@
 Cocoon is a Dart App Engine custom runtime (backend) with a frontend
-of Flutter apps (build and repository dashboard) and Angular 2 Dart
-(performance dashboard) apps. Cocoon coordinates and aggregates the
-results of [flutter/flutter](https://github.com/flutter/flutter)
+of Flutter apps (build and repository dashboard). Cocoon coordinates
+and aggregates the results of [flutter/flutter](https://github.com/flutter/flutter)
 builds. It is not designed to help developers build Flutter apps.
 Cocoon is not a Google product.
 
@@ -64,12 +63,6 @@ Cocoon has several components:
 
 * A Flutter app (generally used as a Web app) for the build and agent
   dashboards. The dashboard is found in [app_flutter](app_flutter/).
-
-* An [Angular 2 for
-  Dart](https://angular.io/docs/dart/latest/quickstart.html) Web app
-  for the performance dashboard. We intend to reimplement this in the
-  Flutter app eventually. The performance dashboard is found in
-  [app](app/).
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is
 made of multiple _tasks_. Tasks are _performed_ by _agents_. An agent
