@@ -52,11 +52,12 @@ void main() {
       Map<String, List<HealthCheckResult>> results = await deviceDiscovery.checkDevices(processManager: processManager);
       expect(results.keys.length, equals(1));
       expect(results.keys.toList()[0], 'ios-device-abcdefg');
-      expect(results['ios-device-abcdefg'].length, equals(4));
+      expect(results['ios-device-abcdefg'].length, equals(5));
       expect(results['ios-device-abcdefg'][0].succeeded, true);
       expect(results['ios-device-abcdefg'][1].succeeded, true);
       expect(results['ios-device-abcdefg'][2].succeeded, false);
       expect(results['ios-device-abcdefg'][3].succeeded, false);
+      expect(results['ios-device-abcdefg'][4].succeeded, false);
     });
   });
 
