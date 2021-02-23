@@ -96,7 +96,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     final Map<String, List<HealthCheckResult>> results = <String, List<HealthCheckResult>>{};
     for (AndroidDevice device in await discoverDevices(processManager: processManager)) {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
-      checks.add(HealthCheckResult.success('device_access'));
+      checks.add(HealthCheckResult.success(kDeviceAccessCheckKey));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
       checks.add(await developerModeCheck(processManager: processManager));
       if (Platform.isMacOS) {

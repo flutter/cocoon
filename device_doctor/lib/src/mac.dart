@@ -10,6 +10,9 @@ import 'health.dart';
 import 'utils.dart';
 
 /// The health check for Mac swarming user auto login.
+///
+/// The `swarming` user auto login is required for Flutter desktop tests which need to run
+/// GUI application on Mac.
 Future<HealthCheckResult> userAutoLoginCheck({ProcessManager processManager}) async {
   HealthCheckResult healthCheckResult;
   try {
