@@ -97,6 +97,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       final List<HealthCheckResult> checks = <HealthCheckResult>[];
       checks.add(HealthCheckResult.success('device_access'));
       checks.add(await adbPowerServiceCheck(processManager: processManager));
+      checks.add(await developerModeCheck(processManager: processManager));
       results['android-device-${device.deviceId}'] = checks;
     }
     final Map<String, Map<String, dynamic>> healthCheckMap = await healthcheck(results);
@@ -161,6 +162,29 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       healthCheckResult = HealthCheckResult.success(kAdbPowerServiceCheckKey);
     } on BuildFailedError catch (error) {
       healthCheckResult = HealthCheckResult.failure(kAdbPowerServiceCheckKey, error.toString());
+    }
+    return healthCheckResult;
+  }
+
+  @visibleForTesting
+
+  /// The health check for Android device developer mode.
+  ///
+  /// Developer mode `on` is expected for a healthy Android device.
+  Future<HealthCheckResult> developerModeCheck({ProcessManager processManager}) async {
+    HealthCheckResult healthCheckResult;
+    try {
+      final String result = await eval(
+          'adb', <String>['shell', 'settings', 'get', 'global', 'development_settings_enabled'],
+          processManager: processManager);
+      // The output of `development_settings_enabled` is `1` when developer mode is on.
+      if (result == '1') {
+        healthCheckResult = HealthCheckResult.success(kDeveloperModeCheckKey);
+      } else {
+        healthCheckResult = HealthCheckResult.failure(kDeveloperModeCheckKey, 'developer mode is off');
+      }
+    } on BuildFailedError catch (error) {
+      healthCheckResult = HealthCheckResult.failure(kDeveloperModeCheckKey, error.toString());
     }
     return healthCheckResult;
   }
