@@ -35,6 +35,12 @@ function config_minion() {
   fi
 }
 
+function set_deviceos_grains() {
+  if [ ! -z "$1" ]; then
+    salt-call grains.set 'device_os' "$1"
+  fi
+}
+
 function reboot_salt() {
   if [[ "$(uname)" == 'Linux' ]]; then
     sudo systemctl restart salt-minion
@@ -52,13 +58,34 @@ function verify_provision() {
   fi
 }
 
+function Usage() {
+  echo "
+Usage: ./provision_salt.sh [SERVER] [DEVICE_OS]
+
+  Arguments:
+    SERVER: required. Either 'prod' or 'dev'.
+    DEVICE_OS: optional. Either 'ios' or 'android'.
+  "
+}
+
 function main() {
   local master_hostname=''
   case "$1" in
     prod) master_hostname='salt.endpoints.fuchsia-infra.cloud.goog' ;;
     dev) master_hostname='salt.endpoints.fuchsia-infra-dev.cloud.goog' ;;
     *)
-      echo 'Usage: ./provision_salt.sh (prod|dev)'
+      Usage
+      exit 1
+      ;;
+  esac
+
+  local device_os=''
+  case "$2" in
+    ios) device_os='ios' ;;
+    android) device_os='android' ;;
+    "") device_os='' ;;
+    *)
+      Usage
       exit 1
       ;;
   esac
@@ -67,6 +94,7 @@ function main() {
   config_minion "$master_hostname"
   reboot_salt
   verify_provision
+  set_deviceos_grains "$device_os"
 }
 
 main "$@"
