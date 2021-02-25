@@ -143,7 +143,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
       final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
 
       /// Deal with entries spanning only one line.
-      /// 
+      ///
       /// This is to skip unused entries spanninning multiple lines.
       /// For example:
       ///   [persist.sys.boot.reason.history]: [reboot,ota,1613677289
