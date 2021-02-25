@@ -57,13 +57,14 @@ class Scheduler {
   }
 
   Future<void> _addCommit(Commit commit) async {
+    final List<Task> tasks = await _getTasks(commit);
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
+        transaction.queueMutations(inserts: tasks);
         await transaction.commit();
-        log.debug('Committed commit ${commit.sha}');
+        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
       });
-      await _scheduleTasks(commit);
     } catch (error) {
       log.error('Failed to add commit ${commit.sha}: $error');
     }
@@ -90,7 +91,7 @@ class Scheduler {
   }
 
   /// Create [Tasks] specified in [commit] scheduler config.
-  Future<List<Task>> _scheduleTasks(Commit commit) async {
+  Future<List<Task>> _getTasks(Commit commit) async {
     Task newTask(
       String name,
       String stageName,
@@ -132,16 +133,6 @@ class Scheduler {
         info.timeoutInMinutes,
       ));
     });
-
-    try {
-      await datastore.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: tasks);
-        await transaction.commit();
-        log.debug('Committed ${tasks.length} new tasks for commit ${commit.sha}');
-      });
-    } catch (error) {
-      log.error('Failed to commit tasks for ${commit.sha}: $error');
-    }
 
     return tasks;
   }

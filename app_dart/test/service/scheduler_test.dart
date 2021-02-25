@@ -115,6 +115,28 @@ void main() {
       expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
     });
 
+    test('skips commits for which task transaction fails', () async {
+      config.flutterBranchesValue = <String>['master'];
+
+      // Existing commits should not be duplicated.
+      final Commit commit = shaToCommit('1');
+      db.values[commit.key] = commit;
+
+      db.onCommit = (List<gcloud_db.Model<dynamic>> inserts, List<gcloud_db.Key<dynamic>> deletes) {
+        if (inserts.whereType<Task>().where((Task task) => task.createTimestamp == 3).isNotEmpty) {
+          throw StateError('Task failed');
+        }
+      };
+      // Commits are expect from newest to oldest timestamps
+      await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
+      expect(db.values.values.whereType<Commit>().length, 3);
+      // The 2 new commits are scheduled tasks, existing commit has none.
+      expect(db.values.values.whereType<Task>().length, 2 * 5);
+      // Check commits were added, but 3 was not
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
+      expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
+    });
+
     test('retries manifest download upon HTTP failure', () async {
       int retry = 0;
       httpClient.onIssueRequest = (FakeHttpClientRequest request) {
