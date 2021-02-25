@@ -118,12 +118,14 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
     Map<String, String> properties = <String, String>{};
     if (devices.isEmpty) {
       await writeToFile(json.encode(properties), _outputFilePath);
+      logger.info('No device is available.');
       return properties;
     }
     properties = await getDeviceProperties(devices[0], processManager: processManager);
     final String propertiesJson = json.encode(properties);
 
     await writeToFile(propertiesJson, _outputFilePath);
+    logger.info('Properties for deviceID ${devices[0].deviceId}: $propertiesJson');
     return properties;
   }
 
@@ -139,7 +141,17 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
             await eval('adb', <String>['-s', device.deviceId, 'shell', 'getprop'], processManager: processManager))
         .forEach((String property) {
       final List<String> propertyList = property.replaceAll('[', '').replaceAll(']', '').split(': ');
-      propertyMap[propertyList[0].trim()] = propertyList[1].trim();
+
+      /// Deal with entries spanning only one line.
+      /// 
+      /// This is to skip unused entries spanninning multiple lines.
+      /// For example:
+      ///   [persist.sys.boot.reason.history]: [reboot,ota,1613677289
+      ///   reboot,userrequested,1613677269
+      ///   reboot,userrequested,1613508544]
+      if (propertyList.length == 2) {
+        propertyMap[propertyList[0].trim()] = propertyList[1].trim();
+      }
     });
 
     deviceProperties['product_brand'] = propertyMap['ro.product.brand'];
