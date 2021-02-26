@@ -112,7 +112,7 @@ class LuciService {
     const RetryOptions r = RetryOptions(maxAttempts: 3);
     for (int j = 0; j < builders.length; j += _buildersBatchSize) {
       final List<LuciBuilder> partialBuilders =
-          builders.sublist(j, min(j + _buildersBatchSize - 1, builders.length - 1));
+          builders.sublist(j, min(j + _buildersBatchSize, builders.length));
       await r.retry(
         () async {
           final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
