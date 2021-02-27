@@ -103,7 +103,7 @@ void main() {
     expect(resultBuilds, builds);
   });
 
-  test('luci getPartialBuildersList works correctly', () async {
+  test('luci getPartialBuildersList handles non-uniform batches', () async {
     final FakeConfig config = FakeConfig(githubService: FakeGithubService());
     final FakeClientContext clientContext = FakeClientContext();
     final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
@@ -127,9 +127,7 @@ void main() {
         const LuciBuilder(name: 'Linux3', repo: 'flutter', flaky: false),
         const LuciBuilder(name: 'Linux4', repo: 'flutter', flaky: false)
       ],
-      <LuciBuilder>[
-        const LuciBuilder(name: 'Linux5', repo: 'flutter', flaky: false)
-      ]
+      <LuciBuilder>[const LuciBuilder(name: 'Linux5', repo: 'flutter', flaky: false)]
     ]);
   });
 }

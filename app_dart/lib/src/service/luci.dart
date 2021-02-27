@@ -99,9 +99,8 @@ class LuciService {
     return results;
   }
 
-  @visibleForTesting
-
   /// Divides a large builder list `builders` to a list of smaller builder lists.
+  @visibleForTesting
   List<List<LuciBuilder>> getPartialBuildersList(List<LuciBuilder> builders, int builderBatchSize) {
     final List<List<LuciBuilder>> partialBuildersList = <List<LuciBuilder>>[];
     for (int j = 0; j < builders.length; j += builderBatchSize) {
