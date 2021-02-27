@@ -99,6 +99,17 @@ class LuciService {
     return results;
   }
 
+  @visibleForTesting
+
+  /// Divides a large builder list `builders` to a list of smaller builder lists.
+  List<List<LuciBuilder>> getPartialBuildersList(List<LuciBuilder> builders, int builderBatchSize) {
+    final List<List<LuciBuilder>> partialBuildersList = <List<LuciBuilder>>[];
+    for (int j = 0; j < builders.length; j += builderBatchSize) {
+      partialBuildersList.add(builders.sublist(j, min(j + builderBatchSize, builders.length)));
+    }
+    return partialBuildersList;
+  }
+
   /// Gets builds associated with a list of [builders] in batches with
   /// retries for [repo] including the task name or not.
   Future<List<Build>> getBuildsForBuilderList(
@@ -107,12 +118,10 @@ class LuciService {
     bool requireTaskName = false,
   }) async {
     final List<Build> builds = <Build>[];
-
     // Request builders data in batches of 50 to prevent failures in the grpc service.
     const RetryOptions r = RetryOptions(maxAttempts: 3);
-    for (int j = 0; j < builders.length; j += _buildersBatchSize) {
-      final List<LuciBuilder> partialBuilders =
-          builders.sublist(j, min(j + _buildersBatchSize, builders.length));
+    final List<List<LuciBuilder>> partialBuildersList = getPartialBuildersList(builders, _buildersBatchSize);
+    for (List<LuciBuilder> partialBuilders in partialBuildersList) {
       await r.retry(
         () async {
           final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);

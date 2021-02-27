@@ -102,4 +102,34 @@ void main() {
     final List<Build> resultBuilds = await service.getBuildsForBuilderList(<LuciBuilder>[builder], repo: 'flutter');
     expect(resultBuilds, builds);
   });
+
+  test('luci getPartialBuildersList works correctly', () async {
+    final FakeConfig config = FakeConfig(githubService: FakeGithubService());
+    final FakeClientContext clientContext = FakeClientContext();
+    final MockBuildBucketClient mockBuildBucketClient = MockBuildBucketClient();
+    final LuciService service =
+        LuciService(buildBucketClient: mockBuildBucketClient, config: config, clientContext: clientContext);
+    const List<LuciBuilder> builders = <LuciBuilder>[
+      LuciBuilder(name: 'Linux1', repo: 'flutter', flaky: false),
+      LuciBuilder(name: 'Linux2', repo: 'flutter', flaky: false),
+      LuciBuilder(name: 'Linux3', repo: 'flutter', flaky: false),
+      LuciBuilder(name: 'Linux4', repo: 'flutter', flaky: false),
+      LuciBuilder(name: 'Linux5', repo: 'flutter', flaky: false),
+    ];
+
+    final List<List<LuciBuilder>> partialBuildersList = service.getPartialBuildersList(builders, 2);
+    expect(partialBuildersList, <List<LuciBuilder>>[
+      <LuciBuilder>[
+        const LuciBuilder(name: 'Linux1', repo: 'flutter', flaky: false),
+        const LuciBuilder(name: 'Linux2', repo: 'flutter', flaky: false)
+      ],
+      <LuciBuilder>[
+        const LuciBuilder(name: 'Linux3', repo: 'flutter', flaky: false),
+        const LuciBuilder(name: 'Linux4', repo: 'flutter', flaky: false)
+      ],
+      <LuciBuilder>[
+        const LuciBuilder(name: 'Linux5', repo: 'flutter', flaky: false)
+      ]
+    ]);
+  });
 }
