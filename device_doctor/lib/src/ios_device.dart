@@ -129,7 +129,5 @@ class IosDevice implements Device {
   Future<void> recover() async {
     // Restarts the device first.
     await eval('idevicediagnostics', <String>['restart']);
-    // Close pop up dialogs if any.
-    await closeIosDialog(deviceId: deviceId);
   }
 }
