@@ -181,4 +181,101 @@ void main() {
       expect(healthCheckResult.details, 'Executable idevicepair failed with exit code 1.');
     });
   });
+
+  group('IosDevice recovery checks', () {
+    IosDevice device;
+    MockProcessManager processManager;
+    Process process;
+    String output;
+
+    setUp(() {
+      processManager = MockProcessManager();
+      device = IosDevice(deviceId: 'abc');
+    });
+    test('device restart - success', () async {
+      when(processManager
+              .start(<dynamic>['idevicediagnostics', 'restart'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      process = FakeProcess(0);
+      final bool result = await device.restart_device(processManager: processManager);
+      expect(result, isTrue);
+    });
+
+    test('device restart - failure', () async {
+      when(processManager
+              .start(<dynamic>['idevicediagnostics', 'restart'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      process = FakeProcess(1);
+      final bool result = await device.restart_device(processManager: processManager);
+      expect(result, isFalse);
+    });
+
+    test('uninstall applications - no device is available', () async {
+      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = '''No device found.
+        ''';
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      final bool result = await device.uninstall_applications(processManager: processManager);
+      expect(result, isTrue);
+    });
+
+    test('uninstall applications - no application exist', () async {
+      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+
+      output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
+        ''';
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+
+      final bool result = await device.uninstall_applications(processManager: processManager);
+      expect(result, isTrue);
+    });
+
+    test('uninstall applications - applications exist with exception', () async {
+      Process process_uninstall;
+      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      when(processManager
+              .start(<dynamic>['ideviceinstaller', '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process_uninstall));
+      when(processManager
+              .start(<dynamic>['ideviceinstaller', '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process_uninstall));
+
+      output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
+        abc, def, ghi
+        jkl, mno, pqr
+        ''';
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+      process_uninstall = FakeProcess(1);
+
+      final bool result = await device.uninstall_applications(processManager: processManager);
+      expect(result, isFalse);
+    });
+
+    test('uninstall applications - applications exist', () async {
+      Process process_uninstall;
+      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      when(processManager
+              .start(<dynamic>['ideviceinstaller', '-U', 'abc'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process_uninstall));
+      when(processManager
+              .start(<dynamic>['ideviceinstaller', '-U', 'jkl'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process_uninstall));
+
+      output = '''CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName
+        abc, def, ghi
+        jkl, mno, pqr
+        ''';
+      process = FakeProcess(0, out: <List<int>>[utf8.encode(output)]);
+      process_uninstall = FakeProcess(0);
+
+      final bool result = await device.uninstall_applications(processManager: processManager);
+      expect(result, isTrue);
+    });
+  });
 }
