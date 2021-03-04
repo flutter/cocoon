@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show LineSplitter, json;
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
@@ -127,7 +128,56 @@ class IosDevice implements Device {
 
   @override
   Future<void> recover() async {
-    // Restarts the device first.
-    await eval('idevicediagnostics', <String>['restart']);
+    await uninstall_applications();
+    await restart_device();
+  }
+
+  /// Restart iOS device.
+  @visibleForTesting
+  Future<bool> restart_device({ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
+    try {
+      await eval('idevicediagnostics', <String>['restart'], processManager: processManager);
+    } on BuildFailedError catch (error) {
+      logger.severe('device restart fails: $error');
+      stderr.write('device restart fails: $error');
+      return false;
+    }
+    return true;
+  }
+
+  /// Uninstall applications from a device.
+  ///
+  /// This is to prevent application installation failure caused by using different siging
+  /// certificate from previous installed application.
+  /// Issue: https://github.com/flutter/flutter/issues/76896
+  @visibleForTesting
+  Future<bool> uninstall_applications({ProcessManager processManager}) async {
+    processManager ??= LocalProcessManager();
+    String result;
+    try {
+      result = await eval('ideviceinstaller', <String>['-l'], processManager: processManager);
+    } on BuildFailedError catch (error) {
+      logger.severe('list applications fails: $error');
+      stderr.write('list applications fails: $error');
+      return false;
+    }
+
+    // Skip uninstalling process when no device is available or no application exists.
+    if (result == 'No device found.' || result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
+      return true;
+    }
+    final List<String> results = result.trim().split('\n');
+    final List<String> bundleIdentifiers = results.sublist(1).map((e) => e.split(',')[0].trim()).toList();
+    try {
+      for (String bundleIdentifier in bundleIdentifiers) {
+        await eval('ideviceinstaller', <String>['-U', bundleIdentifier], processManager: processManager);
+      }
+    } on BuildFailedError catch (error) {
+      logger.severe('uninstall applications fails: $error');
+      stderr.write('uninstall applications fails: $error');
+      return false;
+    }
+    return true;
   }
 }
