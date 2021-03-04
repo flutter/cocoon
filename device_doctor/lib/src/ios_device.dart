@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show LineSplitter, json;
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:process/process.dart';
@@ -127,8 +128,8 @@ class IosDevice implements Device {
 
   @override
   Future<void> recover() async {
-    await restart_device();
     await uninstall_applications();
+    await restart_device();
   }
 
   /// Restart iOS device.
@@ -139,6 +140,7 @@ class IosDevice implements Device {
       await eval('idevicediagnostics', <String>['restart'], processManager: processManager);
     } on BuildFailedError catch (error) {
       logger.severe('device restart fails: $error');
+      stderr.write('device restart fails: $error');
       return false;
     }
     return true;
@@ -152,7 +154,15 @@ class IosDevice implements Device {
   @visibleForTesting
   Future<bool> uninstall_applications({ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
-    final String result = await eval('ideviceinstaller', <String>['-l'], processManager: processManager);
+    String result;
+    try {
+      result = await eval('ideviceinstaller', <String>['-l'], processManager: processManager);
+    } on BuildFailedError catch (error) {
+      logger.severe('list applications fails: $error');
+      stderr.write('list applications fails: $error');
+      return false;
+    }
+
     // Skip uninstalling process when no device is available or no application exists.
     if (result == 'No device found.' || result == 'CFBundleIdentifier, CFBundleVersion, CFBundleDisplayName') {
       return true;
@@ -165,6 +175,7 @@ class IosDevice implements Device {
       }
     } on BuildFailedError catch (error) {
       logger.severe('uninstall applications fails: $error');
+      stderr.write('uninstall applications fails: $error');
       return false;
     }
     return true;

@@ -210,6 +210,15 @@ void main() {
       expect(result, isFalse);
     });
 
+    test('list applications - failure', () async {
+      when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
+          .thenAnswer((_) => Future.value(process));
+      process = FakeProcess(1);
+
+      final bool result = await device.uninstall_applications(processManager: processManager);
+      expect(result, isFalse);
+    });
+
     test('uninstall applications - no device is available', () async {
       when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));
