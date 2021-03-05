@@ -17,8 +17,6 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
-import '../model/appengine/time_series.dart';
-import '../model/appengine/time_series_value.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
 /// be touched in any given transaction, or the backing datastore will throw
@@ -104,22 +102,6 @@ class DatastoreService {
       ..limit(limit)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
-    return query.run();
-  }
-
-  /// queryRecentTimeSerialsValues fetches the latest benchmark results starting from
-  /// [startFrom] and up to a given [limit].
-  ///
-  /// If startFrom is nil, starts from the latest available record.
-  /// [startFrom] to be implemented...
-  Stream<TimeSeriesValue> queryRecentTimeSeriesValues(TimeSeries timeSeries,
-      {int limit = defaultTimeSeriesValuesNumber, String startFrom, String branch = 'master', int timestamp}) {
-    timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    final Query<TimeSeriesValue> query = db.query<TimeSeriesValue>(ancestorKey: timeSeries.key)
-      ..filter('branch =', branch)
-      ..filter('createTimestamp <', timestamp)
-      ..limit(limit)
-      ..order('-createTimestamp');
     return query.run();
   }
 

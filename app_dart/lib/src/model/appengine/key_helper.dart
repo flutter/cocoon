@@ -19,8 +19,6 @@ import 'github_build_status_update.dart';
 import 'key_helper.pb.dart';
 import 'log_chunk.dart';
 import 'task.dart';
-import 'time_series.dart';
-import 'time_series_value.dart';
 
 const Set<Type> _defaultTypes = <Type>{
   Agent,
@@ -28,8 +26,6 @@ const Set<Type> _defaultTypes = <Type>{
   GithubBuildStatusUpdate,
   LogChunk,
   Task,
-  TimeSeries,
-  TimeSeriesValue,
   AllowedAccount,
 };
 
