@@ -92,9 +92,7 @@ Future<void> main() async {
       ),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
-      '/api/update-benchmark-targets': UpdateBenchmarkTargets(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
-      '/api/update-timeseries': UpdateTimeSeries(config, authProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
@@ -102,18 +100,11 @@ Future<void> main() async {
         delegate: GetBuildStatus(config),
         ttl: const Duration(seconds: 15),
       ),
-      '/api/public/get-benchmarks': CacheRequestHandler<Body>(
-        cache: cache,
-        config: config,
-        delegate: GetBenchmarks(config),
-        ttl: const Duration(minutes: 15),
-      ),
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
         delegate: GetStatus(config),
       ),
-      '/api/public/get-timeseries-history': GetTimeSeriesHistory(config),
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
