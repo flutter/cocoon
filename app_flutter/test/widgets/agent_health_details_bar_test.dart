@@ -23,7 +23,7 @@ final DateTime laterTime = pingTime.add(
 void main() {
   testWidgets('healthy bar', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
+      ..healthCheckTimestamp = pingTime.millisecondsSinceEpoch
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -56,7 +56,7 @@ able-to-perform-health-check: succeeded''';
 
   testWidgets('timed out icon', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(100)
+      ..healthCheckTimestamp = 100
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -89,7 +89,7 @@ able-to-perform-health-check: succeeded''';
 
   testWidgets('unhealthy bar', (WidgetTester tester) async {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(100)
+      ..healthCheckTimestamp = 100
       ..isHealthy = false
       ..healthDetails = '';
 

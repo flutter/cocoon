@@ -9,7 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:cocoon_service/models.dart'
-    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, Key, RootKey;
+    show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
@@ -310,11 +310,9 @@ CommitStatus _createCommitStatus(
   String keyValue, {
   String branch = 'master',
 }) {
-  return CommitStatus()
-    ..branch = branch
-    ..commit = (Commit()
+  return CommitStatus(commit: Commit()
       // Author is set so we don't have to dig through all the nested fields
       // while debugging
       ..author = keyValue
-      ..key = (RootKey()..child = (Key()..name = keyValue)));
+      ..branch = branch);
 }

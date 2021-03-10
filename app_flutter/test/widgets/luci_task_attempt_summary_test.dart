@@ -6,7 +6,7 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/models.dart' show Key, RootKey, Task;
+import 'package:cocoon_service/models.dart' show Task;
 
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 
@@ -76,7 +76,6 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: Task()
-                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                   ..buildNumberList = '123'
                   ..builderName = 'Linux',
               ),
@@ -117,7 +116,6 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: Task()
-                  ..key = (RootKey()..child = (Key()..name = 'loggylog'))
                   ..buildNumberList = '123,456'
                   ..builderName = 'Linux',
               ),

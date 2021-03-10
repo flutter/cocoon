@@ -332,13 +332,13 @@ class BuildState extends ChangeNotifier {
 
   /// Assert that there are no duplicate commits in [statuses].
   bool _statusesAreUnique(List<CommitStatus> statuses) {
-    final Set<RootKey> uniqueStatuses = <RootKey>{};
+    final Set<String> uniqueStatuses = <String>{};
     for (int i = 0; i < statuses.length; i += 1) {
       final Commit current = statuses[i].commit;
-      if (uniqueStatuses.contains(current.key)) {
+      if (uniqueStatuses.contains(current.encodedKey)) {
         return false;
       }
-      uniqueStatuses.add(current.key);
+      uniqueStatuses.add(current.encodedKey);
     }
     return true;
   }
@@ -353,7 +353,7 @@ class BuildState extends ChangeNotifier {
     assert(statuses.isNotEmpty);
 
     final CommitStatus exampleStatus = statuses.first;
-    return exampleStatus.branch == _currentBranch;
+    return exampleStatus.commit.branch == _currentBranch;
   }
 
   @override

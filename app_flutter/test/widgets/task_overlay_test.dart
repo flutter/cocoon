@@ -40,13 +40,11 @@ class TestGrid extends StatelessWidget {
       child: TaskGrid(
         buildState: buildState ?? FakeBuildState(),
         commitStatuses: <CommitStatus>[
-          CommitStatus()
-            ..commit = (Commit()
+          CommitStatus(commit: (Commit()
               ..author = 'Fats Domino'
-              ..sha = '24e8c0a2')
-            ..stages.add(Stage()
-              ..name = 'Stage'
-              ..tasks.addAll(<Task>[task])),
+              ..sha = '24e8c0a2'),
+            stages: <Stage>[(Stage(name: 'Stage',
+              tasks: <Task>[task])),],),
         ],
       ),
     );
@@ -71,9 +69,9 @@ void main() {
       ..reservedForAgentId = 'Agenty McAgentFace'
       ..isFlaky = false // As opposed to the next test.
       ..status = TaskBox.statusFailed
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = createTime.microsecondsSinceEpoch
+      ..startTimestamp = startTime.microsecondsSinceEpoch
+      ..endTimestamp = finishTime.microsecondsSinceEpoch;
 
     final String expectedTaskInfoString = 'Attempts: ${expectedTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -128,9 +126,9 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..isFlaky = true // This is the point of this test.
       ..status = TaskBox.statusFailed
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = createTime.microsecondsSinceEpoch
+      ..startTimestamp = startTime.microsecondsSinceEpoch
+      ..endTimestamp = finishTime.microsecondsSinceEpoch;
 
     final String flakyTaskInfoString = 'Attempts: ${flakyTask.attempts}\n'
         'Run time: 40 minutes\n'
@@ -178,9 +176,9 @@ void main() {
       ..stageName = 'devicelab'
       ..name = 'Tasky McTaskFace'
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime)
-      ..endTimestamp = _int64FromDateTime(finishTime);
+      ..createTimestamp = createTime.microsecondsSinceEpoch
+      ..startTimestamp = startTime.microsecondsSinceEpoch
+      ..endTimestamp = finishTime.microsecondsSinceEpoch;
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Run time: 8 minutes\n'
@@ -219,8 +217,8 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusInProgress
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime)
-      ..startTimestamp = _int64FromDateTime(startTime);
+      ..createTimestamp = createTime.microsecondsSinceEpoch
+      ..startTimestamp = startTime.microsecondsSinceEpoch;
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Running for 9 minutes\n'
@@ -258,7 +256,7 @@ void main() {
       ..name = 'Tasky McTaskFace'
       ..status = TaskBox.statusNew
       ..isFlaky = false
-      ..createTimestamp = _int64FromDateTime(createTime);
+      ..createTimestamp = createTime.microsecondsSinceEpoch;
 
     final String timeTaskInfoString = 'Attempts: ${timeTask.attempts}\n'
         'Queueing for 10 seconds';

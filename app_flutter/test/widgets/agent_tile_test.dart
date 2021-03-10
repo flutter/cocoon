@@ -25,7 +25,7 @@ final DateTime nowTime = healthyTime.add(
 void main() {
   group('AgentTile', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(healthyTime.millisecondsSinceEpoch)
+      ..healthCheckTimestamp = healthyTime.millisecondsSinceEpoch
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded

@@ -97,5 +97,5 @@ String logUrl(Task task, {Commit commit}) {
   } else if (QualifiedTask.fromTask(task).isLuci) {
     return QualifiedTask.fromTask(task).sourceConfigurationUrl;
   }
-  return '$_flutterDashboardUrl/api/get-log?ownerKey=${task.key.child.name}';
+  return '$_flutterDashboardUrl/api/get-log?ownerKey=${task.encodedKey}';
 }

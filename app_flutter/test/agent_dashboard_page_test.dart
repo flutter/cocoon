@@ -157,7 +157,7 @@ void main() {
             ..capabilities.add('dash')
             ..isHealthy = i % 2 == 0
             ..isHidden = false
-            ..healthCheckTimestamp = Int64(DateTime.utc(2000, 1, 1, i).millisecondsSinceEpoch)
+            ..healthCheckTimestamp = DateTime.utc(2000, 1, 1, i).millisecondsSinceEpoch
             ..healthDetails = 'ssh-connectivity: succeeded\n'
                 'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
                 'android-device-ZY223D6B7B: succeeded\n'

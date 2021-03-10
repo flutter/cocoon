@@ -32,10 +32,10 @@ void main() {
     expect(filter.matchesTask(QualifiedTask.fromTask(Task()..stageName = StageName.luci)), true);
 
     expect(filter.matchesCommit(CommitStatus()), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = Commit()), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'joe')), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = '0x45c3fd')), true);
-    expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'LGTM!')), true);
+    expect(filter.matchesCommit(CommitStatus(commit: Commit())), true);
+    expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'joe'))), true);
+    expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = '0x45c3fd'))), true);
+    expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'LGTM!'))), true);
   }
 
   test('default task grid filter', () {
@@ -194,9 +194,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'fo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'foo'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'blah foo blah'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'fo'))), false);
     }
   });
 
@@ -207,10 +207,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..author = 'foo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'z bc'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'z bc z'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'z b c'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..author = 'foo'))), false);
     }
   });
 
@@ -221,9 +221,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'fo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'foo'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'blah foo blah'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'fo'))), false);
     }
   });
 
@@ -234,10 +234,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..message = 'foo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'z bc'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'z bc z'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'z b c'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..message = 'foo'))), false);
     }
   });
 
@@ -248,9 +248,9 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'blah foo blah')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'fo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'foo'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'blah foo blah'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'fo'))), false);
     }
   });
 
@@ -261,10 +261,10 @@ void main() {
     ];
     expect(filters[0], filters[1]);
     for (final TaskGridFilter filter in filters) {
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z bc')), true);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z bc z')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'z b c')), false);
-      expect(filter.matchesCommit(CommitStatus()..commit = (Commit()..sha = 'foo')), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'z bc'))), true);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'z bc z'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'z b c'))), false);
+      expect(filter.matchesCommit(CommitStatus(commit: (Commit()..sha = 'foo'))), false);
     }
   });
 }

@@ -20,7 +20,7 @@ final DateTime laterTime = pingTime.add(
 void main() {
   test('is healthy when everything is healthy', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
+      ..healthCheckTimestamp = pingTime.millisecondsSinceEpoch
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -49,7 +49,7 @@ able-to-perform-health-check: succeeded''';
 
   test('is not healthy when just one metric is unhealthy', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64(pingTime.millisecondsSinceEpoch)
+      ..healthCheckTimestamp = pingTime.millisecondsSinceEpoch
       ..isHealthy = false
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -109,7 +109,7 @@ able-to-perform-health-check: succeeded''';
 
   test('is not healthy when all metrics are healthy but has timed out', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt('10000')
+      ..healthCheckTimestamp = 10000
       ..isHealthy = true
       ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -138,7 +138,7 @@ able-to-perform-health-check: succeeded''';
 
   test('is unhealthy when health details is null', () {
     final Agent agent = Agent()
-      ..healthCheckTimestamp = Int64.parseInt('10000')
+      ..healthCheckTimestamp = 10000
       ..isHealthy = false;
 
     final AgentHealthDetails healthDetails = AgentHealthDetails(agent);

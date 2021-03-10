@@ -46,7 +46,7 @@ class AppEngineCocoonService implements CocoonService {
     String branch,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
-      if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
+      if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.encodedKey,
       'branch': branch ?? _defaultBranch,
     };
     final String getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
@@ -150,7 +150,7 @@ class AppEngineCocoonService implements CocoonService {
           'X-Flutter-IdToken': idToken,
         },
         body: jsonEncode(<String, String>{
-          'Key': task.key.child.name,
+          'Key': task.encodedKey,
         }));
 
     return response.statusCode == HttpStatus.ok;
@@ -165,7 +165,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
-    final Map<String, String> queryParameters = <String, String>{'ownerKey': task.key.child.name};
+    final Map<String, String> queryParameters = <String, String>{'ownerKey': task.encodedKey};
     final String getTaskLogUrl = apiEndpoint('/api/get-log', queryParameters: queryParameters);
 
     // Only show the first 7 characters of the commit sha. This amount is unique
@@ -267,125 +267,20 @@ class AppEngineCocoonService implements CocoonService {
 
   List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {
     final List<Agent> agents = <Agent>[];
-
     for (final Map<String, Object> jsonAgent in jsonAgentStatuses) {
-      final List<Object> objectCapabilities = jsonAgent['Capabilities'];
-      final List<String> capabilities = objectCapabilities.map((Object value) => value.toString()).toList();
-      final Agent agent = Agent()
-        ..agentId = jsonAgent['AgentID']
-        ..healthCheckTimestamp = Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
-        ..isHealthy = jsonAgent['IsHealthy']
-        ..capabilities.addAll(capabilities)
-        ..healthDetails = jsonAgent['HealthDetails'];
-      agents.add(agent);
+      agents.add(Agent.fromJson(jsonAgent));
     }
-
     return agents;
   }
 
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
-    // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
 
     final List<CommitStatus> statuses = <CommitStatus>[];
-
     for (final Map<String, Object> jsonCommitStatus in jsonCommitStatuses) {
-      final Map<String, Object> checklist = jsonCommitStatus['Checklist'];
-      statuses.add(CommitStatus()
-        ..commit = _commitFromJson(checklist)
-        ..branch = _branchFromJson(checklist)
-        ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
+      statuses.add(CommitStatus.fromJson(jsonCommitStatus));
     }
 
     return statuses;
-  }
-
-  String _branchFromJson(Map<String, Object> jsonChecklist) {
-    assert(jsonChecklist != null);
-
-    final Map<String, Object> checklist = jsonChecklist['Checklist'];
-    return checklist['Branch'];
-  }
-
-  Commit _commitFromJson(Map<String, Object> jsonChecklist) {
-    assert(jsonChecklist != null);
-
-    final Map<String, Object> checklist = jsonChecklist['Checklist'];
-
-    final Map<String, Object> commit = checklist['Commit'];
-    final Map<String, Object> author = commit['Author'];
-
-    final Commit result = Commit()
-      ..key = (RootKey()..child = (Key()..name = jsonChecklist['Key']))
-      ..timestamp = Int64() + checklist['CreateTimestamp']
-      ..sha = commit['Sha']
-      ..author = author['Login']
-      ..authorAvatarUrl = author['avatar_url']
-      ..repository = checklist['FlutterRepositoryPath']
-      ..branch = checklist['Branch'];
-    if (commit['Message'] != null) {
-      result.message = commit['Message'];
-    }
-    return result;
-  }
-
-  List<Stage> _stagesFromJson(List<Object> json) {
-    assert(json != null);
-    final List<Stage> stages = <Stage>[];
-
-    for (final Object jsonStage in json) {
-      stages.add(_stageFromJson(jsonStage));
-    }
-
-    return stages;
-  }
-
-  Stage _stageFromJson(Map<String, Object> json) {
-    assert(json != null);
-    return Stage()
-      ..name = json['Name']
-      ..tasks.addAll(_tasksFromJson(json['Tasks']))
-      ..taskStatus = json['Status'];
-  }
-
-  List<Task> _tasksFromJson(List<Object> json) {
-    assert(json != null);
-    final List<Task> tasks = <Task>[];
-
-    for (final Map<String, Object> jsonTask in json) {
-      tasks.add(_taskFromJson(jsonTask));
-    }
-
-    return tasks;
-  }
-
-  Task _taskFromJson(Map<String, Object> json) {
-    assert(json != null);
-
-    final Map<String, Object> taskData = json['Task'];
-    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
-
-    final Task task = Task()
-      ..key = (RootKey()..child = (Key()..name = json['Key']))
-      ..createTimestamp = Int64(taskData['CreateTimestamp'])
-      ..startTimestamp = Int64(taskData['StartTimestamp'])
-      ..endTimestamp = Int64(taskData['EndTimestamp'])
-      ..name = taskData['Name']
-      ..attempts = taskData['Attempts']
-      ..isFlaky = taskData['Flaky']
-      ..timeoutInMinutes = taskData['TimeoutInMinutes']
-      ..reason = taskData['Reason']
-      ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = taskData['ReservedForAgentID']
-      ..stageName = taskData['StageName']
-      ..status = taskData['Status'];
-
-    if (taskData['StageName'] == StageName.luci) {
-      task
-        ..buildNumberList = taskData['BuildNumberList'] ?? ''
-        ..builderName = taskData['BuilderName'] ?? ''
-        ..luciBucket = taskData['LuciBucket'] ?? '';
-    }
-    return task;
   }
 }

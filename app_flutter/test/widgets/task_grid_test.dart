@@ -202,33 +202,30 @@ void main() {
     // its task on its own unique row and column.
 
     final List<CommitStatus> statusesWithSkips = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(Stage()
-          ..name = 'A'
-          ..tasks.addAll(<Task>[
+      CommitStatus(commit: Commit()..author = 'Author', stages:
+        <Stage>[Stage(
+          name: 'A',
+          tasks: <Task>[
             Task()
               ..name = '1'
               ..status = TaskBox.statusSucceeded
-          ])),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(Stage()
-          ..name = 'A'
-          ..tasks.addAll(<Task>[
+          ])]),
+      CommitStatus(commit: Commit()..author = 'Author', stages:
+        <Stage>[Stage(
+          name: 'A',
+          tasks: <Task>[
             Task()
               ..name = '2'
               ..status = TaskBox.statusSucceeded
-          ])),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(Stage()
-          ..name = 'A'
-          ..tasks.addAll(<Task>[
+          ])]),
+      CommitStatus(commit: (Commit()..author = 'Author'),
+        stages: <Stage>[Stage(
+          name: 'A',
+          tasks: <Task>[
             Task()
               ..name = '3'
               ..status = TaskBox.statusSucceeded
-          ]))
+          ])])
     ];
 
     await tester.pumpWidget(
@@ -247,24 +244,23 @@ void main() {
 
   testWidgets('TaskGrid creates a task icon row and they line up', (WidgetTester tester) async {
     final List<CommitStatus> commitStatuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'Stage Name 1'
-            ..tasks.addAll(
+      CommitStatus(commit: (Commit()..author = 'Author'),
+        stages: <Stage>[
+          Stage(
+            name: 'Stage Name 1',
+            tasks:
               <Task>[
                 Task()
                   ..name = 'Task Name'
                   ..stageName = 'Stage Nome 1'
                   ..status = TaskBox.statusSucceeded
               ],
-            ),
+            ),],
         )
         ..stages.add(
-          Stage()
-            ..name = 'Stage Name 2'
-            ..tasks.addAll(
+          Stage(
+            name: 'Stage Name 2',
+            tasks:
               <Task>[
                 Task()
                   ..name = 'Task Name'
@@ -293,19 +289,17 @@ void main() {
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> commitStatuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'Stage Name'
-            ..tasks.addAll(
+      CommitStatus(commit: (Commit()..author = 'Author'),
+        stages: <Stage>[
+          Stage(name: 'Stage Name',
+            tasks:
               <Task>[
                 Task()
                   ..name = 'Task Name'
                   ..stageName = 'Stage Nome'
                   ..status = TaskBox.statusSucceeded
               ],
-            ),
+            ),],
         )
     ];
 
@@ -346,17 +340,15 @@ void main() {
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..stages.add(
-                  Stage()
-                    ..tasks.addAll(
+              CommitStatus(commit: (Commit()..author = 'Cast'),
+                stages: <Stage>[
+                  Stage(tasks:
                       <Task>[
                         Task()
                           ..status = 'Succeeded'
                           ..attempts = 2
                       ],
-                    ),
+                    ),],
                 ),
             ],
           ),
@@ -373,17 +365,15 @@ void main() {
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: <CommitStatus>[
-              CommitStatus()
-                ..commit = (Commit()..author = 'Cast')
-                ..stages.add(
-                  Stage()
-                    ..tasks.addAll(
+              CommitStatus(commit: (Commit()..author = 'Cast'),
+                stages: <Stage>[
+                  Stage(tasks: 
                       <Task>[
                         Task()
                           ..status = 'Succeeded'
                           ..attempts = 1
                       ],
-                    ),
+                    ),],
                 ),
             ],
           ),
@@ -396,12 +386,10 @@ void main() {
   testWidgets('TaskGrid can handle all the various different statuses', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final List<CommitStatus> statuses = <CommitStatus>[
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'A'
-            ..tasks.addAll(
+      CommitStatus(commit: (Commit()..author = 'Author'),
+      stages: <Stage>[
+          Stage(name: 'A',
+            tasks:
               <Task>[
                 Task()
                   ..stageName = 'A'
@@ -425,14 +413,12 @@ void main() {
                   ..status = TaskBox.statusInProgress,
                 Task()..status = 'Invalid value'
               ],
-            ),
+            ),],
         ),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'A'
-            ..tasks.addAll(
+      CommitStatus(commit: Commit()..author = 'Author',
+        stages: <Stage>[
+          Stage(name: 'A',
+            tasks:
               <Task>[
                 Task()
                   ..stageName = 'A'
@@ -461,14 +447,12 @@ void main() {
                   ..status = TaskBox.statusInProgress,
                 Task()..status = 'Invalid value'
               ],
-            ),
+            ),],
         ),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'A'
-            ..tasks.addAll(
+      CommitStatus(commit: (Commit()..author = 'Author'),
+        stages: <Stage>[
+          Stage(name: 'A',
+            tasks:
               <Task>[
                 Task()
                   ..stageName = 'A'
@@ -497,14 +481,13 @@ void main() {
                   ..status = TaskBox.statusInProgress,
                 Task()..status = 'Invalid value'
               ],
-            ),
+            ),],
         ),
-      CommitStatus()
-        ..commit = (Commit()..author = 'Author')
-        ..stages.add(
-          Stage()
-            ..name = 'A'
-            ..tasks.addAll(
+      CommitStatus(commit: (Commit()..author = 'Author'),
+        stages: <Stage>[
+          Stage(
+            name: 'A',
+            tasks:
               <Task>[
                 Task()
                   ..stageName = 'A'
@@ -538,7 +521,7 @@ void main() {
                   ..status = TaskBox.statusInProgress,
                 Task()..status = 'Invalid value'
               ],
-            ),
+            ),],
         ),
     ];
 
@@ -579,13 +562,11 @@ Future<void> expectTaskBoxColorWithMessage(WidgetTester tester, String message, 
                   cocoonService: MockCocoonService(),
                 ),
                 commitStatuses: <CommitStatus>[
-                  CommitStatus()
-                    ..commit = (Commit()..author = 'Mathilda')
-                    ..stages.add(
-                      Stage()
-                        ..tasks.addAll(
+                  CommitStatus(commit: (Commit()..author = 'Mathilda'),
+                    stages: <Stage>[
+                      Stage(tasks:
                           <Task>[Task()..status = message],
-                        ),
+                        ),],
                     ),
                 ],
               ),

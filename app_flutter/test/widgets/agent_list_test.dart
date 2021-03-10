@@ -41,7 +41,7 @@ void main() {
       final List<Agent> agents = <Agent>[
         Agent()
           ..agentId = 'healthy1'
-          ..healthCheckTimestamp = Int64(pingTime1.millisecondsSinceEpoch)
+          ..healthCheckTimestamp = pingTime1.millisecondsSinceEpoch
           ..isHealthy = true
           ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -56,11 +56,11 @@ cocoon-connection: succeeded
 able-to-perform-health-check: succeeded''',
         Agent()
           ..agentId = 'sick'
-          ..healthCheckTimestamp = Int64(pingTime2.millisecondsSinceEpoch)
+          ..healthCheckTimestamp = pingTime2.millisecondsSinceEpoch
           ..isHealthy = false,
         Agent()
           ..agentId = 'healthy2'
-          ..healthCheckTimestamp = Int64(pingTime3.millisecondsSinceEpoch)
+          ..healthCheckTimestamp = pingTime3.millisecondsSinceEpoch
           ..isHealthy = true
           ..healthDetails = '''
 ssh-connectivity: succeeded
@@ -95,11 +95,11 @@ able-to-perform-health-check: succeeded''',
       final List<Agent> agents = <Agent>[
         Agent()
           ..agentId = 'secret agent'
-          ..healthCheckTimestamp = Int64(pingTime1.millisecondsSinceEpoch)
+          ..healthCheckTimestamp = pingTime1.millisecondsSinceEpoch
           ..isHealthy = true,
         Agent()
           ..agentId = 'pigeon'
-          ..healthCheckTimestamp = Int64(pingTime2.millisecondsSinceEpoch)
+          ..healthCheckTimestamp = pingTime2.millisecondsSinceEpoch
           ..isHealthy = false,
       ];
 

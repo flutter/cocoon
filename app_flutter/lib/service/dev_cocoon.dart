@@ -4,7 +4,6 @@
 
 import 'dart:math' as math;
 
-import 'package:fixnum/fixnum.dart';
 import 'package:cocoon_service/models.dart';
 
 import '../logic/qualified_task.dart';
@@ -84,7 +83,7 @@ class DevelopmentCocoonService implements CocoonService {
         ..capabilities.add('dash')
         ..isHealthy = _random.nextBool()
         ..isHidden = false
-        ..healthCheckTimestamp = Int64.parseInt(now.millisecondsSinceEpoch.toString())
+        ..healthCheckTimestamp = int.parse(now.millisecondsSinceEpoch.toString())
         ..healthDetails = 'ssh-connectivity: succeeded\n'
             'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
             'android-device-ZY223D6B7B: succeeded\n'
@@ -107,10 +106,7 @@ class DevelopmentCocoonService implements CocoonService {
       final int commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
       final math.Random random = math.Random(commitTimestamp);
       final Commit commit = _createFakeCommit(commitTimestamp, random);
-      final CommitStatus status = CommitStatus()
-        ..branch = 'master'
-        ..commit = commit
-        ..stages.addAll(_createFakeStages(commitTimestamp, commit, random));
+      final CommitStatus status = CommitStatus(commit: commit, stages: _createFakeStages(commitTimestamp, commit, random));
       result.add(status);
     }
     return result;
@@ -124,14 +120,14 @@ class DevelopmentCocoonService implements CocoonService {
     final int author = random.nextInt(_authors.length);
     final int message = commitTimestamp % 37 + author;
     final int messageInc = _messagePrimes[message % _messagePrimes.length];
-    return Commit()
-      ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
+    // ignore: invalid_use_of_visible_for_testing_member
+    return Commit(encodedKeyValue: '$commitTimestamp')
       ..author = _authors[author]
       ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
       ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
       ..repository = 'flutter/cocoon'
       ..sha = commitTimestamp.hashCode.toRadixString(16).padRight(32, '0')
-      ..timestamp = Int64(commitTimestamp)
+      ..timestamp = commitTimestamp
       ..branch = 'master';
   }
 
@@ -155,11 +151,8 @@ class DevelopmentCocoonService implements CocoonService {
     assert(_stages.length == _stageCount.length);
     for (int stage = 0; stage < _stages.length; stage += 1) {
       stages.add(
-        Stage()
-          ..commit = commit
-          ..name = _stages[stage]
-          ..tasks.addAll(List<Task>.generate(
-              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))),
+        Stage(name: _stages[stage], commit: commit, tasks: List<Task>.generate(
+              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random)))
       );
     }
     return stages;
@@ -247,9 +240,9 @@ class DevelopmentCocoonService implements CocoonService {
     final int maxAttempts = _maxAttempts[status];
     final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
     final Task task = Task()
-      ..createTimestamp = Int64(commitTimestamp + index)
-      ..startTimestamp = Int64(commitTimestamp + index + 10000)
-      ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
+      ..createTimestamp = commitTimestamp + index
+      ..startTimestamp = commitTimestamp + index + 10000
+      ..endTimestamp = commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15)
       ..name = 'task $index'
       ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13

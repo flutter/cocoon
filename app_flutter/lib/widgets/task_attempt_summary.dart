@@ -53,6 +53,6 @@ class TaskAttemptSummary extends StatelessWidget {
   }
 
   String _stackdriverUrl(Task task, int attemptNumber) {
-    return '$stackdriverLogUrlBase${task.key.child.name}_$attemptNumber';
+    return '$stackdriverLogUrlBase${task.encodedKey}_$attemptNumber';
   }
 }

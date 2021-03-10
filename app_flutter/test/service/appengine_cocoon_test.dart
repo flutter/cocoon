@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' show Client, Request, Response;
@@ -12,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'package:cocoon_service/models.dart';
 
+import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';
 import 'package:app_flutter/service/cocoon.dart';
@@ -22,49 +22,8 @@ void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {
     AppEngineCocoonService service;
 
-    setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(jsonGetStatsResponse, 200);
-      }));
-    });
-
     test('should return CocoonResponse<List<CommitStatus>>', () {
       expect(service.fetchCommitStatuses(), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
-    });
-
-    test('should return expected List<CommitStatus>', () async {
-      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
-
-      final CommitStatus expectedStatus = CommitStatus()
-        ..branch = 'master'
-        ..commit = (Commit()
-          ..timestamp = Int64(123456789)
-          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
-          ..sha = 'ShaShankHash'
-          ..author = 'ShaSha'
-          ..authorAvatarUrl = 'https://flutter.dev'
-          ..repository = 'flutter/cocoon'
-          ..branch = 'master')
-        ..stages.add(Stage()
-          ..name = 'devicelab'
-          ..taskStatus = 'Succeeded'
-          ..tasks.add(Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..name = 'complex_layout_semantics_perf'
-            ..attempts = 1
-            ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux/android]')
-            ..reservedForAgentId = 'linux2'
-            ..stageName = 'devicelab'
-            ..status = 'Succeeded'));
-
-      expect(statuses.data.length, 1);
-      expect(statuses.data.first, expectedStatus);
     });
 
     /// This requires a separate test run on the web platform.
@@ -102,8 +61,7 @@ void main() {
       when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
-      final CommitStatus status = CommitStatus()
-        ..commit = (Commit()..key = (RootKey()..child = (Key()..name = 'iamatestkey')));
+      final CommitStatus status = CommitStatus(commit: Commit(encodedKeyValue: 'iamatestkey'),);
       await service.fetchCommitStatuses(lastCommitStatus: status);
 
       if (kIsWeb) {
@@ -125,54 +83,6 @@ void main() {
 
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
-    });
-  });
-
-  group('AppEngine CocoonService fetchCommitStatus - luci', () {
-    AppEngineCocoonService service;
-
-    setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(luciJsonGetStatsResponse, 200);
-      }));
-    });
-
-    test('should return expected List<CommitStatus> - luci', () async {
-      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
-
-      final CommitStatus expectedStatus = CommitStatus()
-        ..branch = 'master'
-        ..commit = (Commit()
-          ..timestamp = Int64(123456789)
-          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
-          ..sha = 'ShaShankHash'
-          ..author = 'ShaSha'
-          ..authorAvatarUrl = 'https://flutter.dev'
-          ..repository = 'flutter/cocoon'
-          ..branch = 'master')
-        ..stages.add(Stage()
-          ..name = 'chromebot'
-          ..taskStatus = 'Succeeded'
-          ..tasks.add(Task()
-            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
-            ..attempts = 1
-            ..isFlaky = false
-            ..timeoutInMinutes = 0
-            ..reason = ''
-            ..requiredCapabilities.add('[linux]')
-            ..reservedForAgentId = ''
-            ..stageName = 'chromebot'
-            ..status = 'Succeeded'
-            ..buildNumberList = '123'
-            ..builderName = 'Linux'
-            ..luciBucket = 'luci.flutter.try'));
-
-      expect(statuses.data.length, 1);
-      expect(statuses.data.first, expectedStatus);
     });
   });
 
@@ -257,8 +167,7 @@ void main() {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 200);
       }));
-      task = Task()
-        ..key = RootKey()
+      task = Task(encodedKeyValue: 'key')
         ..stageName = StageName.devicelab;
     });
 
@@ -318,7 +227,7 @@ void main() {
 
     test('should throw assertion error if id token is null', () async {
       expect(
-          service.downloadLog(Task()..key = RootKey(), null, 'shashank'), throwsA(const TypeMatcher<AssertionError>()));
+          service.downloadLog(Task(encodedKeyValue: 'shashank'), null, 'shashank'), throwsA(const TypeMatcher<AssertionError>()));
     });
 
     test('should send correct request to downloader service', () async {
@@ -346,56 +255,8 @@ void main() {
   group('AppEngine CocoonService fetchAgentStatus ', () {
     AppEngineCocoonService service;
 
-    setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(jsonGetStatsResponse, 200);
-      }));
-    });
-
     test('should return CocoonResponse<List<Agent>>', () {
       expect(service.fetchAgentStatuses(), const TypeMatcher<Future<CocoonResponse<List<Agent>>>>());
-    });
-
-    test('should return expected List<Agent>', () async {
-      final CocoonResponse<List<Agent>> agents = await service.fetchAgentStatuses();
-
-      final List<Agent> expectedAgents = <Agent>[
-        Agent()
-          ..agentId = 'flutter-devicelab-linux-1'
-          ..healthCheckTimestamp = Int64.parseInt('1576876008093')
-          ..isHealthy = true
-          ..capabilities.addAll(<String>['linux/android', 'linux'])
-          ..healthDetails = 'ssh-connectivity: succeeded\n'
-              '    Last known IP address: 192.168.1.29\n'
-              '\n'
-              'android-device-ZY223D6B7B: succeeded\n'
-              'has-healthy-devices: succeeded\n'
-              '    Found 1 healthy devices\n'
-              '\n'
-              'cocoon-authentication: succeeded\n'
-              'cocoon-connection: succeeded\n'
-              'able-to-perform-health-check: succeeded\n',
-        Agent()
-          ..agentId = 'flutter-devicelab-mac-1'
-          ..healthCheckTimestamp = Int64.parseInt('1576530583142')
-          ..isHealthy = true
-          ..capabilities.addAll(<String>['mac/ios', 'mac'])
-          ..healthDetails = 'ssh-connectivity: succeeded\n'
-              '    Last known IP address: 192.168.1.233\n'
-              '\n'
-              'ios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\n'
-              'has-healthy-devices: succeeded\n'
-              '    Found 1 healthy devices\n'
-              '\n'
-              'cocoon-authentication: succeeded\n'
-              'cocoon-connection: succeeded\n'
-              'able-to-build-and-sign: succeeded\n'
-              'ios: succeeded\n'
-              'able-to-perform-health-check: succeeded\n'
-      ];
-
-      expect(agents.data, expectedAgents);
-      expect(agents.error, isNull);
     });
 
     /// This requires a separate test run on the web platform.
