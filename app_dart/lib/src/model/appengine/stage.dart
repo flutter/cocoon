@@ -15,13 +15,12 @@ part 'stage.g.dart';
 /// Stages are grouped by the infrastructure family that runs them, such as
 /// Cirrus, LUCI, DeviceLab on Linux, DeviceLab on Windows, etc.
 @immutable
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
+@JsonSerializable(ignoreUnannotated: true)
 class Stage implements Comparable<Stage> {
-  const Stage._(this.name, this.commit, this.tasks, this.taskStatus)
-      : assert(name != null),
-        assert(commit != null),
-        assert(tasks != null),
-        assert(taskStatus != null);
+  const Stage({this.name, this.commit, this.tasks, this.taskStatus});
+
+
+  factory Stage.fromJson(Map<String, dynamic> json) => _$StageFromJson(json);
 
   /// The fixed ordering of the stages (by name).
   ///
@@ -52,13 +51,8 @@ class Stage implements Comparable<Stage> {
   ///
   /// These tasks will be run against [commit]. This list is guaranteed to be
   /// non-empty.
-  final List<Task> tasks;
-
-  /// Representation of [tasks] used for JSON serialization.
   @JsonKey(name: 'Tasks')
-  List<SerializableTask> get serializableTasks {
-    return tasks.map<SerializableTask>((Task task) => SerializableTask(task)).toList();
-  }
+  final List<Task> tasks;
 
   /// The aggregate status, accounting for all [tasks] in this stage.
   ///
@@ -139,7 +133,7 @@ class StageBuilder {
     if (tasks.isEmpty) {
       throw StateError('Cannot build a stage with no tasks ($name)');
     }
-    return Stage._(name, commit, List<Task>.unmodifiable(tasks), _taskStatus);
+    return Stage(name: name, commit: commit, tasks: List<Task>.unmodifiable(tasks), taskStatus: _taskStatus);
   }
 
   String get _taskStatus {

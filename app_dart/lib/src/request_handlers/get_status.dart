@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
@@ -11,7 +12,9 @@ import 'package:meta/meta.dart';
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
+import '../model/appengine/commit_status.dart';
 import '../model/appengine/key_helper.dart';
+import '../model/rpc/get_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -42,20 +45,16 @@ class GetStatus extends RequestHandler<Body> {
     final int commitNumber = config.commitNumber;
     final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
-    final List<SerializableCommitStatus> statuses = await buildStatusService
+    final List<CommitStatus> statuses = await buildStatusService
         .retrieveCommitStatus(limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
-        .map<SerializableCommitStatus>(
-            (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
         .toList();
 
     final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
     final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
     agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
-    return Body.forJson(<String, dynamic>{
-      'Statuses': statuses,
-      'AgentStatuses': agents,
-    });
+    final GetStatusResponse response = GetStatusResponse(agents: agents, statuses: statuses);
+    return Body.forJson(response);
   }
 
   Future<int> _obtainTimestamp(String encodedLastCommitKey, KeyHelper keyHelper, DatastoreService datastore) async {
@@ -75,23 +74,4 @@ class GetStatus extends RequestHandler<Body> {
   }
 
   static bool _isVisible(Agent agent) => !agent.isHidden;
-}
-
-/// The serialized representation of a [CommitStatus].
-// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
-class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status, this.key);
-
-  final CommitStatus status;
-  final String key;
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Checklist': <String, dynamic>{
-        'Key': key,
-        'Checklist': SerializableCommit(status.commit).facade,
-      },
-      'Stages': status.stages,
-    };
-  }
 }

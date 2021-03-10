@@ -6,10 +6,10 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/commit_status.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -46,11 +46,11 @@ void main() {
         buildStatusProvider: (_) => buildStatusService,
       );
     });
-
+    
     test('no statuses or agents', () async {
       final Map<String, dynamic> result = await decodeHandlerBody();
-      expect(result['Statuses'], isEmpty);
-      expect(result['AgentStatuses'], isEmpty);
+      expect(result['statuses'], isEmpty);
+      expect(result['agents'], isEmpty);
     });
 
     test('reports agents', () async {
@@ -71,7 +71,7 @@ void main() {
       config.db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
       final Map<String, dynamic> result = await decodeHandlerBody();
 
-      expect(result['Statuses'], isEmpty);
+      expect(result['statuses'], isEmpty);
 
       final List<dynamic> expectedOrderedAgents = <dynamic>[
         linux1.toJson(),
@@ -80,7 +80,7 @@ void main() {
         mac1.toJson(),
       ];
 
-      expect(result['AgentStatuses'], equals(expectedOrderedAgents));
+      expect(result['agents'], equals(expectedOrderedAgents));
     });
 
     test('reports statuses without input commit key', () async {
@@ -95,8 +95,8 @@ void main() {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
+        CommitStatus(commit: commit1, stages: const <Stage>[]),
+        CommitStatus(commit: commit2, stages: const <Stage>[])
       ]);
       handler = GetStatus(
         config,
@@ -106,7 +106,7 @@ void main() {
 
       final Map<String, dynamic> result = await decodeHandlerBody();
 
-      expect(result['Statuses'].length, 2);
+      expect(result['statuses'].length, 2);
     });
 
     test('reports statuses with input commit key', () async {
@@ -123,8 +123,8 @@ void main() {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
+        CommitStatus(commit: commit1, stages: const <Stage>[]),
+        CommitStatus(commit: commit2, stages: const <Stage>[])
       ]);
       handler = GetStatus(
         config,
@@ -139,23 +139,18 @@ void main() {
         GetStatus.lastCommitKeyParam: expectedLastCommitKeyEncoded,
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
-      //final Map<String, dynamic> result
 
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Checklist': <String, dynamic>{
-          'Key': '',
-          'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
-            'CreateTimestamp': 1,
-            'Commit': <String, dynamic>{
-              'Sha': null,
-              'Message': 'test message 2',
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
-            },
-            'Branch': 'master'
-          }
+      expect(result['statuses'].first, <String, dynamic>{
+        'commit': <String, dynamic>{
+          'repository': null,
+          'timestamp': 1,
+          'sha': null,
+          'message': 'test message 2',
+          'author': null,
+          'authorAvatarUrl': null,
+          'branch': 'master',
         },
-        'Stages': <String>[]
+        'stages': <String>[]
       });
     });
 
@@ -171,8 +166,8 @@ void main() {
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
+        CommitStatus(commit: commit1, stages: const <Stage>[]),
+        CommitStatus(commit: commit2, stages: const <Stage>[])
       ]);
       handler = GetStatus(
         config,
@@ -189,22 +184,18 @@ void main() {
       });
       final Map<String, dynamic> result = await decodeHandlerBody();
 
-      expect(result['Statuses'].length, 1);
-      expect(result['Statuses'].first, <String, dynamic>{
-        'Checklist': <String, dynamic>{
-          'Key': '',
-          'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
-            'CreateTimestamp': 1,
-            'Commit': <String, dynamic>{
-              'Sha': null,
-              'Message': null,
-              'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
-            },
-            'Branch': 'flutter-1.1-candidate.1'
-          }
+      expect(result['statuses'].length, 1);
+      expect(result['statuses'].first, <String, dynamic>{
+        'commit': <String, dynamic>{
+            'repository': null,
+            'timestamp': 1,
+            'sha': null,
+            'message': null,
+            'author': null,
+            'authorAvatarUrl': null,
+            'branch': 'flutter-1.1-candidate.1'
         },
-        'Stages': <String>[]
+        'stages': <String>[]
       });
     });
   });

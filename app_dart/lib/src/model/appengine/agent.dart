@@ -10,7 +10,7 @@ import 'task.dart';
 part 'agent.g.dart';
 
 /// Class that represents a worker capable of running tasks.
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
+@JsonSerializable(ignoreUnannotated: true)
 @Kind(name: 'Agent', idType: IdType.String)
 class Agent extends Model<String> {
   /// Creates a new [Agent].
@@ -27,6 +27,8 @@ class Agent extends Model<String> {
     parentKey = key?.parent;
     id = key?.id;
   }
+
+  factory Agent.fromJson(Map<String, dynamic> json) => _$AgentFromJson(json);
 
   /// The human-readable ID of the agent (e.g. 'linux1').
   @StringProperty(propertyName: 'AgentID', required: true)

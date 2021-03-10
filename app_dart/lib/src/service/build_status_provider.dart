@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
+import '../model/appengine/commit_status.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
@@ -114,7 +115,7 @@ class BuildStatusService {
     await for (Commit commit
         in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
-      yield CommitStatus(commit, stages);
+      yield CommitStatus(commit: commit, stages: stages);
     }
   }
 
@@ -129,24 +130,6 @@ class BuildStatusService {
   bool _isRerunning(Task task) {
     return task.attempts > 1 && (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
-}
-
-/// Class that holds the status for all tasks corresponding to a particular
-/// commit.
-///
-/// Tasks may still be running, and thus their status is subject to change.
-/// Put another way, this class holds information that is a snapshot in time.
-@immutable
-class CommitStatus {
-  /// Creates a new [CommitStatus].
-  const CommitStatus(this.commit, this.stages);
-
-  /// The commit against which all the tasks in [stages] are run.
-  final Commit commit;
-
-  /// The partitioned stages, each of which holds a bucket of tasks that
-  /// belong in the stage.
-  final List<Stage> stages;
 }
 
 @immutable

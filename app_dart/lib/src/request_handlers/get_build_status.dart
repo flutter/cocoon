@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../model/proto/internal/build_status_response.pb.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';

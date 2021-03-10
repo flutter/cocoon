@@ -23,7 +23,8 @@ ServiceAccountInfo _$ServiceAccountInfoFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$ServiceAccountInfoToJson(ServiceAccountInfo instance) => <String, dynamic>{
+Map<String, dynamic> _$ServiceAccountInfoToJson(ServiceAccountInfo instance) =>
+    <String, dynamic>{
       'type': instance.type,
       'project_id': instance.projectId,
       'private_key_id': instance.privateKeyId,

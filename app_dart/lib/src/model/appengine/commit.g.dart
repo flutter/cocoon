@@ -8,7 +8,24 @@ part of 'commit.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Map<String, dynamic> _$SerializableCommitToJson(SerializableCommit instance) => <String, dynamic>{
-      'Key': const StringKeyConverter().toJson(instance.key),
-      'Checklist': instance.facade,
+Commit _$CommitFromJson(Map<String, dynamic> json) {
+  return Commit(
+    timestamp: json['timestamp'] as int,
+    sha: json['sha'] as String,
+    author: json['author'] as String,
+    authorAvatarUrl: json['authorAvatarUrl'] as String,
+    message: json['message'] as String,
+    repository: json['repository'] as String,
+    branch: json['branch'] as String,
+  );
+}
+
+Map<String, dynamic> _$CommitToJson(Commit instance) => <String, dynamic>{
+      'timestamp': instance.timestamp,
+      'sha': instance.sha,
+      'author': instance.author,
+      'authorAvatarUrl': instance.authorAvatarUrl,
+      'message': instance.message,
+      'repository': instance.repository,
+      'branch': instance.branch,
     };

@@ -8,7 +8,6 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
-import 'package:metrics_center/metrics_center.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../model/appengine/commit.dart';
@@ -103,43 +102,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       await _insertBigquery(commit, task);
     }
 
-    await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
     return UpdateTaskStatusResponse(task);
-  }
-
-  // Convert `resultData` (`requestData['ResultData']`) and `scoreKeys`
-  // (`requestData['BenchmarkScoreKeys']`) into `MetricPoint`s, and write them
-  // into `metrics_center`'s `FlutterDestination`.
-  //
-  // This enables the perf dashboard configured by the `metrics_center` (e.g.,
-  // Skia perf) to provide perf metric queries and regression alerts.
-  Future<void> _writeToMetricsCenter(
-    Map<String, dynamic> resultData,
-    List<String> scoreKeys,
-    Commit commit,
-    Task task,
-  ) async {
-    final FlutterDestination metricsDestination = await config.createMetricsDestination();
-    final List<MetricPoint> metricPoints = <MetricPoint>[];
-    for (String scoreKey in scoreKeys) {
-      metricPoints.add(
-        MetricPoint(
-          (resultData[scoreKey] as num).toDouble(),
-          <String, String>{
-            kGithubRepoKey: kFlutterFrameworkRepo,
-            kGitRevisionKey: commit.sha,
-            'branch': commit.branch,
-            kNameKey: task.name,
-            kSubResultKey: scoreKey,
-            // The unit should be encoded either in task.name or scoreKey
-            // so we don't have to depend on TimeSeries or TimeSeriesValue to
-            // know that. It allows us to remove the code and data that are
-            // related to TimeSeries and TimeSeriesValue.
-          },
-        ),
-      );
-    }
-    await metricsDestination.update(metricPoints);
   }
 
   /// Retrieve [Task] to update from [DatastoreService].

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/key_converter.dart';
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../service/luci.dart';
 import 'commit.dart';
-import 'key_converter.dart';
 
 part 'task.g.dart';
 
@@ -45,6 +45,29 @@ class Task extends Model<int> {
     }
     parentKey = key?.parent;
     id = key?.id;
+  }
+
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      commitKey: const StringKeyConverter().fromJson(json['ChecklistKey'] as String),
+      createTimestamp: json['CreateTimestamp'] as int,
+      startTimestamp: json['StartTimestamp'] as int,
+      endTimestamp: json['EndTimestamp'] as int,
+      name: json['Name'] as String,
+      attempts: json['Attempts'] as int,
+      isFlaky: json['Flaky'] as bool,
+      timeoutInMinutes: json['TimeoutInMinutes'] as int,
+      reason: json['Reason'] as String,
+      buildNumber: json['BuildNumber'] as int,
+      buildNumberList: json['BuildNumberList'] as String,
+      luciBucket: json['luciBucket'] as String,
+      builderName: json['BuilderName'] as String,
+      requiredCapabilities: json['RequiredCapabilities'] as List<String>,
+      reservedForAgentId: json['ReservedForAgentID'] as String,
+      stageName: json['StageName'] as String,
+      status: json['Status'] as String,
+    );
   }
 
   /// Construct [Task] from a [LuciBuilder].
@@ -101,9 +124,9 @@ class Task extends Model<int> {
   ];
 
   /// The key of the commit that owns this task.
+  @StringKeyConverter()
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
   @JsonKey(name: 'ChecklistKey')
-  @StringKeyConverter()
   Key<String> commitKey;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
@@ -260,23 +283,6 @@ class Task extends Model<int> {
       ..write(')');
     return buf.toString();
   }
-}
-
-/// The serialized representation of a [Task].
-// TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.
-@JsonSerializable(createFactory: false)
-class SerializableTask {
-  const SerializableTask(this.task);
-
-  @JsonKey(name: 'Task')
-  final Task task;
-
-  @JsonKey(name: 'Key')
-  @IntKeyConverter()
-  Key<int> get key => task.key;
-
-  /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$SerializableTaskToJson(this);
 }
 
 /// A [Task], paired with its associated parent [Commit].

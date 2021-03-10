@@ -16,7 +16,8 @@ TokenInfo _$TokenInfoFromJson(Map<String, dynamic> json) {
     subject: json['sub'] as String,
     hostedDomain: json['hd'] as String,
     email: json['email'] as String,
-    emailIsVerified: const BoolConverter().fromJson(json['email_verified'] as String),
+    emailIsVerified:
+        const BoolConverter().fromJson(json['email_verified'] as String),
     accessTokenHash: json['at_hash'] as String,
     fullName: json['name'] as String,
     profilePictureUrl: json['picture'] as String,
@@ -24,7 +25,8 @@ TokenInfo _$TokenInfoFromJson(Map<String, dynamic> json) {
     familyName: json['family_name'] as String,
     locale: json['locale'] as String,
     issued: const SecondsSinceEpochConverter().fromJson(json['iat'] as String),
-    expiration: const SecondsSinceEpochConverter().fromJson(json['exp'] as String),
+    expiration:
+        const SecondsSinceEpochConverter().fromJson(json['exp'] as String),
     jwtId: json['jti'] as String,
     algorithm: json['alg'] as String,
     keyId: json['kid'] as String,

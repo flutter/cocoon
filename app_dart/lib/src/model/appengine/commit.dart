@@ -5,13 +5,12 @@
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'key_converter.dart';
-
 part 'commit.g.dart';
 
 /// Class that represents a commit that has landed on the master branch of a
 /// Flutter repository.
 @Kind(name: 'Checklist', idType: IdType.String)
+@JsonSerializable(ignoreUnannotated: true)
 class Commit extends Model<String> {
   Commit({
     Key<String> key,
@@ -27,23 +26,29 @@ class Commit extends Model<String> {
     id = key?.id;
   }
 
+  factory Commit.fromJson(Map<String, dynamic> json) => _$CommitFromJson(json);
+
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
   @IntProperty(propertyName: 'CreateTimestamp', required: true)
+  @JsonKey()
   int timestamp;
 
   /// The SHA1 hash of the commit.
   @StringProperty(propertyName: 'Commit.Sha', required: true)
+  @JsonKey()
   String sha;
 
   /// The GitHub username of the commit author.
   @StringProperty(propertyName: 'Commit.Author.Login', required: true)
+  @JsonKey()
   String author;
 
   /// URL of the [author]'s profile image / avatar.
   ///
   /// The bytes loaded from the URL are expected to be encoded image bytes.
   @StringProperty(propertyName: 'Commit.Author.AvatarURL', required: true)
+  @JsonKey()
   String authorAvatarUrl;
 
   /// The commit message.
@@ -51,16 +56,19 @@ class Commit extends Model<String> {
   /// This may be null, since we didn't always load/store this property in
   /// the datastore, so historical entries won't have this information.
   @StringProperty(propertyName: 'Commit.Message', required: false)
+  @JsonKey()
   String message;
 
   /// The repository on which the commit was made.
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
+  @JsonKey()
   String repository;
 
   /// The branch of the commit.
   @StringProperty(propertyName: 'Branch')
+  @JsonKey()
   String branch;
 
   @override
@@ -80,37 +88,6 @@ class Commit extends Model<String> {
       ..write(')');
     return buf.toString();
   }
-}
 
-/// The serialized representation of a [Commit].
-// TODO(tvolkert): Directly serialize [Commit] once frontends migrate to new serialization format.
-@JsonSerializable(createFactory: false, ignoreUnannotated: true)
-class SerializableCommit {
-  const SerializableCommit(this.commit);
-
-  final Commit commit;
-
-  @JsonKey(name: 'Key')
-  @StringKeyConverter()
-  Key<String> get key => commit.key;
-
-  @JsonKey(name: 'Checklist')
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      'FlutterRepositoryPath': commit.repository,
-      'CreateTimestamp': commit.timestamp,
-      'Commit': <String, dynamic>{
-        'Sha': commit.sha,
-        'Message': commit.message,
-        'Author': <String, dynamic>{
-          'Login': commit.author,
-          'avatar_url': commit.authorAvatarUrl,
-        },
-      },
-      'Branch': commit.branch,
-    };
-  }
-
-  /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$SerializableCommitToJson(this);
+  Map<String, dynamic> toJson() => _$CommitToJson(this);
 }

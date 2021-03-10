@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:metrics_center/metrics_center.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
@@ -18,22 +17,12 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 
-class FakeFlutterDestination implements FlutterDestination {
-  @override
-  Future<void> update(List<MetricPoint> points) async {
-    lastUpdatedPoints = points;
-  }
-
-  List<MetricPoint> lastUpdatedPoints;
-}
-
 void main() {
   group('UpdateTaskStatus', () {
     FakeConfig config;
     ApiRequestHandlerTester tester;
     UpdateTaskStatus handler;
     final FakeTabledataResourceApi tabledataResourceApi = FakeTabledataResourceApi();
-    final FakeFlutterDestination fakeMetricsDestination = FakeFlutterDestination();
 
     Commit commit;
     const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
@@ -48,7 +37,6 @@ void main() {
         flutterBranchesValue: <String>['master'],
         tabledataResourceApi: tabledataResourceApi,
         maxTaskRetriesValue: 2,
-        metricsDestination: fakeMetricsDestination,
       );
       tester = ApiRequestHandlerTester();
       tester.requestData = <String, dynamic>{
@@ -85,10 +73,6 @@ void main() {
       /// Test for [BigQuery] insert
       expect(tableDataList.totalRows, '1');
       expect(value['RequiredCapabilities'], <String>['ios']);
-
-      /// Test for metrics center update
-      expect(fakeMetricsDestination.lastUpdatedPoints.length, equals(1));
-      expect(fakeMetricsDestination.lastUpdatedPoints[0].value, equals(3.12));
     });
 
     test('failed tasks are automatically retried', () async {

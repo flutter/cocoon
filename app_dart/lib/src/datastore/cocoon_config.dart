@@ -16,7 +16,6 @@ import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart' hide Cache;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:metrics_center/metrics_center.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
@@ -335,18 +334,6 @@ class Config {
   Future<GithubService> createGithubService(String owner, String repository) async {
     final GitHub github = await createGitHubClient(owner, repository);
     return GithubService(github);
-  }
-
-  /// Return a [FlutterDestination] (subclass of [MetricsDestination]) for
-  /// storing all Flutter-related performance metrics (framework, engine, ...).
-  ///
-  /// The destination is created from the [deviceLabServiceAccount] credentials
-  /// so the destination storage (e.g., the GCS bucket) must grant access to
-  /// that account.
-  Future<FlutterDestination> createMetricsDestination() async {
-    return await FlutterDestination.makeFromCredentialsJson(
-      (await deviceLabServiceAccount).toJson(),
-    );
   }
 
   bool githubPresubmitSupportedRepo(String repositoryName) {

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/commit_status.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
