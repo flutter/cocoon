@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 name: cocoon_service
+description: AppEngine service for managing Flutter CI
 homepage: https://github.com/flutter/cocoon
 publish_to: none
 
