@@ -25,6 +25,8 @@ class Task extends Model<int> {
     this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
+    @visibleForTesting
+    this.encodedKeyValue,
     this.endTimestamp = 0,
     this.name,
     this.attempts = 0,
@@ -128,6 +130,14 @@ class Task extends Model<int> {
   @ModelKeyProperty(propertyName: 'ChecklistKey', required: true)
   @JsonKey(name: 'ChecklistKey')
   Key<String> commitKey;
+
+  /// JSON safe version of [Key]. Each entity can construct keys differently, so
+  /// explicitly define it.
+  @JsonKey(name: 'key')
+  String get encodedKey => encodedKeyValue ?? key.id.toString();
+
+  /// Value for injecting keys in test environments.
+  final String encodedKeyValue;
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.

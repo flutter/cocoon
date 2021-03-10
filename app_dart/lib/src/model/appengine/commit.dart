@@ -4,6 +4,7 @@
 
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 part 'commit.g.dart';
 
@@ -18,6 +19,8 @@ class Commit extends Model<String> {
     this.sha,
     this.author,
     this.authorAvatarUrl,
+    @visibleForTesting
+    this.encodedKeyValue,
     this.message,
     this.repository,
     this.branch = 'master',
@@ -38,6 +41,14 @@ class Commit extends Model<String> {
   @StringProperty(propertyName: 'Commit.Sha', required: true)
   @JsonKey()
   String sha;
+
+  /// JSON safe version of [Key]. Each entity can construct keys differently, so
+  /// explicitly define it.
+  @JsonKey(name: 'key')
+  String get encodedKey => encodedKeyValue ?? key.id;
+
+  /// Value for injecting encoded key in test environments.
+  final String encodedKeyValue;
 
   /// The GitHub username of the commit author.
   @StringProperty(propertyName: 'Commit.Author.Login', required: true)

@@ -10,6 +10,7 @@ part of 'task.dart';
 
 Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
       'ChecklistKey': const StringKeyConverter().toJson(instance.commitKey),
+      'key': instance.encodedKey,
       'CreateTimestamp': instance.createTimestamp,
       'StartTimestamp': instance.startTimestamp,
       'EndTimestamp': instance.endTimestamp,
