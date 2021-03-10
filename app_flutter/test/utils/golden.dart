@@ -46,10 +46,8 @@ class CocoonFileComparator extends LocalFileComparator {
       throw FlutterError(error);
     }
     if (!result.passed) {
-      log(
-        'A tolerable difference of ${result.diffPercent * 100}% was found when '
-          'comparing $golden.'
-      );
+      log('A tolerable difference of ${result.diffPercent * 100}% was found when '
+          'comparing $golden.');
     }
     return result.passed || result.diffPercent <= _kGoldenDiffTolerance;
   }
