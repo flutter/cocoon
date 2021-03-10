@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -23,12 +24,15 @@ Future<void> expectGoldenMatches(
   dynamic skip = false, // true or a String
 }) {
   final String goldenPath = path.join('goldens', goldenFileKey);
-  goldenFileComparator = CocoonFileComparator(Uri.parse(goldenPath));
+  goldenFileComparator = CocoonFileComparator(path.join(
+    (goldenFileComparator as LocalFileComparator).basedir.toString(),
+    goldenFileKey,
+  ));
   return expectLater(actual, matchesGoldenFile(goldenPath), reason: reason, skip: skip || !Platform.isLinux);
 }
 
 class CocoonFileComparator extends LocalFileComparator {
-  CocoonFileComparator(Uri testFile) : super(testFile);
+  CocoonFileComparator(String testFile) : super(Uri.parse(testFile));
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
@@ -40,6 +44,12 @@ class CocoonFileComparator extends LocalFileComparator {
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final String error = await generateFailureOutput(result, golden, basedir);
       throw FlutterError(error);
+    }
+    if (!result.passed) {
+      log(
+        'A tolerable difference of ${result.diffPercent * 100}% was found when '
+          'comparing $golden.'
+      );
     }
     return result.passed || result.diffPercent <= _kGoldenDiffTolerance;
   }
