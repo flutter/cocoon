@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/models.dart' show Agent;
 
 /// A helper class for [Agent.healthDetails] that splits the expected summary
 /// with regex to get actionable health metrics.

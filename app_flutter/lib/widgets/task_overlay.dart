@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
+import 'package:cocoon_service/models.dart' show Commit, Task;
 
 import '../agent_dashboard_page.dart';
 import '../logic/qualified_task.dart';

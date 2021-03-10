@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/models.dart' show Agent;
 
 import '../logic/agent_health_details.dart';
 import '../state/agent.dart';

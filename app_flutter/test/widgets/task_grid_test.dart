@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Stage, Task;
+import 'package:cocoon_service/models.dart' show Commit, CommitStatus, Stage, Task;
 
 import 'package:app_flutter/logic/task_grid_filter.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';

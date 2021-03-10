@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/models.dart' show Commit, CommitStatus, Task;
 
 import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/logic/task_grid_filter.dart';

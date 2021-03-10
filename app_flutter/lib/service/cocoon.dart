@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task, BuildStatusResponse;
+import 'package:cocoon_service/models.dart' show Agent, CommitStatus, Task, BuildStatusResponse;
 
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';

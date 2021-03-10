@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:fixnum/fixnum.dart';
 
-import 'package:cocoon_service/protos.dart';
+import 'package:cocoon_service/models.dart';
 
 import '../logic/qualified_task.dart';
 import 'cocoon.dart';

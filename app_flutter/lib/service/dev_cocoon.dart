@@ -5,7 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
-import 'package:cocoon_service/protos.dart';
+import 'package:cocoon_service/models.dart';
 
 import '../logic/qualified_task.dart';
 import 'cocoon.dart';

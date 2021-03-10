@@ -6,7 +6,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/models.dart' show Agent;
 
 import 'package:app_flutter/logic/agent_health_details.dart';
 import 'package:app_flutter/widgets/agent_list.dart';

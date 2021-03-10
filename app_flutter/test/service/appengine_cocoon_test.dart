@@ -10,7 +10,7 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart';
+import 'package:cocoon_service/models.dart';
 
 import 'package:app_flutter/service/appengine_cocoon.dart';
 import 'package:app_flutter/service/downloader.dart';

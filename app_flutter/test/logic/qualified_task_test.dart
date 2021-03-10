@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
+import 'package:cocoon_service/models.dart' show Commit, Task;
 
 import 'package:app_flutter/logic/qualified_task.dart';
 

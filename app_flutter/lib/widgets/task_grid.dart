@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
+import 'package:cocoon_service/models.dart' show CommitStatus, Commit, Stage, Task;
 
 import '../logic/qualified_task.dart';
 import '../logic/task_grid_filter.dart';

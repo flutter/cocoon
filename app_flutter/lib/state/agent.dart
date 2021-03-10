@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/models.dart' show Agent;
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';

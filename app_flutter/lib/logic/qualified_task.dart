@@ -4,7 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Task, Commit;
+import 'package:cocoon_service/models.dart' show Task, Commit;
 
 /// [Task.stageName] that maps to StageName enums.
 // TODO(chillers): Remove these and use StageName enum when available. https://github.com/flutter/cocoon/issues/441

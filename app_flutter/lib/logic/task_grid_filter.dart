@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 
-import 'package:cocoon_service/protos.dart' show CommitStatus;
+import 'package:cocoon_service/models.dart' show CommitStatus;
 
 import '../logic/qualified_task.dart';
 import '../widgets/filter_property_sheet.dart';

@@ -4,7 +4,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cocoon_service/protos.dart' show Agent;
+import 'package:cocoon_service/models.dart' show Agent;
 
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';

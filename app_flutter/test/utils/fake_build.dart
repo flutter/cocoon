@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/models.dart' show Commit, CommitStatus, Task;
 
 import 'package:app_flutter/logic/brooks.dart';
 import 'package:app_flutter/service/cocoon.dart';

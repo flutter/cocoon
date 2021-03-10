@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:app_flutter/widgets/commit_author_avatar.dart';
-import 'package:cocoon_service/protos.dart' show Commit;
+import 'package:cocoon_service/models.dart' show Commit;
 
 void main() {
   group('Author avatars meet guidelines for theme brightness', () {

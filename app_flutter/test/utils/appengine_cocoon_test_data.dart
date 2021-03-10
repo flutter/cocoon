@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 // This is based off data the Cocoon backend sends out from v1.
-// It doesn't map directly to protos since the backend does
-// not use protos yet.
+// It doesn't map directly to models since the backend does
+// not use models yet.
 const String jsonGetStatsResponse = '''
       {
         "Statuses": [
