@@ -59,9 +59,9 @@ Future<void> main() async {
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
-        buildBucketClient,
-        luciBuildService,
-        githubChecksService,
+        buildBucketClient: buildBucketClient,
+        luciBuildService: luciBuildService,
+        githubChecksService: githubChecksService,
       ),
       '/api/luci-status-handler': LuciStatusHandler(
         config,

@@ -5,20 +5,22 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
-
+import '../foundation/providers.dart';
+import '../model/github/checks.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
+import '../service/datastore.dart';
+import '../service/github_checks_service.dart';
+import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
 
 /// List of repos that require check for labels and tests.
 const Set<String> kNeedsCheckLabelsAndTests = <String>{'flutter/flutter', 'flutter/engine'};
@@ -27,12 +29,24 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config, this.buildBucketClient, this.luciBuildService, this.githubChecksService)
+  GithubWebhook(Config config, {
+    @required this.buildBucketClient,
+    @visibleForTesting Scheduler schedulerValue,
+    this.luciBuildService,
+    this.githubChecksService})
       : assert(buildBucketClient != null),
+        scheduler = schedulerValue ?? Scheduler(
+          config: config,
+          datastore: DatastoreService.defaultProvider(config.db),
+          httpClient: Providers.freshHttpClient(),
+        ),
         super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
   final BuildBucketClient buildBucketClient;
+
+  /// Cocoon scheduler to trigger tasks against changes from GitHub.
+  final Scheduler scheduler;
 
   /// LUCI service class to communicate with buildBucket service.
   final LuciBuildService luciBuildService;
@@ -47,6 +61,7 @@ class GithubWebhook extends RequestHandler<Body> {
     // Set service class logger.
     luciBuildService.setLogger(log);
     githubChecksService.setLogger(log);
+    scheduler.setLogger(log);
 
     if (gitHubEvent == null || request.headers.value('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
@@ -103,6 +118,9 @@ class GithubWebhook extends RequestHandler<Body> {
             pr.head.sha,
             'Pull request closed',
           );
+        } else {
+          // Merged pull requests can be added to CI.
+          await scheduler.addPullRequest(pr);
         }
         break;
       case 'edited':

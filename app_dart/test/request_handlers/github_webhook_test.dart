@@ -35,6 +35,7 @@ void main() {
     MockIssuesService issuesService;
     MockPullRequestsService pullRequestsService;
     MockBuildBucketClient mockBuildBucketClient;
+    MockScheduler mockScheduler;
     RequestHandlerTester tester;
     const String serviceAccountEmail = 'test@test';
     LuciBuildService luciBuildService;
@@ -58,6 +59,7 @@ void main() {
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
+      mockScheduler = MockScheduler();
       tester = RequestHandlerTester(request: request);
       serviceAccountInfo = await config.deviceLabServiceAccount;
 
@@ -73,7 +75,12 @@ void main() {
 
       mockGithubChecksService = MockGithubChecksService();
 
-      webhook = GithubWebhook(config, mockBuildBucketClient, luciBuildService, mockGithubChecksService);
+      webhook = GithubWebhook(config,
+        buildBucketClient: mockBuildBucketClient,
+        luciBuildService: luciBuildService,
+        githubChecksService: mockGithubChecksService,
+        schedulerValue: mockScheduler,
+      );
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
@@ -663,6 +670,21 @@ void main() {
         '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
         '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Pull request closed"}}]}]',
       );
+      verifyNever(mockScheduler.addPullRequest(any));
+    });
+
+    test('Schedule tasks when pull request is closed and merged', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName, merged: true);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+
+      await tester.post(webhook);
+
+      verify(mockScheduler.addPullRequest(any)).called(1);
     });
 
     test('Does not test pest draft pull requests.', () async {

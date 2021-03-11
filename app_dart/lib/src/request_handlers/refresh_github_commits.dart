@@ -53,7 +53,8 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
         datastore: datastore,
         httpClient: httpClientProvider(),
         gitHubBackoffCalculator: gitHubBackoffCalculator,
-        log: log);
+        log: log,
+    );
 
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastProcessedCommit = await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
