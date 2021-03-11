@@ -44,7 +44,6 @@ class Scheduler {
   final GitHubBackoffCalculator gitHubBackoffCalculator;
   Logging log;
 
-
   /// Sets the appengine [log] used by this class to log debug and error
   /// messages. This method has to be called before any other method in this
   /// class.
@@ -67,7 +66,7 @@ class Scheduler {
   }
 
   /// Schedule tasks against [PullRequest].
-  /// 
+  ///
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
@@ -81,7 +80,7 @@ class Scheduler {
     final String repo = pr.base.repo.name;
     final String branch = pr.base.ref;
     final String sha = pr.mergeCommitSha;
-    
+
     final String id = '$fullRepo/$branch/$sha';
     final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
     final Commit mergedCommit = Commit(
@@ -100,7 +99,7 @@ class Scheduler {
       log.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
-    
+
     log.debug('Scheduling $sha via GitHub webhook');
     await _addCommit(mergedCommit);
   }

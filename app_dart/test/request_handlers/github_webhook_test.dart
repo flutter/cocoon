@@ -75,7 +75,8 @@ void main() {
 
       mockGithubChecksService = MockGithubChecksService();
 
-      webhook = GithubWebhook(config,
+      webhook = GithubWebhook(
+        config,
         buildBucketClient: mockBuildBucketClient,
         luciBuildService: luciBuildService,
         githubChecksService: mockGithubChecksService,

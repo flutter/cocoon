@@ -170,7 +170,11 @@ void main() {
       });
 
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db, flutterBranchesValue: <String>['master'],);
+      config = FakeConfig(
+        tabledataResourceApi: tabledataResourceApi,
+        dbValue: db,
+        flutterBranchesValue: <String>['master'],
+      );
       httpClient = FakeHttpClient();
       httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
 
@@ -225,14 +229,15 @@ void main() {
 }
 
 PullRequest createPullRequest({
-  int id = 789, 
-  String branch = 'master', 
+  int id = 789,
+  String branch = 'master',
   String repo = 'flutter',
   String authorLogin = 'dash',
   String authorAvatar = 'dashatar',
-  String title = 'example message', 
-  int number = 123, DateTime mergedAt, 
-  String mergedCommitSha = 'abc', 
+  String title = 'example message',
+  int number = 123,
+  DateTime mergedAt,
+  String mergedCommitSha = 'abc',
   bool merged = true,
 }) {
   mergedAt ??= DateTime(2021, 3, 2, 12, 30);
@@ -241,8 +246,16 @@ PullRequest createPullRequest({
     title: title,
     number: number,
     mergedAt: mergedAt,
-    base: PullRequestHead(ref: branch, repo: Repository(fullName: 'flutter/$repo', name: repo,)),
-    user: User(login: authorLogin, avatarUrl: authorAvatar,),
+    base: PullRequestHead(
+        ref: branch,
+        repo: Repository(
+          fullName: 'flutter/$repo',
+          name: repo,
+        )),
+    user: User(
+      login: authorLogin,
+      avatarUrl: authorAvatar,
+    ),
     mergeCommitSha: mergedCommitSha,
     merged: merged,
   );
