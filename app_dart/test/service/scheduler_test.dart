@@ -225,6 +225,21 @@ void main() {
       // No tasks should be scheduled as that is done on commit insert.
       expect(db.values.values.whereType<Task>().length, 0);
     });
+
+    test('creates expected commit from release branch PR', () async {
+      final PullRequest mergedPr = createPullRequest(branch: '1.26');
+      await scheduler.addPullRequest(mergedPr);
+
+      expect(db.values.values.whereType<Commit>().length, 1);
+      final Commit commit = db.values.values.whereType<Commit>().single;
+      expect(commit.repository, 'flutter');
+      expect(commit.branch, '1.26');
+      expect(commit.sha, 'abc');
+      expect(commit.timestamp, 1614717000000);
+      expect(commit.author, 'dash');
+      expect(commit.authorAvatarUrl, 'dashatar');
+      expect(commit.message, 'example message');
+    });
   });
 }
 
