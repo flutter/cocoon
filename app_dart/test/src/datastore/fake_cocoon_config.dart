@@ -270,6 +270,5 @@ class FakeConfig implements Config {
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
 
   @override
-  // TODO: implement httpClient
   HttpClientProvider get httpClient => throw UnimplementedError();
 }
