@@ -139,6 +139,10 @@ class Scheduler {
   }
 
   /// Whether [Commit] already exists in [datastore].
+  ///
+  /// Datastore is Cocoon's source of truth for what commits have been scheduled.
+  /// Since webhooks or cron jobs can schedule commits, we must verify a commit
+  /// has not already been scheduled.
   Future<bool> _commitExistsInDatastore(Commit commit) async {
     return await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) != null;
   }
