@@ -191,7 +191,7 @@ void main() {
       expect(commit.repository, 'flutter');
       expect(commit.branch, 'master');
       expect(commit.sha, 'abc');
-      expect(commit.timestamp, 1614717000000);
+      expect(commit.timestamp, 1);
       expect(commit.author, 'dash');
       expect(commit.authorAvatarUrl, 'dashatar');
       expect(commit.message, 'example message');
@@ -235,7 +235,7 @@ void main() {
       expect(commit.repository, 'flutter');
       expect(commit.branch, '1.26');
       expect(commit.sha, 'abc');
-      expect(commit.timestamp, 1614717000000);
+      expect(commit.timestamp, 1);
       expect(commit.author, 'dash');
       expect(commit.authorAvatarUrl, 'dashatar');
       expect(commit.message, 'example message');
@@ -255,7 +255,7 @@ PullRequest createPullRequest({
   String mergedCommitSha = 'abc',
   bool merged = true,
 }) {
-  mergedAt ??= DateTime(2021, 3, 2, 12, 30);
+  mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
   return PullRequest(
     id: id,
     title: title,
