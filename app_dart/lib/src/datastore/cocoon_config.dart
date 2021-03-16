@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
@@ -31,11 +33,18 @@ import '../service/github_service.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache) : assert(_db != null);
+  Config(
+    this._db,
+    this._cache, {
+    @visibleForTesting HttpClientProvider httpClientProvider,
+  })  : httpClient = httpClientProvider ?? Providers.freshHttpClient,
+        assert(_db != null);
 
   final DatastoreDB _db;
 
   final CacheService _cache;
+
+  final HttpClientProvider httpClient;
 
   /// List of Github presubmit supported repos.
   static const Set<String> supportedRepos = <String>{
@@ -67,20 +76,32 @@ class Config {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
+      createFn: () => getBranches(httpClient, loggingService, twoSecondLinearBackoff),
       ttl: configCacheTtl,
     );
 
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  // Returns LUCI builders.
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
-      {String commitSha = 'master', int prNumber}) async {
+  // Returns list of LUCI builders supported in Cocoon.
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
     final GithubService githubService = await createGithubService('flutter', repo);
-    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
-        RepositorySlug('flutter', repo), bucket,
-        prNumber: prNumber, commitSha: commitSha);
+    final List<LuciBuilder> builders = <LuciBuilder>[];
+    // Grab all builders used by all supported branches.
+    for (String branch in await flutterBranches) {
+      final String ref = (branch == defaultBranch) ? commitSha : branch;
+      builders.addAll(await getLuciBuilders(
+        githubService,
+        httpClient,
+        twoSecondLinearBackoff,
+        loggingService,
+        RepositorySlug('flutter', repo),
+        bucket,
+        prNumber: prNumber,
+        ref: ref,
+      ));
+    }
+    return builders;
   }
 
   Future<String> _getSingleValue(String id) async {
