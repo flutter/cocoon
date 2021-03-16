@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -29,12 +30,21 @@ tasks:
 ''';
 
 void main() {
-  group('add commits', () {
-    FakeConfig config;
-    FakeDatastoreDB db;
-    FakeHttpClient httpClient;
-    Scheduler scheduler;
+  FakeConfig config;
+  FakeDatastoreDB db;
+  FakeHttpClient httpClient;
+  Scheduler scheduler;
 
+  Commit shaToCommit(String sha, {String branch = 'master'}) {
+    return Commit(
+      key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
+      sha: sha,
+      branch: branch,
+      timestamp: int.parse(sha),
+    );
+  }
+
+  group('add commits', () {
     setUp(() {
       final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
       when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
@@ -63,14 +73,6 @@ void main() {
                 sha: shas[index],
                 timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
               ));
-    }
-
-    Commit shaToCommit(String sha, {String branch = 'master'}) {
-      return Commit(
-          key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-          sha: sha,
-          branch: branch,
-          timestamp: int.parse(sha));
     }
 
     test('succeeds when GitHub returns no commits', () async {
@@ -159,6 +161,119 @@ void main() {
       expect(retry, 3);
     });
   });
+
+  group('add pull request', () {
+    setUp(() {
+      final MockTabledataResourceApi tabledataResourceApi = MockTabledataResourceApi();
+      when(tabledataResourceApi.insertAll(any, any, any, any)).thenAnswer((_) {
+        return Future<TableDataInsertAllResponse>.value(null);
+      });
+
+      db = FakeDatastoreDB();
+      config = FakeConfig(
+        tabledataResourceApi: tabledataResourceApi,
+        dbValue: db,
+        flutterBranchesValue: <String>['master'],
+      );
+      httpClient = FakeHttpClient();
+      httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+
+      scheduler =
+          Scheduler(config: config, datastore: DatastoreService(db, 2), httpClient: httpClient, log: FakeLogging());
+    });
+
+    test('creates expected commit', () async {
+      final PullRequest mergedPr = createPullRequest();
+      await scheduler.addPullRequest(mergedPr);
+
+      expect(db.values.values.whereType<Commit>().length, 1);
+      final Commit commit = db.values.values.whereType<Commit>().single;
+      expect(commit.repository, 'flutter');
+      expect(commit.branch, 'master');
+      expect(commit.sha, 'abc');
+      expect(commit.timestamp, 1);
+      expect(commit.author, 'dash');
+      expect(commit.authorAvatarUrl, 'dashatar');
+      expect(commit.message, 'example message');
+    });
+
+    test('schedules tasks against merged PRs', () async {
+      final PullRequest mergedPr = createPullRequest();
+      await scheduler.addPullRequest(mergedPr);
+
+      expect(db.values.values.whereType<Commit>().length, 1);
+      expect(db.values.values.whereType<Task>().length, 5);
+    });
+
+    test('does not schedule tasks against non-merged PRs', () async {
+      final PullRequest notMergedPr = createPullRequest(merged: false);
+      await scheduler.addPullRequest(notMergedPr);
+
+      expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 0);
+      expect(db.values.values.whereType<Task>().length, 0);
+    });
+
+    test('does not schedule tasks against already added PRs', () async {
+      // Existing commits should not be duplicated.
+      final Commit commit = shaToCommit('1');
+      db.values[commit.key] = commit;
+
+      final PullRequest alreadyLandedPr = createPullRequest(mergedCommitSha: '1');
+      await scheduler.addPullRequest(alreadyLandedPr);
+
+      expect(db.values.values.whereType<Commit>().map<String>(toSha).length, 1);
+      // No tasks should be scheduled as that is done on commit insert.
+      expect(db.values.values.whereType<Task>().length, 0);
+    });
+
+    test('creates expected commit from release branch PR', () async {
+      final PullRequest mergedPr = createPullRequest(branch: '1.26');
+      await scheduler.addPullRequest(mergedPr);
+
+      expect(db.values.values.whereType<Commit>().length, 1);
+      final Commit commit = db.values.values.whereType<Commit>().single;
+      expect(commit.repository, 'flutter');
+      expect(commit.branch, '1.26');
+      expect(commit.sha, 'abc');
+      expect(commit.timestamp, 1);
+      expect(commit.author, 'dash');
+      expect(commit.authorAvatarUrl, 'dashatar');
+      expect(commit.message, 'example message');
+    });
+  });
+}
+
+PullRequest createPullRequest({
+  int id = 789,
+  String branch = 'master',
+  String repo = 'flutter',
+  String authorLogin = 'dash',
+  String authorAvatar = 'dashatar',
+  String title = 'example message',
+  int number = 123,
+  DateTime mergedAt,
+  String mergedCommitSha = 'abc',
+  bool merged = true,
+}) {
+  mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
+  return PullRequest(
+    id: id,
+    title: title,
+    number: number,
+    mergedAt: mergedAt,
+    base: PullRequestHead(
+        ref: branch,
+        repo: Repository(
+          fullName: 'flutter/$repo',
+          name: repo,
+        )),
+    user: User(
+      login: authorLogin,
+      avatarUrl: authorAvatar,
+    ),
+    mergeCommitSha: mergedCommitSha,
+    merged: merged,
+  );
 }
 
 String toSha(Commit commit) => commit.sha;

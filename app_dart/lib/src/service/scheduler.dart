@@ -7,8 +7,10 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
+import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
 import '../datastore/cocoon_config.dart';
@@ -40,7 +42,14 @@ class Scheduler {
   final DatastoreService datastore;
   final HttpClient httpClient;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
-  final Logging log;
+  Logging log;
+
+  /// Sets the appengine [log] used by this class to log debug and error
+  /// messages. This method has to be called before any other method in this
+  /// class.
+  void setLogger(Logging log) {
+    this.log = log;
+  }
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -54,6 +63,45 @@ class Scheduler {
     for (Commit commit in newCommits) {
       await _addCommit(commit);
     }
+  }
+
+  /// Schedule tasks against [PullRequest].
+  ///
+  /// If [PullRequest] was merged, schedule prod tasks against it.
+  /// Otherwise if it is presubmit, schedule try tasks against it.
+  Future<void> addPullRequest(PullRequest pr) async {
+    // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
+    if (!pr.merged) {
+      log.warning('Only pull requests that were closed and merged should have tasks scheduled');
+      return;
+    }
+
+    final String fullRepo = pr.base.repo.fullName;
+    final String repo = pr.base.repo.name;
+    final String branch = pr.base.ref;
+    final String sha = pr.mergeCommitSha;
+
+    final String id = '$fullRepo/$branch/$sha';
+    final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
+    final Commit mergedCommit = Commit(
+      author: pr.user.login,
+      authorAvatarUrl: pr.user.avatarUrl,
+      branch: branch,
+      key: key,
+      // The field has a max length of 1500 so ensure the commit message is not longer.
+      message: truncate(pr.title, 1490, omission: '...'),
+      repository: repo,
+      sha: sha,
+      timestamp: pr.mergedAt.millisecondsSinceEpoch,
+    );
+
+    if (await _commitExistsInDatastore(mergedCommit)) {
+      log.debug('$sha already exists in datastore. Scheduling skipped.');
+      return;
+    }
+
+    log.debug('Scheduling $sha via GitHub webhook');
+    await _addCommit(mergedCommit);
   }
 
   Future<void> _addCommit(Commit commit) async {
@@ -78,7 +126,7 @@ class Scheduler {
     // Ensure commits are sorted from newest to oldest (descending order)
     commits.sort((Commit a, Commit b) => b.timestamp.compareTo(a.timestamp));
     for (Commit commit in commits) {
-      if (await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) == null) {
+      if (!await _commitExistsInDatastore(commit)) {
         newCommits.add(commit);
       } else {
         // Once we've found a commit that's already been recorded, we stop looking.
@@ -88,6 +136,15 @@ class Scheduler {
 
     // Reverses commits to be in order of oldest to newest.
     return newCommits;
+  }
+
+  /// Whether [Commit] already exists in [datastore].
+  ///
+  /// Datastore is Cocoon's source of truth for what commits have been scheduled.
+  /// Since webhooks or cron jobs can schedule commits, we must verify a commit
+  /// has not already been scheduled.
+  Future<bool> _commitExistsInDatastore(Commit commit) async {
+    return await datastore.db.lookupValue<Commit>(commit.key, orElse: () => null) != null;
   }
 
   /// Create [Tasks] specified in [commit] scheduler config.

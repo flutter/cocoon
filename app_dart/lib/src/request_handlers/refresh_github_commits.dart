@@ -49,11 +49,12 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
 
     final Scheduler scheduler = Scheduler(
-        config: config,
-        datastore: datastore,
-        httpClient: httpClientProvider(),
-        gitHubBackoffCalculator: gitHubBackoffCalculator,
-        log: log);
+      config: config,
+      datastore: datastore,
+      httpClient: httpClientProvider(),
+      gitHubBackoffCalculator: gitHubBackoffCalculator,
+      log: log,
+    );
 
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastProcessedCommit = await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
