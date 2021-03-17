@@ -93,11 +93,10 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 
 /// Returns LUCI builders based on [bucket] and [repo].
 ///
-/// For `try` case with [ref], builders are returned based on try_builders.json config file in
-/// the corresponding [ref], and also based on filtering changed files in [prNumber] via property
-/// [run_if] in each config.
-///
-/// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
+/// Builder config is loaded from `$bucket_builders.json` at [ref] of [repo].
+/// 
+/// If [bucket] is try, [prNumber] is used to filter the builder list to only the affected
+/// builders based on the [run_if] config property.
 Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
     GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
     {int prNumber, String ref = 'master'}) async {

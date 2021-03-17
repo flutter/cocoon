@@ -147,6 +147,8 @@ class Scheduler {
   }
 
   /// Create [Tasks] specified in [commit] scheduler config.
+  /// 
+  /// This is an aggregate of the devicelab manifest and prod_builders.json.
   Future<List<Task>> _getTasks(Commit commit) async {
     Task newTask(
       String name,

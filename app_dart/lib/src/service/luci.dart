@@ -273,11 +273,7 @@ class LuciBuilder {
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getProdBuilders(
-    String repo,
-    Config config, {
-    String branch = 'master',
-  }) async {
+  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
     return await config.luciBuilders('prod', repo);
   }
 }
