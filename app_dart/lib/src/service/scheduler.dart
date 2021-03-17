@@ -204,10 +204,9 @@ class Scheduler {
 
     try {
       for (int attempt = 0; attempt < 3; attempt++) {
-        final HttpClientRequest clientRequest = await httpClient.getUrl(url);
-
         try {
-          final HttpClientResponse clientResponse = await clientRequest.close();
+          final HttpClientRequest clientRequest = await httpClient.getUrl(url);
+          final HttpClientResponse clientResponse = await clientRequest.close().timeout(const Duration(seconds: 5));
           final int status = clientResponse.statusCode;
 
           if (status == HttpStatus.ok) {
