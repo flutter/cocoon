@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
@@ -14,6 +13,7 @@ import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
@@ -33,14 +33,14 @@ class Scheduler {
     @required this.config,
     @required this.datastore,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-    this.httpClient,
+    this.httpClientProvider,
     this.log,
   })  : assert(datastore != null),
         assert(gitHubBackoffCalculator != null);
 
   final Config config;
   final DatastoreService datastore;
-  final HttpClient httpClient;
+  final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
   Logging log;
 
@@ -200,33 +200,12 @@ class Scheduler {
   @visibleForTesting
   Future<YamlMap> loadDevicelabManifest(Commit commit) async {
     final String path = '/flutter/flutter/${commit.sha}/dev/devicelab/manifest.yaml';
-    final Uri url = Uri.https('raw.githubusercontent.com', path);
-
-    try {
-      for (int attempt = 0; attempt < 3; attempt++) {
-        try {
-          final HttpClientRequest clientRequest = await httpClient.getUrl(url);
-          final HttpClientResponse clientResponse = await clientRequest.close().timeout(const Duration(seconds: 5));
-          final int status = clientResponse.statusCode;
-
-          if (status == HttpStatus.ok) {
-            final String content = await utf8.decoder.bind(clientResponse).join();
-            return loadYaml(content) as YamlMap;
-          } else {
-            log.warning('Attempt to download manifest.yaml failed (HTTP $status)');
-          }
-        } catch (error, stackTrace) {
-          log.error('Attempt to download manifest.yaml failed:\n$error\n$stackTrace');
-        }
-
-        await Future<void>.delayed(gitHubBackoffCalculator(attempt));
-      }
-    } finally {
-      httpClient.close(force: true);
+    log.debug('Getting devicelab manifest content');
+    final String content = await remoteFileContent(httpClientProvider, log, gitHubBackoffCalculator, path);
+    if (content == null) {
+      throw HttpStatusException(HttpStatus.serviceUnavailable, 'Failed to load $path from GitHub');
     }
-
-    log.error('GitHub not responding; giving up');
-    throw HttpStatusException(HttpStatus.serviceUnavailable, 'Failed to load $path from GitHub');
+    return loadYaml(content) as YamlMap;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.

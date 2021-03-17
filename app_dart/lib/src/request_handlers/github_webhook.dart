@@ -39,7 +39,7 @@ class GithubWebhook extends RequestHandler<Body> {
             Scheduler(
               config: config,
               datastore: DatastoreService.defaultProvider(config.db),
-              httpClient: Providers.freshHttpClient(),
+              httpClientProvider: Providers.freshHttpClient,
             ),
         super(config: config);
 

@@ -51,7 +51,7 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
     final Scheduler scheduler = Scheduler(
       config: config,
       datastore: datastore,
-      httpClient: httpClientProvider(),
+      httpClientProvider: httpClientProvider,
       gitHubBackoffCalculator: gitHubBackoffCalculator,
       log: log,
     );

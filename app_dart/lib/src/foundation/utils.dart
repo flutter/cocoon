@@ -36,10 +36,9 @@ Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Lo
   try {
     // TODO(keyonghan): apply retry logic here to simply, https://github.com/flutter/flutter/issues/52427
     for (int attempt = 0; attempt < 3; attempt++) {
-      final HttpClientRequest clientRequest = await client.getUrl(url);
-
       try {
-        final HttpClientResponse clientResponse = await clientRequest.close();
+        final HttpClientRequest clientRequest = await client.getUrl(url).timeout(const Duration(seconds: 5));
+        final HttpClientResponse clientResponse = await clientRequest.close().timeout(const Duration(seconds: 5));
         final int status = clientResponse.statusCode;
 
         if (status == HttpStatus.ok) {
