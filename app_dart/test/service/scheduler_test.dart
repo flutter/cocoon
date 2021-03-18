@@ -56,8 +56,8 @@ void main() {
       httpClient = FakeHttpClient();
       httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
 
-      scheduler =
-          Scheduler(config: config, datastore: DatastoreService(db, 2), httpClient: httpClient, log: FakeLogging());
+      scheduler = Scheduler(
+          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
     });
 
     List<Commit> createCommitList(List<String> shas) {
@@ -178,8 +178,8 @@ void main() {
       httpClient = FakeHttpClient();
       httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
 
-      scheduler =
-          Scheduler(config: config, datastore: DatastoreService(db, 2), httpClient: httpClient, log: FakeLogging());
+      scheduler = Scheduler(
+          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
     });
 
     test('creates expected commit', () async {

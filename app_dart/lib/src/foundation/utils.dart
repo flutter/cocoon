@@ -28,18 +28,23 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-Future<String> remoteFileContent(HttpClientProvider branchHttpClientProvider, Logging log,
-    GitHubBackoffCalculator gitHubBackoffCalculator, String filePath) async {
+/// Get content of [filePath] from GitHub CDN.
+Future<String> remoteFileContent(
+  HttpClientProvider branchHttpClientProvider,
+  Logging log,
+  GitHubBackoffCalculator gitHubBackoffCalculator,
+  String filePath, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
   final Uri url = Uri.https('raw.githubusercontent.com', filePath);
 
   final HttpClient client = branchHttpClientProvider();
   try {
     // TODO(keyonghan): apply retry logic here to simply, https://github.com/flutter/flutter/issues/52427
     for (int attempt = 0; attempt < 3; attempt++) {
-      final HttpClientRequest clientRequest = await client.getUrl(url);
-
       try {
-        final HttpClientResponse clientResponse = await clientRequest.close();
+        final HttpClientRequest clientRequest = await client.getUrl(url).timeout(timeout);
+        final HttpClientResponse clientResponse = await clientRequest.close().timeout(timeout);
         final int status = clientResponse.statusCode;
 
         if (status == HttpStatus.ok) {
