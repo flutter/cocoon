@@ -74,14 +74,24 @@ class GithubChecksUtil {
   }
 
   Future<github.CheckRun> getCheckRun(
-    github.GitHub gitHubClient,
+    Config cocoonConfig,
     github.RepositorySlug slug,
     int id,
   ) async {
-    return gitHubClient.checks.checkRuns.getCheckRun(
-      slug,
-      checkRunId: id,
+    const RetryOptions r = RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 2),
     );
+    return r.retry(() async {
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(
+        slug.owner,
+        slug.name,
+      );
+      return await gitHubClient.checks.checkRuns.getCheckRun(
+        slug,
+        checkRunId: id,
+      );
+    }, retryIf: (Exception e) => e is github.GitHubError);
   }
 
   /// Sends a request to github checks api to create a new [CheckRun] associated
