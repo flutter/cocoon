@@ -77,7 +77,6 @@ class Scheduler {
     }
 
     final String fullRepo = pr.base.repo.fullName;
-    final String repo = pr.base.repo.name;
     final String branch = pr.base.ref;
     final String sha = pr.mergeCommitSha;
 
@@ -90,7 +89,7 @@ class Scheduler {
       key: key,
       // The field has a max length of 1500 so ensure the commit message is not longer.
       message: truncate(pr.title, 1490, omission: '...'),
-      repository: repo,
+      repository: fullRepo,
       sha: sha,
       timestamp: pr.mergedAt.millisecondsSinceEpoch,
     );
