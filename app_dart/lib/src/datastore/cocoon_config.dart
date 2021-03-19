@@ -55,6 +55,11 @@ class Config {
     'flutter/plugins',
   };
 
+  /// List of GitHub repositories that are supported by [Scheduler].
+  static const Set<String> schedulerSupportedRepos = <String>{
+    'flutter/flutter',
+  };
+
   /// Memorystore subcache name to store [CocoonConfig] values in.
   static const String configCacheName = 'config';
 

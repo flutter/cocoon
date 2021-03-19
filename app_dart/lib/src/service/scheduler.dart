@@ -104,6 +104,11 @@ class Scheduler {
   }
 
   Future<void> _addCommit(Commit commit) async {
+    if (!Config.schedulerSupportedRepos.contains(commit.repository)) {
+      log.debug('Skipping ${commit.id} as repo is not supported');
+      return;
+    }
+
     final List<Task> tasks = await _getTasks(commit);
     try {
       await datastore.withTransaction<void>((Transaction transaction) async {
@@ -198,7 +203,7 @@ class Scheduler {
   // TODO(chillers): Remove when DeviceLab has migrated to LUCI. https://github.com/flutter/flutter/projects/151
   @visibleForTesting
   Future<YamlMap> loadDevicelabManifest(Commit commit) async {
-    final String path = '/flutter/flutter/${commit.sha}/dev/devicelab/manifest.yaml';
+    final String path = '/${commit.repository}/${commit.sha}/dev/devicelab/manifest.yaml';
     log.debug('Getting devicelab manifest content');
     final String content = await remoteFileContent(httpClientProvider, log, gitHubBackoffCalculator, path);
     if (content == null) {
