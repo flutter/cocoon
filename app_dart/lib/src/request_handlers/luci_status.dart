@@ -14,7 +14,6 @@ import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
 import '../datastore/cocoon_config.dart';
 import '../foundation/typedefs.dart';
@@ -97,32 +96,15 @@ class LuciStatusHandler extends RequestHandler<Body> {
         userData['repo_owner'] as String,
         userData['repo_name'] as String,
       );
-      await _updateCheckStatus(buildPushMessage, slug);
+      await githubChecksService.updateCheckStatus(
+        buildPushMessage,
+        luciBuildService,
+        slug,
+      );
     } else {
       log.error('This repo does not support checks API');
     }
     return Body.empty;
-  }
-
-  /// Updates check status with retries.
-  ///
-  /// The `githubChecksService.updateCheckStatus` has been hitting `SocketException` occasionally.
-  /// Retry logic is to mitigate this issue: https://github.com/flutter/flutter/issues/74611.
-  Future<void> _updateCheckStatus(BuildPushMessage buildPushMessage, RepositorySlug slug) async {
-    const RetryOptions r = RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 2),
-    );
-    await r.retry(
-      () async {
-        await githubChecksService.updateCheckStatus(
-          buildPushMessage,
-          luciBuildService,
-          slug,
-        );
-      },
-      retryIf: (Exception e) => e is SocketException,
-    );
   }
 
   Future<bool> _authenticateRequest(HttpHeaders headers) async {

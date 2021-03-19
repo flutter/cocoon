@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:core';
+import 'dart:io';
 
 import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:github/github.dart' as github;
@@ -70,7 +71,7 @@ class GithubChecksUtil {
         detailsUrl: detailsUrl,
         output: output,
       );
-    }, retryIf: (Exception e) => e is github.GitHubError);
+    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
 
   Future<github.CheckRun> getCheckRun(
@@ -91,7 +92,7 @@ class GithubChecksUtil {
         slug,
         checkRunId: id,
       );
-    }, retryIf: (Exception e) => e is github.GitHubError);
+    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
 
   /// Sends a request to github checks api to create a new [CheckRun] associated
