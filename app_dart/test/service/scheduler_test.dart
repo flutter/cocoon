@@ -69,7 +69,7 @@ void main() {
                 branch: 'master',
                 key: db.emptyKey.append(Commit, id: 'flutter/flutter/master/${shas[index]}'),
                 message: 'commit message',
-                repository: 'flutter',
+                repository: 'flutter/flutter',
                 sha: shas[index],
                 timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
               ));
@@ -86,7 +86,7 @@ void main() {
       await scheduler.addCommits(createCommitList(<String>['1']));
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, 'flutter');
+      expect(commit.repository, 'flutter/flutter');
       expect(commit.branch, 'master');
       expect(commit.sha, '1');
       expect(commit.timestamp, 1);
@@ -188,7 +188,7 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, 'flutter');
+      expect(commit.repository, 'flutter/flutter');
       expect(commit.branch, 'master');
       expect(commit.sha, 'abc');
       expect(commit.timestamp, 1);
@@ -232,7 +232,7 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
-      expect(commit.repository, 'flutter');
+      expect(commit.repository, 'flutter/flutter');
       expect(commit.branch, '1.26');
       expect(commit.sha, 'abc');
       expect(commit.timestamp, 1);
