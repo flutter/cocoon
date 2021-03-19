@@ -12,6 +12,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/cocoon_config.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../request_handling/api_request_handler.dart';
@@ -273,8 +274,18 @@ class LuciBuilder {
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
-    return await config.luciBuilders('prod', repo);
+  static Future<List<LuciBuilder>> getProdBuilders(
+    String repo,
+    Config config, {
+    String branch,
+    String sha,
+  }) async {
+    return await config.luciBuilders(
+      'prod',
+      repo,
+      branch: branch,
+      commitSha: sha,
+    );
   }
 }
 

@@ -36,12 +36,17 @@ class Config {
     this._db,
     this._cache, {
     @visibleForTesting HttpClientProvider httpClientProvider,
+    @visibleForTesting GithubService githubService,
+    @visibleForTesting this.logValue,
   })  : httpClient = httpClientProvider ?? Providers.freshHttpClient,
+        github = githubService,
         assert(_db != null);
 
   final DatastoreDB _db;
 
   final CacheService _cache;
+
+  GithubService github;
 
   final HttpClientProvider httpClient;
 
@@ -69,7 +74,10 @@ class Config {
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
-  Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
+  Logging get loggingService => logValue ?? ss.lookup(#appengine.logging) as Logging;
+
+  @visibleForTesting
+  Logging logValue;
 
   Future<List<String>> _getFlutterBranches() async {
     final Uint8List cacheValue = await _cache.getOrCreate(
@@ -82,25 +90,26 @@ class Config {
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  // Returns list of LUCI builders supported in Cocoon.
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo, {String commitSha, int prNumber}) async {
+  /// Returns list of LUCI builders supported in Cocoon.
+  ///
+  /// If [branch] is not [defaultBranch], a release branch, it will pull from HEAD of [branch].
+  /// Otherwise, it will pull from the [ref] or [prNumber].
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha, int prNumber, String branch}) async {
     final GithubService githubService = await createGithubService('flutter', repo);
-    final List<LuciBuilder> builders = <LuciBuilder>[];
-    // Grab all builders used by all supported branches.
-    for (String branch in await flutterBranches) {
-      final String ref = (branch == defaultBranch) ? commitSha : branch;
-      builders.addAll(await getLuciBuilders(
-        githubService,
-        httpClient,
-        twoSecondLinearBackoff,
-        loggingService,
-        RepositorySlug('flutter', repo),
-        bucket,
-        prNumber: prNumber,
-        ref: ref,
-      ));
-    }
-    return builders;
+    branch ??= defaultBranch;
+    // TODO(chillers): Add support for release branch try builds. https://github.com/flutter/flutter/issues/72466
+    final String ref = (branch != defaultBranch) ? commitSha : branch;
+    return getLuciBuilders(
+      githubService,
+      httpClient,
+      twoSecondLinearBackoff,
+      loggingService,
+      RepositorySlug('flutter', repo),
+      bucket,
+      prNumber: prNumber,
+      ref: ref,
+    );
   }
 
   Future<String> _getSingleValue(String id) async {
@@ -353,8 +362,11 @@ class Config {
   }
 
   Future<GithubService> createGithubService(String owner, String repository) async {
-    final GitHub github = await createGitHubClient(owner, repository);
-    return GithubService(github);
+    if (github == null) {
+      final GitHub githubClient = await createGitHubClient(owner, repository);
+      github = GithubService(githubClient);
+    }
+    return github;
   }
 
   /// Return a [FlutterDestination] (subclass of [MetricsDestination]) for

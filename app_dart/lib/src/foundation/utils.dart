@@ -94,7 +94,7 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 /// Returns LUCI builders based on [bucket] and [repo].
 ///
 /// Builder config is loaded from `$bucket_builders.json` at [ref] of [repo].
-/// 
+///
 /// If [bucket] is try, [prNumber] is used to filter the builder list to only the affected
 /// builders based on the [run_if] config property.
 Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
@@ -112,8 +112,7 @@ Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClien
   String builderContent =
       await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
   builderContent ??= '{"builders":[]}';
-  Map<String, dynamic> builderMap;
-  builderMap = json.decode(builderContent) as Map<String, dynamic>;
+  final Map<String, dynamic> builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   final List<LuciBuilder> builders = builderList
       .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
