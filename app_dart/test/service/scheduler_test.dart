@@ -60,16 +60,19 @@ void main() {
           config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
     });
 
-    List<Commit> createCommitList(List<String> shas) {
+    List<Commit> createCommitList(
+      List<String> shas, {
+      String repo = 'flutter',
+    }) {
       return List<Commit>.generate(
           shas.length,
           (int index) => Commit(
                 author: 'Username',
                 authorAvatarUrl: 'http://example.org/avatar.jpg',
                 branch: 'master',
-                key: db.emptyKey.append(Commit, id: 'flutter/flutter/master/${shas[index]}'),
+                key: db.emptyKey.append(Commit, id: 'flutter/$repo/master/${shas[index]}'),
                 message: 'commit message',
-                repository: 'flutter/flutter',
+                repository: 'flutter/$repo',
                 sha: shas[index],
                 timestamp: DateTime.fromMillisecondsSinceEpoch(int.parse(shas[index])).millisecondsSinceEpoch,
               ));
@@ -93,6 +96,12 @@ void main() {
       expect(commit.author, 'Username');
       expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
       expect(commit.message, 'commit message');
+    });
+
+    test('skips scheduling for unsupported repos', () async {
+      config.flutterBranchesValue = <String>['master'];
+      await scheduler.addCommits(createCommitList(<String>['1'], repo: 'not-supported'));
+      expect(db.values.values.whereType<Commit>().length, 0);
     });
 
     test('skips commits for which transaction commit fails', () async {
