@@ -44,6 +44,21 @@ const String luciBuildersReleaseBranch = '''
         ]
       }''';
 
+const String luciTryBuildersDefaultBranch = '''
+      {
+        "builders":[
+            {
+              "name":"try test 1",
+              "repo":"flutter",
+              "enabled":true
+            }, {
+              "name":"Linux build_aar_test try",
+              "repo":"cocoon",
+              "enabled":false
+            }
+        ]
+      }''';
+
 void main() {
   group('githubAppInstallations', () {
     FakeDatastoreDB datastore;
@@ -86,23 +101,50 @@ void main() {
         githubService: FakeGithubService(),
         logValue: FakeLogging(),
       );
-      fakeHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
-        if (request.uri == Uri.https('raw.githubusercontent.com', 'flutter/flutter/master/dev/prod_builders.json')) {
-          request.response = FakeHttpClientResponse(body: luciBuildersDefaultBranch);
-        } else {
-          request.response = FakeHttpClientResponse(body: luciBuildersReleaseBranch);
-        }
-      };
     });
 
-    test('gets all builds from default and release branches', () async {
-      final List<LuciBuilder> prodBuilders = await config.luciBuilders('prod', 'flutter');
+    test('gets all prod builds from default branch', () async {
+      fakeHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
+        if (request.uri == Uri.https('raw.githubusercontent.com', 'flutter/flutter/shashaabc/dev/prod_builders.json')) {
+          request.response = FakeHttpClientResponse(body: luciBuildersDefaultBranch);
+        }
+      };
+      final List<LuciBuilder> prodBuilders = await config.luciBuilders(
+        'prod',
+        'flutter',
+        branch: config.defaultBranch,
+        commitSha: 'shashaabc',
+      );
       expect(luciBuildersToNames(prodBuilders), <String>['Linux framework_tests']);
     });
 
-    test('gets all builds from default and release branches', () async {
-      final List<LuciBuilder> prodBuilders = await config.luciBuilders('prod', 'flutter', branch: 'release-abc');
+    test('gets all prod builds from release branch', () async {
+      fakeHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
+        if (request.uri ==
+            Uri.https('raw.githubusercontent.com', 'flutter/flutter/release-abc/dev/prod_builders.json')) {
+          request.response = FakeHttpClientResponse(body: luciBuildersReleaseBranch);
+        }
+      };
+      final List<LuciBuilder> prodBuilders = await config.luciBuilders(
+        'prod',
+        'flutter',
+        branch: 'release-abc',
+      );
       expect(luciBuildersToNames(prodBuilders), <String>['Linux Stable framework_tests']);
+    });
+
+    test('gets all try builds from default branch', () async {
+      fakeHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
+        if (request.uri == Uri.https('raw.githubusercontent.com', 'flutter/flutter/master/dev/try_builders.json')) {
+          request.response = FakeHttpClientResponse(body: luciTryBuildersDefaultBranch);
+        }
+      };
+      final List<LuciBuilder> tryBuilders = await config.luciBuilders(
+        'try',
+        'flutter',
+        prNumber: 12345,
+      );
+      expect(luciBuildersToNames(tryBuilders), <String>['try test 1']);
     });
   });
 }

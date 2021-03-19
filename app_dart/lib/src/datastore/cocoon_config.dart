@@ -94,12 +94,25 @@ class Config {
   ///
   /// If [branch] is not [defaultBranch], a release branch, it will pull from HEAD of [branch].
   /// Otherwise, it will pull from the [ref] or [prNumber].
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
-      {String commitSha, int prNumber, String branch}) async {
+  Future<List<LuciBuilder>> luciBuilders(
+    String bucket,
+    String repo, {
+    String commitSha,
+    int prNumber,
+    String branch = kDefaultBranchName,
+  }) async {
     final GithubService githubService = await createGithubService('flutter', repo);
-    branch ??= defaultBranch;
-    // TODO(chillers): Add support for release branch try builds. https://github.com/flutter/flutter/issues/72466
-    final String ref = (branch != defaultBranch) ? commitSha : branch;
+    String ref;
+    if (prNumber != null) {
+      ref = kDefaultBranchName;
+    } else if (branch != kDefaultBranchName) {
+      ref = branch;
+    } else if (commitSha != null) {
+      ref = commitSha;
+    } else {
+      loggingService.warning('Failed to find place for builders, using default branch');
+      ref = kDefaultBranchName;
+    }
     return getLuciBuilders(
       githubService,
       httpClient,

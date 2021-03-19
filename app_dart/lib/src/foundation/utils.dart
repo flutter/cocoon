@@ -119,7 +119,7 @@ Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClien
       .where((LuciBuilder element) => element.enabled ?? true)
       .toList();
 
-  if (bucket == 'prod' || ref == 'master') {
+  if (bucket == 'prod') {
     return builders;
   }
 

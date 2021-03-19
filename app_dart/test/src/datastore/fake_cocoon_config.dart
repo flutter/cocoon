@@ -254,7 +254,7 @@ class FakeConfig implements Config {
     String repo, {
     String commitSha = 'master',
     int prNumber,
-    String branch,
+    String branch = kDefaultBranchName,
   }) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
@@ -276,4 +276,10 @@ class FakeConfig implements Config {
 
   @override
   HttpClientProvider get httpClient => throw UnimplementedError();
+
+  @override
+  GithubService github;
+
+  @override
+  Logging logValue;
 }
