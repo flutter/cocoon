@@ -246,7 +246,7 @@ void main() {
 PullRequest createPullRequest({
   int id = 789,
   String branch = 'master',
-  String repo = 'flutter/flutter',
+  String repo = 'flutter',
   String authorLogin = 'dash',
   String authorAvatar = 'dashatar',
   String title = 'example message',
