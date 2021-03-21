@@ -14,7 +14,7 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';

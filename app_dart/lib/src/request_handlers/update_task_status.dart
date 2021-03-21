@@ -10,7 +10,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:metrics_center/metrics_center.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';

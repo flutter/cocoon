@@ -5,16 +5,16 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/datastore/cocoon_config.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
-import 'package:cocoon_service/src/model/appengine/key_helper.dart';
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
-import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis_auth/auth.dart';
 import 'package:graphql/client.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
+import 'package:cocoon_service/src/datastore/config.dart';
+import 'package:cocoon_service/src/foundation/typedefs.dart';
+import 'package:cocoon_service/src/model/appengine/key_helper.dart';
+import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:metrics_center/src/flutter.dart';
 

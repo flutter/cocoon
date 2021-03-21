@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/request_handling/cache_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 

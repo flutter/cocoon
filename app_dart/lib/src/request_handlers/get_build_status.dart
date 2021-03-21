@@ -8,7 +8,7 @@ import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildS
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';

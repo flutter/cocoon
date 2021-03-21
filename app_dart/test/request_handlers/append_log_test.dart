@@ -15,7 +15,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/log_chunk.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';

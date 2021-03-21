@@ -12,7 +12,7 @@ import 'package:cocoon_service/src/request_handling/authentication.dart' show Au
 import 'package:cocoon_service/src/request_handling/swarming_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';

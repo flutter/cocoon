@@ -12,7 +12,7 @@ import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';

@@ -8,7 +8,7 @@ import 'package:mockito/mockito.dart';
 
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/mocks.dart';

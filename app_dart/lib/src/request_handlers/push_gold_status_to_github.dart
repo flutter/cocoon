@@ -12,7 +12,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/github_gold_status_update.dart';

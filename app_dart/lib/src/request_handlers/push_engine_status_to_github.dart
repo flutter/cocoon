@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';

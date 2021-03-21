@@ -5,7 +5,7 @@
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../model/appengine/service_account_info.dart';
 
 /// Function signature for a [TaskService] provider.
