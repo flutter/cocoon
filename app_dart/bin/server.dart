@@ -145,7 +145,12 @@ Future<void> main() async {
           return await request.response.redirect(Uri.parse(redirects[filePath]));
         }
 
-        await StaticFileHandler(filePath, config: config).service(request);
+        await CacheRequestHandler<Body>(
+          cache: cache,
+          config: config,
+          delegate: StaticFileHandler(filePath, config: config),
+          ttl: const Duration(minutes: 30),
+        ).service(request);
       }
     }, onAcceptingConnections: (InternetAddress address, int port) {
       final String host = address.isLoopback ? 'localhost' : address.host;
