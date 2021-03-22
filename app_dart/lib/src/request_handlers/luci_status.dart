@@ -15,7 +15,7 @@ import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';

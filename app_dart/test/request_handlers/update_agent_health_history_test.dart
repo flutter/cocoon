@@ -15,7 +15,7 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_logging.dart';

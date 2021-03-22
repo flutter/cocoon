@@ -9,7 +9,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';

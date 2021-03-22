@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export 'src/datastore/cocoon_config.dart';
+export 'src/datastore/config.dart';
 export 'src/model/appengine/service_account_info.dart';
 export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/authorize_agent.dart';

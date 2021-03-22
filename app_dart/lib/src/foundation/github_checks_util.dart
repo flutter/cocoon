@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
 /// mocking during testing because some of the subclasses are private.

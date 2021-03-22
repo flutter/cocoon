@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 
 import 'body.dart';
 import 'request_handler.dart';

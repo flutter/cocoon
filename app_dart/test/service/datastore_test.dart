@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 
 class Counter {

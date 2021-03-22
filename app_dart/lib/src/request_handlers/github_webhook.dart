@@ -10,7 +10,7 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../model/github/checks.dart';
 import '../request_handling/body.dart';

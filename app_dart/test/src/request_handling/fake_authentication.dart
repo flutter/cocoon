@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/datastore/config.dart';
 import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:gcloud/db.dart';
 

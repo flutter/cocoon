@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/cocoon_config.dart';
+import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../request_handling/api_request_handler.dart';

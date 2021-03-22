@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/request_handlers/get_branches.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {

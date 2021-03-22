@@ -9,7 +9,7 @@ import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';

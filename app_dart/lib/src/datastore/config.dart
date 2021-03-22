@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -21,12 +19,15 @@ import 'package:metrics_center/metrics_center.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
+import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
 import '../service/access_client_provider.dart';
 import '../service/bigquery.dart';
 import '../service/github_service.dart';
+import '../service/luci.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
@@ -406,19 +407,4 @@ class Config {
   bool isChecksSupportedRepo(RepositorySlug slug) {
     return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
   }
-}
-
-@Kind(name: 'CocoonConfig', idType: IdType.String)
-class CocoonConfig extends Model<String> {
-  @StringProperty(propertyName: 'ParameterValue')
-  String value;
-}
-
-class InvalidConfigurationException implements Exception {
-  const InvalidConfigurationException(this.id);
-
-  final String id;
-
-  @override
-  String toString() => 'Invalid configuration value for $id';
 }

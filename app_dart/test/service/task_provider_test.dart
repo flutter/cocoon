@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/task_provider.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_cocoon_config.dart';
+import '../src/datastore/fake_config.dart';
 
 void main() {
   FakeConfig config;
