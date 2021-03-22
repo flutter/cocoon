@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Dashboard',
+      title: 'Build Dashboard',
       theme: ThemeData(),
       darkTheme: ThemeData.dark(),
       initialRoute: '/',
