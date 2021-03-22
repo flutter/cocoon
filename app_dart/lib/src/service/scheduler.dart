@@ -152,6 +152,8 @@ class Scheduler {
   }
 
   /// Create [Tasks] specified in [commit] scheduler config.
+  ///
+  /// This is an aggregate of the devicelab manifest and prod_builders.json.
   Future<List<Task>> _getTasks(Commit commit) async {
     Task newTask(
       String name,
@@ -177,7 +179,12 @@ class Scheduler {
     }
 
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders('flutter', config);
+    final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders(
+      commit.repo,
+      config,
+      branch: commit.branch,
+      sha: commit.sha,
+    );
     for (LuciBuilder builder in prodBuilders) {
       // These built-in tasks are not listed in the manifest.
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));

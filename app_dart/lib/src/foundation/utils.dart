@@ -93,14 +93,13 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 
 /// Returns LUCI builders based on [bucket] and [repo].
 ///
-/// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
-/// the corresponding [commitSha], and also based on filtering changed files in [prNumber] via property
-/// [run_if] in each config.
+/// Builder config is loaded from `$bucket_builders.json` at [ref] of [repo].
 ///
-/// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
+/// If [bucket] is try, [prNumber] is used to filter the builder list to only the affected
+/// builders based on the [run_if] config property.
 Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
     GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
-    {int prNumber, String commitSha = 'master'}) async {
+    {int prNumber, String ref = 'master'}) async {
   const Map<String, String> repoFilePathPrefix = <String, String>{
     'flutter': 'dev',
     'engine': 'ci/dev',
@@ -108,20 +107,19 @@ Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClien
     'plugins': '.ci/dev',
     'packages': 'dev'
   };
-  final String filePath = '${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}/';
+  final String filePath = '${slug.name}/$ref/${repoFilePathPrefix[slug.name]}/';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
   String builderContent =
       await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
   builderContent ??= '{"builders":[]}';
-  Map<String, dynamic> builderMap;
-  builderMap = json.decode(builderContent) as Map<String, dynamic>;
+  final Map<String, dynamic> builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;
   final List<LuciBuilder> builders = builderList
       .map((dynamic builder) => LuciBuilder.fromJson(builder as Map<String, dynamic>))
       .where((LuciBuilder element) => element.enabled ?? true)
       .toList();
 
-  if (bucket == 'prod' || commitSha == 'master') {
+  if (bucket == 'prod') {
     return builders;
   }
 

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/cocoon_config.dart';
+import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -248,8 +249,13 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
-      {String commitSha = 'master', int prNumber}) async {
+  Future<List<LuciBuilder>> luciBuilders(
+    String bucket,
+    String repo, {
+    String commitSha = 'master',
+    int prNumber,
+    String branch = kDefaultBranchName,
+  }) async {
     if (repo == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
@@ -267,4 +273,13 @@ class FakeConfig implements Config {
 
   @override
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+
+  @override
+  HttpClientProvider get httpClient => throw UnimplementedError();
+
+  @override
+  GithubService github;
+
+  @override
+  Logging logValue;
 }
