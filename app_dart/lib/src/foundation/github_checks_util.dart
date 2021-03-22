@@ -114,7 +114,7 @@ class GithubChecksUtil {
         name,
         headSha,
       );
-    }, retryIf: (Exception e) => e is github.GitHubError);
+    }, retryIf: (Exception e) => e is github.GitHubError || e is SocketException);
   }
 
   Future<github.CheckRun> _createCheckRun(
