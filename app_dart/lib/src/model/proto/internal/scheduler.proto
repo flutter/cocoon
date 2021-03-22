@@ -4,6 +4,13 @@
 
 syntax = "proto2";
 
+message SchedulerConfig {
+    // Targets to run from this config.
+    repeated Target targets = 1;
+    // Git branches to run these targets against.
+    repeated string enabled_branches = 2;
+}
+
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
