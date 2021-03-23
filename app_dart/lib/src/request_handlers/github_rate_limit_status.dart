@@ -12,7 +12,7 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/github_service.dart';
 
-/// Endpoint to collect the current GitHub API quota usage of Cocoon on all supported Flutter repos.
+/// Endpoint to collect the current GitHub API quota usage of the flutter-dashboard app.
 ///
 /// This endpoint pushes data to BigQuery for metric collection to analyze usage over time. There
 /// is a cron job set to run every minute, behind a [CacheRequestHandler] to ensure there exists
@@ -30,21 +30,15 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final List<Map<String, dynamic>> totalQuotaUsage = <Map<String, dynamic>>[];
+    final GithubService githubService = await config.createGithubService('flutter', 'flutter');
+    final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
+    quotaUsage['timestamp'] = DateTime.now().millisecondsSinceEpoch;
+    quotaUsage['repo'] = 'flutter';
 
-    /// Pull quota usage for all supported repos.
-    for (String repository in Config.supportedRepos) {
-      final GithubService githubService = await config.createGithubService('flutter', repository);
-      final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
-      quotaUsage['timestamp'] = DateTime.now().millisecondsSinceEpoch;
-      quotaUsage['repo'] = repository;
-      totalQuotaUsage.add(quotaUsage);
+    /// Insert quota usage to BigQuery
+    const String githubQuotaTable = 'GithubQuotaUsage';
+    await insertBigquery(githubQuotaTable, quotaUsage, await config.createTabledataResourceApi(), log);
 
-      /// Insert quota usage for [repository] to BigQuery
-      const String githubQuotaTable = 'GithubQuotaUsage';
-      await insertBigquery(githubQuotaTable, quotaUsage, await config.createTabledataResourceApi(), log);
-    }
-
-    return Body.forJson(totalQuotaUsage);
+    return Body.forJson(quotaUsage);
   }
 }
