@@ -99,7 +99,8 @@ class Config {
   /// Returns list of LUCI builders supported in Cocoon.
   ///
   /// If [branch] is not [defaultBranch], a release branch, it will pull from HEAD of [branch].
-  /// Otherwise, it will pull from the [ref] or [prNumber].
+  /// If [commitSha] is passed, it will pull from that revision. Otherwise, it will pull from
+  /// HEAD of [defaultBranch].
   Future<List<LuciBuilder>> luciBuilders(
     String bucket,
     String repo, {
@@ -109,14 +110,13 @@ class Config {
   }) async {
     final GithubService githubService = await createGithubService('flutter', repo);
     String ref;
-    if (prNumber != null) {
-      ref = kDefaultBranchName;
-    } else if (branch != kDefaultBranchName) {
+    loggingService.debug('Pulling LUCI builders with sha: $commitSha, prNumber: $prNumber, branch: $branch');
+    if (branch != null && branch != kDefaultBranchName) {
       ref = branch;
     } else if (commitSha != null) {
       ref = commitSha;
     } else {
-      loggingService.warning('Failed to find place for builders, using default branch');
+      loggingService.warning('Failed to find place for builders, using $kDefaultBranchName');
       ref = kDefaultBranchName;
     }
     return getLuciBuilders(
