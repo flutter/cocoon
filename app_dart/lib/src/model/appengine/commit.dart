@@ -59,14 +59,6 @@ class Commit extends Model<String> {
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
   String repository;
 
-  /// The GitHub repo name this commit is from.
-  String get repo => repository.split('/')[1];
-
-  /// The GitHub organization this commit is from.
-  ///
-  /// Every [Commit] in Cocoon is expected to be from flutter.
-  String get org => repository.split('/').first;
-
   /// The branch of the commit.
   @StringProperty(propertyName: 'Branch')
   String branch;
