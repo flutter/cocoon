@@ -44,7 +44,7 @@ const String luciBuildersReleaseBranch = '''
         ]
       }''';
 
-const String luciTryBuildersAbc = '''
+const String luciTryBuildersDefaultBranch = '''
       {
         "builders":[
             {
@@ -133,18 +133,16 @@ void main() {
       expect(luciBuildersToNames(prodBuilders), <String>['Linux Stable framework_tests']);
     });
 
-    test('gets all try builds from sha', () async {
+    test('gets all try builds from default branch', () async {
       fakeHttpClient.onIssueRequest = (FakeHttpClientRequest request) {
-        if (request.uri == Uri.https('raw.githubusercontent.com', 'flutter/flutter/abc/dev/try_builders.json')) {
-          request.response = FakeHttpClientResponse(body: luciTryBuildersAbc);
+        if (request.uri == Uri.https('raw.githubusercontent.com', 'flutter/flutter/master/dev/try_builders.json')) {
+          request.response = FakeHttpClientResponse(body: luciTryBuildersDefaultBranch);
         }
       };
       final List<LuciBuilder> tryBuilders = await config.luciBuilders(
         'try',
         'flutter',
-        branch: null,
         prNumber: 12345,
-        commitSha: 'abc',
       );
       expect(luciBuildersToNames(tryBuilders), <String>['try test 1']);
     });
