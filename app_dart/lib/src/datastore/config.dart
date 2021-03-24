@@ -19,7 +19,6 @@ import 'package:metrics_center/metrics_center.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
@@ -33,23 +32,11 @@ import '../service/luci.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(
-    this._db,
-    this._cache, {
-    @visibleForTesting HttpClientProvider httpClientProvider,
-    @visibleForTesting GithubService githubService,
-    @visibleForTesting this.logValue,
-  })  : httpClient = httpClientProvider ?? Providers.freshHttpClient,
-        github = githubService,
-        assert(_db != null);
+  Config(this._db, this._cache) : assert(_db != null);
 
   final DatastoreDB _db;
 
   final CacheService _cache;
-
-  GithubService github;
-
-  final HttpClientProvider httpClient;
 
   /// List of Github presubmit supported repos.
   static const Set<String> supportedRepos = <String>{
@@ -80,55 +67,26 @@ class Config {
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
-  Logging get loggingService => logValue ?? ss.lookup(#appengine.logging) as Logging;
-
-  @visibleForTesting
-  Logging logValue;
+  Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
   Future<List<String>> _getFlutterBranches() async {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(httpClient, loggingService, twoSecondLinearBackoff),
+      createFn: () => getBranches(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
       ttl: configCacheTtl,
     );
 
     return String.fromCharCodes(cacheValue).split(',');
   }
 
-  /// Returns list of LUCI builders supported in Cocoon.
-  ///
-  /// If [branch] is not [defaultBranch], a release branch, it will pull from HEAD of [branch].
-  /// Otherwise, it will pull from the [ref] or [prNumber].
-  Future<List<LuciBuilder>> luciBuilders(
-    String bucket,
-    String repo, {
-    String commitSha,
-    int prNumber,
-    String branch = kDefaultBranchName,
-  }) async {
+  // Returns LUCI builders.
+  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+      {String commitSha = 'master', int prNumber}) async {
     final GithubService githubService = await createGithubService('flutter', repo);
-    String ref;
-    if (prNumber != null) {
-      ref = kDefaultBranchName;
-    } else if (branch != kDefaultBranchName) {
-      ref = branch;
-    } else if (commitSha != null) {
-      ref = commitSha;
-    } else {
-      loggingService.warning('Failed to find place for builders, using default branch');
-      ref = kDefaultBranchName;
-    }
-    return getLuciBuilders(
-      githubService,
-      httpClient,
-      twoSecondLinearBackoff,
-      loggingService,
-      RepositorySlug('flutter', repo),
-      bucket,
-      prNumber: prNumber,
-      ref: ref,
-    );
+    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
+        RepositorySlug('flutter', repo), bucket,
+        prNumber: prNumber, commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {
@@ -381,11 +339,8 @@ class Config {
   }
 
   Future<GithubService> createGithubService(String owner, String repository) async {
-    if (github == null) {
-      final GitHub githubClient = await createGitHubClient(owner, repository);
-      github = GithubService(githubClient);
-    }
-    return github;
+    final GitHub github = await createGitHubClient(owner, repository);
+    return GithubService(github);
   }
 
   /// Return a [FlutterDestination] (subclass of [MetricsDestination]) for
