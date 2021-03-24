@@ -176,6 +176,12 @@ For more options run:
 $ dart dev/deploy.dart --help
 ```
 
+##### Changes not propagated
+
+Cocoon caches static assets for 30 minutes. This will delay releases until the
+cache is reset. Breaking changes will require wiping the memorystore instance
+from the Google Cloud dashboard.
+
 ### Branching support for flutter repo
 
 Add targeted branches in `dev/branches.txt`, based on which cocoon API filters targeted branches and then runs tests on those branches. With tests running against different branches, the frontend then supports listing commits on a specific branch (defaulting to master).
