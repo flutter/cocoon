@@ -18,9 +18,9 @@ const Target$json = const {
   '2': const [
     const {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     const {'1': 'dependencies', '3': 2, '4': 3, '5': 9, '10': 'dependencies'},
-    const {'1': 'bringup', '3': 3, '4': 1, '5': 8, '10': 'bringup'},
-    const {'1': 'timeout', '3': 4, '4': 1, '5': 5, '10': 'timeout'},
-    const {'1': 'testbed', '3': 5, '4': 1, '5': 9, '10': 'testbed'},
+    const {'1': 'bringup', '3': 3, '4': 1, '5': 8, '7': 'false', '10': 'bringup'},
+    const {'1': 'timeout', '3': 4, '4': 1, '5': 5, '7': '30', '10': 'timeout'},
+    const {'1': 'testbed', '3': 5, '4': 1, '5': 9, '7': 'linux-vm', '10': 'testbed'},
     const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.Target.PropertiesEntry', '10': 'properties'},
     const {'1': 'recipe', '3': 7, '4': 1, '5': 9, '10': 'recipe'},
   ],
@@ -35,4 +35,3 @@ const Target_PropertiesEntry$json = const {
   ],
   '7': const {'7': true},
 };
-

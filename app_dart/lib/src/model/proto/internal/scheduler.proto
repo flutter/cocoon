@@ -18,12 +18,12 @@ message Target {
     repeated string dependencies = 2;
     // Whether this target is stable and can be used to gate commits.
     // Defaults to false which blocks builds.
-    optional bool bringup = 3;
+    optional bool bringup = 3 [default = false];
     // Number of minutes this target is allowed to run before being marked as failed.
-    optional int32 timeout = 4;
+    optional int32 timeout = 4 [default = 30];
     // Name of the testbed this target will run on.
     // Defaults to a linux vm.
-    optional string testbed = 5;
+    optional string testbed = 5 [default = 'linux-vm'];
     // Properties to configure infrastructure tooling.
     map<string, string> properties = 6;
     // Name of the LUCI recipe to trigger.

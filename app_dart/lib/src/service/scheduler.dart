@@ -278,7 +278,8 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
 
   final Map<String, List<Target>> targetGraph = <String, List<Target>>{};
   final List<String> exceptions = <String>[];
-  // Construct [targetGraph]
+  // Construct [targetGraph]. With a one scan approach, cycles in the graph
+  // cannot exist as it only works forward.
   for (final Target target in schedulerConfig.targets) {
     if (targetGraph.containsKey(target.name)) {
       exceptions.add('ERROR: ${target.name} already exists in graph');
@@ -287,7 +288,8 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
       // Add edges
       if (target.dependencies.isNotEmpty) {
         if (target.dependencies.length != 1) {
-          exceptions.add('ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
+          exceptions
+              .add('ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency');
         } else {
           if (target.dependencies.first == target.name) {
             exceptions.add('ERROR: ${target.name} cannot depend on itself');
@@ -301,28 +303,6 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
     }
   }
   _checkExceptions(exceptions);
-
-  // Check all root nodes create non-cyclic paths
-  final List<Target> rootTargets = schedulerConfig.targets.where((Target target) => target.dependencies.isEmpty).toList();
-  _searchForCycles(targetGraph, rootTargets, exceptions);
-  _checkExceptions(exceptions);
-
-  // Check if there was leaves in the graph that were not traversed.
-  if (targetGraph.keys.isNotEmpty) {
-    exceptions.addAll(targetGraph.keys.map((String targetName) => 'ERROR: Failed to find path for $targetName'));
-  }
-  _checkExceptions(exceptions);   
-}
-
-void _searchForCycles(Map<String, List<Target>> targetGraph, List<Target> targets, List<String> exceptions) {
-  for (final Target target in targets) {
-    if (targetGraph.containsKey(target.name)) {
-      final List<Target> dependencies = targetGraph.remove(target.name);
-      _searchForCycles(targetGraph, dependencies, exceptions);
-    } else {
-      exceptions.add('ERROR: Cycle found at ${target.name}. Targets can only have linear dependencies');
-    }
-  }
 }
 
 void _checkExceptions(List<String> exceptions) {

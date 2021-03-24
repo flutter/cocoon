@@ -10,11 +10,13 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class SchedulerConfig extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig', createEmptyInstance: create)
-    ..pc<Target>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'targets', $pb.PbFieldType.PM, subBuilder: Target.create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig',
+      createEmptyInstance: create)
+    ..pc<Target>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'targets', $pb.PbFieldType.PM,
+        subBuilder: Target.create)
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   SchedulerConfig._() : super();
   factory SchedulerConfig({
@@ -30,25 +32,28 @@ class SchedulerConfig extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory SchedulerConfig.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory SchedulerConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  factory SchedulerConfig.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SchedulerConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   SchedulerConfig clone() => SchedulerConfig()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  SchedulerConfig copyWith(void Function(SchedulerConfig) updates) => super.copyWith((message) => updates(message as SchedulerConfig)); // ignore: deprecated_member_use
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SchedulerConfig copyWith(void Function(SchedulerConfig) updates) =>
+      super.copyWith((message) => updates(message as SchedulerConfig)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SchedulerConfig create() => SchedulerConfig._();
   SchedulerConfig createEmptyInstance() => create();
   static $pb.PbList<SchedulerConfig> createRepeated() => $pb.PbList<SchedulerConfig>();
   @$core.pragma('dart2js:noInline')
-  static SchedulerConfig getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig>(create);
+  static SchedulerConfig getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SchedulerConfig>(create);
   static SchedulerConfig _defaultInstance;
 
   @$pb.TagNumber(1)
@@ -59,16 +64,23 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 }
 
 class Target extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Target',
+      createEmptyInstance: create)
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dependencies')
     ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bringup')
-    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeout', $pb.PbFieldType.O3)
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed')
-    ..m<$core.String, $core.String>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties', entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
+    ..a<$core.int>(
+        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeout', $pb.PbFieldType.O3,
+        defaultOrMaker: 30)
+    ..a<$core.String>(
+        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
+        defaultOrMaker: 'linux-vm')
+    ..m<$core.String, $core.String>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
+        entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
-    ..hasRequiredFields = false
-  ;
+    ..hasRequiredFields = false;
 
   Target._() : super();
   factory Target({
@@ -104,18 +116,19 @@ class Target extends $pb.GeneratedMessage {
     }
     return _result;
   }
-  factory Target.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Target.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
+  factory Target.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory Target.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
   Target clone() => Target()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  Target copyWith(void Function(Target) updates) => super.copyWith((message) => updates(message as Target)); // ignore: deprecated_member_use
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  Target copyWith(void Function(Target) updates) =>
+      super.copyWith((message) => updates(message as Target)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Target create() => Target._();
@@ -128,7 +141,10 @@ class Target extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
-  set name($core.String v) { $_setString(0, v); }
+  set name($core.String v) {
+    $_setString(0, v);
+  }
+
   @$pb.TagNumber(1)
   $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
@@ -140,25 +156,34 @@ class Target extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool get bringup => $_getBF(2);
   @$pb.TagNumber(3)
-  set bringup($core.bool v) { $_setBool(2, v); }
+  set bringup($core.bool v) {
+    $_setBool(2, v);
+  }
+
   @$pb.TagNumber(3)
   $core.bool hasBringup() => $_has(2);
   @$pb.TagNumber(3)
   void clearBringup() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get timeout => $_getIZ(3);
+  $core.int get timeout => $_getI(3, 30);
   @$pb.TagNumber(4)
-  set timeout($core.int v) { $_setSignedInt32(3, v); }
+  set timeout($core.int v) {
+    $_setSignedInt32(3, v);
+  }
+
   @$pb.TagNumber(4)
   $core.bool hasTimeout() => $_has(3);
   @$pb.TagNumber(4)
   void clearTimeout() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.String get testbed => $_getSZ(4);
+  $core.String get testbed => $_getS(4, 'linux-vm');
   @$pb.TagNumber(5)
-  set testbed($core.String v) { $_setString(4, v); }
+  set testbed($core.String v) {
+    $_setString(4, v);
+  }
+
   @$pb.TagNumber(5)
   $core.bool hasTestbed() => $_has(4);
   @$pb.TagNumber(5)
@@ -170,10 +195,12 @@ class Target extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   $core.String get recipe => $_getSZ(6);
   @$pb.TagNumber(7)
-  set recipe($core.String v) { $_setString(6, v); }
+  set recipe($core.String v) {
+    $_setString(6, v);
+  }
+
   @$pb.TagNumber(7)
   $core.bool hasRecipe() => $_has(6);
   @$pb.TagNumber(7)
   void clearRecipe() => clearField(7);
 }
-

@@ -10,11 +10,13 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import 'package:cocoon_service/protos.dart' show SchedulerConfig, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
+import 'package:yaml/yaml.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
@@ -252,20 +254,131 @@ void main() {
   });
 
   group('scheduler config', () {
-    test('fails when there are cyclic targets', () {
+    test('constructs graph with one target', () {
+      final YamlMap singleTargetConfig = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    recipe: test_recipe
+    properties:
+      test: abc
+      ''') as YamlMap;
+      final SchedulerConfig schedulerConfig = loadSchedulerConfig(singleTargetConfig);
+      expect(schedulerConfig.enabledBranches, <String>['master']);
+      expect(schedulerConfig.targets.length, 1);
+      final Target target = schedulerConfig.targets.first;
+      expect(target.bringup, false);
+      expect(target.name, 'A');
+      expect(target.properties, <String, String>{
+        'test': 'abc',
+      });
+      expect(target.recipe, 'test_recipe');
+      expect(target.testbed, 'linux-vm');
+      expect(target.timeout, 30);
+    });
 
+    test('constructs graph with dependency chain', () {
+      final YamlMap dependentTargetConfig = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+    dependencies:
+      - A
+  - name: C
+    dependencies:
+      - B
+      ''') as YamlMap;
+      final SchedulerConfig schedulerConfig = loadSchedulerConfig(dependentTargetConfig);
+      expect(schedulerConfig.targets.length, 3);
+      final Target a = schedulerConfig.targets.first;
+      final Target b = schedulerConfig.targets[1];
+      final Target c = schedulerConfig.targets[2];
+      expect(a.name, 'A');
+      expect(b.name, 'B');
+      expect(b.dependencies, <String>['A']);
+      expect(c.name, 'C');
+      expect(c.dependencies, <String>['B']);
+    });
+
+    test('constructs graph with parent with two dependents', () {
+      final YamlMap twoDependentTargetConfig = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B1
+    dependencies:
+      - A
+  - name: B2
+    dependencies:
+      - A
+      ''') as YamlMap;
+      final SchedulerConfig schedulerConfig = loadSchedulerConfig(twoDependentTargetConfig);
+      expect(schedulerConfig.targets.length, 3);
+      final Target a = schedulerConfig.targets.first;
+      final Target b1 = schedulerConfig.targets[1];
+      final Target b2 = schedulerConfig.targets[2];
+      expect(a.name, 'A');
+      expect(b1.name, 'B1');
+      expect(b1.dependencies, <String>['A']);
+      expect(b2.name, 'B2');
+      expect(b2.dependencies, <String>['A']);
+    });
+
+    test('fails when there are cyclic targets', () {
+      final YamlMap configWithCycle = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    dependencies:
+      - B
+  - name: B
+    dependencies:
+      - A
+      ''') as YamlMap;
+      expect(() => loadSchedulerConfig(configWithCycle), throwsA(isA<FormatException>()));
     });
 
     test('fails when there are duplicate targets', () {
-
+      final YamlMap configWithDuplicateTargets = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: A
+      ''') as YamlMap;
+      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
     });
 
     test('fails when there are multiple dependencies', () {
-
+      final YamlMap configWithDuplicateTargets = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+  - name: B
+  - name: C
+    dependencies:
+      - A
+      - B
+      ''') as YamlMap;
+      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
     });
 
     test('fails when dependency does not exist', () {
-
+      final YamlMap configWithDuplicateTargets = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    dependencies:
+      - B
+      ''') as YamlMap;
+      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
     });
   });
 }
