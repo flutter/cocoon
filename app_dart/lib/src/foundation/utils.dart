@@ -177,7 +177,7 @@ Future<void> insertBigquery(
 
   try {
     await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-  } catch (error) {
+  } on ApiRequestError catch (error) {
     log.warning('Failed to add to BigQuery: $error');
   }
 }
