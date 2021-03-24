@@ -250,6 +250,24 @@ void main() {
       expect(commit.message, 'example message');
     });
   });
+
+  group('scheduler config', () {
+    test('fails when there are cyclic targets', () {
+
+    });
+
+    test('fails when there are duplicate targets', () {
+
+    });
+
+    test('fails when there are multiple dependencies', () {
+
+    });
+
+    test('fails when dependency does not exist', () {
+
+    });
+  });
 }
 
 PullRequest createPullRequest({

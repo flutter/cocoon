@@ -43,3 +43,4 @@ export 'src/service/cache_service.dart';
 export 'src/service/github_checks_service.dart';
 export 'src/service/github_status_service.dart';
 export 'src/service/luci_build_service.dart';
+export 'src/service/scheduler.dart';
