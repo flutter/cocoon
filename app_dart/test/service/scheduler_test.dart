@@ -340,7 +340,15 @@ targets:
     dependencies:
       - A
       ''') as YamlMap;
-      expect(() => loadSchedulerConfig(configWithCycle), throwsA(isA<FormatException>()));
+      expect(
+          () => loadSchedulerConfig(configWithCycle),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: A depends on B which does not exist'),
+            ),
+          ));
     });
 
     test('fails when there are duplicate targets', () {
@@ -351,11 +359,19 @@ targets:
   - name: A
   - name: A
       ''') as YamlMap;
-      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
+      expect(
+          () => loadSchedulerConfig(configWithDuplicateTargets),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: A already exists in graph'),
+            ),
+          ));
     });
 
     test('fails when there are multiple dependencies', () {
-      final YamlMap configWithDuplicateTargets = loadYaml('''
+      final YamlMap configWithMultipleDependencies = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -366,11 +382,19 @@ targets:
       - A
       - B
       ''') as YamlMap;
-      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
+      expect(
+          () => loadSchedulerConfig(configWithMultipleDependencies),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: C has multiple dependencies which is not supported. Use only one dependency'),
+            ),
+          ));
     });
 
     test('fails when dependency does not exist', () {
-      final YamlMap configWithDuplicateTargets = loadYaml('''
+      final YamlMap configWithMissingTarget = loadYaml('''
 enabled_branches:
   - master
 targets:
@@ -378,7 +402,15 @@ targets:
     dependencies:
       - B
       ''') as YamlMap;
-      expect(() => loadSchedulerConfig(configWithDuplicateTargets), throwsA(isA<FormatException>()));
+      expect(
+          () => loadSchedulerConfig(configWithMissingTarget),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: A depends on B which does not exist'),
+            ),
+          ));
     });
   });
 }
