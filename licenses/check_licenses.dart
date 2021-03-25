@@ -112,6 +112,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
       if (path.basename(entity.path).endsWith('g.dart')) continue;
       if (path.basename(entity.path).endsWith('pb.dart')) continue;
       if (path.basename(entity.path).endsWith('pbenum.dart')) continue;
+      if (path.basename(entity.path).endsWith('pbjson.dart')) continue;
       if (extension == null || path.extension(entity.path) == '.$extension') {
         matches += 1;
         yield entity;

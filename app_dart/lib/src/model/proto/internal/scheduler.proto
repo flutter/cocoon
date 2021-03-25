@@ -1,0 +1,31 @@
+// Copyright 2019 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto2";
+
+message SchedulerConfig {
+    // Targets to run from this config.
+    repeated Target targets = 1;
+    // Git branches to run these targets against.
+    repeated string enabled_branches = 2;
+}
+
+message Target {
+    // Unique, human readable identifier.
+    optional string name = 1;
+    // Names of other targets required to succeed before triggering this target.
+    repeated string dependencies = 2;
+    // Whether this target is stable and can be used to gate commits.
+    // Defaults to false which blocks builds.
+    optional bool bringup = 3 [default = false];
+    // Number of minutes this target is allowed to run before being marked as failed.
+    optional int32 timeout = 4 [default = 30];
+    // Name of the testbed this target will run on.
+    // Defaults to a linux vm.
+    optional string testbed = 5 [default = 'linux-vm'];
+    // Properties to configure infrastructure tooling.
+    map<string, string> properties = 6;
+    // Name of the LUCI recipe to trigger.
+    optional string recipe = 7;
+}
