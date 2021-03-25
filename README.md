@@ -115,7 +115,7 @@ To develop and test some features, you need to have a local service
 account(key.json) with access to the project you will be connecting to.
 
 If you work for Google you can use the key with flutter-dashboard project
-via [internal doc](https://g3doc.corp.google.com/company/teams/flutter/cocoon/local_run.md?cl=head).
+via [internal doc](https://g3doc.corp.google.com/company/teams/flutter/cocoon/local_development.md?cl=head).
 
 ### Building the server for deployment
 
