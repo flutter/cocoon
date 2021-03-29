@@ -12,6 +12,8 @@ IF %ERRORLEVEL% NEQ 0 (
 REM `path` is \path\to\device_doctor\tool\
 REM `DIR` is \path\to\device_doctor\tool
 SET path=%~dp0
+REM Add path for xcopy
+SET path=%path%;C:\Windows\system32
 SET DIR=%path:~0,-1%
 %CIPD% ensure --ensure-file %path%\ensure_file_windows -root %DIR%
 
@@ -24,7 +26,7 @@ if exist %BUILD_DIR%\build (
 )
 MKDIR %BUILD_DIR%\build
 
-tool\dart-sdk\bin\pub.bat get
-tool\dart-sdk\bin\dart2native.bat bin\main.dart -o build\device_doctor.exe
+call tool\dart-sdk\bin\pub.bat get
+call tool\dart-sdk\bin\dart2native.bat bin\main.dart -o build\device_doctor.exe
 
 xcopy %BUILD_DIR%\LICENSE %BUILD_DIR%\build\.
