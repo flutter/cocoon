@@ -29,4 +29,4 @@ call tool\dart-sdk\bin\dart2native.bat bin\main.dart -o build\device_doctor.exe
 
 REM Add PATH for xcopy
 SET "PATH=%PATH%;C:\Windows\system32"
-xcopy %BUILD_DIR%\LICENSE %BUILD_DIR%\build\.
+xcopy LICENSE %BUILD_DIR%\build\.
