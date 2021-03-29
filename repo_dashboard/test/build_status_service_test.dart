@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'package:repository_dashboard/models/build_status.dart';
 import 'package:repository_dashboard/services/build_status_service.dart';
