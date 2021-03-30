@@ -37,7 +37,7 @@ function config_minion() {
 
 function set_deviceos_grains() {
   if [ ! -z "$1" ]; then
-    salt-call grains.set 'device_os' "$1"
+    sudo /opt/salt/bin/salt-call grains.set 'device_os' "$1"
   fi
 }
 
@@ -51,7 +51,7 @@ function reboot_salt() {
 }
 
 function verify_provision() {
-  if sudo salt-minion --version; then
+  if sudo /opt/salt/bin/salt-minion --version; then
     echo 'Succeed!'
   else
     echo 'Failed!'
