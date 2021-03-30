@@ -202,6 +202,7 @@ class LuciService {
     final BatchResponse batchResponse = await buildBucketClient.batch(batchRequest);
     final Iterable<Build> builds = batchResponse.responses
         .map<SearchBuildsResponse>((Response response) => response.searchBuilds)
+        .where((SearchBuildsResponse response) => response.builds != null)
         .expand<Build>((SearchBuildsResponse response) => response.builds);
     return builds;
   }
