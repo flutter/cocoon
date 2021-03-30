@@ -12,8 +12,6 @@ IF %ERRORLEVEL% NEQ 0 (
 REM `path` is \path\to\device_doctor\tool\
 REM `DIR` is \path\to\device_doctor\tool
 SET path=%~dp0
-REM Add path for xcopy
-SET path=%path%;C:\Windows\system32
 SET DIR=%path:~0,-1%
 %CIPD% ensure --ensure-file %path%\ensure_file_windows -root %DIR%
 
