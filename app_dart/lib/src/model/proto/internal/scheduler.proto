@@ -4,6 +4,7 @@
 
 syntax = "proto2";
 
+// Next ID: 3
 message SchedulerConfig {
     // Targets to run from this config.
     repeated Target targets = 1;
@@ -11,6 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
+// Next ID: 8
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -26,6 +28,6 @@ message Target {
     optional string testbed = 5 [default = 'linux-vm'];
     // Properties to configure infrastructure tooling.
     map<string, string> properties = 6;
-    // Name of the LUCI recipe to trigger.
-    optional string recipe = 7;
+    // Name of the LUCI builder to trigger.
+    optional string builder = 7;
 }
