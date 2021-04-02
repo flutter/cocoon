@@ -19,6 +19,7 @@ Future<void> main() async {
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
+    final DatastoreService datastore = DatastoreService.defaultProvider(dbService);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(
@@ -43,6 +44,13 @@ Future<void> main() async {
     /// Github checks api service used to provide luci test execution status on the Github UI.
     final GithubChecksService githubChecksService = GithubChecksService(
       config,
+    );
+
+    /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
+    final Scheduler scheduler = Scheduler(
+      cache: cache,
+      config: config,
+      datastore: datastore,
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
@@ -74,7 +82,11 @@ Future<void> main() async {
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
-      '/api/refresh-github-commits': RefreshGithubCommits(config, authProvider),
+      '/api/refresh-github-commits': RefreshGithubCommits(
+        config,
+        authProvider,
+        scheduler: scheduler,
+      ),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(
         config,

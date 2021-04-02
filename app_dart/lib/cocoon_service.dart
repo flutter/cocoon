@@ -40,6 +40,7 @@ export 'src/request_handling/swarming_authentication.dart';
 export 'src/service/access_token_provider.dart';
 export 'src/service/buildbucket.dart';
 export 'src/service/cache_service.dart';
+export 'src/service/datastore.dart';
 export 'src/service/github_checks_service.dart';
 export 'src/service/github_status_service.dart';
 export 'src/service/luci_build_service.dart';
