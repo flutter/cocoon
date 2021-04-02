@@ -84,8 +84,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
         request.targetUrl = 'https://ci.chromium.org/p/flutter/g/engine/console';
         request.context = 'luci-engine';
         if (status != GithubBuildStatusUpdate.statusSuccess) {
-          request.description = 'Flutter build is currently broken. Please do not merge this '
-              'PR unless it contains a fix to the broken build.';
+          request.description = config.flutterBuildDescription;
         }
 
         try {
