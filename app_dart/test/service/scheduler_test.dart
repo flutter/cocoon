@@ -260,7 +260,7 @@ enabled_branches:
   - master
 targets:
   - name: A
-    recipe: test_recipe
+    builder: builderA
     properties:
       test: abc
       ''') as YamlMap;
@@ -273,7 +273,7 @@ targets:
       expect(target.properties, <String, String>{
         'test': 'abc',
       });
-      expect(target.recipe, 'test_recipe');
+      expect(target.builder, 'builderA');
       expect(target.testbed, 'linux-vm');
       expect(target.timeout, 30);
     });

@@ -79,7 +79,7 @@ class Target extends $pb.GeneratedMessage {
     ..m<$core.String, $core.String>(
         6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
-    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'recipe')
+    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -90,7 +90,7 @@ class Target extends $pb.GeneratedMessage {
     $core.int timeout,
     $core.String testbed,
     $core.Map<$core.String, $core.String> properties,
-    $core.String recipe,
+    $core.String builder,
   }) {
     final _result = create();
     if (name != null) {
@@ -111,8 +111,8 @@ class Target extends $pb.GeneratedMessage {
     if (properties != null) {
       _result.properties.addAll(properties);
     }
-    if (recipe != null) {
-      _result.recipe = recipe;
+    if (builder != null) {
+      _result.builder = builder;
     }
     return _result;
   }
@@ -193,14 +193,14 @@ class Target extends $pb.GeneratedMessage {
   $core.Map<$core.String, $core.String> get properties => $_getMap(5);
 
   @$pb.TagNumber(7)
-  $core.String get recipe => $_getSZ(6);
+  $core.String get builder => $_getSZ(6);
   @$pb.TagNumber(7)
-  set recipe($core.String v) {
+  set builder($core.String v) {
     $_setString(6, v);
   }
 
   @$pb.TagNumber(7)
-  $core.bool hasRecipe() => $_has(6);
+  $core.bool hasBuilder() => $_has(6);
   @$pb.TagNumber(7)
-  void clearRecipe() => clearField(7);
+  void clearBuilder() => clearField(7);
 }
