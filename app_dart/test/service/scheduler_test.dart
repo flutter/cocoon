@@ -9,20 +9,25 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/protos.dart' show SchedulerConfig, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
-import 'package:yaml/yaml.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/utilities/mocks.dart';
+
+const String emptyDeviceLabTaskManifestYaml = '''
+tasks:
+''';
 
 const String singleDeviceLabTaskManifestYaml = '''
 tasks:
@@ -32,6 +37,7 @@ tasks:
 ''';
 
 void main() {
+  CacheService cache;
   FakeConfig config;
   FakeDatastoreDB db;
   FakeHttpClient httpClient;
@@ -53,13 +59,24 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
+      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
-      httpClient = FakeHttpClient();
-      httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
 
       scheduler = Scheduler(
-          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
+        cache: cache,
+        config: config,
+        datastore: DatastoreService(db, 2),
+        httpClientProvider: () => httpClient,
+        log: FakeLogging(),
+      );
     });
 
     List<Commit> createCommitList(
@@ -84,6 +101,21 @@ void main() {
       await scheduler.addCommits(<Commit>[]);
       expect(db.values, isEmpty);
     });
+
+    test('schedules commit when devicelab manifest is empty', () async {
+      config.flutterBranchesValue = <String>['master'];
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = emptyDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
+      expect(db.values.values.whereType<Commit>().length, 0);
+      await scheduler.addCommits(createCommitList(<String>['1']));
+      expect(db.values.values.whereType<Commit>().length, 1);
+    });
+
 
     test('inserts all relevant fields of the commit', () async {
       config.flutterBranchesValue = <String>['master'];
@@ -180,17 +212,27 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
+      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(
         tabledataResourceApi: tabledataResourceApi,
         dbValue: db,
         flutterBranchesValue: <String>['master'],
       );
-      httpClient = FakeHttpClient();
-      httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
-
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
       scheduler = Scheduler(
-          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
+        cache: cache,
+        config: config,
+        datastore: DatastoreService(db, 2),
+        httpClientProvider: () => httpClient,
+        log: FakeLogging(),
+      );
     });
 
     test('creates expected commit', () async {

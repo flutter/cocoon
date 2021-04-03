@@ -20,8 +20,9 @@ import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
-import '../service/luci.dart';
+import 'cache_service.dart';
 import 'datastore.dart';
+import 'luci.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -31,6 +32,7 @@ import 'datastore.dart';
 ///   3. Retry mechanisms for tasks
 class Scheduler {
   Scheduler({
+    @required this.cache,
     @required this.config,
     @required this.datastore,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
@@ -39,11 +41,15 @@ class Scheduler {
   })  : assert(datastore != null),
         assert(gitHubBackoffCalculator != null);
 
+  final CacheService cache;
   final Config config;
   final DatastoreService datastore;
   final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
   Logging log;
+
+  /// Subcache key to store [SchedulerConfig] for quicker retrievals.
+  static const String schedulerSubcacheName = 'scheduler';
 
   /// Sets the appengine [log] used by this class to log debug and error
   /// messages. This method has to be called before any other method in this
@@ -186,7 +192,7 @@ class Scheduler {
 
     final YamlMap yaml = await loadDevicelabManifest(commit);
     final Manifest manifest = Manifest.fromJson(yaml);
-    manifest.tasks.forEach((String taskName, ManifestTask info) {
+    manifest.tasks?.forEach((String taskName, ManifestTask info) {
       tasks.add(newTask(
         taskName,
         info.stage,

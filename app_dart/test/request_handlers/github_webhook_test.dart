@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -19,15 +20,18 @@ import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
+import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   group('githubWebhookPullRequest', () {
     GithubWebhook webhook;
+    FakeDatastoreDB db;
     FakeGithubService githubService;
     FakeHttpRequest request;
     FakeConfig config;
@@ -35,7 +39,7 @@ void main() {
     MockIssuesService issuesService;
     MockPullRequestsService pullRequestsService;
     MockBuildBucketClient mockBuildBucketClient;
-    MockScheduler mockScheduler;
+    FakeScheduler scheduler;
     RequestHandlerTester tester;
     const String serviceAccountEmail = 'test@test';
     LuciBuildService luciBuildService;
@@ -54,12 +58,17 @@ void main() {
       githubService = FakeGithubService();
       serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
       request = FakeHttpRequest();
-      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      config = FakeConfig(
+        deviceLabServiceAccountValue: serviceAccountInfo,
+        githubService: githubService,
+        tabledataResourceApi: MockTabledataResourceApi(),
+      );
+      db = FakeDatastoreDB();
       gitHubClient = MockGitHub();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
-      mockScheduler = MockScheduler();
+      scheduler = FakeScheduler(config: config, datastore: DatastoreService(db, 5));
       tester = RequestHandlerTester(request: request);
       serviceAccountInfo = await config.deviceLabServiceAccount;
 
@@ -80,7 +89,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         luciBuildService: luciBuildService,
         githubChecksService: mockGithubChecksService,
-        schedulerValue: mockScheduler,
+        scheduler: scheduler,
       );
 
       when(gitHubClient.issues).thenReturn(issuesService);
@@ -671,7 +680,6 @@ void main() {
         '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
         '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Pull request closed"}}]}]',
       );
-      verifyNever(mockScheduler.addPullRequest(any));
     });
 
     test('Schedule tasks when pull request is closed and merged', () async {
@@ -683,9 +691,9 @@ void main() {
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
 
+      expect(db.values.values.whereType<Commit>().length, 0);
       await tester.post(webhook);
-
-      verify(mockScheduler.addPullRequest(any)).called(1);
+      expect(db.values.values.whereType<Commit>().length, 1);
     });
 
     test('Does not test pest draft pull requests.', () async {
@@ -1242,7 +1250,7 @@ String jsonTemplate(String action, int number, String baseRef,
     "created_at": "2019-07-03T07:14:35Z",
     "updated_at": "2019-07-03T16:34:53Z",
     "closed_at": null,
-    "merged_at": null,
+    "merged_at": "2019-07-03T16:34:53Z",
     "merge_commit_sha": "d22ab7ced21d3b2a5be00cf576d383eb5ffddb8a",
     "assignee": null,
     "assignees": [],

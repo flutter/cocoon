@@ -70,6 +70,7 @@ Future<void> main() async {
         buildBucketClient: buildBucketClient,
         luciBuildService: luciBuildService,
         githubChecksService: githubChecksService,
+        scheduler: scheduler,
       ),
       '/api/luci-status-handler': LuciStatusHandler(
         config,

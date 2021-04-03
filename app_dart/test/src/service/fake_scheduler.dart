@@ -17,7 +17,7 @@ import '../request_handling/fake_logging.dart';
 class FakeScheduler extends Scheduler {
   FakeScheduler({
     this.schedulerConfig,
-    this.devicelabManifest = '',
+    this.devicelabManifest = 'tasks:',
     DatastoreService datastore,
     Config config,
   }) : super(
@@ -32,9 +32,6 @@ class FakeScheduler extends Scheduler {
 
   /// String contents of [Manifest] for legacy devicelab tasks.
   String devicelabManifest;
-
-  @override
-  Future<SchedulerConfig> getSchedulerConfig(Commit commit) async => schedulerConfig ?? SchedulerConfig.getDefault();
 
   @override
   Future<YamlMap> loadDevicelabManifest(Commit commit) async => await loadYaml(devicelabManifest) as YamlMap;
