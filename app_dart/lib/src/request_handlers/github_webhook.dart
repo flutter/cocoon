@@ -292,6 +292,29 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
+  /// Returns the set of labels applicable to a file in the engine repo.
+  static Set<String> getLabelsForEnginePath(String filepath) {
+    const Map<String, List<String>> pathLabels = <String, List<String>>{
+      'shell/platform/android': <String>['platform-android'],
+      'shell/platform/embedder': <String>['embedder'],
+      'shell/platform/darwin/common': <String>['platform-ios', 'platform-macos'],
+      'shell/platform/darwin/ios': <String>['platform-ios'],
+      'shell/platform/darwin/macos': <String>['platform-macos'],
+      'shell/platform/fuchsia': <String>['platform-fuchsia'],
+      'shell/platform/linux': <String>['platform-linux'],
+      'shell/platform/windows': <String>['platform-windows'],
+      'lib/web_ui': <String>['platform-web'],
+      'web_sdk': <String>['platform-web'],
+    };
+    final Set<String> labels = <String>{};
+    pathLabels.forEach((String path, List<String> pathLabels) {
+      if (filepath.startsWith(path)) {
+        labels.addAll(pathLabels);
+      }
+    });
+    return labels;
+  }
+
   Future<void> _applyEngineRepoLabels(GitHub gitHubClient, String eventAction, PullRequest pr) async {
     if (pr.user.login == 'skia-flutter-autoroll') {
       return;
@@ -316,13 +339,7 @@ class GithubWebhook extends RequestHandler<Body> {
         hasTests = true;
       }
 
-      if (filename.startsWith('shell/platform/darwin/ios')) {
-        labels.add('platform-ios');
-      }
-
-      if (filename.startsWith('shell/platform/android')) {
-        labels.add('platform-android');
-      }
+      labels.addAll(getLabelsForEnginePath(filename));
     }
 
     if (labels.isNotEmpty) {

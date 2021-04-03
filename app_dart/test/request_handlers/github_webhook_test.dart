@@ -409,6 +409,49 @@ void main() {
       ));
     });
 
+    test('No label is applied to paths with no applicable label', () {
+      expect(GithubWebhook.getLabelsForEnginePath('nonsense/path/foo.cc'), isEmpty);
+    });
+
+    test('platform-android applied for Android embedder', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/android/RIsForRhubarbPie.java'),
+          contains('platform-android'));
+    });
+
+    test('platform-ios and platform-macos applied for common Darwin code', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/common/ThinkDifferent.mm'),
+          containsAll(<String>['platform-ios', 'platform-macos']));
+    });
+
+    test('platform-ios and platform-ios applied for iOS embedder', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/ios/BackButton.mm'), contains('platform-ios'));
+    });
+
+    test('platform-macos applied for macOS embedder', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/macos/PhysicalEscapeKey.mm'),
+          contains('platform-macos'));
+    });
+
+    test('platform-fuchsia applied for fuchsia embedder', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/fuchsia/spell_checker.cc'),
+          contains('platform-fuchsia'));
+    });
+
+    test('platform-linux applied for linux embedder', () {
+      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/linux/systemd_integration.cc'),
+          contains('platform-linux'));
+    });
+
+    test('platform-windows applied for windows embedder', () {
+      expect(
+          GithubWebhook.getLabelsForEnginePath('shell/platform/windows/start_menu.cc'), contains('platform-windows'));
+    });
+
+    test('platform-web applied for web paths', () {
+      expect(GithubWebhook.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
+      expect(GithubWebhook.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
+    });
+
     test('Engine labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
