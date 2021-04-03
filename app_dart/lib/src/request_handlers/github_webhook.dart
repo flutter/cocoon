@@ -224,60 +224,13 @@ class GithubWebhook extends RequestHandler<Body> {
     bool needsTests = false;
 
     await for (PullRequestFile file in files) {
-      if (file.filename.endsWith('pubspec.yaml')) {
-        // These get updated by a script, and are updated en masse.
-        labels.add('team');
-        continue;
-      }
       if (file.filename.endsWith('.dart')) {
         needsTests = true;
       }
       if (file.filename.endsWith('_test.dart')) {
         hasTests = true;
       }
-
-      if (file.filename.startsWith('dev/')) {
-        labels.add('team');
-      }
-      if (file.filename.startsWith('packages/flutter_tools/') ||
-          file.filename.startsWith('packages/fuchsia_remote_debug_protocol')) {
-        labels.add('tool');
-      }
-      if (file.filename == 'bin/internal/engine.version') {
-        labels.add('engine');
-      }
-
-      if (file.filename.startsWith('packages/flutter/') ||
-          file.filename.startsWith('packages/flutter_test/') ||
-          file.filename.startsWith('packages/flutter_driver/')) {
-        labels.add('framework');
-      }
-      if (file.filename.contains('material')) {
-        labels.add('f: material design');
-      }
-      if (file.filename.contains('cupertino')) {
-        labels.add('f: cupertino');
-      }
-
-      if (file.filename.startsWith('packages/flutter_localizations')) {
-        labels.add('a: internationalization');
-      }
-
-      if (file.filename.startsWith('packages/flutter_test') || file.filename.startsWith('packages/flutter_driver')) {
-        labels.add('a: tests');
-      }
-
-      if (file.filename.contains('semantics') || file.filename.contains('accessibilty')) {
-        labels.add('a: accessibility');
-      }
-
-      if (file.filename.startsWith('examples/')) {
-        labels.add('d: examples');
-        labels.add('team');
-        if (file.filename.startsWith('examples/flutter_gallery')) {
-          labels.add('team: gallery');
-        }
-      }
+      labels.addAll(getLabelsForFrameworkPath(file.filename));
     }
 
     if (labels.isNotEmpty) {
@@ -292,9 +245,50 @@ class GithubWebhook extends RequestHandler<Body> {
     }
   }
 
+  /// Returns the set of labels applicable to a file in the framework repo.
+  static Set<String> getLabelsForFrameworkPath(String filepath) {
+    final Set<String> labels = <String>{};
+    if (filepath.endsWith('pubspec.yaml')) {
+      // These get updated by a script, and are updated en masse.
+      labels.add('team');
+      return labels;
+    }
+
+    const Map<String, List<String>> pathPrefixLabels = <String, List<String>>{
+      'bin/internal/engine.version': <String>['engine'],
+      'dev/': <String>['team'],
+      'examples/': <String>['d: examples', 'team'],
+      'examples/flutter_gallery': <String>['d: examples', 'team', 'team: gallery'],
+      'packages/flutter_tools/': <String>['tool'],
+      'packages/fuchsia_remote_debug_protocol': <String>['tool'],
+      'packages/flutter/': <String>['framework'],
+      'packages/flutter_test/': <String>['framework', 'a: tests'],
+      'packages/flutter_driver/': <String>['framework', 'a: tests'],
+      'packages/flutter_localizations/': <String>['a: internationalization'],
+    };
+    const Map<String, List<String>> pathContainsLabels = <String, List<String>>{
+      'material': <String>['f: material design'],
+      'cupertino': <String>['f: cupertino'],
+      'accessibility': <String>['a: accessibility'],
+      'semantics': <String>['a: accessibility'],
+    };
+
+    pathPrefixLabels.forEach((String path, List<String> pathLabels) {
+      if (filepath.startsWith(path)) {
+        labels.addAll(pathLabels);
+      }
+    });
+    pathContainsLabels.forEach((String path, List<String> pathLabels) {
+      if (filepath.contains(path)) {
+        labels.addAll(pathLabels);
+      }
+    });
+    return labels;
+  }
+
   /// Returns the set of labels applicable to a file in the engine repo.
   static Set<String> getLabelsForEnginePath(String filepath) {
-    const Map<String, List<String>> pathLabels = <String, List<String>>{
+    const Map<String, List<String>> pathPrefixLabels = <String, List<String>>{
       'shell/platform/android': <String>['platform-android'],
       'shell/platform/embedder': <String>['embedder'],
       'shell/platform/darwin/common': <String>['platform-ios', 'platform-macos'],
@@ -307,7 +301,7 @@ class GithubWebhook extends RequestHandler<Body> {
       'web_sdk': <String>['platform-web'],
     };
     final Set<String> labels = <String>{};
-    pathLabels.forEach((String path, List<String> pathLabels) {
+    pathPrefixLabels.forEach((String path, List<String> pathLabels) {
       if (filepath.startsWith(path)) {
         labels.addAll(pathLabels);
       }

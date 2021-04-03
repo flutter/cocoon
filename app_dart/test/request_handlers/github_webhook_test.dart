@@ -272,6 +272,116 @@ void main() {
       ));
     });
 
+    group('getLabelsForFrameworkPath', () {
+      test('Only the team label is applied to pubspec.yaml', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/pubspec.yaml'), <String>{'team'});
+      });
+
+      test('Tool label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_tools/hot_reload.dart'), contains('tool'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/fuchsia_remote_debug_protocol/hot_reload.dart'),
+            contains('tool'));
+      });
+
+      test('Engine label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('bin/internal/engine.version'), contains('engine'));
+      });
+
+      test('Framework label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter/lib/widget.dart'), contains('framework'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'), contains('framework'));
+        expect(
+            GithubWebhook.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'), contains('framework'));
+      });
+
+      test('Material label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('foo/bar/baz/material/design.dart'),
+            contains('f: material design'));
+      });
+
+      test('Cupertino label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('foo/bar/baz/cupertino/design.dart'), contains('f: cupertino'));
+      });
+
+      test('i18n label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_localizations/allo.dart'),
+            contains('a: internationalization'));
+      });
+
+      test('Tests label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('packages/flutter_test/lib/tester.dart'), contains('a: tests'));
+        expect(
+            GithubWebhook.getLabelsForFrameworkPath('packages/flutter_driver/lib/driver.dart'), contains('a: tests'));
+      });
+
+      test('a11y label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('foo/bar/baz/semantics/voiceover.dart'),
+            contains('a: accessibility'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('foo/bar/baz/accessibility/voiceover.dart'),
+            contains('a: accessibility'));
+      });
+
+      test('Examples label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('d: examples'));
+      });
+
+      test('Gallery label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('examples/flutter_gallery/lib/gallery.dart'),
+            contains('team: gallery'));
+      });
+
+      test('Team label applied', () {
+        expect(GithubWebhook.getLabelsForFrameworkPath('dev/foo/bar/baz.dart'), contains('team'));
+        expect(GithubWebhook.getLabelsForFrameworkPath('examples/foo/bar/baz.dart'), contains('team'));
+      });
+    });
+
+    group('getLabelsForEnginePath', () {
+      test('No label is applied to paths with no applicable label', () {
+        expect(GithubWebhook.getLabelsForEnginePath('nonsense/path/foo.cc'), isEmpty);
+      });
+
+      test('platform-android applied for Android embedder', () {
+        expect(GithubWebhook.getLabelsForEnginePath('shell/platform/android/RIsForRhubarbPie.java'),
+            contains('platform-android'));
+      });
+
+      test('platform-ios and platform-macos applied for common Darwin code', () {
+        expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/common/ThinkDifferent.mm'),
+            containsAll(<String>['platform-ios', 'platform-macos']));
+      });
+
+      test('platform-ios and platform-ios applied for iOS embedder', () {
+        expect(
+            GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/ios/BackButton.mm'), contains('platform-ios'));
+      });
+
+      test('platform-macos applied for macOS embedder', () {
+        expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/macos/PhysicalEscapeKey.mm'),
+            contains('platform-macos'));
+      });
+
+      test('platform-fuchsia applied for fuchsia embedder', () {
+        expect(GithubWebhook.getLabelsForEnginePath('shell/platform/fuchsia/spell_checker.cc'),
+            contains('platform-fuchsia'));
+      });
+
+      test('platform-linux applied for linux embedder', () {
+        expect(GithubWebhook.getLabelsForEnginePath('shell/platform/linux/systemd_integration.cc'),
+            contains('platform-linux'));
+      });
+
+      test('platform-windows applied for windows embedder', () {
+        expect(
+            GithubWebhook.getLabelsForEnginePath('shell/platform/windows/start_menu.cc'), contains('platform-windows'));
+      });
+
+      test('platform-web applied for web paths', () {
+        expect(GithubWebhook.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
+        expect(GithubWebhook.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
+      });
+    });
+
     test('Framework labels PRs, comment if no tests', () async {
       const int issueNumber = 123;
       request.headers.set('X-GitHub-Event', 'pull_request');
@@ -407,49 +517,6 @@ void main() {
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
       ));
-    });
-
-    test('No label is applied to paths with no applicable label', () {
-      expect(GithubWebhook.getLabelsForEnginePath('nonsense/path/foo.cc'), isEmpty);
-    });
-
-    test('platform-android applied for Android embedder', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/android/RIsForRhubarbPie.java'),
-          contains('platform-android'));
-    });
-
-    test('platform-ios and platform-macos applied for common Darwin code', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/common/ThinkDifferent.mm'),
-          containsAll(<String>['platform-ios', 'platform-macos']));
-    });
-
-    test('platform-ios and platform-ios applied for iOS embedder', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/ios/BackButton.mm'), contains('platform-ios'));
-    });
-
-    test('platform-macos applied for macOS embedder', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/darwin/macos/PhysicalEscapeKey.mm'),
-          contains('platform-macos'));
-    });
-
-    test('platform-fuchsia applied for fuchsia embedder', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/fuchsia/spell_checker.cc'),
-          contains('platform-fuchsia'));
-    });
-
-    test('platform-linux applied for linux embedder', () {
-      expect(GithubWebhook.getLabelsForEnginePath('shell/platform/linux/systemd_integration.cc'),
-          contains('platform-linux'));
-    });
-
-    test('platform-windows applied for windows embedder', () {
-      expect(
-          GithubWebhook.getLabelsForEnginePath('shell/platform/windows/start_menu.cc'), contains('platform-windows'));
-    });
-
-    test('platform-web applied for web paths', () {
-      expect(GithubWebhook.getLabelsForEnginePath('lib/web_ui/shadow_dom.dart'), contains('platform-web'));
-      expect(GithubWebhook.getLabelsForEnginePath('web_sdk/'), contains('platform-web'));
     });
 
     test('Engine labels PRs, comment if no tests', () async {
