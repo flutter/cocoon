@@ -19,7 +19,6 @@ Future<void> main() async {
     final CacheService cache = CacheService(inMemory: inMemoryCache);
 
     final Config config = Config(dbService, cache);
-    final DatastoreService datastore = DatastoreService.defaultProvider(dbService);
     final AuthenticationProvider authProvider = AuthenticationProvider(config);
     final AuthenticationProvider swarmingAuthProvider = SwarmingAuthenticationProvider(config);
     final BuildBucketClient buildBucketClient = BuildBucketClient(

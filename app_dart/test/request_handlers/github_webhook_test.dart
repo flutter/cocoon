@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
