@@ -50,7 +50,6 @@ Future<void> main() async {
     final Scheduler scheduler = Scheduler(
       cache: cache,
       config: config,
-      datastore: datastore,
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{

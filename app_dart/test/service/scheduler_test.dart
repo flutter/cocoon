@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
@@ -73,7 +74,7 @@ void main() {
       scheduler = Scheduler(
         cache: cache,
         config: config,
-        datastore: DatastoreService(db, 2),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,
         log: FakeLogging(),
       );
@@ -228,7 +229,7 @@ void main() {
       scheduler = Scheduler(
         cache: cache,
         config: config,
-        datastore: DatastoreService(db, 2),
+        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,
         log: FakeLogging(),
       );

@@ -84,7 +84,7 @@ void main() {
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
-      scheduler = FakeScheduler(datastore: DatastoreService(config.db, 5), config: config);
+      scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,

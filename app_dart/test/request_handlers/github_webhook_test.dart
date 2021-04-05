@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import 'package:crypto/crypto.dart';
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -58,17 +59,18 @@ void main() {
       githubService = FakeGithubService();
       serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
       request = FakeHttpRequest();
+      db = FakeDatastoreDB();
       config = FakeConfig(
+        dbValue: db,
         deviceLabServiceAccountValue: serviceAccountInfo,
         githubService: githubService,
         tabledataResourceApi: MockTabledataResourceApi(),
       );
-      db = FakeDatastoreDB();
       gitHubClient = MockGitHub();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
       mockBuildBucketClient = MockBuildBucketClient();
-      scheduler = FakeScheduler(config: config, datastore: DatastoreService(db, 5));
+      scheduler = FakeScheduler(config: config);
       tester = RequestHandlerTester(request: request);
       serviceAccountInfo = await config.deviceLabServiceAccount;
 

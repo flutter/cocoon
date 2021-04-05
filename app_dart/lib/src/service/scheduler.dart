@@ -34,18 +34,20 @@ class Scheduler {
   Scheduler({
     @required this.cache,
     @required this.config,
-    @required this.datastore,
+    this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
     this.httpClientProvider,
     this.log,
-  })  : assert(datastore != null),
+  })  : assert(datastoreProvider != null),
         assert(gitHubBackoffCalculator != null);
 
   final CacheService cache;
   final Config config;
-  final DatastoreService datastore;
+  final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
+
+  DatastoreService datastore;
   Logging log;
 
   /// Subcache key to store [SchedulerConfig] for quicker retrievals.
@@ -65,6 +67,7 @@ class Scheduler {
   ///   * Schedule tasks listed in its scheduler config
   /// Otherwise, ignore it.
   Future<void> addCommits(List<Commit> commits) async {
+    datastore = datastoreProvider(config.db);
     final List<Commit> newCommits = await _getNewCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
@@ -77,6 +80,7 @@ class Scheduler {
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
+    datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged) {
       log.warning('Only pull requests that were closed and merged should have tasks scheduled');
