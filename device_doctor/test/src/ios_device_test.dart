@@ -210,6 +210,12 @@ void main() {
       expect(result, isFalse);
     });
 
+    test('device restart - skip 32 bit phone', () async {
+      device = IosDevice(deviceId: '822ef7958bba573829d85eef4df6cbdd86593730');
+      final bool result = await device.restart_device(processManager: processManager);
+      expect(result, isTrue);
+    });
+
     test('list applications - failure', () async {
       when(processManager.start(<dynamic>['ideviceinstaller', '-l'], workingDirectory: anyNamed('workingDirectory')))
           .thenAnswer((_) => Future.value(process));

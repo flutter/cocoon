@@ -3,7 +3,7 @@ description: A Dart tool to check device healthiness and implement recovery mech
 version: 1.0.0
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.3.0 <3.0.0"
 
 dependencies:
   args: ^1.5.2
