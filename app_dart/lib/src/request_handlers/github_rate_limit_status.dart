@@ -19,11 +19,10 @@ import '../service/github_service.dart';
 /// at most one entry per repo per minute.
 ///
 /// BigQuery entries contain the following fields:
-///   `repo`: Repository corresponding to this entry.
-///   `timestamp`: Timestamp of this entry.
-///   `limit`: Total API calls allowed against `repo`.
-///   `remaining`: Total number of API calls remaining before `repo` is blocked from sending further requests.
-///   `reset`: Timestamp when the API rate limiting will next reset `remaining` back to `limit`.
+///   `timestamp`: [DateTime] of this entry.
+///   `limit`: Total API calls allowed on flutter-dashboard.
+///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
+///   `resets`: [DateTime] when [remaining] will reset back to [limit].
 @immutable
 class GithubRateLimitStatus extends RequestHandler<Body> {
   const GithubRateLimitStatus(Config config) : super(config: config);
@@ -32,8 +31,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
   Future<Body> get() async {
     final GithubService githubService = await config.createGithubService('flutter', 'flutter');
     final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
-    quotaUsage['timestamp'] = DateTime.now().millisecondsSinceEpoch;
-    quotaUsage['repo'] = 'flutter';
+    quotaUsage['timestamp'] = DateTime.now().toIso8601String();
 
     /// Insert quota usage to BigQuery
     const String githubQuotaTable = 'GithubQuotaUsage';
