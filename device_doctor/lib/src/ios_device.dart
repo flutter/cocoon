@@ -14,6 +14,11 @@ import 'health.dart';
 import 'mac.dart';
 import 'utils.dart';
 
+/// Identifiers for devices that should never be rebooted.
+final Set<String> noRebootForbidList = <String>{
+  '822ef7958bba573829d85eef4df6cbdd86593730', // 32bit iPhone requires manual intervention on reboot.
+};
+
 /// IOS implementation of [DeviceDiscovery].
 ///
 /// Discovers available ios devices and chooses one to work with.
@@ -137,6 +142,9 @@ class IosDevice implements Device {
   Future<bool> restart_device({ProcessManager processManager}) async {
     processManager ??= LocalProcessManager();
     try {
+      if (noRebootForbidList.contains(deviceId)) {
+        return true;
+      }
       await eval('idevicediagnostics', <String>['restart'], processManager: processManager);
     } on BuildFailedError catch (error) {
       logger.severe('device restart fails: $error');
