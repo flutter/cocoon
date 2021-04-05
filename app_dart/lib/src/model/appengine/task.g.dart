@@ -30,5 +30,5 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
 
 Map<String, dynamic> _$SerializableTaskToJson(SerializableTask instance) => <String, dynamic>{
       'Task': instance.task,
-      'Key': const IntKeyConverter().toJson(instance.key),
+      'Key': const StringKeyConverter().toJson(instance.key),
     };

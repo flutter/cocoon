@@ -18,10 +18,10 @@ part 'task.g.dart';
 /// particular commit.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
 @Kind(name: 'Task')
-class Task extends Model<int> {
+class Task extends Model<String> {
   /// Creates a new [Task].
   Task({
-    Key<int> key,
+    Key<String> key,
     this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
@@ -272,8 +272,8 @@ class SerializableTask {
   final Task task;
 
   @JsonKey(name: 'Key')
-  @IntKeyConverter()
-  Key<int> get key => task.key;
+  @StringKeyConverter()
+  Key<String> get key => task.key;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$SerializableTaskToJson(this);
