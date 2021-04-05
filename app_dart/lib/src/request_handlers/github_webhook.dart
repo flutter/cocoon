@@ -27,9 +27,13 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  const GithubWebhook(Config config,
-      {@required this.buildBucketClient, @required this.scheduler, this.luciBuildService, this.githubChecksService,})
-      : assert(buildBucketClient != null),
+  const GithubWebhook(
+    Config config, {
+    @required this.buildBucketClient,
+    @required this.scheduler,
+    this.luciBuildService,
+    this.githubChecksService,
+  })  : assert(buildBucketClient != null),
         super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.
