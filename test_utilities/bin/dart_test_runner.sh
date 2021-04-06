@@ -10,7 +10,7 @@ set -ex
 
 # Build and analize
 echo "Running tests from $1"
-pushd $1 > /dev/null
+pushd "$1" > /dev/null
 flutter clean
 pub get
 

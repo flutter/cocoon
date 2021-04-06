@@ -8,12 +8,12 @@
 
 set -ex
 
-# Build and analize
+# Build and analyze
 echo "Running config tests on $1"
 pushd app_dart > /dev/null
 flutter clean
 pub get
 
-dart bin/validate_scheduler_config.dart $1
+dart bin/validate_scheduler_config.dart "$1"
 
 popd > /dev/null
