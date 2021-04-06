@@ -23,6 +23,7 @@ const Target$json = const {
     const {'1': 'testbed', '3': 5, '4': 1, '5': 9, '7': 'linux-vm', '10': 'testbed'},
     const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.Target.PropertiesEntry', '10': 'properties'},
     const {'1': 'builder', '3': 7, '4': 1, '5': 9, '10': 'builder'},
+    const {'1': 'scheduler', '3': 8, '4': 1, '5': 9, '7': 'cocoon', '10': 'scheduler'},
   ],
   '3': const [Target_PropertiesEntry$json],
 };

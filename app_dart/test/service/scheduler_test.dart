@@ -274,8 +274,28 @@ targets:
         'test': 'abc',
       });
       expect(target.builder, 'builderA');
+      expect(target.scheduler, 'cocoon');
       expect(target.testbed, 'linux-vm');
       expect(target.timeout, 30);
+    });
+
+    test('throws exception when non-existent scheduler is given', () {
+      final YamlMap targetWithNonexistentScheduler = loadYaml('''
+enabled_branches:
+  - master
+targets:
+  - name: A
+    scheduler: dashatar
+      ''') as YamlMap;
+      expect(
+          () => loadSchedulerConfig(targetWithNonexistentScheduler),
+          throwsA(
+            isA<FormatException>().having(
+              (FormatException e) => e.toString(),
+              'message',
+              contains('ERROR: A specifies scheduler=dashatar which is not supported'),
+            ),
+          ));
     });
 
     test('constructs graph with dependency chain', () {

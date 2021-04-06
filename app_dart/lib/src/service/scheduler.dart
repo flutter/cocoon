@@ -269,6 +269,9 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
     throw const FormatException('Scheduler config must have at least 1 enabled branch');
   }
 
+  /// List of supported schedulers that can trigger targets. Non-cocoon schedulers
+  /// do not have initial triggers done by [Scheduler].
+  final List<String> supportedSchedulers = <String>['cocoon', 'luci'];
   final Map<String, List<Target>> targetGraph = <String, List<Target>>{};
   final List<String> exceptions = <String>[];
   // Construct [targetGraph]. With a one scan approach, cycles in the graph
@@ -278,6 +281,9 @@ void _validateSchedulerConfig(SchedulerConfig schedulerConfig) {
       exceptions.add('ERROR: ${target.name} already exists in graph');
     } else {
       targetGraph[target.name] = <Target>[];
+      if (!supportedSchedulers.contains(target.scheduler)) {
+        exceptions.add('ERROR: ${target.name} specifies scheduler=${target.scheduler} which is not supported');
+      }
       // Add edges
       if (target.dependencies.isNotEmpty) {
         if (target.dependencies.length != 1) {

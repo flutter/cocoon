@@ -80,6 +80,9 @@ class Target extends $pb.GeneratedMessage {
         6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
+    ..a<$core.String>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OS,
+        defaultOrMaker: 'cocoon')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -91,6 +94,7 @@ class Target extends $pb.GeneratedMessage {
     $core.String testbed,
     $core.Map<$core.String, $core.String> properties,
     $core.String builder,
+    $core.String scheduler,
   }) {
     final _result = create();
     if (name != null) {
@@ -113,6 +117,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (builder != null) {
       _result.builder = builder;
+    }
+    if (scheduler != null) {
+      _result.scheduler = scheduler;
     }
     return _result;
   }
@@ -203,4 +210,16 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasBuilder() => $_has(6);
   @$pb.TagNumber(7)
   void clearBuilder() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get scheduler => $_getS(7, 'cocoon');
+  @$pb.TagNumber(8)
+  set scheduler($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasScheduler() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearScheduler() => clearField(8);
 }

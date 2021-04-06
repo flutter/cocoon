@@ -30,4 +30,7 @@ message Target {
     map<string, string> properties = 6;
     // Name of the LUCI builder to trigger.
     optional string builder = 7;
+    // Name of the scheduler to trigger this target.
+    // Defaults to being triggered by cocoon. Supports 'cocoon', 'luci'.
+    optional string scheduler = 8 [default = 'cocoon'];
 }
