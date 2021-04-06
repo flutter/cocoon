@@ -10,6 +10,8 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class SchedulerSystem extends $pb.ProtobufEnum {
+  const SchedulerSystem._($core.int v, $core.String n) : super(v, n);
+
   static const SchedulerSystem cocoon =
       SchedulerSystem._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'cocoon');
   static const SchedulerSystem luci =
@@ -22,6 +24,4 @@ class SchedulerSystem extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, SchedulerSystem> _byValue = $pb.ProtobufEnum.initByValue(values);
   static SchedulerSystem valueOf($core.int value) => _byValue[value];
-
-  const SchedulerSystem._($core.int v, $core.String n) : super(v, n);
 }
