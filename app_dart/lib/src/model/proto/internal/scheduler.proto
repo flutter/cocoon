@@ -36,7 +36,7 @@ message Target {
 }
 
 // Schedulers supported in SchedulerConfig.
-// Next ID: 2
+// Next ID: 3
 enum SchedulerSystem {
     // Cocoon will handle all actions for the target (initial trigger, retries).
     cocoon = 1;
