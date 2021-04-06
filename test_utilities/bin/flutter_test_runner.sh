@@ -19,7 +19,7 @@
 set -ex
 
 echo "Running flutter tests from $1"
-pushd $1 > /dev/null
+pushd "$1" > /dev/null
 
 flutter packages get
 flutter analyze
