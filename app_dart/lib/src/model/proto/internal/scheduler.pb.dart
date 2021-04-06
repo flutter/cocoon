@@ -9,6 +9,10 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'scheduler.pbenum.dart';
+
+export 'scheduler.pbenum.dart';
+
 class SchedulerConfig extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'SchedulerConfig',
@@ -80,6 +84,9 @@ class Target extends $pb.GeneratedMessage {
         6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
+    ..e<SchedulerSystem>(
+        8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
+        defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -91,6 +98,7 @@ class Target extends $pb.GeneratedMessage {
     $core.String testbed,
     $core.Map<$core.String, $core.String> properties,
     $core.String builder,
+    SchedulerSystem scheduler,
   }) {
     final _result = create();
     if (name != null) {
@@ -113,6 +121,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (builder != null) {
       _result.builder = builder;
+    }
+    if (scheduler != null) {
+      _result.scheduler = scheduler;
     }
     return _result;
   }
@@ -203,4 +214,16 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasBuilder() => $_has(6);
   @$pb.TagNumber(7)
   void clearBuilder() => clearField(7);
+
+  @$pb.TagNumber(8)
+  SchedulerSystem get scheduler => $_getN(7);
+  @$pb.TagNumber(8)
+  set scheduler(SchedulerSystem v) {
+    setField(8, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasScheduler() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearScheduler() => clearField(8);
 }
