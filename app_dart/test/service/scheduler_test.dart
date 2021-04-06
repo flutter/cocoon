@@ -10,7 +10,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/protos.dart' show SchedulerConfig, Target;
+import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSystem, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -274,7 +274,7 @@ targets:
         'test': 'abc',
       });
       expect(target.builder, 'builderA');
-      expect(target.scheduler, 'cocoon');
+      expect(target.scheduler, SchedulerSystem.cocoon);
       expect(target.testbed, 'linux-vm');
       expect(target.timeout, 30);
     });
@@ -287,15 +287,7 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap;
-      expect(
-          () => loadSchedulerConfig(targetWithNonexistentScheduler),
-          throwsA(
-            isA<FormatException>().having(
-              (FormatException e) => e.toString(),
-              'message',
-              contains('ERROR: A specifies scheduler=dashatar which is not supported'),
-            ),
-          ));
+      expect(() => loadSchedulerConfig(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () {

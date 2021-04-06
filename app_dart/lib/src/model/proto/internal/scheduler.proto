@@ -31,6 +31,16 @@ message Target {
     // Name of the LUCI builder to trigger.
     optional string builder = 7;
     // Name of the scheduler to trigger this target.
-    // Defaults to being triggered by cocoon. Supports 'cocoon', 'luci'.
-    optional string scheduler = 8 [default = 'cocoon'];
+    // Defaults to being triggered by cocoon.
+    optional SchedulerSystem scheduler = 8 [default = cocoon];
 }
+
+// Schedulers supported in SchedulerConfig.
+// Next ID: 2
+enum SchedulerSystem {
+    // Cocoon will handle all actions for the target (initial trigger, retries).
+    cocoon = 1;
+    // LUCI triggers the build when mirrored to GoB. Cocoon triggers retries.
+    luci = 2;
+  }
+  
