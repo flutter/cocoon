@@ -246,8 +246,8 @@ class TaskOverlayContents extends StatelessWidget {
     final String runText = (task.status == TaskBox.statusInProgress)
         ? 'Running for ${runDuration.inMinutes} minutes'
         : (task.status != TaskBox.statusNew)
-            ? 'Run time: ${runDuration.inMinutes} minutes'
-            : '';
+        ? 'Run time: ${runDuration.inMinutes} minutes'
+        : '';
 
     final String summaryText = <String>[
       'Attempts: ${task.attempts}',
