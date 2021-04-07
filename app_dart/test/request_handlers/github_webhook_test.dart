@@ -488,7 +488,8 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_tools/blah.dart',
           PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
           PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
-          PullRequestFile()..filename = 'dev/blah.dart',
+          PullRequestFile()..filename = 'dev/bots/test.dart',
+          PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
           PullRequestFile()..filename = 'bin/internal/engine.version',
           PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
           PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
@@ -521,6 +522,38 @@ void main() {
           'a: internationalization',
         ],
       )).called(1);
+
+      verifyNever(issuesService.createComment(
+        slug,
+        issueNumber,
+        argThat(contains(config.missingTestsPullRequestMessageValue)),
+      ));
+    });
+
+    test('Framework no comment if only dev bots or devicelab changed', () async {
+      const int issueNumber = 123;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      request.body = jsonTemplate('opened', issueNumber, kDefaultBranchName);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+
+      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          PullRequestFile()..filename = 'dev/bots/test.dart',
+          PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
+        ]),
+      );
+
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[],
+        );
+      });
+
+      await tester.post(webhook);
 
       verifyNever(issuesService.createComment(
         slug,
