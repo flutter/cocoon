@@ -57,7 +57,7 @@ void main() {
 
       test('do not update task status when SHA does not match', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-        final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+        final Task task = Task(key: commit.key.append(Task, id: 'abc'), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -91,7 +91,7 @@ void main() {
           sha: 'abc',
         );
         final Task task = Task(
-          key: commit.key.append(Task, id: 123),
+          key: commit.key.append(Task, id: 'abc'),
           commitKey: commit.key,
           status: Task.statusNew,
         );
@@ -124,7 +124,7 @@ void main() {
 
       test('do not update task status when branch does not match', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
-        final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+        final Task task = Task(key: commit.key.append(Task, id: 'abc'), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
@@ -153,7 +153,7 @@ void main() {
 
       test('update task status and buildNumber when buildNumberList does not match', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-        final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+        final Task task = Task(key: commit.key.append(Task, id: 'abc'), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -185,7 +185,7 @@ void main() {
 
       test('save data to BigQuery when task finishes', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
-        final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+        final Task task = Task(key: commit.key.append(Task, id: 'abc'), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -216,7 +216,10 @@ void main() {
       test('update task status and buildNumber when status does not match', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
-            key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
+            key: commit.key.append(Task, id: 'abc'),
+            commitKey: commit.key,
+            status: Task.statusNew,
+            buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -247,7 +250,10 @@ void main() {
       test('update task status with latest status when multilple reruns exist', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
-            key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
+            key: commit.key.append(Task, id: 'abc'),
+            commitKey: commit.key,
+            status: Task.statusNew,
+            buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -284,7 +290,7 @@ void main() {
 
       test('update task status for non master branch', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
-        final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
+        final Task task = Task(key: commit.key.append(Task, id: 'abc'), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
@@ -339,7 +345,7 @@ void main() {
         config.maxTaskRetriesValue = 2;
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
         final Task task = Task(
-            key: commit.key.append(Task, id: 123),
+            key: commit.key.append(Task, id: 'Mac abc'),
             commitKey: commit.key,
             status: Task.statusInProgress,
             buildNumberList: '1',

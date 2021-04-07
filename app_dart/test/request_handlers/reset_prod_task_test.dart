@@ -82,7 +82,7 @@ void main() {
     });
     test('Schedule new task', () async {
       final Task task = Task(
-        key: commit.key.append(Task, id: 4590522719010816),
+        key: commit.key.append(Task, id: 'test'),
         commitKey: commit.key,
         attempts: 0,
         status: 'Failed',
@@ -106,7 +106,7 @@ void main() {
 
     test('Re-schedule existing task', () async {
       Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
+          key: commit.key.append(Task, id: 'Windows'),
           commitKey: commit.key,
           attempts: 0,
           status: 'Failed',
@@ -165,7 +165,7 @@ void main() {
 
     test('Re-schedule existing task even though builderName is missing in the task', () async {
       Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
+          key: commit.key.append(Task, id: 'windows_bot'),
           commitKey: commit.key,
           attempts: 0,
           name: 'windows_bot',
@@ -189,7 +189,7 @@ void main() {
 
     test('Does nothing if task already passed', () async {
       final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
+          key: commit.key.append(Task, id: 'Windows'),
           commitKey: commit.key,
           attempts: 0,
           status: 'Succeeded',
@@ -274,7 +274,7 @@ void main() {
 
     test('Fails if commit does not exist', () async {
       final Task task = Task(
-          key: commit.key.append(Task, id: 4590522719010816),
+          key: commit.key.append(Task, id: 'Windows'),
           commitKey: commit.key,
           attempts: 0,
           status: 'Failed',

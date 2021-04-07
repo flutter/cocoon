@@ -190,7 +190,7 @@ void main() {
         db.values[commit2.key] = commit2;
 
         final Task task1 = Task(
-            key: commit1.key.append(Task, id: 1),
+            key: commit1.key.append(Task, id: 'test a'),
             commitKey: commit1.key,
             name: 'task1',
             status: Task.statusSucceeded,

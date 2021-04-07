@@ -17,7 +17,7 @@ part 'task.g.dart';
 /// Tasks are tests that have been run N (possibly zero) times against a
 /// particular commit.
 @JsonSerializable(createFactory: false, ignoreUnannotated: true)
-@Kind(name: 'Task')
+@Kind(name: 'Task', idType: IdType.String)
 class Task extends Model<String> {
   /// Creates a new [Task].
   Task({
@@ -60,7 +60,7 @@ class Task extends Model<String> {
       commitKey: commitKey,
       createTimestamp: createTimestamp,
       isFlaky: builder.flaky ?? false,
-      key: commitKey.append(Task),
+      key: commitKey.append(Task, id: builder.name),
       // The task name of a builder is what Cocoon uses for the name.
       name: builder.taskName,
       requiredCapabilities: <String>['can-update-github'],

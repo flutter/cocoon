@@ -79,7 +79,7 @@ void main() {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), branch: 'release');
         config.db.values[commit.key] = commit;
         final Task task = Task(
-            key: commit.key.append(Task, id: 123),
+            key: commit.key.append(Task, id: 'abc'),
             commitKey: commit.key,
             attempts: 1,
             status: Task.statusInProgress,
@@ -88,7 +88,7 @@ void main() {
         final List<FullTask> fullTasks = await datastoreService.queryRecentTasksNoBranch().toList();
         expect(fullTasks, hasLength(1));
         expect(fullTasks[0].commit.branch, 'release');
-        expect(fullTasks[0].task.id, 123);
+        expect(fullTasks[0].task.id, 'abc');
       });
     });
 

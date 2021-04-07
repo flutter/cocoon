@@ -29,7 +29,7 @@ void main() {
       final int taskId = taskIdCounter++;
       final String taskName = 'test_$taskId';
       return Task(
-        key: commit.key.append(Task, id: taskId),
+        key: commit.key.append(Task, id: taskName),
         name: taskName,
         status: Task.statusNew,
         stageName: 'devicelab',
