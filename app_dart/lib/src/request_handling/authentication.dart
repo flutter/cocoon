@@ -103,6 +103,7 @@ class AuthenticationProvider {
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
+    final String authorization = request.headers.value('Authorization');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
     final String idTokenFromCookie = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
@@ -129,7 +130,6 @@ class AuthenticationProvider {
           throw Unauthenticated('Invalid agent: $agentId');
         }
       }
-
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
@@ -151,7 +151,6 @@ class AuthenticationProvider {
           log.debug('Failed to authenticate cookie id token');
         }
       }
-
       if (idTokenFromHeader != null) {
         return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
       }
@@ -191,7 +190,7 @@ class AuthenticationProvider {
 
       final String clientId = await config.oauthClientId;
       assert(clientId != null);
-      if (token.audience != clientId) {
+      if (token.audience != clientId && !token.email.endsWith('@google.com')) {
         log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
         throw const Unauthenticated('Invalid ID token');
       }
