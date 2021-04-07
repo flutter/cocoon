@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/src/datastore/config.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
 import '../request_handling/fake_logging.dart';
@@ -18,6 +20,7 @@ class FakeScheduler extends Scheduler {
     this.devicelabManifest = 'tasks:',
     Config config,
   }) : super(
+          cache: CacheService(inMemory: true),
           config: config,
           log: FakeLogging(),
         );
@@ -29,5 +32,9 @@ class FakeScheduler extends Scheduler {
   String devicelabManifest;
 
   @override
-  Future<YamlMap> loadDevicelabManifest(Commit commit) async => await loadYaml(devicelabManifest) as YamlMap;
+  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async => schedulerConfig;
+
+  @override
+  Future<YamlMap> loadDevicelabManifest(Commit commit, {RetryOptions retryOptions}) async =>
+      await loadYaml(devicelabManifest) as YamlMap;
 }

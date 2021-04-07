@@ -73,7 +73,7 @@ class Config {
     final Uint8List cacheValue = await _cache.getOrCreate(
       configCacheName,
       'flutterBranches',
-      createFn: () => getBranches(Providers.freshHttpClient, loggingService, twoSecondLinearBackoff),
+      createFn: () => getBranches(Providers.freshHttpClient, loggingService),
       ttl: configCacheTtl,
     );
 
@@ -84,8 +84,8 @@ class Config {
   Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
       {String commitSha = 'master', int prNumber}) async {
     final GithubService githubService = await createGithubService('flutter', repo);
-    return await getLuciBuilders(githubService, Providers.freshHttpClient, twoSecondLinearBackoff, loggingService,
-        RepositorySlug('flutter', repo), bucket,
+    return await getLuciBuilders(
+        githubService, Providers.freshHttpClient, loggingService, RepositorySlug('flutter', repo), bucket,
         prNumber: prNumber, commitSha: commitSha);
   }
 

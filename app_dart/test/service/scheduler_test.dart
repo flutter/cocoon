@@ -16,6 +16,7 @@ import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSyste
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
@@ -37,6 +38,7 @@ tasks:
 ''';
 
 void main() {
+  CacheService cache;
   FakeConfig config;
   FakeDatastoreDB db;
   FakeHttpClient httpClient;
@@ -58,6 +60,7 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
+      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
@@ -69,6 +72,7 @@ void main() {
       });
 
       scheduler = Scheduler(
+        cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,
@@ -208,6 +212,7 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
+      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(
         tabledataResourceApi: tabledataResourceApi,
@@ -222,6 +227,7 @@ void main() {
         }
       });
       scheduler = Scheduler(
+        cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,
@@ -300,7 +306,7 @@ targets:
     properties:
       test: abc
       ''') as YamlMap;
-      final SchedulerConfig schedulerConfig = loadSchedulerConfig(singleTargetConfig);
+      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(singleTargetConfig);
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final Target target = schedulerConfig.targets.first;
@@ -323,7 +329,7 @@ targets:
   - name: A
     scheduler: dashatar
       ''') as YamlMap;
-      expect(() => loadSchedulerConfig(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
+      expect(() => schedulerConfigFromYaml(targetWithNonexistentScheduler), throwsA(isA<FormatException>()));
     });
 
     test('constructs graph with dependency chain', () {
@@ -339,7 +345,7 @@ targets:
     dependencies:
       - B
       ''') as YamlMap;
-      final SchedulerConfig schedulerConfig = loadSchedulerConfig(dependentTargetConfig);
+      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(dependentTargetConfig);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b = schedulerConfig.targets[1];
@@ -364,7 +370,7 @@ targets:
     dependencies:
       - A
       ''') as YamlMap;
-      final SchedulerConfig schedulerConfig = loadSchedulerConfig(twoDependentTargetConfig);
+      final SchedulerConfig schedulerConfig = schedulerConfigFromYaml(twoDependentTargetConfig);
       expect(schedulerConfig.targets.length, 3);
       final Target a = schedulerConfig.targets.first;
       final Target b1 = schedulerConfig.targets[1];
@@ -389,7 +395,7 @@ targets:
       - A
       ''') as YamlMap;
       expect(
-          () => loadSchedulerConfig(configWithCycle),
+          () => schedulerConfigFromYaml(configWithCycle),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -408,7 +414,7 @@ targets:
   - name: A
       ''') as YamlMap;
       expect(
-          () => loadSchedulerConfig(configWithDuplicateTargets),
+          () => schedulerConfigFromYaml(configWithDuplicateTargets),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -431,7 +437,7 @@ targets:
       - B
       ''') as YamlMap;
       expect(
-          () => loadSchedulerConfig(configWithMultipleDependencies),
+          () => schedulerConfigFromYaml(configWithMultipleDependencies),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),
@@ -451,7 +457,7 @@ targets:
       - B
       ''') as YamlMap;
       expect(
-          () => loadSchedulerConfig(configWithMissingTarget),
+          () => schedulerConfigFromYaml(configWithMissingTarget),
           throwsA(
             isA<FormatException>().having(
               (FormatException e) => e.toString(),

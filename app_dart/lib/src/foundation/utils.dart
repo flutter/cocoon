@@ -10,8 +10,11 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../foundation/typedefs.dart';
+import '../request_handling/exceptions.dart';
 import '../service/github_service.dart';
 import '../service/luci.dart';
 
@@ -29,48 +32,71 @@ Duration twoSecondLinearBackoff(int attempt) {
 }
 
 /// Get content of [filePath] from GitHub CDN.
-Future<String> remoteFileContent(
-  HttpClientProvider branchHttpClientProvider,
-  Logging log,
-  GitHubBackoffCalculator gitHubBackoffCalculator,
+Future<String> githubFileContent(
   String filePath, {
+  @required HttpClientProvider httpClientProvider,
+  @required Logging log,
+  Duration timeout = const Duration(seconds: 5),
+  RetryOptions retryOptions,
+}) async {
+  retryOptions ??= const RetryOptions(
+    maxDelay: Duration(seconds: 5),
+    maxAttempts: 3,
+  );
+  final Uri url = Uri.https('raw.githubusercontent.com', filePath);
+  return retryOptions.retry(
+    () async => await getUrl(url, httpClientProvider, log, timeout: timeout),
+    retryIf: (Exception e) => e is HttpException,
+  );
+}
+
+/// Return [String] of response from [url] if status is [HttpStatus.ok].
+///
+/// If [url] returns [HttpStatus.notFound] throw [NotFoundException].
+/// Otherwise, throws [HttpException].
+FutureOr<String> getUrl(
+  Uri url,
+  HttpClientProvider httpClientProvider,
+  Logging log, {
   Duration timeout = const Duration(seconds: 5),
 }) async {
-  final Uri url = Uri.https('raw.githubusercontent.com', filePath);
-
-  final HttpClient client = branchHttpClientProvider();
+  final HttpClient client = httpClientProvider();
   try {
-    // TODO(keyonghan): apply retry logic here to simply, https://github.com/flutter/flutter/issues/52427
-    for (int attempt = 0; attempt < 3; attempt++) {
-      try {
-        final HttpClientRequest clientRequest = await client.getUrl(url).timeout(timeout);
-        final HttpClientResponse clientResponse = await clientRequest.close().timeout(timeout);
-        final int status = clientResponse.statusCode;
+    final HttpClientRequest clientRequest = await client.getUrl(url).timeout(timeout);
+    final HttpClientResponse clientResponse = await clientRequest.close().timeout(timeout);
+    final int status = clientResponse.statusCode;
 
-        if (status == HttpStatus.ok) {
-          final String content = await utf8.decoder.bind(clientResponse).join();
-          return content;
-        } else {
-          log.warning('Attempt to download $filePath failed (HTTP $status)');
-        }
-      } catch (error, stackTrace) {
-        log.error('Attempt to download $filePath failed:\n$error\n$stackTrace');
-      }
-      await Future<void>.delayed(gitHubBackoffCalculator(attempt));
+    if (status == HttpStatus.ok) {
+      return await utf8.decoder.bind(clientResponse).join();
+    } else if (status == HttpStatus.notFound) {
+      throw NotFoundException('HTTP $status: $url');
+    } else {
+      log.warning('HTTP $status: $url');
+      throw HttpException('HTTP $status: $url');
     }
   } finally {
-    client.close(force: true);
+    client.close();
   }
-  log.error('GitHub not responding; giving up');
-  return null;
 }
 
 /// Gets supported branch list of `flutter/flutter` via GitHub http request.
 Future<Uint8List> getBranches(
-    HttpClientProvider branchHttpClientProvider, Logging log, GitHubBackoffCalculator gitHubBackoffCalculator) async {
-  String content = await remoteFileContent(
-      branchHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/cocoon/master/app_dart/dev/branches.txt');
-  content ??= 'master';
+  HttpClientProvider httpClientProvider,
+  Logging log, {
+  RetryOptions retryOptions,
+}) async {
+  String content;
+  try {
+    content = await githubFileContent(
+      '/flutter/cocoon/master/app_dart/dev/branches.txt',
+      httpClientProvider: httpClientProvider,
+      log: log,
+      retryOptions: retryOptions,
+    );
+  } on HttpException {
+    content = 'master';
+  }
+
   final List<String> branches = content.split('\n').map((String branch) => branch.trim()).toList();
   branches.removeWhere((String branch) => branch.isEmpty);
   return Uint8List.fromList(branches.join(',').codeUnits);
@@ -98,9 +124,16 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 /// [run_if] in each config.
 ///
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
-Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClientProvider luciHttpClientProvider,
-    GitHubBackoffCalculator gitHubBackoffCalculator, Logging log, RepositorySlug slug, String bucket,
-    {int prNumber, String commitSha = 'master'}) async {
+Future<List<LuciBuilder>> getLuciBuilders(
+  GithubService githubService,
+  HttpClientProvider httpClientProvider,
+  Logging log,
+  RepositorySlug slug,
+  String bucket, {
+  int prNumber,
+  String commitSha = 'master',
+  RetryOptions retryOptions,
+}) async {
   const Map<String, String> repoFilePathPrefix = <String, String>{
     'flutter': 'dev',
     'engine': 'ci/dev',
@@ -108,11 +141,19 @@ Future<List<LuciBuilder>> getLuciBuilders(GithubService githubService, HttpClien
     'plugins': '.ci/dev',
     'packages': 'dev'
   };
-  final String filePath = '${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}/';
+  final String filePath = '${slug.owner}/${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
-  String builderContent =
-      await remoteFileContent(luciHttpClientProvider, log, gitHubBackoffCalculator, '/flutter/$filePath$fileName');
-  builderContent ??= '{"builders":[]}';
+  String builderContent;
+  try {
+    builderContent = await githubFileContent(
+      '$filePath/$fileName',
+      httpClientProvider: httpClientProvider,
+      log: log,
+      retryOptions: retryOptions,
+    );
+  } on NotFoundException {
+    builderContent = '{"builders":[]}';
+  }
   Map<String, dynamic> builderMap;
   builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;

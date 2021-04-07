@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/foundation/utils.dart';
@@ -40,7 +41,12 @@ const String luciBuilders = '''
 
 void main() {
   group('Test utils', () {
-    group('LoadBranches', () {
+    const RetryOptions noRetry = RetryOptions(
+      maxAttempts: 1,
+      delayFactor: Duration.zero,
+      maxDelay: Duration.zero,
+    );
+    group('githubFileContent', () {
       FakeHttpClient branchHttpClient;
       FakeLogging log;
 
@@ -51,8 +57,12 @@ void main() {
 
       test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final String branches =
-            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
+        final String branches = await githubFileContent(
+          'branches.txt',
+          httpClientProvider: () => branchHttpClient,
+          log: log,
+          retryOptions: noRetry,
+        );
         final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(branchList, <String>['master', 'flutter-1.1-candidate.1']);
@@ -66,8 +76,16 @@ void main() {
         };
 
         branchHttpClient.request.response.body = branchRegExp;
-        final String branches =
-            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
+        final String branches = await githubFileContent(
+          'branches.txt',
+          httpClientProvider: () => branchHttpClient,
+          log: log,
+          retryOptions: const RetryOptions(
+            maxAttempts: 3,
+            delayFactor: Duration.zero,
+            maxDelay: Duration.zero,
+          ),
+        );
         final List<String> branchList = branches.split('\n').map((String branch) => branch.trim()).toList();
         branchList.removeWhere((String branch) => branch.isEmpty);
         expect(retry, 2);
@@ -76,17 +94,25 @@ void main() {
         expect(log.records.where(hasLevel(LogLevel.ERROR)), isEmpty);
       });
 
-      test('gives up branches download after 3 tries', () async {
+      test('gives up after 3 tries', () async {
         int retry = 0;
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = branchRegExp;
-        final String branches =
-            await remoteFileContent(() => branchHttpClient, log, (int attempt) => Duration.zero, 'branches.txt');
-        expect(branches, null);
+        await expectLater(
+            githubFileContent(
+              'branches.txt',
+              httpClientProvider: () => branchHttpClient,
+              log: log,
+              retryOptions: const RetryOptions(
+                maxAttempts: 3,
+                delayFactor: Duration.zero,
+                maxDelay: Duration.zero,
+              ),
+            ),
+            throwsA(isA<HttpException>()));
         expect(retry, 3);
         expect(log.records.where(hasLevel(LogLevel.WARNING)), isNotEmpty);
-        expect(log.records.where(hasLevel(LogLevel.ERROR)), isNotEmpty);
       });
     });
 
@@ -100,7 +126,11 @@ void main() {
       });
       test('returns branches', () async {
         branchHttpClient.request.response.body = branchRegExp;
-        final Uint8List branches = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        final Uint8List branches = await getBranches(
+          () => branchHttpClient,
+          log,
+          retryOptions: noRetry,
+        );
         expect(String.fromCharCodes(branches), 'master,flutter-1.1-candidate.1');
       });
 
@@ -109,7 +139,11 @@ void main() {
         branchHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
         branchHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
         branchHttpClient.request.response.body = luciBuilders;
-        final Uint8List builders = await getBranches(() => branchHttpClient, log, (int attempt) => Duration.zero);
+        final Uint8List builders = await getBranches(
+          () => branchHttpClient,
+          log,
+          retryOptions: noRetry,
+        );
         expect(String.fromCharCodes(builders), 'master');
       });
     });
@@ -128,20 +162,32 @@ void main() {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
         luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders = await getLuciBuilders(
-            githubService, () => luciBuilderHttpClient, (int attempt) => Duration.zero, log, slug, 'try');
+          githubService,
+          () => luciBuilderHttpClient,
+          log,
+          slug,
+          'try',
+          retryOptions: noRetry,
+        );
         expect(builders.length, 1);
         expect(builders[0].name, 'Cocoon');
         expect(builders[0].repo, 'cocoon');
       });
 
-      test('returns empty list when http request fails', () async {
+      test('returns empty list when http request 404s', () async {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
         int retry = 0;
         luciBuilderHttpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-        luciBuilderHttpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
+        luciBuilderHttpClient.request.response.statusCode = HttpStatus.notFound;
         luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders = await getLuciBuilders(
-            githubService, () => luciBuilderHttpClient, (int attempt) => Duration.zero, log, slug, 'try');
+          githubService,
+          () => luciBuilderHttpClient,
+          log,
+          slug,
+          'try',
+          retryOptions: noRetry,
+        );
         expect(builders.length, 0);
       });
     });
