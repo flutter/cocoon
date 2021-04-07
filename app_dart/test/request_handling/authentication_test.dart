@@ -201,7 +201,7 @@ void main() {
       });
 
       test('fails if token verification yields forged token', () async {
-        verifyTokenResponse.body = '{"aud": "forgery"}';
+        verifyTokenResponse.body = '{"aud": "forgery", "email": "abc@abc.com"}';
         config.oauthClientIdValue = 'expected-client-id';
         await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
             throwsA(isA<Unauthenticated>()));
@@ -210,6 +210,15 @@ void main() {
         expect(log.records.single.level, LogLevel.WARNING);
         expect(log.records.single.message, contains('forgery'));
         expect(log.records.single.message, contains('expected-client-id'));
+      });
+
+      test('allows different aud for gcloud tokens with google accounts', () async {
+        verifyTokenResponse.body = '{"aud": "different", "email": "abc@google.com"}';
+        config.oauthClientIdValue = 'expected-client-id';
+        await expectLater(auth.authenticateIdToken('abc123', clientContext: clientContext, log: log),
+            throwsA(isA<Unauthenticated>()));
+        expect(httpClient.requestCount, 1);
+        expect(log.records, hasLength(0));
       });
 
       test('succeeds for google.com auth user', () async {
