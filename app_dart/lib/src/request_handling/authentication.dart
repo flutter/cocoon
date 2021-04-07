@@ -103,7 +103,6 @@ class AuthenticationProvider {
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     final String agentId = request.headers.value('Agent-ID');
-    final String authorization = request.headers.value('Authorization');
     final bool isCron = request.headers.value('X-Appengine-Cron') == 'true';
     final String idTokenFromCookie = request.cookies
         .where((Cookie cookie) => cookie.name == 'X-Flutter-IdToken')
