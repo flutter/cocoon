@@ -7,7 +7,6 @@ import 'package:yaml/yaml.dart';
 import 'package:cocoon_service/src/datastore/config.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
 import '../request_handling/fake_logging.dart';
@@ -20,7 +19,6 @@ class FakeScheduler extends Scheduler {
     Config config,
   }) : super(
           config: config,
-          cache: CacheService(inMemory: true),
           log: FakeLogging(),
         );
 

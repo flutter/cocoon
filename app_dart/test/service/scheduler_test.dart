@@ -16,7 +16,6 @@ import 'package:cocoon_service/protos.dart' show SchedulerConfig, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
@@ -38,7 +37,6 @@ tasks:
 ''';
 
 void main() {
-  CacheService cache;
   FakeConfig config;
   FakeDatastoreDB db;
   FakeHttpClient httpClient;
@@ -60,7 +58,6 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
-      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
@@ -72,7 +69,6 @@ void main() {
       });
 
       scheduler = Scheduler(
-        cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,
@@ -212,7 +208,6 @@ void main() {
         return Future<TableDataInsertAllResponse>.value(null);
       });
 
-      cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
       config = FakeConfig(
         tabledataResourceApi: tabledataResourceApi,
@@ -227,7 +222,6 @@ void main() {
         }
       });
       scheduler = Scheduler(
-        cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         httpClientProvider: () => httpClient,

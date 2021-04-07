@@ -20,7 +20,6 @@ import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
-import 'cache_service.dart';
 import 'datastore.dart';
 import 'luci.dart';
 
@@ -32,7 +31,6 @@ import 'luci.dart';
 ///   3. Retry mechanisms for tasks
 class Scheduler {
   Scheduler({
-    @required this.cache,
     @required this.config,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
@@ -41,7 +39,6 @@ class Scheduler {
   })  : assert(datastoreProvider != null),
         assert(gitHubBackoffCalculator != null);
 
-  final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
@@ -49,9 +46,6 @@ class Scheduler {
 
   DatastoreService datastore;
   Logging log;
-
-  /// Subcache key to store [SchedulerConfig] for quicker retrievals.
-  static const String schedulerSubcacheName = 'scheduler';
 
   /// Sets the appengine [log] used by this class to log debug and error
   /// messages. This method has to be called before any other method in this
