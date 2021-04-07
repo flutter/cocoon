@@ -10,9 +10,6 @@ import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
 import '../datastore/config.dart';
-import '../foundation/providers.dart';
-import '../foundation/typedefs.dart';
-import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/devicelab/manifest.dart';
 import '../request_handling/api_request_handler.dart';
@@ -31,30 +28,20 @@ class RefreshGithubCommits extends ApiRequestHandler<Body> {
   const RefreshGithubCommits(
     Config config,
     AuthenticationProvider authenticationProvider, {
+    @required this.scheduler,
     @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting this.httpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting this.gitHubBackoffCalculator = twoSecondLinearBackoff,
   })  : assert(datastoreProvider != null),
-        assert(httpClientProvider != null),
         super(config: config, authenticationProvider: authenticationProvider);
 
   final DatastoreServiceProvider datastoreProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
-  final HttpClientProvider httpClientProvider;
+
+  final Scheduler scheduler;
 
   @override
   Future<Body> get() async {
     final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
     final DatastoreService datastore = datastoreProvider(config.db);
-
-    final Scheduler scheduler = Scheduler(
-      config: config,
-      datastore: datastore,
-      httpClientProvider: httpClientProvider,
-      gitHubBackoffCalculator: gitHubBackoffCalculator,
-      log: log,
-    );
 
     for (String branch in await config.flutterBranches) {
       final List<Commit> lastProcessedCommit = await datastore.queryRecentCommits(limit: 1, branch: branch).toList();

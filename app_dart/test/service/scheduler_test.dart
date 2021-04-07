@@ -5,10 +5,12 @@
 import 'dart:io';
 
 import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSystem, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -16,13 +18,16 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
-import 'package:yaml/yaml.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/utilities/mocks.dart';
+
+const String emptyDeviceLabTaskManifestYaml = '''
+tasks:
+''';
 
 const String singleDeviceLabTaskManifestYaml = '''
 tasks:
@@ -55,11 +60,20 @@ void main() {
 
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
-      httpClient = FakeHttpClient();
-      httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
 
       scheduler = Scheduler(
-          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
+        config: config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+        httpClientProvider: () => httpClient,
+        log: FakeLogging(),
+      );
     });
 
     List<Commit> createCommitList(
@@ -83,6 +97,20 @@ void main() {
     test('succeeds when GitHub returns no commits', () async {
       await scheduler.addCommits(<Commit>[]);
       expect(db.values, isEmpty);
+    });
+
+    test('schedules commit when devicelab manifest is empty', () async {
+      config.flutterBranchesValue = <String>['master'];
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = emptyDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
+      expect(db.values.values.whereType<Commit>().length, 0);
+      await scheduler.addCommits(createCommitList(<String>['1']));
+      expect(db.values.values.whereType<Commit>().length, 1);
     });
 
     test('inserts all relevant fields of the commit', () async {
@@ -186,11 +214,19 @@ void main() {
         dbValue: db,
         flutterBranchesValue: <String>['master'],
       );
-      httpClient = FakeHttpClient();
-      httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
-
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
       scheduler = Scheduler(
-          config: config, datastore: DatastoreService(db, 2), httpClientProvider: () => httpClient, log: FakeLogging());
+        config: config,
+        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+        httpClientProvider: () => httpClient,
+        log: FakeLogging(),
+      );
     });
 
     test('creates expected commit', () async {

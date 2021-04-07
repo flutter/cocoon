@@ -11,13 +11,11 @@ import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/config.dart';
-import '../foundation/providers.dart';
 import '../model/github/checks.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/buildbucket.dart';
-import '../service/datastore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
@@ -29,18 +27,13 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 
 @immutable
 class GithubWebhook extends RequestHandler<Body> {
-  GithubWebhook(Config config,
-      {@required this.buildBucketClient,
-      @visibleForTesting Scheduler schedulerValue,
-      this.luciBuildService,
-      this.githubChecksService})
-      : assert(buildBucketClient != null),
-        scheduler = schedulerValue ??
-            Scheduler(
-              config: config,
-              datastore: DatastoreService.defaultProvider(config.db),
-              httpClientProvider: Providers.freshHttpClient,
-            ),
+  const GithubWebhook(
+    Config config, {
+    @required this.buildBucketClient,
+    @required this.scheduler,
+    this.luciBuildService,
+    this.githubChecksService,
+  })  : assert(buildBucketClient != null),
         super(config: config);
 
   /// A client for querying and scheduling LUCI Builds.

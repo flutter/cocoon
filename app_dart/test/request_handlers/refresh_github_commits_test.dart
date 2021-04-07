@@ -19,8 +19,8 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
-import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 const String singleTaskManifestYaml = '''
@@ -35,7 +35,7 @@ void main() {
     FakeConfig config;
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
-    FakeHttpClient httpClient;
+    FakeScheduler scheduler;
     ApiRequestHandlerTester tester;
     RefreshGithubCommits handler;
 
@@ -84,14 +84,13 @@ void main() {
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
       auth = FakeAuthenticationProvider();
-      httpClient = FakeHttpClient();
+      scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
       handler = RefreshGithubCommits(
         config,
         auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        httpClientProvider: () => httpClient,
-        gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        scheduler: scheduler,
       );
 
       githubService.listCommitsBranch = (String branch, int hours) {
@@ -115,7 +114,7 @@ void main() {
       config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
-      httpClient.request.response.body = singleTaskManifestYaml;
+      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().first;
       expect(db.values.values.whereType<Commit>().length, 2);
@@ -133,7 +132,7 @@ void main() {
 
       expect(db.values.values.whereType<Commit>().length, 4);
       expect(db.values.values.whereType<Task>().length, 0);
-      httpClient.request.response.body = singleTaskManifestYaml;
+      scheduler.devicelabManifest = singleTaskManifestYaml;
       // Commits 7, 8, 9 will get added and scheduled to the tree
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 7);
@@ -146,7 +145,7 @@ void main() {
       config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
-      httpClient.request.response.body = singleTaskManifestYaml;
+      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
     });
@@ -155,7 +154,7 @@ void main() {
       githubCommits = <String>['1'];
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
-      httpClient.request.response.body = singleTaskManifestYaml;
+      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
@@ -182,7 +181,7 @@ void main() {
           throw StateError('Commit failed');
         }
       };
-      httpClient.request.response.body = singleTaskManifestYaml;
+      scheduler.devicelabManifest = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 3);
       expect(db.values.values.whereType<Task>().length, 10);

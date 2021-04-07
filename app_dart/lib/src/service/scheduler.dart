@@ -20,8 +20,8 @@ import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
-import '../service/luci.dart';
 import 'datastore.dart';
+import 'luci.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -32,17 +32,19 @@ import 'datastore.dart';
 class Scheduler {
   Scheduler({
     @required this.config,
-    @required this.datastore,
+    this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
     this.httpClientProvider,
     this.log,
-  })  : assert(datastore != null),
+  })  : assert(datastoreProvider != null),
         assert(gitHubBackoffCalculator != null);
 
   final Config config;
-  final DatastoreService datastore;
+  final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
   final GitHubBackoffCalculator gitHubBackoffCalculator;
+
+  DatastoreService datastore;
   Logging log;
 
   /// Sets the appengine [log] used by this class to log debug and error
@@ -59,6 +61,7 @@ class Scheduler {
   ///   * Schedule tasks listed in its scheduler config
   /// Otherwise, ignore it.
   Future<void> addCommits(List<Commit> commits) async {
+    datastore = datastoreProvider(config.db);
     final List<Commit> newCommits = await _getNewCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
@@ -71,6 +74,7 @@ class Scheduler {
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
+    datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged) {
       log.warning('Only pull requests that were closed and merged should have tasks scheduled');
@@ -186,7 +190,7 @@ class Scheduler {
 
     final YamlMap yaml = await loadDevicelabManifest(commit);
     final Manifest manifest = Manifest.fromJson(yaml);
-    manifest.tasks.forEach((String taskName, ManifestTask info) {
+    manifest.tasks?.forEach((String taskName, ManifestTask info) {
       tasks.add(newTask(
         taskName,
         info.stage,

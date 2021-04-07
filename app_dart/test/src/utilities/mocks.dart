@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/reservation_provider.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/task_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -27,8 +26,6 @@ class MockRepositoriesService extends Mock implements RepositoriesService {}
 class MockTabledataResourceApi extends Mock implements TabledataResourceApi {}
 
 class MockAccessTokenService extends Mock implements AccessTokenService {}
-
-class MockScheduler extends Mock implements Scheduler {}
 
 class MockTaskService extends Mock implements TaskService {}
 
