@@ -50,6 +50,9 @@ import 'exceptions.dart';
 ///     as a user account. The [RequestContext.agent] field will be null
 ///     (unless the request _also_ contained the aforementioned headers).
 ///
+///     @google.com accounts can call APIs using curl and gcloud.
+///     E.g. curl '<api_url>' -H "X-Flutter-IdToken: $(gcloud auth print-identity-token)"
+///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is an [AllowedAccount] in Cocoon's Datastore.
 ///
