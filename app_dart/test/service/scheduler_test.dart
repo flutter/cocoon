@@ -128,6 +128,23 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 1);
     });
 
+    test('schedules commit when devicelab manifest 404s', () async {
+      config.flutterBranchesValue = <String>['master'];
+      httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
+        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
+          httpClient.request.response.statusCode = HttpStatus.notFound;
+        } else if (request.uri.path.contains('.ci.yaml')) {
+          httpClient.request.response.body = singleCiYaml;
+        } else {
+          throw Exception('Failed to find ${request.uri.path}');
+        }
+      });
+      expect(db.values.values.whereType<Commit>().length, 0);
+      await scheduler.addCommits(createCommitList(<String>['1']));
+      expect(db.values.values.whereType<Commit>().length, 1);
+    });
+
+
     test('inserts all relevant fields of the commit', () async {
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
