@@ -12,8 +12,6 @@ import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/cocoon_service.dart';
 
-// This test ensures that the config files of all repositories
-
 class Repo {
   const Repo({
     @required this.name,
