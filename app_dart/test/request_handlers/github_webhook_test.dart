@@ -489,7 +489,7 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_driver/blah.dart',
           PullRequestFile()..filename = 'examples/flutter_gallery/blah.dart',
           PullRequestFile()..filename = 'dev/bots/test.dart',
-          PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
+          PullRequestFile()..filename = 'dev/devicelab/bin/tasks/analyzer_benchmark.dart',
           PullRequestFile()..filename = 'bin/internal/engine.version',
           PullRequestFile()..filename = 'packages/flutter/lib/src/cupertino/blah.dart',
           PullRequestFile()..filename = 'packages/flutter/lib/src/material/blah.dart',
@@ -543,7 +543,7 @@ void main() {
       when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
         (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
           PullRequestFile()..filename = 'dev/bots/test.dart',
-          PullRequestFile()..filename = 'dev/devicelab/lib/tasks/plugin_tests.dart',
+          PullRequestFile()..filename = 'dev/devicelab/bin/tasks/analyzer_benchmark.dart',
         ]),
       );
 

@@ -218,7 +218,7 @@ class GithubWebhook extends RequestHandler<Body> {
 
     await for (PullRequestFile file in files) {
       if (file.filename.endsWith('.dart') &&
-          !file.filename.startsWith('dev/devicelab/') &&
+          !file.filename.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename.startsWith('dev/bots/')) {
         needsTests = true;
       }
