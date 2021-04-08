@@ -31,3 +31,6 @@ tasks:
 
   - task: device_doctor
     script: test_utilities/bin/dart_test_runner.sh
+
+  - task: validate_ci_configs
+    script: test_utilities/bin/validate_all_ci_configs.sh
