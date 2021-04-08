@@ -4,57 +4,35 @@
 
 import 'dart:io' as io;
 
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/cocoon_service.dart';
 
-class Repo {
-  const Repo({
-    @required this.name,
-    @required this.remoteUrl,
-    this.ref = 'master',
-  });
-
-  final String name;
-
-  /// Remote URL to clone from.
-  final String remoteUrl;
-
-  /// Default git ref to checkout.
-  final String ref;
-}
+import './common.dart';
 
 /// List of repositories that have valid .ci.yaml config files.
-const List<Repo> allRepos = <Repo>[
-  Repo(
-    name: 'framework',
-    remoteUrl: 'https://github.com/flutter/flutter.git',
-  ),
+///
+/// These will be prepended by 'https://raw.githubusercontent.com/'. Should be
+/// of the form '<GITHUB_ORG>/<REPO_NAME>/<BRANCH>/<PATH_TO_FILE>'.
+const List<String> configFiles = <String>[
+  'flutter/flutter/master/.ci.yaml',
 ];
 
-void main() {
-  const FileSystem fs = LocalFileSystem();
-
-  for (final Repo repo in allRepos) {
-    test('validate config file of ${repo.name}', () {
-      final Directory dir = fs.systemTempDirectory.createTempSync(repo.name);
-
-      final io.ProcessResult result = io.Process.runSync(
-        'git',
-        <String>['clone', '-b', repo.ref, '--', repo.remoteUrl, dir.path],
+Future<void> main() async {
+  for (final String configFile in configFiles) {
+    test('validate config file of $configFile', () async {
+      final String configContent = await remoteFileContent(
+        () => io.HttpClient(),
+        TestLogging.instance,
+        twoSecondLinearBackoff,
+        configFile,
       );
-      expect(
-        result.exitCode,
-        0,
-        reason: 'stdout: ${result.stdout}\nstderr: ${result.stderr}',
-      );
+      if (configContent == null) {
+        fail('Failed to download file: https://raw.githubusercontent.com/$configFile');
+      }
 
-      final File configFile = dir.childFile('.ci.yaml');
-      final YamlMap configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
+      final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       try {
         loadSchedulerConfig(configYaml);
       } on FormatException catch (e) {
