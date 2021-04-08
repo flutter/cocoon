@@ -50,6 +50,9 @@ import 'exceptions.dart';
 ///     as a user account. The [RequestContext.agent] field will be null
 ///     (unless the request _also_ contained the aforementioned headers).
 ///
+///     @google.com accounts can call APIs using curl and gcloud.
+///     E.g. curl '<api_url>' -H "X-Flutter-IdToken: $(gcloud auth print-identity-token)"
+///
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is an [AllowedAccount] in Cocoon's Datastore.
 ///
@@ -129,7 +132,6 @@ class AuthenticationProvider {
           throw Unauthenticated('Invalid agent: $agentId');
         }
       }
-
       return AuthenticatedContext(agent: agent, clientContext: clientContext);
     } else if (isCron) {
       // Authenticate cron requests that are not agents.
@@ -151,7 +153,6 @@ class AuthenticationProvider {
           log.debug('Failed to authenticate cookie id token');
         }
       }
-
       if (idTokenFromHeader != null) {
         return authenticateIdToken(idTokenFromHeader, clientContext: clientContext, log: log);
       }
@@ -191,7 +192,7 @@ class AuthenticationProvider {
 
       final String clientId = await config.oauthClientId;
       assert(clientId != null);
-      if (token.audience != clientId) {
+      if (token.audience != clientId && !token.email.endsWith('@google.com')) {
         log.warning('Possible forged token: "${token.audience}" (expected "$clientId")');
         throw const Unauthenticated('Invalid ID token');
       }
