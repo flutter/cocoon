@@ -22,19 +22,14 @@ const List<String> configFiles = <String>[
 Future<void> main() async {
   for (final String configFile in configFiles) {
     test('validate config file of $configFile', () async {
-      final String configContent = await remoteFileContent(
-        () => io.HttpClient(),
-        TestLogging.instance,
-        twoSecondLinearBackoff,
+      final String configContent = await githubFileContent(
         configFile,
+        httpClientProvider: () => io.HttpClient(),
+        log: TestLogging.instance,
       );
-      if (configContent == null) {
-        fail('Failed to download file: https://raw.githubusercontent.com/$configFile');
-      }
-
       final YamlMap configYaml = loadYaml(configContent) as YamlMap;
       try {
-        loadSchedulerConfig(configYaml);
+        schedulerConfigFromYaml(configYaml);
       } on FormatException catch (e) {
         fail(e.message);
       }

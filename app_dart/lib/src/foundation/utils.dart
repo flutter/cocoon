@@ -75,7 +75,7 @@ FutureOr<String> getUrl(
       throw HttpException('HTTP $status: $url');
     }
   } finally {
-    client.close();
+    client.close(force: true);
   }
 }
 
