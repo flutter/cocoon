@@ -9,13 +9,13 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSystem, Target;
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
@@ -35,6 +35,13 @@ tasks:
   linux_test:
     stage: devicelab
     required_agent_capabilities: ["linux/android"]
+''';
+
+const String singleCiYaml = '''
+enabled_branches:
+  - master
+targets:
+  - name: A
 ''';
 
 void main() {
@@ -66,6 +73,8 @@ void main() {
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
         if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
           httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else if (request.uri.path.contains('.ci.yaml')) {
+          httpClient.request.response.body = singleCiYaml;
         } else {
           throw Exception('Failed to find ${request.uri.path}');
         }
@@ -108,6 +117,8 @@ void main() {
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
         if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
           httpClient.request.response.body = emptyDeviceLabTaskManifestYaml;
+        } else if (request.uri.path.contains('.ci.yaml')) {
+          httpClient.request.response.body = singleCiYaml;
         } else {
           throw Exception('Failed to find ${request.uri.path}');
         }
@@ -200,7 +211,15 @@ void main() {
 
       config.flutterBranchesValue = <String>['master'];
       httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-      await expectLater(scheduler.loadDevicelabManifest(shaToCommit('123')), throwsA(isA<HttpStatusException>()));
+      await expectLater(
+          scheduler.loadDevicelabManifest(
+            shaToCommit('123'),
+            retryOptions: const RetryOptions(
+              maxAttempts: 3,
+              maxDelay: Duration.zero,
+            ),
+          ),
+          throwsA(isA<HttpException>()));
       expect(retry, 3);
     });
   });
@@ -222,6 +241,8 @@ void main() {
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
         if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
           httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
+        } else if (request.uri.path.contains('.ci.yaml')) {
+          httpClient.request.response.body = singleCiYaml;
         } else {
           throw Exception('Failed to find ${request.uri.path}');
         }

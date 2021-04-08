@@ -208,6 +208,9 @@ class Scheduler {
       ));
     });
 
+    final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
+    log.debug('Loaded scheduler config $schedulerConfig');
+
     return tasks;
   }
 
