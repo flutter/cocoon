@@ -144,7 +144,6 @@ void main() {
       expect(db.values.values.whereType<Commit>().length, 1);
     });
 
-
     test('inserts all relevant fields of the commit', () async {
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
