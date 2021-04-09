@@ -22,7 +22,7 @@ class Task extends Model<String> {
   /// Creates a new [Task].
   Task({
     Key<String> key,
-    this.commitKey,
+    @required this.commitKey,
     this.createTimestamp = 0,
     this.startTimestamp = 0,
     this.endTimestamp = 0,
@@ -39,7 +39,8 @@ class Task extends Model<String> {
     this.builderName,
     this.luciBucket,
     String status,
-  }) : _status = status {
+  })  : _status = status,
+        assert(commitKey != null) {
     if (status != null && !legalStatusValues.contains(status)) {
       throw ArgumentError('Invalid state: "$status"');
     }

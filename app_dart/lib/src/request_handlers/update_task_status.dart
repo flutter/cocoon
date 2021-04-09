@@ -160,7 +160,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   Future<Task> _getTaskFromEncodedKey(DatastoreService datastore) {
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key<int> taskKey = keyHelper.decode(requestData[taskKeyParam] as String) as Key<int>;
+    final Key<String> taskKey = keyHelper.decode(requestData[taskKeyParam] as String) as Key<String>;
     return datastore.db.lookupValue<Task>(taskKey, orElse: () {
       throw BadRequestException('No such task: ${taskKey.id}');
     });

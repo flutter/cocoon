@@ -66,7 +66,7 @@ class KeyHelper {
   String encode(Key<dynamic> key) {
     final Reference reference = Reference()
       ..app = applicationContext.applicationID
-      ..path = _asPath(key);
+      ..path = asPath(key);
     if (applicationContext.partition != null && applicationContext.partition.isNotEmpty) {
       reference.nameSpace = applicationContext.partition;
     }
@@ -131,7 +131,7 @@ class KeyHelper {
     return Map<Type, Kind>.unmodifiable(result);
   }
 
-  Path _asPath(Key<dynamic> key) {
+  Path asPath(Key<dynamic> key) {
     final List<Key<dynamic>> path = <Key<dynamic>>[];
     for (Key<dynamic> current = key; current != null && !current.isEmpty; current = current.parent) {
       path.insert(0, current);

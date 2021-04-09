@@ -30,7 +30,7 @@ class LogChunk extends Model<int> {
 
   /// The key of the [Model] entity with which this log is associated.
   @ModelKeyProperty(propertyName: 'OwnerKey', required: true)
-  Key<int> ownerKey;
+  Key<String> ownerKey;
 
   @override
   String toString() {

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -36,10 +37,12 @@ void main() {
     final FakeFlutterDestination fakeMetricsDestination = FakeFlutterDestination();
 
     Commit commit;
+    Task task;
     const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
     const String taskId = 'test a';
-    const String taskKeyEncoded =
-        'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcl8LEglDaGVja2xpc3QiP2ZsdXR0ZXIvZmx1dHRlci9tYXN0ZXIvNzhjYmZiZmY0MjY3NjQzYmIxOTEzYmM4MjBmNWNlOGEzZTU5MWI0MAwLEgRUYXNrGICAmIeF3oAIDA';
+
+    String taskKeyEncoded;
+    // 'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcl8LEglDaGVja2xpc3QiP2ZsdXR0ZXIvZmx1dHRlci9tYXN0ZXIvNzhjYmZiZmY0MjY3NjQzYmIxOTEzYmM4MjBmNWNlOGEzZTU5MWI0MAwLEgRUYXNrGICAmIeF3oAIDA';
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
@@ -50,7 +53,13 @@ void main() {
         maxTaskRetriesValue: 2,
         metricsDestination: fakeMetricsDestination,
       );
+      commit = Commit(
+        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
+        sha: commitSha,
+      );
+      task = Task(name: taskId, commitKey: commit.key);
       tester = ApiRequestHandlerTester();
+      taskKeyEncoded = FakeKeyHelper().encode(task.key);
       tester.requestData = <String, dynamic>{
         'TaskKey': taskKeyEncoded,
         'NewStatus': 'Succeeded',
@@ -61,10 +70,6 @@ void main() {
         config,
         FakeAuthenticationProvider(),
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-      );
-      commit = Commit(
-        key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/master/$commitSha'),
-        sha: commitSha,
       );
     });
 
