@@ -53,6 +53,11 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
+  Future<bool> refreshGitHubCommits(String idToken) async {
+    return false;
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String accessToken) async {
     return false;
   }

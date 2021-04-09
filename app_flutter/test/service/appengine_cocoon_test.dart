@@ -303,6 +303,27 @@ void main() {
     });
   });
 
+  group('AppEngine CocoonService refresh github commits', () {
+    AppEngineCocoonService service;
+
+    setUp(() {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 200);
+      }));
+    });
+
+    test('should return true if request succeeds', () async {
+      expect(await service.refreshGitHubCommits('fakeIdToken'), true);
+    });
+
+    test('should return false if request failed', () async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response('', 500);
+      }));
+      expect(await service.refreshGitHubCommits('fakeIdToken'), false);
+    });
+  });
+
   group('AppEngine CocoonService download log', () {
     AppEngineCocoonService service;
 

@@ -44,6 +44,9 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
   Duration get refreshRate => null;
 
   @override
+  Future<bool> refreshGitHubCommits() async => false;
+
+  @override
   Future<bool> rerunTask(Task task) async => rerunTaskResult;
   final bool rerunTaskResult;
 
