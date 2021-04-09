@@ -13,6 +13,7 @@ import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
 import '../datastore/config.dart';
+import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
@@ -34,10 +35,11 @@ class Scheduler {
     @required this.config,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
-    this.httpClientProvider,
+    this.httpClientProvider = Providers.freshHttpClient,
     this.log,
   })  : assert(datastoreProvider != null),
-        assert(gitHubBackoffCalculator != null);
+        assert(gitHubBackoffCalculator != null),
+        assert(httpClientProvider != null);
 
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
