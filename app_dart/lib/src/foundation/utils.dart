@@ -94,6 +94,7 @@ Future<Uint8List> getBranches(
       retryOptions: retryOptions,
     );
   } on HttpException {
+    log.warning('githubFileContent failed to get branches');
     content = 'master';
   }
 
@@ -143,17 +144,22 @@ Future<List<LuciBuilder>> getLuciBuilders(
   };
   final String filePath = '${slug.owner}/${slug.name}/$commitSha/${repoFilePathPrefix[slug.name]}';
   final String fileName = bucket == 'try' ? 'try_builders.json' : 'prod_builders.json';
+  final String builderConfigPath = '$filePath/$fileName';
   String builderContent;
   try {
     builderContent = await githubFileContent(
-      '$filePath/$fileName',
+      builderConfigPath,
       httpClientProvider: httpClientProvider,
       log: log,
       retryOptions: retryOptions,
     );
   } on NotFoundException {
     builderContent = '{"builders":[]}';
+  } on HttpException catch (_, e) {
+    log.warning('githubFileContent failed to get $builderConfigPath: $e');
+    builderContent = '{"builders":[]}';
   }
+
   Map<String, dynamic> builderMap;
   builderMap = json.decode(builderContent) as Map<String, dynamic>;
   final List<dynamic> builderList = builderMap['builders'] as List<dynamic>;

@@ -240,6 +240,10 @@ class Scheduler {
         retryOptions: retryOptions,
       );
     } on NotFoundException {
+      log.debug('Failed to find $ciPath');
+      return SchedulerConfig.getDefault().writeToBuffer();
+    } on HttpException catch (_, e) {
+      log.warning('githubFileContent failed to get $ciPath: $e');
       return SchedulerConfig.getDefault().writeToBuffer();
     }
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
@@ -266,11 +270,13 @@ class Scheduler {
         log: log,
         retryOptions: retryOptions,
       );
+      return loadYaml(content) as YamlMap;
     } on NotFoundException {
       return loadYaml('tasks:') as YamlMap;
+    } on HttpException catch (_, e) {
+      log.error('githubFileContent failed to get $path: $e');
+      rethrow;
     }
-
-    return loadYaml(content) as YamlMap;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
