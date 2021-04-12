@@ -128,7 +128,7 @@ void main() {
     expect(find.byType(dropdownButtonType), findsOneWidget);
   });
 
-    testWidgets('shows refresh github commits button', (WidgetTester tester) async {
+  testWidgets('shows refresh github commits button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
