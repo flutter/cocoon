@@ -82,10 +82,10 @@ const PhaseConfig$json = const {
   '1': 'PhaseConfig',
   '2': const [
     const {'1': 'pool', '3': 1, '4': 1, '5': 14, '6': '.Pool', '10': 'pool'},
-    const {'1': 'enabled', '3': 2, '4': 1, '5': 8, '10': 'enabled'},
+    const {'1': 'enabled', '3': 2, '4': 1, '5': 8, '7': 'true', '10': 'enabled'},
   ],
 };
 
 /// Descriptor for `PhaseConfig`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List phaseConfigDescriptor =
-    $convert.base64Decode('CgtQaGFzZUNvbmZpZxIZCgRwb29sGAEgASgOMgUuUG9vbFIEcG9vbBIYCgdlbmFibGVkGAIgASgIUgdlbmFibGVk');
+final $typed_data.Uint8List phaseConfigDescriptor = $convert
+    .base64Decode('CgtQaGFzZUNvbmZpZxIZCgRwb29sGAEgASgOMgUuUG9vbFIEcG9vbBIeCgdlbmFibGVkGAIgASgIOgR0cnVlUgdlbmFibGVk');

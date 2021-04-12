@@ -274,7 +274,9 @@ class PhaseConfig extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..e<Pool>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pool', $pb.PbFieldType.OE,
         defaultOrMaker: Pool.prod, valueOf: Pool.valueOf, enumValues: Pool.values)
-    ..aOB(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabled')
+    ..a<$core.bool>(
+        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabled', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
     ..hasRequiredFields = false;
 
   PhaseConfig._() : super();
@@ -326,7 +328,7 @@ class PhaseConfig extends $pb.GeneratedMessage {
   void clearPool() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.bool get enabled => $_getBF(1);
+  $core.bool get enabled => $_getB(1, true);
   @$pb.TagNumber(2)
   set enabled($core.bool v) {
     $_setBool(1, v);

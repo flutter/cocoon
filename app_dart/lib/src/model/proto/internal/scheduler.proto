@@ -42,7 +42,7 @@ message Target {
 message PhaseConfig {
     optional Pool pool = 1;
     // Allows disabling tests not intended to run in this phase.
-    optional bool enabled = 2;
+    optional bool enabled = 2 [default = true];
 }
 
 enum Pool {
