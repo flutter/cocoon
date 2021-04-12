@@ -33,16 +33,10 @@ message Target {
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
-    optional PhaseConfig presubmit = 9;
-    optional PhaseConfig postsubmit = 10;
-}
-
-// CI Phase (i.e. pre-submit vs post-submit).
-// Next ID: 3
-message PhaseConfig {
-    optional Pool pool = 1;
-    // Allows disabling tests not intended to run in this phase.
-    optional bool enabled = 2 [default = true];
+    // Whether target should run pre-submit.
+    optional bool presubmit = 9 [default = true];
+    // Whether target should run post-submit.
+    optional bool postsubmit = 10 [default = true];
 }
 
 enum Pool {
