@@ -217,7 +217,20 @@ void main() {
       flutterRepoPRs.add(prInProgress);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with queued checks', () async {
@@ -231,7 +244,20 @@ void main() {
       flutterRepoPRs.add(prQueued);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with requested checks', () async {
@@ -245,7 +271,20 @@ void main() {
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with failed status', () async {
@@ -306,7 +345,72 @@ This pull request is not suitable for automatic merging in its current state.
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
+    });
+
+    test('Empty validations do not merge', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[],
+        lastCommitStatuses: const <StatusHelper>[],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
+    });
+
+    test('Does not fail with null statuses', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+      );
+      prRequested.lastCommitStatuses = null;
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Merge PR with successful status and checks', () async {
@@ -844,7 +948,7 @@ class PullRequestHelper {
   final String author;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
-  final List<StatusHelper> lastCommitStatuses;
+  List<StatusHelper> lastCommitStatuses;
   List<CheckRunHelper> lastCommitCheckRuns;
   final DateTime dateTime;
 
@@ -869,12 +973,14 @@ class PullRequestHelper {
               'oid': lastCommitHash,
               'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
               'status': <String, dynamic>{
-                'contexts': lastCommitStatuses.map((StatusHelper status) {
-                  return <String, dynamic>{
-                    'context': status.name,
-                    'state': status.state,
-                  };
-                }).toList(),
+                'contexts': lastCommitStatuses != null
+                    ? lastCommitStatuses.map((StatusHelper status) {
+                        return <String, dynamic>{
+                          'context': status.name,
+                          'state': status.state,
+                        };
+                      }).toList()
+                    : <dynamic>[]
               },
               'checkSuites': <String, dynamic>{
                 'nodes': lastCommitCheckRuns != null
