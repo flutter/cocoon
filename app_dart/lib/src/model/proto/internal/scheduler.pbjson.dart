@@ -58,8 +58,8 @@ const Target$json = const {
     const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.Target.PropertiesEntry', '10': 'properties'},
     const {'1': 'builder', '3': 7, '4': 1, '5': 9, '10': 'builder'},
     const {'1': 'scheduler', '3': 8, '4': 1, '5': 14, '6': '.SchedulerSystem', '7': 'cocoon', '10': 'scheduler'},
-    const {'1': 'presubmit', '3': 9, '4': 1, '5': 11, '6': '.PhaseConfig', '10': 'presubmit'},
-    const {'1': 'postsubmit', '3': 10, '4': 1, '5': 11, '6': '.PhaseConfig', '10': 'postsubmit'},
+    const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
+    const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
   ],
   '3': const [Target_PropertiesEntry$json],
 };
@@ -76,16 +76,4 @@ const Target_PropertiesEntry$json = const {
 
 /// Descriptor for `Target`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
-    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBI3Cgpwcm9wZXJ0aWVzGAYgAygLMhcuVGFyZ2V0LlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxIYCgdidWlsZGVyGAcgASgJUgdidWlsZGVyEjYKCXNjaGVkdWxlchgIIAEoDjIQLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISKgoJcHJlc3VibWl0GAkgASgLMgwuUGhhc2VDb25maWdSCXByZXN1Ym1pdBIsCgpwb3N0c3VibWl0GAogASgLMgwuUGhhc2VDb25maWdSCnBvc3RzdWJtaXQaPQoPUHJvcGVydGllc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
-@$core.Deprecated('Use phaseConfigDescriptor instead')
-const PhaseConfig$json = const {
-  '1': 'PhaseConfig',
-  '2': const [
-    const {'1': 'pool', '3': 1, '4': 1, '5': 14, '6': '.Pool', '10': 'pool'},
-    const {'1': 'enabled', '3': 2, '4': 1, '5': 8, '7': 'true', '10': 'enabled'},
-  ],
-};
-
-/// Descriptor for `PhaseConfig`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List phaseConfigDescriptor = $convert
-    .base64Decode('CgtQaGFzZUNvbmZpZxIZCgRwb29sGAEgASgOMgUuUG9vbFIEcG9vbBIeCgdlbmFibGVkGAIgASgIOgR0cnVlUgdlbmFibGVk');
+    'CgZUYXJnZXQSEgoEbmFtZRgBIAEoCVIEbmFtZRIiCgxkZXBlbmRlbmNpZXMYAiADKAlSDGRlcGVuZGVuY2llcxIfCgdicmluZ3VwGAMgASgIOgVmYWxzZVIHYnJpbmd1cBIcCgd0aW1lb3V0GAQgASgFOgIzMFIHdGltZW91dBIiCgd0ZXN0YmVkGAUgASgJOghsaW51eC12bVIHdGVzdGJlZBI3Cgpwcm9wZXJ0aWVzGAYgAygLMhcuVGFyZ2V0LlByb3BlcnRpZXNFbnRyeVIKcHJvcGVydGllcxIYCgdidWlsZGVyGAcgASgJUgdidWlsZGVyEjYKCXNjaGVkdWxlchgIIAEoDjIQLlNjaGVkdWxlclN5c3RlbToGY29jb29uUglzY2hlZHVsZXISIgoJcHJlc3VibWl0GAkgASgIOgR0cnVlUglwcmVzdWJtaXQSJAoKcG9zdHN1Ym1pdBgKIAEoCDoEdHJ1ZVIKcG9zdHN1Ym1pdBo9Cg9Qcm9wZXJ0aWVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AQ==');

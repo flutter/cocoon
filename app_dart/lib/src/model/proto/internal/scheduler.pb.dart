@@ -77,20 +77,20 @@ class Target extends $pb.GeneratedMessage {
     ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bringup')
     ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeout', $pb.PbFieldType.O3,
         defaultOrMaker: 30)
-    ..a<$core.String>(
-        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
+    ..a<$core.String>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
         defaultOrMaker: 'linux-vm')
-    ..m<$core.String, $core.String>(
-        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
+    ..m<$core.String, $core.String>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
     ..e<SchedulerSystem>(
         8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
         defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
-    ..aOM<PhaseConfig>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit',
-        subBuilder: PhaseConfig.create)
-    ..aOM<PhaseConfig>(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit',
-        subBuilder: PhaseConfig.create)
+    ..a<$core.bool>(
+        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
+    ..a<$core.bool>(
+        10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -103,8 +103,8 @@ class Target extends $pb.GeneratedMessage {
     $core.Map<$core.String, $core.String> properties,
     $core.String builder,
     SchedulerSystem scheduler,
-    PhaseConfig presubmit,
-    PhaseConfig postsubmit,
+    $core.bool presubmit,
+    $core.bool postsubmit,
   }) {
     final _result = create();
     if (name != null) {
@@ -240,102 +240,26 @@ class Target extends $pb.GeneratedMessage {
   void clearScheduler() => clearField(8);
 
   @$pb.TagNumber(9)
-  PhaseConfig get presubmit => $_getN(8);
+  $core.bool get presubmit => $_getB(8, true);
   @$pb.TagNumber(9)
-  set presubmit(PhaseConfig v) {
-    setField(9, v);
+  set presubmit($core.bool v) {
+    $_setBool(8, v);
   }
 
   @$pb.TagNumber(9)
   $core.bool hasPresubmit() => $_has(8);
   @$pb.TagNumber(9)
   void clearPresubmit() => clearField(9);
-  @$pb.TagNumber(9)
-  PhaseConfig ensurePresubmit() => $_ensure(8);
 
   @$pb.TagNumber(10)
-  PhaseConfig get postsubmit => $_getN(9);
+  $core.bool get postsubmit => $_getB(9, true);
   @$pb.TagNumber(10)
-  set postsubmit(PhaseConfig v) {
-    setField(10, v);
+  set postsubmit($core.bool v) {
+    $_setBool(9, v);
   }
 
   @$pb.TagNumber(10)
   $core.bool hasPostsubmit() => $_has(9);
   @$pb.TagNumber(10)
   void clearPostsubmit() => clearField(10);
-  @$pb.TagNumber(10)
-  PhaseConfig ensurePostsubmit() => $_ensure(9);
-}
-
-class PhaseConfig extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
-      const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'PhaseConfig',
-      createEmptyInstance: create)
-    ..e<Pool>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pool', $pb.PbFieldType.OE,
-        defaultOrMaker: Pool.prod, valueOf: Pool.valueOf, enumValues: Pool.values)
-    ..a<$core.bool>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabled', $pb.PbFieldType.OB,
-        defaultOrMaker: true)
-    ..hasRequiredFields = false;
-
-  PhaseConfig._() : super();
-  factory PhaseConfig({
-    Pool pool,
-    $core.bool enabled,
-  }) {
-    final _result = create();
-    if (pool != null) {
-      _result.pool = pool;
-    }
-    if (enabled != null) {
-      _result.enabled = enabled;
-    }
-    return _result;
-  }
-  factory PhaseConfig.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(i, r);
-  factory PhaseConfig.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(i, r);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-      'Will be removed in next major version')
-  PhaseConfig clone() => PhaseConfig()..mergeFromMessage(this);
-  @$core.Deprecated('Using this can add significant overhead to your binary. '
-      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-      'Will be removed in next major version')
-  PhaseConfig copyWith(void Function(PhaseConfig) updates) =>
-      super.copyWith((message) => updates(message as PhaseConfig)) as PhaseConfig; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static PhaseConfig create() => PhaseConfig._();
-  PhaseConfig createEmptyInstance() => create();
-  static $pb.PbList<PhaseConfig> createRepeated() => $pb.PbList<PhaseConfig>();
-  @$core.pragma('dart2js:noInline')
-  static PhaseConfig getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PhaseConfig>(create);
-  static PhaseConfig _defaultInstance;
-
-  @$pb.TagNumber(1)
-  Pool get pool => $_getN(0);
-  @$pb.TagNumber(1)
-  set pool(Pool v) {
-    setField(1, v);
-  }
-
-  @$pb.TagNumber(1)
-  $core.bool hasPool() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearPool() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.bool get enabled => $_getB(1, true);
-  @$pb.TagNumber(2)
-  set enabled($core.bool v) {
-    $_setBool(1, v);
-  }
-
-  @$pb.TagNumber(2)
-  $core.bool hasEnabled() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearEnabled() => clearField(2);
 }
