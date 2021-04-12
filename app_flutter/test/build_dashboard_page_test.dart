@@ -128,6 +128,28 @@ void main() {
     expect(find.byType(dropdownButtonType), findsOneWidget);
   });
 
+  testWidgets('shows refresh github commits button', (WidgetTester tester) async {
+    final BuildState fakeBuildState = FakeBuildState();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueProvider<BuildState>(
+          value: fakeBuildState,
+          child: ValueProvider<GoogleSignInService>(
+            value: fakeBuildState.authService,
+            child: const BuildDashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    // Open settings overlay
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+
+    expect(find.text('Refresh GitHub Commits'), findsOneWidget);
+  });
+
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState()..isTreeBuilding = null;
 

@@ -131,6 +131,19 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<bool> refreshGitHubCommits(String idToken) async {
+    assert(idToken != null);
+    final String refreshGitHubCommitsUrl = apiEndpoint('/api/refresh-github-commits');
+    final http.Response response = await _client.get(
+      refreshGitHubCommitsUrl,
+      headers: <String, String>{
+        'X-Flutter-IdToken': idToken,
+      },
+    );
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  @override
   Future<bool> rerunTask(Task task, String idToken) async {
     assert(idToken != null);
 

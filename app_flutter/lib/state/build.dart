@@ -308,6 +308,8 @@ class BuildState extends ChangeNotifier {
     assert(_statusesAreUnique(statuses));
   }
 
+  Future<bool> refreshGitHubCommits() async => cocoonService.refreshGitHubCommits(await authService.idToken);
+
   Future<bool> rerunTask(Task task) async {
     return cocoonService.rerunTask(task, await authService.idToken);
   }

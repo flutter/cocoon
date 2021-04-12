@@ -55,6 +55,9 @@ abstract class CocoonService {
   /// Returns true if successful, false if failed.
   Future<bool> downloadLog(Task task, String idToken, String commitSha);
 
+  /// Force update Cocoon to get the latest commits.
+  Future<bool> refreshGitHubCommits(String idToken);
+
   /// Creates [Agent] with the given information.
   ///
   /// Returns an auth token used to authorize the agent.

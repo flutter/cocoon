@@ -98,6 +98,10 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     );
                   }).toList(),
                 ),
+                TextButton(
+                  child: const Text('Refresh GitHub Commits'),
+                  onPressed: _buildState.refreshGitHubCommits,
+                ),
                 FilterPropertySheet(_filter),
                 Row(
                   mainAxisSize: MainAxisSize.min,
