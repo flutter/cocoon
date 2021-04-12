@@ -14,14 +14,14 @@ const Pool$json = const {
   '1': 'Pool',
   '2': const [
     const {'1': 'prod', '2': 1},
-    const {'1': 'test', '2': 2},
+    const {'1': 'try', '2': 2},
     const {'1': 'staging', '2': 3},
   ],
 };
 
 /// Descriptor for `Pool`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List poolDescriptor =
-    $convert.base64Decode('CgRQb29sEggKBHByb2QQARIICgR0ZXN0EAISCwoHc3RhZ2luZxAD');
+    $convert.base64Decode('CgRQb29sEggKBHByb2QQARIHCgN0cnkQAhILCgdzdGFnaW5nEAM=');
 @$core.Deprecated('Use schedulerSystemDescriptor instead')
 const SchedulerSystem$json = const {
   '1': 'SchedulerSystem',

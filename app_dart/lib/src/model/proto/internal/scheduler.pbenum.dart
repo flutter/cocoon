@@ -11,12 +11,12 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 class Pool extends $pb.ProtobufEnum {
   static const Pool prod = Pool._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'prod');
-  static const Pool test = Pool._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'test');
+  static const Pool try_ = Pool._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'try');
   static const Pool staging = Pool._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'staging');
 
   static const $core.List<Pool> values = <Pool>[
     prod,
-    test,
+    try_,
     staging,
   ];
 

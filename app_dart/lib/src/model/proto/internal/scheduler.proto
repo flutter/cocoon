@@ -49,8 +49,8 @@ enum Pool {
     // Post-submit pool.
     prod = 1;
     // Pre-submit pool.
-    test = 2;
-    // Staging pool. For migrations.
+    try = 2;
+    // Staging pool. For testing new infrastructure or infrastructure changes.
     staging = 3;
 }
 
@@ -61,5 +61,4 @@ enum SchedulerSystem {
     cocoon = 1;
     // LUCI triggers the build when mirrored to GoB. Cocoon triggers retries.
     luci = 2;
-  }
-  
+}
