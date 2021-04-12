@@ -37,6 +37,7 @@ void main() {
     final List<PullRequestHelper> cocoonRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> engineRepoPRs = <PullRequestHelper>[];
+    final List<PullRequestHelper> packageRepoPRs = <PullRequestHelper>[];
     final List<PullRequestHelper> pluginRepoPRs = <PullRequestHelper>[];
     List<dynamic> statuses = <dynamic>[];
     String branch;
@@ -74,6 +75,8 @@ void main() {
           return createQueryResult(engineRepoPRs);
         } else if (repoName == 'cocoon') {
           return createQueryResult(cocoonRepoPRs);
+        } else if (repoName == 'packages') {
+          return createQueryResult(packageRepoPRs);
         } else if (repoName == 'plugins') {
           return createQueryResult(pluginRepoPRs);
         } else {
@@ -119,6 +122,15 @@ void main() {
             variables: <String, dynamic>{
               'sOwner': 'flutter',
               'sName': 'flutter',
+              'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
+            },
+          ),
+          QueryOptions(
+            document: labeledPullRequestsWithReviewsQuery,
+            fetchPolicy: FetchPolicy.noCache,
+            variables: <String, dynamic>{
+              'sOwner': 'flutter',
+              'sName': 'packages',
               'sLabelName': config.waitingForTreeToGoGreenLabelNameValue,
             },
           ),
