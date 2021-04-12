@@ -39,15 +39,6 @@ message Target {
     optional bool postsubmit = 10 [default = true];
 }
 
-enum Pool {
-    // Post-submit pool.
-    prod = 1;
-    // Pre-submit pool.
-    try = 2;
-    // Staging pool. For testing new infrastructure or infrastructure changes.
-    staging = 3;
-}
-
 // Schedulers supported in SchedulerConfig.
 // Next ID: 3
 enum SchedulerSystem {

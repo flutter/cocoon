@@ -9,23 +9,6 @@
 import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-class Pool extends $pb.ProtobufEnum {
-  static const Pool prod = Pool._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'prod');
-  static const Pool try_ = Pool._(2, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'try');
-  static const Pool staging = Pool._(3, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'staging');
-
-  static const $core.List<Pool> values = <Pool>[
-    prod,
-    try_,
-    staging,
-  ];
-
-  static final $core.Map<$core.int, Pool> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static Pool valueOf($core.int value) => _byValue[value];
-
-  const Pool._($core.int v, $core.String n) : super(v, n);
-}
-
 class SchedulerSystem extends $pb.ProtobufEnum {
   static const SchedulerSystem cocoon =
       SchedulerSystem._(1, const $core.bool.fromEnvironment('protobuf.omit_enum_names') ? '' : 'cocoon');
