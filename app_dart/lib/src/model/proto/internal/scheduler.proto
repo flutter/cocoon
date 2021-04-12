@@ -12,7 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 8
+// Next ID: 11
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -33,6 +33,25 @@ message Target {
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
+    optional PhaseConfig presubmit = 9;
+    optional PhaseConfig postsubmit = 10;
+}
+
+// CI Phase (i.e. pre-submit vs post-submit).
+// Next ID: 4
+message PhaseConfig {
+    optional Pool pool = 1;
+    // Allows disabling tests not intended to run in this phase.
+    optional bool enabled = 2;
+}
+
+enum Pool {
+    // Post-submit pool.
+    prod = 1;
+    // Pre-submit pool.
+    test = 2;
+    // Staging pool. For migrations.
+    staging = 3;
 }
 
 // Schedulers supported in SchedulerConfig.
