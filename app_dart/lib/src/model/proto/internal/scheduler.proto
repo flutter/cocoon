@@ -38,7 +38,7 @@ message Target {
 }
 
 // CI Phase (i.e. pre-submit vs post-submit).
-// Next ID: 4
+// Next ID: 3
 message PhaseConfig {
     optional Pool pool = 1;
     // Allows disabling tests not intended to run in this phase.
