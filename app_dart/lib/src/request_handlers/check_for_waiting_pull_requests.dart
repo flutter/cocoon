@@ -40,10 +40,16 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
-    await _checkPRs('flutter', 'cocoon', log, client);
-    await _checkPRs('flutter', 'engine', log, client);
-    await _checkPRs('flutter', 'flutter', log, client);
-    await _checkPRs('flutter', 'plugins', log, client);
+    // Split the organization from the repository
+    final Iterable<String> supportedRepos =
+        Config.checksSupportedRepos.map((String repository) => repository.split('/')[1]);
+    for (String repo in supportedRepos) {
+      try {
+        await _checkPRs('flutter', repo, log, client);
+      } on Exception catch (_, e) {
+        log.error('_checkPRs error in $repo: $e');
+      }
+    }
 
     return Body.empty;
   }

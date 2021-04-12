@@ -48,6 +48,8 @@ class Config {
   };
 
   /// List of Github presubmit supported repos.
+  ///
+  /// This adds support for the `waiting for tree to go green label` to the repo.
   static const Set<String> checksSupportedRepos = <String>{
     'flutter/cocoon',
     'flutter/engine',
