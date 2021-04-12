@@ -408,10 +408,12 @@ class _AutoMergeQueryResult {
   final bool emptyValidations;
 
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge => ciSuccessful && failures.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty && !emptyValidations;
+  bool get shouldMerge =>
+      ciSuccessful && failures.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty && !emptyValidations;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel => !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations;
+  bool get shouldRemoveLabel =>
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations;
 
   String get removalMessage {
     if (!shouldRemoveLabel) {
