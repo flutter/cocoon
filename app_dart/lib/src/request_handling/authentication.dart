@@ -178,7 +178,7 @@ class AuthenticationProvider {
         /// Google Auth API returns a message in the response body explaining why
         /// the request failed. Such as "Invalid Token".
         final String body = await utf8.decodeStream(verifyTokenResponse);
-        log.warning('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
+        log.debug('Token verification failed: ${verifyTokenResponse.statusCode}; $body');
         throw const Unauthenticated('Invalid ID token');
       }
 

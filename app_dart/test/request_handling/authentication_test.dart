@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
@@ -176,7 +175,7 @@ void main() {
         expect(result.agent, isNull);
         expect(result.clientContext, same(clientContext));
 
-        // check log for debug statement and warning
+        // check log for debug statement
         expect(log.records, hasLength(2));
         expect(log.records.first.message, contains('Token verification failed: 401; Invalid token: bad-cookie'));
       });
@@ -188,7 +187,6 @@ void main() {
             throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
-        expect(log.records.single.level, LogLevel.WARNING);
         expect(log.records.single.message, contains('Invalid token: abc123'));
       });
 
@@ -207,7 +205,6 @@ void main() {
             throwsA(isA<Unauthenticated>()));
         expect(httpClient.requestCount, 1);
         expect(log.records, hasLength(1));
-        expect(log.records.single.level, LogLevel.WARNING);
         expect(log.records.single.message, contains('forgery'));
         expect(log.records.single.message, contains('expected-client-id'));
       });
