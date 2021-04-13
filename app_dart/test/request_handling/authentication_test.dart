@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
