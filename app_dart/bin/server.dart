@@ -46,7 +46,10 @@ Future<void> main() async {
     );
 
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
-    final Scheduler scheduler = Scheduler(config: config);
+    final Scheduler scheduler = Scheduler(
+      cache: cache,
+      config: config,
+    );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),

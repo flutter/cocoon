@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
@@ -21,6 +23,7 @@ import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
+import 'cache_service.dart';
 import 'datastore.dart';
 import 'luci.dart';
 
@@ -32,6 +35,7 @@ import 'luci.dart';
 ///   3. Retry mechanisms for tasks
 class Scheduler {
   Scheduler({
+    @required this.cache,
     @required this.config,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
@@ -41,6 +45,7 @@ class Scheduler {
         assert(gitHubBackoffCalculator != null),
         assert(httpClientProvider != null);
 
+  final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
   final HttpClientProvider httpClientProvider;
@@ -48,6 +53,9 @@ class Scheduler {
 
   DatastoreService datastore;
   Logging log;
+
+  /// Name of the subcache to store scheduler related values in redis.
+  static const String subcacheName = 'scheduler';
 
   /// Sets the appengine [log] used by this class to log debug and error
   /// messages. This method has to be called before any other method in this
@@ -202,21 +210,75 @@ class Scheduler {
       ));
     });
 
+    final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
+    log.debug('Loaded scheduler config $schedulerConfig');
+
     return tasks;
+  }
+
+  /// Load in memory the `.ci.yaml`.
+  Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async {
+    final String ciPath = '${commit.repository}/${commit.sha}/.ci.yaml';
+    final Uint8List configBytes = await cache.getOrCreate(subcacheName, ciPath,
+        createFn: () => _downloadSchedulerConfig(
+              ciPath,
+              retryOptions: retryOptions,
+            ),
+        ttl: const Duration(hours: 1));
+    return SchedulerConfig.fromBuffer(configBytes);
+  }
+
+  /// Get `.ci.yaml` from GitHub, and store the bytes in redis for future retrieval.
+  ///
+  /// If GitHub returns [HttpStatus.notFound], an empty config will be inserted assuming
+  /// that commit does not support the scheduler config file.
+  Future<Uint8List> _downloadSchedulerConfig(String ciPath, {RetryOptions retryOptions}) async {
+    String configContent;
+    try {
+      configContent = await githubFileContent(
+        ciPath,
+        httpClientProvider: httpClientProvider,
+        log: log,
+        retryOptions: retryOptions,
+      );
+    } on NotFoundException {
+      log.debug('Failed to find $ciPath');
+      return SchedulerConfig.getDefault().writeToBuffer();
+    } on HttpException catch (_, e) {
+      log.warning('githubFileContent failed to get $ciPath: $e');
+      return SchedulerConfig.getDefault().writeToBuffer();
+    }
+    final YamlMap configYaml = loadYaml(configContent) as YamlMap;
+    return schedulerConfigFromYaml(configYaml).writeToBuffer();
   }
 
   /// Load in memory the Cocoon Agent DeviceLab scheduler config.
   ///
+  /// If GitHub returns [HttpStatus.notFound], an empty manifest is returned.
+  ///
   // TODO(chillers): Remove when DeviceLab has migrated to LUCI. https://github.com/flutter/flutter/projects/151
   @visibleForTesting
-  Future<YamlMap> loadDevicelabManifest(Commit commit) async {
-    final String path = '/${commit.repository}/${commit.sha}/dev/devicelab/manifest.yaml';
+  Future<YamlMap> loadDevicelabManifest(
+    Commit commit, {
+    RetryOptions retryOptions,
+  }) async {
+    final String path = '${commit.repository}/${commit.sha}/dev/devicelab/manifest.yaml';
     log.debug('Getting devicelab manifest content');
-    final String content = await remoteFileContent(httpClientProvider, log, gitHubBackoffCalculator, path);
-    if (content == null) {
-      throw HttpStatusException(HttpStatus.serviceUnavailable, 'Failed to load $path from GitHub');
+    String content;
+    try {
+      content = await githubFileContent(
+        path,
+        httpClientProvider: httpClientProvider,
+        log: log,
+        retryOptions: retryOptions,
+      );
+      return loadYaml(content) as YamlMap;
+    } on NotFoundException {
+      return loadYaml('tasks:') as YamlMap;
+    } on HttpException catch (_, e) {
+      log.error('githubFileContent failed to get $path: $e');
+      rethrow;
     }
-    return loadYaml(content) as YamlMap;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
@@ -258,7 +320,7 @@ class Scheduler {
 }
 
 /// Load [yamlConfig] to [SchedulerConfig] and validate the dependency graph.
-SchedulerConfig loadSchedulerConfig(YamlMap yamlConfig) {
+SchedulerConfig schedulerConfigFromYaml(YamlMap yamlConfig) {
   final SchedulerConfig config = SchedulerConfig();
   config.mergeFromProto3Json(yamlConfig);
   _validateSchedulerConfig(config);
