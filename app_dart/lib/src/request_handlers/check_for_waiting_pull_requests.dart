@@ -46,7 +46,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     for (String repo in supportedRepos) {
       try {
         await _checkPRs('flutter', repo, log, client);
-      } on Exception catch (_, e) {
+      } catch (e) {
         log.error('_checkPRs error in $repo: $e');
       }
     }
@@ -209,16 +209,18 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
 
       final String sha = commit['oid'] as String;
       List<Map<String, dynamic>> statuses;
-      if (commit['status'] != null && (commit['status']['contexts'] as List<dynamic>).isNotEmpty) {
+      if (commit['status'] != null &&
+          commit['status']['contexts'] != null &&
+          (commit['status']['contexts'] as List<dynamic>).isNotEmpty) {
         statuses = (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
-      statuses = statuses ?? <Map<String, dynamic>>[];
+      statuses ??= <Map<String, dynamic>>[];
       List<Map<String, dynamic>> checkRuns;
       if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
         checkRuns =
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
-      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+      checkRuns ??= <Map<String, dynamic>>[];
       final Set<String> failures = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
