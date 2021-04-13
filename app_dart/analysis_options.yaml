@@ -39,6 +39,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
+    - "**/*.pbenum.dart"
 
 linter:
   rules:

@@ -12,7 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 8
+// Next ID: 11
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -33,6 +33,10 @@ message Target {
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
+    // Whether target should run pre-submit.
+    optional bool presubmit = 9 [default = true];
+    // Whether target should run post-submit.
+    optional bool postsubmit = 10 [default = true];
 }
 
 // Schedulers supported in SchedulerConfig.
@@ -42,5 +46,4 @@ enum SchedulerSystem {
     cocoon = 1;
     // LUCI triggers the build when mirrored to GoB. Cocoon triggers retries.
     luci = 2;
-  }
-  
+}
