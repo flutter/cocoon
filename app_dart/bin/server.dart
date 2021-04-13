@@ -81,11 +81,6 @@ Future<void> main() async {
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
-      '/api/refresh-github-commits': RefreshGithubCommits(
-        config,
-        authProvider,
-        scheduler: scheduler,
-      ),
       '/api/reserve-task': ReserveTask(config, authProvider),
       '/api/reset-devicelab-task': ResetDevicelabTask(
         config,
@@ -105,6 +100,11 @@ Future<void> main() async {
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
+      '/api/vacuum-github-commits': VacuumGithubCommits(
+        config,
+        authProvider,
+        scheduler: scheduler,
+      ),
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,

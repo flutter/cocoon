@@ -7,6 +7,9 @@ cron:
 - description: clean up stale datastore records
   url: /api/vacuum-clean
   schedule: every 1 hours
+- description: retrieve missing commits
+  url: /api/vacuum-github-commits
+  schedule: every 1 hours
 - description: sends build status to GitHub to annotate PRs and commits
   url: /api/push-build-status-to-github
   schedule: every 1 minutes

@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/request_handlers/refresh_github_commits.dart';
+import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 
@@ -31,19 +31,19 @@ tasks:
 ''';
 
 void main() {
-  group('RefreshGithubCommits', () {
+  group('VacuumGithubCommits', () {
     FakeConfig config;
     FakeAuthenticationProvider auth;
     FakeDatastoreDB db;
     FakeScheduler scheduler;
     ApiRequestHandlerTester tester;
-    RefreshGithubCommits handler;
+    VacuumGithubCommits handler;
 
     List<String> githubCommits;
     int yieldedCommitCount;
 
-    List<RepositoryCommit> commitList(int lastCommitTimestampMills) {
-      List<RepositoryCommit> commits = <RepositoryCommit>[];
+    List<RepositoryCommit> commitList() {
+      final List<RepositoryCommit> commits = <RepositoryCommit>[];
       for (String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
@@ -57,9 +57,6 @@ void main() {
           ..sha = sha
           ..author = author
           ..commit = gitCommit);
-      }
-      if (lastCommitTimestampMills == 0) {
-        commits = commits.take(1).toList();
       }
       return commits;
     }
@@ -82,11 +79,15 @@ void main() {
 
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, githubService: githubService, dbValue: db);
+      config = FakeConfig(
+          tabledataResourceApi: tabledataResourceApi,
+          githubService: githubService,
+          dbValue: db,
+          supportedBranchesValue: <String>['master']);
       auth = FakeAuthenticationProvider();
       scheduler = FakeScheduler(config: config);
       tester = ApiRequestHandlerTester();
-      handler = RefreshGithubCommits(
+      handler = VacuumGithubCommits(
         config,
         auth,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -94,7 +95,7 @@ void main() {
       );
 
       githubService.listCommitsBranch = (String branch, int hours) {
-        return commitList(hours);
+        return commitList();
       };
 
       when(githubService.github.repositories).thenReturn(repositories);
@@ -111,7 +112,7 @@ void main() {
 
     test('checks branch property for commits', () async {
       githubCommits = <String>['1'];
-      config.flutterBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
+      config.supportedBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       scheduler.devicelabManifest = singleTaskManifestYaml;
@@ -121,33 +122,24 @@ void main() {
       expect(commit.branch, 'flutter-1.1-candidate.1');
     });
 
-    test('stops requesting GitHub commits when it finds an existing commit', () async {
-      githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      config.flutterBranchesValue = <String>['master'];
-      const List<String> dbCommits = <String>['3', '4', '5', '6'];
-      for (String sha in dbCommits) {
-        final Commit commit = shaToCommit(sha, 'master');
-        db.values[commit.key] = commit;
-      }
-
-      expect(db.values.values.whereType<Commit>().length, 4);
-      expect(db.values.values.whereType<Task>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
-      // Commits 7, 8, 9 will get added and scheduled to the tree
-      final Body body = await tester.get<Body>(handler);
-      expect(db.values.values.whereType<Commit>().length, 7);
-      expect(db.values.values.whereType<Task>().length, 15);
-      expect(await body.serialize().toList(), isEmpty);
-    });
-
     test('inserts the latest single commit if a new branch is found', () async {
       githubCommits = <String>['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-      config.flutterBranchesValue = <String>['flutter-0.0-candidate.0'];
+      config.supportedBranchesValue = <String>['flutter-0.0-candidate.0'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
       scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
+      expect(db.values.values.whereType<Commit>().first.sha, '9');
+    });
+
+    test('does not add recent commits', () async {
+      githubCommits = <String>['${DateTime.now().millisecondsSinceEpoch}'];
+
+      expect(db.values.values.whereType<Commit>().length, 0);
+      scheduler.devicelabManifest = singleTaskManifestYaml;
+      await tester.get<Body>(handler);
+      expect(db.values.values.whereType<Commit>().length, 0);
     });
 
     test('inserts all relevant fields of the commit', () async {

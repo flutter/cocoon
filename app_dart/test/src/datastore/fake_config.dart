@@ -58,6 +58,7 @@ class FakeConfig implements Config {
     this.flutterGoldFollowUpAlertValue,
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
+    this.supportedBranchesValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -98,6 +99,7 @@ class FakeConfig implements Config {
   String flutterGoldFollowUpAlertValue;
   String flutterGoldDraftChangeValue;
   String flutterGoldStalePRValue;
+  List<String> supportedBranchesValue;
 
   @override
   Future<GitHub> createGitHubClient(String owner, String repository) async => githubClient;
@@ -268,4 +270,7 @@ class FakeConfig implements Config {
 
   @override
   String get luciProdAccount => 'flutter-prod-builder@chops-service-accounts.iam.gserviceaccount.com';
+
+  @override
+  Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue;
 }
