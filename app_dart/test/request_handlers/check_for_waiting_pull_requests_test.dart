@@ -7,6 +7,7 @@ import 'package:cocoon_service/src/request_handlers/check_for_waiting_pull_reque
 
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -21,6 +22,69 @@ const String base64LabelId = 'base_64_label_id';
 const String oid = 'deadbeef';
 
 void main() {
+  group('repos are processed indepedently', () {
+    CheckForWaitingPullRequests handler;
+    ApiRequestHandlerTester tester;
+    FakeHttpRequest request;
+    MockGraphQLClient githubGraphQLClient;
+    FakeConfig config;
+    FakeClientContext clientContext;
+    FakeAuthenticationProvider auth;
+    FakeLogging log;
+    final List<PullRequestHelper> flutterRepoPRs = <PullRequestHelper>[];
+    FakeCirrusGraphQLClient cirrusGraphQLClient;
+    final List<dynamic> statuses = <dynamic>[];
+    String branch;
+
+    setUp(() {
+      request = FakeHttpRequest();
+
+      clientContext = FakeClientContext();
+      auth = FakeAuthenticationProvider(clientContext: clientContext);
+      log = FakeLogging();
+      githubGraphQLClient = MockGraphQLClient();
+      cirrusGraphQLClient = FakeCirrusGraphQLClient();
+      config = FakeConfig(
+        rollerAccountsValue: <String>{},
+        githubGraphQLClient: githubGraphQLClient,
+        cirrusGraphQLClient: cirrusGraphQLClient,
+      );
+      flutterRepoPRs.clear();
+      statuses.clear();
+      cirrusGraphQLClient.mutateCirrusResultForOptions = (MutationOptions options) => QueryResult();
+      cirrusGraphQLClient.queryCirrusResultForOptions = (QueryOptions options) {
+        return createCirrusQueryResult(statuses, branch);
+      };
+      tester = ApiRequestHandlerTester(request: request);
+      config.waitingForTreeToGoGreenLabelNameValue = 'waiting for tree to go green';
+      config.githubGraphQLClient = githubGraphQLClient;
+
+      handler = CheckForWaitingPullRequests(
+        config,
+        auth,
+        loggingProvider: () => log,
+      );
+    });
+
+    test('Continue with other repos if one fails', () async {
+      flutterRepoPRs.add(PullRequestHelper());
+
+      when(githubGraphQLClient.mutate(any)).thenAnswer((_) async {
+        return QueryResult();
+      });
+      int errorIndex = 0;
+      when(githubGraphQLClient.query(any)).thenAnswer((_) async {
+        if (errorIndex == 0) {
+          errorIndex += 1;
+          throw GraphQLError();
+        }
+        return createQueryResult(flutterRepoPRs);
+      });
+      await tester.get(handler);
+      expect(log.records.length, 1);
+      expect(log.records[0].message, '_checkPRs error in cocoon: null: Undefined location');
+    });
+  });
   group('check for waiting pull requests', () {
     CheckForWaitingPullRequests handler;
 
@@ -49,7 +113,11 @@ void main() {
       log = FakeLogging();
       githubGraphQLClient = FakeGraphQLClient();
       cirrusGraphQLClient = FakeCirrusGraphQLClient();
-      config = FakeConfig(rollerAccountsValue: <String>{}, cirrusGraphQLClient: cirrusGraphQLClient);
+      config = FakeConfig(
+        rollerAccountsValue: <String>{},
+        cirrusGraphQLClient: cirrusGraphQLClient,
+        githubGraphQLClient: githubGraphQLClient,
+      );
       flutterRepoPRs.clear();
       engineRepoPRs.clear();
       pluginRepoPRs.clear();
@@ -217,7 +285,20 @@ void main() {
       flutterRepoPRs.add(prInProgress);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with queued checks', () async {
@@ -231,7 +312,20 @@ void main() {
       flutterRepoPRs.add(prQueued);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with requested checks', () async {
@@ -245,7 +339,20 @@ void main() {
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Does not merge PR with failed status', () async {
@@ -306,7 +413,72 @@ This pull request is not suitable for automatic merging in its current state.
       flutterRepoPRs.add(prRequested);
       await tester.get(handler);
       _verifyQueries();
-      githubGraphQLClient.verifyMutations(<MutationOptions>[]);
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
+    });
+
+    test('Empty validations do not merge', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[],
+        lastCommitStatuses: const <StatusHelper>[],
+      );
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
+    });
+
+    test('Does not fail with null statuses', () async {
+      branch = 'pull/0';
+      final PullRequestHelper prRequested = PullRequestHelper(
+        lastCommitCheckRuns: const <CheckRunHelper>[
+          CheckRunHelper.luciCompletedSuccess,
+        ],
+      );
+      prRequested.lastCommitStatuses = null;
+      flutterRepoPRs.add(prRequested);
+      await tester.get(handler);
+      _verifyQueries();
+      githubGraphQLClient.verifyMutations(<MutationOptions>[
+        MutationOptions(
+          document: removeLabelMutation,
+          variables: <String, dynamic>{
+            'id': flutterRepoPRs.first.id,
+            'labelId': base64LabelId,
+            'sBody': '''
+This pull request is not suitable for automatic merging in its current state.
+
+- This commit has empty status or empty checks. Please check the Google CLA status is present and Flutter Dashboard application has multiple checks.
+''',
+          },
+        ),
+      ]);
     });
 
     test('Merge PR with successful status and checks', () async {
@@ -844,7 +1016,7 @@ class PullRequestHelper {
   final String author;
   final List<PullRequestReviewHelper> reviews;
   final String lastCommitHash;
-  final List<StatusHelper> lastCommitStatuses;
+  List<StatusHelper> lastCommitStatuses;
   List<CheckRunHelper> lastCommitCheckRuns;
   final DateTime dateTime;
 
@@ -869,12 +1041,14 @@ class PullRequestHelper {
               'oid': lastCommitHash,
               'pushedDate': (dateTime ?? DateTime.now().add(const Duration(hours: -2))).toUtc().toIso8601String(),
               'status': <String, dynamic>{
-                'contexts': lastCommitStatuses.map((StatusHelper status) {
-                  return <String, dynamic>{
-                    'context': status.name,
-                    'state': status.state,
-                  };
-                }).toList(),
+                'contexts': lastCommitStatuses != null
+                    ? lastCommitStatuses.map((StatusHelper status) {
+                        return <String, dynamic>{
+                          'context': status.name,
+                          'state': status.state,
+                        };
+                      }).toList()
+                    : <dynamic>[]
               },
               'checkSuites': <String, dynamic>{
                 'nodes': lastCommitCheckRuns != null
@@ -979,3 +1153,8 @@ const PullRequestReviewHelper nonMemberChangeRequest = PullRequestReviewHelper(
   memberType: MemberType.OTHER,
   state: ReviewState.CHANGES_REQUESTED,
 );
+
+class MockGraphQLClient extends Mock implements GraphQLClient {
+  QueryResult Function(MutationOptions) mutateCirrusResultForOptions;
+  QueryResult Function(QueryOptions) queryCirrusResultForOptions;
+}

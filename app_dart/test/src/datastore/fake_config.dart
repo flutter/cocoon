@@ -40,6 +40,7 @@ class FakeConfig implements Config {
     this.loggingServiceValue,
     this.tabledataResourceApi,
     this.githubService,
+    this.githubGraphQLClient,
     this.cirrusGraphQLClient,
     this.metricsDestination,
     this.taskLogServiceAccountValue,

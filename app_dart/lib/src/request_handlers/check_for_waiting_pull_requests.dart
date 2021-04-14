@@ -46,11 +46,10 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     for (String repo in supportedRepos) {
       try {
         await _checkPRs('flutter', repo, log, client);
-      } on Exception catch (_, e) {
+      } catch (e) {
         log.error('_checkPRs error in $repo: $e');
       }
     }
-
     return Body.empty;
   }
 
@@ -209,18 +208,23 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
           );
 
       final String sha = commit['oid'] as String;
-      final List<Map<String, dynamic>> statuses =
-          (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
+      List<Map<String, dynamic>> statuses;
+      if (commit['status'] != null &&
+          commit['status']['contexts'] != null &&
+          (commit['status']['contexts'] as List<dynamic>).isNotEmpty) {
+        statuses = (commit['status']['contexts'] as List<dynamic>).cast<Map<String, dynamic>>();
+      }
+      statuses ??= <Map<String, dynamic>>[];
       List<Map<String, dynamic>> checkRuns;
       if (commit['checkSuites']['nodes'] != null && (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
         checkRuns =
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
-      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-      final Set<String> failingStatuses = <String>{};
+      checkRuns ??= <Map<String, dynamic>>[];
+      final Set<String> failures = <String>{};
       final bool ciSuccessful = await _checkStatuses(
         sha,
-        failingStatuses,
+        failures,
         statuses,
         checkRuns,
         name,
@@ -230,12 +234,13 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       list.add(_AutoMergeQueryResult(
         graphQLId: id,
         ciSuccessful: ciSuccessful,
-        failingStatuses: failingStatuses,
+        failures: failures,
         hasApprovedReview: hasApproval,
         changeRequestAuthors: changeRequestAuthors,
         number: number,
         sha: sha,
         labelId: labelId,
+        emptyValidations: checkRuns.isEmpty || statuses.isEmpty,
       ));
     }
     return list;
@@ -363,15 +368,16 @@ class _AutoMergeQueryResult {
     @required this.hasApprovedReview,
     @required this.changeRequestAuthors,
     @required this.ciSuccessful,
-    @required this.failingStatuses,
+    @required this.failures,
     @required this.number,
     @required this.sha,
     @required this.labelId,
+    @required this.emptyValidations,
   })  : assert(graphQLId != null),
         assert(hasApprovedReview != null),
         assert(changeRequestAuthors != null),
         assert(ciSuccessful != null),
-        assert(failingStatuses != null),
+        assert(failures != null),
         assert(number != null),
         assert(sha != null),
         assert(labelId != null);
@@ -388,8 +394,8 @@ class _AutoMergeQueryResult {
   /// Whether CI has run successfully on the pull request.
   final bool ciSuccessful;
 
-  /// A set of status names that have failed.
-  final Set<String> failingStatuses;
+  /// A set of status/check names that have failed.
+  final Set<String> failures;
 
   /// The pull request number.
   final int number;
@@ -400,13 +406,17 @@ class _AutoMergeQueryResult {
   /// The GitHub GraphQL ID of the waiting label.
   final String labelId;
 
+  /// Whether the commit has empty validations or not.
+  final bool emptyValidations;
+
   /// Whether it is sane to automatically merge this PR.
-  bool get shouldMerge => ciSuccessful && failingStatuses.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty;
+  bool get shouldMerge =>
+      ciSuccessful && failures.isEmpty && hasApprovedReview && changeRequestAuthors.isEmpty && !emptyValidations;
 
   /// Whether the auto-merge label should be removed from this PR.
-  bool get shouldRemoveLabel => !hasApprovedReview || changeRequestAuthors.isNotEmpty || failingStatuses.isNotEmpty;
+  bool get shouldRemoveLabel =>
+      !hasApprovedReview || changeRequestAuthors.isNotEmpty || failures.isNotEmpty || emptyValidations;
 
-  /// An appropriate message to leave when removing the label.
   String get removalMessage {
     if (!shouldRemoveLabel) {
       return '';
@@ -424,9 +434,14 @@ class _AutoMergeQueryResult {
       buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
     }
-    for (String status in failingStatuses) {
+    for (String status in failures) {
       buffer.writeln('- The status or check suite $status has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
+    }
+    if (emptyValidations) {
+      buffer.writeln('- This commit has empty status or empty checks. Please'
+          ' check the Google CLA status is present and Flutter Dashboard'
+          ' application has multiple checks.');
     }
     return buffer.toString();
   }
@@ -440,6 +455,7 @@ class _AutoMergeQueryResult {
         'hasApprovedReview: $hasApprovedReview, '
         'changeRequestAuthors: $changeRequestAuthors, '
         'labelId: $labelId, '
+        'emptyValidations: $emptyValidations, '
         'shouldMerge: $shouldMerge}';
   }
 }
