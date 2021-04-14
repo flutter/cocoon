@@ -125,7 +125,6 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 ///
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(
-  GithubService githubService,
   HttpClientProvider httpClientProvider,
   Logging log,
   RepositorySlug slug,

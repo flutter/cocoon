@@ -7,6 +7,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../service/luci.dart';
+import '../proto/internal/scheduler.pb.dart' as pb;
 import 'commit.dart';
 import 'key_converter.dart';
 
@@ -67,6 +68,28 @@ class Task extends Model<int> {
       stageName: 'chromebot',
       status: Task.statusNew,
       timeoutInMinutes: 0,
+    );
+  }
+
+  /// Construct [Task] from a [Target].
+  factory Task.fromTarget({
+    @required Commit commit,
+    @required pb.Target target,
+  }) {
+    assert(commit != null);
+    assert(target != null);
+    return Task(
+      attempts: 1,
+      builderName: target.builder,
+      commitKey: commit.key,
+      createTimestamp: commit.timestamp,
+      isFlaky: target.bringup,
+      key: commit.key.append(Task),
+      name: target.name,
+      requiredCapabilities: <String>[target.testbed],
+      stageName: target.scheduler.toString(),
+      status: Task.statusNew,
+      timeoutInMinutes: target.timeout,
     );
   }
 
@@ -261,6 +284,8 @@ class Task extends Model<int> {
     return buf.toString();
   }
 }
+
+Iterable<Task> targetsToTask(Commit commit, List<pb.Target> targets) => targets.map((pb.Target target) => Task.fromTarget(commit: commit, target: target));
 
 /// The serialized representation of a [Task].
 // TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.
