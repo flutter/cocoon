@@ -128,7 +128,7 @@ void main() {
     expect(find.byType(dropdownButtonType), findsOneWidget);
   });
 
-  testWidgets('shows refresh github commits button', (WidgetTester tester) async {
+  testWidgets('shows vacuum github commits button', (WidgetTester tester) async {
     final BuildState fakeBuildState = FakeBuildState();
 
     await tester.pumpWidget(
@@ -147,7 +147,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pump();
 
-    expect(find.text('Refresh GitHub Commits'), findsOneWidget);
+    expect(find.text('Vacuum GitHub Commits'), findsOneWidget);
   });
 
   testWidgets('shows loading when fetch tree status is null', (WidgetTester tester) async {

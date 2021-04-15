@@ -72,7 +72,7 @@ class Scheduler {
   /// Otherwise, ignore it.
   Future<void> addCommits(List<Commit> commits) async {
     datastore = datastoreProvider(config.db);
-    final List<Commit> newCommits = await _getNewCommits(commits);
+    final List<Commit> newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (Commit commit in newCommits) {
       await _addCommit(commit);
@@ -140,16 +140,14 @@ class Scheduler {
   }
 
   /// Return subset of [commits] not stored in Datastore.
-  Future<List<Commit>> _getNewCommits(List<Commit> commits) async {
+  Future<List<Commit>> _getMissingCommits(List<Commit> commits) async {
     final List<Commit> newCommits = <Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
     commits.sort((Commit a, Commit b) => b.timestamp.compareTo(a.timestamp));
     for (Commit commit in commits) {
+      // Cocoon may randomly drop commits, so check the entire list.
       if (!await _commitExistsInDatastore(commit)) {
         newCommits.add(commit);
-      } else {
-        // Once we've found a commit that's already been recorded, we stop looking.
-        break;
       }
     }
 

@@ -122,6 +122,14 @@ class Config {
 
   DatastoreDB get db => _db;
 
+  /// Retrieve the supported branches for a repository.
+  Future<List<String>> getSupportedBranches(RepositorySlug slug) async {
+    if (slug.name == 'flutter') {
+      return flutterBranches;
+    }
+    return <String>['master'];
+  }
+
   Future<List<String>> get flutterBranches => _getFlutterBranches();
 
   Future<String> get oauthClientId => _getSingleValue('OAuthClientId');

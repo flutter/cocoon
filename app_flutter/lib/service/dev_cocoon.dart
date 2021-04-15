@@ -53,7 +53,7 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> refreshGitHubCommits(String idToken) async {
+  Future<bool> vacuumGitHubCommits(String idToken) async {
     return false;
   }
 
