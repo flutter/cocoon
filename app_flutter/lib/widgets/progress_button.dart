@@ -65,8 +65,8 @@ class _ProgressButtonState extends State<ProgressButton> {
           onPressed: _busy // dartfmt will soon require this new formatting
               ? null
               : widget.onPressed != null // dartfmt will soon require this new formatting
-              ? _handlePressed
-              : null,
+                  ? _handlePressed
+                  : null,
         ),
         if (_busy)
           const Positioned(
