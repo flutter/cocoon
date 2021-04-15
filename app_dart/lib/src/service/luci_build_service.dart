@@ -416,6 +416,7 @@ class LuciBuildService {
       tags: <String, List<String>>{
         'buildset': <String>[
           'commit/git/$commitSha',
+          'commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha',
         ],
         'user_agent': const <String>['luci-scheduler'],
       },
