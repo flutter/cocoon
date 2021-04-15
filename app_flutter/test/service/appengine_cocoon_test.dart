@@ -313,14 +313,14 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.refreshGitHubCommits('fakeIdToken'), true);
+      expect(await service.vacuumGitHubCommits('fakeIdToken'), true);
     });
 
     test('should return false if request failed', () async {
       service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 500);
       }));
-      expect(await service.refreshGitHubCommits('fakeIdToken'), false);
+      expect(await service.vacuumGitHubCommits('fakeIdToken'), false);
     });
   });
 

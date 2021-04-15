@@ -99,7 +99,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   }).toList(),
                 ),
                 TextButton(
-                  child: const Text('Refresh GitHub Commits'),
+                  child: const Text('Vacuum GitHub Commits'),
                   onPressed: _buildState.refreshGitHubCommits,
                 ),
                 FilterPropertySheet(_filter),

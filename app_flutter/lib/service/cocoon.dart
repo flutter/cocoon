@@ -56,7 +56,7 @@ abstract class CocoonService {
   Future<bool> downloadLog(Task task, String idToken, String commitSha);
 
   /// Force update Cocoon to get the latest commits.
-  Future<bool> refreshGitHubCommits(String idToken);
+  Future<bool> vacuumGitHubCommits(String idToken);
 
   /// Creates [Agent] with the given information.
   ///

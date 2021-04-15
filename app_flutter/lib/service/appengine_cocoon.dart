@@ -131,9 +131,9 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> refreshGitHubCommits(String idToken) async {
+  Future<bool> vacuumGitHubCommits(String idToken) async {
     assert(idToken != null);
-    final String refreshGitHubCommitsUrl = apiEndpoint('/api/refresh-github-commits');
+    final String refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final http.Response response = await _client.get(
       refreshGitHubCommitsUrl,
       headers: <String, String>{
