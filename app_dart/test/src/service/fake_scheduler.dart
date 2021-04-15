@@ -6,24 +6,31 @@ import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/src/datastore/config.dart';
+import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 
 import '../request_handling/fake_logging.dart';
+import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
 class FakeScheduler extends Scheduler {
   FakeScheduler({
     this.schedulerConfig,
     this.devicelabManifest = 'tasks:',
+    BuildBucketClient buildbucket,
     Config config,
+    GithubChecksUtil githubChecksUtil,
   }) : super(
           cache: CacheService(inMemory: true),
           config: config,
-          log: FakeLogging(),
-        );
+          luciBuildService: FakeLuciBuildService(config, buildbucket: buildbucket, githubChecksUtil: githubChecksUtil),
+        ) {
+    setLogger(FakeLogging());
+  }
 
   /// [SchedulerConfig] value to be injected on [getSchedulerConfig].
   SchedulerConfig schedulerConfig;

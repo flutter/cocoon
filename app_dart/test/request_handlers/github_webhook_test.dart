@@ -10,20 +10,17 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
@@ -31,6 +28,7 @@ import '../src/utilities/mocks.dart';
 void main() {
   group('githubWebhookPullRequest', () {
     GithubWebhook webhook;
+    FakeBuildBucketClient fakeBuildBucketClient;
     FakeDatastoreDB db;
     FakeGithubService githubService;
     FakeHttpRequest request;
@@ -38,14 +36,12 @@ void main() {
     MockGitHub gitHubClient;
     MockIssuesService issuesService;
     MockPullRequestsService pullRequestsService;
-    MockBuildBucketClient mockBuildBucketClient;
     FakeScheduler scheduler;
     RequestHandlerTester tester;
     const String serviceAccountEmail = 'test@test';
-    LuciBuildService luciBuildService;
     ServiceAccountInfo serviceAccountInfo;
     MockGithubChecksService mockGithubChecksService;
-    final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+    MockGithubChecksUtil mockGithubChecksUtil;
 
     const String keyString = 'not_a_real_key';
 
@@ -68,27 +64,17 @@ void main() {
       gitHubClient = MockGitHub();
       issuesService = MockIssuesService();
       pullRequestsService = MockPullRequestsService();
-      mockBuildBucketClient = MockBuildBucketClient();
-      scheduler = FakeScheduler(config: config);
+      fakeBuildBucketClient = FakeBuildBucketClient();
+      mockGithubChecksUtil = MockGithubChecksUtil();
+      scheduler =
+          FakeScheduler(config: config, buildbucket: fakeBuildBucketClient, githubChecksUtil: mockGithubChecksUtil);
       tester = RequestHandlerTester(request: request);
       serviceAccountInfo = await config.deviceLabServiceAccount;
-
-      /// LUCI service class to communicate with buildBucket service.
-      luciBuildService = LuciBuildService(
-        config,
-        mockBuildBucketClient,
-        serviceAccountInfo,
-        githubChecksUtil: mockGithubChecksUtil,
-      );
-
-      luciBuildService.setLogger(FakeLogging());
 
       mockGithubChecksService = MockGithubChecksService();
 
       webhook = GithubWebhook(
         config,
-        buildBucketClient: mockBuildBucketClient,
-        luciBuildService: luciBuildService,
         githubChecksService: mockGithubChecksService,
         scheduler: scheduler,
       );
@@ -168,12 +154,6 @@ void main() {
         ),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verify(pullRequestsService.edit(
@@ -211,12 +191,6 @@ void main() {
           IssueComment()..body = 'some other comment',
         ),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -260,12 +234,6 @@ void main() {
           IssueComment()..body = 'some other comment',
         ),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -414,12 +382,6 @@ void main() {
         ),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -450,12 +412,6 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter/blah.md',
         ),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -496,12 +452,6 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_localizations/blah.dart',
         ]),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -547,12 +497,6 @@ void main() {
         ]),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verifyNever(issuesService.createComment(
@@ -589,12 +533,6 @@ void main() {
           IssueComment()..body = 'some other comment',
         ),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -633,12 +571,6 @@ void main() {
         ),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verifyNever(issuesService.addLabelsToIssue(
@@ -676,12 +608,6 @@ void main() {
           PullRequestFile()..filename = 'shell/platform/android/test/io/flutter/BlahTest.java',
         ]),
       );
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -723,12 +649,6 @@ void main() {
         ]),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verifyNever(issuesService.addLabelsToIssue(
@@ -760,11 +680,6 @@ void main() {
           PullRequestFile()..filename = 'packages/flutter_tools/pubspec.yaml',
         ]),
       );
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -779,51 +694,6 @@ void main() {
         issueNumber,
         argThat(contains(config.missingTestsPullRequestMessageValue)),
       ));
-    });
-
-    test('Cancels builds when pull request is closed without merging', () async {
-      const int issueNumber = 123;
-      request.headers.set('X-GitHub-Event', 'pull_request');
-      request.body = jsonTemplate('closed', issueNumber, kDefaultBranchName);
-      final Uint8List body = utf8.encode(request.body) as Uint8List;
-      final Uint8List key = utf8.encode(keyString) as Uint8List;
-      final String hmac = getHmac(body, key);
-      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-
-      when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer((_) => Stream<PullRequestFile>.value(
-            PullRequestFile()..filename = 'some_change.dart',
-          ));
-
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[
-            Response(
-              searchBuilds: SearchBuildsResponse(
-                builds: <Build>[
-                  Build(
-                    id: 999,
-                    builderId: BuilderId(
-                      project: 'flutter',
-                      bucket: 'prod',
-                      builder: 'Linux',
-                    ),
-                    status: Status.started,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-
-      await tester.post(webhook);
-
-      expect(
-        json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-        '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},'
-        '{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"cancelBuild":{"id":"999","summaryMarkdown":"Pull request closed"}}]}]',
-      );
     });
 
     test('Schedule tasks when pull request is closed and merged', () async {
@@ -859,12 +729,6 @@ void main() {
             PullRequestFile()..filename = 'some_change.dart',
           ));
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verifyNever(issuesService.createComment(
@@ -896,12 +760,6 @@ void main() {
         ),
       );
 
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
-
       await tester.post(webhook);
 
       verify(issuesService.addLabelsToIssue(
@@ -930,11 +788,6 @@ void main() {
       final Uint8List key = utf8.encode(keyString) as Uint8List;
       final String hmac = getHmac(body, key);
       request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
-          responses: <Response>[],
-        );
-      });
 
       await tester.post(webhook);
 
@@ -953,6 +806,90 @@ void main() {
       ));
     });
 
+    test('Comments on PR but does not schedule builds for unmergeable PRs', () async {
+      const int issueNumber = 12345;
+      request.body = jsonTemplate(
+        'synchronize',
+        issueNumber,
+        kDefaultBranchName,
+        includeCqLabel: true,
+        // This PR is unmergeable (probably merge conflict)
+        isMergeable: false,
+      );
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
+      when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
+      final MockIssuesService mockIssuesService = MockIssuesService();
+      when(gitHubClient.issues).thenReturn(mockIssuesService);
+      final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
+      when(mockIssuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer((Invocation _invocation) {
+        return Stream<IssueComment>.fromIterable(<IssueComment>[]);
+      });
+
+      await tester.post(webhook);
+      verify(mockIssuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
+    });
+
+    test('When synchronized, cancels existing builds and schedules new ones', () async {
+      const int issueNumber = 12345;
+      bool batchRequestCalled = false;
+      Future<BatchResponse> _getBatchResponse() async {
+        batchRequestCalled = true;
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  Build(
+                    id: 999,
+                    builderId: BuilderId(
+                      project: 'flutter',
+                      bucket: 'prod',
+                      builder: 'Linux',
+                    ),
+                    status: Status.ended,
+                  )
+                ],
+              ),
+            ),
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[
+                  Build(
+                    id: 998,
+                    builderId: BuilderId(
+                      project: 'flutter',
+                      bucket: 'prod',
+                      builder: 'Linux',
+                    ),
+                    status: Status.ended,
+                  )
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      fakeBuildBucketClient.batchResponse = _getBatchResponse();
+
+      request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
+      final Uint8List body = utf8.encode(request.body) as Uint8List;
+      final Uint8List key = utf8.encode(keyString) as Uint8List;
+      request.headers.set('X-GitHub-Event', 'pull_request');
+      final String hmac = getHmac(body, key);
+      request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+      final MockRepositoriesService mockRepositoriesService = MockRepositoriesService();
+      when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
+
+      await tester.post(webhook);
+      expect(batchRequestCalled, isTrue);
+    });
+
     group('BuildBucket', () {
       const int issueNumber = 123;
 
@@ -967,8 +904,8 @@ void main() {
           ]);
         });
 
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
+        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
+          const BatchResponse(
             responses: <Response>[
               Response(
                 searchBuilds: SearchBuildsResponse(
@@ -976,8 +913,8 @@ void main() {
                 ),
               ),
             ],
-          );
-        });
+          ),
+        );
 
         request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName,
             repoFullName: 'flutter/packages', repoName: 'packages');
@@ -1003,8 +940,8 @@ void main() {
           ]);
         });
 
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
+        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
+          const BatchResponse(
             responses: <Response>[
               Response(
                 searchBuilds: SearchBuildsResponse(
@@ -1017,8 +954,8 @@ void main() {
                 ),
               ),
             ],
-          );
-        });
+          ),
+        );
 
         request.body = '''
 {
@@ -1068,148 +1005,8 @@ void main() {
         await tester.post(webhook);
 
         if (never) {
-          verifyNever(mockBuildBucketClient.batch(captureAny));
           return;
         }
-        const String expectedJson = '''
-[
-  {"requests": [
-    {"searchBuilds":{
-      "predicate":{
-        "builder":{
-          "project":"flutter",
-          "bucket":"try"
-        },
-        "createdBy":"test@test",
-        "tags":[
-          {
-            "key":"buildset",
-            "value":"pr/git/583"
-          },
-          {
-            "key":"github_link",
-            "value":"https://github.com/flutter/cocoon/pull/583"
-          },
-          {
-            "key": "user_agent",
-            "value":"flutter-cocoon"
-          }
-        ]
-      }
-    }
-  },
-  {
-    "searchBuilds":{
-      "predicate":{
-        "builder":{
-          "project":"flutter",
-          "bucket":"try"
-        },
-        "tags":[
-          {
-            "key":"buildset",
-            "value":"pr/git/583"
-          },
-          {
-            "key":"user_agent",
-            "value":"recipe"
-          }
-        ]
-      }
-    }
-  }]
-},
-{
-  "requests":[
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "createdBy":"test@test",
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"github_link",
-              "value":"https://github.com/flutter/cocoon/pull/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"flutter-cocoon"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "searchBuilds":{
-        "predicate":{
-          "builder":{
-            "project":"flutter",
-            "bucket":"try"
-          },
-          "tags":[
-            {
-              "key":"buildset",
-              "value":"pr/git/583"
-            },
-            {
-              "key":"user_agent",
-              "value":"recipe"
-            }
-          ]
-        }
-      }
-    }
-  ]
-},
-{
-  "requests":[
-    {
-      "scheduleBuild":{
-        "builder":{
-          "project":"flutter",
-          "bucket":"try",
-          "builder":"Cocoon"
-        },
-        "properties":{
-          "git_url":"https://github.com/flutter/cocoon",
-          "git_ref":"refs/pull/583/head"
-        },
-        "tags":[
-          {
-            "key":"buildset",
-            "value":"pr/git/583"
-          },
-          {
-            "key":"buildset",
-            "value":"sha/git/the_head_sha"
-          },
-          {
-            "key":"user_agent",
-            "value":"flutter-cocoon"
-          },
-          {
-            "key":"github_link",
-            "value":"https://github.com/flutter/cocoon/pull/583"
-          }
-        ],
-        "notify":{
-          "pubsubTopic":"projects/flutter-dashboard/topics/luci-builds",
-          "userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImNvY29vbiIsInVzZXJfYWdlbnQiOiJmbHV0dGVyLWNvY29vbiIsImNoZWNrX3J1bl9pZCI6MX0="
-        }
-      }
-    }
-  ]
-}]
-''';
-        expect(json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-            expectedJson.replaceAll(RegExp(r'\s|\n'), ''));
       }
 
       test('Edited Action works properly', () async {
@@ -1259,13 +1056,12 @@ void main() {
         });
 
         await tester.post(webhook);
-        verifyNever(mockBuildBucketClient.batch(captureAny));
         verify(mockIssuesService.createComment(slug, issueNumber, config.mergeConflictPullRequestMessage));
       });
 
       test('When synchronized, cancels existing builds and schedules new ones', () async {
-        when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-          return const BatchResponse(
+        fakeBuildBucketClient.batchResponse = Future<BatchResponse>.value(
+          const BatchResponse(
             responses: <Response>[
               Response(
                 searchBuilds: SearchBuildsResponse(
@@ -1298,8 +1094,8 @@ void main() {
                 ),
               ),
             ],
-          );
-        });
+          ),
+        );
 
         request.body = jsonTemplate('synchronize', issueNumber, kDefaultBranchName, includeCqLabel: true);
         final Uint8List body = utf8.encode(request.body) as Uint8List;
@@ -1310,40 +1106,10 @@ void main() {
         when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
 
         await tester.post(webhook);
-        expect(
-          json.encode(verify(mockBuildBucketClient.batch(captureAny)).captured),
-          '[{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"createdBy":"test@test","tags":[{"key":"buildset","value":"pr/git/123"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"},{"key":"user_agent","value":"flutter-cocoon"}]}}},{"searchBuilds":{"predicate":{"builder":{"project":"flutter","bucket":"try"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"user_agent","value":"recipe"}]}}}]},{"requests":[{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Mac"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Windows"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}},{"scheduleBuild":{"builder":{"project":"flutter","bucket":"try","builder":"Linux Coverage"},"properties":{"git_url":"https://github.com/flutter/flutter","git_ref":"refs/pull/123/head"},"tags":[{"key":"buildset","value":"pr/git/123"},{"key":"buildset","value":"sha/git/be6ff099a4ee56e152a5fa2f37edd10f79d1269a"},{"key":"user_agent","value":"flutter-cocoon"},{"key":"github_link","value":"https://github.com/flutter/flutter/pull/123"}],"notify":{"pubsubTopic":"projects/flutter-dashboard/topics/luci-builds","userData":"eyJyZXBvX293bmVyIjoiZmx1dHRlciIsInJlcG9fbmFtZSI6ImZsdXR0ZXIiLCJ1c2VyX2FnZW50IjoiZmx1dHRlci1jb2Nvb24ifQ=="}}}]}]',
-        );
-      });
-    });
-
-    group('checksAPI', () {
-      void _generateRequest(String bodyString) {
-        request.body = bodyString;
-        final Uint8List body = utf8.encode(request.body) as Uint8List;
-        final Uint8List key = utf8.encode(keyString) as Uint8List;
-        final String hmac = getHmac(body, key);
-        request.headers.set('X-Hub-Signature', 'sha1=$hmac');
-      }
-
-      test('CheckRun Event is delegated to GithubChecksService', () async {
-        _generateRequest(checkRunString);
-        request.headers.set('X-GitHub-Event', 'check_run');
-        await tester.post(webhook);
-        verify(mockGithubChecksService.handleCheckRun(any, any)).called(1);
       });
     });
   });
 }
-
-class MockGitHubClient extends Mock implements GitHub {}
-
-class MockIssuesService extends Mock implements IssuesService {}
-
-class MockPullRequestsService extends Mock implements PullRequestsService {}
-
-// ignore: must_be_immutable
-class MockBuildBucketClient extends Mock implements BuildBucketClient {}
 
 String jsonTemplate(String action, int number, String baseRef,
         {String login = 'flutter',

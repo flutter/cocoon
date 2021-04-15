@@ -15,9 +15,7 @@ import '../model/github/checks.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
-import '../service/buildbucket.dart';
 import '../service/github_checks_service.dart';
-import '../service/luci_build_service.dart';
 import '../service/scheduler.dart';
 
 /// List of repos that require check for labels and tests.
@@ -29,21 +27,12 @@ final RegExp kEngineTestRegExp = RegExp(r'tests?\.(dart|java|mm|m|cc)$');
 class GithubWebhook extends RequestHandler<Body> {
   const GithubWebhook(
     Config config, {
-    @required this.buildBucketClient,
     @required this.scheduler,
-    this.luciBuildService,
     this.githubChecksService,
-  })  : assert(buildBucketClient != null),
-        super(config: config);
-
-  /// A client for querying and scheduling LUCI Builds.
-  final BuildBucketClient buildBucketClient;
+  }) : super(config: config);
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
-
-  /// LUCI service class to communicate with buildBucket service.
-  final LuciBuildService luciBuildService;
 
   /// Github checks service. Used to provide build status to github.
   final GithubChecksService githubChecksService;
@@ -52,8 +41,6 @@ class GithubWebhook extends RequestHandler<Body> {
   Future<Body> post() async {
     final String gitHubEvent = request.headers.value('X-GitHub-Event');
 
-    // Set service class logger.
-    luciBuildService.setLogger(log);
     githubChecksService.setLogger(log);
     scheduler.setLogger(log);
 
@@ -76,7 +63,7 @@ class GithubWebhook extends RequestHandler<Body> {
           final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
             jsonDecode(stringRequest) as Map<String, dynamic>,
           );
-          await githubChecksService.handleCheckRun(checkRunEvent, luciBuildService);
+          await scheduler.processCheckRun(checkRunEvent);
       }
 
       return Body.empty;
@@ -96,6 +83,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
     final String eventAction = pullRequestEvent.action;
     final PullRequest pr = pullRequestEvent.pullRequest;
+    final RepositorySlug slug = pullRequestEvent.repository.slug();
 
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
@@ -106,12 +94,8 @@ class GithubWebhook extends RequestHandler<Body> {
         // We'll leave unfinished jobs if it was merged since we care about those
         // results.
         if (!pr.merged) {
-          await luciBuildService.cancelBuilds(
-            pullRequestEvent.repository.slug(),
-            pr.number,
-            pr.head.sha,
-            'Pull request closed',
-          );
+          await scheduler.cancelPreSubmitTargets(
+              prNumber: pr.number, commitSha: pr.head.sha, slug: slug, reason: 'Pull request closed');
         } else {
           // Merged pull requests can be added to CI.
           await scheduler.addPullRequest(pr);
@@ -154,11 +138,11 @@ class GithubWebhook extends RequestHandler<Body> {
     PullRequestEvent pullRequestEvent,
   ) async {
     final PullRequest pr = pullRequestEvent.pullRequest;
+    final RepositorySlug slug = pullRequestEvent.repository.slug();
 
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
     if (pr.mergeable == false) {
-      final RepositorySlug slug = pullRequestEvent.repository.slug();
       final GitHub gitHubClient = await config.createGitHubClient(
         slug.owner,
         slug.name,
@@ -171,17 +155,10 @@ class GithubWebhook extends RequestHandler<Body> {
       return;
     }
 
-    // Always cancel running builds so we don't ever schedule duplicates.
-    await luciBuildService.cancelBuilds(
-      pullRequestEvent.repository.slug(),
-      pr.number,
-      pr.head.sha,
-      'Newer commit available',
-    );
-    await luciBuildService.scheduleTryBuilds(
-      slug: pullRequestEvent.repository.slug(),
+    await scheduler.triggerPresubmitTargets(
       prNumber: pr.number,
       commitSha: pr.head.sha,
+      slug: slug,
     );
   }
 
