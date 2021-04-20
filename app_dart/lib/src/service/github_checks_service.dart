@@ -41,7 +41,7 @@ class GithubChecksService {
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
   Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, LuciBuildService luciBuilderService) async {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final github.GitHub gitHubClient = await config.createGitHubClient(slug);
     final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests[0];
     final int pullRequestNumber = pullRequest.number;
     final String commitSha = checkSuiteEvent.checkSuite.headSha;

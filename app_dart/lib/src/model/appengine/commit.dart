@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'key_converter.dart';
@@ -62,6 +63,8 @@ class Commit extends Model<String> {
   /// The branch of the commit.
   @StringProperty(propertyName: 'Branch')
   String branch;
+
+  RepositorySlug get slug => RepositorySlug(repository.split('/').first, repository.split('/').last);
 
   @override
   String toString() {

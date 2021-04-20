@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -40,22 +41,18 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final GraphQLClient client = await config.createGitHubGraphQLClient();
 
-    // Split the organization from the repository
-    final Iterable<String> supportedRepos =
-        Config.checksSupportedRepos.map((String repository) => repository.split('/')[1]);
-    for (String repo in supportedRepos) {
+    for (RepositorySlug slug in Config.supportedRepos) {
       try {
-        await _checkPRs('flutter', repo, log, client);
+        await _checkPRs(slug, log, client);
       } catch (e) {
-        log.error('_checkPRs error in $repo: $e');
+        log.error('_checkPRs error in $slug: $e');
       }
     }
     return Body.empty;
   }
 
   Future<void> _checkPRs(
-    String owner,
-    String name,
+    RepositorySlug slug,
     Logging log,
     GraphQLClient client,
   ) async {
@@ -65,12 +62,11 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     }
     int mergeCount = 0;
     final Map<String, dynamic> data = await _queryGraphQL(
-      owner,
-      name,
+      slug,
       log,
       client,
     );
-    final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, name);
+    final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, slug.name);
     for (_AutoMergeQueryResult queryResult in queryResults) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
@@ -95,8 +91,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
   }
 
   Future<Map<String, dynamic>> _queryGraphQL(
-    String owner,
-    String name,
+    RepositorySlug slug,
     Logging log,
     GraphQLClient client,
   ) async {
@@ -107,8 +102,8 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
         document: labeledPullRequestsWithReviewsQuery,
         fetchPolicy: FetchPolicy.noCache,
         variables: <String, dynamic>{
-          'sOwner': owner,
-          'sName': name,
+          'sOwner': slug.owner,
+          'sName': slug.name,
           'sLabelName': labelName,
         },
       ),

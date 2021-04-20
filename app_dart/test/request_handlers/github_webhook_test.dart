@@ -81,6 +81,13 @@ void main() {
 
       when(gitHubClient.issues).thenReturn(issuesService);
       when(gitHubClient.pullRequests).thenReturn(pullRequestsService);
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+        return CheckRun.fromJson(const <String, dynamic>{
+          'id': 1,
+          'started_at': '2020-05-10T02:49:31Z',
+          'check_suite': <String, dynamic>{'id': 2}
+        });
+      });
 
       config.wrongHeadBranchPullRequestMessageValue = 'wrongHeadBranchPullRequestMessage';
       config.wrongBaseBranchPullRequestMessageValue = 'wrongBaseBranchPullRequestMessage';
@@ -927,13 +934,6 @@ void main() {
       });
 
       Future<void> _testActions(String action, {bool never = false}) async {
-        when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
-          return CheckRun.fromJson(const <String, dynamic>{
-            'id': 1,
-            'started_at': '2020-05-10T02:49:31Z',
-            'check_suite': <String, dynamic>{'id': 2}
-          });
-        });
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',

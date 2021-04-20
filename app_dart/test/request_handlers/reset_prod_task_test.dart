@@ -76,6 +76,7 @@ void main() {
           Commit,
           id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8',
         ),
+        repository: 'flutter/flutter',
         sha: '7d03371610c07953a5def50d500045941de516b8',
       );
     });

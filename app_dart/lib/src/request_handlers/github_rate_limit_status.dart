@@ -29,7 +29,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final GithubService githubService = await config.createGithubService('flutter', 'flutter');
+    final GithubService githubService = await config.createGithubService(config.flutterSlug);
     final Map<String, dynamic> quotaUsage = (await githubService.getRateLimit()).toJson();
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();
 

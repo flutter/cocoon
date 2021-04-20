@@ -143,10 +143,8 @@ class GithubWebhook extends RequestHandler<Body> {
     // The mergeable flag may be null. False indicates there's a merge conflict,
     // null indicates unknown. Err on the side of allowing the job to run.
     if (pr.mergeable == false) {
-      final GitHub gitHubClient = await config.createGitHubClient(
-        slug.owner,
-        slug.name,
-      );
+      final RepositorySlug slug = pullRequestEvent.repository.slug();
+      final GitHub gitHubClient = await config.createGitHubClient(slug);
       final String body = config.mergeConflictPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, slug, body)) {
         await gitHubClient.issues.createComment(slug, pr.number, body);
@@ -168,7 +166,7 @@ class GithubWebhook extends RequestHandler<Body> {
     final RepositorySlug slug = pullRequestEvent.repository.slug();
     final String repo = pr.base.repo.fullName.toLowerCase();
     if (kNeedsCheckLabelsAndTests.contains(repo)) {
-      final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+      final GitHub gitHubClient = await config.createGitHubClient(slug);
       try {
         await _validateRefs(gitHubClient, pr);
         if (repo == 'flutter/flutter') {

@@ -82,7 +82,7 @@ void main() {
       });
       await tester.get(handler);
       expect(log.records.length, 1);
-      expect(log.records[0].message, '_checkPRs error in cocoon: null: Undefined location');
+      expect(log.records[0].message, '_checkPRs error in flutter/cocoon: null: Undefined location');
     });
   });
   group('check for waiting pull requests', () {
@@ -270,7 +270,6 @@ void main() {
       await tester.get(handler);
 
       _verifyQueries();
-
       githubGraphQLClient.verifyMutations(<MutationOptions>[]);
     });
 

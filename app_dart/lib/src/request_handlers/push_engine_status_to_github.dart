@@ -51,8 +51,9 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     }
     luciBuildService.setLogger(log);
 
+    final RepositorySlug slug = config.engineSlug;
     final LuciService luciService = luciServiceProvider(this);
-    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(slug: slug);
 
     String status = GithubBuildStatusUpdate.statusSuccess;
     for (List<LuciTask> tasks in luciTasks.values) {
@@ -71,9 +72,8 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     };
     await insertBigquery(bigqueryTableName, bigqueryData, await config.createTabledataResourceApi(), log);
 
-    final RepositorySlug slug = RepositorySlug('flutter', 'engine');
     final DatastoreService datastore = datastoreProvider(config.db);
-    final GitHub github = await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub github = await config.createGitHubClient(slug);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
     await for (PullRequest pr in github.pullRequests.list(slug)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
