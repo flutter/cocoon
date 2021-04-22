@@ -39,6 +39,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   final LuciBuildService luciBuildService;
 
   static const String taskKeyParam = 'Key';
+  static const String ownerParam = 'Owner';
+  static const String repoParam = 'Repo';
 
   @override
   Future<Body> post() async {
@@ -47,8 +49,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String encodedKey = requestData[taskKeyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final String owner = request.uri.queryParameters['owner'] ?? 'flutter';
-    final String repo = request.uri.queryParameters['repo'] ?? '';
+    final String owner = requestData[ownerParam] as String ?? 'flutter';
+    final String repo = requestData[repoParam] as String ?? '';
     final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
     log.info('Rescheduling task with Key: ${key.id}');
     final Task task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
@@ -72,6 +74,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     }
     final RepositorySlug slug = RepositorySlug(owner, repo);
     final Build currentBuild = await luciBuildService.getBuild(slug, commit.sha, builder, 'prod');
+    log.info('Owner: $owner, Repo: $repo, Builder: $builder');
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     if (currentBuild != null && noReschedule.contains(currentBuild.status)) {
       throw const ConflictException();
