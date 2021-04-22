@@ -100,7 +100,7 @@ void main() {
       );
       expect(build, isNull);
     });
-  test('Existing try build', () async {
+    test('Existing try build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
         return const BatchResponse(
           responses: <Response>[
