@@ -30,6 +30,97 @@ void main() {
   LuciBuildService service;
   RepositorySlug slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
+
+  group('getBuilds', () {
+    const Build macBuild = Build(
+      id: 999,
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'prod',
+        builder: 'Mac',
+      ),
+      status: Status.started,
+    );
+
+    const Build linuxBuild = Build(
+      id: 998,
+      builderId: BuilderId(
+        project: 'flutter',
+        bucket: 'try',
+        builder: 'Linux',
+      ),
+      status: Status.started,
+    );
+
+    setUp(() {
+      serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
+      githubService = FakeGithubService();
+      config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo, githubService: githubService);
+      mockBuildBucketClient = MockBuildBucketClient();
+      service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
+      slug = RepositorySlug('flutter', 'cocoon');
+    });
+    test('Null build', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[macBuild],
+              ),
+            ),
+          ],
+        );
+      });
+      final Build build = await service.getBuild(
+        slug,
+        'commit123',
+        'abcd',
+        'try',
+      );
+      expect(build, macBuild);
+    });
+    test('Existing prod build', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[],
+              ),
+            ),
+          ],
+        );
+      });
+      final Build build = await service.getBuild(
+        slug,
+        'commit123',
+        'abcd',
+        'prod',
+      );
+      expect(build, isNull);
+    });
+  test('Existing try build', () async {
+      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
+        return const BatchResponse(
+          responses: <Response>[
+            Response(
+              searchBuilds: SearchBuildsResponse(
+                builds: <Build>[linuxBuild],
+              ),
+            ),
+          ],
+        );
+      });
+      final Build build = await service.getBuild(
+        slug,
+        'commit123',
+        'abcd',
+        'try',
+      );
+      expect(build, linuxBuild);
+    });
+  });
   group('buildsForRepositoryAndPr', () {
     const Build macBuild = Build(
       id: 999,

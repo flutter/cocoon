@@ -8,10 +8,12 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/config.dart';
@@ -45,6 +47,8 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final String encodedKey = requestData[taskKeyParam] as String;
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
+    final String owner = request.uri.queryParameters['owner'] ?? 'flutter';
+    final String repo = request.uri.queryParameters['repo'] ?? '';
     final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
     log.info('Rescheduling task with Key: ${key.id}');
     final Task task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
@@ -65,6 +69,12 @@ class ResetProdTask extends ApiRequestHandler<Body> {
           .where((LuciBuilder builder) => builder.taskName == task.name)
           .map((LuciBuilder builder) => builder.name)
           .single;
+    }
+    final RepositorySlug slug = RepositorySlug(owner, repo);
+    final Build currentBuild = await luciBuildService.getBuild(slug, commit.sha, builder, 'prod');
+    final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
+    if (currentBuild != null && noReschedule.contains(currentBuild.status)) {
+      throw const ConflictException();
     }
     await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,

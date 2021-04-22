@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/request_handlers/reset_prod_task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:mockito/mockito.dart';
@@ -24,6 +25,9 @@ void main() {
     FakeAuthenticatedContext authContext;
     ApiRequestHandlerTester tester;
     Commit commit;
+    Build startedBuild;
+    Build scheduledBuild;
+    Build succeededBuild;
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
@@ -48,6 +52,33 @@ void main() {
           id: 'flutter/flutter/7d03371610c07953a5def50d500045941de516b8',
         ),
         sha: '7d03371610c07953a5def50d500045941de516b8',
+      );
+      startedBuild = const Build(
+        id: 999,
+        builderId: BuilderId(
+          project: 'flutter',
+          bucket: 'prod',
+          builder: 'Mac',
+        ),
+        status: Status.started,
+      );
+      scheduledBuild = const Build(
+        id: 999,
+        builderId: BuilderId(
+          project: 'flutter',
+          bucket: 'prod',
+          builder: 'Mac',
+        ),
+        status: Status.scheduled,
+      );
+      succeededBuild = const Build(
+        id: 999,
+        builderId: BuilderId(
+          project: 'flutter',
+          bucket: 'prod',
+          builder: 'Mac',
+        ),
+        status: Status.success,
       );
     });
     test('Schedule new task', () async {
@@ -128,6 +159,75 @@ void main() {
         commitSha: captureAnyNamed('commitSha'),
         builderName: captureAnyNamed('builderName'),
       ));
+    });
+
+    test('Fails if task already scheduled', () async {
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          status: 'Failed',
+          builderName: 'Windows');
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
+        return scheduledBuild;
+      });
+      expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
+    });
+
+    test('Fails if task already running', () async {
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          status: 'Failed',
+          builderName: 'Windows');
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
+        return startedBuild;
+      });
+      expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
+    });
+
+    test('Fails if task already succeded', () async {
+      final Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          status: 'Failed',
+          builderName: 'Windows');
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
+        return succeededBuild;
+      });
+      expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
+    });
+
+    test('Reschedules if build is null', () async {
+      Task task = Task(
+          key: commit.key.append(Task, id: 4590522719010816),
+          commitKey: commit.key,
+          attempts: 0,
+          status: 'Failed',
+          builderName: 'Windows');
+      config.db.values[task.key] = task;
+      config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
+        return null;
+      });
+      await tester.post(handler);
+      expect(
+        verify(mockLuciBuildService.rescheduleProdBuild(
+          commitSha: captureAnyNamed('commitSha'),
+          builderName: captureAnyNamed('builderName'),
+        )).captured,
+        <dynamic>['7d03371610c07953a5def50d500045941de516b8', 'Windows'],
+      );
+      task = config.db.values[task.key] as Task;
+      expect(task.attempts, equals(1));
     });
 
     test('Fails if task does not exist', () async {

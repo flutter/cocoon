@@ -45,12 +45,13 @@ class LuciBuildService {
     this.log = log;
   }
 
-  /// Returns a BuildBucket build for a given Github [slug], [commitSha] and
-  /// [builderName].
-  Future<Build> getTryBuild(
+  /// Returns a BuildBucket build for a given Github [slug], [commitSha],
+  /// [builderName] and [bucket].
+  Future<Build> getBuild(
     github.RepositorySlug slug,
     String commitSha,
     String builderName,
+    String bucket,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
       Request(
@@ -58,7 +59,7 @@ class LuciBuildService {
           predicate: BuildPredicate(
             builderId: BuilderId(
               project: 'flutter',
-              bucket: 'try',
+              bucket: bucket,
               builder: builderName,
             ),
             tags: <String, List<String>>{
@@ -73,7 +74,7 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse response) => response.builds ?? <Build>[]);
-    return builds.first;
+    return builds.isNotEmpty ? builds.first : null;
   }
 
   /// Returns a map of the BuildBucket builds for a given Github [slug]
@@ -314,7 +315,7 @@ class LuciBuildService {
       checkRunEvent.checkRun.name,
       commitSha,
     );
-    final Build build = await getTryBuild(slug, commitSha, builderName);
+    final Build build = await getBuild(slug, commitSha, builderName, 'try');
     final String prString = build.tags['buildset'].firstWhere((String element) => element.startsWith('pr/git/'));
     final int prNumber = int.parse(prString.split('/')[2]);
     userData['check_run_id'] = githubCheckRun.id;
