@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -14,6 +12,7 @@ import '../datastore/config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/scheduler.dart';
 
 /// Runs all the applicable tasks for a given PR and commit hash. This will be
 /// used to unblock rollers when creating a new commit is not possible.
@@ -22,10 +21,10 @@ class ResetTryTask extends ApiRequestHandler<Body> {
   const ResetTryTask(
     Config config,
     AuthenticationProvider authenticationProvider,
-    this.luciBuildService,
+    this.scheduler,
   ) : super(config: config, authenticationProvider: authenticationProvider);
 
-  final LuciBuildService luciBuildService;
+  final Scheduler scheduler;
 
   @override
   Future<Body> get() async {
@@ -35,14 +34,11 @@ class ResetTryTask extends ApiRequestHandler<Body> {
     final String commitSha = request.uri.queryParameters['commitSha'] ?? '';
 
     // Set logger for service classes.
-    luciBuildService.setLogger(log);
+    scheduler.setLogger(log);
 
-    if (<String>[repo, pr, commitSha].any((String element) => element.isEmpty)) {
-      throw BadRequestException('Any of repo, pr or commitSha is empty: '
-          'repo=$repo, pr=$pr, commitSha=$commitSha');
-    }
+    final int prNumber = int.tryParse(pr);
     final RepositorySlug slug = RepositorySlug(owner, repo);
-    await luciBuildService.scheduleTryBuilds(prNumber: int.parse(pr), commitSha: commitSha, slug: slug);
+    await scheduler.triggerPresubmitTargets(prNumber: prNumber, commitSha: commitSha, slug: slug);
     return Body.empty;
   }
 }

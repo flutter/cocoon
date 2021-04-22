@@ -75,20 +75,6 @@ class GithubChecksService {
     }
   }
 
-  /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
-  /// generated when someone clicks the re-run button from a failed build from
-  /// the Github UI.
-  /// Relevant APIs:
-  ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
-  Future<void> handleCheckRun(CheckRunEvent checkRunEvent, LuciBuildService luciBuildService) async {
-    switch (checkRunEvent.action) {
-      case 'rerequested':
-        final String builderName = checkRunEvent.checkRun.name;
-        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
-        log.debug('BuilderName: $builderName State: $success');
-    }
-  }
-
   /// Updates the Github build status using a [BuildPushMessage] sent by LUCI in
   /// a pub/sub notification.
   /// Relevant APIs:

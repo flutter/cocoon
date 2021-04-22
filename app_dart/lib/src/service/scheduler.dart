@@ -21,11 +21,13 @@ import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/devicelab/manifest.dart';
+import '../model/github/checks.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
 import 'cache_service.dart';
 import 'datastore.dart';
 import 'luci.dart';
+import 'luci_build_service.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
 ///
@@ -37,10 +39,10 @@ class Scheduler {
   Scheduler({
     @required this.cache,
     @required this.config,
+    @required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
     this.gitHubBackoffCalculator = twoSecondLinearBackoff,
     this.httpClientProvider = Providers.freshHttpClient,
-    this.log,
   })  : assert(datastoreProvider != null),
         assert(gitHubBackoffCalculator != null),
         assert(httpClientProvider != null);
@@ -53,6 +55,7 @@ class Scheduler {
 
   DatastoreService datastore;
   Logging log;
+  LuciBuildService luciBuildService;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -62,6 +65,7 @@ class Scheduler {
   /// class.
   void setLogger(Logging log) {
     this.log = log;
+    luciBuildService.setLogger(log);
   }
 
   /// Ensure [commits] exist in Cocoon.
@@ -277,6 +281,59 @@ class Scheduler {
       log.error('githubFileContent failed to get $path: $e');
       rethrow;
     }
+  }
+
+  /// Cancel all incomplete targets against a pull request.
+  Future<void> cancelPreSubmitTargets(
+      {int prNumber, RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
+    if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
+      throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
+    }
+    await luciBuildService.cancelBuilds(
+      slug,
+      prNumber,
+      commitSha,
+      reason,
+    );
+  }
+
+  /// Schedule presubmit targets against a pull request.
+  ///
+  /// Cancels all existing targets then schedules the targets.
+  Future<void> triggerPresubmitTargets(
+      {int prNumber, RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
+    if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
+      throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
+    }
+    // Always cancel running builds so we don't ever schedule duplicates.
+    await cancelPreSubmitTargets(
+      prNumber: prNumber,
+      slug: slug,
+      commitSha: commitSha,
+      reason: reason,
+    );
+    await luciBuildService.scheduleTryBuilds(
+      slug: slug,
+      prNumber: prNumber,
+      commitSha: commitSha,
+    );
+  }
+
+  /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is
+  /// generated when someone clicks the re-run button from a failed build from
+  /// the Github UI.
+  /// Relevant APIs:
+  ///   https://developer.github.com/v3/checks/runs/#check-runs-and-requested-actions
+  Future<bool> processCheckRun(CheckRunEvent checkRunEvent) async {
+    switch (checkRunEvent.action) {
+      case 'rerequested':
+        final String builderName = checkRunEvent.checkRun.name;
+        final bool success = await luciBuildService.rescheduleUsingCheckRunEvent(checkRunEvent);
+        log.debug('BuilderName: $builderName State: $success');
+        return success;
+    }
+
+    return false;
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.

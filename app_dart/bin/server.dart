@@ -49,6 +49,7 @@ Future<void> main() async {
     final Scheduler scheduler = Scheduler(
       cache: cache,
       config: config,
+      luciBuildService: luciBuildService,
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
@@ -65,8 +66,6 @@ Future<void> main() async {
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
-        buildBucketClient: buildBucketClient,
-        luciBuildService: luciBuildService,
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),
@@ -94,7 +93,7 @@ Future<void> main() async {
       '/api/reset-try-task': ResetTryTask(
         config,
         authProvider,
-        luciBuildService,
+        scheduler,
       ),
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),

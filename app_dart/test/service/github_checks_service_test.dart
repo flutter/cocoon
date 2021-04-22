@@ -96,22 +96,7 @@ void main() {
           ]);
     });
   });
-  group('handleCheckRunEvent', () {
-    test('rerequested triggers triggers a luci build', () async {
-      final CheckRunEvent checkRunEvent = CheckRunEvent.fromJson(
-        jsonDecode(checkRunString) as Map<String, dynamic>,
-      );
-      await githubChecksService.handleCheckRun(
-        checkRunEvent,
-        mockLuciBuildService,
-      );
-      expect(
-          verify(mockLuciBuildService.rescheduleUsingCheckRunEvent(
-            captureAny,
-          )).captured,
-          <dynamic>[checkRunEvent]);
-    });
-  });
+
   group('updateCheckStatus', () {
     test('Userdata is empty', () async {
       final push_message.BuildPushMessage buildMessage =
