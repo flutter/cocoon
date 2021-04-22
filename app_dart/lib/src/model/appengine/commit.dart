@@ -54,7 +54,7 @@ class Commit extends Model<String> {
   @StringProperty(propertyName: 'Commit.Message', required: false)
   String message;
 
-  /// The repository on which the commit was made.
+  /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
   @StringProperty(propertyName: 'FlutterRepositoryPath', required: true)
@@ -64,6 +64,7 @@ class Commit extends Model<String> {
   @StringProperty(propertyName: 'Branch')
   String branch;
 
+  /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug(repository.split('/').first, repository.split('/').last);
 
   @override
