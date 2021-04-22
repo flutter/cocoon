@@ -274,4 +274,7 @@ class FakeConfig implements Config {
 
   @override
   RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+
+  @override
+  Future<GithubService> createDefaultGitHubService() async => githubService;
 }

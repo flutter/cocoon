@@ -299,8 +299,7 @@ class Config {
   }
 
   Future<GitHub> createGitHubClient(RepositorySlug slug) async {
-    String githubToken;
-    githubToken = await generateGithubToken(slug);
+    final String githubToken = await generateGithubToken(slug);
     return GitHub(auth: Authentication.withToken(githubToken));
   }
 
@@ -339,6 +338,13 @@ class Config {
   Future<bigquery.TabledataResourceApi> createTabledataResourceApi() async {
     final AccessClientProvider accessClientProvider = AccessClientProvider(await deviceLabServiceAccount);
     return await BigqueryService(accessClientProvider).defaultTabledata();
+  }
+
+  /// Default GitHub service when the repository does not matter.
+  ///
+  /// Internally uses the framework repo for OAuth.
+  Future<GithubService> createDefaultGitHubService() async {
+    return createGithubService(flutterSlug);
   }
 
   Future<GithubService> createGithubService(RepositorySlug slug) async {
