@@ -1,4 +1,4 @@
-flutter-1.22-candidate.12
 flutter-1.26-candidate.17
+flutter-2.2-candidate.10
 experimental_skshaper
 master
