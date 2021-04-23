@@ -63,7 +63,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -75,7 +75,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -100,7 +100,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -112,7 +112,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -129,7 +129,7 @@ void main() {
         config.db.values[task.key] = task;
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -141,7 +141,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -159,7 +159,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -171,7 +171,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -191,7 +191,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -203,7 +203,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -222,7 +222,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -234,7 +234,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -253,7 +253,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -271,7 +271,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -290,7 +290,7 @@ void main() {
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -304,7 +304,7 @@ void main() {
                     });
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders('flutter', config),
+                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'test'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -317,7 +317,7 @@ void main() {
                       ],
                     });
         luciTasks.addAll(testLuciTasks);
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -349,8 +349,9 @@ void main() {
         config.db.values[task.key] = task;
 
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                <LuciBuilder>[const LuciBuilder(name: 'Mac abc', repo: 'flutter', taskName: 'def', flaky: false)],
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(<LuciBuilder>[
+          LuciBuilder(name: 'Mac abc', repo: config.flutterSlug.name, taskName: 'def', flaky: false)
+        ],
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -362,7 +363,7 @@ void main() {
                             builderName: 'Mac abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(repo: 'flutter', requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });

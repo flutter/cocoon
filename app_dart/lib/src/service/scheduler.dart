@@ -123,7 +123,7 @@ class Scheduler {
   }
 
   Future<void> _addCommit(Commit commit) async {
-    if (!Config.schedulerSupportedRepos.contains(commit.repository)) {
+    if (!Config.schedulerSupportedRepos.contains(commit.slug)) {
       log.debug('Skipping ${commit.id} as repo is not supported');
       return;
     }
@@ -194,7 +194,7 @@ class Scheduler {
     }
 
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders('flutter', config);
+    final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders(commit.slug, config);
     for (LuciBuilder builder in prodBuilders) {
       // These built-in tasks are not listed in the manifest.
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:github/github.dart';
 import 'package:retry/retry.dart';
 
 import 'package:appengine/appengine.dart';
@@ -65,11 +66,11 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>> getBranchRecentTasks({
-    String repo,
+    RepositorySlug slug,
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(slug, config);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
@@ -140,11 +141,11 @@ class LuciService {
   ///
   /// The list of known LUCI builders is specified in [LuciBuilder.all].
   Future<Map<LuciBuilder, List<LuciTask>>> getRecentTasks({
-    String repo,
+    RepositorySlug slug,
     bool requireTaskName = false,
   }) async {
     assert(requireTaskName != null);
-    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(repo, config);
+    final List<LuciBuilder> builders = await LuciBuilder.getProdBuilders(slug, config);
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
@@ -273,8 +274,8 @@ class LuciBuilder {
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
   /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getProdBuilders(String repo, Config config) async {
-    return await config.luciBuilders('prod', repo);
+  static Future<List<LuciBuilder>> getProdBuilders(RepositorySlug slug, Config config) async {
+    return await config.luciBuilders('prod', slug);
   }
 }
 

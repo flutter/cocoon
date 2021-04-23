@@ -59,10 +59,7 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(
-        slug.owner,
-        slug.name,
-      );
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
       await gitHubClient.checks.checkRuns.updateCheckRun(
         slug,
         checkRun,
@@ -84,10 +81,7 @@ class GithubChecksUtil {
       delayFactor: Duration(seconds: 2),
     );
     return r.retry(() async {
-      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(
-        slug.owner,
-        slug.name,
-      );
+      final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
       return await gitHubClient.checks.checkRuns.getCheckRun(
         slug,
         checkRunId: id,
@@ -123,10 +117,7 @@ class GithubChecksUtil {
     String name,
     String headSha,
   ) async {
-    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(
-      slug.owner,
-      slug.name,
-    );
+    final github.GitHub gitHubClient = await cocoonConfig.createGitHubClient(slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
       slug,
       name: name,

@@ -39,28 +39,21 @@ class Config {
   final CacheService _cache;
 
   /// List of Github presubmit supported repos.
-  static const Set<String> supportedRepos = <String>{
-    'engine',
-    'flutter',
-    'cocoon',
-    'packages',
-    'plugins',
-  };
-
-  /// List of Github presubmit supported repos.
   ///
   /// This adds support for the `waiting for tree to go green label` to the repo.
-  static const Set<String> checksSupportedRepos = <String>{
-    'flutter/cocoon',
-    'flutter/engine',
-    'flutter/flutter',
-    'flutter/packages',
-    'flutter/plugins',
+  ///
+  /// Relies on the GitHub Checks API being enabled for this repo.
+  static Set<RepositorySlug> supportedRepos = <RepositorySlug>{
+    RepositorySlug('flutter', 'cocoon'),
+    RepositorySlug('flutter', 'engine'),
+    RepositorySlug('flutter', 'flutter'),
+    RepositorySlug('flutter', 'packages'),
+    RepositorySlug('flutter', 'plugins'),
   };
 
   /// List of GitHub repositories that are supported by [Scheduler].
-  static const Set<String> schedulerSupportedRepos = <String>{
-    'flutter/flutter',
+  static Set<RepositorySlug> schedulerSupportedRepos = <RepositorySlug>{
+    RepositorySlug('flutter', 'flutter'),
   };
 
   /// Memorystore subcache name to store [CocoonConfig] values in.
@@ -83,11 +76,10 @@ class Config {
   }
 
   // Returns LUCI builders.
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug,
       {String commitSha = 'master', int prNumber}) async {
-    final GithubService githubService = await createGithubService('flutter', repo);
-    return await getLuciBuilders(
-        githubService, Providers.freshHttpClient, loggingService, RepositorySlug('flutter', repo), bucket,
+    final GithubService githubService = await createGithubService(slug);
+    return await getLuciBuilders(githubService, Providers.freshHttpClient, loggingService, slug, bucket,
         prNumber: prNumber, commitSha: commitSha);
   }
 
@@ -253,6 +245,7 @@ class Config {
   String get flutterBuildDescription => 'Tree is currently broken. Please do not merge this '
       'PR unless it contains a fix for the tree.';
 
+  RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
   RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
@@ -291,9 +284,9 @@ class Config {
     return signedToken.toString();
   }
 
-  Future<String> generateGithubToken(String owner, String repository) async {
+  Future<String> generateGithubToken(RepositorySlug slug) async {
     final Map<String, dynamic> appInstallations = await githubAppInstallations;
-    final String appInstallation = appInstallations['$owner/$repository']['installation_id'] as String;
+    final String appInstallation = appInstallations['${slug.fullName}']['installation_id'] as String;
     final String jsonWebToken = await generateJsonWebToken();
     final Map<String, String> headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
@@ -305,9 +298,8 @@ class Config {
     return jsonBody['token'] as String;
   }
 
-  Future<GitHub> createGitHubClient(String owner, String repository) async {
-    String githubToken;
-    githubToken = await generateGithubToken(owner, repository);
+  Future<GitHub> createGitHubClient(RepositorySlug slug) async {
+    final String githubToken = await generateGithubToken(slug);
     return GitHub(auth: Authentication.withToken(githubToken));
   }
 
@@ -348,8 +340,15 @@ class Config {
     return await BigqueryService(accessClientProvider).defaultTabledata();
   }
 
-  Future<GithubService> createGithubService(String owner, String repository) async {
-    final GitHub github = await createGitHubClient(owner, repository);
+  /// Default GitHub service when the repository does not matter.
+  ///
+  /// Internally uses the framework repo for OAuth.
+  Future<GithubService> createDefaultGitHubService() async {
+    return createGithubService(flutterSlug);
+  }
+
+  Future<GithubService> createGithubService(RepositorySlug slug) async {
+    final GitHub github = await createGitHubClient(slug);
     return GithubService(github);
   }
 
@@ -365,11 +364,7 @@ class Config {
     );
   }
 
-  bool githubPresubmitSupportedRepo(String repositoryName) {
-    return supportedRepos.contains(repositoryName);
-  }
-
-  bool isChecksSupportedRepo(RepositorySlug slug) {
-    return checksSupportedRepos.contains('${slug.owner}/${slug.name}');
+  bool githubPresubmitSupportedRepo(RepositorySlug slug) {
+    return supportedRepos.contains(slug);
   }
 }

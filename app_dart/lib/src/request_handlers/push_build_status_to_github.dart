@@ -49,8 +49,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final Logging log = loggingProvider();
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusServiceProvider(datastore);
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
+    final RepositorySlug slug = config.flutterSlug;
+    final GithubService githubService = await config.createGithubService(slug);
 
     if (authContext.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.

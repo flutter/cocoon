@@ -105,14 +105,14 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders('engine', config),
+        await LuciBuilder.getProdBuilders(config.engineSlug, config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
               commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1, builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -130,7 +130,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders('engine', config),
+        await LuciBuilder.getProdBuilders(config.engineSlug, config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -141,7 +141,7 @@ void main() {
               builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -159,7 +159,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders('engine', config),
+        await LuciBuilder.getProdBuilders(config.engineSlug, config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -170,7 +170,7 @@ void main() {
               builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -189,7 +189,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders('engine', config),
+        await LuciBuilder.getProdBuilders(config.engineSlug, config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -212,7 +212,7 @@ void main() {
               builderName: 'efg'),
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -231,7 +231,7 @@ void main() {
       config.db.values[status.key] = status;
 
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders('engine', config),
+        await LuciBuilder.getProdBuilders(config.engineSlug, config),
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -242,7 +242,7 @@ void main() {
               builderName: 'abc'),
         ],
       );
-      when(mockLuciService.getRecentTasks(repo: 'engine')).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 

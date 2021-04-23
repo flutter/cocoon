@@ -161,7 +161,7 @@ class LuciBuildService {
     assert(prNumber != null);
     assert(commitSha != null);
     assert(slug != null);
-    if (!config.githubPresubmitSupportedRepo(slug.name)) {
+    if (!config.githubPresubmitSupportedRepo(slug)) {
       throw BadRequestException('Repository ${slug.name} is not supported by this service.');
     }
 
@@ -180,8 +180,7 @@ class LuciBuildService {
       return false;
     }
 
-    final List<LuciBuilder> builders =
-        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
+    final List<LuciBuilder> builders = await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders
         .where((LuciBuilder builder) => builder.repo == slug.name)
         .map<String>((LuciBuilder builder) => builder.name)
@@ -203,9 +202,8 @@ class LuciBuildService {
         'repo_name': slug.name,
         'user_agent': 'flutter-cocoon',
       };
-      if (checkSuiteEvent != null || config.isChecksSupportedRepo(slug)) {
-        log.info('Creating check run for PR: $prNumber, Commit: $commitSha, '
-            'Owner: ${slug.owner} and Repo: ${slug.name}');
+      if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
+        log.info('Creating check run for PR: $prNumber, Commit: $commitSha, Slug: $slug');
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
           config,
           slug,
@@ -221,7 +219,7 @@ class LuciBuildService {
             tags: <String, List<String>>{
               'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
               'user_agent': const <String>['flutter-cocoon'],
-              'github_link': <String>['https://github.com/${slug.owner}/${slug.name}/pull/$prNumber'],
+              'github_link': <String>['https://github.com/${slug.fullName}/pull/$prNumber'],
             },
             properties: <String, String>{
               'git_url': 'https://github.com/${slug.owner}/${slug.name}',
@@ -252,7 +250,7 @@ class LuciBuildService {
   /// Cancels all the current builds for a given [repositoryName], [prNumber]
   /// and [commitSha] adding a message for the cancelation reason.
   Future<void> cancelBuilds(github.RepositorySlug slug, int prNumber, String commitSha, String reason) async {
-    if (!config.githubPresubmitSupportedRepo(slug.name)) {
+    if (!config.githubPresubmitSupportedRepo(slug)) {
       throw BadRequestException('This service does not support repository ${slug.name}');
     }
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(
@@ -286,7 +284,7 @@ class LuciBuildService {
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
     final List<LuciBuilder> filteredBuilders =
-        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
+        await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
     return builds.values

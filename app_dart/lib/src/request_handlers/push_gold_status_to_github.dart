@@ -48,8 +48,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    final RepositorySlug slug = RepositorySlug('flutter', 'flutter');
-    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final RepositorySlug slug = config.flutterSlug;
+    final GitHub gitHubClient = await config.createGitHubClient(slug);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {

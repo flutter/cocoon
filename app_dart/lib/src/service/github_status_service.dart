@@ -27,10 +27,9 @@ class GithubStatusService {
     String commitSha,
     RepositorySlug slug,
   ) async {
-    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug);
     final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> builders =
-        await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
+    final List<LuciBuilder> builders = await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
     for (bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
@@ -54,10 +53,10 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.luciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.luciBuilders('try', slug), builderName) == null) {
       return false;
     }
-    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug);
     // GitHub "only" allows setting a status for a context/ref pair 1000 times.
     // We should avoid unnecessarily setting a pending status, e.g. if we get
     // started and pending messages close together.
@@ -96,10 +95,10 @@ class GithubStatusService {
     @required RepositorySlug slug,
   }) async {
     // No builderName configuration, nothing to do here.
-    if (await repoNameForBuilder(await config.luciBuilders('try', slug.name), builderName) == null) {
+    if (await repoNameForBuilder(await config.luciBuilders('try', slug), builderName) == null) {
       return false;
     }
-    final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
+    final GitHub gitHubClient = await config.createGitHubClient(slug);
     final CreateStatus status = statusForResult(result)
       ..context = builderName
       ..description = 'Flutter LUCI Build: $builderName'

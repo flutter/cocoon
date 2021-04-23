@@ -45,7 +45,6 @@ class FakeConfig implements Config {
     this.metricsDestination,
     this.taskLogServiceAccountValue,
     this.rollerAccountsValue,
-    this.flutterSlugValue,
     this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
     this.flutterBranchesValue,
@@ -88,7 +87,6 @@ class FakeConfig implements Config {
   String waitingForTreeToGoGreenLabelNameValue;
   ServiceAccountCredentials taskLogServiceAccountValue;
   Set<String> rollerAccountsValue;
-  RepositorySlug flutterSlugValue;
   List<String> flutterBranchesValue;
   int maxRecordsValue;
   String flutterGoldPendingValue;
@@ -102,7 +100,7 @@ class FakeConfig implements Config {
   List<String> supportedBranchesValue;
 
   @override
-  Future<GitHub> createGitHubClient(String owner, String repository) async => githubClient;
+  Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
 
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async => githubGraphQLClient;
@@ -114,7 +112,7 @@ class FakeConfig implements Config {
   Future<TabledataResourceApi> createTabledataResourceApi() async => tabledataResourceApi;
 
   @override
-  Future<GithubService> createGithubService(String owner, String repository) async => githubService;
+  Future<GithubService> createGithubService(RepositorySlug slug) async => githubService;
 
   @override
   Future<FlutterDestination> createMetricsDestination() async => metricsDestination;
@@ -210,7 +208,7 @@ class FakeConfig implements Config {
   String get waitingForTreeToGoGreenLabelName => waitingForTreeToGoGreenLabelNameValue;
 
   @override
-  RepositorySlug get flutterSlug => flutterSlugValue;
+  RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
 
   @override
   Future<ServiceAccountCredentials> get taskLogServiceAccount async => taskLogServiceAccountValue;
@@ -219,12 +217,17 @@ class FakeConfig implements Config {
   Set<String> get rollerAccounts => rollerAccountsValue;
 
   @override
-  bool githubPresubmitSupportedRepo(String repositoryName) {
-    return <String>['flutter', 'engine', 'cocoon', 'packages'].contains(repositoryName);
+  bool githubPresubmitSupportedRepo(RepositorySlug slug) {
+    return <RepositorySlug>[
+      RepositorySlug('flutter', 'flutter'),
+      RepositorySlug('flutter', 'engine'),
+      RepositorySlug('flutter', 'cocoon'),
+      RepositorySlug('flutter', 'packages'),
+    ].contains(slug);
   }
 
   @override
-  Future<String> generateGithubToken(String user, String repository) {
+  Future<String> generateGithubToken(RepositorySlug slug) {
     throw UnimplementedError();
   }
 
@@ -246,23 +249,18 @@ class FakeConfig implements Config {
   Future<String> get githubPublicKey => throw UnimplementedError();
 
   @override
-  bool isChecksSupportedRepo(RepositorySlug slug) {
-    return '${slug.owner}/${slug.name}' == 'flutter/cocoon';
-  }
-
-  @override
-  Future<List<LuciBuilder>> luciBuilders(String bucket, String repo,
+  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug,
       {String commitSha = 'master', int prNumber}) async {
-    if (repo == 'flutter') {
+    if (slug.name == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),
         const LuciBuilder(name: 'Mac', repo: 'flutter', taskName: 'mac_bot', flaky: false),
         const LuciBuilder(name: 'Windows', repo: 'flutter', taskName: 'windows_bot', flaky: false),
         const LuciBuilder(name: 'Linux Coverage', repo: 'flutter', taskName: 'coverage_bot', flaky: true)
       ];
-    } else if (repo == 'cocoon') {
+    } else if (slug.name == 'cocoon') {
       return <LuciBuilder>[const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)];
-    } else if (repo == 'engine') {
+    } else if (slug.name == 'engine') {
       return <LuciBuilder>[const LuciBuilder(name: 'Linux', repo: 'engine', taskName: 'coverage_bot', flaky: true)];
     }
     return <LuciBuilder>[];
@@ -273,4 +271,10 @@ class FakeConfig implements Config {
 
   @override
   Future<List<String>> getSupportedBranches(RepositorySlug slug) async => supportedBranchesValue;
+
+  @override
+  RepositorySlug get engineSlug => RepositorySlug('flutter', 'engine');
+
+  @override
+  Future<GithubService> createDefaultGitHubService() async => githubService;
 }

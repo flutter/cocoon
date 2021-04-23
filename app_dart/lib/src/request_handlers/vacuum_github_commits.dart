@@ -37,10 +37,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    for (String repository in Config.schedulerSupportedRepos) {
-      final String owner = repository.split('/').first;
-      final String repo = repository.split('/').last;
-      final RepositorySlug slug = RepositorySlug(owner, repo);
+    for (RepositorySlug slug in Config.schedulerSupportedRepos) {
       await _vacuumRepository(slug, datastore: datastore);
     }
 
@@ -48,7 +45,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   }
 
   Future<void> _vacuumRepository(RepositorySlug slug, {DatastoreService datastore}) async {
-    final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
+    final GithubService githubService = await config.createGithubService(slug);
     for (String branch in await config.getSupportedBranches(slug)) {
       final List<Commit> commits =
           await _vacuumBranch(slug, branch, datastore: datastore, githubService: githubService);
