@@ -91,12 +91,9 @@ class LuciBuildService {
               bucket: bucket,
               builder: builderName,
             ),
-            tags: <String, List<String>>{
-              'buildset': <String>['sha/git/$commitSha'],
-              'user_agent': const <String>['flutter-cocoon'],
-            },
+            tags: tags,
           ),
-          fields: 'builds.*.id,builds.*.builder,builds.*.tags',
+          fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status',
         ),
       ),
     ]));

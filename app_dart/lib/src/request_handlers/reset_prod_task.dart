@@ -76,10 +76,14 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha, builder, repo);
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     final Build build = currentBuilds.firstWhere(
-      (Build element) => noReschedule.contains(element.status),
+      (Build element) {
+        log.info('Found build status: ${element.status} inNoReschedule ${noReschedule.contains(element.status)}');
+        return noReschedule.contains(element.status);
+      },
       orElse: () => null,
     );
-    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, CurrentBuild: $build');
+    log.info(
+        'Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, CurrentBuild: $build, CurrentBuild: $currentBuilds');
 
     if (build != null) {
       throw const ConflictException();
