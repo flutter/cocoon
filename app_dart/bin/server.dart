@@ -53,9 +53,42 @@ Future<void> main() async {
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+      /// /api/append-log
+      ///
+      /// This API saves log chunks to datastore based on task key.
+      /// [usage]
+      ///   Cocoon agents call this API when executing build tasks
       '/api/append-log': AppendLog(config, authProvider),
+      /// /api/authorize-agent
+      ///
+      /// This API authorizes an existing devicelab agent for cocoon, and at the same time 
+      /// invalidates any previously issued authentication tokens for the given agent. It 
+      /// is called via the CLI.
+      /// [detail]
+      ///   Authorize the agent record based on input AgentID.
+      ///   Re-generates a 16-digit auth_token, which is used in cocoon/agent/config.yaml
+      ///   Updates the above token’s hash in datastore
+      /// [usage]
+      ///   Go to build dashboard
+      ///   Chrome Dev Tools > Console
+      ///   cocoon.authAgent(['-a', 'agentID])
+      ///   agentID follows flutter-devicelab-<platform>-<number>
       '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
+      /// /api/create-agent 
+      ///
+      /// This API creates an agent for cocoon, and is called via the CLI. 
+      /// [detail] 
+      ///   Create the agent record based on inputs AgentID and Capabilities. 
+      ///   Generates a 16-digit auth_token, which is used in cocoon/agent/config.yaml 
+      ///   Cocoon does not store the token, so copy it immediately and add it to the agent's configuration file 
+      ///   Save the above token’s hash in datastore 
+      /// [usage] 
+      ///   Go to build dashboard 
+      ///   Chrome Dev Tools > Console 
+      ///   cocoon.createAgent(['-a', 'agentID, '-c', 'Capabilities'])
+      ///   agentID follows flutter-devicelab-<platform>-<number> 
+      ///   Capabilities: linux/android, linux, linux-vm, mac/ios, mac, mac/android, etc
       '/api/create-agent': CreateAgent(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
@@ -63,6 +96,11 @@ Future<void> main() async {
         cache: cache,
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
+      /// /api/get-log
+      ///
+      /// This API fetches log chunks and append them together from datastore based on the task key.
+      /// [usage]
+      ///   Frontend dashboard calls this API when people click task button to view logs
       '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
@@ -76,6 +114,19 @@ Future<void> main() async {
         githubStatusService,
         githubChecksService,
       ),
+      /// /api/push-build-status-to-github
+      ///
+      /// This API first fetches the latest build status from datastore, and then compares
+      /// it with the latest status of every open pull request. If different, this API
+      /// updates the status both in Github and datastore.
+      /// [detail]
+      ///   Fetch the latest build status
+      ///   Iterate every open PR in github
+      ///   Compare the status in each PR with the latest build status
+      ///   If different, then update the status in each PR
+      ///   Batch-update status in datastore
+      /// [usage]
+      ///   Directly call via a cronjob in app engine every 1 min
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
@@ -95,8 +146,27 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+      /// /api/update-agent-health
+      ///
+      /// This API updates Agent health status continuously to both datastore and bigquery. Datastore
+      /// keeps the latest status while bigquery keeps the historical data.
+      /// [usage]
+      ///   Cocoon Agent calls this API when running in CI mode. Before executing any task, Agent
+      ///   does pre-health check and then calls this API
       '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
+      /// /api/update-task-status
+      ///
+      /// This API updates task status when finished.
+      /// [detail]
+      ///   Checks to make sure task and its corresponding commit exist in datastore
+      ///   Checks task status
+      ///   If succeeded => update datastore and bigquery
+      ///   If failed
+      ///   If Attempts > maxRetries => update datastore and bigquery
+      ///   Otherwise => reset task to be picked up by Agents
+      /// [usage]
+      ///   Cocoon Agent calls this API when running in CI mode whenever finishing running tasks.
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
