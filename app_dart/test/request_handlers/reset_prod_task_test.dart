@@ -91,8 +91,10 @@ void main() {
       );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
+      });
       await tester.post(handler);
-
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
@@ -112,6 +114,9 @@ void main() {
           builderName: 'Windows');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -133,6 +138,9 @@ void main() {
           status: 'Failed');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
+      });
       await tester.post(handler);
       expect(
         verify(mockLuciBuildService.rescheduleProdBuild(
@@ -170,8 +178,8 @@ void main() {
           builderName: 'Windows');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
-        return scheduledBuild;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[scheduledBuild];
       });
       expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
     });
@@ -185,8 +193,8 @@ void main() {
           builderName: 'Windows');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
-        return startedBuild;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[startedBuild];
       });
       expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
     });
@@ -200,13 +208,13 @@ void main() {
           builderName: 'Windows');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
-        return succeededBuild;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[succeededBuild];
       });
       expect(() => tester.post(handler), throwsA(isA<ConflictException>()));
     });
 
-    test('Reschedules if build is null', () async {
+    test('Reschedules if build is empty', () async {
       Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
           commitKey: commit.key,
@@ -215,8 +223,8 @@ void main() {
           builderName: 'Windows');
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      when(mockLuciBuildService.getBuild(any, any, any, any)).thenAnswer((_) async {
-        return null;
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
       });
       await tester.post(handler);
       expect(

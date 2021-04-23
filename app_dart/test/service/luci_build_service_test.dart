@@ -72,13 +72,12 @@ void main() {
           ],
         );
       });
-      final Build build = await service.getBuild(
+      final Iterable<Build> builds = await service.getTryBuilds(
         slug,
         'commit123',
         'abcd',
-        'try',
       );
-      expect(build, macBuild);
+      expect(builds.first, macBuild);
     });
     test('Existing prod build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -92,13 +91,13 @@ void main() {
           ],
         );
       });
-      final Build build = await service.getBuild(
+      final Iterable<Build> builds = await service.getProdBuilds(
         slug,
         'commit123',
         'abcd',
-        'prod',
+        'flutter',
       );
-      expect(build, isNull);
+      expect(builds, isEmpty);
     });
     test('Existing try build', () async {
       when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
@@ -112,13 +111,12 @@ void main() {
           ],
         );
       });
-      final Build build = await service.getBuild(
+      final Iterable<Build> builds = await service.getTryBuilds(
         slug,
         'commit123',
         'abcd',
-        'try',
       );
-      expect(build, linuxBuild);
+      expect(builds.first, linuxBuild);
     });
   });
   group('buildsForRepositoryAndPr', () {

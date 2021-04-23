@@ -45,13 +45,42 @@ class LuciBuildService {
     this.log = log;
   }
 
+  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
+  /// [builderName].
+  Future<Iterable<Build>> getTryBuilds(
+    github.RepositorySlug slug,
+    String commitSha,
+    String builderName,
+  ) async {
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': <String>['sha/git/$commitSha'],
+      'user_agent': const <String>['flutter-cocoon'],
+    };
+    return getBuilds(slug, commitSha, builderName, 'try', tags);
+  }
+
+  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
+  /// [builderName] and [repo].
+  Future<Iterable<Build>> getProdBuilds(
+    github.RepositorySlug slug,
+    String commitSha,
+    String builderName,
+    String repo,
+  ) async {
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': <String>['commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha'],
+    };
+    return getBuilds(slug, commitSha, builderName, 'prod', tags);
+  }
+
   /// Returns a BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName] and [bucket].
-  Future<Build> getBuild(
+  Future<Iterable<Build>> getBuilds(
     github.RepositorySlug slug,
     String commitSha,
     String builderName,
     String bucket,
+    Map<String, List<String>> tags,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
       Request(
@@ -74,7 +103,7 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse response) => response.builds ?? <Build>[]);
-    return builds.isNotEmpty ? builds.first : null;
+    return builds;
   }
 
   /// Returns a map of the BuildBucket builds for a given Github [slug]
@@ -315,7 +344,8 @@ class LuciBuildService {
       checkRunEvent.checkRun.name,
       commitSha,
     );
-    final Build build = await getBuild(slug, commitSha, builderName, 'try');
+    final Iterable<Build> builds = await getTryBuilds(slug, commitSha, builderName);
+    final Build build = builds.isNotEmpty ? builds.first : null;
     final String prString = build.tags['buildset'].firstWhere((String element) => element.startsWith('pr/git/'));
     final int prNumber = int.parse(prString.split('/')[2]);
     userData['check_run_id'] = githubCheckRun.id;
