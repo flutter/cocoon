@@ -59,7 +59,7 @@ class LuciBuildService {
     return getBuilds(slug, commitSha, builderName, 'try', tags);
   }
 
-  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
+  /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName] and [repo].
   Future<Iterable<Build>> getProdBuilds(
     github.RepositorySlug slug,
@@ -73,8 +73,8 @@ class LuciBuildService {
     return getBuilds(slug, commitSha, builderName, 'prod', tags);
   }
 
-  /// Returns a BuildBucket build for a given Github [slug], [commitSha],
-  /// [builderName] and [bucket].
+  /// Returns an iterable of BuildBucket builds for a given Github [slug], [commitSha],
+  /// [builderName], [bucket] and [tags].
   Future<Iterable<Build>> getBuilds(
     github.RepositorySlug slug,
     String commitSha,

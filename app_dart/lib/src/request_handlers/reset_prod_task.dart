@@ -82,8 +82,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       },
       orElse: () => null,
     );
-    log.info(
-        'Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, CurrentBuild: $build, CurrentBuild: $currentBuilds');
+    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
 
     if (build != null) {
       throw const ConflictException();
