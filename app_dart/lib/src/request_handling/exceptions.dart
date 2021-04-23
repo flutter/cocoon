@@ -39,6 +39,12 @@ class MethodNotAllowed extends HttpStatusException {
   const MethodNotAllowed(String method) : super(HttpStatus.methodNotAllowed, 'Unsupported method: $method');
 }
 
+/// Exception that will trigger an HTTP 409 conflict.
+class ConflictException extends HttpStatusException {
+  const ConflictException([String message = 'Request conflict with server state'])
+      : super(HttpStatus.conflict, message);
+}
+
 /// Exception that will trigger an HTTP 500 internal server error.
 class InternalServerError extends HttpStatusException {
   const InternalServerError([String message = 'Internal server error'])

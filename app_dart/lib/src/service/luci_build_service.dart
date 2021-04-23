@@ -45,12 +45,42 @@ class LuciBuildService {
     this.log = log;
   }
 
-  /// Returns a BuildBucket build for a given Github [slug], [commitSha] and
+  /// Returns an Iterable of try BuildBucket build for a given Github [slug], [commitSha],
   /// [builderName].
-  Future<Build> getTryBuild(
+  Future<Iterable<Build>> getTryBuilds(
     github.RepositorySlug slug,
     String commitSha,
     String builderName,
+  ) async {
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': <String>['sha/git/$commitSha'],
+      'user_agent': const <String>['flutter-cocoon'],
+    };
+    return getBuilds(slug, commitSha, builderName, 'try', tags);
+  }
+
+  /// Returns an Iterable of prod BuildBucket build for a given Github [slug], [commitSha],
+  /// [builderName] and [repo].
+  Future<Iterable<Build>> getProdBuilds(
+    github.RepositorySlug slug,
+    String commitSha,
+    String builderName,
+    String repo,
+  ) async {
+    final Map<String, List<String>> tags = <String, List<String>>{
+      'buildset': <String>['commit/gitiles/chromium.googlesource.com/external/github.com/flutter/$repo/+/$commitSha'],
+    };
+    return getBuilds(slug, commitSha, builderName, 'prod', tags);
+  }
+
+  /// Returns an iterable of BuildBucket builds for a given Github [slug], [commitSha],
+  /// [builderName], [bucket] and [tags].
+  Future<Iterable<Build>> getBuilds(
+    github.RepositorySlug slug,
+    String commitSha,
+    String builderName,
+    String bucket,
+    Map<String, List<String>> tags,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
       Request(
@@ -58,22 +88,19 @@ class LuciBuildService {
           predicate: BuildPredicate(
             builderId: BuilderId(
               project: 'flutter',
-              bucket: 'try',
+              bucket: bucket,
               builder: builderName,
             ),
-            tags: <String, List<String>>{
-              'buildset': <String>['sha/git/$commitSha'],
-              'user_agent': const <String>['flutter-cocoon'],
-            },
+            tags: tags,
           ),
-          fields: 'builds.*.id,builds.*.builder,builds.*.tags',
+          fields: 'builds.*.id,builds.*.builder,builds.*.tags,builds.*.status',
         ),
       ),
     ]));
     final Iterable<Build> builds = batch.responses
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse response) => response.builds ?? <Build>[]);
-    return builds.first;
+    return builds;
   }
 
   /// Returns a map of the BuildBucket builds for a given Github [slug]
@@ -314,7 +341,8 @@ class LuciBuildService {
       checkRunEvent.checkRun.name,
       commitSha,
     );
-    final Build build = await getTryBuild(slug, commitSha, builderName);
+    final Iterable<Build> builds = await getTryBuilds(slug, commitSha, builderName);
+    final Build build = builds.isNotEmpty ? builds.first : null;
     final String prString = build.tags['buildset'].firstWhere((String element) => element.startsWith('pr/git/'));
     final int prNumber = int.parse(prString.split('/')[2]);
     userData['check_run_id'] = githubCheckRun.id;
