@@ -112,7 +112,7 @@ class KeyHelper {
   static Map<Type, Kind> _populateTypes(Set<Type> types) {
     final Map<Type, Kind> result = <Type, Kind>{};
 
-    for (Type type in types) {
+    for (final Type type in types) {
       final ClassMirror classMirror = reflectClass(type);
       final List<InstanceMirror> kindAnnotations = classMirror.metadata
           .where((InstanceMirror annotation) => annotation.hasReflectee)

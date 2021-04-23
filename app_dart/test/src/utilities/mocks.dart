@@ -53,9 +53,9 @@ class MockHttpClientResponse extends Mock implements HttpClientResponse {
 
   @override
   StreamSubscription<List<int>> listen(
-    void onData(List<int> event), {
+    void Function(List<int> event) onData, {
     Function onError,
-    void onDone(),
+    void Function() onDone,
     bool cancelOnError,
   }) {
     return Stream<List<int>>.fromFuture(Future<List<int>>.value(response))
@@ -69,7 +69,7 @@ class MockHttpImageResponse extends Mock implements HttpClientResponse {
   final List<List<int>> response;
 
   @override
-  Future<void> forEach(void action(List<int> element)) async {
+  Future<void> forEach(void Function(List<int> element) action) async {
     response.forEach(action);
   }
 }

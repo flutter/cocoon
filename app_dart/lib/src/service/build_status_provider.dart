@@ -65,9 +65,9 @@ class BuildStatusService {
     }
 
     final List<String> failedTasks = <String>[];
-    for (CommitStatus status in statuses) {
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
+    for (final CommitStatus status in statuses) {
+      for (final Stage stage in status.stages) {
+        for (final Task task in stage.tasks) {
           /// If a task [isRelevantToLatestStatus] but has not run yet, we look
           /// for a previous run of the task from the previous commit.
           final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
@@ -97,8 +97,8 @@ class BuildStatusService {
   Map<String, bool> _findTasksRelevantToLatestStatus(List<CommitStatus> statuses) {
     final Map<String, bool> tasks = <String, bool>{};
 
-    for (Stage stage in statuses.first.stages) {
-      for (Task task in stage.tasks) {
+    for (final Stage stage in statuses.first.stages) {
+      for (final Task task in stage.tasks) {
         tasks[task.name] = true;
       }
     }
@@ -111,7 +111,7 @@ class BuildStatusService {
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
   Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch}) async* {
-    await for (Commit commit
+    await for (final Commit commit
         in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);

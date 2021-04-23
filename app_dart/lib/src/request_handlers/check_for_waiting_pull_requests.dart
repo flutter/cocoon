@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import '../request_handling/exceptions.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
@@ -43,7 +43,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     // Split the organization from the repository
     final Iterable<String> supportedRepos =
         Config.checksSupportedRepos.map((String repository) => repository.split('/')[1]);
-    for (String repo in supportedRepos) {
+    for (final String repo in supportedRepos) {
       try {
         await _checkPRs('flutter', repo, log, client);
       } catch (e) {
@@ -71,7 +71,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       client,
     );
     final List<_AutoMergeQueryResult> queryResults = await _parseQueryData(data, name);
-    for (_AutoMergeQueryResult queryResult in queryResults) {
+    for (final _AutoMergeQueryResult queryResult in queryResults) {
       if (mergeCount < _kMergeCountPerCycle && queryResult.shouldMerge) {
         final bool merged = await _mergePullRequest(
           queryResult.graphQLId,
@@ -115,7 +115,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     );
 
     if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
+      for (final GraphQLError error in result.errors) {
         log.error(error.toString());
       }
       throw const BadRequestException('GraphQL query failed');
@@ -138,7 +138,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       },
     ));
     if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
+      for (final GraphQLError error in result.errors) {
         log.error(error.toString());
       }
       return false;
@@ -161,7 +161,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     ));
 
     if (result.hasErrors) {
-      for (GraphQLError error in result.errors) {
+      for (final GraphQLError error in result.errors) {
         log.error(error.toString());
       }
       return false;
@@ -187,7 +187,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     final List<_AutoMergeQueryResult> list = <_AutoMergeQueryResult>[];
     final Iterable<Map<String, dynamic>> pullRequests =
         (label['pullRequests']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
-    for (Map<String, dynamic> pullRequest in pullRequests) {
+    for (final Map<String, dynamic> pullRequest in pullRequests) {
       final Map<String, dynamic> commit = pullRequest['commits']['nodes'].single['commit'] as Map<String, dynamic>;
       // Skip commits that are less than an hour old.
       // Use the committedDate if pushedDate is null (commitedDate cannot be null).
@@ -268,7 +268,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     };
 
     log.info('Validating name: $name, branch: $branch, status: $statuses');
-    for (Map<String, dynamic> status in statuses) {
+    for (final Map<String, dynamic> status in statuses) {
       final String name = status['context'] as String;
       if (status['state'] != 'SUCCESS') {
         allSuccess = false;
@@ -278,7 +278,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
       }
     }
     log.info('Validating name: $name, branch: $branch, checks: $checkRuns');
-    for (Map<String, dynamic> checkRun in checkRuns) {
+    for (final Map<String, dynamic> checkRun in checkRuns) {
       final String name = checkRun['name'] as String;
       if (checkRun['status'] != 'COMPLETED') {
         allSuccess = false;
@@ -300,7 +300,7 @@ class CheckForWaitingPullRequests extends ApiRequestHandler<Body> {
     if (cirrusStatuses == null) {
       return allSuccess;
     }
-    for (Map<String, dynamic> runStatus in cirrusStatuses) {
+    for (final Map<String, dynamic> runStatus in cirrusStatuses) {
       final String status = runStatus['status'] as String;
       final String name = runStatus['name'] as String;
       if (!_succeededStates.contains(status)) {
@@ -339,7 +339,7 @@ bool _checkApproval(
 ) {
   assert(changeRequestAuthors != null && changeRequestAuthors.isEmpty);
   bool hasAtLeastOneApprove = false;
-  for (Map<String, dynamic> review in reviewNodes) {
+  for (final Map<String, dynamic> review in reviewNodes) {
     // Ignore reviews from non-members/owners.
     if (review['authorAssociation'] != 'MEMBER' && review['authorAssociation'] != 'OWNER') {
       continue;
@@ -430,11 +430,11 @@ class _AutoMergeQueryResult {
           'label. __Reviewers__: If you left a comment approving, please use '
           'the "approve" review action instead.');
     }
-    for (String author in changeRequestAuthors) {
+    for (final String author in changeRequestAuthors) {
       buffer.writeln('- This pull request has changes requested by @$author. Please '
           'resolve those before re-applying the label.');
     }
-    for (String status in failures) {
+    for (final String status in failures) {
       buffer.writeln('- The status or check suite $status has failed. Please fix the '
           'issues identified (or deflake) before re-applying this label.');
     }

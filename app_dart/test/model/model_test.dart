@@ -34,12 +34,12 @@ void main() {
       .entries
       .where((MapEntry<Uri, LibraryMirror> entry) => entry.key.path.contains('cocoon_service'))
       .map((MapEntry<Uri, LibraryMirror> entry) => entry.value);
-  for (LibraryMirror library in libraries) {
+  for (final LibraryMirror library in libraries) {
     final Iterable<ClassMirror> classes = library.declarations.values
         .whereType<ClassMirror>()
         .where((ClassMirror declaration) => declaration.hasReflectedType)
         .where((ClassMirror declaration) => declaration.metadata.any(isKind));
-    for (ClassMirror modelClass in classes) {
+    for (final ClassMirror modelClass in classes) {
       group('${modelClass.reflectedType}', () {
         test('extends Model', () {
           final bool isStringModel = modelClass.superclass.reflectedType.toString() == 'Model<String>';
@@ -51,7 +51,7 @@ void main() {
             .whereType<VariableMirror>()
             .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
 
-        for (VariableMirror variable in propertyVariables) {
+        for (final VariableMirror variable in propertyVariables) {
           final Iterable<InstanceMirror> propertyAnnotations = variable.metadata.where(isProperty);
 
           group(SymbolName(variable.simpleName), () {
@@ -79,7 +79,7 @@ void main() {
             .where((MethodMirror method) => method.isGetter)
             .where((DeclarationMirror declaration) => declaration.metadata.any(isProperty));
 
-        for (MethodMirror getter in propertyGetters) {
+        for (final MethodMirror getter in propertyGetters) {
           final Iterable<InstanceMirror> propertyAnnotations = getter.metadata.where(isProperty);
 
           group(SymbolName(getter.simpleName), () {

@@ -29,7 +29,7 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
 
   @override
   @protected
-  Future<T> run<T extends Body>(Future<T> callback()) {
+  Future<T> run<T extends Body>(Future<T> Function() callback) {
     return super.run<T>(() {
       return runZoned<Future<T>>(() {
         return callback();

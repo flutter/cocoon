@@ -53,7 +53,7 @@ void main() {
 
     group('if commits in query', () {
       void setTaskResults(List<Task> tasks) {
-        for (Task task in tasks) {
+        for (final Task task in tasks) {
           config.db.values[task.key] = task;
         }
       }
@@ -121,7 +121,7 @@ void main() {
 
     group('if release branch exists', () {
       void setTaskResults(List<Task> tasks) {
-        for (Task task in tasks) {
+        for (final Task task in tasks) {
           config.db.values[task.key] = task;
         }
       }

@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:app_flutter/logic/qualified_task.dart';
+import '../logic/qualified_task.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 
 import 'package:http/http.dart' as http;

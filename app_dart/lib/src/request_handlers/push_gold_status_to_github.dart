@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import '../request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -52,7 +52,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     final GitHub gitHubClient = await config.createGitHubClient(slug.owner, slug.name);
     final List<GithubGoldStatusUpdate> statusUpdates = <GithubGoldStatusUpdate>[];
     log.debug('Beginning Gold checks...');
-    await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
+    await for (final PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       // Get last known Gold status from datastore.
       final GithubGoldStatusUpdate lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       CreateStatus statusRequest;
@@ -108,7 +108,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
             (commit['checkSuites']['nodes']?.first['checkRuns']['nodes'] as List<dynamic>).cast<Map<String, dynamic>>();
       }
       checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-      for (Map<String, dynamic> checkRun in checkRuns) {
+      for (final Map<String, dynamic> checkRun in checkRuns) {
         log.debug('Found check run: $checkRun');
         final String name = checkRun['name'].toLowerCase() as String;
         if (name.contains('framework') || name.contains('web')) {
@@ -261,7 +261,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     String message,
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
-    await for (IssueComment comment in comments) {
+    await for (final IssueComment comment in comments) {
       if (comment.body.contains(message)) {
         return true;
       }
@@ -275,7 +275,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     RepositorySlug slug,
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
-    await for (IssueComment comment in comments) {
+    await for (final IssueComment comment in comments) {
       if (comment.body.contains(config.flutterGoldInitialAlert(_getTriageUrl(pr.number)))) {
         return false;
       }
@@ -296,7 +296,7 @@ Future<Map<String, dynamic>> _queryGraphQL(Logging log, GraphQLClient client, in
   );
 
   if (result.hasErrors) {
-    for (GraphQLError error in result.errors) {
+    for (final GraphQLError error in result.errors) {
       log.error(error.toString());
     }
     throw const BadRequestException('GraphQL query failed');

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:app_flutter/widgets/web_image.dart';
+import 'web_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;

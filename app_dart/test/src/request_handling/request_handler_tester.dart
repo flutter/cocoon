@@ -44,7 +44,7 @@ class RequestHandlerTester {
   }
 
   @protected
-  Future<T> run<T extends Body>(Future<T> callback()) {
+  Future<T> run<T extends Body>(Future<T> Function() callback) {
     return runZoned<Future<T>>(() {
       return callback();
     }, zoneValues: <RequestKey<dynamic>, Object>{

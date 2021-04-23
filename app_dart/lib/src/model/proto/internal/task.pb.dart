@@ -40,11 +40,23 @@ class Task extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Task.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Task clone() => Task()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Task copyWith(void Function(Task) updates) => super.copyWith((message) => updates(message as Task));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Task create() => Task._();
+  @override
+  @override
+  @override
   Task createEmptyInstance() => create();
   static $pb.PbList<Task> createRepeated() => $pb.PbList<Task>();
   @$core.pragma('dart2js:noInline')

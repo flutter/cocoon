@@ -78,7 +78,7 @@ class Scheduler {
     datastore = datastoreProvider(config.db);
     final List<Commit> newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
-    for (Commit commit in newCommits) {
+    for (final Commit commit in newCommits) {
       await _addCommit(commit);
     }
   }
@@ -148,7 +148,7 @@ class Scheduler {
     final List<Commit> newCommits = <Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
     commits.sort((Commit a, Commit b) => b.timestamp.compareTo(a.timestamp));
-    for (Commit commit in commits) {
+    for (final Commit commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
       if (!await _commitExistsInDatastore(commit)) {
         newCommits.add(commit);
@@ -195,7 +195,7 @@ class Scheduler {
 
     final List<Task> tasks = <Task>[];
     final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders('flutter', config);
-    for (LuciBuilder builder in prodBuilders) {
+    for (final LuciBuilder builder in prodBuilders) {
       // These built-in tasks are not listed in the manifest.
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
     }

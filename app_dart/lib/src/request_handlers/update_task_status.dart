@@ -121,7 +121,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   ) async {
     final FlutterDestination metricsDestination = await config.createMetricsDestination();
     final List<MetricPoint> metricPoints = <MetricPoint>[];
-    for (String scoreKey in scoreKeys) {
+    for (final String scoreKey in scoreKeys) {
       metricPoints.add(
         MetricPoint(
           (resultData[scoreKey] as num).toDouble(),
@@ -183,7 +183,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
     log.debug('Found ${initialTasks.length} tasks for commit');
     final List<Task> tasks = <Task>[];
     log.debug('Searching for task with builderName=$builderName');
-    for (Task task in initialTasks) {
+    for (final Task task in initialTasks) {
       if (task.builderName == builderName) {
         tasks.add(task);
       }

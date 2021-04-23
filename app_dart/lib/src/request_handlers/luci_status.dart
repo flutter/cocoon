@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cocoon_service/src/foundation/providers.dart';
-import 'package:cocoon_service/src/service/buildbucket.dart';
-import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
+import '../foundation/providers.dart';
+import '../service/buildbucket.dart';
+import '../service/github_checks_service.dart';
+import '../service/github_status_service.dart';
+import '../service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;

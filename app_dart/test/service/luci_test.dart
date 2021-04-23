@@ -64,7 +64,7 @@ void main() {
     expect(luciTaskBranchMap.keys.length, 1);
     final Map<String, List<LuciTask>> luciTaskMap = luciTaskBranchMap.values.first;
     final List<LuciTask> luciTasks = luciTaskMap['unknown'];
-    for (LuciTask luciTask in luciTasks) {
+    for (final LuciTask luciTask in luciTasks) {
       // Get associated luci builder to verify status is mapped correctly
       final Build luciBuild = builds[luciTask.buildNumber];
       expect(luciTask.status, luciStatusToTaskStatus[luciBuild.status]);

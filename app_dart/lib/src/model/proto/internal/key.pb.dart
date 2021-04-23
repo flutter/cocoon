@@ -28,11 +28,23 @@ class Key extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Key.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Key clone() => Key()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Key copyWith(void Function(Key) updates) => super.copyWith((message) => updates(message as Key));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Key create() => Key._();
+  @override
+  @override
+  @override
   Key createEmptyInstance() => create();
   static $pb.PbList<Key> createRepeated() => $pb.PbList<Key>();
   @$core.pragma('dart2js:noInline')
@@ -105,11 +117,23 @@ class RootKey extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory RootKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   RootKey clone() => RootKey()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   RootKey copyWith(void Function(RootKey) updates) => super.copyWith((message) => updates(message as RootKey));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static RootKey create() => RootKey._();
+  @override
+  @override
+  @override
   RootKey createEmptyInstance() => create();
   static $pb.PbList<RootKey> createRepeated() => $pb.PbList<RootKey>();
   @$core.pragma('dart2js:noInline')

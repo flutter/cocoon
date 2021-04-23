@@ -5,9 +5,9 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import '../foundation/github_checks_util.dart';
+import '../model/github/checks.dart';
+import '../request_handling/exceptions.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
@@ -146,8 +146,7 @@ class LuciBuildService {
     final Iterable<Build> builds = batch.responses
         .map((Response response) => response.searchBuilds)
         .expand((SearchBuildsResponse response) => response.builds ?? <Build>[]);
-    return Map<String, Build>.fromIterable(builds,
-        key: (dynamic b) => b.builderId.builder as String, value: (dynamic b) => b as Build);
+    return {for (var b in builds) b.builderId.builder as String: b as Build};
   }
 
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
@@ -191,7 +190,7 @@ class LuciBuildService {
     }
 
     final List<Request> requests = <Request>[];
-    for (String builder in builderNames) {
+    for (final String builder in builderNames) {
       log.info('Trigger build for: $builder');
       final BuilderId builderId = BuilderId(
         project: 'flutter',
@@ -267,7 +266,7 @@ class LuciBuildService {
       return;
     }
     final List<Request> requests = <Request>[];
-    for (Build build in builds.values) {
+    for (final Build build in builds.values) {
       requests.add(
         Request(
           cancelBuild: CancelBuildRequest(id: build.id, summaryMarkdown: reason),

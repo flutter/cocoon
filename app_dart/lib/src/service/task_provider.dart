@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/datastore/config.dart';
-import 'package:cocoon_service/src/model/appengine/agent.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
+import '../datastore/config.dart';
+import '../model/appengine/agent.dart';
+import '../model/appengine/commit.dart';
+import '../model/appengine/stage.dart';
+import '../model/appengine/task.dart';
+import 'datastore.dart';
 import 'package:meta/meta.dart';
 
 /// Function signature for a [TaskService] provider.
@@ -30,8 +30,8 @@ class TaskService {
     FullTask fullTask;
     // Reserve release branch tasks first, and only need to scan tasks from the latest commit.
     final List<String> branches = await config.flutterBranches;
-    for (String branch in branches.where((String branch) => branch != 'master')) {
-      await for (Commit commit in datastore.queryRecentCommits(branch: branch, limit: 1)) {
+    for (final String branch in branches.where((String branch) => branch != 'master')) {
+      await for (final Commit commit in datastore.queryRecentCommits(branch: branch, limit: 1)) {
         fullTask = await _findNextTask(commit, agent);
         if (fullTask != null) {
           return fullTask;
@@ -39,7 +39,7 @@ class TaskService {
       }
     }
     // Reserve master tasks if release branch tasks finish.
-    await for (Commit commit in datastore.queryRecentCommits()) {
+    await for (final Commit commit in datastore.queryRecentCommits()) {
       fullTask = await _findNextTask(commit, agent);
       if (fullTask != null) {
         return fullTask;
@@ -51,11 +51,11 @@ class TaskService {
 
   Future<FullTask> _findNextTask(Commit commit, Agent agent) async {
     final List<Stage> stages = await datastore.queryTasksGroupedByStage(commit);
-    for (Stage stage in stages) {
+    for (final Stage stage in stages) {
       if (!stage.isManagedByDeviceLab) {
         continue;
       }
-      for (Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
+      for (final Task task in List<Task>.from(stage.tasks)..sort(Task.byAttempts)) {
         if (task.requiredCapabilities.isEmpty) {
           throw InvalidTaskException('Task ${task.name} has no required capabilities');
         }

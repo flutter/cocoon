@@ -602,7 +602,7 @@ class FakeHttpHeaders implements HttpHeaders {
   @override
   String value(String name) {
     final List<String> value = _values[name.toLowerCase()];
-    return value == null ? null : value.single;
+    return value?.single;
   }
 }
 

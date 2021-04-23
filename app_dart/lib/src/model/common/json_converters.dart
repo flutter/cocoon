@@ -30,7 +30,7 @@ class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dyn
       return null;
     }
     final Map<String, List<String>> result = <String, List<String>>{};
-    for (Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
+    for (final Map<String, dynamic> tag in json.cast<Map<String, dynamic>>()) {
       final String key = tag['key'] as String;
       result[key] ??= <String>[];
       result[key].add(tag['value'] as String);
@@ -47,8 +47,8 @@ class TagsConverter implements JsonConverter<Map<String, List<String>>, List<dyn
       return const <Map<String, List<String>>>[];
     }
     final List<Map<String, String>> result = <Map<String, String>>[];
-    for (String key in object.keys) {
-      for (String value in object[key]) {
+    for (final String key in object.keys) {
+      for (final String value in object[key]) {
         result.add(<String, String>{
           'key': key,
           'value': value,

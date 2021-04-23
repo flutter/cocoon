@@ -37,7 +37,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
 
-    for (String repository in Config.schedulerSupportedRepos) {
+    for (final String repository in Config.schedulerSupportedRepos) {
       final String owner = repository.split('/').first;
       final String repo = repository.split('/').last;
       final RepositorySlug slug = RepositorySlug(owner, repo);
@@ -49,7 +49,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   Future<void> _vacuumRepository(RepositorySlug slug, {DatastoreService datastore}) async {
     final GithubService githubService = await config.createGithubService(slug.owner, slug.name);
-    for (String branch in await config.getSupportedBranches(slug)) {
+    for (final String branch in await config.getSupportedBranches(slug)) {
       final List<Commit> commits =
           await _vacuumBranch(slug, branch, datastore: datastore, githubService: githubService);
       await scheduler.addCommits(commits);
@@ -91,7 +91,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   Future<List<Commit>> _toDatastoreCommit(
       RepositorySlug slug, List<RepositoryCommit> commits, DatastoreService datastore, String branch) async {
     final List<Commit> recentCommits = <Commit>[];
-    for (RepositoryCommit commit in commits) {
+    for (final RepositoryCommit commit in commits) {
       final String id = '${slug.fullName}/$branch/${commit.sha}';
       final Key<String> key = datastore.db.emptyKey.append<String>(Commit, id: id);
       recentCommits.add(Commit(

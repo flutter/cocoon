@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io' show ContentType, HttpResponse;
 import 'dart:typed_data';
 
-import 'package:cocoon_service/cocoon_service.dart';
+import '../../cocoon_service.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:meta/meta.dart';

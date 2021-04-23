@@ -35,7 +35,7 @@ class GithubService {
 
     /// [lastCommitTimestamp+1] excludes last commit itself.
     /// Github api url: https://developer.github.com/v3/repos/commits/#list-commits
-    await for (Response response in paginationHelper.fetchStreamed(
+    await for (final Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/commits',
       params: <String, dynamic>{
@@ -79,7 +79,7 @@ class GithubService {
     final List<Map<String, dynamic>> pullRequests = <Map<String, dynamic>>[];
 
     headers['Authorization'] = 'Bearer ${github.auth.token}';
-    await for (Response response in paginationHelper.fetchStreamed(
+    await for (final Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/pulls',
       params: <String, dynamic>{
@@ -108,7 +108,7 @@ class GithubService {
     final List<Map<String, dynamic>> files = <Map<String, dynamic>>[];
 
     headers['Authorization'] = 'Bearer ${github.auth.token}';
-    await for (Response response in paginationHelper.fetchStreamed(
+    await for (final Response response in paginationHelper.fetchStreamed(
       'GET',
       '/repos/${slug.fullName}/pulls/$prNumber/files',
       headers: headers,

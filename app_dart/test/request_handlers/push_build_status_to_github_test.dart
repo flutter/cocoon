@@ -46,7 +46,7 @@ void main() {
 
     List<PullRequest> pullRequestList(String branch) {
       final List<PullRequest> pullRequests = <PullRequest>[];
-      for (int pr in (branch == 'master') ? githubPullRequestsMaster : githubPullRequestsOther) {
+      for (final int pr in (branch == 'master') ? githubPullRequestsMaster : githubPullRequestsOther) {
         pullRequests.add(PullRequest()
           ..number = pr
           ..head = (PullRequestHead()..sha = pr.toString()));

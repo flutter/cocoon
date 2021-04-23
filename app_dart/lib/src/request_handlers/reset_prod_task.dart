@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/luci.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
+import '../../cocoon_service.dart';
+import '../model/appengine/commit.dart';
+import '../model/appengine/task.dart';
+import '../model/luci/buildbucket.dart';
+import '../request_handling/exceptions.dart';
+import '../service/luci.dart';
+import '../service/luci_build_service.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';

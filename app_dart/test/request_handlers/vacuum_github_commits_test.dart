@@ -44,7 +44,7 @@ void main() {
 
     List<RepositoryCommit> commitList() {
       final List<RepositoryCommit> commits = <RepositoryCommit>[];
-      for (String sha in githubCommits) {
+      for (final String sha in githubCommits) {
         final User author = User()
           ..login = 'Username'
           ..avatarUrl = 'http://example.org/avatar.jpg';

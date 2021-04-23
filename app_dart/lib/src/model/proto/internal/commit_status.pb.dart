@@ -25,12 +25,24 @@ class CommitStatus extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory CommitStatus.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   CommitStatus clone() => CommitStatus()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   CommitStatus copyWith(void Function(CommitStatus) updates) =>
       super.copyWith((message) => updates(message as CommitStatus));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CommitStatus create() => CommitStatus._();
+  @override
+  @override
+  @override
   CommitStatus createEmptyInstance() => create();
   static $pb.PbList<CommitStatus> createRepeated() => $pb.PbList<CommitStatus>();
   @$core.pragma('dart2js:noInline')

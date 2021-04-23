@@ -55,7 +55,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(repo: 'engine');
 
     String status = GithubBuildStatusUpdate.statusSuccess;
-    for (List<LuciTask> tasks in luciTasks.values) {
+    for (final List<LuciTask> tasks in luciTasks.values) {
       final String latestStatus = await _getLatestStatus(tasks);
       if (status == GithubBuildStatusUpdate.statusSuccess && latestStatus == GithubBuildStatusUpdate.statusFailure) {
         status = GithubBuildStatusUpdate.statusFailure;
@@ -75,7 +75,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final GitHub github = await config.createGitHubClient(slug.owner, slug.name);
     final List<GithubBuildStatusUpdate> updates = <GithubBuildStatusUpdate>[];
-    await for (PullRequest pr in github.pullRequests.list(slug)) {
+    await for (final PullRequest pr in github.pullRequests.list(slug)) {
       final GithubBuildStatusUpdate update = await datastore.queryLastStatusUpdate(slug, pr);
 
       if (update.status != status) {
@@ -106,7 +106,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
   /// This function gets called with the last 40 builds fo a given builder ordered
   /// by creation time starting with the last one first.
   Future<String> _getLatestStatus(List<LuciTask> tasks) async {
-    for (LuciTask task in tasks) {
+    for (final LuciTask task in tasks) {
       if (task.ref != 'refs/heads/master') {
         log.debug('Skipping ${task.status} from commit ${task.commitSha} ref ${task.ref} builder ${task.builderName}');
         continue;

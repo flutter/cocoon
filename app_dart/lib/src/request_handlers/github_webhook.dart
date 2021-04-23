@@ -193,7 +193,7 @@ class GithubWebhook extends RequestHandler<Body> {
     bool hasTests = false;
     bool needsTests = false;
 
-    await for (PullRequestFile file in files) {
+    await for (final PullRequestFile file in files) {
       if (file.filename.endsWith('.dart') &&
           !file.filename.startsWith('dev/devicelab/bin/tasks') &&
           !file.filename.startsWith('dev/bots/')) {
@@ -291,7 +291,7 @@ class GithubWebhook extends RequestHandler<Body> {
     bool hasTests = false;
     bool needsTests = false;
 
-    await for (PullRequestFile file in files) {
+    await for (final PullRequestFile file in files) {
       final String filename = file.filename.toLowerCase();
       if (filename.endsWith('.dart') ||
           filename.endsWith('.mm') ||
@@ -377,7 +377,7 @@ class GithubWebhook extends RequestHandler<Body> {
     String message,
   ) async {
     final Stream<IssueComment> comments = gitHubClient.issues.listCommentsByIssue(slug, pr.number);
-    await for (IssueComment comment in comments) {
+    await for (final IssueComment comment in comments) {
       if (comment.body.contains(message)) {
         return true;
       }

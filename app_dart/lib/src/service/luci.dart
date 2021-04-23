@@ -74,7 +74,7 @@ class LuciService {
 
     final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> results =
         <BranchLuciBuilder, Map<String, List<LuciTask>>>{};
-    for (Build build in builds) {
+    for (final Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {
@@ -120,7 +120,7 @@ class LuciService {
     // Request builders data in batches of 50 to prevent failures in the grpc service.
     const RetryOptions r = RetryOptions(maxAttempts: 3);
     final List<List<LuciBuilder>> partialBuildersList = getPartialBuildersList(builders, _buildersBatchSize);
-    for (List<LuciBuilder> partialBuilders in partialBuildersList) {
+    for (final List<LuciBuilder> partialBuilders in partialBuildersList) {
       await r.retry(
         () async {
           final Iterable<Build> partialBuilds = await getBuilds(repo, requireTaskName, partialBuilders);
@@ -148,7 +148,7 @@ class LuciService {
     final List<Build> builds = await getBuildsForBuilderList(builders);
 
     final Map<LuciBuilder, List<LuciTask>> results = <LuciBuilder, List<LuciTask>>{};
-    for (Build build in builds) {
+    for (final Build build in builds) {
       final String commit = build.input?.gitilesCommit?.hash ?? 'unknown';
       final String ref = build.input?.gitilesCommit?.ref ?? 'unknown';
       final LuciBuilder builder = builders.singleWhere((LuciBuilder builder) {

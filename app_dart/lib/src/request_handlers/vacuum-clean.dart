@@ -44,7 +44,7 @@ class VacuumClean extends ApiRequestHandler<Body> {
         .where(shouldBeVacuumCleaned)
         .toList();
     log.debug('Found ${tasks.length} in progress tasks that have been stranded');
-    for (Task task in tasks) {
+    for (final Task task in tasks) {
       if (task.attempts >= maxRetries) {
         task.status = Task.statusFailed;
         task.reason = 'Task timed out after 1 hour';

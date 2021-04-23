@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/access_token_provider.dart';
-import 'package:cocoon_service/src/service/reservation_provider.dart';
-import 'package:cocoon_service/src/service/task_provider.dart';
+import '../service/access_token_provider.dart';
+import '../service/reservation_provider.dart';
+import '../service/task_provider.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:meta/meta.dart';

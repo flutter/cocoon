@@ -38,7 +38,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   );
 
   if (result.hasErrors) {
-    for (GraphQLError error in result.errors) {
+    for (final GraphQLError error in result.errors) {
       log.error(error.toString());
     }
     throw const BadRequestException('GraphQL query failed');
@@ -53,7 +53,7 @@ Future<List<CirrusResult>> queryCirrusGraphQL(
   }
   try {
     final List<dynamic> searchBuilds = result.data['searchBuilds'] as List<dynamic>;
-    for (dynamic searchBuild in searchBuilds) {
+    for (final dynamic searchBuild in searchBuilds) {
       tasks.clear();
       tasks.addAll((searchBuild['latestGroupTasks'] as List<dynamic>).cast<Map<String, dynamic>>());
       branch = searchBuild['branch'] as String;

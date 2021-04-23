@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildStatus;
-import 'package:cocoon_service/src/service/datastore.dart';
+import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
+import '../service/datastore.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/config.dart';

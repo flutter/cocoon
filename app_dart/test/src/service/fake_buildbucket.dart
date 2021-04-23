@@ -56,7 +56,7 @@ class FakeBuildBucketClient extends BuildBucketClient {
   @override
   Future<BatchResponse> batch(BatchRequest request) async {
     final List<Response> responses = <Response>[];
-    for (Request request in request.requests) {
+    for (final Request request in request.requests) {
       if (request.cancelBuild != null) {
         responses.add(Response(cancelBuild: await cancelBuild(request.cancelBuild)));
       } else if (request.getBuild != null) {

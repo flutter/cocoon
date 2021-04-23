@@ -46,7 +46,7 @@ void main() {
     ));
     whenGithubRequest.thenAnswer((_) async {
       final List<dynamic> data = <dynamic>[];
-      for (String sha in shas) {
+      for (final String sha in shas) {
         // https://developer.github.com/v3/repos/commits/#list-commits
         data.add(<String, dynamic>{
           'sha': sha,

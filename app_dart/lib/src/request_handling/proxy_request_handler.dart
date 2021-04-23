@@ -60,7 +60,7 @@ class ProxyRequestHandler extends RequestHandler<Body> {
   void _transferHttpHeaders({@required HttpHeaders from, @required HttpHeaders to}) {
     to.clear();
     from.forEach((String name, List<String> values) {
-      for (String value in values) {
+      for (final String value in values) {
         to.add(name, value);
       }
     });

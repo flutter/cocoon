@@ -5,9 +5,9 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import '../foundation/github_checks_util.dart';
+import '../model/github/checks.dart';
+import '../model/luci/buildbucket.dart';
 import 'package:github/github.dart' as github;
 
 import '../../cocoon_service.dart';
@@ -64,7 +64,7 @@ class GithubChecksService {
           checkSuiteEvent,
         );
 
-        for (Build build in builds) {
+        for (final Build build in builds) {
           final github.CheckRun checkRun = checkRuns[build.builderId.builder];
           await luciBuilderService.rescheduleTryBuildUsingCheckSuiteEvent(
             checkSuiteEvent,

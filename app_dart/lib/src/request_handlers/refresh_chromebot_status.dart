@@ -58,7 +58,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
       requireTaskName: true,
     );
 
-    for (BranchLuciBuilder branchLuciBuilder in luciTasks.keys) {
+    for (final BranchLuciBuilder branchLuciBuilder in luciTasks.keys) {
       await runTransactionWithRetries(() async {
         await _updateStatus(
           branchLuciBuilder.luciBuilder,
@@ -82,7 +82,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     /// reruns for the same commit and same builder. Update [devicelabTask]
     /// [builderNumberList] when luci rerun happens, and update [devicelabTask]
     /// status when the status of latest luci run changes.
-    for (FullTask datastoreTask in datastoreTasks) {
+    for (final FullTask datastoreTask in datastoreTasks) {
       final String commitSha = datastoreTask.commit.sha;
       if (!luciTasksMap.containsKey(commitSha)) {
         continue;

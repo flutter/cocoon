@@ -22,12 +22,24 @@ class Path_Element extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Path_Element.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Path_Element clone() => Path_Element()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Path_Element copyWith(void Function(Path_Element) updates) =>
       super.copyWith((message) => updates(message as Path_Element));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Path_Element create() => Path_Element._();
+  @override
+  @override
+  @override
   Path_Element createEmptyInstance() => create();
   static $pb.PbList<Path_Element> createRepeated() => $pb.PbList<Path_Element>();
   @$core.pragma('dart2js:noInline')
@@ -82,11 +94,23 @@ class Path extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Path.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Path clone() => Path()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Path copyWith(void Function(Path) updates) => super.copyWith((message) => updates(message as Path));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Path create() => Path._();
+  @override
+  @override
+  @override
   Path createEmptyInstance() => create();
   static $pb.PbList<Path> createRepeated() => $pb.PbList<Path>();
   @$core.pragma('dart2js:noInline')
@@ -109,11 +133,23 @@ class Reference extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Reference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Reference clone() => Reference()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Reference copyWith(void Function(Reference) updates) => super.copyWith((message) => updates(message as Reference));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Reference create() => Reference._();
+  @override
+  @override
+  @override
   Reference createEmptyInstance() => create();
   static $pb.PbList<Reference> createRepeated() => $pb.PbList<Reference>();
   @$core.pragma('dart2js:noInline')

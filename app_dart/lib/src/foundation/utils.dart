@@ -193,7 +193,7 @@ Future<List<LuciBuilder>> getLuciBuilders(
 /// [file] is based on repo root: `a/b/c.dart`.
 Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<String> files) async {
   final List<LuciBuilder> filteredBuilders = <LuciBuilder>[];
-  for (LuciBuilder builder in builders) {
+  for (final LuciBuilder builder in builders) {
     final List<String> globs = builder.runIf ?? <String>[''];
     for (String glob in globs) {
       glob = glob.replaceAll('**', '[a-zA-Z_\/]?');

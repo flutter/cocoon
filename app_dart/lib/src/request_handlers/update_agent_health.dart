@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/model/appengine/agent.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import '../model/appengine/agent.dart';
+import '../request_handling/exceptions.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 

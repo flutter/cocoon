@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/cocoon_service.dart';
+import '../../cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 

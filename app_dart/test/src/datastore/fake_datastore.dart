@@ -66,7 +66,7 @@ class FakeDatastoreDB implements DatastoreDB {
       onCommit(List<Model<dynamic>>.unmodifiable(inserts), List<Key<dynamic>>.unmodifiable(deletes));
     }
     deletes.forEach(values.remove);
-    for (Model<dynamic> model in inserts) {
+    for (final Model<dynamic> model in inserts) {
       values[model.key] = model;
     }
   }
@@ -86,7 +86,7 @@ class FakeDatastoreDB implements DatastoreDB {
   }
 
   @override
-  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T orElse()}) async {
+  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function() orElse}) async {
     final List<T> values = await lookup(<Key<dynamic>>[key]);
     T value = values.single;
     if (value == null) {
@@ -169,7 +169,7 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
     Iterable<T> resultsView = results;
 
     // This considers only the special case when there exists [branch] or [pr] filter.
-    for (FakeFilterSpec filter in filters) {
+    for (final FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
       if (filterString.contains('branch =') || filterString.contains('head =')) {
@@ -221,7 +221,7 @@ class FakeTransaction implements Transaction {
     if (db.onCommit != null) {
       db.onCommit(List<Model<dynamic>>.unmodifiable(inserts.values), List<Key<dynamic>>.unmodifiable(deletes));
     }
-    for (MapEntry<Key<dynamic>, Model<dynamic>> entry in inserts.entries) {
+    for (final MapEntry<Key<dynamic>, Model<dynamic>> entry in inserts.entries) {
       db.values[entry.key] = entry.value;
     }
     deletes.forEach(db.values.remove);
@@ -231,7 +231,7 @@ class FakeTransaction implements Transaction {
   @override
   Future<List<T>> lookup<T extends Model<dynamic>>(List<Key<dynamic>> keys) async {
     final List<T> results = <T>[];
-    for (Key<dynamic> key in keys) {
+    for (final Key<dynamic> key in keys) {
       if (deletes.contains(key)) {
         results.add(null);
       } else if (inserts.containsKey(key)) {
@@ -246,7 +246,7 @@ class FakeTransaction implements Transaction {
   }
 
   @override
-  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T orElse()}) async {
+  Future<T> lookupValue<T extends Model<dynamic>>(Key<dynamic> key, {T Function() orElse}) async {
     final List<T> values = await lookup(<Key<dynamic>>[key]);
     T value = values.single;
     if (value == null) {
@@ -276,7 +276,7 @@ class FakeTransaction implements Transaction {
     }
     if (inserts != null) {
       final math.Random random = math.Random();
-      for (Model<dynamic> insert in inserts) {
+      for (final Model<dynamic> insert in inserts) {
         Key<dynamic> key = insert.key;
         if (key.id == null) {
           key = Key<dynamic>(key.parent, key.type, random.nextInt(math.pow(2, 20).toInt()));

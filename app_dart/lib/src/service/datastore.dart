@@ -125,7 +125,7 @@ class DatastoreService {
       {String taskName, int commitLimit = 20, int taskLimit = 20, String branch = 'master'}) async* {
     assert(commitLimit != null);
     assert(taskLimit != null);
-    await for (Commit commit in queryRecentCommits(limit: commitLimit, branch: branch)) {
+    await for (final Commit commit in queryRecentCommits(limit: commitLimit, branch: branch)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)
         ..limit(taskLimit)
         ..order('-createTimestamp');
@@ -139,7 +139,7 @@ class DatastoreService {
   // Queries for recent tasks without considering branches.
   Stream<FullTask> queryRecentTasksNoBranch({int commitLimit = 20}) async* {
     assert(commitLimit != null);
-    await for (Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
+    await for (final Commit commit in queryRecentCommitsNoBranch(limit: commitLimit)) {
       final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-createTimestamp');
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
     }
@@ -153,7 +153,7 @@ class DatastoreService {
   Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
     final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-stageName');
     final Map<String, StageBuilder> stages = <String, StageBuilder>{};
-    await for (Task task in query.run()) {
+    await for (final Task task in query.run()) {
       if (!stages.containsKey(task.stageName)) {
         stages[task.stageName] = StageBuilder()
           ..commit = commit
@@ -235,7 +235,7 @@ class DatastoreService {
   /// Inserts [rows] into datastore sharding the inserts if needed.
   Future<void> insert(List<Model<dynamic>> rows) async {
     final List<List<Model<dynamic>>> shards = await shard(rows);
-    for (List<Model<dynamic>> shard in shards) {
+    for (final List<Model<dynamic>> shard in shards) {
       await runTransactionWithRetries(() async {
         await db.withTransaction<void>((Transaction transaction) async {
           transaction.queueMutations(inserts: shard);

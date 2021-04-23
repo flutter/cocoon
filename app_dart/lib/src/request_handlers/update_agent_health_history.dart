@@ -53,7 +53,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
     final int healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
-    for (Agent agent in agents) {
+    for (final Agent agent in agents) {
       final bool isHealthy = _isAgentHealthy(agent);
 
       /// Consolidate [agents] together.

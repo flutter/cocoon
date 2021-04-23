@@ -32,7 +32,7 @@ class GithubStatusService {
     final List<LuciBuilder> builders =
         await config.luciBuilders('try', slug.name, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
-    for (bb.Build build in builds.values) {
+    for (final bb.Build build in builds.values) {
       // LUCI configuration contain more builders than the ones we would like to run.
       // We need to ensure we are adding checks for the builders that will return a
       // status to prevent status blocking PRs forever.
@@ -64,7 +64,7 @@ class GithubStatusService {
     // We have to check for both because sometimes one or the other might come
     // in.
     // However, we should keep going if the _most recent_ status is not pending.
-    await for (RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
+    await for (final RepositoryStatus status in gitHubClient.repositories.listStatuses(slug, ref)) {
       if (status.context == builderName) {
         if (status.state == PENDING_STATE && status.targetUrl.startsWith(buildUrl)) {
           return false;

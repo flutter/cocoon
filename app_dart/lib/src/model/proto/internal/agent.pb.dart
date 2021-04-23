@@ -30,11 +30,23 @@ class Agent extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Agent.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Agent clone() => Agent()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Agent copyWith(void Function(Agent) updates) => super.copyWith((message) => updates(message as Agent));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Agent create() => Agent._();
+  @override
+  @override
+  @override
   Agent createEmptyInstance() => create();
   static $pb.PbList<Agent> createRepeated() => $pb.PbList<Agent>();
   @$core.pragma('dart2js:noInline')

@@ -47,7 +47,7 @@ void main() {
       });
 
       test('QueryRecentCommits', () async {
-        for (String branch in <String>['master', 'release']) {
+        for (final String branch in <String>['master', 'release']) {
           final Commit commit =
               Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
           config.db.values[commit.key] = commit;
@@ -65,7 +65,7 @@ void main() {
         // Empty results
         List<Commit> commits = await datastoreService.queryRecentCommits().toList();
         expect(commits, isEmpty);
-        for (String branch in <String>['master', 'release']) {
+        for (final String branch in <String>['master', 'release']) {
           final Commit commit =
               Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
           config.db.values[commit.key] = commit;

@@ -30,11 +30,23 @@ class Commit extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Commit.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Commit clone() => Commit()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Commit copyWith(void Function(Commit) updates) => super.copyWith((message) => updates(message as Commit));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Commit create() => Commit._();
+  @override
+  @override
+  @override
   Commit createEmptyInstance() => create();
   static $pb.PbList<Commit> createRepeated() => $pb.PbList<Commit>();
   @$core.pragma('dart2js:noInline')

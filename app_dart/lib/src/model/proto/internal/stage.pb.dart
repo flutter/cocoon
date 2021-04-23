@@ -26,11 +26,23 @@ class Stage extends $pb.GeneratedMessage {
       create()..mergeFromBuffer(i, r);
   factory Stage.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(i, r);
+  @override
+  @override
+  @override
   Stage clone() => Stage()..mergeFromMessage(this);
+  @override
+  @override
+  @override
   Stage copyWith(void Function(Stage) updates) => super.copyWith((message) => updates(message as Stage));
+  @override
+  @override
+  @override
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Stage create() => Stage._();
+  @override
+  @override
+  @override
   Stage createEmptyInstance() => create();
   static $pb.PbList<Stage> createRepeated() => $pb.PbList<Stage>();
   @$core.pragma('dart2js:noInline')

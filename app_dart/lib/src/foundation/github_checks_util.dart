@@ -5,7 +5,7 @@
 import 'dart:core';
 import 'dart:io';
 
-import 'package:cocoon_service/src/model/github/checks.dart';
+import '../model/github/checks.dart';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
@@ -25,11 +25,7 @@ class GithubChecksUtil {
           checkSuiteId: checkSuiteEvent.checkSuite.id,
         )
         .toList();
-    return Map<String, github.CheckRun>.fromIterable(
-      allCheckRuns,
-      key: (dynamic check) => check.name as String,
-      value: (dynamic check) => check as github.CheckRun,
-    );
+    return {for (var check in allCheckRuns) check.name as String: check as github.CheckRun};
   }
 
   Future<github.CheckSuite> getCheckSuite(

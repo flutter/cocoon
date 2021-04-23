@@ -23,7 +23,7 @@ class FakeTabledataResourceApi implements TabledataResourceApi {
   Future<TableDataList> list(String projectId, String datasetId, String tableId,
       {int maxResults, String selectedFields, String startIndex, String pageToken, String $fields}) async {
     final List<Map<String, Object>> tableRowList = <Map<String, Object>>[];
-    for (TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows) {
+    for (final TableDataInsertAllRequestRows tableDataInsertAllRequestRows in rows) {
       final Map<String, Object> value = tableDataInsertAllRequestRows.json;
       final List<Map<String, Object>> tableCellList = <Map<String, Object>>[];
       tableCellList.add(<String, Object>{'v': value});

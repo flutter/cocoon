@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/google/token_info.dart';
+import '../../cocoon_service.dart';
+import '../model/google/token_info.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
