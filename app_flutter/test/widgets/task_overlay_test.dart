@@ -103,8 +103,6 @@ void main() {
 
     expect(find.text(expectedTask.name), findsOneWidget);
     expect(find.text(expectedTaskInfoString), findsOneWidget);
-    expect(
-        find.text('SHOW ${expectedTask.reservedForAgentId}'), findsOneWidget);
 
     await expectGoldenMatches(
         find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
@@ -168,7 +166,6 @@ void main() {
 
     expect(find.text(flakyTask.name), findsOneWidget);
     expect(find.text(flakyTaskInfoString), findsOneWidget);
-    expect(find.text('SHOW ${flakyTask.reservedForAgentId}'), findsOneWidget);
 
     await expectGoldenMatches(
         find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
