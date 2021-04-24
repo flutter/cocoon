@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/protos.dart'
+    show Agent, CommitStatus, Task, BuildStatusResponse;
 import 'package:flutter/foundation.dart';
-
-import 'package:cocoon_service/protos.dart' show Agent, CommitStatus, Task, BuildStatusResponse;
 
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
@@ -40,9 +40,6 @@ abstract class CocoonService {
     String branch,
   });
 
-  /// Get the current Flutter infra agent statuses.
-  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses();
-
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<String>>> fetchFlutterBranches();
 
@@ -61,7 +58,8 @@ abstract class CocoonService {
   /// Creates [Agent] with the given information.
   ///
   /// Returns an auth token used to authorize the agent.
-  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken);
+  Future<CocoonResponse<String>> createAgent(
+      String agentId, List<String> capabilities, String idToken);
 
   /// Attempt to assign a new task to [agent].
   ///
