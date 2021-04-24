@@ -207,26 +207,6 @@ class AppEngineCocoonService implements CocoonService {
     return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
   }
 
-  List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {
-    final List<Agent> agents = <Agent>[];
-
-    for (final Map<String, Object> jsonAgent in jsonAgentStatuses) {
-      final List<Object> objectCapabilities = jsonAgent['Capabilities'];
-      final List<String> capabilities =
-          objectCapabilities.map((Object value) => value.toString()).toList();
-      final Agent agent = Agent()
-        ..agentId = jsonAgent['AgentID']
-        ..healthCheckTimestamp =
-            Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
-        ..isHealthy = jsonAgent['IsHealthy']
-        ..capabilities.addAll(capabilities)
-        ..healthDetails = jsonAgent['HealthDetails'];
-      agents.add(agent);
-    }
-
-    return agents;
-  }
-
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
     assert(jsonCommitStatuses != null);
     // TODO(chillers): Remove adapter code to just use proto fromJson method. https://github.com/flutter/cocoon/issues/441
