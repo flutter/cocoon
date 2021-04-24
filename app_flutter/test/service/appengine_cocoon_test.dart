@@ -465,57 +465,6 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService reserve task', () {
-    AppEngineCocoonService service;
-    Response fakeResponse;
-
-    setUp(() {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => fakeResponse));
-    });
-
-    test('should not throw exception if request succeeds', () async {
-      fakeResponse = Response('{"Task": "randomdata"}', 200);
-      await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-    });
-
-    test('should throw error if request failed', () async {
-      fakeResponse = Response('', 500);
-      expect(service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'),
-          throwsA(const TypeMatcher<Exception>()));
-    });
-
-    test('should throw error if task is null', () async {
-      fakeResponse = Response('', 200);
-      expect(service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'),
-          throwsA(const TypeMatcher<Exception>()));
-    });
-
-    /// This requires a separate test run on the web platform.
-    test('should query correct endpoint whether web or mobile', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(),
-            kIsWeb ? '/api/reserve-task' : '$baseApiUrl/api/reserve-task');
-        return Response('{"Task": "randomdata"}', 200);
-      }));
-      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-    });
-
-    test('should send correct headers and body', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.headers, <String, String>{
-          'X-Flutter-IdToken': 'fakeAccessToken',
-          'content-type': 'text/plain; charset=utf-8',
-        });
-        expect(request.body, '{"AgentID":"id123"}');
-        return Response('{"Task": "randomdata"}', 200);
-      }));
-      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-    });
-  });
-
   group('AppEngine CocoonService apiEndpoint', () {
     AppEngineCocoonService service;
 

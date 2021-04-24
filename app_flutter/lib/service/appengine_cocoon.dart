@@ -184,36 +184,6 @@ class AppEngineCocoonService implements CocoonService {
     return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
-  @override
-  Future<void> reserveTask(Agent agent, String idToken) async {
-    assert(agent != null);
-    assert(idToken != null);
-
-    final String reserveTaskUrl = apiEndpoint('/api/reserve-task');
-
-    final http.Response response = await _client.post(
-      reserveTaskUrl,
-      headers: <String, String>{'X-Flutter-IdToken': idToken},
-      body: jsonEncode(<String, Object>{
-        'AgentID': agent.agentId,
-      }),
-    );
-
-    if (response.statusCode != HttpStatus.ok) {
-      throw Exception('/api/reserve-task did not respond with 200');
-    }
-
-    Map<String, Object> responseBody;
-    try {
-      responseBody = jsonDecode(response.body);
-      if (responseBody['Task'] == null) {
-        throw Exception('/api/reserve-task returned unexpected response');
-      }
-    } catch (e) {
-      throw Exception('/api/reserve-task returned unexpected response');
-    }
-  }
-
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///

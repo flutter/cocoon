@@ -54,11 +54,6 @@ abstract class CocoonService {
 
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);
-
-  /// Attempt to assign a new task to [agent].
-  ///
-  /// If no task can be assigned, a null value is returned.
-  Future<void> reserveTask(Agent agent, String idToken);
 }
 
 /// Wrapper class for data this state serves.

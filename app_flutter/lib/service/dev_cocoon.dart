@@ -66,9 +66,6 @@ class DevelopmentCocoonService implements CocoonService {
     return false;
   }
 
-  @override
-  Future<void> reserveTask(Agent agent, String idToken) => null;
-
   static const List<String> _agentKinds = <String>[
     'linux',
     'linux-vm',
