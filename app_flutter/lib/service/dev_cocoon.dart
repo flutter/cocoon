@@ -81,28 +81,6 @@ class DevelopmentCocoonService implements CocoonService {
     'windows',
   ];
 
-  List<Agent> _createFakeAgentStatuses() {
-    return List<Agent>.generate(
-      10,
-      (int i) => Agent()
-        ..agentId =
-            'fake-${_agentKinds[i % _agentKinds.length]}-${i ~/ _agentKinds.length}'
-        ..capabilities.add('dash')
-        ..isHealthy = _random.nextBool()
-        ..isHidden = false
-        ..healthCheckTimestamp =
-            Int64.parseInt(now.millisecondsSinceEpoch.toString())
-        ..healthDetails = 'ssh-connectivity: succeeded\n'
-            'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
-            'android-device-ZY223D6B7B: succeeded\n'
-            'has-healthy-devices: succeeded\n'
-            'Found 1 healthy devices\n\n'
-            'cocoon-authentication: succeeded\n'
-            'cocoon-connection: succeeded\n'
-            'able-to-perform-health-check: succeeded\n',
-    );
-  }
-
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
   List<CommitStatus> _createFakeCommitStatuses(CommitStatus lastCommitStatus) {
