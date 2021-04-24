@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/protos.dart'
-    show Agent, CommitStatus, Task, BuildStatusResponse;
+    show CommitStatus, Task, BuildStatusResponse;
 import 'package:flutter/foundation.dart';
 
 import 'appengine_cocoon.dart';

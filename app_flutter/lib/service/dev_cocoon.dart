@@ -66,13 +66,6 @@ class DevelopmentCocoonService implements CocoonService {
     return false;
   }
 
-  static const List<String> _agentKinds = <String>[
-    'linux',
-    'linux-vm',
-    'mac',
-    'windows',
-  ];
-
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
   List<CommitStatus> _createFakeCommitStatuses(CommitStatus lastCommitStatus) {
