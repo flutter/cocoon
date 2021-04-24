@@ -21,20 +21,17 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonGetStatsResponse, 200);
       }));
     });
 
     test('should return CocoonResponse<List<CommitStatus>>', () {
-      expect(service.fetchCommitStatuses(),
-          const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
+      expect(service.fetchCommitStatuses(), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
     });
 
     test('should return expected List<CommitStatus>', () async {
-      final CocoonResponse<List<CommitStatus>> statuses =
-          await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
 
       final CommitStatus expectedStatus = CommitStatus()
         ..branch = 'master'
@@ -71,8 +68,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       await service.fetchCommitStatuses();
@@ -80,17 +76,14 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?branch=master'));
       } else {
-        verify(
-            mockClient.get('$baseApiUrl/api/public/get-status?branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?branch=master'));
       }
     });
 
     /// This requires a separate test run on the web platform.
-    test('should query correct endpoint when given a specific branch',
-        () async {
+    test('should query correct endpoint when given a specific branch', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       await service.fetchCommitStatuses(branch: 'stable');
@@ -98,48 +91,37 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/get-status?branch=stable'));
       } else {
-        verify(
-            mockClient.get('$baseApiUrl/api/public/get-status?branch=stable'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?branch=stable'));
       }
     });
 
-    test(
-        'given last commit status should query correct endpoint whether web or mobile',
-        () async {
+    test('given last commit status should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       final CommitStatus status = CommitStatus()
-        ..commit = (Commit()
-          ..key = (RootKey()..child = (Key()..name = 'iamatestkey')));
+        ..commit = (Commit()..key = (RootKey()..child = (Key()..name = 'iamatestkey')));
       await service.fetchCommitStatuses(lastCommitStatus: status);
 
       if (kIsWeb) {
-        verify(mockClient.get(
-            '/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
+        verify(mockClient.get('/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       } else {
-        verify(mockClient.get(
-            '$baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/get-status?lastCommitKey=iamatestkey&branch=master'));
       }
     });
 
     test('should have error if given non-200 response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('', 404)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<List<CommitStatus>> response =
-          await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('bad', 200)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<List<CommitStatus>> response =
-          await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
     });
   });
@@ -148,15 +130,13 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(luciJsonGetStatsResponse, 200);
       }));
     });
 
     test('should return expected List<CommitStatus> - luci', () async {
-      final CocoonResponse<List<CommitStatus>> statuses =
-          await service.fetchCommitStatuses();
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
 
       final CommitStatus expectedStatus = CommitStatus()
         ..branch = 'master'
@@ -198,31 +178,26 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusTrueResponse, 200);
       }));
     });
 
     test('should return CocoonResponse<bool>', () {
-      expect(service.fetchTreeBuildStatus(),
-          const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
+      expect(service.fetchTreeBuildStatus(), const TypeMatcher<Future<CocoonResponse<BuildStatusResponse>>>());
     });
 
     test('data should be true when given Succeeded', () async {
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus =
-          await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
       expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.success);
     });
 
     test('data should be false when given Failed', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonBuildStatusFalseResponse, 200);
       }));
-      final CocoonResponse<BuildStatusResponse> treeBuildStatus =
-          await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> treeBuildStatus = await service.fetchTreeBuildStatus();
 
       expect(treeBuildStatus.data.buildStatus, EnumBuildStatus.failure);
     });
@@ -230,8 +205,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       await service.fetchTreeBuildStatus();
@@ -239,17 +213,14 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/build-status?branch=master'));
       } else {
-        verify(mockClient
-            .get('$baseApiUrl/api/public/build-status?branch=master'));
+        verify(mockClient.get('$baseApiUrl/api/public/build-status?branch=master'));
       }
     });
 
     /// This requires a separate test run on the web platform.
-    test('should query correct endpoint when given a specific branch',
-        () async {
+    test('should query correct endpoint when given a specific branch', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       await service.fetchTreeBuildStatus(branch: 'stable');
@@ -257,26 +228,21 @@ void main() {
       if (kIsWeb) {
         verify(mockClient.get('/api/public/build-status?branch=stable'));
       } else {
-        verify(mockClient
-            .get('$baseApiUrl/api/public/build-status?branch=stable'));
+        verify(mockClient.get('$baseApiUrl/api/public/build-status?branch=stable'));
       }
     });
 
     test('should have error if given non-200 response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('', 404)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<BuildStatusResponse> response =
-          await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('bad', 200)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<BuildStatusResponse> response =
-          await service.fetchTreeBuildStatus();
+      final CocoonResponse<BuildStatusResponse> response = await service.fetchTreeBuildStatus();
       expect(response.error, isNotNull);
     });
   });
@@ -286,8 +252,7 @@ void main() {
     Task task;
 
     setUp(() {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 200);
       }));
       task = Task()
@@ -300,24 +265,21 @@ void main() {
     });
 
     test('should return false if request failed', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 500);
       }));
       expect(await service.rerunTask(task, 'fakeAccessToken'), false);
     });
 
     test('should return false if task key is null', () async {
-      expect(service.rerunTask(task, null),
-          throwsA(const TypeMatcher<AssertionError>()));
+      expect(service.rerunTask(task, null), throwsA(const TypeMatcher<AssertionError>()));
     });
 
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
       when(mockClient.post(argThat(endsWith('/api/reset-devicelab-task')),
-              headers: captureAnyNamed('headers'),
-              body: captureAnyNamed('body')))
+              headers: captureAnyNamed('headers'), body: captureAnyNamed('body')))
           .thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
@@ -343,8 +305,7 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 200);
       }));
     });
@@ -354,8 +315,7 @@ void main() {
     });
 
     test('should return false if request failed', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 500);
       }));
       expect(await service.vacuumGitHubCommits('fakeIdToken'), false);
@@ -366,26 +326,23 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('', 200);
       }));
     });
 
     test('should throw assertion error if task is null', () async {
-      expect(service.downloadLog(null, 'abc123', 'shashank'),
-          throwsA(const TypeMatcher<AssertionError>()));
+      expect(service.downloadLog(null, 'abc123', 'shashank'), throwsA(const TypeMatcher<AssertionError>()));
     });
 
     test('should throw assertion error if id token is null', () async {
-      expect(service.downloadLog(Task()..key = RootKey(), null, 'shashank'),
-          throwsA(const TypeMatcher<AssertionError>()));
+      expect(
+          service.downloadLog(Task()..key = RootKey(), null, 'shashank'), throwsA(const TypeMatcher<AssertionError>()));
     });
 
     test('should send correct request to downloader service', () async {
       final Downloader mockDownloader = MockDownloader();
-      when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')),
-              'test_task_shashan_1.log',
+      when(mockDownloader.download(argThat(contains('/api/get-log?ownerKey')), 'test_task_shashan_1.log',
               idToken: 'abc123'))
           .thenAnswer((_) => Future<bool>.value(true));
       service = AppEngineCocoonService(
@@ -409,20 +366,17 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response(jsonGetBranchesResponse, 200);
       }));
     });
 
     test('should return CocoonResponse<List<String>>', () {
-      expect(service.fetchFlutterBranches(),
-          const TypeMatcher<Future<CocoonResponse<List<String>>>>());
+      expect(service.fetchFlutterBranches(), const TypeMatcher<Future<CocoonResponse<List<String>>>>());
     });
 
     test('data should be expected list of branches', () async {
-      final CocoonResponse<List<String>> branches =
-          await service.fetchFlutterBranches();
+      final CocoonResponse<List<String>> branches = await service.fetchFlutterBranches();
 
       expect(branches.data, <String>[
         'master',
@@ -433,8 +387,7 @@ void main() {
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
-      when(mockClient.get(any))
-          .thenAnswer((_) => Future<Response>.value(Response('', 200)));
+      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
       service = AppEngineCocoonService(client: mockClient);
 
       await service.fetchFlutterBranches();
@@ -447,20 +400,16 @@ void main() {
     });
 
     test('should have error if given non-200 response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('', 404)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
 
-      final CocoonResponse<List<String>> response =
-          await service.fetchFlutterBranches();
+      final CocoonResponse<List<String>> response = await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
     });
 
     test('should have error if given bad response', () async {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => Response('bad', 200)));
+      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
 
-      final CocoonResponse<List<String>> response =
-          await service.fetchFlutterBranches();
+      final CocoonResponse<List<String>> response = await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
     });
   });
@@ -469,8 +418,7 @@ void main() {
     AppEngineCocoonService service;
 
     setUp(() {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
         return Response('{"Token": "abc123"}', 200);
       }));
     });
@@ -479,26 +427,17 @@ void main() {
     });
 
     test('single query parameter', () {
-      expect(
-          service.apiEndpoint('/test',
-              queryParameters: <String, String>{'key': 'value'}),
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value'}),
           '$baseApiUrl/test?key=value');
     });
 
     test('multiple query parameters', () {
-      expect(
-          service.apiEndpoint('/test', queryParameters: <String, String>{
-            'key': 'value',
-            'another': 'test'
-          }),
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': 'value', 'another': 'test'}),
           '$baseApiUrl/test?key=value&another=test');
     });
 
     test('query parameter with null value', () {
-      expect(
-          service.apiEndpoint('/test',
-              queryParameters: <String, String>{'key': null}),
-          '$baseApiUrl/test?key');
+      expect(service.apiEndpoint('/test', queryParameters: <String, String>{'key': null}), '$baseApiUrl/test?key');
     });
   });
 }

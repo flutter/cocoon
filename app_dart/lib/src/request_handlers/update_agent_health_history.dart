@@ -26,8 +26,7 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
   const UpdateAgentHealthHistory(
     Config config,
     AuthenticationProvider authenticationProvider, {
-    @visibleForTesting
-        this.datastoreProvider = DatastoreService.defaultProvider,
+    @visibleForTesting this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting LoggingProvider loggingProvider,
   })  : loggingProvider = loggingProvider ?? Providers.serviceScopeLogger,
         super(config: config, authenticationProvider: authenticationProvider);
@@ -43,18 +42,13 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     const String table = 'Agent';
 
     final Logging log = loggingProvider();
-    final TabledataResourceApi tabledataResourceApi =
-        await config.createTabledataResourceApi();
+    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Query<Agent> agentQuery = datastore.db.query<Agent>()
-      ..order('agentId');
-    final List<Agent> agents =
-        await agentQuery.run().where(_isVisible).toList();
-    agents.sort((Agent a, Agent b) =>
-        compareAsciiLowerCaseNatural(a.agentId, b.agentId));
+    final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
+    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
+    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
 
-    final List<Map<String, Object>> tableDataInsertAllRequestRows =
-        <Map<String, Object>>[];
+    final List<Map<String, Object>> tableDataInsertAllRequestRows = <Map<String, Object>>[];
     final int healthCheckTimestamp = DateTime.now().millisecondsSinceEpoch;
 
     for (Agent agent in agents) {
@@ -75,14 +69,13 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
     }
 
     /// Prepare final [rows] to be inserted to `BigQuery`.
-    final TableDataInsertAllRequest rows = TableDataInsertAllRequest.fromJson(
-        <String, Object>{'rows': tableDataInsertAllRequestRows});
+    final TableDataInsertAllRequest rows =
+        TableDataInsertAllRequest.fromJson(<String, Object>{'rows': tableDataInsertAllRequestRows});
 
     /// Insert [agents] to `BigQuery`.
     try {
       await tabledataResourceApi.insertAll(rows, projectId, dataset, table);
-      log.info(
-          'Succeeded to insert ${tableDataInsertAllRequestRows.length} rows to $projectId-$dataset-$table');
+      log.info('Succeeded to insert ${tableDataInsertAllRequestRows.length} rows to $projectId-$dataset-$table');
     } on ApiRequestError {
       log.error('Failed to add commits to BigQuery: $ApiRequestError');
     }
@@ -97,8 +90,6 @@ class UpdateAgentHealthHistory extends ApiRequestHandler<Body> {
   bool _isAgentHealthy(Agent agent) {
     return agent.isHealthy &&
         agent.healthCheckTimestamp != null &&
-        DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(
-                agent.healthCheckTimestamp)) <
-            maxHealthCheckAge;
+        DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(agent.healthCheckTimestamp)) < maxHealthCheckAge;
   }
 }

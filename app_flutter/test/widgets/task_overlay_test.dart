@@ -9,8 +9,7 @@ import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
-import 'package:cocoon_service/protos.dart'
-    show CommitStatus, Commit, Stage, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,35 +93,29 @@ void main() {
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp),
-        'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTask.name), findsOneWidget);
     expect(find.text(expectedTaskInfoString), findsOneWidget);
 
-    await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
 
     // Since the overlay positions itself below the middle of the widget,
     // it is safe to click the widget to close it again.
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTask.name), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
     expect(find.text(expectedTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(find.byType(MaterialApp),
-        'task_overlay_test.normal_overlay_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_closed.png');
   });
 
-  testWidgets('TaskOverlay shows when flaky is true',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows when flaky is true', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final Task flakyTask = Task()
       ..attempts = 3
@@ -157,25 +150,20 @@ void main() {
     expect(find.text(flakyTaskInfoString), findsNothing);
     expect(find.text(flakyTask.reservedForAgentId), findsNothing);
 
-    await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_closed.png');
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(flakyTask.name), findsOneWidget);
     expect(find.text(flakyTaskInfoString), findsOneWidget);
 
-    await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
   });
 
-  testWidgets('TaskOverlay computes durations correctly for completed task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for completed task', (WidgetTester tester) async {
     /// Create a queue time of 10 seconds, run time of 8 minutes
-    final DateTime createTime =
-        nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
     final DateTime finishTime = nowTime.subtract(const Duration(minutes: 1));
 
@@ -208,18 +196,15 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for running task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for running task', (WidgetTester tester) async {
     /// Create a queue time of 10 seconds, running time of 9 minutes
-    final DateTime createTime =
-        nowTime.subtract(const Duration(minutes: 9, seconds: 10));
+    final DateTime createTime = nowTime.subtract(const Duration(minutes: 9, seconds: 10));
     final DateTime startTime = nowTime.subtract(const Duration(minutes: 9));
 
     final Task timeTask = Task()
@@ -251,15 +236,13 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for queueing task',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay computes durations correctly for queueing task', (WidgetTester tester) async {
     /// Create a queue time of 10 seconds, running time of 9 minutes
     final DateTime createTime = nowTime.subtract(const Duration(seconds: 10));
 
@@ -290,15 +273,13 @@ void main() {
     expect(find.text(timeTaskInfoString), findsNothing);
 
     // open the overlay to show the task summary
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows the right message for nondevicelab tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     const String expectedTaskInfoString = 'Task was run outside of devicelab';
     await tester.pumpWidget(
@@ -318,20 +299,16 @@ void main() {
     await tester.pump();
 
     expect(find.text(expectedTaskInfoString), findsNothing);
-    await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_closed.png');
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(expectedTaskInfoString), findsOneWidget);
-    await expectGoldenMatches(
-        find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
+    await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for devicelab tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for devicelab tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -350,15 +327,13 @@ void main() {
 
     expect(find.byType(TaskAttemptSummary), findsNothing);
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.byType(TaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
         dateTime: nowTime,
@@ -377,15 +352,13 @@ void main() {
 
     expect(find.byType(LuciTaskAttemptSummary), findsNothing);
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
   });
 
-  testWidgets(
-      'TaskOverlay does not show TaskAttemptSummary for tasks outside of devicelab',
+  testWidgets('TaskOverlay does not show TaskAttemptSummary for tasks outside of devicelab',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
@@ -405,15 +378,13 @@ void main() {
 
     expect(find.byType(TaskAttemptSummary), findsNothing);
 
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.byType(TaskAttemptSummary), findsNothing);
   });
 
-  testWidgets('TaskOverlay: successful rerun shows success snackbar message',
-      (WidgetTester tester) async {
+  testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -436,8 +407,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
@@ -459,8 +429,7 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('failed rerun shows error snackbar message',
-      (WidgetTester tester) async {
+  testWidgets('failed rerun shows error snackbar message', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -484,8 +453,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     expect(find.text(TaskOverlayContents.rerunErrorMessage), findsNothing);
@@ -507,10 +475,8 @@ void main() {
     expect(find.text(TaskOverlayContents.rerunSuccessMessage), findsNothing);
   });
 
-  testWidgets('log button opens log url for public log',
-      (WidgetTester tester) async {
-    const MethodChannel channel =
-        MethodChannel('plugins.flutter.io/url_launcher');
+  testWidgets('log button opens log url for public log', (WidgetTester tester) async {
+    const MethodChannel channel = MethodChannel('plugins.flutter.io/url_launcher');
     final List<MethodCall> log = <MethodCall>[];
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       log.add(methodCall);
@@ -530,8 +496,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     // View log
@@ -554,8 +519,7 @@ void main() {
     );
   });
 
-  testWidgets('log button calls build state to download devicelab log',
-      (WidgetTester tester) async {
+  testWidgets('log button calls build state to download devicelab log', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -583,8 +547,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     verifyNever(buildState.downloadLog(any, any));
@@ -596,8 +559,7 @@ void main() {
     verify(buildState.downloadLog(any, any)).called(1);
   });
 
-  testWidgets('failing to download devicelab log shows error snackbar',
-      (WidgetTester tester) async {
+  testWidgets('failing to download devicelab log shows error snackbar', (WidgetTester tester) async {
     final Task expectedTask = Task()
       ..attempts = 3
       ..stageName = 'devicelab'
@@ -624,8 +586,7 @@ void main() {
     );
 
     // Open the overlay
-    await tester
-        .tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
     await tester.pump();
 
     // Click log button
@@ -633,20 +594,16 @@ void main() {
     await tester.pump();
 
     // expect error snackbar to be shown
-    await tester
-        .pump(const Duration(milliseconds: 750)); // 750ms open animation
+    await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
 
-    expect(
-        find.text(TaskOverlayContents.downloadLogErrorMessage), findsOneWidget);
+    expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsOneWidget);
 
     // Snackbar message should go away after its duration
-    await tester.pumpAndSettle(
-        TaskOverlayContents.downloadLogSnackBarDuration); // wait the duration
+    await tester.pumpAndSettle(TaskOverlayContents.downloadLogSnackBarDuration); // wait the duration
     await tester.pump(); // schedule animation
     await tester.pump(const Duration(milliseconds: 1500)); // close animation
 
-    expect(
-        find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
+    expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {

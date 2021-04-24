@@ -44,25 +44,21 @@ class AppEngineCocoonService implements CocoonService {
     String branch,
   }) async {
     final Map<String, String> queryParameters = <String, String>{
-      if (lastCommitStatus != null)
-        'lastCommitKey': lastCommitStatus.commit.key.child.name,
+      if (lastCommitStatus != null) 'lastCommitKey': lastCommitStatus.commit.key.child.name,
       'branch': branch ?? _defaultBranch,
     };
-    final String getStatusUrl =
-        apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
+    final String getStatusUrl = apiEndpoint('/api/public/get-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
     final http.Response response = await _client.get(getStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<CommitStatus>>.error(
-          '/api/public/get-status returned ${response.statusCode}');
+      return CocoonResponse<List<CommitStatus>>.error('/api/public/get-status returned ${response.statusCode}');
     }
 
     try {
       final Map<String, Object> jsonResponse = jsonDecode(response.body);
-      return CocoonResponse<List<CommitStatus>>.data(
-          _commitStatusesFromJson(jsonResponse['Statuses']));
+      return CocoonResponse<List<CommitStatus>>.data(_commitStatusesFromJson(jsonResponse['Statuses']));
     } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
@@ -75,23 +71,20 @@ class AppEngineCocoonService implements CocoonService {
     final Map<String, String> queryParameters = <String, String>{
       'branch': branch ?? _defaultBranch,
     };
-    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status',
-        queryParameters: queryParameters);
+    final String getBuildStatusUrl = apiEndpoint('/api/public/build-status', queryParameters: queryParameters);
 
     /// This endpoint returns JSON {AnticipatedBuildStatus: [BuildStatus]}
     final http.Response response = await _client.get(getBuildStatusUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<BuildStatusResponse>.error(
-          '/api/public/build-status returned ${response.statusCode}');
+      return CocoonResponse<BuildStatusResponse>.error('/api/public/build-status returned ${response.statusCode}');
     }
 
     BuildStatusResponse protoResponse;
     try {
       protoResponse = BuildStatusResponse.fromJson(response.body);
     } on FormatException {
-      return const CocoonResponse<BuildStatusResponse>.error(
-          '/api/public/build-status had a malformed response');
+      return const CocoonResponse<BuildStatusResponse>.error('/api/public/build-status had a malformed response');
     }
     return CocoonResponse<BuildStatusResponse>.data(protoResponse);
   }
@@ -104,8 +97,7 @@ class AppEngineCocoonService implements CocoonService {
     final http.Response response = await _client.get(getBranchesUrl);
 
     if (response.statusCode != HttpStatus.ok) {
-      return CocoonResponse<List<String>>.error(
-          '/api/public/get-branches returned ${response.statusCode}');
+      return CocoonResponse<List<String>>.error('/api/public/get-branches returned ${response.statusCode}');
     }
 
     try {
@@ -120,8 +112,7 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<bool> vacuumGitHubCommits(String idToken) async {
     assert(idToken != null);
-    final String refreshGitHubCommitsUrl =
-        apiEndpoint('/api/vacuum-github-commits');
+    final String refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final http.Response response = await _client.get(
       refreshGitHubCommitsUrl,
       headers: <String, String>{
@@ -169,11 +160,8 @@ class AppEngineCocoonService implements CocoonService {
     assert(task != null);
     assert(idToken != null);
 
-    final Map<String, String> queryParameters = <String, String>{
-      'ownerKey': task.key.child.name
-    };
-    final String getTaskLogUrl =
-        apiEndpoint('/api/get-log', queryParameters: queryParameters);
+    final Map<String, String> queryParameters = <String, String>{'ownerKey': task.key.child.name};
+    final String getTaskLogUrl = apiEndpoint('/api/get-log', queryParameters: queryParameters);
 
     // Only show the first 7 characters of the commit sha. This amount is unique
     // enough to allow lookup of a commit.
@@ -287,8 +275,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
 
     final Map<String, Object> taskData = json['Task'];
-    final List<Object> objectRequiredCapabilities =
-        taskData['RequiredCapabilities'];
+    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
 
     final Task task = Task()
       ..key = (RootKey()..child = (Key()..name = json['Key']))

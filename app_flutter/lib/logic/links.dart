@@ -16,15 +16,13 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       name: 'Home',
       route: IndexPage.routeName,
       icon: const Icon(Icons.home),
-      action: () =>
-          Navigator.pushReplacementNamed(context, IndexPage.routeName),
+      action: () => Navigator.pushReplacementNamed(context, IndexPage.routeName),
     ),
     CocoonLink(
       name: 'Build',
       route: BuildDashboardPage.routeName,
       icon: const Icon(Icons.build),
-      action: () =>
-          Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
+      action: () => Navigator.pushReplacementNamed(context, BuildDashboardPage.routeName),
     ),
     CocoonLink(
       name: 'Framework Benchmarks',

@@ -14,8 +14,7 @@ import 'cocoon.dart';
 ///
 /// This creates fake data that mimicks what production will send.
 class DevelopmentCocoonService implements CocoonService {
-  DevelopmentCocoonService(this.now)
-      : _random = math.Random(now.millisecondsSinceEpoch);
+  DevelopmentCocoonService(this.now) : _random = math.Random(now.millisecondsSinceEpoch);
 
   final math.Random _random;
 
@@ -26,8 +25,7 @@ class DevelopmentCocoonService implements CocoonService {
     CommitStatus lastCommitStatus,
     String branch,
   }) async {
-    return CocoonResponse<List<CommitStatus>>.data(
-        _createFakeCommitStatuses(lastCommitStatus));
+    return CocoonResponse<List<CommitStatus>>.data(_createFakeCommitStatuses(lastCommitStatus));
   }
 
   @override
@@ -36,8 +34,7 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     final bool failed = _random.nextBool();
     final BuildStatusResponse response = BuildStatusResponse()
-      ..buildStatus =
-          failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
+      ..buildStatus = failed ? EnumBuildStatus.failure : EnumBuildStatus.success;
     if (failed) {
       response.failingTasks.addAll(<String>['failed_task_1', 'failed_task_2']);
     }
@@ -47,8 +44,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
-    return const CocoonResponse<List<String>>.data(
-        <String>['master', 'dev', 'beta', 'stable']);
+    return const CocoonResponse<List<String>>.data(<String>['master', 'dev', 'beta', 'stable']);
   }
 
   @override
@@ -69,9 +65,8 @@ class DevelopmentCocoonService implements CocoonService {
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
   List<CommitStatus> _createFakeCommitStatuses(CommitStatus lastCommitStatus) {
-    final int baseTimestamp = lastCommitStatus != null
-        ? (lastCommitStatus.commit.timestamp.toInt())
-        : now.millisecondsSinceEpoch;
+    final int baseTimestamp =
+        lastCommitStatus != null ? (lastCommitStatus.commit.timestamp.toInt()) : now.millisecondsSinceEpoch;
 
     final List<CommitStatus> result = <CommitStatus>[];
     for (int index = 0; index < 25; index += 1) {
@@ -87,24 +82,9 @@ class DevelopmentCocoonService implements CocoonService {
     return result;
   }
 
-  final List<String> _authors = <String>[
-    'alice',
-    'bob',
-    'charlie',
-    'dobb',
-    'eli',
-    'fred'
-  ];
+  final List<String> _authors = <String>['alice', 'bob', 'charlie', 'dobb', 'eli', 'fred'];
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
-  final List<String> _words = <String>[
-    'fixes',
-    'issue',
-    'crash',
-    'developer',
-    'blocker',
-    'intermittent',
-    'format'
-  ];
+  final List<String> _words = <String>['fixes', 'issue', 'crash', 'developer', 'blocker', 'intermittent', 'format'];
 
   Commit _createFakeCommit(int commitTimestamp, math.Random random) {
     final int author = random.nextInt(_authors.length);
@@ -113,11 +93,8 @@ class DevelopmentCocoonService implements CocoonService {
     return Commit()
       ..key = (RootKey()..child = (Key()..name = '$commitTimestamp'))
       ..author = _authors[author]
-      ..authorAvatarUrl =
-          'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = List<String>.generate(
-              6, (int i) => _words[(message + i * messageInc) % _words.length])
-          .join(' ')
+      ..authorAvatarUrl = 'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
+      ..message = List<String>.generate(6, (int i) => _words[(message + i * messageInc) % _words.length]).join(' ')
       ..repository = 'flutter/cocoon'
       ..sha = commitTimestamp.hashCode.toRadixString(16).padRight(32, '0')
       ..timestamp = Int64(commitTimestamp)
@@ -139,8 +116,7 @@ class DevelopmentCocoonService implements CocoonService {
     30,
   ];
 
-  List<Stage> _createFakeStages(
-      int commitTimestamp, Commit commit, math.Random random) {
+  List<Stage> _createFakeStages(int commitTimestamp, Commit commit, math.Random random) {
     final List<Stage> stages = <Stage>[];
     assert(_stages.length == _stageCount.length);
     for (int stage = 0; stage < _stages.length; stage += 1) {
@@ -149,9 +125,7 @@ class DevelopmentCocoonService implements CocoonService {
           ..commit = commit
           ..name = _stages[stage]
           ..tasks.addAll(List<Task>.generate(
-              _stageCount[stage],
-              (int i) =>
-                  _createFakeTask(commitTimestamp, i, _stages[stage], random))),
+              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))),
       );
     }
     return stages;
@@ -190,10 +164,8 @@ class DevelopmentCocoonService implements CocoonService {
     'Skipped': 0,
   };
 
-  Task _createFakeTask(
-      int commitTimestamp, int index, String stageName, math.Random random) {
-    final int age =
-        (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
+  Task _createFakeTask(int commitTimestamp, int index, String stageName, math.Random random) {
+    final int age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
     // weights to give each of the values in _statuses when randomly
@@ -239,13 +211,11 @@ class DevelopmentCocoonService implements CocoonService {
     final String status = _statuses[statusIndex];
     final int minAttempts = _minAttempts[status];
     final int maxAttempts = _maxAttempts[status];
-    final int attempts =
-        minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
+    final int attempts = minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
     final Task task = Task()
       ..createTimestamp = Int64(commitTimestamp + index)
       ..startTimestamp = Int64(commitTimestamp + index + 10000)
-      ..endTimestamp = Int64(
-          commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
+      ..endTimestamp = Int64(commitTimestamp + index + 10000 + random.nextInt(1000 * 60 * 15))
       ..name = 'task $index'
       ..attempts = attempts
       ..isFlaky = index == now.millisecondsSinceEpoch % 13
