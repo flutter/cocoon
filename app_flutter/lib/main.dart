@@ -7,7 +7,6 @@ import 'dart:io' if (kIsWeb) '';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'agent_dashboard_page.dart';
 import 'build_dashboard_page.dart';
 import 'index_page.dart';
 import 'service/cocoon.dart';
@@ -45,13 +44,16 @@ void main([List<String> args = const <String>[]]) {
     useProductionService = false;
   }
   final GoogleSignInService authService = GoogleSignInService();
-  final CocoonService cocoonService = CocoonService(useProductionService: useProductionService);
+  final CocoonService cocoonService =
+      CocoonService(useProductionService: useProductionService);
   runApp(
     StateProvider(
       signInService: authService,
       indexState: IndexState(authService: authService),
-      agentState: AgentState(authService: authService, cocoonService: cocoonService),
-      buildState: BuildState(authService: authService, cocoonService: cocoonService),
+      agentState:
+          AgentState(authService: authService, cocoonService: cocoonService),
+      buildState:
+          BuildState(authService: authService, cocoonService: cocoonService),
       child: Now(child: const MyApp()),
     ),
   );
@@ -69,15 +71,16 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
         IndexPage.routeName: (BuildContext context) => const IndexPage(),
-        AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
-        BuildDashboardPage.routeName: (BuildContext context) => const BuildDashboardPage(),
+        BuildDashboardPage.routeName: (BuildContext context) =>
+            const BuildDashboardPage(),
       },
       onGenerateRoute: (RouteSettings settings) {
         final Uri uriData = Uri.parse(settings.name);
         if (uriData.path == BuildDashboardPage.routeName) {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (BuildContext context) => BuildDashboardPage(queryParameters: uriData.queryParameters),
+            builder: (BuildContext context) =>
+                BuildDashboardPage(queryParameters: uriData.queryParameters),
           );
         }
         return null;
