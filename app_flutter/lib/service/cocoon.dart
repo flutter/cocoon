@@ -55,12 +55,6 @@ abstract class CocoonService {
   /// Force update Cocoon to get the latest commits.
   Future<bool> vacuumGitHubCommits(String idToken);
 
-  /// Creates [Agent] with the given information.
-  ///
-  /// Returns an auth token used to authorize the agent.
-  Future<CocoonResponse<String>> createAgent(
-      String agentId, List<String> capabilities, String idToken);
-
   /// Attempt to assign a new task to [agent].
   ///
   /// If no task can be assigned, a null value is returned.

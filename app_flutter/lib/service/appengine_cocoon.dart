@@ -185,45 +185,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<String>> createAgent(
-      String agentId, List<String> capabilities, String idToken) async {
-    assert(agentId != null);
-    assert(capabilities.isNotEmpty);
-    assert(idToken != null);
-
-    final String createAgentUrl = apiEndpoint('/api/create-agent');
-
-    /// This endpoint returns JSON {'Token': [Token]}
-    final http.Response response = await _client.post(
-      createAgentUrl,
-      headers: <String, String>{'X-Flutter-IdToken': idToken},
-      body: jsonEncode(<String, Object>{
-        'AgentID': agentId,
-        'Capabilities': capabilities,
-      }),
-    );
-
-    if (response.statusCode != HttpStatus.ok) {
-      return const CocoonResponse<String>.error(
-          '/api/create-agent did not respond with 200');
-    }
-
-    Map<String, Object> responseBody;
-    try {
-      responseBody = jsonDecode(response.body);
-      if (responseBody['Token'] == null) {
-        return const CocoonResponse<String>.error(
-            '/api/create-agent returned unexpected response');
-      }
-    } catch (e) {
-      return const CocoonResponse<String>.error(
-          '/api/create-agent returned unexpected response');
-    }
-
-    return CocoonResponse<String>.data(responseBody['Token']);
-  }
-
-  @override
   Future<void> reserveTask(Agent agent, String idToken) async {
     assert(agent != null);
     assert(idToken != null);

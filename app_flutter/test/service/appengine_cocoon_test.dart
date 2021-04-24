@@ -465,69 +465,6 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService create agent', () {
-    AppEngineCocoonService service;
-    Response fakeResponse;
-
-    setUp(() {
-      service = AppEngineCocoonService(
-          client: MockClient((Request request) async => fakeResponse));
-    });
-
-    test('should return token if request succeeds', () async {
-      fakeResponse = Response('{"Token": "abc123"}', 200);
-      final CocoonResponse<String> response = await service.createAgent(
-        'id123',
-        <String>['im', 'capable'],
-        'fakeAccessToken',
-      );
-      expect(response.data, 'abc123');
-      expect(response.error, isNull);
-    });
-
-    test('should return error if request failed', () async {
-      fakeResponse = Response('', 500);
-      expect(
-          (await service.createAgent(
-                  'id123', <String>['im', 'not', 'capable'], 'fakeAccessToken'))
-              .error,
-          '/api/create-agent did not respond with 200');
-    });
-
-    test('should return error if token is null', () async {
-      fakeResponse = Response('', 200);
-      expect(
-          (await service.createAgent(
-                  'id123', <String>['im', 'capable'], 'fakeAccessToken'))
-              .error,
-          '/api/create-agent returned unexpected response');
-    });
-
-    /// This requires a separate test run on the web platform.
-    test('should query correct endpoint whether web or mobile', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(),
-            kIsWeb ? '/api/create-agent' : '$baseApiUrl/api/create-agent');
-        return Response('', 200);
-      }));
-      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
-    });
-
-    test('should send correct headers and body', () async {
-      service =
-          AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.headers, <String, String>{
-          'X-Flutter-IdToken': 'fakeAccessToken',
-          'content-type': 'text/plain; charset=utf-8',
-        });
-        expect(request.body, '{"AgentID":"id123","Capabilities":["none"]}');
-        return Response('', 200);
-      }));
-      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
-    });
-  });
-
   group('AppEngine CocoonService reserve task', () {
     AppEngineCocoonService service;
     Response fakeResponse;
