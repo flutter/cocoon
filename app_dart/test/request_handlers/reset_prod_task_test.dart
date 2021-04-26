@@ -128,6 +128,30 @@ void main() {
       expect(task.attempts, equals(1));
     });
 
+    test('Re-schedule passing all the parameters', () async {
+      tester.requestData = <String, dynamic>{
+        'Commit': 'commitSha',
+        'Builder': 'Windows',
+        'Repo': 'flutter',
+      };
+      when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
+        return <Build>[];
+      });
+      await tester.post(handler);
+      expect(
+        verify(mockLuciBuildService.rescheduleProdBuild(
+          commitSha: captureAnyNamed('commitSha'),
+          builderName: captureAnyNamed('builderName'),
+        )).captured,
+        <dynamic>['commitSha', 'Windows'],
+      );
+    });
+
+    test('Re-schedule without all the parameters raises exception', () async {
+      tester.requestData = <String, dynamic>{};
+      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
+    });
+
     test('Re-schedule existing task even though builderName is missing in the task', () async {
       Task task = Task(
           key: commit.key.append(Task, id: 4590522719010816),
@@ -235,10 +259,6 @@ void main() {
       );
       task = config.db.values[task.key] as Task;
       expect(task.attempts, equals(1));
-    });
-
-    test('Fails if task does not exist', () async {
-      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Fails if commit does not exist', () async {
