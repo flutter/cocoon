@@ -56,6 +56,15 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     RepositorySlug slug;
     String builder = requestData[builderParam] as String ?? '';
     Task task;
+    Commit commit;
+
+    if (encodedKey.isNotEmpty) {
+      // Check params required for dashboard.
+      checkRequiredParameters(<String>[taskKeyParam]);
+    } else {
+      // Checks params required when this API is called with curl.
+      checkRequiredParameters(<String>[commitShaParam, builderParam, repoParam]);
+    }
 
     if (encodedKey.isNotEmpty) {
       // Request coming from the dashboard.
@@ -65,7 +74,7 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       if (task.status == 'Succeeded') {
         return Body.empty;
       }
-      final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+      commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
         throw BadRequestException('No such commit: ${task.commitKey}');
       });
       slug = commit.slug;
@@ -79,16 +88,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
             .single;
       }
     } else {
-      // Request not coming from dashboard means we need to create everything from
-      // parameters.
-      if (commitSha.isEmpty || builder.isEmpty || repo.isEmpty) {
+      if (repo == 'flutter') {
         throw const BadRequestException(
-            'To retry task without a task key commit sha, builder name and repo are required');
+            'Flutter repo does not support retries with curl, please use flutter-dashboard instead');
       }
+      // Request not coming from dashboard means we need to create slug from parameters.
       slug = RepositorySlug(owner, repo);
+      commit = Commit(repository: slug.fullName, sha: commitSha);
     }
 
-    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commitSha, builder, repo);
+    final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha, builder, repo);
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     final Build build = currentBuilds.firstWhere(
       (Build element) {
@@ -97,13 +106,13 @@ class ResetProdTask extends ApiRequestHandler<Body> {
       },
       orElse: () => null,
     );
-    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: $commitSha, Build: $build');
+    log.info('Owner: $owner, Repo: $repo, Builder: $builder, CommitSha: ${commit.sha}, Build: $build');
 
     if (build != null) {
       throw const ConflictException();
     }
     await luciBuildService.rescheduleProdBuild(
-      commitSha: commitSha,
+      commitSha: commit.sha,
       builderName: builder,
       repo: repo,
     );

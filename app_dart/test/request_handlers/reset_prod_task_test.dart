@@ -132,7 +132,7 @@ void main() {
       tester.requestData = <String, dynamic>{
         'Commit': 'commitSha',
         'Builder': 'Windows',
-        'Repo': 'flutter',
+        'Repo': 'engine',
       };
       when(mockLuciBuildService.getProdBuilds(any, any, any, any)).thenAnswer((_) async {
         return <Build>[];
@@ -142,9 +142,20 @@ void main() {
         verify(mockLuciBuildService.rescheduleProdBuild(
           commitSha: captureAnyNamed('commitSha'),
           builderName: captureAnyNamed('builderName'),
+          branch: captureAnyNamed('branch'),
+          repo: captureAnyNamed('repo'),
         )).captured,
-        <dynamic>['commitSha', 'Windows'],
+        <dynamic>['commitSha', 'Windows', 'master', 'engine'],
       );
+    });
+
+    test('Using curl with flutter repo raises exception', () async {
+      tester.requestData = <String, dynamic>{
+        'Commit': 'commitSha',
+        'Builder': 'Windows',
+        'Repo': 'flutter',
+      };
+      expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
     test('Re-schedule without all the parameters raises exception', () async {
