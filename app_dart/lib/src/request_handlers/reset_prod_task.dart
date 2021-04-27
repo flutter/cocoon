@@ -41,38 +41,62 @@ class ResetProdTask extends ApiRequestHandler<Body> {
   static const String taskKeyParam = 'Key';
   static const String ownerParam = 'Owner';
   static const String repoParam = 'Repo';
+  static const String commitShaParam = 'Commit';
+  static const String builderParam = 'Builder';
 
   @override
   Future<Body> post() async {
-    checkRequiredParameters(<String>[taskKeyParam]);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final String encodedKey = requestData[taskKeyParam] as String;
+    final String encodedKey = requestData[taskKeyParam] as String ?? '';
     final ClientContext clientContext = authContext.clientContext;
     final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
     final String owner = requestData[ownerParam] as String ?? 'flutter';
-    final String repo = requestData[repoParam] as String ?? '';
-    final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
-    log.info('Rescheduling task with Key: ${key.id}');
-    final Task task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
-    if (task == null) {
-      throw BadRequestException('No such task: $key');
+    final String repo = requestData[repoParam] as String ?? 'flutter';
+    String commitSha = requestData[commitShaParam] as String ?? '';
+    RepositorySlug slug;
+    String builder = requestData[builderParam] as String ?? '';
+    Task task;
+    Commit commit;
+
+    if (encodedKey.isNotEmpty) {
+      // Check params required for dashboard.
+      checkRequiredParameters(<String>[taskKeyParam]);
+    } else {
+      // Checks params required when this API is called with curl.
+      checkRequiredParameters(<String>[commitShaParam, builderParam, repoParam]);
     }
-    // Task is complete and it succeeded, nothing to do here.
-    if (task.status == 'Succeeded') {
-      return Body.empty;
+
+    if (encodedKey.isNotEmpty) {
+      // Request coming from the dashboard.
+      final Key<int> key = keyHelper.decode(encodedKey) as Key<int>;
+      log.info('Rescheduling task with Key: ${key.id}');
+      task = (await datastore.lookupByKey<Task>(<Key<int>>[key])).single;
+      if (task.status == 'Succeeded') {
+        return Body.empty;
+      }
+      commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
+        throw BadRequestException('No such commit: ${task.commitKey}');
+      });
+      slug = commit.slug;
+      commitSha = commit.sha;
+      builder = task.builderName;
+      if (builder == null) {
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', slug);
+        builder = builders
+            .where((LuciBuilder builder) => builder.taskName == task.name)
+            .map((LuciBuilder builder) => builder.name)
+            .single;
+      }
+    } else {
+      if (repo == 'flutter') {
+        throw const BadRequestException(
+            'Flutter repo does not support retries with curl, please use flutter-dashboard instead');
+      }
+      // Request not coming from dashboard means we need to create slug from parameters.
+      slug = RepositorySlug(owner, repo);
+      commit = Commit(repository: slug.fullName, sha: commitSha);
     }
-    final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
-      throw BadRequestException('No such commit: ${task.commitKey}');
-    });
-    String builder = task.builderName;
-    if (builder == null) {
-      final List<LuciBuilder> builders = await config.luciBuilders('prod', commit.slug);
-      builder = builders
-          .where((LuciBuilder builder) => builder.taskName == task.name)
-          .map((LuciBuilder builder) => builder.name)
-          .single;
-    }
-    final RepositorySlug slug = RepositorySlug(owner, repo);
+
     final Iterable<Build> currentBuilds = await luciBuildService.getProdBuilds(slug, commit.sha, builder, repo);
     final List<Status> noReschedule = <Status>[Status.started, Status.scheduled, Status.success];
     final Build build = currentBuilds.firstWhere(
@@ -90,12 +114,16 @@ class ResetProdTask extends ApiRequestHandler<Body> {
     await luciBuildService.rescheduleProdBuild(
       commitSha: commit.sha,
       builderName: builder,
+      repo: repo,
     );
-    task
-      ..status = Task.statusNew
-      ..startTimestamp = 0
-      ..attempts += 1;
-    await datastore.insert(<Task>[task]);
+    if (task != null) {
+      // Only try to update task when it really exists.
+      task
+        ..status = Task.statusNew
+        ..startTimestamp = 0
+        ..attempts += 1;
+      await datastore.insert(<Task>[task]);
+    }
     return Body.empty;
   }
 }
