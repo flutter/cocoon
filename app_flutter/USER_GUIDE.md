@@ -86,3 +86,11 @@ from the backend.
 3. Click the magnifying glass
 4. A UI at the top will come down with a form to change baseline values
 
+## Agent dashboard
+
+Agent statuses are available at https://flutter-dashboard.appspot.com/#/agents.
+
+A green agent is considered healthy and ready to receive new tasks to build. A
+red agent is broken and does not receive new tasks.
+
+The Flutter Infra oncall will look into bringing an agent back online.

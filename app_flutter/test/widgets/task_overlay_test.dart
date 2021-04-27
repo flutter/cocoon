@@ -2,24 +2,28 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:fixnum/fixnum.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+import 'package:mockito/mockito.dart';
+
+import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
+
+import 'package:app_flutter/agent_dashboard_page.dart';
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 import 'package:app_flutter/widgets/now.dart';
+import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
-import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
-import 'package:fixnum/fixnum.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
+import '../utils/wrapper.dart';
 
 class TestGrid extends StatelessWidget {
   const TestGrid({
@@ -100,6 +104,7 @@ void main() {
 
     expect(find.text(expectedTask.name), findsOneWidget);
     expect(find.text(expectedTaskInfoString), findsOneWidget);
+    expect(find.text('SHOW ${expectedTask.reservedForAgentId}'), findsOneWidget);
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.normal_overlay_open.png');
 
@@ -157,6 +162,7 @@ void main() {
 
     expect(find.text(flakyTask.name), findsOneWidget);
     expect(find.text(flakyTaskInfoString), findsOneWidget);
+    expect(find.text('SHOW ${flakyTask.reservedForAgentId}'), findsOneWidget);
 
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.flaky_overlay_open.png');
   });
@@ -277,6 +283,59 @@ void main() {
     await tester.pump();
 
     expect(find.text(timeTaskInfoString), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay devicelab agent button redirects to agent page', (WidgetTester tester) async {
+    final Task expectedTask = Task()
+      ..attempts = 3
+      ..stageName = 'devicelab'
+      ..name = 'Tasky McTaskFace'
+      ..reservedForAgentId = 'Agenty McAgentFace'
+      ..isFlaky = false
+      ..status = TaskBox.statusSucceeded;
+
+    await tester.pumpWidget(
+      FakeInserter(
+        child: Now.fixed(
+          dateTime: nowTime,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(
+                task: expectedTask,
+              ),
+            ),
+            routes: <String, WidgetBuilder>{
+              AgentDashboardPage.routeName: (BuildContext context) => const AgentDashboardPage(),
+            },
+          ),
+        ),
+      ),
+    );
+
+    // The AppBar title for the agent page
+    expect(find.text('Infra Agents'), findsNothing);
+    expect(find.text('SHOW ${expectedTask.reservedForAgentId}'), findsNothing);
+    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
+
+    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.text('Infra Agents'), findsNothing);
+    expect(find.text('SHOW ${expectedTask.reservedForAgentId}'), findsOneWidget);
+    expect(find.text(expectedTask.reservedForAgentId), findsNothing);
+
+    await tester.tap(find.text('SHOW ${expectedTask.reservedForAgentId}'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Infra Agents'), findsOneWidget);
+    expect(find.text('SHOW ${expectedTask.reservedForAgentId}'), findsNothing);
+    // We check that the agent is filtered correctly, which tests if
+    // the route argument was parsed correctly, by looking for the
+    // text field that contains the search pattern. (The actual agent
+    // isn't listed because we don't set up the test data with any
+    // agents.)
+    expect(find.widgetWithText(TextField, expectedTask.reservedForAgentId), findsOneWidget);
   });
 
   testWidgets('TaskOverlay shows the right message for nondevicelab tasks', (WidgetTester tester) async {

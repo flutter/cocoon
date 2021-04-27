@@ -19,6 +19,8 @@ import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/datastore.dart';
 
+// Please also change [minutesUntilAgentIsUnresponsive] in
+// app_flutter/lib/logic/agent_health_details.dart to match this value.
 const Duration maxHealthCheckAge = Duration(minutes: 30);
 
 @immutable

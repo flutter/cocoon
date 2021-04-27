@@ -4,10 +4,12 @@
 
 import 'dart:math' as math;
 
-import 'package:cocoon_service/protos.dart' show Commit, Task;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:cocoon_service/protos.dart' show Commit, Task;
+
+import '../agent_dashboard_page.dart';
 import '../logic/qualified_task.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
@@ -302,6 +304,31 @@ class TaskOverlayContents extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
+                  if (qualifiedTask.isDevicelab)
+                    ElevatedButton(
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'SHOW ',
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: task.reservedForAgentId,
+                              style: const TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onPressed: () {
+                        // Close the current overlay
+                        closeCallback();
+
+                        // Open the agent dashboard
+                        Navigator.pushNamed(
+                          context,
+                          AgentDashboardPage.routeName,
+                          arguments: task.reservedForAgentId,
+                        );
+                      },
+                    ),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ProgressButton(

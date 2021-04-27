@@ -6,10 +6,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_flutter/logic/qualified_task.dart';
-import 'package:cocoon_service/protos.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+
 import 'package:http/http.dart' as http;
+import 'package:fixnum/fixnum.dart';
+
+import 'package:cocoon_service/protos.dart';
 
 import '../logic/qualified_task.dart';
 import 'cocoon.dart';
@@ -87,6 +89,25 @@ class AppEngineCocoonService implements CocoonService {
       return const CocoonResponse<BuildStatusResponse>.error('/api/public/build-status had a malformed response');
     }
     return CocoonResponse<BuildStatusResponse>.data(protoResponse);
+  }
+
+  @override
+  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
+    final String getStatusUrl = apiEndpoint('/api/public/get-status');
+
+    /// This endpoint returns JSON [List<Agent>, List<CommitStatus>]
+    final http.Response response = await _client.get(getStatusUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse<List<Agent>>.error('/api/public/get-status returned ${response.statusCode}');
+    }
+
+    try {
+      final Map<String, Object> jsonResponse = jsonDecode(response.body);
+      return CocoonResponse<List<Agent>>.data(_agentStatusesFromJson(jsonResponse['AgentStatuses']));
+    } catch (error) {
+      return CocoonResponse<List<Agent>>.error(error.toString());
+    }
   }
 
   @override
@@ -172,6 +193,71 @@ class AppEngineCocoonService implements CocoonService {
     return _downloader.download(getTaskLogUrl, fileName, idToken: idToken);
   }
 
+  @override
+  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken) async {
+    assert(agentId != null);
+    assert(capabilities.isNotEmpty);
+    assert(idToken != null);
+
+    final String createAgentUrl = apiEndpoint('/api/create-agent');
+
+    /// This endpoint returns JSON {'Token': [Token]}
+    final http.Response response = await _client.post(
+      createAgentUrl,
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
+      body: jsonEncode(<String, Object>{
+        'AgentID': agentId,
+        'Capabilities': capabilities,
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      return const CocoonResponse<String>.error('/api/create-agent did not respond with 200');
+    }
+
+    Map<String, Object> responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+      if (responseBody['Token'] == null) {
+        return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
+      }
+    } catch (e) {
+      return const CocoonResponse<String>.error('/api/create-agent returned unexpected response');
+    }
+
+    return CocoonResponse<String>.data(responseBody['Token']);
+  }
+
+  @override
+  Future<void> reserveTask(Agent agent, String idToken) async {
+    assert(agent != null);
+    assert(idToken != null);
+
+    final String reserveTaskUrl = apiEndpoint('/api/reserve-task');
+
+    final http.Response response = await _client.post(
+      reserveTaskUrl,
+      headers: <String, String>{'X-Flutter-IdToken': idToken},
+      body: jsonEncode(<String, Object>{
+        'AgentID': agent.agentId,
+      }),
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      throw Exception('/api/reserve-task did not respond with 200');
+    }
+
+    Map<String, Object> responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+      if (responseBody['Task'] == null) {
+        throw Exception('/api/reserve-task returned unexpected response');
+      }
+    } catch (e) {
+      throw Exception('/api/reserve-task returned unexpected response');
+    }
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///
@@ -193,6 +279,24 @@ class AppEngineCocoonService implements CocoonService {
     final String url = uri.toString();
 
     return kIsWeb ? url.replaceAll('https://$_baseApiUrl', '') : url;
+  }
+
+  List<Agent> _agentStatusesFromJson(List<Object> jsonAgentStatuses) {
+    final List<Agent> agents = <Agent>[];
+
+    for (final Map<String, Object> jsonAgent in jsonAgentStatuses) {
+      final List<Object> objectCapabilities = jsonAgent['Capabilities'];
+      final List<String> capabilities = objectCapabilities.map((Object value) => value.toString()).toList();
+      final Agent agent = Agent()
+        ..agentId = jsonAgent['AgentID']
+        ..healthCheckTimestamp = Int64.parseInt(jsonAgent['HealthCheckTimestamp'].toString())
+        ..isHealthy = jsonAgent['IsHealthy']
+        ..capabilities.addAll(capabilities)
+        ..healthDetails = jsonAgent['HealthDetails'];
+      agents.add(agent);
+    }
+
+    return agents;
   }
 
   List<CommitStatus> _commitStatusesFromJson(List<Object> jsonCommitStatuses) {
