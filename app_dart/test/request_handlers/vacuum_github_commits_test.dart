@@ -133,6 +133,14 @@ void main() {
       expect(db.values.values.whereType<Commit>().first.sha, '9');
     });
 
+    test('does not fail on empty commit list', () async {
+      githubCommits = <String>[];
+      expect(db.values.values.whereType<Commit>().length, 0);
+      scheduler.devicelabManifest = singleTaskManifestYaml;
+      await tester.get<Body>(handler);
+      expect(db.values.values.whereType<Commit>().length, 0);
+    });
+
     test('does not add recent commits', () async {
       githubCommits = <String>['${DateTime.now().millisecondsSinceEpoch}'];
 

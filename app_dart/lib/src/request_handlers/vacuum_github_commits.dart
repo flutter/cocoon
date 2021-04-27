@@ -77,8 +77,8 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     }
 
     // For release branches, only look at the latest commit.
-    if (branch != config.defaultBranch) {
-      commits = <RepositoryCommit>[commits?.last];
+    if (branch != config.defaultBranch && commits.isNotEmpty) {
+      commits = <RepositoryCommit>[commits.last];
     }
 
     return _toDatastoreCommit(slug, commits, datastore, branch);
