@@ -4,8 +4,8 @@
 
 import 'dart:math' as math;
 
-import 'package:fixnum/fixnum.dart';
 import 'package:cocoon_service/protos.dart';
+import 'package:fixnum/fixnum.dart';
 
 import '../logic/qualified_task.dart';
 import 'cocoon.dart';
@@ -43,11 +43,6 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<Agent>>> fetchAgentStatuses() async {
-    return CocoonResponse<List<Agent>>.data(_createFakeAgentStatuses());
-  }
-
-  @override
   Future<CocoonResponse<List<String>>> fetchFlutterBranches() async {
     return const CocoonResponse<List<String>>.data(<String>['master', 'dev', 'beta', 'stable']);
   }
@@ -65,40 +60,6 @@ class DevelopmentCocoonService implements CocoonService {
   @override
   Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
     return false;
-  }
-
-  @override
-  Future<CocoonResponse<String>> createAgent(String agentId, List<String> capabilities, String idToken) async =>
-      const CocoonResponse<String>.data('abc123');
-
-  @override
-  Future<void> reserveTask(Agent agent, String idToken) => null;
-
-  static const List<String> _agentKinds = <String>[
-    'linux',
-    'linux-vm',
-    'mac',
-    'windows',
-  ];
-
-  List<Agent> _createFakeAgentStatuses() {
-    return List<Agent>.generate(
-      10,
-      (int i) => Agent()
-        ..agentId = 'fake-${_agentKinds[i % _agentKinds.length]}-${i ~/ _agentKinds.length}'
-        ..capabilities.add('dash')
-        ..isHealthy = _random.nextBool()
-        ..isHidden = false
-        ..healthCheckTimestamp = Int64.parseInt(now.millisecondsSinceEpoch.toString())
-        ..healthDetails = 'ssh-connectivity: succeeded\n'
-            'Last known IP address: flutter-devicelab-linux-vm-1\n\n'
-            'android-device-ZY223D6B7B: succeeded\n'
-            'has-healthy-devices: succeeded\n'
-            'Found 1 healthy devices\n\n'
-            'cocoon-authentication: succeeded\n'
-            'cocoon-connection: succeeded\n'
-            'able-to-perform-health-check: succeeded\n',
-    );
   }
 
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
