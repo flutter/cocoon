@@ -3,18 +3,16 @@
 // found in the LICENSE file.
 
 import 'package:app_flutter/logic/qualified_task.dart';
+import 'package:app_flutter/service/appengine_cocoon.dart';
+import 'package:app_flutter/service/cocoon.dart';
+import 'package:app_flutter/service/downloader.dart';
+import 'package:cocoon_service/protos.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Client, Request, Response;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import 'package:cocoon_service/protos.dart';
-
-import 'package:app_flutter/service/appengine_cocoon.dart';
-import 'package:app_flutter/service/downloader.dart';
-import 'package:app_flutter/service/cocoon.dart';
 
 import '../utils/appengine_cocoon_test_data.dart';
 
@@ -364,91 +362,6 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService fetchAgentStatus ', () {
-    AppEngineCocoonService service;
-
-    setUp(() async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        return Response(jsonGetStatsResponse, 200);
-      }));
-    });
-
-    test('should return CocoonResponse<List<Agent>>', () {
-      expect(service.fetchAgentStatuses(), const TypeMatcher<Future<CocoonResponse<List<Agent>>>>());
-    });
-
-    test('should return expected List<Agent>', () async {
-      final CocoonResponse<List<Agent>> agents = await service.fetchAgentStatuses();
-
-      final List<Agent> expectedAgents = <Agent>[
-        Agent()
-          ..agentId = 'flutter-devicelab-linux-1'
-          ..healthCheckTimestamp = Int64.parseInt('1576876008093')
-          ..isHealthy = true
-          ..capabilities.addAll(<String>['linux/android', 'linux'])
-          ..healthDetails = 'ssh-connectivity: succeeded\n'
-              '    Last known IP address: 192.168.1.29\n'
-              '\n'
-              'android-device-ZY223D6B7B: succeeded\n'
-              'has-healthy-devices: succeeded\n'
-              '    Found 1 healthy devices\n'
-              '\n'
-              'cocoon-authentication: succeeded\n'
-              'cocoon-connection: succeeded\n'
-              'able-to-perform-health-check: succeeded\n',
-        Agent()
-          ..agentId = 'flutter-devicelab-mac-1'
-          ..healthCheckTimestamp = Int64.parseInt('1576530583142')
-          ..isHealthy = true
-          ..capabilities.addAll(<String>['mac/ios', 'mac'])
-          ..healthDetails = 'ssh-connectivity: succeeded\n'
-              '    Last known IP address: 192.168.1.233\n'
-              '\n'
-              'ios-device-43ad2fda7991b34fe1acbda82f9e2fd3d6ddc9f7: succeeded\n'
-              'has-healthy-devices: succeeded\n'
-              '    Found 1 healthy devices\n'
-              '\n'
-              'cocoon-authentication: succeeded\n'
-              'cocoon-connection: succeeded\n'
-              'able-to-build-and-sign: succeeded\n'
-              'ios: succeeded\n'
-              'able-to-perform-health-check: succeeded\n'
-      ];
-
-      expect(agents.data, expectedAgents);
-      expect(agents.error, isNull);
-    });
-
-    /// This requires a separate test run on the web platform.
-    test('should query correct endpoint whether web or mobile', () async {
-      final Client mockClient = MockHttpClient();
-      when(mockClient.get(any)).thenAnswer((_) => Future<Response>.value(Response('', 200)));
-      service = AppEngineCocoonService(client: mockClient);
-
-      await service.fetchAgentStatuses();
-
-      if (kIsWeb) {
-        verify(mockClient.get('/api/public/get-status'));
-      } else {
-        verify(mockClient.get('$baseApiUrl/api/public/get-status'));
-      }
-    });
-
-    test('should have error if given non-200 response', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('', 404)));
-
-      final CocoonResponse<List<Agent>> response = await service.fetchAgentStatuses();
-      expect(response.error, isNotNull);
-    });
-
-    test('should have error if given bad response', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async => Response('bad', 200)));
-
-      final CocoonResponse<List<Agent>> response = await service.fetchAgentStatuses();
-      expect(response.error, isNotNull);
-    });
-  });
-
   group('AppEngine CocoonService fetchFlutterBranches', () {
     AppEngineCocoonService service;
 
@@ -498,106 +411,6 @@ void main() {
 
       final CocoonResponse<List<String>> response = await service.fetchFlutterBranches();
       expect(response.error, isNotNull);
-    });
-  });
-
-  group('AppEngine CocoonService create agent', () {
-    AppEngineCocoonService service;
-    Response fakeResponse;
-
-    setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeResponse));
-    });
-
-    test('should return token if request succeeds', () async {
-      fakeResponse = Response('{"Token": "abc123"}', 200);
-      final CocoonResponse<String> response = await service.createAgent(
-        'id123',
-        <String>['im', 'capable'],
-        'fakeAccessToken',
-      );
-      expect(response.data, 'abc123');
-      expect(response.error, isNull);
-    });
-
-    test('should return error if request failed', () async {
-      fakeResponse = Response('', 500);
-      expect((await service.createAgent('id123', <String>['im', 'not', 'capable'], 'fakeAccessToken')).error,
-          '/api/create-agent did not respond with 200');
-    });
-
-    test('should return error if token is null', () async {
-      fakeResponse = Response('', 200);
-      expect((await service.createAgent('id123', <String>['im', 'capable'], 'fakeAccessToken')).error,
-          '/api/create-agent returned unexpected response');
-    });
-
-    /// This requires a separate test run on the web platform.
-    test('should query correct endpoint whether web or mobile', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(), kIsWeb ? '/api/create-agent' : '$baseApiUrl/api/create-agent');
-        return Response('', 200);
-      }));
-      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
-    });
-
-    test('should send correct headers and body', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.headers, <String, String>{
-          'X-Flutter-IdToken': 'fakeAccessToken',
-          'content-type': 'text/plain; charset=utf-8',
-        });
-        expect(request.body, '{"AgentID":"id123","Capabilities":["none"]}');
-        return Response('', 200);
-      }));
-      await service.createAgent('id123', <String>['none'], 'fakeAccessToken');
-    });
-  });
-
-  group('AppEngine CocoonService reserve task', () {
-    AppEngineCocoonService service;
-    Response fakeResponse;
-
-    setUp(() {
-      service = AppEngineCocoonService(client: MockClient((Request request) async => fakeResponse));
-    });
-
-    test('should not throw exception if request succeeds', () async {
-      fakeResponse = Response('{"Task": "randomdata"}', 200);
-      await service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-    });
-
-    test('should throw error if request failed', () async {
-      fakeResponse = Response('', 500);
-      expect(
-          service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'), throwsA(const TypeMatcher<Exception>()));
-    });
-
-    test('should throw error if task is null', () async {
-      fakeResponse = Response('', 200);
-      expect(
-          service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken'), throwsA(const TypeMatcher<Exception>()));
-    });
-
-    /// This requires a separate test run on the web platform.
-    test('should query correct endpoint whether web or mobile', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.url.toString(), kIsWeb ? '/api/reserve-task' : '$baseApiUrl/api/reserve-task');
-        return Response('{"Task": "randomdata"}', 200);
-      }));
-      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
-    });
-
-    test('should send correct headers and body', () async {
-      service = AppEngineCocoonService(client: MockClient((Request request) async {
-        expect(request.headers, <String, String>{
-          'X-Flutter-IdToken': 'fakeAccessToken',
-          'content-type': 'text/plain; charset=utf-8',
-        });
-        expect(request.body, '{"AgentID":"id123"}');
-        return Response('{"Task": "randomdata"}', 200);
-      }));
-      service.reserveTask(Agent()..agentId = 'id123', 'fakeAccessToken');
     });
   });
 

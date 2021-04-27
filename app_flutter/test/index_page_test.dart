@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:app_flutter/index_page.dart';
 import 'package:app_flutter/widgets/sign_in_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'utils/wrapper.dart';
 
@@ -52,6 +51,5 @@ void main() {
     expect(find.text('FRAMEWORK BENCHMARKS'), findsOneWidget);
     expect(find.text('ENGINE BENCHMARKS'), findsOneWidget);
     expect(find.text('REPOSITORY'), findsOneWidget);
-    expect(find.text('INFRA AGENTS'), findsOneWidget);
   });
 }

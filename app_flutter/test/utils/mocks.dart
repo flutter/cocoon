@@ -2,15 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mockito/mockito.dart';
-
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/state/agent.dart';
 import 'package:app_flutter/state/build.dart';
-
-class MockAgentState extends Mock implements AgentState {}
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mockito/mockito.dart';
 
 class MockCocoonService extends Mock implements CocoonService {}
 
