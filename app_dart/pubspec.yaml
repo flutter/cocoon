@@ -38,7 +38,7 @@ dev_dependencies:
   fake_async: ^1.1.0
   json_serializable: ^3.3.0
   mockito: ^4.1.0
-  test: ^1.6.5
+  test: ^1.16.0
 
 builders:
   json_serializable: ^3.3.0
