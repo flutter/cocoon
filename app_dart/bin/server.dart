@@ -99,7 +99,6 @@ Future<void> main() async {
         scheduler,
       ),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
-      '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,
