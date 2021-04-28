@@ -59,7 +59,6 @@ Future<void> main() async {
         cache: cache,
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
-      '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
         githubChecksService: githubChecksService,

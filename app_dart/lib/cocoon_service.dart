@@ -10,7 +10,6 @@ export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_authentication_status.dart';
 export 'src/request_handlers/get_branches.dart';
 export 'src/request_handlers/get_build_status.dart';
-export 'src/request_handlers/get_log.dart';
 export 'src/request_handlers/get_status.dart';
 export 'src/request_handlers/github_rate_limit_status.dart';
 export 'src/request_handlers/github_webhook.dart';
