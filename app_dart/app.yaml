@@ -4,6 +4,8 @@
 
 runtime: custom
 env: flex
+service: default
+
 readiness_check:
   check_interval_sec: 20
   timeout_sec: 10
