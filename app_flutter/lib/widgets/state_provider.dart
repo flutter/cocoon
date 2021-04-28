@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../service/google_authentication.dart';
-import '../state/agent.dart';
 import '../state/build.dart';
 import '../state/index.dart';
 
@@ -15,7 +14,6 @@ class StateProvider extends StatelessWidget {
     Key key,
     this.signInService,
     this.indexState,
-    this.agentState,
     this.buildState,
     this.child,
   }) : super(key: key);
@@ -23,8 +21,6 @@ class StateProvider extends StatelessWidget {
   final GoogleSignInService signInService;
 
   final IndexState indexState;
-
-  final AgentState agentState;
 
   final BuildState buildState;
 
@@ -36,7 +32,6 @@ class StateProvider extends StatelessWidget {
       providers: <ValueProvider<Object>>[
         ValueProvider<GoogleSignInService>(value: signInService),
         ValueProvider<IndexState>(value: indexState),
-        ValueProvider<AgentState>(value: agentState),
         ValueProvider<BuildState>(value: buildState),
       ],
       child: child,

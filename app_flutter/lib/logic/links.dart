@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../agent_dashboard_page.dart';
 import '../build_dashboard_page.dart';
 import '../index_page.dart';
 
@@ -39,12 +38,6 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
       name: 'Repository',
       icon: const Icon(Icons.info_outline),
       action: () => launch('/repository.html'),
-    ),
-    CocoonLink(
-      name: 'Infra Agents',
-      route: AgentDashboardPage.routeName,
-      icon: const Icon(Icons.android),
-      action: () => Navigator.pushReplacementNamed(context, AgentDashboardPage.routeName),
     ),
     CocoonLink(
       name: 'Source Code',
