@@ -70,6 +70,9 @@ Future<void> main() async {
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),
+
+      /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
+      /// of a POST request.
       '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
       '/api/luci-status-handler': LuciStatusHandler(
         config,
