@@ -7,36 +7,6 @@ Cocoon is not a Google product.
 
 # Using Cocoon
 
-## Agents
-
-The dashboard has a page showing [the status of all our current
-agents](https://flutter-dashboard.appspot.com/#/agents).
-
-### Creating an agent
-
-To create an agent in the dashboard, it needs an `agentId` and a list
-of capabilities (comma delimited). Clicking the "Create Agent" button
-will show a dialog for creating an agent.
-
-> An example of a valid agent would be `agentId`=`bot-with-devices` and
-> `capabilities`=`has-android-phone,has-iphone`.
-
-The dialog returns an authentication token, and prints it to
-the console. This token is not stored, so copy it immediately and add
-it to the agent's configuration file. If the token is lost or
-compromised, authorize the agent to generate a new token.
-
-### Authorizing an agent
-
-Click on the dropdown for the agent, and click authorize agent. This
-will print a new generated token to the console.
-
-This command invalidates any previously issued authentication tokens
-for the given agent. Only one authentication token is valid at any
-given moment in time. Therefore, if the agent is currently using a
-previously issued token its API requests will be rejected until it
-switches to using the newly created token.
-
 ## Forcing a refresh from GitHub
 
 The server is driven by commits made to
@@ -56,24 +26,11 @@ Cocoon has several components:
   Engine](https://github.com/dart-lang/appengine_samples). The server
   is found in [app_dart](app_dart/).
 
-* An agent, a Dart program that runs on test hosts, each of which have
-  a test device. Our "devicelab" consists of computers with devices
-  that are running agents and talking to the server to get tasks to
-  run (e.g. a benchmark). The agent is found in [agent](agent/).
-
-* A Flutter app (generally used as a Web app) for the build and agent
+* A Flutter app (generally used as a Web app) for the build 
   dashboards. The dashboard is found in [app_flutter](app_flutter/).
 
 Cocoon creates a _checklist_ for each Flutter commit. A checklist is
-made of multiple _tasks_. Tasks are _performed_ by _agents_. An agent
-is a computer _capable_ of running a subset of tasks in the checklist.
-To perform a task an agent _reserves_ it in Cocoon. Cocoon issues
-tasks according to agents' _capabilities_. Each task has a list of
-_required capabilities_. For example, a task might require that a
-physical Android device is attached to an agent. It then lists
-"has-physical-android-phone" capability as required. Multiple agents
-may share the same capability. Cocoon will distribute tasks amongst
-agents. That's how Cocoon scales.
+made of multiple _tasks_. Tasks are _performed_ by _LUCI bots_.
 
 
 ## Getting started
