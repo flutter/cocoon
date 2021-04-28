@@ -4,7 +4,12 @@
 
 runtime: custom
 env: flex
-service: default
+readiness_check:
+  check_interval_sec: 20
+  timeout_sec: 10
+  failure_threshold: 3
+  success_threshold: 2
+  app_start_timeout_sec: 500
 
 resources:
   memory_gb: 4.0
