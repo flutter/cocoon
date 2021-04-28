@@ -112,6 +112,7 @@ class LuciBuildService {
     String commitSha,
   ) async {
     final BatchResponse batch = await buildBucketClient.batch(BatchRequest(requests: <Request>[
+      // Builds created by Cocoon
       Request(
         searchBuilds: SearchBuildsRequest(
           predicate: BuildPredicate(
@@ -128,6 +129,7 @@ class LuciBuildService {
           ),
         ),
       ),
+      // Builds created by recipe (via swarming create task)
       Request(
         searchBuilds: SearchBuildsRequest(
           predicate: BuildPredicate(
@@ -153,11 +155,13 @@ class LuciBuildService {
   /// Schedules BuildBucket builds for a given [prNumber], [commitSha]
   /// and Github [slug].
   Future<bool> scheduleTryBuilds({
+    @required List<LuciBuilder> builders,
     @required int prNumber,
     @required String commitSha,
     @required github.RepositorySlug slug,
     CheckSuiteEvent checkSuiteEvent,
   }) async {
+    assert(builders != null);
     assert(prNumber != null);
     assert(commitSha != null);
     assert(slug != null);
@@ -180,7 +184,6 @@ class LuciBuildService {
       return false;
     }
 
-    final List<LuciBuilder> builders = await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
     final List<String> builderNames = builders
         .where((LuciBuilder builder) => builder.repo == slug.name)
         .map<String>((LuciBuilder builder) => builder.name)
@@ -281,15 +284,15 @@ class LuciBuildService {
     github.RepositorySlug slug,
     int prNumber,
     String commitSha,
+    List<LuciBuilder> builders,
   ) async {
     final Map<String, Build> builds = await tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> filteredBuilders =
-        await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
-    final List<String> builderNames = filteredBuilders.map((LuciBuilder entry) => entry.name).toList();
+    final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
     // Return only builds that exist in the configuration file.
-    return builds.values
-        .where((Build build) => failStatusSet.contains(build.status) && builderNames.contains(build.builderId.builder))
-        .toList();
+    final Iterable<Build> failedBuilds = builds.values.where((Build build) => failStatusSet.contains(build.status));
+    final Iterable<Build> expectedFailedBuilds =
+        failedBuilds.where((Build build) => builderNames.contains(build.builderId.builder));
+    return expectedFailedBuilds.toList();
   }
 
   /// Sends a [BuildBucket.scheduleBuild] the buildset, user_agent, and

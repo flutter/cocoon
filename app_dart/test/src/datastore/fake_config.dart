@@ -58,6 +58,7 @@ class FakeConfig implements Config {
     this.flutterGoldDraftChangeValue,
     this.flutterGoldStalePRValue,
     this.supportedBranchesValue,
+    this.luciBuildersValue,
     FakeDatastoreDB dbValue,
   }) : dbValue = dbValue ?? FakeDatastoreDB();
 
@@ -98,6 +99,7 @@ class FakeConfig implements Config {
   String flutterGoldDraftChangeValue;
   String flutterGoldStalePRValue;
   List<String> supportedBranchesValue;
+  List<LuciBuilder> luciBuildersValue;
 
   @override
   Future<GitHub> createGitHubClient(RepositorySlug slug) async => githubClient;
@@ -251,6 +253,9 @@ class FakeConfig implements Config {
   @override
   Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug,
       {String commitSha = 'master', int prNumber}) async {
+    if (luciBuildersValue != null) {
+      return luciBuildersValue;
+    }
     if (slug.name == 'flutter') {
       return <LuciBuilder>[
         const LuciBuilder(name: 'Linux', repo: 'flutter', taskName: 'linux_bot', flaky: false),

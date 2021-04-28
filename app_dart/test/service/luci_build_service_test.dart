@@ -31,6 +31,15 @@ void main() {
   RepositorySlug slug;
   final MockGithubChecksUtil mockGithubChecksUtil = MockGithubChecksUtil();
 
+  const List<LuciBuilder> builders = <LuciBuilder>[
+    LuciBuilder(
+      flaky: false,
+      enabled: true,
+      name: 'Linux',
+      repo: 'flutter',
+    ),
+  ];
+
   group('getBuilds', () {
     const Build macBuild = Build(
       id: 999,
@@ -223,6 +232,7 @@ void main() {
         );
       });
       final bool result = await service.scheduleTryBuilds(
+        builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: slug,
@@ -252,13 +262,14 @@ void main() {
         );
       });
       final bool result = await service.scheduleTryBuilds(
+        builders: builders,
         prNumber: 1,
         commitSha: 'abc',
         slug: slug,
       );
       expect(result, isFalse);
     });
-    test('Schedule builds when the current list of builds is empty', () async {
+    test('Schedule builds throws when current list of builds is empty', () async {
       when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
         return CheckRun.fromJson(const <String, dynamic>{
           'id': 1,
@@ -271,17 +282,20 @@ void main() {
           responses: <Response>[],
         );
       });
-      final bool result = await service.scheduleTryBuilds(
-        prNumber: 1,
-        commitSha: 'abc',
-        slug: slug,
-      );
-      expect(result, isTrue);
+      await expectLater(
+          service.scheduleTryBuilds(
+            builders: <LuciBuilder>[],
+            prNumber: 1,
+            commitSha: 'abc',
+            slug: slug,
+          ),
+          throwsA(isA<InternalServerError>()));
     });
     test('Try to schedule build on a unsupported repo', () async {
       slug = RepositorySlug('flutter', 'notsupported');
       expect(
           () async => await service.scheduleTryBuilds(
+                builders: builders,
                 prNumber: 1,
                 commitSha: 'abc',
                 slug: slug,
@@ -358,7 +372,7 @@ void main() {
           responses: <Response>[],
         );
       });
-      final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
+      final List<Build> result = await service.failedBuilds(slug, 1, 'abc', <LuciBuilder>[]);
       expect(result, isEmpty);
     });
     test('Failed builds from a list of builds with failures', () async {
@@ -380,7 +394,7 @@ void main() {
           ],
         );
       });
-      final List<Build> result = await service.failedBuilds(slug, 1, 'abc');
+      final List<Build> result = await service.failedBuilds(slug, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
       expect(result, hasLength(1));
     });
   });

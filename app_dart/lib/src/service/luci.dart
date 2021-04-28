@@ -15,6 +15,7 @@ import 'package:meta/meta.dart';
 import '../datastore/config.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
+import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 
 import 'buildbucket.dart';
@@ -244,7 +245,19 @@ class LuciBuilder {
   }) : assert(name != null);
 
   /// Create a new [LuciBuilder] object from its JSON representation.
+  // TODO(chillers): Remove once *_builder.json is removed. https://github.com/flutter/flutter/issues/76140
   factory LuciBuilder.fromJson(Map<String, dynamic> json) => _$LuciBuilderFromJson(json);
+
+  /// Create a new [LuciBuilder] from a [Target].
+  factory LuciBuilder.fromTarget(Target target, RepositorySlug slug) {
+    return LuciBuilder(
+      name: target.builder,
+      repo: slug.name,
+      runIf: target.runIf,
+      taskName: target.name,
+      flaky: target.bringup,
+    );
+  }
 
   /// The name of this builder.
   @JsonKey(required: true, disallowNullValue: true)

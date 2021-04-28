@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
@@ -17,14 +18,15 @@ import 'package:test/test.dart';
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_logging.dart';
-import '../src/utilities/mocks.dart' as mocks;
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
   FakeConfig config;
-  mocks.MockLuciBuildService mockLuciBuildService;
-  MockGitHub mockGitHub;
+  FakeScheduler scheduler;
+  MockGithubService mockGithubService;
   MockGithubChecksUtil mockGithubChecksUtil;
+  MockLuciBuildService mockLuciBuildService;
   GithubChecksService githubChecksService;
   github.CheckRun checkRun;
   RepositorySlug slug;
@@ -34,29 +36,33 @@ void main() {
     builderId: BuilderId(
       project: 'flutter',
       bucket: 'prod',
-      builder: 'Linux',
+      builder: 'Linux Cocoon',
     ),
     status: Status.failure,
   );
 
   setUp(() {
-    config = FakeConfig();
+    mockGithubService = MockGithubService();
+    mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksUtil = MockGithubChecksUtil();
+    config = FakeConfig(githubService: mockGithubService);
     githubChecksService = GithubChecksService(
       config,
       githubChecksUtil: mockGithubChecksUtil,
     );
     githubChecksService.setLogger(FakeLogging());
     slug = RepositorySlug('flutter', 'cocoon');
-    mockLuciBuildService = mocks.MockLuciBuildService();
-    mockGitHub = MockGitHub();
-    config.githubClient = mockGitHub;
+    scheduler = FakeScheduler(
+      config: config,
+      luciBuildService: mockLuciBuildService,
+      githubChecksUtil: mockGithubChecksUtil,
+    );
     checkRun = github.CheckRun.fromJson(
       jsonDecode(
-              '{"name": "Linux", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}')
+              '{"name": "Cocoon", "id": 123, "external_id": "678", "status": "completed", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}')
           as Map<String, dynamic>,
     );
-    final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Linux': checkRun};
+    final Map<String, github.CheckRun> checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
     when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
       return checkRuns;
     });
@@ -67,33 +73,11 @@ void main() {
       final RepositorySlug slug = RepositorySlug('abc', 'cocoon');
       final CheckSuiteEvent checkSuiteEvent =
           CheckSuiteEvent.fromJson(jsonDecode(checkSuiteString) as Map<String, dynamic>);
-      await githubChecksService.handleCheckSuite(checkSuiteEvent, mockLuciBuildService);
-      expect(
-        verify(mockLuciBuildService.scheduleTryBuilds(
-          commitSha: captureAnyNamed('commitSha'),
-          prNumber: captureAnyNamed('prNumber'),
-          slug: captureAnyNamed('slug'),
-          checkSuiteEvent: anyNamed('checkSuiteEvent'),
-        )).captured,
-        <dynamic>['dabc07b74c555c9952f7b63e139f2bb83b75250f', 758, slug],
-      );
-    });
-    test('re-requested triggers failed builds only', () async {
-      when(mockLuciBuildService.failedBuilds(any, any, any)).thenAnswer((_) async {
-        return <Build>[linuxBuild];
-      });
-      final CheckSuiteEvent checkSuiteEvent =
-          CheckSuiteEvent.fromJson(jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
-      await githubChecksService.handleCheckSuite(
-        checkSuiteEvent,
-        mockLuciBuildService,
-      );
-      expect(
-          verify(mockLuciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(captureAny, captureAny)).captured,
-          <dynamic>[
-            checkSuiteEvent,
-            checkRun,
-          ]);
+      await githubChecksService.handleCheckSuite(checkSuiteEvent, scheduler);
+      verify(mockLuciBuildService.scheduleTryBuilds(builders: <LuciBuilder>[
+        const LuciBuilder(name: 'Cocoon', repo: 'cocoon', taskName: 'cocoon_bot', flaky: true)
+      ], prNumber: 758, commitSha: 'dabc07b74c555c9952f7b63e139f2bb83b75250f', slug: slug))
+          .called(1);
     });
   });
 

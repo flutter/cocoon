@@ -6,8 +6,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
+import 'package:github/github.dart' as github;
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
@@ -25,6 +26,8 @@ import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
 import 'cache_service.dart';
 import 'datastore.dart';
+import 'github_checks_service.dart';
+import 'github_service.dart';
 import 'luci.dart';
 import 'luci_build_service.dart';
 
@@ -38,19 +41,18 @@ class Scheduler {
   Scheduler({
     @required this.cache,
     @required this.config,
+    @required this.githubChecksService,
     @required this.luciBuildService,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.gitHubBackoffCalculator = twoSecondLinearBackoff,
     this.httpClientProvider = Providers.freshHttpClient,
   })  : assert(datastoreProvider != null),
-        assert(gitHubBackoffCalculator != null),
         assert(httpClientProvider != null);
 
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
+  final GithubChecksService githubChecksService;
   final HttpClientProvider httpClientProvider;
-  final GitHubBackoffCalculator gitHubBackoffCalculator;
 
   DatastoreService datastore;
   Logging log;
@@ -86,7 +88,7 @@ class Scheduler {
   ///
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
-  Future<void> addPullRequest(PullRequest pr) async {
+  Future<void> addPullRequest(github.PullRequest pr) async {
     datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged) {
@@ -219,7 +221,7 @@ class Scheduler {
 
   /// Cancel all incomplete targets against a pull request.
   Future<void> cancelPreSubmitTargets(
-      {int prNumber, RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
+      {int prNumber, github.RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
     if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
       throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
@@ -235,7 +237,7 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   Future<void> triggerPresubmitTargets(
-      {int prNumber, RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
+      {int prNumber, github.RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
     if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
       throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
@@ -246,11 +248,74 @@ class Scheduler {
       commitSha: commitSha,
       reason: reason,
     );
+    final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
+    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
+      commit: presubmitCommit,
+      prNumber: prNumber,
+    );
     await luciBuildService.scheduleTryBuilds(
+      builders: presubmitBuilders,
       slug: slug,
       prNumber: prNumber,
       commitSha: commitSha,
     );
+  }
+
+  /// Given a pull request event, retry all failed LUCI checks.
+  ///
+  /// 1. Aggregate .ci.yaml and try_builders.json presubmit builds.
+  /// 2. Get failed LUCI builds for this pull request at [commitSha].
+  /// 3. Rerun the failed builds that also have a failed check status.
+  Future<void> retryPresubmitTargets({
+    int prNumber,
+    github.RepositorySlug slug,
+    String commitSha,
+    CheckSuiteEvent checkSuiteEvent,
+  }) async {
+    final github.GitHub githubClient = await config.createGitHubClient(slug);
+    final Map<String, github.CheckRun> checkRuns = await githubChecksService.githubChecksUtil.allCheckRuns(
+      githubClient,
+      checkSuiteEvent,
+    );
+    final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
+    final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
+      commit: presubmitCommit,
+      prNumber: prNumber,
+    );
+    final List<Build> failedBuilds = await luciBuildService.failedBuilds(slug, prNumber, commitSha, presubmitBuilders);
+    for (Build build in failedBuilds) {
+      final github.CheckRun checkRun = checkRuns[build.builderId.builder];
+
+      if (checkRun.status != github.CheckRunStatus.completed) {
+        // Check run is still in progress, do not retry.
+        continue;
+      }
+
+      await luciBuildService.rescheduleTryBuildUsingCheckSuiteEvent(
+        checkSuiteEvent,
+        checkRun,
+      );
+    }
+  }
+
+  /// Get an agreggate of LUCI presubmit builders from .ci.yaml and try_builders.json.
+  Future<List<LuciBuilder>> getPresubmitBuilders({@required Commit commit, int prNumber}) async {
+    // Get try_builders.json builders
+    final List<LuciBuilder> builders = await config.luciBuilders(
+      'try',
+      commit.slug,
+      commitSha: commit.sha,
+    );
+    //  Get .ci.yaml targets
+    final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
+    final Iterable<Target> presubmitTargets = schedulerConfig.targets.where((Target target) => target.presubmit);
+    final Iterable<LuciBuilder> ciYamlBuilders =
+        presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
+    builders.addAll(ciYamlBuilders);
+    // Filter builders based on the PR diff
+    final GithubService githubService = await config.createGithubService(commit.slug);
+    final List<String> files = await githubService.listFiles(commit.slug, prNumber);
+    return await getFilteredBuilders(builders, files);
   }
 
   /// Reschedules a failed build using a [CheckRunEvent]. The CheckRunEvent is

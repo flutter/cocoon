@@ -2,25 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/config.dart';
 import '../foundation/utils.dart';
-import '../model/luci/buildbucket.dart' as bb;
 import '../model/luci/push_message.dart';
 import 'luci.dart';
-import 'luci_build_service.dart';
+import 'scheduler.dart';
 
 /// Github status api pending state constant.
 const String PENDING_STATE = 'pending';
 
 class GithubStatusService {
-  const GithubStatusService(this.config, this.luciBuildService);
+  const GithubStatusService(this.config, this.scheduler);
 
   /// The global configuration of this AppEngine server.
   final Config config;
-  final LuciBuildService luciBuildService;
+  final Scheduler scheduler;
 
   Future<void> setBuildsPendingStatus(
     int prNumber,
@@ -28,19 +28,13 @@ class GithubStatusService {
     RepositorySlug slug,
   ) async {
     final GitHub gitHubClient = await config.createGitHubClient(slug);
-    final Map<String, bb.Build> builds = await luciBuildService.tryBuildsForRepositoryAndPr(slug, prNumber, commitSha);
-    final List<LuciBuilder> builders = await config.luciBuilders('try', slug, commitSha: commitSha, prNumber: prNumber);
-    final List<String> builderNames = builders.map((LuciBuilder entry) => entry.name).toList();
-    for (bb.Build build in builds.values) {
-      // LUCI configuration contain more builders than the ones we would like to run.
-      // We need to ensure we are adding checks for the builders that will return a
-      // status to prevent status blocking PRs forever.
-      if (!builderNames.contains(build.builderId.builder)) {
-        continue;
-      }
+    final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
+    final List<LuciBuilder> presubmitBuilders =
+        await scheduler.getPresubmitBuilders(commit: presubmitCommit, prNumber: prNumber);
+    for (LuciBuilder builder in presubmitBuilders) {
       final CreateStatus status = CreateStatus(PENDING_STATE)
-        ..context = build.builderId.builder
-        ..description = 'Flutter LUCI Build: ${build.builderId.builder}'
+        ..context = builder.name
+        ..description = 'Flutter LUCI Build: ${builder.name}'
         ..targetUrl = '';
       await gitHubClient.repositories.createStatus(slug, commitSha, status);
     }
