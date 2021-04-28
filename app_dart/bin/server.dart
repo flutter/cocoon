@@ -53,9 +53,7 @@ Future<void> main() async {
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/append-log': AppendLog(config, authProvider),
-      '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
-      '/api/create-agent': CreateAgent(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
         authProvider,
