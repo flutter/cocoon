@@ -98,7 +98,6 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
-      '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
