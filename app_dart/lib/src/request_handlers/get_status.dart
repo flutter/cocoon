@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
 import '../datastore/config.dart';
-import '../model/appengine/agent.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
@@ -48,13 +46,8 @@ class GetStatus extends RequestHandler<Body> {
             (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
         .toList();
 
-    final Query<Agent> agentQuery = datastore.db.query<Agent>()..order('agentId');
-    final List<Agent> agents = await agentQuery.run().where(_isVisible).toList();
-    agents.sort((Agent a, Agent b) => compareAsciiLowerCaseNatural(a.agentId, b.agentId));
-
     return Body.forJson(<String, dynamic>{
       'Statuses': statuses,
-      'AgentStatuses': agents,
     });
   }
 
@@ -73,8 +66,6 @@ class GetStatus extends RequestHandler<Body> {
     }
     return lastCommitTimestamp;
   }
-
-  static bool _isVisible(Agent agent) => !agent.isHidden;
 }
 
 /// The serialized representation of a [CommitStatus].

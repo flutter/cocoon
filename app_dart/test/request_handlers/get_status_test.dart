@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
@@ -47,40 +46,9 @@ void main() {
       );
     });
 
-    test('no statuses or agents', () async {
+    test('no statuses', () async {
       final Map<String, dynamic> result = await decodeHandlerBody();
       expect(result['Statuses'], isEmpty);
-      expect(result['AgentStatuses'], isEmpty);
-    });
-
-    test('reports agents', () async {
-      final Agent linux1 = Agent(agentId: 'linux1');
-      final Agent mac1 = Agent(agentId: 'mac1');
-      final Agent linux100 = Agent(agentId: 'linux100');
-      final Agent linux5 = Agent(agentId: 'linux5');
-      final Agent windows1 = Agent(agentId: 'windows1', isHidden: true);
-
-      final List<Agent> reportedAgents = <Agent>[
-        linux1,
-        mac1,
-        linux100,
-        linux5,
-        windows1,
-      ];
-
-      config.db.addOnQuery<Agent>((Iterable<Agent> agents) => reportedAgents);
-      final Map<String, dynamic> result = await decodeHandlerBody();
-
-      expect(result['Statuses'], isEmpty);
-
-      final List<dynamic> expectedOrderedAgents = <dynamic>[
-        linux1.toJson(),
-        linux5.toJson(),
-        linux100.toJson(),
-        mac1.toJson(),
-      ];
-
-      expect(result['AgentStatuses'], equals(expectedOrderedAgents));
     });
 
     test('reports statuses without input commit key', () async {
