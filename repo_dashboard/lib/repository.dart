@@ -154,7 +154,7 @@ class _RepositoryDashboardWidgetState extends State<_RepositoryDashboardWidget> 
                   subtitle1: headline.copyWith(fontWeight: FontWeight.normal),
                   headline5: headline,
                 ),
-            dividerColor: Theme.of(context).accentColor,
+            dividerColor: Theme.of(context).colorScheme.secondary,
             iconTheme: IconTheme.of(context).copyWith(size: 30.0)),
         child: ListTileTheme(
           contentPadding: const EdgeInsets.only(bottom: 46.0),
