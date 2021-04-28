@@ -6,10 +6,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-
-import 'package:gcloud/db.dart';
-
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
 const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
@@ -100,7 +98,6 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
-      '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
       '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-clean': VacuumClean(config, authProvider),
