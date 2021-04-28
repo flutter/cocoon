@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-
 import 'package:gcloud/db.dart';
 
 import 'package:cocoon_service/cocoon_service.dart';
@@ -70,10 +69,6 @@ Future<void> main() async {
         githubChecksService: githubChecksService,
         scheduler: scheduler,
       ),
-
-      /// API to run authenticated graphql queries. It requires to pass the graphql query as the body
-      /// of a POST request.
-      '/api/query-github-graphql': QueryGithubGraphql(config, authProvider),
       '/api/luci-status-handler': LuciStatusHandler(
         config,
         buildBucketClient,
