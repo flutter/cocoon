@@ -5,7 +5,6 @@
 export 'src/datastore/config.dart';
 export 'src/foundation/utils.dart';
 export 'src/model/appengine/service_account_info.dart';
-export 'src/request_handlers/append_log.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
 export 'src/request_handlers/flush_cache.dart';
 export 'src/request_handlers/get_authentication_status.dart';
