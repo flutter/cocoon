@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:retry/retry.dart';
-import 'package:yaml/yaml.dart';
 
 import 'package:cocoon_service/src/datastore/config.dart';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
@@ -20,7 +19,6 @@ import 'fake_luci_build_service.dart';
 class FakeScheduler extends Scheduler {
   FakeScheduler({
     this.schedulerConfig,
-    this.devicelabManifest = 'tasks:',
     BuildBucketClient buildbucket,
     Config config,
     GithubChecksUtil githubChecksUtil,
@@ -35,13 +33,6 @@ class FakeScheduler extends Scheduler {
   /// [SchedulerConfig] value to be injected on [getSchedulerConfig].
   SchedulerConfig schedulerConfig;
 
-  /// String contents of [Manifest] for legacy devicelab tasks.
-  String devicelabManifest;
-
   @override
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async => schedulerConfig;
-
-  @override
-  Future<YamlMap> loadDevicelabManifest(Commit commit, {RetryOptions retryOptions}) async =>
-      await loadYaml(devicelabManifest) as YamlMap;
 }
