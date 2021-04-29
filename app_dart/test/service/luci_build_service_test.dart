@@ -394,7 +394,8 @@ void main() {
           ],
         );
       });
-      final List<Build> result = await service.failedBuilds(slug, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
+      final List<Build> result = await service
+          .failedBuilds(slug, 1, 'abc', <LuciBuilder>[const LuciBuilder(name: 'Linux', flaky: false, repo: 'flutter')]);
       expect(result, hasLength(1));
     });
   });
