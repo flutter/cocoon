@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:app_flutter/logic/qualified_task.dart';
+import 'package:app_flutter/widgets/task_icon.dart';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:app_flutter/logic/qualified_task.dart';
-import 'package:app_flutter/widgets/task_icon.dart';
 
 void main() {
   testWidgets('TaskIcon tooltip shows task name', (WidgetTester tester) async {

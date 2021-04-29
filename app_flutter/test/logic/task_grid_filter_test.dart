@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:app_flutter/logic/qualified_task.dart';
+import 'package:app_flutter/logic/task_grid_filter.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
 
-import 'package:app_flutter/logic/qualified_task.dart';
-import 'package:app_flutter/logic/task_grid_filter.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   void testDefault(TaskGridFilter filter) {

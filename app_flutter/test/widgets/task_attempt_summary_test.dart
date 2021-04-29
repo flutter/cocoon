@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/material.dart' hide Key;
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:app_flutter/widgets/task_attempt_summary.dart';
 
 import 'package:cocoon_service/protos.dart' show Key, RootKey, Task;
 
-import 'package:app_flutter/widgets/task_attempt_summary.dart';
+import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('TaskAttemptSummary', () {

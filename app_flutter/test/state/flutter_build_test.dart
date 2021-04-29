@@ -4,16 +4,16 @@
 
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mockito/mockito.dart';
+import 'package:app_flutter/service/cocoon.dart';
+import 'package:app_flutter/service/google_authentication.dart';
+import 'package:app_flutter/state/build.dart';
 
 import 'package:cocoon_service/protos.dart'
     show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, Key, RootKey;
 
-import 'package:app_flutter/service/cocoon.dart';
-import 'package:app_flutter/service/google_authentication.dart';
-import 'package:app_flutter/state/build.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:mockito/mockito.dart';
 
 import '../utils/mocks.dart';
 import '../utils/output.dart';
