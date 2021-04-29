@@ -6,10 +6,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-
-import 'package:gcloud/db.dart';
-
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:gcloud/db.dart';
 
 /// For local development, you might want to set this to true.
 const String _kCocoonUseInMemoryCache = 'COCOON_USE_IN_MEMORY_CACHE';
@@ -54,17 +52,13 @@ Future<void> main() async {
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
-      '/api/append-log': AppendLog(config, authProvider),
-      '/api/authorize-agent': AuthorizeAgent(config, authProvider),
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
-      '/api/create-agent': CreateAgent(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
         authProvider,
         cache: cache,
       ),
       '/api/get-authentication-status': GetAuthenticationStatus(config, authProvider),
-      '/api/get-log': GetLog(config, authProvider),
       '/api/github-webhook-pullrequest': GithubWebhook(
         config,
         githubChecksService: githubChecksService,
@@ -85,11 +79,6 @@ Future<void> main() async {
       '/api/push-gold-status-to-github': PushGoldStatusToGithub(config, authProvider),
       '/api/push-engine-build-status-to-github': PushEngineStatusToGithub(config, authProvider, luciBuildService),
       '/api/refresh-chromebot-status': RefreshChromebotStatus(config, authProvider, luciBuildService),
-      '/api/reserve-task': ReserveTask(config, authProvider),
-      '/api/reset-devicelab-task': ResetDevicelabTask(
-        config,
-        authProvider,
-      ),
       '/api/reset-prod-task': ResetProdTask(
         config,
         authProvider,
@@ -100,10 +89,7 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
-      '/api/update-agent-health': UpdateAgentHealth(config, authProvider),
-      '/api/update-agent-health-history': UpdateAgentHealthHistory(config, authProvider),
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
-      '/api/vacuum-clean': VacuumClean(config, authProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
         authProvider,
