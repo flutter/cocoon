@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:app_flutter/widgets/commit_box.dart';
 
 import 'package:cocoon_service/protos.dart' show Commit;
 
-import 'package:app_flutter/widgets/commit_box.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/golden.dart';
 

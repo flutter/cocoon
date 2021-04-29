@@ -4,9 +4,9 @@
 
 @TestOn('browser')
 
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:app_flutter/service/downloader_web.dart';
+
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Web Downloader', () {

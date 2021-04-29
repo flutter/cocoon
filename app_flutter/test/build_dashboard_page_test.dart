@@ -4,13 +4,6 @@
 
 import 'dart:async';
 
-import 'package:app_flutter/widgets/task_box.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-
-import 'package:cocoon_service/protos.dart';
-
 import 'package:app_flutter/build_dashboard_page.dart';
 import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/dev_cocoon.dart';
@@ -19,6 +12,13 @@ import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/error_brook_watcher.dart';
 import 'package:app_flutter/widgets/sign_in_button.dart';
 import 'package:app_flutter/widgets/state_provider.dart';
+import 'package:app_flutter/widgets/task_box.dart';
+
+import 'package:cocoon_service/protos.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 import 'utils/fake_build.dart';
 import 'utils/golden.dart';

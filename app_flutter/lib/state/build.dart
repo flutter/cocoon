@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
-
 import 'package:cocoon_service/protos.dart'
     show BuildStatusResponse, Commit, CommitStatus, EnumBuildStatus, RootKey, Task;
+
+import 'package:flutter/foundation.dart';
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
