@@ -63,13 +63,6 @@ directories.
 
 ### Imports
 
-Imports in Dart files in this project should be split into five groups
-separated by blank lines:
-
-1. `dart:` imports
-2. `package:` imports other than cocoon_service and app_flutter
-3. `package:cocoon_service` imports
-4. `package:app_flutter` imports (only applicable to tests)
-5. local imports
-
-Each section should be sorted lexically.
+Imports in Dart files in this project should follow the rules
+enforced by the `directives_ordering` lint described
+[here](https://dart-lang.github.io/linter/lints/directives_ordering.html).
