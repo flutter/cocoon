@@ -113,6 +113,14 @@ void main() {
         expect(status, BuildStatus.failure(const <String>['task2']));
       });
 
+      test('ensure failed task do not have duplicates when last consecutive commits contains red tasks', () async {
+        db.addOnQuery<Commit>((Iterable<Commit> results) => twoCommits);
+        db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFailed);
+
+        final BuildStatus status = await buildStatusService.calculateCumulativeStatus();
+        expect(status, BuildStatus.failure(const <String>['task2']));
+      });
+
       test('ignores failures on flaky commits', () async {
         db.addOnQuery<Commit>((Iterable<Commit> results) => oneCommit);
         db.addOnQuery<Task>((Iterable<Task> results) => middleTaskFlakyFailed);
