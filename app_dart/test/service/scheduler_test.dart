@@ -3,14 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -29,17 +27,6 @@ import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/mocks.dart';
-
-const String emptyDeviceLabTaskManifestYaml = '''
-tasks:
-''';
-
-const String singleDeviceLabTaskManifestYaml = '''
-tasks:
-  linux_test:
-    stage: devicelab
-    required_agent_capabilities: ["linux/android"]
-''';
 
 const String singleCiYaml = '''
 enabled_branches:
@@ -76,9 +63,7 @@ void main() {
       db = FakeDatastoreDB();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-        if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
-          httpClient.request.response.body = singleDeviceLabTaskManifestYaml;
-        } else if (request.uri.path.contains('.ci.yaml')) {
+        if (request.uri.path.contains('.ci.yaml')) {
           httpClient.request.response.body = singleCiYaml;
         } else {
           throw Exception('Failed to find ${request.uri.path}');
@@ -120,38 +105,6 @@ void main() {
         expect(db.values, isEmpty);
       });
 
-      test('schedules commit when devicelab manifest is empty', () async {
-        config.flutterBranchesValue = <String>['master'];
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
-            httpClient.request.response.body = emptyDeviceLabTaskManifestYaml;
-          } else if (request.uri.path.contains('.ci.yaml')) {
-            httpClient.request.response.body = singleCiYaml;
-          } else {
-            throw Exception('Failed to find ${request.uri.path}');
-          }
-        });
-        expect(db.values.values.whereType<Commit>().length, 0);
-        await scheduler.addCommits(createCommitList(<String>['1']));
-        expect(db.values.values.whereType<Commit>().length, 1);
-      });
-
-      test('schedules commit when devicelab manifest 404s', () async {
-        config.flutterBranchesValue = <String>['master'];
-        httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-          if (request.uri.path.contains('dev/devicelab/manifest.yaml')) {
-            httpClient.request.response.statusCode = HttpStatus.notFound;
-          } else if (request.uri.path.contains('.ci.yaml')) {
-            httpClient.request.response.body = singleCiYaml;
-          } else {
-            throw Exception('Failed to find ${request.uri.path}');
-          }
-        });
-        expect(db.values.values.whereType<Commit>().length, 0);
-        await scheduler.addCommits(createCommitList(<String>['1']));
-        expect(db.values.values.whereType<Commit>().length, 1);
-      });
-
       test('inserts all relevant fields of the commit', () async {
         config.flutterBranchesValue = <String>['master'];
         expect(db.values.values.whereType<Commit>().length, 0);
@@ -189,7 +142,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 5);
+        expect(db.values.values.whereType<Task>().length, 2 * 4);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -211,40 +164,10 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 5);
+        expect(db.values.values.whereType<Task>().length, 2 * 4);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
-      });
-
-      test('retries manifest download upon HTTP failure', () async {
-        int retry = 0;
-        httpClient.onIssueRequest = (FakeHttpClientRequest request) {
-          request.response.statusCode = retry == 0 ? HttpStatus.serviceUnavailable : HttpStatus.ok;
-          retry++;
-        };
-
-        config.flutterBranchesValue = <String>['master'];
-        await scheduler.loadDevicelabManifest(shaToCommit('123'));
-        expect(retry, 2);
-      });
-
-      test('gives up devicelab manifest download after 3 tries', () async {
-        int retry = 0;
-        httpClient.onIssueRequest = (FakeHttpClientRequest request) => retry++;
-
-        config.flutterBranchesValue = <String>['master'];
-        httpClient.request.response.statusCode = HttpStatus.serviceUnavailable;
-        await expectLater(
-            scheduler.loadDevicelabManifest(
-              shaToCommit('123'),
-              retryOptions: const RetryOptions(
-                maxAttempts: 3,
-                maxDelay: Duration.zero,
-              ),
-            ),
-            throwsA(isA<HttpException>()));
-        expect(retry, 3);
       });
     });
 
@@ -269,7 +192,7 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 5);
+        expect(db.values.values.whereType<Task>().length, 4);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {

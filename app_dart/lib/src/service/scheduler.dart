@@ -20,7 +20,6 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/devicelab/manifest.dart';
 import '../model/github/checks.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
@@ -170,47 +169,11 @@ class Scheduler {
 
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
-    Task newTask(
-      String name,
-      String stageName,
-      List<String> requiredCapabilities,
-      bool isFlaky,
-      int timeoutInMinutes,
-    ) {
-      return Task(
-        key: commit.key.append(Task),
-        commitKey: commit.key,
-        createTimestamp: commit.timestamp,
-        startTimestamp: 0,
-        endTimestamp: 0,
-        name: name,
-        attempts: 0,
-        isFlaky: isFlaky,
-        timeoutInMinutes: timeoutInMinutes,
-        requiredCapabilities: requiredCapabilities,
-        stageName: stageName,
-        status: Task.statusNew,
-      );
-    }
-
     final List<Task> tasks = <Task>[];
     final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders(commit.slug, config);
     for (LuciBuilder builder in prodBuilders) {
-      // These built-in tasks are not listed in the manifest.
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
     }
-
-    final YamlMap yaml = await loadDevicelabManifest(commit);
-    final Manifest manifest = Manifest.fromJson(yaml);
-    manifest.tasks?.forEach((String taskName, ManifestTask info) {
-      tasks.add(newTask(
-        taskName,
-        info.stage,
-        info.requiredAgentCapabilities,
-        info.isFlaky,
-        info.timeoutInMinutes,
-      ));
-    });
 
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
     log.debug('Loaded scheduler config $schedulerConfig');
@@ -252,35 +215,6 @@ class Scheduler {
     }
     final YamlMap configYaml = loadYaml(configContent) as YamlMap;
     return schedulerConfigFromYaml(configYaml).writeToBuffer();
-  }
-
-  /// Load in memory the Cocoon Agent DeviceLab scheduler config.
-  ///
-  /// If GitHub returns [HttpStatus.notFound], an empty manifest is returned.
-  ///
-  // TODO(chillers): Remove when DeviceLab has migrated to LUCI. https://github.com/flutter/flutter/projects/151
-  @visibleForTesting
-  Future<YamlMap> loadDevicelabManifest(
-    Commit commit, {
-    RetryOptions retryOptions,
-  }) async {
-    final String path = '${commit.repository}/${commit.sha}/dev/devicelab/manifest.yaml';
-    log.debug('Getting devicelab manifest content');
-    String content;
-    try {
-      content = await githubFileContent(
-        path,
-        httpClientProvider: httpClientProvider,
-        log: log,
-        retryOptions: retryOptions,
-      );
-      return loadYaml(content) as YamlMap;
-    } on NotFoundException {
-      return loadYaml('tasks:') as YamlMap;
-    } on HttpException catch (_, e) {
-      log.error('githubFileContent failed to get $path: $e');
-      rethrow;
-    }
   }
 
   /// Cancel all incomplete targets against a pull request.

@@ -23,13 +23,6 @@ import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
-const String singleTaskManifestYaml = '''
-tasks:
-  linux_test:
-    stage: devicelab
-    required_agent_capabilities: ["linux/android"]
-''';
-
 void main() {
   group('VacuumGithubCommits', () {
     FakeConfig config;
@@ -115,7 +108,6 @@ void main() {
       config.supportedBranchesValue = <String>['flutter-1.1-candidate.1', 'master'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       final Commit commit = db.values.values.whereType<Commit>().first;
       expect(db.values.values.whereType<Commit>().length, 2);
@@ -127,7 +119,6 @@ void main() {
       config.supportedBranchesValue = <String>['flutter-0.0-candidate.0'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
       expect(db.values.values.whereType<Commit>().first.sha, '9');
@@ -136,7 +127,6 @@ void main() {
     test('does not fail on empty commit list', () async {
       githubCommits = <String>[];
       expect(db.values.values.whereType<Commit>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 0);
     });
@@ -145,7 +135,6 @@ void main() {
       githubCommits = <String>['${DateTime.now().millisecondsSinceEpoch}'];
 
       expect(db.values.values.whereType<Commit>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 0);
     });
@@ -154,7 +143,6 @@ void main() {
       githubCommits = <String>['1'];
       config.flutterBranchesValue = <String>['master'];
       expect(db.values.values.whereType<Commit>().length, 0);
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 1);
       final Commit commit = db.values.values.whereType<Commit>().single;
@@ -181,10 +169,9 @@ void main() {
           throw StateError('Commit failed');
         }
       };
-      scheduler.devicelabManifest = singleTaskManifestYaml;
       final Body body = await tester.get<Body>(handler);
       expect(db.values.values.whereType<Commit>().length, 3);
-      expect(db.values.values.whereType<Task>().length, 10);
+      expect(db.values.values.whereType<Task>().length, 8);
       expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
       expect(db.values.values.whereType<Commit>().map<int>(toTimestamp), containsAll(<int>[1, 2, 4]));
       expect(await body.serialize().toList(), isEmpty);
