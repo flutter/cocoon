@@ -9,7 +9,7 @@ import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Task;
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,9 +40,7 @@ class TestGrid extends StatelessWidget {
             ..commit = (Commit()
               ..author = 'Fats Domino'
               ..sha = '24e8c0a2')
-            ..stages.add(Stage()
-              ..name = 'Stage'
-              ..tasks.addAll(<Task>[task])),
+            ..tasks.addAll(<Task>[task]),
         ],
       ),
     );

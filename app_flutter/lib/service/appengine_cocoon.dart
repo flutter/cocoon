@@ -206,7 +206,7 @@ class AppEngineCocoonService implements CocoonService {
       statuses.add(CommitStatus()
         ..commit = _commitFromJson(checklist)
         ..branch = _branchFromJson(checklist)
-        ..stages.addAll(_stagesFromJson(jsonCommitStatus['Stages'])));
+        ..tasks.addAll(_tasksFromJson(jsonCommitStatus['Tasks'])));
     }
 
     return statuses;
@@ -241,25 +241,6 @@ class AppEngineCocoonService implements CocoonService {
     return result;
   }
 
-  List<Stage> _stagesFromJson(List<Object> json) {
-    assert(json != null);
-    final List<Stage> stages = <Stage>[];
-
-    for (final Object jsonStage in json) {
-      stages.add(_stageFromJson(jsonStage));
-    }
-
-    return stages;
-  }
-
-  Stage _stageFromJson(Map<String, Object> json) {
-    assert(json != null);
-    return Stage()
-      ..name = json['Name']
-      ..tasks.addAll(_tasksFromJson(json['Tasks']))
-      ..taskStatus = json['Status'];
-  }
-
   List<Task> _tasksFromJson(List<Object> json) {
     assert(json != null);
     final List<Task> tasks = <Task>[];
@@ -275,7 +256,7 @@ class AppEngineCocoonService implements CocoonService {
     assert(json != null);
 
     final Map<String, Object> taskData = json['Task'];
-    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'];
+    final List<Object> objectRequiredCapabilities = taskData['RequiredCapabilities'] ?? <String>[];
 
     final Task task = Task()
       ..key = (RootKey()..child = (Key()..name = json['Key']))
@@ -286,9 +267,9 @@ class AppEngineCocoonService implements CocoonService {
       ..attempts = taskData['Attempts']
       ..isFlaky = taskData['Flaky']
       ..timeoutInMinutes = taskData['TimeoutInMinutes']
-      ..reason = taskData['Reason']
+      ..reason = taskData['Reason'] ?? ''
       ..requiredCapabilities.add(objectRequiredCapabilities.toString())
-      ..reservedForAgentId = taskData['ReservedForAgentID']
+      ..reservedForAgentId = taskData['ReservedForAgentID'] ?? ''
       ..stageName = taskData['StageName']
       ..status = taskData['Status'];
 
