@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../../request_handling/body.dart';
 import '../common/json_converters.dart';
+import '../google/grpc.dart' as grpc;
 
 part 'buildbucket.g.dart';
 
@@ -128,40 +129,10 @@ class Response extends JsonBody {
   final Build cancelBuild;
 
   /// Error code of the unsuccessful request.
-  final ResponseStatus error;
+  final grpc.Status error;
 
   @override
   Map<String, dynamic> toJson() => _$ResponseToJson(this);
-}
-
-/// [Status] defines a logical error model that is suitable for
-/// different programming environments, including REST APIs and RPC APIs. It is
-/// used by [gRPC](https://github.com/grpc). Each [Status] message contains
-/// three pieces of data: error code, error message, and error details.
-///
-/// Resources:
-/// * https://cloud.google.com/apis/design/errors
-@JsonSerializable(includeIfNull: false)
-class ResponseStatus extends JsonBody {
-  const ResponseStatus({this.code, this.message, this.details});
-
-  /// Creates a [Status] from JSON.
-  static ResponseStatus fromJson(Map<String, dynamic> json) => _$ResponseStatusFromJson(json);
-
-  /// The status code, which should be an enum value of [google.rpc.Code][].
-  final int code;
-
-  /// A developer-facing error message, which should be in English. Any
-  /// user-facing error message should be localized and sent in the
-  /// [google.rpc.Status.details][] field, or localized by the client.
-  final String message;
-
-  /// A list of messages that carry the error details.  There is a common set of
-  /// message types for APIs to use.
-  final dynamic details;
-
-  @override
-  Map<String, dynamic> toJson() => _$ResponseStatusToJson(this);
 }
 
 /// A request for the GetBuild RPC.

@@ -238,6 +238,7 @@ class LuciBuildService {
       delayFactor: Duration(seconds: 2),
     );
     BatchResponse batchResponse;
+    log.debug('Making BatchRequest with ${requests.length} requests');
     await r.retry(
       () async {
         batchResponse = await buildBucketClient.batch(BatchRequest(requests: requests));

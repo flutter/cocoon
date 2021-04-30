@@ -88,7 +88,7 @@ Response _$ResponseFromJson(Map<String, dynamic> json) {
         : SearchBuildsResponse.fromJson(json['searchBuilds'] as Map<String, dynamic>),
     scheduleBuild: json['scheduleBuild'] == null ? null : Build.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
     cancelBuild: json['cancelBuild'] == null ? null : Build.fromJson(json['cancelBuild'] as Map<String, dynamic>),
-    error: json['error'] == null ? null : ResponseStatus.fromJson(json['error'] as Map<String, dynamic>),
+    error: json['error'] == null ? null : Status.fromJson(json['error'] as Map<String, dynamic>),
   );
 }
 
@@ -106,29 +106,6 @@ Map<String, dynamic> _$ResponseToJson(Response instance) {
   writeNotNull('scheduleBuild', instance.scheduleBuild);
   writeNotNull('cancelBuild', instance.cancelBuild);
   writeNotNull('error', instance.error);
-  return val;
-}
-
-ResponseStatus _$ResponseStatusFromJson(Map<String, dynamic> json) {
-  return ResponseStatus(
-    code: json['code'] as int,
-    message: json['message'] as String,
-    details: json['details'],
-  );
-}
-
-Map<String, dynamic> _$ResponseStatusToJson(ResponseStatus instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('code', instance.code);
-  writeNotNull('message', instance.message);
-  writeNotNull('details', instance.details);
   return val;
 }
 
