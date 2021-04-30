@@ -102,6 +102,21 @@ void main() {
     expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
   });
 
+  testWidgets('TaskIcon shows the right icon for fuchsia', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_fuchsia something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/fuchsia.png');
+  });
+
   testWidgets('TaskIcon shows the right icon for LUCI android', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(

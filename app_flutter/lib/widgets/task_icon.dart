@@ -33,7 +33,12 @@ class TaskIcon extends StatelessWidget {
     final Color blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
     if (qualifiedTask.builder != null) {
-      if (qualifiedTask.builder.toLowerCase().contains('_android')) {
+      if (qualifiedTask.builder.toLowerCase().contains('_fuchsia')) {
+        return Image.asset(
+          'assets/fuchsia.png',
+          color: blendFilter,
+        );
+      } else if (qualifiedTask.builder.toLowerCase().contains('_android')) {
         return Image.asset(
           'assets/android.png',
           color: blendFilter,
