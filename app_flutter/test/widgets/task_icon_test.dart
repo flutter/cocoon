@@ -87,36 +87,6 @@ void main() {
     expect(find.byIcon(Icons.help), findsOneWidget);
   });
 
-  testWidgets('TaskIcon shows the right icon for cirrus', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'cirrus', task: 'task'),
-          ),
-        ),
-      ),
-    );
-
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/cirrus.png');
-  });
-
-  testWidgets('TaskIcon shows the right icon for LUCI linux_bot', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Material(
-          child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'linux_bot', builder: 'Linux something'),
-          ),
-        ),
-      ),
-    );
-
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/fuchsia.png');
-  });
-
   testWidgets('TaskIcon shows the right icon for LUCI windows', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -132,7 +102,7 @@ void main() {
     expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
   });
 
-  testWidgets('TaskIcon shows the right icon for LUCI windows android', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for LUCI android', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
@@ -144,7 +114,7 @@ void main() {
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/android.png');
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI mac', (WidgetTester tester) async {
@@ -160,6 +130,21 @@ void main() {
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
     expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/apple.png');
+  });
+
+  testWidgets('TaskIcon shows the right icon for LUCI mac/iphone', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Mac_ios something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/iphone.png');
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI linux', (WidgetTester tester) async {
@@ -182,7 +167,7 @@ void main() {
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'somestage', task: 'task', builder: 'Linux something'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Unknown something'),
           ),
         ),
       ),
