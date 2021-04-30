@@ -44,8 +44,8 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         );
       } else if (qualifiedTask.builder.toLowerCase().contains('_android')) {
-        return Image.asset(
-          'assets/android.png',
+        return Icon(
+          Icons.android,
           color: blendFilter,
         );
       } else if (qualifiedTask.builder.toLowerCase().startsWith('linux')) {
@@ -55,8 +55,8 @@ class TaskIcon extends StatelessWidget {
         );
       } else if (qualifiedTask.builder.toLowerCase().startsWith('mac')) {
         if (qualifiedTask.builder.toLowerCase().contains('_ios')) {
-          return Image.asset(
-            'assets/iphone.png',
+          return Icon(
+            Icons.phone_iphone,
             color: blendFilter,
           );
         } else {
@@ -73,7 +73,10 @@ class TaskIcon extends StatelessWidget {
       }
     }
 
-    return const Icon(Icons.help);
+    return Icon(
+      Icons.help,
+      color: blendFilter,
+    );
   }
 
   @override

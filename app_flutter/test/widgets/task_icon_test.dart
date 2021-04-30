@@ -143,8 +143,8 @@ void main() {
       ),
     );
 
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/android.png');
+    expect(tester.widget(find.byType(Icon)) as Icon, isInstanceOf<Icon>());
+    expect(((tester.widget(find.byType(Icon)) as Icon).icon).codePoint, const Icon(Icons.android).icon.codePoint);
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI mac', (WidgetTester tester) async {
@@ -173,8 +173,8 @@ void main() {
       ),
     );
 
-    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/iphone.png');
+    expect(tester.widget(find.byType(Icon)) as Icon, isInstanceOf<Icon>());
+    expect(((tester.widget(find.byType(Icon)) as Icon).icon).codePoint, const Icon(Icons.phone_iphone).icon.codePoint);
   });
 
   testWidgets('TaskIcon shows the right icon for LUCI linux', (WidgetTester tester) async {
