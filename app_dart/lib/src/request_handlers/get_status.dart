@@ -82,7 +82,7 @@ class SerializableCommitStatus {
         'Key': key,
         'Checklist': SerializableCommit(status.commit).facade,
       },
-      'Stages': status.stages,
+      'Tasks': status.tasks,
     };
   }
 }
