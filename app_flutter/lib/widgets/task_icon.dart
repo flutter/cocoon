@@ -44,22 +44,19 @@ class TaskIcon extends StatelessWidget {
           color: blendFilter,
         );
       case StageName.luci:
-        return Image.asset(
-          'assets/chromium.png',
-        );
-      case StageName.devicelab:
-        return Image.asset(
-          'assets/android.png',
-        );
-      case StageName.devicelabWin:
-        return Image.asset(
-          'assets/windows.png',
-        );
-      case StageName.devicelabIOs:
-        return Image.asset(
-          'assets/apple.png',
-          color: blendFilter,
-        );
+        if (qualifiedTask.builder.toLowerCase().startsWith('linux')) {
+          return Image.asset(
+            'assets/linux.png',
+          );
+        } else if (qualifiedTask.builder.toLowerCase().startsWith('mac')) {
+          return Image.asset(
+            'assets/apple.png',
+          );
+        } else if (qualifiedTask.builder.toLowerCase().startsWith('win')) {
+          return Image.asset(
+            'assets/windows.png',
+          );
+        }
     }
     return const Icon(Icons.help);
   }

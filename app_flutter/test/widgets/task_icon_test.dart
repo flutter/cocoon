@@ -4,7 +4,6 @@
 
 import 'package:app_flutter/logic/qualified_task.dart';
 import 'package:app_flutter/widgets/task_icon.dart';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,27 +102,27 @@ void main() {
     expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/cirrus.png');
   });
 
-  testWidgets('TaskIcon shows the right icon for devicelab', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for LUCI linux_bot', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'devicelab', task: 'task'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'linux_bot', builder: 'Linux something'),
           ),
         ),
       ),
     );
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
-    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/android.png');
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/fuchsia.png');
   });
 
-  testWidgets('TaskIcon shows the right icon for devicelab', (WidgetTester tester) async {
+  testWidgets('TaskIcon shows the right icon for LUCI windows', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Material(
           child: TaskIcon(
-            qualifiedTask: QualifiedTask(stage: 'devicelab_win', task: 'task'),
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows something'),
           ),
         ),
       ),
@@ -131,5 +130,65 @@ void main() {
 
     expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
     expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
+  });
+
+  testWidgets('TaskIcon shows the right icon for LUCI windows android', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_android something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/windows.png');
+  });
+
+  testWidgets('TaskIcon shows the right icon for LUCI mac', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Mac something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/apple.png');
+  });
+
+  testWidgets('TaskIcon shows the right icon for LUCI linux', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Linux something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/linux.png');
+  });
+
+  testWidgets('TaskIcon shows the right icon for unknown', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'somestage', task: 'task', builder: 'Linux something'),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.widget(find.byType(Icon)) as Icon, isInstanceOf<Icon>());
+    expect(((tester.widget(find.byType(Icon)) as Icon).icon).codePoint, const Icon(Icons.help).icon.codePoint);
   });
 }
