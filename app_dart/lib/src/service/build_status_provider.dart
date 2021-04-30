@@ -80,6 +80,7 @@ class BuildStatusService {
             tasksInProgress[task.name] = false;
           } else if (_isFailed(task) || _isRerunning(task)) {
             failedTasks.add(task.name);
+
             /// This task no longer needs to be checked to see if its causing
             /// the build status to fail since its been
             /// added to the failedTasks list.
