@@ -10,7 +10,6 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
-
 import 'datastore.dart';
 
 /// Function signature for a [BuildStatusService] provider.
@@ -83,6 +82,11 @@ class BuildStatusService {
               tasksInProgress[task.name] = false;
             } else if (_isFailed(task) || _isRerunning(task)) {
               failedTasks.add(task.name);
+
+              /// This task no longer needs to be checked to see if its causing
+              /// the build status to fail since its been
+              /// added to the failedTasks list.
+              tasksInProgress[task.name] = false;
             }
           }
         }

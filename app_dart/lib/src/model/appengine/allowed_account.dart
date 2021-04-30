@@ -7,7 +7,7 @@ import 'package:gcloud/db.dart';
 /// Class that represents a non-Google account that has been allowlisted to
 /// make API requests to the Flutter dashboard.
 ///
-/// By default, only registered agents, App Engine cronjobs, and users
+/// By default, only App Engine cronjobs, and users
 /// authenticated as "@google.com" accounts are allowed to make API requests
 /// to the Cocooon backend. This class represents instances where non-Google
 /// users have been explicitly allowlisted to make such requests.

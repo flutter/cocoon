@@ -99,7 +99,6 @@ void main() {
     test('can access authContext', () async {
       handler = AccessAuth();
       final HttpClientResponse response = await issueRequest();
-      expect(response.headers.value('X-Test-IsAgent'), 'false');
       expect(response.headers.value('X-Test-IsDev'), 'true');
       expect(response.statusCode, HttpStatus.ok);
       expect(log.records, isEmpty);
@@ -166,7 +165,6 @@ class AccessAuth extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    response.headers.add('X-Test-IsAgent', authContext.agent != null);
     response.headers.add('X-Test-IsDev', authContext.clientContext.isDevelopmentEnvironment);
     return Body.empty;
   }
