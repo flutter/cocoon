@@ -4,15 +4,12 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 import 'package:metrics_center/metrics_center.dart';
 
 import '../datastore/config.dart';
 import '../model/appengine/commit.dart';
-import '../model/appengine/key_helper.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
@@ -24,16 +21,12 @@ import '../service/datastore.dart';
 ///
 /// This handler requires (1) task identifier and (2) task status information.
 ///
-/// 1. There are two ways to identify tasks:
-///  A. [taskKeyParam] (Legacy Cocoon agents)
-///  B. [gitBranchParam], [gitShaParam], [builderNameParam] (LUCI bots)
+/// 1. Tasks are identified by:
+///  [gitBranchParam], [gitShaParam], [builderNameParam] (LUCI bots)
 ///
 /// 2. Task status information
 ///  A. Required: [newStatusParam], either [Task.statusSucceeded] or [Task.statusFailed].
 ///  B. Optional: [resultsParam] and [scoreKeysParam] which hold performance benchmark data.
-///
-/// If [newStatusParam] is [Task.statusFailed], and the task attempts is less than the
-/// retry limit, it will mark it as [Task.statusNew] to allow for the task to be retried.
 @immutable
 class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   const UpdateTaskStatus(
@@ -49,22 +42,12 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
   static const String newStatusParam = 'NewStatus';
   static const String resultsParam = 'ResultData';
   static const String scoreKeysParam = 'BenchmarkScoreKeys';
-  static const String taskKeyParam = 'TaskKey';
   static const String builderNameParam = 'BuilderName';
-
-  /// const variables for [BigQuery] operations
-  static const String projectId = 'flutter-dashboard';
-  static const String dataset = 'cocoon';
-  static const String table = 'Task';
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
     checkRequiredParameters(<String>[newStatusParam]);
-    if (requestData.containsKey(taskKeyParam)) {
-      checkRequiredParameters(<String>[taskKeyParam]);
-    } else {
-      checkRequiredParameters(<String>[gitBranchParam, gitShaParam, builderNameParam]);
-    }
+    checkRequiredParameters(<String>[gitBranchParam, gitShaParam, builderNameParam]);
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final String newStatus = requestData[newStatusParam] as String;
@@ -82,26 +65,10 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       throw BadRequestException('No such task: ${task.commitKey}');
     });
 
-    if (newStatus == Task.statusFailed) {
-      // Attempt to de-flake the test.
-      final int maxRetries = config.maxTaskRetries;
-      if (task.attempts >= maxRetries || task.isFlaky) {
-        task.status = Task.statusFailed;
-        task.reason = 'Task failed on agent';
-        task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-      } else {
-        // This will cause this task to be picked up by an agent again.
-        task.status = Task.statusNew;
-        task.startTimestamp = 0;
-      }
-    } else {
-      task.status = newStatus;
-      task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
-    }
+    task.status = newStatus;
+    task.endTimestamp = DateTime.now().millisecondsSinceEpoch;
+
     await datastore.insert(<Task>[task]);
-    if (task.endTimestamp > 0) {
-      await _insertBigquery(commit, task);
-    }
 
     await _writeToMetricsCenter(resultData, scoreKeys, commit, task);
     return UpdateTaskStatusResponse(task);
@@ -144,26 +111,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   /// Retrieve [Task] to update from [DatastoreService].
   Future<Task> _getTask(DatastoreService datastore) async {
-    if (requestData.containsKey(taskKeyParam)) {
-      return _getTaskFromEncodedKey(datastore);
-    }
-
     return _getTaskFromNamedParams(datastore);
-  }
-
-  /// Retrieve [Task] from [DatastoreService] when given [taskKeyParam].
-  ///
-  /// This is used for Devicelab test runs from Cocoon agents. The Cocoon agent is scheduled tasks
-  /// from the Cocoon backend and is aware of the Datastore task key.
-  ///
-  // TODO(chillers): Remove this when Devicelab is migrated to LUCI. https://github.com/flutter/flutter/projects/151
-  Future<Task> _getTaskFromEncodedKey(DatastoreService datastore) {
-    final ClientContext clientContext = authContext.clientContext;
-    final KeyHelper keyHelper = KeyHelper(applicationContext: clientContext.applicationContext);
-    final Key<int> taskKey = keyHelper.decode(requestData[taskKeyParam] as String) as Key<int>;
-    return datastore.db.lookupValue<Task>(taskKey, orElse: () {
-      throw BadRequestException('No such task: ${taskKey.id}');
-    });
   }
 
   /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].
@@ -217,37 +165,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       throw BadRequestException('No such commit: $id');
     });
     return commit.key;
-  }
-
-  Future<void> _insertBigquery(Commit commit, Task task) async {
-    final TabledataResourceApi tabledataResourceApi = await config.createTabledataResourceApi();
-    final List<Map<String, Object>> requestRows = <Map<String, Object>>[];
-
-    requestRows.add(<String, Object>{
-      'json': <String, Object>{
-        'ID': 'flutter/flutter/${commit.branch}/${commit.sha}',
-        'CreateTimestamp': task.createTimestamp,
-        'StartTimestamp': task.startTimestamp,
-        'EndTimestamp': task.endTimestamp,
-        'Name': task.name,
-        'Attempts': task.attempts,
-        'IsFlaky': task.isFlaky,
-        'TimeoutInMinutes': task.timeoutInMinutes,
-        'RequiredCapabilities': task.requiredCapabilities,
-        'ReservedForAgentID': task.reservedForAgentId,
-        'StageName': task.stageName,
-        'Status': task.status,
-      },
-    });
-
-    /// [rows] to be inserted to [BigQuery]
-    final TableDataInsertAllRequest request = TableDataInsertAllRequest.fromJson(<String, Object>{'rows': requestRows});
-
-    try {
-      await tabledataResourceApi.insertAll(request, projectId, dataset, table);
-    } on ApiRequestError {
-      log.warning('Failed to add ${task.name} to BigQuery: $ApiRequestError');
-    }
   }
 }
 
