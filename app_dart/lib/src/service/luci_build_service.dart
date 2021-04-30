@@ -245,7 +245,7 @@ class LuciBuildService {
       retryIf: (Exception e) => e is BuildBucketException,
     );
     for (Response response in batchResponse.responses) {
-      if (response.error != null) {
+      if (response.error?.code != null) {
         log.warning('BatchResponse error: $response');
       }
     }
