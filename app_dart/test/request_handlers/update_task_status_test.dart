@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/request_handlers/update_task_status.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:metrics_center/metrics_center.dart';
 import 'package:test/test.dart';
 
@@ -38,8 +37,6 @@ void main() {
     Commit commit;
     const String commitSha = '78cbfbff4267643bb1913bc820f5ce8a3e591b40';
     const int taskId = 4506830800027648;
-    const String taskKeyEncoded =
-        'ahNzfmZsdXR0ZXItZGFzaGJvYXJkcl8LEglDaGVja2xpc3QiP2ZsdXR0ZXIvZmx1dHRlci9tYXN0ZXIvNzhjYmZiZmY0MjY3NjQzYmIxOTEzYmM4MjBmNWNlOGEzZTU5MWI0MAwLEgRUYXNrGICAmIeF3oAIDA';
 
     setUp(() {
       final FakeDatastoreDB datastoreDB = FakeDatastoreDB();
@@ -51,12 +48,6 @@ void main() {
         metricsDestination: fakeMetricsDestination,
       );
       tester = ApiRequestHandlerTester();
-      tester.requestData = <String, dynamic>{
-        'TaskKey': taskKeyEncoded,
-        'NewStatus': 'Succeeded',
-        'ResultData': <String, dynamic>{'90th_percentile_frame_build_time_millis': 3.12},
-        'BenchmarkScoreKeys': <String>['90th_percentile_frame_build_time_millis'],
-      };
       handler = UpdateTaskStatus(
         config,
         FakeAuthenticationProvider(),
@@ -68,62 +59,22 @@ void main() {
       );
     });
 
-    test('updates datastore/bigquery entry for Task', () async {
-      final Task task =
-          Task(key: commit.key.append(Task, id: taskId), commitKey: commit.key, requiredCapabilities: <String>['ios']);
-      config.db.values[commit.key] = commit;
-      config.db.values[task.key] = task;
-
-      expect(task.status, isNull);
-
-      await tester.post(handler);
-      final TableDataList tableDataList = await tabledataResourceApi.list('test', 'test', 'test');
-      final Map<String, Object> value = tableDataList.rows[0].f[0].v as Map<String, Object>;
-
-      expect(task.status, 'Succeeded');
-
-      /// Test for [BigQuery] insert
-      expect(tableDataList.totalRows, '1');
-      expect(value['RequiredCapabilities'], <String>['ios']);
-
-      /// Test for metrics center update
-      expect(fakeMetricsDestination.lastUpdatedPoints.length, equals(1));
-      expect(fakeMetricsDestination.lastUpdatedPoints[0].value, equals(3.12));
-    });
-
-    test('failed tasks are automatically retried', () async {
-      final Task task = Task(
-        key: commit.key.append(Task, id: taskId),
-        attempts: 1,
-        commitKey: commit.key,
-        isFlaky: false,
-        requiredCapabilities: <String>['ios'],
-      );
-      config.db.values[commit.key] = commit;
-      config.db.values[task.key] = task;
-      tester.requestData = <String, dynamic>{
-        'TaskKey': taskKeyEncoded,
-        'NewStatus': 'Failed',
-      };
-
-      await tester.post(handler);
-
-      expect(task.status, 'New');
-    });
-
     test('flaky failed tasks are not automatically retried', () async {
       final Task task = Task(
         key: commit.key.append(Task, id: taskId),
+        name: 'integration_ui_ios',
+        builderName: 'linux_integration_ui_ios',
         attempts: 1,
+        isFlaky: true, // mark flaky so it doesn't get auto-retried
         commitKey: commit.key,
-        isFlaky: true,
-        requiredCapabilities: <String>['ios'],
       );
       config.db.values[commit.key] = commit;
       config.db.values[task.key] = task;
       tester.requestData = <String, dynamic>{
-        'TaskKey': taskKeyEncoded,
-        'NewStatus': 'Failed',
+        UpdateTaskStatus.gitBranchParam: 'master',
+        UpdateTaskStatus.gitShaParam: commitSha,
+        UpdateTaskStatus.newStatusParam: 'Failed',
+        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
       };
 
       await tester.post(handler);
@@ -166,42 +117,6 @@ void main() {
       expect(tester.post(handler), throwsA(isA<BadRequestException>()));
     });
 
-    test('task name request updates when there is both a Cocoon and Luci task', () async {
-      config.db.values[commit.key] = commit;
-      final Task cocoonTask = Task(
-        key: commit.key.append(Task, id: taskId),
-        name: 'integration_ui_ios',
-        attempts: 0,
-        isFlaky: true, // mark flaky so it doesn't get auto-retried
-        commitKey: commit.key,
-        status: Task.statusNew,
-      );
-      config.db.values[cocoonTask.key] = cocoonTask;
-      final Task luciTask = Task(
-        key: commit.key.append(Task, id: taskId),
-        name: 'integration_ui_ios',
-        builderName: 'linux_integration_ui_ios',
-        attempts: 1,
-        isFlaky: true, // mark flaky so it doesn't get auto-retried
-        commitKey: commit.key,
-      );
-      config.db.values[luciTask.key] = luciTask;
-      tester.requestData = <String, dynamic>{
-        UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: commitSha,
-        UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
-      };
-
-      await tester.post(handler);
-
-      expect(luciTask.status, Task.statusFailed);
-      expect(luciTask.attempts, 1);
-
-      expect(cocoonTask.status, Task.statusNew);
-      expect(cocoonTask.attempts, 0);
-    });
-
     test('task name request updates when input has whitespace', () async {
       config.db.values[commit.key] = commit;
       final Task cocoonTask = Task(
@@ -239,26 +154,6 @@ void main() {
 
       expect(cocoonTask.status, Task.statusNew);
       expect(cocoonTask.attempts, 0);
-    });
-
-    test('task name request fails when there is only a Cocoon task', () async {
-      config.db.values[commit.key] = commit;
-      final Task cocoonTask = Task(
-        key: commit.key.append(Task, id: taskId),
-        name: 'integration_ui_ios',
-        attempts: 0,
-        isFlaky: true, // mark flaky so it doesn't get auto-retried
-        commitKey: commit.key,
-        status: Task.statusNew,
-      );
-      config.db.values[cocoonTask.key] = cocoonTask;
-      tester.requestData = <String, dynamic>{
-        UpdateTaskStatus.gitBranchParam: 'master',
-        UpdateTaskStatus.gitShaParam: commitSha,
-        UpdateTaskStatus.newStatusParam: 'Failed',
-        UpdateTaskStatus.builderNameParam: 'linux_integration_ui_ios',
-      };
-      expect(tester.post(handler), throwsA(isA<InternalServerError>()));
     });
 
     test('task name request fails with unknown branches', () async {
