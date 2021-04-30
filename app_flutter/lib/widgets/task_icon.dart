@@ -38,6 +38,11 @@ class TaskIcon extends StatelessWidget {
           'assets/fuchsia.png',
           color: blendFilter,
         );
+      } else if (qualifiedTask.builder.toLowerCase().contains('_web')) {
+        return Image.asset(
+          'assets/chromium.png',
+          color: blendFilter,
+        );
       } else if (qualifiedTask.builder.toLowerCase().contains('_android')) {
         return Image.asset(
           'assets/android.png',

@@ -87,6 +87,21 @@ void main() {
     expect(find.byIcon(Icons.help), findsOneWidget);
   });
 
+  testWidgets('TaskIcon shows the right icon for web', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Material(
+          child: TaskIcon(
+            qualifiedTask: QualifiedTask(stage: 'chromebot', task: 'task', builder: 'Windows_web something'),
+          ),
+        ),
+      ),
+    );
+
+    expect((tester.widget(find.byType(Image)) as Image).image, isInstanceOf<AssetImage>());
+    expect(((tester.widget(find.byType(Image)) as Image).image as AssetImage).assetName, 'assets/chromium.png');
+  });
+
   testWidgets('TaskIcon shows the right icon for LUCI windows', (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
