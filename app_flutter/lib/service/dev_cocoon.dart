@@ -76,7 +76,7 @@ class DevelopmentCocoonService implements CocoonService {
       final CommitStatus status = CommitStatus()
         ..branch = 'master'
         ..commit = commit
-        ..tasks.addAll(List<Task>.generate(20, (int i) => _createFakeTask(commitTimestamp, i, 'chromebot', random)));
+        ..tasks.addAll(List<Task>.generate(120, (int i) => _createFakeTask(commitTimestamp, i, 'chromebot', random)));
       result.add(status);
     }
     return result;

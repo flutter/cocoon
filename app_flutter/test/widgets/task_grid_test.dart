@@ -171,22 +171,22 @@ void main() {
 
   testWidgets('Task name filter affects grid', (WidgetTester tester) async {
     // Default filters
-    await testGrid(tester, null, 27, 21);
-    await testGrid(tester, TaskGridFilter(), 27, 21);
-    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 21);
+    await testGrid(tester, null, 27, 121);
+    await testGrid(tester, TaskGridFilter(), 27, 121);
+    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 121);
 
     // QualifiedTask (column) filters
-    await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 2);
-    await testGrid(tester, TaskGridFilter()..showAndroid = false, 27, 21);
-    await testGrid(tester, TaskGridFilter()..showIos = false, 27, 21);
-    await testGrid(tester, TaskGridFilter()..showWindows = false, 27, 21);
-    await testGrid(tester, TaskGridFilter()..showCirrus = false, 27, 21);
+    await testGrid(tester, TaskGridFilter()..taskFilter = RegExp('task 2'), 27, 12);
+    await testGrid(tester, TaskGridFilter()..showAndroid = false, 27, 121);
+    await testGrid(tester, TaskGridFilter()..showIos = false, 27, 121);
+    await testGrid(tester, TaskGridFilter()..showWindows = false, 27, 121);
+    await testGrid(tester, TaskGridFilter()..showCirrus = false, 27, 121);
     await testGrid(tester, TaskGridFilter()..showLuci = false, 27, 1);
 
     // CommitStatus (row) filters
-    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 21);
-    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 21);
-    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 21);
+    await testGrid(tester, TaskGridFilter()..authorFilter = RegExp('bob'), 8, 121);
+    await testGrid(tester, TaskGridFilter()..messageFilter = RegExp('developer'), 18, 121);
+    await testGrid(tester, TaskGridFilter()..hashFilter = RegExp('c'), 20, 121);
   });
 
   testWidgets('Skipped tasks do not break the grid', (WidgetTester tester) async {
