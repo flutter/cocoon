@@ -237,12 +237,18 @@ class LuciBuildService {
       maxAttempts: 3,
       delayFactor: Duration(seconds: 2),
     );
+    BatchResponse batchResponse;
     await r.retry(
       () async {
-        await buildBucketClient.batch(BatchRequest(requests: requests));
+        batchResponse = await buildBucketClient.batch(BatchRequest(requests: requests));
       },
       retryIf: (Exception e) => e is BuildBucketException,
     );
+    for (Response response in batchResponse.responses) {
+      if (response.error != null) {
+        log.warning('BatchResponse error: $response');
+      }
+    }
 
     return true;
   }
