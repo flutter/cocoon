@@ -46,8 +46,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
 
   @override
   Future<UpdateTaskStatusResponse> post() async {
-    checkRequiredParameters(<String>[newStatusParam]);
-    checkRequiredParameters(<String>[gitBranchParam, gitShaParam, builderNameParam]);
+    checkRequiredParameters(<String>[newStatusParam, gitBranchParam, gitShaParam, builderNameParam]);
 
     final DatastoreService datastore = datastoreProvider(config.db);
     final String newStatus = requestData[newStatusParam] as String;
@@ -59,7 +58,7 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       throw const BadRequestException('NewStatus can be one of "Succeeded", "Failed"');
     }
 
-    final Task task = await _getTask(datastore);
+    final Task task = await _getTaskFromNamedParams(datastore);
 
     final Commit commit = await datastore.db.lookupValue<Commit>(task.commitKey, orElse: () {
       throw BadRequestException('No such task: ${task.commitKey}');
@@ -107,11 +106,6 @@ class UpdateTaskStatus extends ApiRequestHandler<UpdateTaskStatusResponse> {
       );
     }
     await metricsDestination.update(metricPoints);
-  }
-
-  /// Retrieve [Task] to update from [DatastoreService].
-  Future<Task> _getTask(DatastoreService datastore) async {
-    return _getTaskFromNamedParams(datastore);
   }
 
   /// Retrieve [Task] from [DatastoreService] when given [gitShaParam], [gitBranchParam], and [builderNameParam].
