@@ -8,11 +8,10 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:appengine/appengine.dart' as gae show context;
-import 'package:gcloud/db.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import 'agent.dart';
 import 'allowed_account.dart';
 import 'commit.dart';
 import 'github_build_status_update.dart';
@@ -21,7 +20,6 @@ import 'log_chunk.dart';
 import 'task.dart';
 
 const Set<Type> _defaultTypes = <Type>{
-  Agent,
   Commit,
   GithubBuildStatusUpdate,
   LogChunk,
