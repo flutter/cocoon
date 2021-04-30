@@ -45,13 +45,6 @@ Future<void> main() async {
       luciBuildService: luciBuildService,
     );
 
-    /// Github status service to update the state of the build
-    /// in the Github UI.
-    final GithubStatusService githubStatusService = GithubStatusService(
-      config,
-      scheduler,
-    );
-
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/flush-cache': FlushCache(
@@ -73,7 +66,6 @@ Future<void> main() async {
         config,
         buildBucketClient,
         luciBuildService,
-        githubStatusService,
         githubChecksService,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),

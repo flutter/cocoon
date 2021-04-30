@@ -118,11 +118,10 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
   return RepositorySlug('flutter', repoName);
 }
 
-/// Returns LUCI builders based on [bucket] and [repo].
+/// Returns LUCI builders based on [bucket] and [slug].
 ///
 /// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
-/// the corresponding [commitSha], and also based on filtering changed files in [prNumber] via property
-/// [run_if] in each config.
+/// the corresponding [commitSha].
 ///
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(

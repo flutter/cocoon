@@ -172,7 +172,8 @@ class Scheduler {
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders = await LuciBuilder.getProdBuilders(commit.slug, config);
+    final List<LuciBuilder> prodBuilders =
+        await LuciBuilder.getProdBuilders(commit.slug, config, commitSha: commit.sha);
     for (LuciBuilder builder in prodBuilders) {
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
     }
@@ -298,7 +299,7 @@ class Scheduler {
     }
   }
 
-  /// Get an agreggate of LUCI presubmit builders from .ci.yaml and try_builders.json.
+  /// Get an aggregate of LUCI presubmit builders from .ci.yaml and try_builders.json.
   Future<List<LuciBuilder>> getPresubmitBuilders({@required Commit commit, int prNumber}) async {
     // Get try_builders.json builders
     final List<LuciBuilder> builders = await config.luciBuilders(

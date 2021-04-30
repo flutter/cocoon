@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
@@ -22,7 +21,6 @@ import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_luci_build_service.dart';
-import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
@@ -36,30 +34,22 @@ void main() {
   LuciStatusHandler handler;
   FakeBuildBucketClient buildbucket;
   FakeConfig config;
-  FakeScheduler scheduler;
   MockGitHub mockGitHubClient;
   FakeHttpRequest request;
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
   final FakeLogging log = FakeLogging();
-  GithubStatusService githubStatusService;
   MockGithubChecksService mockGithubChecksService;
 
   setUp(() async {
     config = FakeConfig();
     buildbucket = FakeBuildBucketClient();
-    scheduler = FakeScheduler(config: config, buildbucket: buildbucket);
 
-    githubStatusService = GithubStatusService(
-      config,
-      scheduler,
-    );
     mockGithubChecksService = MockGithubChecksService();
     handler = LuciStatusHandler(
       config,
       buildbucket,
       FakeLuciBuildService(config),
-      githubStatusService,
       mockGithubChecksService,
       loggingProvider: () => log,
     );

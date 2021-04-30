@@ -286,9 +286,10 @@ class LuciBuilder {
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$LuciBuilderToJson(this);
 
-  /// Loads and returns the list of known builders from the Cocoon [config].
-  static Future<List<LuciBuilder>> getProdBuilders(RepositorySlug slug, Config config) async {
-    return await config.luciBuilders('prod', slug);
+  /// Loads and returns the list of known builders from the Cocoon [config] for [commitSha].
+  static Future<List<LuciBuilder>> getProdBuilders(RepositorySlug slug, Config config,
+      {String commitSha = 'master'}) async {
+    return await config.luciBuilders('prod', slug, commitSha: commitSha);
   }
 }
 

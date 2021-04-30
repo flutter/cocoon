@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
@@ -30,16 +29,6 @@ void main() {
   GithubChecksService githubChecksService;
   github.CheckRun checkRun;
   RepositorySlug slug;
-
-  const Build linuxBuild = Build(
-    id: 998,
-    builderId: BuilderId(
-      project: 'flutter',
-      bucket: 'prod',
-      builder: 'Linux Cocoon',
-    ),
-    status: Status.failure,
-  );
 
   setUp(() {
     mockGithubService = MockGithubService();
