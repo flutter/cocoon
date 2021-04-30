@@ -7,30 +7,26 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/src/datastore/config.dart';
 import 'package:cocoon_service/src/foundation/typedefs.dart';
-import 'package:gcloud/db.dart';
-
-import 'package:cocoon_service/src/model/appengine/agent.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:gcloud/db.dart';
 
 // ignore: must_be_immutable
 class FakeAuthenticationProvider implements AuthenticationProvider {
   FakeAuthenticationProvider({
-    this.agent,
     FakeClientContext clientContext,
     this.authenticated = true,
   })  : assert(authenticated != null),
         clientContext = clientContext ?? FakeClientContext();
 
   bool authenticated;
-  Agent agent;
   FakeClientContext clientContext;
 
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext);
+      return FakeAuthenticatedContext(clientContext: clientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }
@@ -39,7 +35,7 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
   @override
   Future<AuthenticatedContext> authenticateIdToken(String idToken, {ClientContext clientContext, Logging log}) async {
     if (authenticated) {
-      return FakeAuthenticatedContext(agent: agent, clientContext: clientContext as FakeClientContext);
+      return FakeAuthenticatedContext(clientContext: clientContext as FakeClientContext);
     } else {
       throw const Unauthenticated('Not authenticated');
     }
@@ -66,12 +62,8 @@ class FakeAuthenticationProvider implements AuthenticationProvider {
 // ignore: must_be_immutable
 class FakeAuthenticatedContext implements AuthenticatedContext {
   FakeAuthenticatedContext({
-    this.agent,
     FakeClientContext clientContext,
   }) : clientContext = clientContext ?? FakeClientContext();
-
-  @override
-  Agent agent;
 
   @override
   FakeClientContext clientContext;
