@@ -5,7 +5,6 @@
 import 'package:app_flutter/state/build.dart';
 import 'package:app_flutter/widgets/luci_task_attempt_summary.dart';
 import 'package:app_flutter/widgets/now.dart';
-import 'package:app_flutter/widgets/task_attempt_summary.dart';
 import 'package:app_flutter/widgets/task_box.dart';
 import 'package:app_flutter/widgets/task_grid.dart';
 import 'package:app_flutter/widgets/task_overlay.dart';
@@ -306,31 +305,6 @@ void main() {
     await expectGoldenMatches(find.byType(MaterialApp), 'task_overlay_test.nondevicelab_open.png');
   });
 
-  testWidgets('TaskOverlay shows TaskAttemptSummary for devicelab tasks', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              task: Task()
-                ..stageName = 'devicelab'
-                ..status = TaskBox.statusSucceeded
-                ..attempts = 1,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TaskAttemptSummary), findsNothing);
-
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    expect(find.byType(TaskAttemptSummary), findsOneWidget);
-  });
-
   testWidgets('TaskOverlay shows TaskAttemptSummary for Luci tasks', (WidgetTester tester) async {
     await tester.pumpWidget(
       Now.fixed(
@@ -354,32 +328,6 @@ void main() {
     await tester.pump();
 
     expect(find.byType(LuciTaskAttemptSummary), findsOneWidget);
-  });
-
-  testWidgets('TaskOverlay does not show TaskAttemptSummary for tasks outside of devicelab',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              task: Task()
-                ..stageName = 'cirrus'
-                ..status = TaskBox.statusSucceeded
-                ..attempts = 1,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TaskAttemptSummary), findsNothing);
-
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    expect(find.byType(TaskAttemptSummary), findsNothing);
   });
 
   testWidgets('TaskOverlay: successful rerun shows success snackbar message', (WidgetTester tester) async {

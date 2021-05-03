@@ -13,7 +13,6 @@ import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';
 import 'progress_button.dart';
-import 'task_attempt_summary.dart';
 import 'task_box.dart';
 
 class TaskOverlayEntryPositionDelegate extends SingleChildLayoutDelegate {
@@ -291,7 +290,6 @@ class TaskOverlayContents extends StatelessWidget {
                               'Task was run outside of devicelab',
                               style: Theme.of(context).textTheme.bodyText2,
                             ),
-                          if (QualifiedTask.fromTask(task).isDevicelab) TaskAttemptSummary(task: task),
                           if (QualifiedTask.fromTask(task).isLuci) LuciTaskAttemptSummary(task: task),
                         ],
                       ),
