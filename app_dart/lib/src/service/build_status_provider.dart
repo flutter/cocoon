@@ -8,7 +8,6 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
-import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 import 'datastore.dart';
 
@@ -32,7 +31,7 @@ class BuildStatusService {
   /// Calculates and returns the "overall" status of the Flutter build.
   ///
   /// This calculation operates by looking for the most recent success or
-  /// failure for every (non-flaky) task in the manifest.
+  /// failure for every (non-flaky) task in the checklist.
   ///
   /// Take the example build dashboard below:
   /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
@@ -65,29 +64,27 @@ class BuildStatusService {
 
     final List<String> failedTasks = <String>[];
     for (CommitStatus status in statuses) {
-      for (Stage stage in status.stages) {
-        for (Task task in stage.tasks) {
-          /// If a task [isRelevantToLatestStatus] but has not run yet, we look
-          /// for a previous run of the task from the previous commit.
-          final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
+      for (Task task in status.tasks) {
+        /// If a task [isRelevantToLatestStatus] but has not run yet, we look
+        /// for a previous run of the task from the previous commit.
+        final bool isRelevantToLatestStatus = tasksInProgress.containsKey(task.name);
 
-          /// Tasks that are not relevant to the latest status will have a
-          /// null value in the map.
-          final bool taskInProgress = tasksInProgress[task.name] ?? true;
+        /// Tasks that are not relevant to the latest status will have a
+        /// null value in the map.
+        final bool taskInProgress = tasksInProgress[task.name] ?? true;
 
-          if (isRelevantToLatestStatus && taskInProgress) {
-            if (task.isFlaky || _isSuccessful(task)) {
-              /// This task no longer needs to be checked to see if it causing
-              /// the build status to fail.
-              tasksInProgress[task.name] = false;
-            } else if (_isFailed(task) || _isRerunning(task)) {
-              failedTasks.add(task.name);
+        if (isRelevantToLatestStatus && taskInProgress) {
+          if (task.isFlaky || _isSuccessful(task)) {
+            /// This task no longer needs to be checked to see if it causing
+            /// the build status to fail.
+            tasksInProgress[task.name] = false;
+          } else if (_isFailed(task) || _isRerunning(task)) {
+            failedTasks.add(task.name);
 
-              /// This task no longer needs to be checked to see if its causing
-              /// the build status to fail since its been
-              /// added to the failedTasks list.
-              tasksInProgress[task.name] = false;
-            }
+            /// This task no longer needs to be checked to see if its causing
+            /// the build status to fail since its been
+            /// added to the failedTasks list.
+            tasksInProgress[task.name] = false;
           }
         }
       }
@@ -101,10 +98,8 @@ class BuildStatusService {
   Map<String, bool> _findTasksRelevantToLatestStatus(List<CommitStatus> statuses) {
     final Map<String, bool> tasks = <String, bool>{};
 
-    for (Stage stage in statuses.first.stages) {
-      for (Task task in stage.tasks) {
-        tasks[task.name] = true;
-      }
+    for (Task task in statuses.first.tasks) {
+      tasks[task.name] = true;
     }
 
     return tasks;
@@ -117,8 +112,8 @@ class BuildStatusService {
   Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch}) async* {
     await for (Commit commit
         in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
-      final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
-      yield CommitStatus(commit, stages);
+      final List<Task> tasks = await datastoreService.queryTasksForCommit(commit);
+      yield CommitStatus(commit, tasks);
     }
   }
 
@@ -143,14 +138,13 @@ class BuildStatusService {
 @immutable
 class CommitStatus {
   /// Creates a new [CommitStatus].
-  const CommitStatus(this.commit, this.stages);
+  const CommitStatus(this.commit, this.tasks);
 
-  /// The commit against which all the tasks in [stages] are run.
+  /// The commit against which all the tasks are run.
   final Commit commit;
 
-  /// The partitioned stages, each of which holds a bucket of tasks that
-  /// belong in the stage.
-  final List<Stage> stages;
+  /// Tasks created to validate [commit].
+  final List<Task> tasks;
 }
 
 @immutable

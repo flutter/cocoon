@@ -76,7 +76,7 @@ class DevelopmentCocoonService implements CocoonService {
       final CommitStatus status = CommitStatus()
         ..branch = 'master'
         ..commit = commit
-        ..stages.addAll(_createFakeStages(commitTimestamp, commit, random));
+        ..tasks.addAll(List<Task>.generate(120, (int i) => _createFakeTask(commitTimestamp, i, 'chromebot', random)));
       result.add(status);
     }
     return result;
@@ -99,36 +99,6 @@ class DevelopmentCocoonService implements CocoonService {
       ..sha = commitTimestamp.hashCode.toRadixString(16).padRight(32, '0')
       ..timestamp = Int64(commitTimestamp)
       ..branch = 'master';
-  }
-
-  static const List<String> _stages = <String>[
-    'cirrus',
-    'chromebot',
-    'devicelab',
-    'devicelab_win',
-    'devicelab_ios',
-  ];
-  static const List<int> _stageCount = <int>[
-    2,
-    3,
-    50,
-    25,
-    30,
-  ];
-
-  List<Stage> _createFakeStages(int commitTimestamp, Commit commit, math.Random random) {
-    final List<Stage> stages = <Stage>[];
-    assert(_stages.length == _stageCount.length);
-    for (int stage = 0; stage < _stages.length; stage += 1) {
-      stages.add(
-        Stage()
-          ..commit = commit
-          ..name = _stages[stage]
-          ..tasks.addAll(List<Task>.generate(
-              _stageCount[stage], (int i) => _createFakeTask(commitTimestamp, i, _stages[stage], random))),
-      );
-    }
-    return stages;
   }
 
   static const List<String> _statuses = <String>[

@@ -6,113 +6,58 @@
 // It doesn't map directly to protos since the backend does
 // not use protos yet.
 const String jsonGetStatsResponse = '''
-      {
-        "Statuses": [
-          {
-          "Checklist": {
-            "Key": "iamatestkey",
-            "Checklist": {
-              "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon",
-              "CreateTimestamp": 123456789,
-              "Commit": {
-                "Sha": "ShaShankHash",
-                "Author": {
-                  "Login": "ShaSha",
-                  "avatar_url": "https://flutter.dev"
-                  }
-                }
-              }
-            },
-            "Stages": [
-              {
-                "Name": "devicelab",
-                "Status": "Succeeded",
-                "Tasks": [
-                  {
-                    "Key": "taskKey1",
-                    "Task": {
-                      "Attempts": 1,
-                      "CreateTimestamp": 1569353940885,
-                      "EndTimestamp": 1569354700642,
-                      "Flaky": false,
-                      "Name": "complex_layout_semantics_perf",
-                      "Reason": "",
-                      "RequiredCapabilities": ["linux/android"],
-                      "ReservedForAgentID": "linux2",
-                      "StageName": "devicelab",
-                      "StartTimestamp": 1569354594672,
-                      "Status": "Succeeded",
-                      "TimeoutInMinutes": 0
-                    }
-                  }
-                ]
-              }
-            ]
+{
+  "Statuses": [
+    {
+    "Checklist": {
+      "Key": "iamatestkey",
+      "Checklist": {
+        "Branch": "master",
+        "FlutterRepositoryPath": "flutter/cocoon",
+        "CreateTimestamp": 123456789,
+        "Commit": {
+          "Sha": "ShaShankHash",
+          "Author": {
+            "Login": "ShaSha",
+            "avatar_url": "https://flutter.dev"
+            }
           }
-        ]
-  }
-''';
-
-const String luciJsonGetStatsResponse = '''
-      {
-        "Statuses": [
-          {
-          "Checklist": {
-            "Key": "iamatestkey",
-            "Checklist": {
-              "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon",
-              "CreateTimestamp": 123456789,
-              "Commit": {
-                "Sha": "ShaShankHash",
-                "Author": {
-                  "Login": "ShaSha",
-                  "avatar_url": "https://flutter.dev"
-                  }
-                }
-              }
-            },
-            "Stages": [
-              {
-                "Name": "chromebot",
-                "Status": "Succeeded",
-                "Tasks": [
-                  {
-                    "Key": "taskKey1",
-                    "Task": {
-                      "Attempts": 1,
-                      "CreateTimestamp": 1569353940885,
-                      "EndTimestamp": 1569354700642,
-                      "Flaky": false,
-                      "Name": "linux",
-                      "Reason": "",
-                      "RequiredCapabilities": ["linux"],
-                      "ReservedForAgentID": "",
-                      "StageName": "chromebot",
-                      "StartTimestamp": 1569354594672,
-                      "Status": "Succeeded",
-                      "TimeoutInMinutes": 0,
-                      "BuildNumberList": "123",
-                      "BuilderName": "Linux",
-                      "LuciBucket": "luci.flutter.try"
-                    }
-                  }
-                ]
-              }
-            ]
+        }
+      },
+      "Tasks": [
+        {
+          "Key": "taskKey1",
+          "Task": {
+            "Attempts": 1,
+            "CreateTimestamp": 1569353940885,
+            "EndTimestamp": 1569354700642,
+            "Flaky": false,
+            "Name": "linux",
+            "Reason": "",
+            "RequiredCapabilities": ["linux"],
+            "ReservedForAgentID": "",
+            "StageName": "chromebot",
+            "StartTimestamp": 1569354594672,
+            "Status": "Succeeded",
+            "TimeoutInMinutes": 0,
+            "BuildNumberList": "123",
+            "BuilderName": "Linux",
+            "LuciBucket": "luci.flutter.try"
           }
-        ]
-  }
+        }
+      ]
+    }
+  ]
+}
 ''';
 
 const String jsonGetBranchesResponse = '''
-  {
-    "Branches": [
-      "master",
-      "flutter-0.0-candidate.1"
-    ]
-  }
+{
+  "Branches": [
+    "master",
+    "flutter-0.0-candidate.1"
+  ]
+}
 ''';
 
 const String jsonBuildStatusTrueResponse = '{"1":1}';

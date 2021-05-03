@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
@@ -62,10 +62,8 @@ void main() {
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Task>[]), CommitStatus(commit2, const <Task>[])]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -90,10 +88,8 @@ void main() {
           branch: 'master');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Task>[]), CommitStatus(commit2, const <Task>[])]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -123,7 +119,7 @@ void main() {
             'Branch': 'master'
           }
         },
-        'Stages': <String>[]
+        'Tasks': <String>[]
       });
     });
 
@@ -138,10 +134,8 @@ void main() {
           branch: 'flutter-1.1-candidate.1');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
-      buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
-        CommitStatus(commit1, const <Stage>[]),
-        CommitStatus(commit2, const <Stage>[])
-      ]);
+      buildStatusService = FakeBuildStatusService(
+          commitStatuses: <CommitStatus>[CommitStatus(commit1, const <Task>[]), CommitStatus(commit2, const <Task>[])]);
       handler = GetStatus(
         config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
@@ -172,7 +166,7 @@ void main() {
             'Branch': 'flutter-1.1-candidate.1'
           }
         },
-        'Stages': <String>[]
+        'Tasks': <String>[]
       });
     });
   });
