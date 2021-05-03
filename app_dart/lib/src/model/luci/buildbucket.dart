@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../../request_handling/body.dart';
 import '../common/json_converters.dart';
-import '../google/grpc.dart' as grpc;
+import '../google/grpc.dart';
 
 part 'buildbucket.g.dart';
 
@@ -129,7 +129,7 @@ class Response extends JsonBody {
   final Build cancelBuild;
 
   /// Error code of the unsuccessful request.
-  final grpc.Status error;
+  final GrpcStatus error;
 
   @override
   Map<String, dynamic> toJson() => _$ResponseToJson(this);

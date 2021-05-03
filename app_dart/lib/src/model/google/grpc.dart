@@ -15,11 +15,11 @@ part 'grpc.g.dart';
 /// Resources:
 /// * https://cloud.google.com/apis/design/errors
 @JsonSerializable(includeIfNull: false)
-class Status extends JsonBody {
-  const Status({this.code, this.message, this.details});
+class GrpcStatus extends JsonBody {
+  const GrpcStatus({this.code, this.message, this.details});
 
   /// Creates a [Status] from JSON.
-  static Status fromJson(Map<String, dynamic> json) => _$StatusFromJson(json);
+  static GrpcStatus fromJson(Map<String, dynamic> json) => _$GrpcStatusFromJson(json);
 
   /// The status code, which should be an enum value of [google.rpc.Code][].
   final int code;
@@ -34,5 +34,5 @@ class Status extends JsonBody {
   final dynamic details;
 
   @override
-  Map<String, dynamic> toJson() => _$StatusToJson(this);
+  Map<String, dynamic> toJson() => _$GrpcStatusToJson(this);
 }

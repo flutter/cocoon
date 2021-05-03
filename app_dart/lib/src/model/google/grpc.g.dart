@@ -8,15 +8,15 @@ part of 'grpc.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Status _$StatusFromJson(Map<String, dynamic> json) {
-  return Status(
+GrpcStatus _$GrpcStatusFromJson(Map<String, dynamic> json) {
+  return GrpcStatus(
     code: json['code'] as int,
     message: json['message'] as String,
     details: json['details'],
   );
 }
 
-Map<String, dynamic> _$StatusToJson(Status instance) {
+Map<String, dynamic> _$GrpcStatusToJson(GrpcStatus instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
