@@ -5,7 +5,7 @@
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:retry/retry.dart';
 
-import 'package:cocoon_service/src/datastore/config.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';

@@ -6,9 +6,9 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../service/config.dart';
 
 /// Returns  repo [config.flutterSlug] branches that match pre-defined
 /// branch regular expressions.

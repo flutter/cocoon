@@ -14,13 +14,13 @@ import 'package:googleapis/oauth2/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/push_message.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/config.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///

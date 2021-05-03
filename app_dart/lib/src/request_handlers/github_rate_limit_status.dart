@@ -6,10 +6,10 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../service/config.dart';
 import '../service/github_service.dart';
 
 /// Endpoint to collect the current GitHub API quota usage of the flutter-dashboard app.

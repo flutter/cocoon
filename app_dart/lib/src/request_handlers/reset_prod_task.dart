@@ -16,11 +16,11 @@ import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 
 /// Triggers prod builds based on a task key. This handler is used to trigger

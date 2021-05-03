@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 
-import 'package:cocoon_service/src/datastore/config.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/request_handlers/flush_cache.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';

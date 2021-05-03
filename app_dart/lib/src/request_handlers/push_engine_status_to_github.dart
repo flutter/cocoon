@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
@@ -15,6 +14,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/buildbucket.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
 import '../service/luci_build_service.dart';

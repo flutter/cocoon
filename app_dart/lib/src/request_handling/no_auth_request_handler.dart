@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
+import '../service/config.dart';
 import 'body.dart';
 import 'exceptions.dart';
 import 'request_handler.dart';

@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../service/cache_service.dart';
+import '../service/config.dart';
 
 /// Trigger a cache flush on a config key and return empty response if successful.
 ///

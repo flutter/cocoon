@@ -9,11 +9,11 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import '../datastore/config.dart';
 import '../model/appengine/commit.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
 import '../service/scheduler.dart';

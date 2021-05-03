@@ -6,11 +6,11 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/config.dart';
 
 @immutable
 class GetAuthenticationStatus extends RequestHandler<Body> {

@@ -6,9 +6,9 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/utils.dart';
 import '../model/luci/push_message.dart';
+import '../service/config.dart';
 import 'luci.dart';
 import 'scheduler.dart';
 

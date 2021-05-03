@@ -9,7 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
+import '../service/config.dart';
 
 import 'body.dart';
 import 'exceptions.dart';

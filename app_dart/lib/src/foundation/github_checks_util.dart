@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:github/github.dart' as github;
 import 'package:retry/retry.dart';
 
-import '../datastore/config.dart';
 import '../model/github/checks.dart';
+import '../service/config.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
 /// mocking during testing because some of the subclasses are private.

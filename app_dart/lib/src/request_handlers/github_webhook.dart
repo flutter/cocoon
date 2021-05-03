@@ -10,11 +10,11 @@ import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../model/github/checks.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/scheduler.dart';
 
