@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../../request_handling/body.dart';
 import '../common/json_converters.dart';
+import '../google/grpc.dart';
 
 part 'buildbucket.g.dart';
 
@@ -106,6 +107,7 @@ class Response extends JsonBody {
     this.searchBuilds,
     this.scheduleBuild,
     this.cancelBuild,
+    this.error,
   }) : assert((getBuild != null && searchBuilds == null && scheduleBuild == null && cancelBuild == null) ||
             (getBuild == null && searchBuilds != null && scheduleBuild == null && cancelBuild == null) ||
             (getBuild == null && searchBuilds == null && scheduleBuild != null && cancelBuild == null) ||
@@ -125,6 +127,9 @@ class Response extends JsonBody {
 
   /// The [Build] response corresponding to a cancelBuild request.
   final Build cancelBuild;
+
+  /// Error code of the unsuccessful request.
+  final GrpcStatus error;
 
   @override
   Map<String, dynamic> toJson() => _$ResponseToJson(this);

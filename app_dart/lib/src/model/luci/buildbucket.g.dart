@@ -88,6 +88,7 @@ Response _$ResponseFromJson(Map<String, dynamic> json) {
         : SearchBuildsResponse.fromJson(json['searchBuilds'] as Map<String, dynamic>),
     scheduleBuild: json['scheduleBuild'] == null ? null : Build.fromJson(json['scheduleBuild'] as Map<String, dynamic>),
     cancelBuild: json['cancelBuild'] == null ? null : Build.fromJson(json['cancelBuild'] as Map<String, dynamic>),
+    error: json['error'] == null ? null : GrpcStatus.fromJson(json['error'] as Map<String, dynamic>),
   );
 }
 
@@ -104,6 +105,7 @@ Map<String, dynamic> _$ResponseToJson(Response instance) {
   writeNotNull('searchBuilds', instance.searchBuilds);
   writeNotNull('scheduleBuild', instance.scheduleBuild);
   writeNotNull('cancelBuild', instance.cancelBuild);
+  writeNotNull('error', instance.error);
   return val;
 }
 
