@@ -118,11 +118,10 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
   return RepositorySlug('flutter', repoName);
 }
 
-/// Returns LUCI builders based on [bucket] and [repo].
+/// Returns LUCI builders based on [bucket] and [slug].
 ///
 /// For `try` case with [commitSha], builders are returned based on try_builders.json config file in
-/// the corresponding [commitSha], and also based on filtering changed files in [prNumber] via property
-/// [run_if] in each config.
+/// the corresponding [commitSha].
 ///
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(
@@ -131,7 +130,6 @@ Future<List<LuciBuilder>> getLuciBuilders(
   Logging log,
   RepositorySlug slug,
   String bucket, {
-  int prNumber,
   String commitSha = 'master',
   RetryOptions retryOptions,
 }) async {
@@ -168,12 +166,7 @@ Future<List<LuciBuilder>> getLuciBuilders(
       .where((LuciBuilder element) => element.enabled ?? true)
       .toList();
 
-  if (bucket == 'prod' || commitSha == 'master') {
-    return builders;
-  }
-
-  final List<String> files = await githubService.listFiles(slug, prNumber);
-  return await getFilteredBuilders(builders, files);
+  return builders;
 }
 
 /// Returns a LUCI [builder] list that covers changed [files].
@@ -195,6 +188,10 @@ Future<List<LuciBuilder>> getFilteredBuilders(List<LuciBuilder> builders, List<S
   final List<LuciBuilder> filteredBuilders = <LuciBuilder>[];
   for (LuciBuilder builder in builders) {
     final List<String> globs = builder.runIf ?? <String>[''];
+    // Handle case where [Target] initializes empty runif
+    if (globs.isEmpty) {
+      filteredBuilders.add(builder);
+    }
     for (String glob in globs) {
       glob = glob.replaceAll('**', '[a-zA-Z_\/]?');
       glob = glob.replaceAll('*', '[a-zA-Z_\/]*');

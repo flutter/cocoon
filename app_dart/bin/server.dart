@@ -32,13 +32,6 @@ Future<void> main() async {
       serviceAccountInfo,
     );
 
-    /// Github status service to update the state of the build
-    /// in the Github UI.
-    final GithubStatusService githubStatusService = GithubStatusService(
-      config,
-      luciBuildService,
-    );
-
     /// Github checks api service used to provide luci test execution status on the Github UI.
     final GithubChecksService githubChecksService = GithubChecksService(
       config,
@@ -48,6 +41,7 @@ Future<void> main() async {
     final Scheduler scheduler = Scheduler(
       cache: cache,
       config: config,
+      githubChecksService: githubChecksService,
       luciBuildService: luciBuildService,
     );
 
@@ -72,7 +66,6 @@ Future<void> main() async {
         config,
         buildBucketClient,
         luciBuildService,
-        githubStatusService,
         githubChecksService,
       ),
       '/api/push-build-status-to-github': PushBuildStatusToGithub(config, authProvider),

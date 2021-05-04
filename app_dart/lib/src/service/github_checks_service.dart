@@ -5,14 +5,15 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/model/github/checks.dart';
-import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:github/github.dart' as github;
 
-import '../../cocoon_service.dart';
+import '../datastore/config.dart';
+import '../foundation/github_checks_util.dart';
+import '../model/github/checks.dart';
+import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
 import 'luci_build_service.dart';
+import 'scheduler.dart';
 
 /// Controls triggering builds and updating their status in the Github UI.
 class GithubChecksService {
@@ -39,39 +40,28 @@ class GithubChecksService {
   /// Relevant API docs:
   ///   https://docs.github.com/en/rest/reference/checks#create-a-check-suite
   ///   https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
-  Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, LuciBuildService luciBuilderService) async {
+  Future<void> handleCheckSuite(CheckSuiteEvent checkSuiteEvent, Scheduler scheduler) async {
     final github.RepositorySlug slug = checkSuiteEvent.repository.slug();
-    final github.GitHub gitHubClient = await config.createGitHubClient(slug);
     final github.PullRequest pullRequest = checkSuiteEvent.checkSuite.pullRequests[0];
-    final int pullRequestNumber = pullRequest.number;
+    final int prNumber = pullRequest.number;
     final String commitSha = checkSuiteEvent.checkSuite.headSha;
     switch (checkSuiteEvent.action) {
       case 'requested':
         // Trigger all try builders.
-        await luciBuilderService.scheduleTryBuilds(
-          prNumber: pullRequestNumber,
+        await scheduler.triggerPresubmitTargets(
+          prNumber: prNumber,
           commitSha: commitSha,
           slug: checkSuiteEvent.repository.slug(),
-          checkSuiteEvent: checkSuiteEvent,
         );
         break;
 
       case 'rerequested':
-        // Trigger only the builds that failed.
-        final List<Build> builds = await luciBuilderService.failedBuilds(slug, pullRequestNumber, commitSha);
-        final Map<String, github.CheckRun> checkRuns = await githubChecksUtil.allCheckRuns(
-          gitHubClient,
-          checkSuiteEvent,
+        return await scheduler.retryPresubmitTargets(
+          slug: slug,
+          prNumber: prNumber,
+          commitSha: commitSha,
+          checkSuiteEvent: checkSuiteEvent,
         );
-
-        for (Build build in builds) {
-          final github.CheckRun checkRun = checkRuns[build.builderId.builder];
-          await luciBuilderService.rescheduleTryBuildUsingCheckSuiteEvent(
-            checkSuiteEvent,
-            checkRun,
-          );
-        }
-        break;
     }
   }
 

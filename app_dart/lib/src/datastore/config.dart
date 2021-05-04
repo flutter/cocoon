@@ -76,11 +76,10 @@ class Config {
   }
 
   // Returns LUCI builders.
-  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug,
-      {String commitSha = 'master', int prNumber}) async {
+  Future<List<LuciBuilder>> luciBuilders(String bucket, RepositorySlug slug, {String commitSha = 'master'}) async {
     final GithubService githubService = await createGithubService(slug);
     return await getLuciBuilders(githubService, Providers.freshHttpClient, loggingService, slug, bucket,
-        prNumber: prNumber, commitSha: commitSha);
+        commitSha: commitSha);
   }
 
   Future<String> _getSingleValue(String id) async {

@@ -4,6 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -25,6 +28,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
+import '../src/service/fake_github_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/mocks.dart';
 
@@ -33,6 +37,8 @@ enabled_branches:
   - master
 targets:
   - name: A
+    builder: Linux A
+    presubmit: true
 ''';
 
 void main() {
@@ -61,7 +67,7 @@ void main() {
 
       cache = CacheService(inMemory: true);
       db = FakeDatastoreDB();
-      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db);
+      config = FakeConfig(tabledataResourceApi: tabledataResourceApi, dbValue: db, githubService: FakeGithubService());
       httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
         if (request.uri.path.contains('.ci.yaml')) {
           httpClient.request.response.body = singleCiYaml;
@@ -75,10 +81,22 @@ void main() {
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+        githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
         httpClientProvider: () => httpClient,
-        luciBuildService: FakeLuciBuildService(config, githubChecksUtil: mockGithubChecksUtil),
+        luciBuildService: FakeLuciBuildService(
+          config,
+          githubChecksUtil: mockGithubChecksUtil,
+        ),
       );
       scheduler.setLogger(FakeLogging());
+
+      when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((_) async {
+        return CheckRun.fromJson(const <String, dynamic>{
+          'id': 1,
+          'started_at': '2020-05-10T02:49:31Z',
+          'check_suite': <String, dynamic>{'id': 2}
+        });
+      });
     });
 
     group('add commits', () {
@@ -245,6 +263,80 @@ void main() {
           jsonDecode(checkRunString) as Map<String, dynamic>,
         );
         expect(await scheduler.processCheckRun(checkRunEvent), true);
+      });
+    });
+
+    group('presubmit', () {
+      test('adds both try_builders and .ci.yaml builds', () async {
+        final List<LuciBuilder> presubmitBuilders =
+            await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
+        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
+            <String>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
+      });
+
+      test('adds only .ci.yaml builds', () async {
+        config.luciBuildersValue = <LuciBuilder>[];
+        final List<LuciBuilder> presubmitBuilders =
+            await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
+        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(), <String>['Linux A']);
+      });
+
+      test('triggers expected presubmit build checks', () async {
+        await scheduler.triggerPresubmitTargets(prNumber: 42, slug: config.flutterSlug, commitSha: 'abc');
+        expect(verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc')).captured,
+            <dynamic>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
+      });
+
+      test('retries only triggers failed builds only', () async {
+        final MockBuildBucketClient mockBuildbucket = MockBuildBucketClient();
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
+          githubChecksService: GithubChecksService(config, githubChecksUtil: mockGithubChecksUtil),
+          httpClientProvider: () => httpClient,
+          luciBuildService: FakeLuciBuildService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+            buildbucket: mockBuildbucket,
+          ),
+        );
+        when(mockBuildbucket.batch(any)).thenAnswer((_) async => BatchResponse(
+              responses: <Response>[
+                Response(
+                  searchBuilds: SearchBuildsResponse(
+                    builds: <Build>[
+                      createBuild(name: 'Linux', id: 1000),
+                      createBuild(name: 'Linux Coverage', id: 2000),
+                      createBuild(name: 'Mac', id: 3000, status: Status.scheduled),
+                      createBuild(name: 'Windows', id: 4000, status: Status.started),
+                      createBuild(name: 'Linux A', id: 5000, status: Status.failure)
+                    ],
+                  ),
+                ),
+              ],
+            ));
+        scheduler.setLogger(FakeLogging());
+        // Only Linux A should be retried
+        final Map<String, CheckRun> checkRuns = <String, CheckRun>{
+          'Linux': createCheckRun(name: 'Linux', id: 100),
+          'Linux Coverage': createCheckRun(name: 'Linux Coverage', id: 200),
+          'Mac': createCheckRun(name: 'Mac', id: 300, status: CheckRunStatus.queued),
+          'Windows': createCheckRun(name: 'Windows', id: 400, status: CheckRunStatus.inProgress),
+          'Linux A': createCheckRun(name: 'Linux A', id: 500),
+        };
+        when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
+          return checkRuns;
+        });
+
+        final cocoon_github.CheckSuiteEvent checkSuiteEvent = cocoon_github.CheckSuiteEvent.fromJson(
+            jsonDecode(checkSuiteTemplate('rerequested')) as Map<String, dynamic>);
+        await scheduler.retryPresubmitTargets(
+            prNumber: 42, slug: config.flutterSlug, commitSha: 'abc', checkSuiteEvent: checkSuiteEvent);
+        final List<dynamic> retriedBuildRequests = verify(mockBuildbucket.scheduleBuild(captureAny)).captured;
+        expect(retriedBuildRequests.length, 1);
+        final ScheduleBuildRequest retryRequest = retriedBuildRequests.first as ScheduleBuildRequest;
+        expect(retryRequest.builderId.builder, 'Linux A');
       });
     });
 
@@ -421,6 +513,25 @@ targets:
       });
     });
   });
+}
+
+Build createBuild({String name, int id = 1000, Status status = Status.success, String bucket = 'try'}) {
+  return Build(
+    id: id,
+    builderId: BuilderId(
+      project: 'flutter',
+      bucket: bucket,
+      builder: name,
+    ),
+    status: status,
+  );
+}
+
+CheckRun createCheckRun({String name, int id, CheckRunStatus status = CheckRunStatus.completed}) {
+  final int externalId = id * 2;
+  final String checkRunJson =
+      '{"name": "$name", "id": $id, "external_id": "{$externalId}", "status": "$status", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 456}}';
+  return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
 }
 
 PullRequest createPullRequest({

@@ -9,8 +9,6 @@ import 'dart:typed_data';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
@@ -21,6 +19,8 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_buildbucket.dart';
+import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/push_message.dart';
 
@@ -32,39 +32,24 @@ void main() {
   const String deviceLabEmail = 'flutter-devicelab@flutter-dashboard.iam.gserviceaccount.com';
 
   LuciStatusHandler handler;
+  FakeBuildBucketClient buildbucket;
   FakeConfig config;
   MockGitHub mockGitHubClient;
   FakeHttpRequest request;
   RequestHandlerTester tester;
   MockRepositoriesService mockRepositoriesService;
-  MockBuildBucketClient buildBucketClient;
   final FakeLogging log = FakeLogging();
-  const String serviceAccountEmail = 'test@test';
-  LuciBuildService luciBuildService;
-  ServiceAccountInfo serviceAccountInfo;
-  GithubStatusService githubStatusService;
   MockGithubChecksService mockGithubChecksService;
 
   setUp(() async {
-    serviceAccountInfo = const ServiceAccountInfo(email: serviceAccountEmail);
-    config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
-    buildBucketClient = MockBuildBucketClient();
-    serviceAccountInfo = await config.deviceLabServiceAccount;
-    luciBuildService = LuciBuildService(
-      config,
-      buildBucketClient,
-      serviceAccountInfo,
-    );
-    githubStatusService = GithubStatusService(
-      config,
-      luciBuildService,
-    );
+    config = FakeConfig();
+    buildbucket = FakeBuildBucketClient();
+
     mockGithubChecksService = MockGithubChecksService();
     handler = LuciStatusHandler(
       config,
-      buildBucketClient,
-      luciBuildService,
-      githubStatusService,
+      buildbucket,
+      FakeLuciBuildService(config),
       mockGithubChecksService,
       loggingProvider: () => log,
     );

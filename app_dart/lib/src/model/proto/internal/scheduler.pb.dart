@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: scheduler.proto
+//  source: lib/src/model/proto/internal/scheduler.proto
 //
 // @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
@@ -49,8 +49,7 @@ class SchedulerConfig extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   SchedulerConfig copyWith(void Function(SchedulerConfig) updates) =>
-      super.copyWith((message) => updates(message as SchedulerConfig))
-          as SchedulerConfig; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as SchedulerConfig)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SchedulerConfig create() => SchedulerConfig._();
@@ -91,6 +90,7 @@ class Target extends $pb.GeneratedMessage {
     ..a<$core.bool>(
         10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
         defaultOrMaker: true)
+    ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -105,6 +105,7 @@ class Target extends $pb.GeneratedMessage {
     SchedulerSystem scheduler,
     $core.bool presubmit,
     $core.bool postsubmit,
+    $core.Iterable<$core.String> runIf,
   }) {
     final _result = create();
     if (name != null) {
@@ -137,6 +138,9 @@ class Target extends $pb.GeneratedMessage {
     if (postsubmit != null) {
       _result.postsubmit = postsubmit;
     }
+    if (runIf != null) {
+      _result.runIf.addAll(runIf);
+    }
     return _result;
   }
   factory Target.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -151,7 +155,7 @@ class Target extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Target copyWith(void Function(Target) updates) =>
-      super.copyWith((message) => updates(message as Target)) as Target; // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Target)); // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Target create() => Target._();
@@ -262,4 +266,7 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasPostsubmit() => $_has(9);
   @$pb.TagNumber(10)
   void clearPostsubmit() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.List<$core.String> get runIf => $_getList(10);
 }

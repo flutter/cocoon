@@ -4,24 +4,24 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
 import 'package:cocoon_service/src/model/luci/push_message.dart' as push_message;
 import 'package:cocoon_service/src/service/github_status_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/service/fake_buildbucket.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
-  ServiceAccountInfo serviceAccountInfo;
   FakeConfig config;
-  MockBuildBucketClient mockBuildBucketClient;
-  LuciBuildService service;
+  FakeScheduler scheduler;
+  FakeBuildBucketClient buildbucket;
   GithubStatusService githubStatusService;
   MockGitHub mockGitHub;
   MockRepositoriesService mockRepositoriesService;
@@ -49,11 +49,13 @@ void main() {
   );
 
   setUp(() {
-    serviceAccountInfo = const ServiceAccountInfo(email: 'abc@abcd.com');
-    config = FakeConfig(deviceLabServiceAccountValue: serviceAccountInfo);
-    mockBuildBucketClient = MockBuildBucketClient();
-    service = LuciBuildService(config, mockBuildBucketClient, serviceAccountInfo);
-    githubStatusService = GithubStatusService(config, service);
+    config = FakeConfig();
+    buildbucket = FakeBuildBucketClient();
+    scheduler = FakeScheduler(
+      config: config,
+      buildbucket: buildbucket,
+    );
+    githubStatusService = GithubStatusService(config, scheduler);
     mockGitHub = MockGitHub();
     mockRepositoriesService = MockRepositoriesService();
     githubService = FakeGithubService();
@@ -62,12 +64,13 @@ void main() {
     });
     config.githubClient = mockGitHub;
     config.githubService = githubService;
-    slug = RepositorySlug('flutter', 'flutter');
+    slug = config.flutterSlug;
   });
   group('setBuildsPendingStatus', () {
     test('Empty builds do nothing', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+      config.luciBuildersValue = <LuciBuilder>[];
+      buildbucket.batchResponse = Future<BatchResponse>.value(
+        const BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -75,15 +78,15 @@ void main() {
               ),
             ),
           ],
-        );
-      });
+        ),
+      );
       await githubStatusService.setBuildsPendingStatus(123, 'abc', slug);
       verifyNever(mockGitHub.repositories);
     });
 
     test('A build list creates status', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+      buildbucket.batchResponse = Future<BatchResponse>.value(
+        const BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -91,8 +94,8 @@ void main() {
               ),
             ),
           ],
-        );
-      });
+        ),
+      );
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
@@ -104,8 +107,8 @@ void main() {
               '{"state":"pending","target_url":"","description":"Flutter LUCI Build: Linux","context":"Linux"}'));
     });
     test('Only builds in luciTryBuilders create statuses', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+      buildbucket.batchResponse = Future<BatchResponse>.value(
+        const BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -113,8 +116,8 @@ void main() {
               ),
             ),
           ],
-        );
-      });
+        ),
+      );
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[];
       when(mockRepositoriesService.listStatuses(any, any)).thenAnswer((_) {
         return Stream<RepositoryStatus>.fromIterable(repositoryStatuses);
@@ -141,8 +144,8 @@ void main() {
     });
 
     test('Status not updated if it is already pending', () async {
-      when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-        return const BatchResponse(
+      buildbucket.batchResponse = Future<BatchResponse>.value(
+        const BatchResponse(
           responses: <Response>[
             Response(
               searchBuilds: SearchBuildsResponse(
@@ -150,8 +153,8 @@ void main() {
               ),
             ),
           ],
-        );
-      });
+        ),
+      );
       final List<RepositoryStatus> repositoryStatuses = <RepositoryStatus>[
         RepositoryStatus()
           ..context = 'Mac'

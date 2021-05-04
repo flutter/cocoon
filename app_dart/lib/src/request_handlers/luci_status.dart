@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/buildbucket.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
-import 'package:cocoon_service/src/service/github_status_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/oauth2/v2.dart';
@@ -48,7 +47,6 @@ class LuciStatusHandler extends RequestHandler<Body> {
     Config config,
     this.buildBucketClient,
     this.luciBuildService,
-    this.githubStatusService,
     this.githubChecksService, {
     LoggingProvider loggingProvider,
   })  : assert(buildBucketClient != null),
@@ -58,7 +56,6 @@ class LuciStatusHandler extends RequestHandler<Body> {
   final BuildBucketClient buildBucketClient;
   final LoggingProvider loggingProvider;
   final LuciBuildService luciBuildService;
-  final GithubStatusService githubStatusService;
   final GithubChecksService githubChecksService;
 
   @override

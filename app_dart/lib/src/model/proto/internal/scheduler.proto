@@ -12,7 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 11
+// Next ID: 12
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -37,6 +37,9 @@ message Target {
     optional bool presubmit = 9 [default = true];
     // Whether target should run post-submit.
     optional bool postsubmit = 10 [default = true];
+    // List of paths that trigger this target in presubmit when there is a diff.
+    // If no paths are given, it will always run.
+    repeated string run_if = 11;
 }
 
 // Schedulers supported in SchedulerConfig.
