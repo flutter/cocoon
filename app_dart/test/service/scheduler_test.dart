@@ -38,6 +38,13 @@ enabled_branches:
 targets:
   - name: A
     builder: Linux A
+    postsubmit: true
+    presubmit: true
+  - name: B
+    builder: Linux B
+    enabled_branches:
+      - stable
+    postsubmit: true
     presubmit: true
 ''';
 
@@ -160,7 +167,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 4);
+        expect(db.values.values.whereType<Task>().length, 2 * 5);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -182,7 +189,7 @@ void main() {
         await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 4);
+        expect(db.values.values.whereType<Task>().length, 2 * 5);
         // Check commits were added, but 3 was not
         expect(db.values.values.whereType<Commit>().map<String>(toSha), containsAll(<String>['1', '2', '4']));
         expect(db.values.values.whereType<Commit>().map<String>(toSha), isNot(contains('3')));
@@ -210,7 +217,7 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 4);
+        expect(db.values.values.whereType<Task>().length, 5);
       });
 
       test('does not schedule tasks against non-merged PRs', () async {
@@ -282,7 +289,12 @@ void main() {
       });
 
       test('triggers expected presubmit build checks', () async {
-        await scheduler.triggerPresubmitTargets(prNumber: 42, slug: config.flutterSlug, commitSha: 'abc');
+        await scheduler.triggerPresubmitTargets(
+          branch: config.defaultBranch,
+          prNumber: 42,
+          slug: config.flutterSlug,
+          commitSha: 'abc',
+        );
         expect(verify(mockGithubChecksUtil.createCheckRun(any, any, captureAny, 'abc')).captured,
             <dynamic>['Linux', 'Mac', 'Windows', 'Linux Coverage', 'Linux A']);
       });

@@ -186,15 +186,6 @@ class Scheduler {
     return tasks;
   }
 
-    // Returns LUCI builders.
-  Future<List<LuciBuilder>> getLuciBuilders({String bucket = 'prod', @required String repo,
-      @required String commitSha,}) async {
-    return await getLuciBuilders(
-        githubService, Providers.freshHttpClient, loggingService, bucket,
-        prNumber: prNumber, commitSha: commitSha);
-  }
-
-
   /// Load in memory the `.ci.yaml`.
   Future<SchedulerConfig> getSchedulerConfig(Commit commit, {RetryOptions retryOptions}) async {
     final String ciPath = '${commit.repository}/${commit.sha}/.ci.yaml';
@@ -212,12 +203,13 @@ class Scheduler {
     final List<Target> postsubmitTargets = getPostSubmitTargets(commit, config);
 
     // Filter targets to only those without dependencies.
-    final List<Target> initialTargets = postsubmitTargets.where((Target target) => target.dependencies.isEmpty).toList();
+    final List<Target> initialTargets =
+        postsubmitTargets.where((Target target) => target.dependencies.isEmpty).toList();
     return initialTargets;
   }
 
   /// Get all targets run on postsubmit for [Commit].
-  /// 
+  ///
   /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
   /// and that do not have any dependencies.
   List<Target> getPostSubmitTargets(Commit commit, SchedulerConfig config) {
@@ -227,7 +219,7 @@ class Scheduler {
   }
 
   /// Get all targets run on presubmit for [Commit].
-  /// 
+  ///
   /// Filter [SchedulerConfig] to only the targets expected to run for the branch,
   /// and that do not have any dependencies.
   List<Target> getPreSubmitTargets(Commit commit, SchedulerConfig config) {
@@ -238,7 +230,7 @@ class Scheduler {
   }
 
   /// Filter [targets] to only those that are expected to run for [Commit] with [SchedulerConfig].
-  /// 
+  ///
   /// A [Target] is expected to run if:
   ///   1. [Target.enabledBranches] exists and matches [Commit].
   ///   2. Otherwise, [SchedulerConfig.enabledBranches] matches [Commit].
@@ -246,13 +238,14 @@ class Scheduler {
     final List<Target> filteredTargets = <Target>[];
 
     // 1. Add targets with local definition
-    final Iterable<Target> overrideBranchTargets = targets.where((Target target) => target.enabledBranches != null);
-    final Iterable<Target> enabledTargets = overrideBranchTargets.where((Target target) => target.enabledBranches.contains(commit.branch));
+    final Iterable<Target> overrideBranchTargets = targets.where((Target target) => target.enabledBranches.isNotEmpty);
+    final Iterable<Target> enabledTargets =
+        overrideBranchTargets.where((Target target) => target.enabledBranches.contains(commit.branch));
     filteredTargets.addAll(enabledTargets);
 
-     // 2. Add targets with global definition
+    // 2. Add targets with global definition
     if (config.enabledBranches.contains(commit.branch)) {
-      final Iterable<Target> defaultBranchTargets = targets.where((Target target) => target.enabledBranches == null);
+      final Iterable<Target> defaultBranchTargets = targets.where((Target target) => target.enabledBranches.isEmpty);
       filteredTargets.addAll(defaultBranchTargets);
     }
 
@@ -301,8 +294,12 @@ class Scheduler {
   ///
   /// Cancels all existing targets then schedules the targets.
   Future<void> triggerPresubmitTargets(
-      {int prNumber, github.RepositorySlug slug, String commitSha, String reason = 'Newer commit available'}) async {
-    if (prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
+      {String branch,
+      int prNumber,
+      github.RepositorySlug slug,
+      String commitSha,
+      String reason = 'Newer commit available'}) async {
+    if (branch == null || prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
       throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
@@ -312,7 +309,7 @@ class Scheduler {
       commitSha: commitSha,
       reason: reason,
     );
-    final Commit presubmitCommit = Commit(repository: slug.fullName, sha: commitSha);
+    final Commit presubmitCommit = Commit(branch: branch, repository: slug.fullName, sha: commitSha);
     final List<LuciBuilder> presubmitBuilders = await getPresubmitBuilders(
       commit: presubmitCommit,
       prNumber: prNumber,
@@ -372,7 +369,7 @@ class Scheduler {
     );
     //  Get .ci.yaml targets
     final SchedulerConfig schedulerConfig = await getSchedulerConfig(commit);
-    final Iterable<Target> presubmitTargets = schedulerConfig.targets.where((Target target) => target.presubmit);
+    final Iterable<Target> presubmitTargets = getPreSubmitTargets(commit, schedulerConfig);
     final Iterable<LuciBuilder> ciYamlBuilders =
         presubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug));
     builders.addAll(ciYamlBuilders);

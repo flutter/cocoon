@@ -285,7 +285,8 @@ class Task extends Model<int> {
   }
 }
 
-Iterable<Task> targetsToTask(Commit commit, List<pb.Target> targets) => targets.map((pb.Target target) => Task.fromTarget(commit: commit, target: target));
+Iterable<Task> targetsToTask(Commit commit, List<pb.Target> targets) =>
+    targets.map((pb.Target target) => Task.fromTarget(commit: commit, target: target));
 
 /// The serialized representation of a [Task].
 // TODO(tvolkert): Directly serialize [Task] once frontends migrate to new serialization format.

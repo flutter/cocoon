@@ -154,6 +154,7 @@ class GithubWebhook extends RequestHandler<Body> {
     }
 
     await scheduler.triggerPresubmitTargets(
+      branch: pr.base.ref,
       prNumber: pr.number,
       commitSha: pr.head.sha,
       slug: slug,

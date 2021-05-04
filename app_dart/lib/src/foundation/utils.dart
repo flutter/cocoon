@@ -15,7 +15,6 @@ import 'package:retry/retry.dart';
 
 import '../foundation/typedefs.dart';
 import '../request_handling/exceptions.dart';
-import '../service/github_service.dart';
 import '../service/luci.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
