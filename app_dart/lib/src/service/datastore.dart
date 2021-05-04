@@ -15,6 +15,7 @@ import 'package:retry/retry.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/github_gold_status_update.dart';
+import '../model/appengine/stage.dart';
 import '../model/appengine/task.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
@@ -144,10 +145,24 @@ class DatastoreService {
     }
   }
 
-  /// Finds all tasks owned by the specified [commit].
-  Future<List<Task>> queryTasksForCommit(Commit commit) async {
-    final Query<Task> query = db.query<Task>(ancestorKey: commit.key);
-    return query.run().toList();
+  /// Finds all tasks owned by the specified [commit] and partitions them into
+  /// stages.
+  ///
+  /// The returned list of stages will be ordered by the natural ordering of
+  /// [Stage].
+  Future<List<Stage>> queryTasksGroupedByStage(Commit commit) async {
+    final Query<Task> query = db.query<Task>(ancestorKey: commit.key)..order('-stageName');
+    final Map<String, StageBuilder> stages = <String, StageBuilder>{};
+    await for (Task task in query.run()) {
+      if (!stages.containsKey(task.stageName)) {
+        stages[task.stageName] = StageBuilder()
+          ..commit = commit
+          ..name = task.stageName;
+      }
+      stages[task.stageName].tasks.add(task);
+    }
+    final List<Stage> result = stages.values.map<Stage>((StageBuilder stage) => stage.build()).toList();
+    return result..sort();
   }
 
   Future<GithubBuildStatusUpdate> queryLastStatusUpdate(

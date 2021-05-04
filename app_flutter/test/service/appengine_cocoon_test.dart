@@ -30,6 +30,41 @@ void main() {
       expect(service.fetchCommitStatuses(), const TypeMatcher<Future<CocoonResponse<List<CommitStatus>>>>());
     });
 
+    test('should return expected List<CommitStatus>', () async {
+      final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
+
+      final CommitStatus expectedStatus = CommitStatus()
+        ..branch = 'master'
+        ..commit = (Commit()
+          ..timestamp = Int64(123456789)
+          ..key = (RootKey()..child = (Key()..name = 'iamatestkey'))
+          ..sha = 'ShaShankHash'
+          ..author = 'ShaSha'
+          ..authorAvatarUrl = 'https://flutter.dev'
+          ..repository = 'flutter/cocoon'
+          ..branch = 'master')
+        ..stages.add(Stage()
+          ..name = 'devicelab'
+          ..taskStatus = 'Succeeded'
+          ..tasks.add(Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..name = 'complex_layout_semantics_perf'
+            ..attempts = 1
+            ..isFlaky = false
+            ..timeoutInMinutes = 0
+            ..reason = ''
+            ..requiredCapabilities.add('[linux/android]')
+            ..reservedForAgentId = 'linux2'
+            ..stageName = 'devicelab'
+            ..status = 'Succeeded'));
+
+      expect(statuses.data.length, 1);
+      expect(statuses.data.first, expectedStatus);
+    });
+
     /// This requires a separate test run on the web platform.
     test('should query correct endpoint whether web or mobile', () async {
       final Client mockClient = MockHttpClient();
@@ -89,8 +124,18 @@ void main() {
       final CocoonResponse<List<CommitStatus>> response = await service.fetchCommitStatuses();
       expect(response.error, isNotNull);
     });
+  });
 
-    test('should return expected List<CommitStatus>', () async {
+  group('AppEngine CocoonService fetchCommitStatus - luci', () {
+    AppEngineCocoonService service;
+
+    setUp(() async {
+      service = AppEngineCocoonService(client: MockClient((Request request) async {
+        return Response(luciJsonGetStatsResponse, 200);
+      }));
+    });
+
+    test('should return expected List<CommitStatus> - luci', () async {
       final CocoonResponse<List<CommitStatus>> statuses = await service.fetchCommitStatuses();
 
       final CommitStatus expectedStatus = CommitStatus()
@@ -103,23 +148,26 @@ void main() {
           ..authorAvatarUrl = 'https://flutter.dev'
           ..repository = 'flutter/cocoon'
           ..branch = 'master')
-        ..tasks.add(Task()
-          ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
-          ..createTimestamp = Int64(1569353940885)
-          ..startTimestamp = Int64(1569354594672)
-          ..endTimestamp = Int64(1569354700642)
-          ..name = 'linux'
-          ..attempts = 1
-          ..isFlaky = false
-          ..timeoutInMinutes = 0
-          ..reason = ''
-          ..reservedForAgentId = ''
-          ..requiredCapabilities.addAll(<String>['[linux]'])
-          ..stageName = 'chromebot'
-          ..status = 'Succeeded'
-          ..buildNumberList = '123'
-          ..builderName = 'Linux'
-          ..luciBucket = 'luci.flutter.try');
+        ..stages.add(Stage()
+          ..name = 'chromebot'
+          ..taskStatus = 'Succeeded'
+          ..tasks.add(Task()
+            ..key = (RootKey()..child = (Key()..name = 'taskKey1'))
+            ..createTimestamp = Int64(1569353940885)
+            ..startTimestamp = Int64(1569354594672)
+            ..endTimestamp = Int64(1569354700642)
+            ..name = 'linux'
+            ..attempts = 1
+            ..isFlaky = false
+            ..timeoutInMinutes = 0
+            ..reason = ''
+            ..requiredCapabilities.add('[linux]')
+            ..reservedForAgentId = ''
+            ..stageName = 'chromebot'
+            ..status = 'Succeeded'
+            ..buildNumberList = '123'
+            ..builderName = 'Linux'
+            ..luciBucket = 'luci.flutter.try'));
 
       expect(statuses.data.length, 1);
       expect(statuses.data.first, expectedStatus);
