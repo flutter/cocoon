@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
 import '../model/luci/push_message.dart';
-import '../service/config.dart';
+import 'config.dart';
 import 'luci.dart';
 import 'scheduler.dart';
 

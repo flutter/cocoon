@@ -15,8 +15,8 @@ import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
-import '../service/config.dart';
 import 'buildbucket.dart';
+import 'config.dart';
 
 part 'luci.g.dart';
 

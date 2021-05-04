@@ -6,7 +6,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
 import '../model/appengine/service_account_info.dart';
-import '../service/config.dart';
+import 'config.dart';
 
 /// Function signature for a [TaskService] provider.
 typedef AccessTokenServiceProvider = AccessTokenService Function(Config config);

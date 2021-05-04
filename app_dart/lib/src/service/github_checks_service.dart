@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'package:appengine/appengine.dart';
 import 'package:github/github.dart' as github;
 
-import '../datastore/config.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/github/checks.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
+import 'config.dart';
 import 'luci_build_service.dart';
 import 'scheduler.dart';
 
