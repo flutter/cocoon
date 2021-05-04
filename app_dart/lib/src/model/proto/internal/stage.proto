@@ -5,10 +5,11 @@
 syntax = "proto2";
 
 import "lib/src/model/proto/internal/commit.proto";
-import "lib/src/model/proto/internal/stage.proto";
+import "lib/src/model/proto/internal/task.proto";
 
-message CommitStatus {
-    optional Commit commit = 1;
-    repeated Stage stages = 2;
-    optional string branch = 3;
+message Stage {
+    optional string name = 1;
+    optional Commit commit = 2;
+    repeated Task tasks = 3;
+    optional string task_status = 4;
 }

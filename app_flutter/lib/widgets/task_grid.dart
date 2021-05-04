@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Commit, Stage, Task;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -198,43 +198,45 @@ class _TaskGridState extends State<TaskGrid> {
     int commitCount = 0;
     for (final CommitStatus status in filteredStatuses) {
       commitCount += 1;
-      for (final Task task in status.tasks) {
-        final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
-        if (!filter.matchesTask(qualifiedTask)) {
-          continue;
-        }
-        if (commitCount <= 25) {
-          String weightStatus = task.status;
-          if (task.isFlaky) {
-            // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
-            weightStatus += ' - Flaky';
-          } else if (task.attempts > 1) {
-            // Reruns take up extra infra capacity and should be prioritized.
-            weightStatus += ' - Rerun';
+      for (final Stage stage in status.stages) {
+        for (final Task task in stage.tasks) {
+          final QualifiedTask qualifiedTask = QualifiedTask.fromTask(task);
+          if (!filter.matchesTask(qualifiedTask)) {
+            continue;
           }
-          // Make the score relative to how long ago it was run.
-          final double score = _statusScores.containsKey(weightStatus)
-              ? _statusScores[weightStatus] / commitCount
-              : _statusScores['Unknown'] / commitCount;
-          scores.update(
-            qualifiedTask,
-            (double value) => value += score,
-            ifAbsent: () => score,
-          );
-        } else {
-          // In case we have a task that doesn't exist in the first 25 rows,
-          // we still push the task into the table of scores. Otherwise, we
-          // won't know how to sort the task later.
-          scores.putIfAbsent(
-            qualifiedTask,
-            () => 0.0,
+          if (commitCount <= 25) {
+            String weightStatus = task.status;
+            if (task.isFlaky) {
+              // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
+              weightStatus += ' - Flaky';
+            } else if (task.attempts > 1) {
+              // Reruns take up extra infra capacity and should be prioritized.
+              weightStatus += ' - Rerun';
+            }
+            // Make the score relative to how long ago it was run.
+            final double score = _statusScores.containsKey(weightStatus)
+                ? _statusScores[weightStatus] / commitCount
+                : _statusScores['Unknown'] / commitCount;
+            scores.update(
+              qualifiedTask,
+              (double value) => value += score,
+              ifAbsent: () => score,
+            );
+          } else {
+            // In case we have a task that doesn't exist in the first 25 rows,
+            // we still push the task into the table of scores. Otherwise, we
+            // won't know how to sort the task later.
+            scores.putIfAbsent(
+              qualifiedTask,
+              () => 0.0,
+            );
+          }
+          rows[commitCount - 1].cells[qualifiedTask] = LatticeCell(
+            painter: _painterFor(task),
+            builder: _builderFor(task),
+            onTap: _tapHandlerFor(status.commit, task),
           );
         }
-        rows[commitCount - 1].cells[qualifiedTask] = LatticeCell(
-          painter: _painterFor(task),
-          builder: _builderFor(task),
-          onTap: _tapHandlerFor(status.commit, task),
-        );
       }
     }
     // 3: SORT
