@@ -12,7 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 12
+// Next ID: 13
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
