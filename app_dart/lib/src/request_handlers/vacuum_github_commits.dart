@@ -36,6 +36,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
+    scheduler.setLogger(log);
 
     for (RepositorySlug slug in Config.schedulerSupportedRepos) {
       await _vacuumRepository(slug, datastore: datastore);
