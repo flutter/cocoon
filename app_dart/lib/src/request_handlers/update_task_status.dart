@@ -8,13 +8,13 @@ import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 import 'package:metrics_center/metrics_center.dart';
 
-import '../datastore/config.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 
 /// Endpoint for task runners to update Cocoon with test run information.

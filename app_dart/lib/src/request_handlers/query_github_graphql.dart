@@ -11,10 +11,10 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/config.dart';
 
 /// Runs an authenticated Github GraphQl query returning the query result as json.
 @immutable

@@ -7,9 +7,9 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
+import '../service/config.dart';
 import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.

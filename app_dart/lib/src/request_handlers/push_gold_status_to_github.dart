@@ -12,13 +12,13 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/github_gold_status_update.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable

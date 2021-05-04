@@ -8,10 +8,10 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../service/config.dart';
 import '../service/scheduler.dart';
 
 /// Runs all the applicable tasks for a given PR and commit hash. This will be

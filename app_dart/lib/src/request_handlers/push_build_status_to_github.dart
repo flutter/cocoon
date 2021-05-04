@@ -9,7 +9,6 @@ import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
@@ -18,6 +17,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../service/build_status_provider.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/github_service.dart';
 

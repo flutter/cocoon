@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export 'src/datastore/config.dart';
 export 'src/foundation/utils.dart';
 export 'src/model/appengine/service_account_info.dart';
 export 'src/request_handlers/check_for_waiting_pull_requests.dart';
@@ -33,6 +32,7 @@ export 'src/request_handling/swarming_authentication.dart';
 export 'src/service/access_token_provider.dart';
 export 'src/service/buildbucket.dart';
 export 'src/service/cache_service.dart';
+export 'src/service/config.dart';
 export 'src/service/github_checks_service.dart';
 export 'src/service/github_status_service.dart';
 export 'src/service/luci_build_service.dart';

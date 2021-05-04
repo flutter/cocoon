@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import '../datastore/config.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/key_helper.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
+import '../service/config.dart';
 import '../service/datastore.dart';
 
 @immutable

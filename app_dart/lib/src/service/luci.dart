@@ -5,20 +5,18 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:github/github.dart';
-import 'package:retry/retry.dart';
-
 import 'package:appengine/appengine.dart';
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
-import '../datastore/config.dart';
 import '../model/appengine/task.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
-
 import 'buildbucket.dart';
+import 'config.dart';
 
 part 'luci.g.dart';
 

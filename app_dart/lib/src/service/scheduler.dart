@@ -15,7 +15,6 @@ import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 import 'package:yaml/yaml.dart';
 
-import '../datastore/config.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
@@ -25,6 +24,7 @@ import '../model/github/checks.dart';
 import '../model/proto/protos.dart' show SchedulerConfig, Target;
 import '../request_handling/exceptions.dart';
 import 'cache_service.dart';
+import 'config.dart';
 import 'datastore.dart';
 import 'github_checks_service.dart';
 import 'github_service.dart';

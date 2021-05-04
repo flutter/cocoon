@@ -16,8 +16,8 @@ import '../../cocoon_service.dart';
 import '../model/appengine/service_account_info.dart';
 import '../model/luci/buildbucket.dart';
 import '../model/luci/push_message.dart' as push_message;
-import '../service/luci.dart';
 import 'buildbucket.dart';
+import 'luci.dart';
 
 /// List of Mac builders that have shards, and hit -9 retcode issue:
 /// https://github.com/flutter/flutter/issues/68322

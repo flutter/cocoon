@@ -23,10 +23,10 @@ import '../foundation/utils.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import '../model/appengine/service_account_info.dart';
-import '../service/access_client_provider.dart';
-import '../service/bigquery.dart';
-import '../service/github_service.dart';
-import '../service/luci.dart';
+import 'access_client_provider.dart';
+import 'bigquery.dart';
+import 'github_service.dart';
+import 'luci.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
