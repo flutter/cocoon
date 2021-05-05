@@ -202,10 +202,6 @@ class TaskOverlayContents extends StatelessWidget {
   static const String rerunSuccessMessage = 'Devicelab is rerunning the task. This can take a minute to propagate.';
   @visibleForTesting
   static const Duration rerunSnackBarDuration = Duration(seconds: 15);
-  @visibleForTesting
-  static const String downloadLogErrorMessage = 'Failed to download task log.';
-  @visibleForTesting
-  static const Duration downloadLogSnackBarDuration = Duration(seconds: 15);
 
   /// A lookup table to define the [Icon] for this task, based on
   /// the values returned by [TaskBox.effectiveTaskStatus].
@@ -304,7 +300,7 @@ class TaskOverlayContents extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 8.0),
                     child: ProgressButton(
                       child: const Text('DOWNLOAD ALL LOGS'),
-                      onPressed: _viewLog,
+                      onPressed: () => launch(logUrl(task, commit: commit)),
                     ),
                   ),
                   if (qualifiedTask.isDevicelab || qualifiedTask.isLuci)
@@ -333,31 +329,5 @@ class TaskOverlayContents extends StatelessWidget {
         duration: rerunSnackBarDuration,
       ),
     );
-  }
-
-  /// If [task] is in the devicelab, download the log. Otherwise, open the
-  /// url closest to where the log will be.
-  ///
-  /// If a devicelab log fails to download, show an error snack bar.
-  Future<void> _viewLog() async {
-    if (QualifiedTask.fromTask(task).isDevicelab) {
-      final bool success = await buildState.downloadLog(task, commit);
-
-      if (!success) {
-        /// Only show [SnackBar] on failure since the user's device will
-        /// indicate a download has been made.
-        showSnackBarCallback(
-          const SnackBar(
-            content: Text(downloadLogErrorMessage),
-            duration: rerunSnackBarDuration,
-          ),
-        );
-      }
-
-      return;
-    }
-
-    /// Tasks outside of devicelab have public logs that we just redirect to.
-    launch(logUrl(task, commit: commit));
   }
 }

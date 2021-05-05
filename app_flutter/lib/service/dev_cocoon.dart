@@ -57,11 +57,6 @@ class DevelopmentCocoonService implements CocoonService {
     return false;
   }
 
-  @override
-  Future<bool> downloadLog(Task task, String idToken, String commitSha) async {
-    return false;
-  }
-
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
   List<CommitStatus> _createFakeCommitStatuses(CommitStatus lastCommitStatus) {

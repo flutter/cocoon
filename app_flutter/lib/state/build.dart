@@ -314,10 +314,6 @@ class BuildState extends ChangeNotifier {
     return cocoonService.rerunTask(task, await authService.idToken);
   }
 
-  Future<bool> downloadLog(Task task, Commit commit) async {
-    return cocoonService.downloadLog(task, await authService.idToken, commit.sha);
-  }
-
   /// Assert that [statuses] is ordered from newest commit to oldest.
   bool _statusesInOrder(List<CommitStatus> statuses) {
     for (int i = 0; i < statuses.length - 1; i++) {

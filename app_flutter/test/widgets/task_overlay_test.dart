@@ -13,11 +13,9 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/golden.dart';
-import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
 
 class TestGrid extends StatelessWidget {
@@ -465,93 +463,6 @@ void main() {
         })
       ],
     );
-  });
-
-  testWidgets('log button calls build state to download devicelab log', (WidgetTester tester) async {
-    final Task expectedTask = Task()
-      ..attempts = 3
-      ..stageName = 'devicelab'
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..isFlaky = false
-      ..status = TaskBox.statusNew;
-
-    final MockBuildState buildState = MockBuildState();
-    when(buildState.moreStatusesExist).thenReturn(true);
-    when(buildState.downloadLog(any, any)).thenAnswer((_) async => true);
-
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: expectedTask,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    verifyNever(buildState.downloadLog(any, any));
-
-    // Click log button
-    await tester.tap(find.text('DOWNLOAD ALL LOGS'));
-    await tester.pump();
-
-    verify(buildState.downloadLog(any, any)).called(1);
-  });
-
-  testWidgets('failing to download devicelab log shows error snackbar', (WidgetTester tester) async {
-    final Task expectedTask = Task()
-      ..attempts = 3
-      ..stageName = 'devicelab'
-      ..name = 'Tasky McTaskFace'
-      ..reservedForAgentId = 'Agenty McAgentFace'
-      ..isFlaky = false;
-
-    final MockBuildState buildState = MockBuildState();
-    when(buildState.moreStatusesExist).thenReturn(true);
-    when(buildState.downloadLog(any, any)).thenAnswer((_) async => false);
-
-    await tester.pumpWidget(
-      Now.fixed(
-        dateTime: nowTime,
-        child: MaterialApp(
-          home: Scaffold(
-            body: TestGrid(
-              buildState: buildState,
-              task: expectedTask,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    // Open the overlay
-    await tester.tapAt(const Offset(TaskBox.cellSize * 1.5, TaskBox.cellSize * 1.5));
-    await tester.pump();
-
-    // Click log button
-    await tester.tap(find.text('DOWNLOAD ALL LOGS'));
-    await tester.pump();
-
-    // expect error snackbar to be shown
-    await tester.pump(const Duration(milliseconds: 750)); // 750ms open animation
-
-    expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsOneWidget);
-
-    // Snackbar message should go away after its duration
-    await tester.pumpAndSettle(TaskOverlayContents.downloadLogSnackBarDuration); // wait the duration
-    await tester.pump(); // schedule animation
-    await tester.pump(const Duration(milliseconds: 1500)); // close animation
-
-    expect(find.text(TaskOverlayContents.downloadLogErrorMessage), findsNothing);
   });
 
   test('TaskOverlayEntryPositionDelegate.positionDependentBox', () async {
