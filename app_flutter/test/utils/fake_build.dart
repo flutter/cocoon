@@ -9,7 +9,7 @@ import 'package:app_flutter/service/cocoon.dart';
 import 'package:app_flutter/service/google_authentication.dart';
 import 'package:app_flutter/state/build.dart';
 
-import 'package:cocoon_service/protos.dart' show Commit, CommitStatus, Task;
+import 'package:cocoon_service/protos.dart' show CommitStatus, Task;
 
 import 'package:flutter/foundation.dart';
 
@@ -55,9 +55,6 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   final bool moreStatusesExist;
-
-  @override
-  Future<bool> downloadLog(Task task, Commit commit) => null;
 
   @override
   Future<void> fetchMoreCommitStatuses() => null;
