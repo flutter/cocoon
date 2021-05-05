@@ -290,8 +290,8 @@ void main() {
 
       test('gets only enabled .ci.yaml builds', () async {
         httpClient = FakeHttpClient(onIssueRequest: (FakeHttpClientRequest request) {
-        if (request.uri.path.contains('.ci.yaml')) {
-          httpClient.request.response.body = '''
+          if (request.uri.path.contains('.ci.yaml')) {
+            httpClient.request.response.body = '''
 enabled_branches:
   - master
 targets:
@@ -309,14 +309,15 @@ targets:
       - master
     presubmit: true
           ''';
-        } else {
-          throw Exception('Failed to find ${request.uri.path}');
-        }
-      });
+          } else {
+            throw Exception('Failed to find ${request.uri.path}');
+          }
+        });
         config.luciBuildersValue = <LuciBuilder>[];
         final List<LuciBuilder> presubmitBuilders =
             await scheduler.getPresubmitBuilders(commit: Commit(repository: config.flutterSlug.fullName), prNumber: 42);
-        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(), containsAll(<String>['Linux A', 'Linux C']));
+        expect(presubmitBuilders.map((LuciBuilder builder) => builder.name).toList(),
+            containsAll(<String>['Linux A', 'Linux C']));
       });
 
       test('triggers expected presubmit build checks', () async {
