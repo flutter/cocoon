@@ -106,6 +106,22 @@ Future<void> main() async {
         authProvider,
         scheduler: scheduler,
       ),
+
+      /// Returns status of the tree.
+      ///
+      /// Returns serialized proto with enum representing the
+      /// status of the tree and list of offending tasks.
+      ///
+      /// GET: /api/public/build-status
+      ///
+      /// Parameters:
+      ///   branch: (string in query) default: 'master'. Name of the repo branch.
+      ///
+      /// Response: Status 200 OK
+      ///  {
+      ///    1: 2,
+      ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
+      ///   }
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
