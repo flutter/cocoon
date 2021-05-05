@@ -82,6 +82,24 @@ Future<void> main() async {
         authProvider,
         scheduler,
       ),
+
+      /// Updates cocoon task status.
+      ///
+      /// This API updates task status in datastore.
+      ///
+      /// POST: /api-update-status
+      ///
+      /// Parameters:
+      ///   CommitBranch: (string in body). Branch of commit.
+      ///   CommitSha: (string in body). Sha of commit.
+      ///   BuilderName: (string in body). Name of the luci builder.
+      ///   NewStatus: (string in body) required. Status of the task.
+      ///   ResultData: (string in body) optional. Benchmark data.
+      ///   BenchmarkScoreKeys: (string in body) optional. Benchmark data.
+      ///
+      /// Response: Status 200 OK
+      ///
+      /// Requires authentication: Status: 401 Unauthorized
       '/api/update-task-status': UpdateTaskStatus(config, swarmingAuthProvider),
       '/api/vacuum-github-commits': VacuumGithubCommits(
         config,
@@ -94,11 +112,72 @@ Future<void> main() async {
         delegate: GetBuildStatus(config),
         ttl: const Duration(seconds: 15),
       ),
+
+      /// Returns task results for commits.
+      ///
+      /// Returns result details about each task in each checklist for every commit.
+      ///
+      /// GET: /api/public/get-status
+      ///
+      /// Parameters:
+      ///   branch: (string in query) default: 'master'. Name of the repo branch.
+      ///   lastCommitKey: (string in query) optional. Encoded commit key for the last commit to return resutls.
+      ///
+      /// Response: Status: 200 OK
+      ///   {"Statuses":[
+      ///     {"Checklist":{
+      ///        "Key":"ah..jgM",
+      ///        "Checklist":{"FlutterRepositoryPath":"flutter/flutter",
+      ///        "CreateTimestamp":1620134239000,
+      ///        "Commit":{"Sha":"7f1d1414cc5f0b0317272ced49a9c0b44e5c3af8",
+      ///        "Message":"Revert \"Migrate to ChannelBuffers.push\"",
+      ///        "Author":{"Login":"renyou","avatar_url":"https://avatars.githubusercontent.com/u/666474?v=4"}},"Branch":"master"}},
+      ///        "Stages":[{"Name":"chromebot",
+      ///          "Tasks":[
+      ///            {"Task":{
+      ///            "ChecklistKey":"ahF..jgM",
+      ///            "CreateTimestamp":1620134239000,
+      ///            "StartTimestamp":0,
+      ///            "EndTimestamp":1620136203757,
+      ///            "Name":"linux_cubic_bezier_perf__e2e_summary",
+      ///            "Attempts":1,
+      ///            "Flaky":false,
+      ///            "TimeoutInMinutes":0,
+      ///            "Reason":"",
+      ///            "BuildNumber":null,
+      ///            "BuildNumberList":"1279",
+      ///            "BuilderName":"Linux cubic_bezier_perf__e2e_summary",
+      ///            "luciBucket":"luci.flutter.prod",
+      ///            "RequiredCapabilities":["can-update-github"],
+      ///            "ReservedForAgentID":"",
+      ///            "StageName":"chromebot",
+      ///            "Status":"Succeeded"
+      ///            },
+      ///          ],
+      ///          "Status": "InProgress",
+      ///        ]},
+      ///       },
+      ///     }
       '/api/public/get-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
         delegate: GetStatus(config),
       ),
+
+      /// Return supported branches.
+      ///
+      /// Returns branches that are supported by the dashboard
+      /// for the default repo.
+      ///
+      /// GET: /api/public/get-branches
+      ///
+      /// Response: Status 200 OK
+      /// {Branches: [
+      ///   "flutter-1.26-candidate.17",
+      ///   "flutter-2.2-candidate.10",
+      ///   "master"
+      ///   ]
+      /// }
       '/api/public/get-branches': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
