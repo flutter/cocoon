@@ -300,7 +300,8 @@ class Scheduler {
       String commitSha,
       String reason = 'Newer commit available'}) async {
     if (branch == null || prNumber == null || slug == null || commitSha == null || commitSha.isEmpty) {
-      throw BadRequestException('Unexpected null value given: slug=$slug, pr=$prNumber, commitSha=$commitSha');
+      throw BadRequestException(
+          'Unexpected null value given: branch=$branch, slug=$slug, pr=$prNumber, commitSha=$commitSha');
     }
     // Always cancel running builds so we don't ever schedule duplicates.
     await cancelPreSubmitTargets(
