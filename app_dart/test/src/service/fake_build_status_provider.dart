@@ -15,7 +15,7 @@ class FakeBuildStatusService implements BuildStatusService {
   List<CommitStatus> commitStatuses;
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus({String branch}) async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch, String repo}) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
