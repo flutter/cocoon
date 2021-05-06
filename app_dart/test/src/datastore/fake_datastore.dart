@@ -172,7 +172,9 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
-      if (filterString.contains('branch =') || filterString.contains('head =')) {
+      if (filterString.contains('branch =') ||
+          filterString.contains('head =') ||
+          filterString.contains('repository =')) {
         resultsView = resultsView.where((T result) => result.toString().contains(value.toString()));
       }
     }
