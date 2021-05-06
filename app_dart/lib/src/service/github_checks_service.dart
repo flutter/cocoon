@@ -49,6 +49,7 @@ class GithubChecksService {
       case 'requested':
         // Trigger all try builders.
         await scheduler.triggerPresubmitTargets(
+          branch: pullRequest.base.ref,
           prNumber: prNumber,
           commitSha: commitSha,
           slug: checkSuiteEvent.repository.slug(),

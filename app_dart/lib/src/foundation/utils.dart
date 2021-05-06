@@ -15,7 +15,6 @@ import 'package:retry/retry.dart';
 
 import '../foundation/typedefs.dart';
 import '../request_handling/exceptions.dart';
-import '../service/github_service.dart';
 import '../service/luci.dart';
 
 /// Signature for a function that calculates the backoff duration to wait in
@@ -125,7 +124,6 @@ Future<RepositorySlug> repoNameForBuilder(List<LuciBuilder> builders, String bui
 ///
 /// For `prod` case, builders are returned based on prod_builders.json config file from `master`.
 Future<List<LuciBuilder>> getLuciBuilders(
-  GithubService githubService,
   HttpClientProvider httpClientProvider,
   Logging log,
   RepositorySlug slug,

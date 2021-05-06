@@ -25,13 +25,17 @@ void main() {
     FakeConfig config;
     FakeScheduler fakeScheduler;
     FakeAuthenticatedContext authContext;
+    MockGitHub mockGithub;
+    MockPullRequestsService mockPullRequestsService;
     MockGithubChecksUtil mockGithubChecksUtil;
 
     setUp(() {
       clientContext = FakeClientContext();
       clientContext.isDevelopmentEnvironment = false;
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
-      config = FakeConfig(githubService: FakeGithubService());
+      mockGithub = MockGitHub();
+      mockPullRequestsService = MockPullRequestsService();
+      config = FakeConfig(githubClient: mockGithub, githubService: FakeGithubService());
       mockGithubChecksUtil = MockGithubChecksUtil();
       tester = ApiRequestHandlerTester(context: authContext);
       fakeScheduler = FakeScheduler(
@@ -43,6 +47,9 @@ void main() {
         FakeAuthenticationProvider(clientContext: clientContext),
         fakeScheduler,
       );
+      when(mockGithub.pullRequests).thenReturn(mockPullRequestsService);
+      when(mockPullRequestsService.get(any, 123))
+          .thenAnswer((_) async => PullRequest(base: PullRequestHead(ref: config.defaultBranch)));
     });
 
     test('Empty repo', () async {

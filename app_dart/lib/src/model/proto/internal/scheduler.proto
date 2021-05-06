@@ -12,7 +12,7 @@ message SchedulerConfig {
     repeated string enabled_branches = 2;
 }
 
-// Next ID: 12
+// Next ID: 13
 message Target {
     // Unique, human readable identifier.
     optional string name = 1;
@@ -40,6 +40,8 @@ message Target {
     // List of paths that trigger this target in presubmit when there is a diff.
     // If no paths are given, it will always run.
     repeated string run_if = 11;
+    // Override of enabled_branches for this target (for release targets).
+    repeated string enabled_branches = 12;
 }
 
 // Schedulers supported in SchedulerConfig.

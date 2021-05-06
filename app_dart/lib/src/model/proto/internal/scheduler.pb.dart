@@ -91,6 +91,7 @@ class Target extends $pb.GeneratedMessage {
         10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
         defaultOrMaker: true)
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
+    ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..hasRequiredFields = false;
 
   Target._() : super();
@@ -106,6 +107,7 @@ class Target extends $pb.GeneratedMessage {
     $core.bool presubmit,
     $core.bool postsubmit,
     $core.Iterable<$core.String> runIf,
+    $core.Iterable<$core.String> enabledBranches,
   }) {
     final _result = create();
     if (name != null) {
@@ -140,6 +142,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (runIf != null) {
       _result.runIf.addAll(runIf);
+    }
+    if (enabledBranches != null) {
+      _result.enabledBranches.addAll(enabledBranches);
     }
     return _result;
   }
@@ -269,4 +274,7 @@ class Target extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(11)
   $core.List<$core.String> get runIf => $_getList(10);
+
+  @$pb.TagNumber(12)
+  $core.List<$core.String> get enabledBranches => $_getList(11);
 }

@@ -967,6 +967,7 @@ void main() {
     "number": 583,
     "labels": [],
     "base": {
+      "ref": "master",
       "sha": "the_base_sha",
       "repo": {
         "name": "cocoon",

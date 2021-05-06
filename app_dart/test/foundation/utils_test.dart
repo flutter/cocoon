@@ -17,7 +17,6 @@ import 'package:cocoon_service/src/service/luci.dart';
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_logging.dart';
-import '../src/service/fake_github_service.dart';
 
 const String branchRegExp = '''
       master
@@ -149,12 +148,10 @@ void main() {
     });
 
     group('GetLuciBuilders', () {
-      FakeGithubService githubService;
       FakeHttpClient luciBuilderHttpClient;
       FakeLogging log;
 
       setUp(() {
-        githubService = FakeGithubService();
         luciBuilderHttpClient = FakeHttpClient();
         log = FakeLogging();
       });
@@ -162,7 +159,6 @@ void main() {
         final RepositorySlug slug = RepositorySlug('flutter', 'cocoon');
         luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders = await getLuciBuilders(
-          githubService,
           () => luciBuilderHttpClient,
           log,
           slug,
@@ -181,7 +177,6 @@ void main() {
         luciBuilderHttpClient.request.response.statusCode = HttpStatus.notFound;
         luciBuilderHttpClient.request.response.body = luciBuilders;
         final List<LuciBuilder> builders = await getLuciBuilders(
-          githubService,
           () => luciBuilderHttpClient,
           log,
           slug,

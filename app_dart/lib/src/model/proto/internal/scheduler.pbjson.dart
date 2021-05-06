@@ -35,6 +35,7 @@ const Target$json = const {
     const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
     const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
     const {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
+    const {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
   ],
   '3': const [Target_PropertiesEntry$json],
 };

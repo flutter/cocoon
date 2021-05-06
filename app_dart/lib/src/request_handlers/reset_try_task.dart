@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -38,7 +39,13 @@ class ResetTryTask extends ApiRequestHandler<Body> {
 
     final int prNumber = int.tryParse(pr);
     final RepositorySlug slug = RepositorySlug(owner, repo);
-    await scheduler.triggerPresubmitTargets(prNumber: prNumber, commitSha: commitSha, slug: slug);
+    final GitHub github = await config.createGitHubClient(slug);
+    final PullRequest pullRequest = await github.pullRequests.get(slug, prNumber);
+    if (pullRequest == null) {
+      throw BadRequestException('Could not find GitHub PR for $slug #$prNumber');
+    }
+    await scheduler.triggerPresubmitTargets(
+        branch: pullRequest.base.ref, prNumber: prNumber, commitSha: commitSha, slug: slug);
     return Body.empty;
   }
 }
