@@ -27,13 +27,15 @@ class GetBuildStatus extends RequestHandler<Body> {
   final BuildStatusServiceProvider buildStatusProvider;
 
   static const String branchParam = 'branch';
+  static const String repoParam = 'repo';
 
   @override
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch);
+    final String repo = request.uri.queryParameters[repoParam] ?? 'flutter/flutter';
+    final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch, repo: repo);
     final BuildStatusResponse response = BuildStatusResponse()
       ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
       ..failingTasks.addAll(status.failedTasks);
