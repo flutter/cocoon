@@ -36,7 +36,11 @@ void main() {
       db = FakeDatastoreDB();
       config = FakeConfig(dbValue: db);
       datastoreService = DatastoreService(config.db, 5);
-      commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc_master'), sha: 'abc_master', branch: 'master');
+      commit = Commit(
+          key: config.db.emptyKey.append(Commit, id: 'abc_master'),
+          sha: 'abc_master',
+          branch: 'master',
+          repository: 'flutter/flutter');
     });
 
     group('DatasourceService', () {
@@ -127,8 +131,8 @@ void main() {
         for (String repo in <String>['flutter/flutter', 'flutter/engine']) {
           for (String branch in <String>['master', 'release']) {
             final Commit commit = Commit(
-                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_${branch}'),
-                sha: 'abc_${repo}_${branch}',
+                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_$branch'),
+                sha: 'abc_${repo}_$branch',
                 repository: repo,
                 branch: branch);
             config.db.values[commit.key] = commit;
@@ -165,8 +169,8 @@ void main() {
         for (String repo in <String>['flutter/flutter', 'flutter/engine']) {
           for (String branch in <String>['master', 'release']) {
             final Commit commit = Commit(
-                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_${branch}'),
-                sha: 'abc_${repo}_${branch}',
+                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_$branch'),
+                sha: 'abc_${repo}_$branch',
                 repository: repo,
                 branch: branch);
             config.db.values[commit.key] = commit;
