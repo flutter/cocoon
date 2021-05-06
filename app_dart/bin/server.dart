@@ -46,6 +46,17 @@ Future<void> main() async {
     );
 
     final Map<String, RequestHandler<dynamic>> handlers = <String, RequestHandler<dynamic>>{
+      /// Check+merge waiting github pull requests.
+      ///
+      /// Check if any github pull requests are marked with label
+      /// "waiting for tree to go green" and merge up to the number
+      /// specified within the handler.
+      ///
+      /// This api is called via cron job.
+      ///
+      /// GET: /api/check-waiting-pull-requests
+      ///
+      /// Response: Status 200 OK
       '/api/check-waiting-pull-requests': CheckForWaitingPullRequests(config, authProvider),
       '/api/flush-cache': FlushCache(
         config,
