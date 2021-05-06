@@ -72,27 +72,29 @@ void writeYaml(SchedulerConfig config) {
     configYaml.add('  - $branch');
   }
   configYaml.add('');
+  configYaml.add('targets:');
   for (Target target in config.targets) {
-    configYaml.add('- name: ${target.name}');
-    configYaml.add('  builder: ${target.builder}');
+    configYaml.add('  - ${target.name}');
+    configYaml.add('    builder: ${target.builder}');
     if (target.bringup) {
-      configYaml.add('  bringup: ${target.bringup}');
+      configYaml.add('    bringup: ${target.bringup}');
     }
     if (target.presubmit) {
-      configYaml.add('  presubmit: ${target.presubmit}');
+      configYaml.add('    presubmit: ${target.presubmit}');
     }
     if (target.postsubmit) {
-      configYaml.add('  postsubmit: ${target.postsubmit}');
+      configYaml.add('    postsubmit: ${target.postsubmit}');
     }
     if (target.scheduler != SchedulerSystem.cocoon) {
-      configYaml.add('  scheduler: ${target.scheduler}');
+      configYaml.add('    scheduler: ${target.scheduler}');
     }
     if (target.runIf.isNotEmpty) {
-      configYaml.add('  runIf: ${target.runIf}');
+      configYaml.add('    runIf:');
       for (String regex in target.runIf) {
-        configYaml.add('    - $regex');
+        configYaml.add('      - $regex');
       }
     }
+    configYaml.add('');
   }
   print(configYaml.join('\n'));
 }
