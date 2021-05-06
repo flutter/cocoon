@@ -55,11 +55,13 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
-          branch: 'master');
+          branch: 'master',
+          repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
-          branch: 'master');
+          branch: 'master',
+          repository: 'flutter/flutter');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
@@ -82,12 +84,14 @@ void main() {
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
           message: 'test message 1',
-          branch: 'master');
+          branch: 'master',
+          repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
           message: 'test message 2',
-          branch: 'master');
+          branch: 'master',
+          repository: 'flutter/flutter');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
@@ -113,7 +117,7 @@ void main() {
         'Checklist': <String, dynamic>{
           'Key': '',
           'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
+            'FlutterRepositoryPath': 'flutter/flutter',
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
@@ -131,11 +135,13 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
-          branch: 'master');
+          branch: 'master',
+          repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
-          branch: 'flutter-1.1-candidate.1');
+          branch: 'flutter-1.1-candidate.1',
+          repository: 'flutter/flutter');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
       buildStatusService = FakeBuildStatusService(commitStatuses: <CommitStatus>[
@@ -162,7 +168,7 @@ void main() {
         'Checklist': <String, dynamic>{
           'Key': '',
           'Checklist': <String, dynamic>{
-            'FlutterRepositoryPath': null,
+            'FlutterRepositoryPath': 'flutter/flutter',
             'CreateTimestamp': 1,
             'Commit': <String, dynamic>{
               'Sha': null,
