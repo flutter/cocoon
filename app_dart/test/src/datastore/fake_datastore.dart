@@ -168,11 +168,13 @@ class FakeQuery<T extends Model<dynamic>> implements Query<T> {
   Stream<T> run() {
     Iterable<T> resultsView = results;
 
-    // This considers only the special case when there exists [branch] or [pr] filter.
+    // This considers only the special case when there exists [branch], [repository] or [pr] filter.
     for (FakeFilterSpec filter in filters) {
       final String filterString = filter.filterString;
       final Object value = filter.comparisonObject;
-      if (filterString.contains('branch =') || filterString.contains('head =')) {
+      if (filterString.contains('branch =') ||
+          filterString.contains('head =') ||
+          filterString.contains('repository =')) {
         resultsView = resultsView.where((T result) => result.toString().contains(value.toString()));
       }
     }

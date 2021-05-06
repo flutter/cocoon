@@ -29,11 +29,13 @@ class GetStatus extends RequestHandler<Body> {
 
   static const String lastCommitKeyParam = 'lastCommitKey';
   static const String branchParam = 'branch';
+  static const String repoParam = 'repo';
 
   @override
   Future<Body> get() async {
     final String encodedLastCommitKey = request.uri.queryParameters[lastCommitKeyParam];
     final String branch = request.uri.queryParameters[branchParam] ?? 'master';
+    final String repo = request.uri.queryParameters[repoParam] ?? 'flutter/flutter';
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
@@ -41,7 +43,7 @@ class GetStatus extends RequestHandler<Body> {
     final int lastCommitTimestamp = await _obtainTimestamp(encodedLastCommitKey, keyHelper, datastore);
 
     final List<SerializableCommitStatus> statuses = await buildStatusService
-        .retrieveCommitStatus(limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch)
+        .retrieveCommitStatus(limit: commitNumber, timestamp: lastCommitTimestamp, branch: branch, repo: repo)
         .map<SerializableCommitStatus>(
             (CommitStatus status) => SerializableCommitStatus(status, keyHelper.encode(status.commit.key)))
         .toList();

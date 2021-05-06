@@ -7,9 +7,9 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
+import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
@@ -48,8 +48,11 @@ void main() {
 
       test('QueryRecentCommits', () async {
         for (String branch in <String>['master', 'release']) {
-          final Commit commit =
-              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
+          final Commit commit = Commit(
+              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+              sha: 'abc_$branch',
+              branch: branch,
+              repository: 'flutter/flutter');
           config.db.values[commit.key] = commit;
         }
         // Defaults to master
@@ -61,13 +64,17 @@ void main() {
         expect(commits, hasLength(1));
         expect(commits[0].branch, equals('release'));
       });
+
       test('QueryRecentCommitsNoBranch', () async {
         // Empty results
         List<Commit> commits = await datastoreService.queryRecentCommits().toList();
         expect(commits, isEmpty);
         for (String branch in <String>['master', 'release']) {
-          final Commit commit =
-              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$branch'), sha: 'abc_$branch', branch: branch);
+          final Commit commit = Commit(
+              key: config.db.emptyKey.append(Commit, id: 'abc_$branch'),
+              sha: 'abc_$branch',
+              branch: branch,
+              repository: 'flutter/flutter');
           config.db.values[commit.key] = commit;
         }
         // Results from two branches
@@ -75,8 +82,96 @@ void main() {
         expect(commits, hasLength(2));
       });
 
+      test('QueryRecentCommitsNoBranch - repository filtering', () async {
+        // Empty results
+        List<Commit> commits = await datastoreService.queryRecentCommitsNoBranch().toList();
+        expect(commits, isEmpty);
+        for (String repo in <String>['flutter/flutter', 'flutter/engine']) {
+          final Commit commit =
+              Commit(key: config.db.emptyKey.append(Commit, id: 'abc_$repo'), sha: 'abc_$repo', repository: repo);
+          config.db.values[commit.key] = commit;
+        }
+        // Defaults to flutter/flutter
+        commits = await datastoreService.queryRecentCommitsNoBranch().toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].repository, equals('flutter/flutter'));
+        // Explicit repo
+        commits = await datastoreService.queryRecentCommitsNoBranch(repo: 'flutter/engine').toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].repository, equals('flutter/engine'));
+        // Invalid repo
+        commits = await datastoreService.queryRecentCommitsNoBranch(repo: 'flutter/DNE').toList();
+        expect(commits, hasLength(0));
+      });
+
+      test('QueryRecentCommits - repository and branch filter', () async {
+        // Empty results
+        List<Commit> commits = await datastoreService.queryRecentCommits().toList();
+        expect(commits, isEmpty);
+        for (String repo in <String>['flutter/flutter', 'flutter/engine']) {
+          for (String branch in <String>['master', 'release']) {
+            final Commit commit = Commit(
+                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_${branch}'),
+                sha: 'abc_${repo}_${branch}',
+                repository: repo,
+                branch: branch);
+            config.db.values[commit.key] = commit;
+          }
+        }
+        // Defaults to flutter/flutter and master
+        commits = await datastoreService.queryRecentCommits().toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].repository, equals('flutter/flutter'));
+        expect(commits[0].branch, equals('master'));
+        // Explicit branch and repo
+        commits = await datastoreService.queryRecentCommits(repo: 'flutter/engine', branch: 'release').toList();
+        expect(commits, hasLength(1));
+        expect(commits[0].repository, equals('flutter/engine'));
+        expect(commits[0].branch, equals('release'));
+        // Invalid repo
+        commits = await datastoreService.queryRecentCommits(repo: 'flutter/DNE').toList();
+        expect(commits, hasLength(0));
+        // Invalid branch
+        commits = await datastoreService.queryRecentCommits(branch: 'branchDNE').toList();
+        expect(commits, hasLength(0));
+        // Valid repo, invalid branch
+        commits = await datastoreService.queryRecentCommits(repo: 'flutter/flutter', branch: 'branchDNE').toList();
+        expect(commits, hasLength(0));
+        // Invalid repo, valid branch
+        commits = await datastoreService.queryRecentCommits(repo: 'flutter/DNE', branch: 'master').toList();
+        expect(commits, hasLength(0));
+      });
+
+      test('QueryRecentCommitsNoBranch - repository and branch filter', () async {
+        // Empty results
+        List<Commit> commits = await datastoreService.queryRecentCommitsNoBranch().toList();
+        expect(commits, isEmpty);
+        for (String repo in <String>['flutter/flutter', 'flutter/engine']) {
+          for (String branch in <String>['master', 'release']) {
+            final Commit commit = Commit(
+                key: config.db.emptyKey.append(Commit, id: 'abc_${repo}_${branch}'),
+                sha: 'abc_${repo}_${branch}',
+                repository: repo,
+                branch: branch);
+            config.db.values[commit.key] = commit;
+          }
+        }
+        // Defaults to flutter/flutter from all branches
+        commits = await datastoreService.queryRecentCommitsNoBranch().toList();
+        expect(commits, hasLength(2));
+        expect(commits[0].repository, equals('flutter/flutter'));
+        // Explicit repo
+        commits = await datastoreService.queryRecentCommitsNoBranch(repo: 'flutter/engine').toList();
+        expect(commits, hasLength(2));
+        expect(commits[0].repository, equals('flutter/engine'));
+        // Invalid repo
+        commits = await datastoreService.queryRecentCommitsNoBranch(repo: 'flutter/DNE').toList();
+        expect(commits, hasLength(0));
+      });
+
       test('QueryRecentTasksNoBranch - release branch', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), branch: 'release');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), branch: 'release', repository: 'flutter/flutter');
         config.db.values[commit.key] = commit;
         final Task task = Task(
             key: commit.key.append(Task, id: 123),

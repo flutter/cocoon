@@ -136,7 +136,8 @@ Future<void> main() async {
       /// GET: /api/public/get-status
       ///
       /// Parameters:
-      ///   branch: (string in query) default: 'master'. Name of the repo branch.
+      ///   branch: (string in query) default: 'master'. Name of the branch to filter on.
+      ///   repo: (string in query) default: 'flutter/flutter'. Name of repo to filter on.
       ///   lastCommitKey: (string in query) optional. Encoded commit key for the last commit to return resutls.
       ///
       /// Response: Status: 200 OK

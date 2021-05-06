@@ -8,8 +8,8 @@ import 'dart:math';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 import 'package:grpc/grpc.dart';
+import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../model/appengine/commit.dart';
@@ -84,11 +84,12 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp, String branch}) {
+  Stream<Commit> queryRecentCommits(
+      {int limit = 100, int timestamp, String branch = 'master', String repo = 'flutter/flutter'}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    branch ??= 'master';
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
+      ..filter('repository =', repo)
       ..filter('branch =', branch)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
@@ -96,10 +97,11 @@ class DatastoreService {
   }
 
   // Queries for recent commits without considering branches.
-  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp}) {
+  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp, String repo='flutter/flutter'}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
+      ..filter('repository =', repo)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
     return query.run();

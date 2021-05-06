@@ -114,9 +114,9 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch}) async* {
+  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch, String repo}) async* {
     await for (Commit commit
-        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch)) {
+        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch, repo: repo)) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }
