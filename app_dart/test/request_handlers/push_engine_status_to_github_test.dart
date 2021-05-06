@@ -49,12 +49,12 @@ void main() {
 
     GithubBuildStatusUpdate newStatusUpdate(PullRequest pr, BuildStatus status) {
       return GithubBuildStatusUpdate(
-        key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
-        status: status.githubStatus,
-        pr: pr.number,
-        head: pr.head.sha,
-        updates: 0,
-      );
+          key: db.emptyKey.append(GithubBuildStatusUpdate, id: pr.number),
+          status: status.githubStatus,
+          pr: pr.number,
+          head: pr.head.sha,
+          updates: 0,
+          repository: 'flutter/engine');
     }
 
     setUp(() {
