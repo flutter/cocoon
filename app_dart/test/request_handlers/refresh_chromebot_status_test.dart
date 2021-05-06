@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
-
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
+import 'package:gcloud/db.dart';
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';
@@ -56,7 +55,8 @@ void main() {
       });
 
       test('do not update task status when SHA does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -152,7 +152,8 @@ void main() {
       });
 
       test('update task status and buildNumber when buildNumberList does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -184,7 +185,8 @@ void main() {
       });
 
       test('save data to BigQuery when task finishes', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -214,7 +216,8 @@ void main() {
       });
 
       test('update task status and buildNumber when status does not match', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
@@ -244,8 +247,9 @@ void main() {
         expect(task.status, Task.statusSucceeded);
       });
 
-      test('update task status with latest status when multilple reruns exist', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+      test('update task status with latest status when multiple reruns exist', () async {
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
@@ -283,7 +287,11 @@ void main() {
       });
 
       test('update task status for non master branch', () async {
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
+        final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'def'),
+            sha: 'def',
+            branch: 'test',
+            repository: 'flutter/flutter');
         final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
@@ -337,7 +345,8 @@ void main() {
 
       test('rerun Mac builder when hiting recipe infra failure', () async {
         config.maxTaskRetriesValue = 2;
-        final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc');
+        final Commit commit =
+            Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: 'flutter/flutter');
         final Task task = Task(
             key: commit.key.append(Task, id: 123),
             commitKey: commit.key,
