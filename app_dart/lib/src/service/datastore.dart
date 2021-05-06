@@ -97,7 +97,7 @@ class DatastoreService {
   }
 
   // Queries for recent commits without considering branches.
-  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp, String repo='flutter/flutter'}) {
+  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp, String repo = 'flutter/flutter'}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
