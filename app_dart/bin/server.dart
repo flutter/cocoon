@@ -211,6 +211,17 @@ Future<void> main() async {
         delegate: GetBranches(config),
         ttl: const Duration(minutes: 15),
       ),
+
+      /// Record GitHub API quota usage in BigQuery.
+      ///
+      /// Pushes data to BigQuery for metric collection to
+      /// analyze usage over time.
+      ///
+      /// This api is called via cron job.
+      ///
+      /// GET: /api/public/github-rate-limit-status
+      ///
+      /// Response: Status 200 OK
       '/api/public/github-rate-limit-status': CacheRequestHandler<Body>(
         config: config,
         cache: cache,
