@@ -23,7 +23,7 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch}) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch, String repo}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
