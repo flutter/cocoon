@@ -94,9 +94,10 @@ Future<void> main() async {
         scheduler,
       ),
 
-      /// Updates cocoon task status.
+      /// Updates task related details.
       ///
-      /// This API updates task status in datastore.
+      /// This API updates task status in datastore and
+      /// pushes performance metrics to skia-perf.
       ///
       /// POST: /api-update-status
       ///
@@ -129,6 +130,7 @@ Future<void> main() async {
       ///   branch: (string in query) default: 'master'. Name of the repo branch.
       ///
       /// Response: Status 200 OK
+      /// (See also: app_dart/lib/src/model/proto/internal/build_status_response.proto)
       ///  {
       ///    1: 2,
       ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
