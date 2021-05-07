@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:cocoon_service/protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../request_handling/body.dart';
@@ -33,8 +34,9 @@ class GetBuildStatus extends RequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final String repo = request.uri.queryParameters[repoParam] ?? 'flutter/flutter';
+    final String branch = request.uri.queryParameters[branchParam] ?? config.defaultBranch;
+    final RepositorySlug repo =
+        RepositorySlug.full(request.uri.queryParameters[repoParam] ?? config.flutterSlug.fullName);
     final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch, repo: repo);
     final BuildStatusResponse response = BuildStatusResponse()
       ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure

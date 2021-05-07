@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
@@ -34,8 +35,9 @@ class GetStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final String encodedLastCommitKey = request.uri.queryParameters[lastCommitKeyParam];
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
-    final String repo = request.uri.queryParameters[repoParam] ?? 'flutter/flutter';
+    final String branch = request.uri.queryParameters[branchParam] ?? config.defaultBranch;
+    final RepositorySlug repo =
+        RepositorySlug.full(request.uri.queryParameters[repoParam] ?? config.flutterSlug.fullName);
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final KeyHelper keyHelper = config.keyHelper;
