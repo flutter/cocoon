@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:github/github.dart';
 
 class FakeBuildStatusService implements BuildStatusService {
   FakeBuildStatusService({
@@ -15,7 +16,7 @@ class FakeBuildStatusService implements BuildStatusService {
   List<CommitStatus> commitStatuses;
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus({String branch, String repo}) async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch, RepositorySlug repo}) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
@@ -23,7 +24,7 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch, String repo}) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch, RepositorySlug repo}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
@@ -32,7 +33,7 @@ class FakeBuildStatusService implements BuildStatusService {
     return Stream<CommitStatus>.fromIterable(commitStatuses.where((CommitStatus commitStatus) =>
         commitStatus.commit.timestamp < timestamp &&
         commitStatus.commit.branch == branch &&
-        commitStatus.commit.repository == repo));
+        commitStatus.commit.repository == repo.fullName));
   }
 
   @override
