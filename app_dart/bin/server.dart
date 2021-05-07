@@ -119,7 +119,7 @@ Future<void> main() async {
         scheduler: scheduler,
       ),
 
-      /// Returns status of the tree.
+      /// Returns status of the framework tree.
       ///
       /// Returns serialized proto with enum representing the
       /// status of the tree and list of offending tasks.
