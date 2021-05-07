@@ -33,7 +33,7 @@ class GetBuildStatus extends RequestHandler<Body> {
   Future<Body> get() async {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
-    final String branch = request.uri.queryParameters[branchParam] ?? 'master';
+    final String branch = request.uri.queryParameters[branchParam] ?? config.defaultBranch;
     final String repo = request.uri.queryParameters[repoParam] ?? 'flutter/flutter';
     final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch, repo: repo);
     final BuildStatusResponse response = BuildStatusResponse()
