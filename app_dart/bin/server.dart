@@ -119,7 +119,7 @@ Future<void> main() async {
         scheduler: scheduler,
       ),
 
-      /// Returns status of the tree.
+      /// Returns status of the framework tree.
       ///
       /// Returns serialized proto with enum representing the
       /// status of the tree and list of offending tasks.
@@ -193,10 +193,10 @@ Future<void> main() async {
         delegate: GetStatus(config),
       ),
 
-      /// Return supported branches.
+      /// Get supported branches for the framework repo.
       ///
-      /// Returns branches that are supported by the dashboard
-      /// for the default repo.
+      /// Get list of supported branches to run infrastructure
+      /// tasks on the framework repo.
       ///
       /// GET: /api/public/get-branches
       ///
