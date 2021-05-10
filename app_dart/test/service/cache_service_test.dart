@@ -4,11 +4,10 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:test/test.dart';
-
-import 'package:cocoon_service/src/service/cache_service.dart';
 
 void main() {
   group('CacheService', () {

@@ -7,9 +7,9 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
 import 'package:grpc/grpc.dart';
 import 'package:retry/retry.dart';
+import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';

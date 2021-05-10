@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
-import 'package:yaml/yaml.dart';
-
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:yaml/yaml.dart';
 
 void main(List<String> args) {
   final String configPath = args.first;

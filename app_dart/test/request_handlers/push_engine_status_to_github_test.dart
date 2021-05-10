@@ -2,17 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
-
 import 'package:cocoon_service/src/model/appengine/github_build_status_update.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/push_engine_status_to_github.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci.dart';
+import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
+import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';

@@ -4,10 +4,9 @@
 
 import 'dart:io' as io;
 
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-
-import 'package:cocoon_service/cocoon_service.dart';
 
 import './common.dart';
 

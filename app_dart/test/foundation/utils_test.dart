@@ -6,13 +6,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/src/service/luci.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-
-import 'package:cocoon_service/src/foundation/utils.dart';
-import 'package:cocoon_service/src/service/luci.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/request_handling/fake_http.dart';
