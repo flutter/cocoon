@@ -2,18 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:gcloud/db.dart' as gcloud_db;
-import 'package:gcloud/db.dart';
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
-import 'package:test/test.dart';
-
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:gcloud/db.dart' as gcloud_db;
+import 'package:gcloud/db.dart';
+import 'package:github/github.dart';
+import 'package:googleapis/bigquery/v2.dart';
+import 'package:mockito/mockito.dart';
+import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';

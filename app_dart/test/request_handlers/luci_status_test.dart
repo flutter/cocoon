@@ -9,10 +9,9 @@ import 'dart:typed_data';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/service_account_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:http/testing.dart' as http_test;
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart' as http_test;
 import 'package:mockito/mockito.dart';
-
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';

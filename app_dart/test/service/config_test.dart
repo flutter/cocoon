@@ -4,9 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
-
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:test/test.dart';
 
 import '../src/datastore/fake_datastore.dart';
 

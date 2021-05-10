@@ -5,11 +5,11 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:gcloud/db.dart';
 
 // ignore: must_be_immutable

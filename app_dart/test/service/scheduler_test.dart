@@ -4,9 +4,16 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSystem, Target;
+import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
 import 'package:cocoon_service/src/model/luci/buildbucket.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
@@ -14,14 +21,6 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
-
-import 'package:cocoon_service/protos.dart' show SchedulerConfig, SchedulerSystem, Target;
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
-import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/scheduler.dart';
 
 import '../model/github/checks_test_data.dart';
 import '../src/datastore/fake_config.dart';
