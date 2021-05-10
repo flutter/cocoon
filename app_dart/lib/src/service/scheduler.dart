@@ -172,8 +172,8 @@ class Scheduler {
   /// Create [Tasks] specified in [commit] scheduler config.
   Future<List<Task>> _getTasks(Commit commit) async {
     final List<Task> tasks = <Task>[];
-    final List<LuciBuilder> prodBuilders =
-        await LuciBuilder.getProdBuilders(commit.slug, config, commitSha: commit.sha);
+    final List<LuciBuilder> prodBuilders = await config.luciBuilders('prod', commit.slug, commitSha: commit.sha);
+    ;
     for (LuciBuilder builder in prodBuilders) {
       tasks.add(Task.chromebot(commitKey: commit.key, createTimestamp: commit.timestamp, builder: builder));
     }

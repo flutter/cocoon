@@ -8,8 +8,10 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
+import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
+import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -18,6 +20,7 @@ import '../service/config.dart';
 import '../service/datastore.dart';
 import '../service/luci.dart';
 import '../service/luci_build_service.dart';
+import '../service/scheduler.dart';
 
 @immutable
 class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
@@ -25,6 +28,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
+    this.scheduler,
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
   })  : luciServiceProvider = luciServiceProvider ?? _createLuciService,
@@ -34,6 +38,7 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
   final LuciBuildService luciBuildService;
   final LuciServiceProvider luciServiceProvider;
   final DatastoreServiceProvider datastoreProvider;
+  final Scheduler scheduler;
 
   static LuciService _createLuciService(ApiRequestHandler<dynamic> handler) {
     return LuciService(
@@ -52,8 +57,13 @@ class PushEngineStatusToGithub extends ApiRequestHandler<Body> {
     luciBuildService.setLogger(log);
 
     final RepositorySlug slug = config.engineSlug;
+    final Commit engineTipOfTreeCommit = Commit(sha: config.defaultBranch, repository: slug.fullName);
+    final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(engineTipOfTreeCommit);
+    final List<Target> postsubmitTargets = scheduler.getPostSubmitTargets(engineTipOfTreeCommit, schedulerConfig);
+    final List<LuciBuilder> postsubmitBuilders =
+        postsubmitTargets.map((Target target) => LuciBuilder.fromTarget(target, engineTipOfTreeCommit.slug)).toList();
     final LuciService luciService = luciServiceProvider(this);
-    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(slug: slug);
+    final Map<LuciBuilder, List<LuciTask>> luciTasks = await luciService.getRecentTasks(builders: postsubmitBuilders);
 
     String status = GithubBuildStatusUpdate.statusSuccess;
     for (List<LuciTask> tasks in luciTasks.values) {
