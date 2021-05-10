@@ -1,3 +1,6 @@
+// Copyright 2021 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 import 'dart:convert' show jsonDecode;
 import 'dart:io' as io;
 
@@ -31,19 +34,22 @@ void run({
   String tryBuildersPath,
   String prodBuildersPath,
 }) {
-  parseJson(
+  final SchedulerConfig configTry = parseJson(
     tryBuildersPath,
     presubmit: true,
   );
-  parseJson(
+  final SchedulerConfig configProd = parseJson(
     prodBuildersPath,
     postsubmit: true,
   );
+
+  final SchedulerConfig mergedConfig = mergeConfigs(configTry, configProd);
+  writeYaml(mergedConfig);
 }
 
-void parseJson(String path, {bool presubmit = false, bool postsubmit = false}) {
+SchedulerConfig parseJson(String path, {bool presubmit = false, bool postsubmit = false}) {
   if (path == null) {
-    return;
+    return SchedulerConfig.getDefault();
   }
 
   final String buildersString = io.File(path).readAsStringSync();
@@ -62,8 +68,7 @@ void parseJson(String path, {bool presubmit = false, bool postsubmit = false}) {
         bringup: builder.flaky,
       ));
 
-  final SchedulerConfig config = SchedulerConfig(enabledBranches: <String>['master'], targets: targets);
-  writeYaml(config);
+  return SchedulerConfig(enabledBranches: <String>['master'], targets: targets);
 }
 
 void writeYaml(SchedulerConfig config) {
@@ -97,4 +102,33 @@ void writeYaml(SchedulerConfig config) {
     configYaml.add('');
   }
   print(configYaml.join('\n'));
+}
+
+/// The [GeneratedMessage] merge functionality does not take into account
+/// unique targets, so this implements it.
+SchedulerConfig mergeConfigs(SchedulerConfig a, SchedulerConfig b) {
+  final Map<String, Target> targets = <String, Target>{};
+  final Set<String> enabledBranches = Set<String>.from(a.enabledBranches)..addAll(b.enabledBranches);
+  for (Target target in a.targets) {
+    targets[target.name] = target;
+  }
+
+  for (Target target in b.targets) {
+    if (targets.containsKey(target.name)) {
+      final Target mergeTarget = targets[target.name];
+      if (target.builder != mergeTarget.builder) {
+        print(target);
+        print(mergeTarget);
+        throw Exception('Builders do not match on ${target.name}');
+      }
+      mergeTarget.bringup = mergeTarget.bringup || target.bringup;
+      mergeTarget.presubmit = mergeTarget.presubmit || target.presubmit;
+      mergeTarget.postsubmit = mergeTarget.postsubmit || target.postsubmit;
+      targets[target.name] = mergeTarget;
+    } else {
+      targets[target.name] = target;
+    }
+  }
+
+  return SchedulerConfig(enabledBranches: enabledBranches, targets: targets.values);
 }
