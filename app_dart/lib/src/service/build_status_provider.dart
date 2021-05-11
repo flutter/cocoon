@@ -50,11 +50,11 @@ class BuildStatusService {
   /// the latest commit status, so it does not impact the build status.
   /// Task B fails because its last known status was to be failing, even though
   /// there is currently a newer version that is in progress.
-  Future<BuildStatus> calculateCumulativeStatus({String branch, RepositorySlug repo}) async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch, RepositorySlug repoSlug}) async {
     final List<CommitStatus> statuses = await retrieveCommitStatus(
       limit: numberOfCommitsToReferenceForTreeStatus,
       branch: branch,
-      repo: repo,
+      repoSlug: repoSlug,
     ).toList();
     if (statuses.isEmpty) {
       return BuildStatus.failure();
@@ -116,9 +116,9 @@ class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch, RepositorySlug repo}) async* {
+  Stream<CommitStatus> retrieveCommitStatus({int limit, int timestamp, String branch, RepositorySlug repoSlug}) async* {
     await for (Commit commit
-        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch, repo: repo)) {
+        in datastoreService.queryRecentCommits(limit: limit, timestamp: timestamp, branch: branch, repoSlug: repoSlug)) {
       final List<Stage> stages = await datastoreService.queryTasksGroupedByStage(commit);
       yield CommitStatus(commit, stages);
     }

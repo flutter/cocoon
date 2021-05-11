@@ -16,7 +16,7 @@ class FakeBuildStatusService implements BuildStatusService {
   List<CommitStatus> commitStatuses;
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus({String branch, RepositorySlug repo}) async {
+  Future<BuildStatus> calculateCumulativeStatus({String branch, RepositorySlug repoSlug}) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
@@ -24,7 +24,7 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch, RepositorySlug repo}) {
+  Stream<CommitStatus> retrieveCommitStatus({int limit = 100, int timestamp, String branch, RepositorySlug repoSlug}) {
     if (commitStatuses == null) {
       throw AssertionError();
     }
@@ -33,7 +33,7 @@ class FakeBuildStatusService implements BuildStatusService {
     return Stream<CommitStatus>.fromIterable(commitStatuses.where((CommitStatus commitStatus) =>
         commitStatus.commit.timestamp < timestamp &&
         commitStatus.commit.branch == branch &&
-        commitStatus.commit.repository == repo.fullName));
+        commitStatus.commit.repository == repoSlug.fullName));
   }
 
   @override

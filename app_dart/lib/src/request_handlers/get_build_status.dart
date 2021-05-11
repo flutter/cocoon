@@ -35,9 +35,9 @@ class GetBuildStatus extends RequestHandler<Body> {
     final DatastoreService datastore = datastoreProvider(config.db);
     final BuildStatusService buildStatusService = buildStatusProvider(datastore);
     final String branch = request.uri.queryParameters[branchParam] ?? config.defaultBranch;
-    final RepositorySlug repo =
+    final RepositorySlug repoSlug =
         RepositorySlug.full(request.uri.queryParameters[repoParam] ?? config.flutterSlug.fullName);
-    final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch, repo: repo);
+    final BuildStatus status = await buildStatusService.calculateCumulativeStatus(branch: branch, repoSlug: repoSlug);
     final BuildStatusResponse response = BuildStatusResponse()
       ..buildStatus = status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
       ..failingTasks.addAll(status.failedTasks);

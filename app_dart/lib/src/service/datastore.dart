@@ -84,13 +84,13 @@ class DatastoreService {
   /// The [limit] argument specifies the maximum number of commits to retrieve.
   ///
   /// The returned commits will be ordered by most recent [Commit.timestamp].
-  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp, String branch, RepositorySlug repo}) {
+  Stream<Commit> queryRecentCommits({int limit = 100, int timestamp, String branch, RepositorySlug repoSlug}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= 'master';
-    repo ??= RepositorySlug('flutter', 'flutter');
+    repoSlug ??= RepositorySlug('flutter', 'flutter');
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
-      ..filter('repository =', repo.fullName)
+      ..filter('repository =', repoSlug.fullName)
       ..filter('branch =', branch)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
@@ -98,12 +98,12 @@ class DatastoreService {
   }
 
   // Queries for recent commits without considering branches.
-  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp, RepositorySlug repo}) {
+  Stream<Commit> queryRecentCommitsNoBranch({int limit = 100, int timestamp, RepositorySlug repoSlug}) {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
-    repo ??= RepositorySlug('flutter', 'flutter');
+    repoSlug ??= RepositorySlug('flutter', 'flutter');
     final Query<Commit> query = db.query<Commit>()
       ..limit(limit)
-      ..filter('repository =', repo.fullName)
+      ..filter('repository =', repoSlug.fullName)
       ..order('-timestamp')
       ..filter('timestamp <', timestamp);
     return query.run();
