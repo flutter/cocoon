@@ -13,12 +13,12 @@ Future<void> main(List<String> args) async {
     ..addOption(
       'try-builders',
       abbr: 't',
-      help: 'Path to a repo\'s `try_builders.json` config file.',
+      help: "Path to a repo's `try_builders.json` config file.",
     )
     ..addOption(
       'prod-builders',
       abbr: 'p',
-      help: 'Path to a repo\'s `prod_builders.json` config file.',
+      help: "Path to a repo's `prod_builders.json` config file.",
     );
   final ArgResults results = parser.parse(args);
   final String tryBuildersPath = results['try-builders'] as String;
