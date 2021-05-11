@@ -19,6 +19,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_github_service.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -83,6 +84,7 @@ void main() {
         mockLuciBuildService,
         luciServiceProvider: (_) => mockLuciService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        scheduler: FakeScheduler(config: config),
       );
 
       when(github.pullRequests).thenReturn(pullRequestsService);
@@ -102,16 +104,16 @@ void main() {
 
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders(config.engineSlug, config),
+        builders,
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
               commitSha: 'abc', ref: 'refs/heads/master', status: Task.statusFailed, buildNumber: 1, builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -127,9 +129,9 @@ void main() {
 
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
       config.db.values[status.key] = status;
-
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders(config.engineSlug, config),
+        builders,
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -140,7 +142,7 @@ void main() {
               builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -157,8 +159,9 @@ void main() {
 
       config.db.values[status.key] = status;
 
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders(config.engineSlug, config),
+        builders,
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -169,7 +172,7 @@ void main() {
               builderName: 'abc')
         ],
       );
-      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -186,9 +189,9 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.failure(const <String>['failed_test_1']));
 
       config.db.values[status.key] = status;
-
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders(config.engineSlug, config),
+        builders,
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -211,7 +214,7 @@ void main() {
               builderName: 'efg'),
         ],
       );
-      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 
@@ -228,9 +231,9 @@ void main() {
       final GithubBuildStatusUpdate status = newStatusUpdate(pr, BuildStatus.success());
 
       config.db.values[status.key] = status;
-
+      final List<LuciBuilder> builders = await config.luciBuilders('prod', config.engineSlug);
       final Map<LuciBuilder, List<LuciTask>> luciTasks = Map<LuciBuilder, List<LuciTask>>.fromIterable(
-        await LuciBuilder.getProdBuilders(config.engineSlug, config),
+        builders,
         key: (dynamic builder) => builder as LuciBuilder,
         value: (dynamic builder) => <LuciTask>[
           const LuciTask(
@@ -241,7 +244,7 @@ void main() {
               builderName: 'abc'),
         ],
       );
-      when(mockLuciService.getRecentTasks(slug: config.engineSlug)).thenAnswer((Invocation invocation) {
+      when(mockLuciService.getRecentTasks(builders: anyNamed('builders'))).thenAnswer((Invocation invocation) {
         return Future<Map<LuciBuilder, List<LuciTask>>>.value(luciTasks);
       });
 

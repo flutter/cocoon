@@ -17,6 +17,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_scheduler.dart';
 import '../src/utilities/mocks.dart';
 
 void main() {
@@ -44,6 +45,7 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
+        scheduler: FakeScheduler(config: config),
       );
     });
 
@@ -60,9 +62,9 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -74,7 +76,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -97,9 +99,9 @@ void main() {
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
 
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -111,7 +113,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -126,9 +128,9 @@ void main() {
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -140,7 +142,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -155,10 +157,9 @@ void main() {
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -170,7 +171,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -187,10 +188,9 @@ void main() {
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -202,7 +202,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -218,10 +218,9 @@ void main() {
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -233,7 +232,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -249,10 +248,9 @@ void main() {
             key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
@@ -270,7 +268,7 @@ void main() {
                             builderName: 'abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -286,10 +284,9 @@ void main() {
         final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -302,8 +299,7 @@ void main() {
                       ],
                     });
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> testLuciTasks =
-            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(
-                await LuciBuilder.getProdBuilders(config.flutterSlug, config),
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
                 key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'test'),
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'def': <LuciTask>[
@@ -316,7 +312,7 @@ void main() {
                       ],
                     });
         luciTasks.addAll(testLuciTasks);
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });
@@ -346,7 +342,7 @@ void main() {
             builderName: 'Mac abc');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-
+        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(<LuciBuilder>[
           LuciBuilder(name: 'Mac abc', repo: config.flutterSlug.name, taskName: 'def', flaky: false)
@@ -362,7 +358,7 @@ void main() {
                             builderName: 'Mac abc')
                       ],
                     });
-        when(mockLuciService.getBranchRecentTasks(slug: config.flutterSlug, requireTaskName: true))
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
             .thenAnswer((Invocation invocation) {
           return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
         });

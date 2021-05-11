@@ -28,7 +28,7 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
     Config config,
     AuthenticationProvider authenticationProvider,
     this.luciBuildService, {
-    this.scheduler,
+    @required this.scheduler,
     @visibleForTesting LuciServiceProvider luciServiceProvider,
     @visibleForTesting DatastoreServiceProvider datastoreProvider,
     @visibleForTesting this.branchHttpClientProvider = Providers.freshHttpClient,
