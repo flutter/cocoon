@@ -4,7 +4,8 @@
 
 import 'dart:io';
 
-import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_scheduler/scheduler.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:yaml/yaml.dart';
 
 void main(List<String> args) {
