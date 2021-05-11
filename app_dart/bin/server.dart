@@ -130,11 +130,13 @@ Future<void> main() async {
       ///   branch: (string in query) default: 'master'. Name of the repo branch.
       ///
       /// Response: Status 200 OK
-      /// (See also: app_dart/lib/src/model/proto/internal/build_status_response.proto)
       ///  {
       ///    1: 2,
       ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
       ///   }
+      ///
+      /// See also:
+      /// * Response proto: app_dart/lib/src/model/proto/internal/build_status_response.proto
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
