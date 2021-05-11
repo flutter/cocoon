@@ -191,10 +191,10 @@ Future<void> main() async {
         delegate: GetStatus(config),
       ),
 
-Get supported branches to run infrastructure on the framework repo.
+      /// Get supported branches for the framework repo.
       ///
-      /// Returns branches that are supported by the dashboard
-      /// for the default repo.
+      /// Get list of supported branches to run infrastructure
+      /// tasks on the framework repo.
       ///
       /// GET: /api/public/get-branches
       ///
