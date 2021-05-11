@@ -33,6 +33,10 @@ dependencies:
   truncate: ^2.1.2
   yaml: ^2.1.16
 
+dependency_overrides:
+  uuid_enhanced:
+    path: ./uuid_enhanced
+
 dev_dependencies:
   build_runner: ^1.0.0
   fake_async: ^1.1.0

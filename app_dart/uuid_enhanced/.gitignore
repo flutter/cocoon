@@ -1,0 +1,10 @@
+tests/packages
+.children
+.project
+packages/
+packages
+.packages
+*.iml
+.idea/
+out/
+.dart_tool

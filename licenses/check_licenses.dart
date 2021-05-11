@@ -122,6 +122,7 @@ Iterable<File> _allFiles(String workingDirectory, String extension, {@required i
       if (path.basename(entity.path) == '.git') continue;
       if (path.basename(entity.path) == '.gradle') continue;
       if (path.basename(entity.path) == '.dart_tool') continue;
+      if (path.basename(entity.path) == 'uuid_enhanced') continue;
       if (_isPartOfAppTemplate(entity)) continue;
       pending.addAll(entity.listSync());
     }

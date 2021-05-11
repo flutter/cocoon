@@ -1,0 +1,4 @@
+This version of uuid_enhanced has been patched to avoid subclassing
+dart:typed_data classes that are sealed in the latest Dart SDK.
+
+See https://github.com/dart-lang/sdk/commit/3e9cdc56440bded76d8078a2567910236ad6f7b9
