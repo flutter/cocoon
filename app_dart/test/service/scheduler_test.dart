@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_github;
@@ -381,8 +380,7 @@ targets:
         expect(retryRequest.builderId.builder, 'Linux A');
       });
     });
-
- 
+  });
 }
 
 Build createBuild({String name, int id = 1000, Status status = Status.success, String bucket = 'try'}) {
