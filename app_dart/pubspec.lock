@@ -141,6 +141,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  cocoon_scheduler:
+    dependency: "direct main"
+    description:
+      path: "../scheduler"
+      relative: true
+    source: path
+    version: "1.0.0"
   code_builder:
     dependency: transitive
     description:
@@ -695,7 +702,7 @@ packages:
     source: hosted
     version: "0.0.5"
   yaml:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: yaml
       url: "https://pub.dartlang.org"

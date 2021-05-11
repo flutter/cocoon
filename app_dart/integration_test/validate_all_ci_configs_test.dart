@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';

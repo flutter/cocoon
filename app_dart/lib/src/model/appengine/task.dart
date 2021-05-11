@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_scheduler/scheduler.dart' as pb;
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../service/luci.dart';
-import '../proto/internal/scheduler.pb.dart' as pb;
 import 'commit.dart';
 import 'key_converter.dart';
 
