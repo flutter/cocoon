@@ -147,7 +147,7 @@ class LuciBuildService {
     ]));
     final Iterable<Build> builds = batch.responses
         .map((Response response) => response.searchBuilds)
-        .expand((SearchBuildsResponse response) => response.builds ?? <Build>[]);
+        .expand((SearchBuildsResponse response) => response?.builds ?? <Build>[]);
     return Map<String, Build>.fromIterable(builds,
         key: (dynamic b) => b.builderId.builder as String, value: (dynamic b) => b as Build);
   }
@@ -205,6 +205,7 @@ class LuciBuildService {
         'repo_name': slug.name,
         'user_agent': 'flutter-cocoon',
       };
+      int checkRunId;
       if (checkSuiteEvent != null || config.githubPresubmitSupportedRepo(slug)) {
         log.info('Creating check run for PR: $prNumber, Commit: $commitSha, Slug: $slug');
         final github.CheckRun checkRun = await githubChecksUtil.createCheckRun(
@@ -214,6 +215,7 @@ class LuciBuildService {
           commitSha,
         );
         userData['check_run_id'] = checkRun.id;
+        checkRunId = checkRun.id;
       }
       requests.add(
         Request(
@@ -223,6 +225,7 @@ class LuciBuildService {
               'buildset': <String>['pr/git/$prNumber', 'sha/git/$commitSha'],
               'user_agent': const <String>['flutter-cocoon'],
               'github_link': <String>['https://github.com/${slug.fullName}/pull/$prNumber'],
+              if (checkRunId != null) 'github_checkrun': <String>[checkRunId.toString()],
             },
             properties: <String, String>{
               'git_url': 'https://github.com/${slug.owner}/${slug.name}',
@@ -249,8 +252,25 @@ class LuciBuildService {
       retryIf: (Exception e) => e is BuildBucketException,
     );
     for (Response response in batchResponse.responses) {
-      if (response.error?.code != null) {
+      if (response.error?.code != 0) {
         log.warning('BatchResponse error: $response');
+        continue;
+      }
+
+      if (response.scheduleBuild == null) {
+        log.warning('$response does not contain scheduleBuild');
+        continue;
+      }
+
+      final Build scheduleBuild = response.scheduleBuild;
+      // Tags are List<String> so we need to decode to a single int
+      final List<String> checkrunIdStrings = scheduleBuild.tags['github_checkrun'];
+      final int checkRunId = checkrunIdStrings.map((String id) => int.parse(id)).single;
+      final String buildUrl = 'https://ci.chromium.org/ui/b/${scheduleBuild.id}';
+      // Not all scheduled builds have check runs
+      if (checkRunId != null) {
+        final github.CheckRun checkRun = await githubChecksUtil.getCheckRun(config, slug, checkRunId);
+        await githubChecksUtil.updateCheckRun(config, slug, checkRun, detailsUrl: buildUrl);
       }
     }
 
