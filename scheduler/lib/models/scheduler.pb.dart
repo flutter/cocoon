@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: lib/src/model/proto/internal/scheduler.proto
+//  source: lib/models/scheduler.proto
 //
 // @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
@@ -74,22 +74,21 @@ class Target extends $pb.GeneratedMessage {
     ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'name')
     ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'dependencies')
     ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'bringup')
-    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeout', $pb.PbFieldType.O3,
+    ..a<$core.int>(
+        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'timeout', $pb.PbFieldType.O3,
         defaultOrMaker: 30)
-    ..a<$core.String>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
+    ..a<$core.String>(
+        5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'testbed', $pb.PbFieldType.OS,
         defaultOrMaker: 'linux-vm')
-    ..m<$core.String, $core.String>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
+    ..m<$core.String, $core.String>(
+        6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'properties',
         entryClassName: 'Target.PropertiesEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS)
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'builder')
     ..e<SchedulerSystem>(
         8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'scheduler', $pb.PbFieldType.OE,
         defaultOrMaker: SchedulerSystem.cocoon, valueOf: SchedulerSystem.valueOf, enumValues: SchedulerSystem.values)
-    ..a<$core.bool>(
-        9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit', $pb.PbFieldType.OB,
-        defaultOrMaker: true)
-    ..a<$core.bool>(
-        10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit', $pb.PbFieldType.OB,
-        defaultOrMaker: true)
+    ..aOB(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'presubmit')
+    ..aOB(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'postsubmit')
     ..pPS(11, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runIf')
     ..pPS(12, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'enabledBranches')
     ..hasRequiredFields = false;
@@ -249,7 +248,7 @@ class Target extends $pb.GeneratedMessage {
   void clearScheduler() => clearField(8);
 
   @$pb.TagNumber(9)
-  $core.bool get presubmit => $_getB(8, true);
+  $core.bool get presubmit => $_getBF(8);
   @$pb.TagNumber(9)
   set presubmit($core.bool v) {
     $_setBool(8, v);
@@ -261,7 +260,7 @@ class Target extends $pb.GeneratedMessage {
   void clearPresubmit() => clearField(9);
 
   @$pb.TagNumber(10)
-  $core.bool get postsubmit => $_getB(9, true);
+  $core.bool get postsubmit => $_getBF(9);
   @$pb.TagNumber(10)
   set postsubmit($core.bool v) {
     $_setBool(9, v);

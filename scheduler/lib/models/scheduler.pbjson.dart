@@ -1,6 +1,6 @@
 ///
 //  Generated code. Do not modify.
-//  source: lib/src/model/proto/internal/scheduler.proto
+//  source: lib/models/scheduler.proto
 //
 // @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
@@ -32,8 +32,8 @@ const Target$json = const {
     const {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.Target.PropertiesEntry', '10': 'properties'},
     const {'1': 'builder', '3': 7, '4': 1, '5': 9, '10': 'builder'},
     const {'1': 'scheduler', '3': 8, '4': 1, '5': 14, '6': '.SchedulerSystem', '7': 'cocoon', '10': 'scheduler'},
-    const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
-    const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
+    const {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'false', '10': 'presubmit'},
+    const {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'false', '10': 'postsubmit'},
     const {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
     const {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
   ],

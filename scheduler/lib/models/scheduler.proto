@@ -33,10 +33,10 @@ message Target {
     // Name of the scheduler to trigger this target.
     // Defaults to being triggered by cocoon.
     optional SchedulerSystem scheduler = 8 [default = cocoon];
-    // Whether target should run pre-submit.
-    optional bool presubmit = 9 [default = true];
-    // Whether target should run post-submit.
-    optional bool postsubmit = 10 [default = true];
+    // Whether target should run pre-submit. Defaults to false, will not run presubmit.
+    optional bool presubmit = 9 [default = false];
+    // Whether target should run post-submit. Defaults to false, will not run postsubmit.
+    optional bool postsubmit = 10 [default = false];
     // List of paths that trigger this target in presubmit when there is a diff.
     // If no paths are given, it will always run.
     repeated string run_if = 11;
