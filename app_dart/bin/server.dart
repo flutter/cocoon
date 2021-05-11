@@ -133,9 +133,6 @@ Future<void> main() async {
       ///    1: 2,
       ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
       ///   }
-      ///
-      /// See also:
-      /// * Response proto: app_dart/lib/src/model/proto/internal/build_status_response.proto
       '/api/public/build-status': CacheRequestHandler<Body>(
         cache: cache,
         config: config,
