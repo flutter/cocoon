@@ -122,7 +122,8 @@ void main() {
         expect(commits, hasLength(1));
         expect(commits[0].repository, 'flutter/engine');
         // Invalid repo
-        commits = await datastoreService.queryRecentCommitsNoBranch(repoSlug: RepositorySlug.full('flutter/DNE')).toList();
+        commits =
+            await datastoreService.queryRecentCommitsNoBranch(repoSlug: RepositorySlug.full('flutter/DNE')).toList();
         expect(commits, hasLength(0));
       });
 
@@ -194,7 +195,8 @@ void main() {
         expect(commits, hasLength(2));
         expect(commits[0].repository, 'flutter/engine');
         // Invalid repo
-        commits = await datastoreService.queryRecentCommitsNoBranch(repoSlug: RepositorySlug.full('flutter/DNE')).toList();
+        commits =
+            await datastoreService.queryRecentCommitsNoBranch(repoSlug: RepositorySlug.full('flutter/DNE')).toList();
         expect(commits, hasLength(0));
       });
     });
