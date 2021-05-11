@@ -55,12 +55,12 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
-          branch: 'master',
+          branch: config.defaultBranch,
           repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
-          branch: 'master',
+          branch: config.defaultBranch,
           repository: 'flutter/flutter');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
@@ -84,13 +84,13 @@ void main() {
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
           message: 'test message 1',
-          branch: 'master',
+          branch: config.defaultBranch,
           repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
           timestamp: 1,
           message: 'test message 2',
-          branch: 'master',
+          branch: config.defaultBranch,
           repository: 'flutter/flutter');
       config.db.values[commit1.key] = commit1;
       config.db.values[commit2.key] = commit2;
@@ -124,7 +124,7 @@ void main() {
               'Message': 'test message 2',
               'Author': <String, dynamic>{'Login': null, 'avatar_url': null}
             },
-            'Branch': 'master'
+            'Branch': config.defaultBranch
           }
         },
         'Stages': <String>[]
@@ -135,7 +135,7 @@ void main() {
       final Commit commit1 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/ea28a9c34dc701de891eaf74503ca4717019f829'),
           timestamp: 3,
-          branch: 'master',
+          branch: config.defaultBranch,
           repository: 'flutter/flutter');
       final Commit commit2 = Commit(
           key: config.db.emptyKey.append(Commit, id: 'flutter/flutter/d5b0b3c8d1c5fd89302089077ccabbcfaae045e4'),
