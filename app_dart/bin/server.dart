@@ -190,7 +190,7 @@ Future<void> main() async {
         config: config,
         delegate: GetStatus(config),
       ),
-      
+
       /// Get supported branches for the framework repo.
       ///
       /// Get list of supported branches to run infrastructure
