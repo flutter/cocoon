@@ -288,7 +288,11 @@ void main() {
         final Commit commit = Commit(
             key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: config.flutterSlug.fullName);
         final Task task = Task(
-            key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
+            key: commit.key.append(Task, id: 123),
+            commitKey: commit.key,
+            builderName: 'Linux A',
+            status: Task.statusNew,
+            buildNumberList: '1');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         scheduler.schedulerConfig = oneTargetConfig;
@@ -301,17 +305,12 @@ void main() {
                 value: (dynamic builder) => <String, List<LuciTask>>{
                       'abc': <LuciTask>[
                         const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusSucceeded,
-                            buildNumber: 2,
-                            builderName: 'abc'),
-                        const LuciTask(
-                            commitSha: 'abc',
-                            ref: 'refs/heads/master',
-                            status: Task.statusFailed,
-                            buildNumber: 1,
-                            builderName: 'abc')
+                          commitSha: 'abc',
+                          ref: 'refs/heads/master',
+                          status: Task.statusSucceeded,
+                          buildNumber: 2,
+                          builderName: 'Linux A',
+                        ),
                       ],
                     });
         when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
@@ -322,7 +321,7 @@ void main() {
         expect(task.status, Task.statusNew);
         await tester.get(handler);
         expect(task.status, Task.statusSucceeded);
-        expect(task.buildNumberList, '1,2');
+        expect(task.buildNumberList, '2');
       });
 
       test('update task status for non master branch', () async {
