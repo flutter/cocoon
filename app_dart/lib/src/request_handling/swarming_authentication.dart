@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
+import '../model/google/token_info.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s for infra endpoints.

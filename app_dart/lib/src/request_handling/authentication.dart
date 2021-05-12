@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/appengine/allowed_account.dart';
