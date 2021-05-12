@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -11,7 +12,6 @@ import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/github_build_status_update.dart';
 import '../model/appengine/task.dart';
-import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/providers.dart';
@@ -11,7 +12,6 @@ import '../foundation/typedefs.dart';
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/proto/internal/scheduler.pb.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
@@ -58,7 +58,24 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
   Future<Body> get() async {
     final LuciService luciService = luciServiceProvider(this);
     final DatastoreService datastore = datastoreProvider(config.db);
-    final Commit latestCommit = await datastore.queryRecentCommits(limit: 1).single;
+    for (String branch in await config.flutterBranches) {
+      await _updateBranch(branch, luciService: luciService, datastore: datastore);
+    }
+    return Body.empty;
+  }
+
+  /// Update LUCI tasks in [datastore] for [branch] on the framework repo.
+  Future<void> _updateBranch(
+    String branch, {
+    LuciService luciService,
+    DatastoreService datastore,
+  }) async {
+    final List<Commit> commits = await datastore.queryRecentCommits(limit: 1, branch: branch).toList();
+    if (commits.isEmpty) {
+      log.debug('Branch $branch does not have any commits');
+      return;
+    }
+    final Commit latestCommit = commits.first;
     final SchedulerConfig schedulerConfig = await scheduler.getSchedulerConfig(latestCommit);
     final List<Target> postsubmitTargets = scheduler.getPostSubmitTargets(latestCommit, schedulerConfig);
     final List<LuciBuilder> postsubmitBuilders =
@@ -78,7 +95,6 @@ class RefreshChromebotStatus extends ApiRequestHandler<Body> {
         );
       });
     }
-    return Body.empty;
   }
 
   /// Update chromebot tasks statuses in datastore for [builder],

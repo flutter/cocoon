@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/request_handlers/refresh_chromebot_status.dart';
@@ -27,6 +28,7 @@ void main() {
     MockLuciService mockLuciService;
     RefreshChromebotStatus handler;
     FakeHttpClient branchHttpClient;
+    FakeScheduler scheduler;
     FakeTabledataResourceApi tabledataResourceApi;
     MockLuciBuildService mockLuciBuildService;
 
@@ -34,9 +36,11 @@ void main() {
       branchHttpClient = FakeHttpClient();
       tabledataResourceApi = FakeTabledataResourceApi();
       config = FakeConfig(tabledataResourceApi: tabledataResourceApi);
+      config.flutterBranchesValue = <String>[config.defaultBranch];
       tester = ApiRequestHandlerTester();
       mockLuciService = MockLuciService();
       mockLuciBuildService = MockLuciBuildService();
+      scheduler = FakeScheduler(config: config);
       handler = RefreshChromebotStatus(
         config,
         FakeAuthenticationProvider(),
@@ -45,7 +49,7 @@ void main() {
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         branchHttpClientProvider: () => branchHttpClient,
         gitHubBackoffCalculator: (int attempt) => Duration.zero,
-        scheduler: FakeScheduler(config: config),
+        scheduler: scheduler,
       );
     });
 
@@ -126,6 +130,7 @@ void main() {
       test('do not update task status when branch does not match', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', branch: 'test');
         final Task task = Task(key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew);
+        config.flutterBranchesValue = <String>['test'];
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
@@ -279,9 +284,51 @@ void main() {
         expect(task.buildNumberList, '1,2');
       });
 
+      test('update task status with latest status when ci yaml targets exist', () async {
+        final Commit commit = Commit(
+            key: config.db.emptyKey.append(Commit, id: 'abc'), sha: 'abc', repository: config.flutterSlug.fullName);
+        final Task task = Task(
+            key: commit.key.append(Task, id: 123), commitKey: commit.key, status: Task.statusNew, buildNumberList: '1');
+        config.db.values[commit.key] = commit;
+        config.db.values[task.key] = task;
+        scheduler.schedulerConfig = oneTargetConfig;
+        final List<Target> targets = scheduler.getPostSubmitTargets(commit, await scheduler.getSchedulerConfig(commit));
+        final List<LuciBuilder> builders =
+            targets.map((Target target) => LuciBuilder.fromTarget(target, commit.slug)).toList();
+        final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
+            Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(builders,
+                key: (dynamic builder) => BranchLuciBuilder(luciBuilder: builder as LuciBuilder, branch: 'master'),
+                value: (dynamic builder) => <String, List<LuciTask>>{
+                      'abc': <LuciTask>[
+                        const LuciTask(
+                            commitSha: 'abc',
+                            ref: 'refs/heads/master',
+                            status: Task.statusSucceeded,
+                            buildNumber: 2,
+                            builderName: 'abc'),
+                        const LuciTask(
+                            commitSha: 'abc',
+                            ref: 'refs/heads/master',
+                            status: Task.statusFailed,
+                            buildNumber: 1,
+                            builderName: 'abc')
+                      ],
+                    });
+        when(mockLuciService.getBranchRecentTasks(builders: anyNamed('builders'), requireTaskName: true))
+            .thenAnswer((Invocation invocation) {
+          return Future<Map<BranchLuciBuilder, Map<String, List<LuciTask>>>>.value(luciTasks);
+        });
+
+        expect(task.status, Task.statusNew);
+        await tester.get(handler);
+        expect(task.status, Task.statusSucceeded);
+        expect(task.buildNumberList, '1,2');
+      });
+
       test('update task status for non master branch', () async {
         final Commit commit = Commit(key: config.db.emptyKey.append(Commit, id: 'def'), sha: 'def', branch: 'test');
         final Task task = Task(key: commit.key.append(Task, id: 456), commitKey: commit.key, status: Task.statusNew);
+        config.flutterBranchesValue = <String>[config.defaultBranch, 'test'];
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
         final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
@@ -342,7 +389,6 @@ void main() {
             builderName: 'Mac abc');
         config.db.values[commit.key] = commit;
         config.db.values[task.key] = task;
-        final List<LuciBuilder> builders = await config.luciBuilders('prod', config.flutterSlug);
         final Map<BranchLuciBuilder, Map<String, List<LuciTask>>> luciTasks =
             Map<BranchLuciBuilder, Map<String, List<LuciTask>>>.fromIterable(<LuciBuilder>[
           LuciBuilder(name: 'Mac abc', repo: config.flutterSlug.name, taskName: 'def', flaky: false)
