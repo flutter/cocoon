@@ -6,7 +6,7 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io' as io;
 
 import 'package:args/args.dart';
-import 'package:cocoon_scheduler/scheduler.dart';
+import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 
 Future<void> main(List<String> args) async {
