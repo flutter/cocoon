@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:meta/meta.dart';
@@ -15,6 +14,7 @@ import '../foundation/typedefs.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../service/config.dart';
 import 'check_for_waiting_pull_requests_queries.dart';
 import 'refresh_cirrus_status.dart';

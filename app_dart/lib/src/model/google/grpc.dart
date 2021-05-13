@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../../request_handling/body.dart';
 
 part 'grpc.g.dart';
 
