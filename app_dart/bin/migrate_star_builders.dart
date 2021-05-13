@@ -6,7 +6,7 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io' as io;
 
 import 'package:args/args.dart';
-import 'package:cocoon_service/protos.dart';
+import 'package:cocoon_scheduler/scheduler.dart';
 import 'package:cocoon_service/src/service/luci.dart';
 
 Future<void> main(List<String> args) async {
@@ -80,15 +80,15 @@ void writeYaml(SchedulerConfig config) {
   configYaml.add('');
   configYaml.add('targets:');
   for (Target target in config.targets) {
-    configYaml.add('  - ${target.name}');
+    configYaml.add('  - name: ${target.name}');
     configYaml.add('    builder: ${target.builder}');
     if (target.bringup) {
       configYaml.add('    bringup: ${target.bringup}');
     }
-    if (target.presubmit) {
+    if (!target.presubmit) {
       configYaml.add('    presubmit: ${target.presubmit}');
     }
-    if (target.postsubmit) {
+    if (!target.postsubmit) {
       configYaml.add('    postsubmit: ${target.postsubmit}');
     }
     if (target.scheduler != SchedulerSystem.cocoon) {
